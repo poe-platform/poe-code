@@ -5,11 +5,13 @@ import {
   ExperimentJournal,
   runExperimentLoop as runWorkspaceExperimentLoop,
   type ExperimentFileSystem,
-  type ExperimentRunOptions,
+  type ExperimentRunOptions as WorkspaceExperimentRunOptions,
   type ExperimentRunResult,
   type JournalEntry
 } from "@poe-code/experiment-loop";
 import { spawn as sdkSpawn } from "./spawn.js";
+import type { WorktreeExecutionOptions } from "./types.js";
+import { runWithOptionalWorktree } from "./worktree.js";
 
 export type {
   AgentRunInput,
@@ -17,13 +19,16 @@ export type {
   EvalResult,
   ExperimentFileSystem,
   ExperimentFrontmatter,
-  ExperimentRunOptions,
   ExperimentRunResult,
   ExperimentStopReason,
   JournalEntry,
   MetricDef,
   MetricDirection
 } from "@poe-code/experiment-loop";
+
+export type ExperimentRunOptions = WorkspaceExperimentRunOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
 
 export interface ExperimentJournalOptions {
   cwd: string;
@@ -77,8 +82,29 @@ function resolveJournalPath(docPath: string): string {
 }
 
 export async function runExperiment(options: ExperimentRunOptions): Promise<ExperimentRunResult> {
-  return runWorkspaceExperimentLoop({
-    ...options,
+  if (isWorktreeEnabled(options.worktree)) {
+    const selectedAgent = resolveWorktreeAgent(options.agent);
+    const wrapped = await runWithOptionalWorktree<ExperimentRunResult>({
+      cwd: options.cwd,
+      selectedAgent,
+      worktree: options.worktree,
+      run: async ({ worktreeCwd }) =>
+        await runExperimentDirect({
+          ...options,
+          cwd: worktreeCwd,
+          worktree: false
+        })
+    });
+    return wrapped.value;
+  }
+
+  return await runExperimentDirect(options);
+}
+
+async function runExperimentDirect(options: ExperimentRunOptions): Promise<ExperimentRunResult> {
+  const { worktree: _worktree, ...workspaceOptions } = options;
+  return await runWorkspaceExperimentLoop({
+    ...workspaceOptions,
     runAgent: options.runAgent ?? (async (input: Parameters<NonNullable<ExperimentRunOptions["runAgent"]>>[0]) => {
       return await sdkSpawn.autonomous(input.agent, {
         prompt: input.prompt,
@@ -93,10 +119,25 @@ export async function runExperiment(options: ExperimentRunOptions): Promise<Expe
         ...(options.detach ? { detach: options.detach } : {}),
         ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
         ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
-        ...(input.signal ? { signal: input.signal } : {})
+        ...(input.signal ? { signal: input.signal } : {}),
+        worktree: false
       });
     })
   });
+}
+
+function isWorktreeEnabled(options: WorktreeExecutionOptions | undefined): boolean {
+  return options === true;
+}
+
+function resolveWorktreeAgent(agent: WorkspaceExperimentRunOptions["agent"]): string {
+  if (typeof agent === "string" && agent.trim().length > 0) {
+    return agent;
+  }
+  if (Array.isArray(agent) && typeof agent[0] === "string" && agent[0].trim().length > 0) {
+    return agent[0];
+  }
+  throw new Error("runExperiment with worktree requires a resolved agent.");
 }
 
 export async function readExperimentJournal(

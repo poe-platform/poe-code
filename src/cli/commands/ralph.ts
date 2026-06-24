@@ -58,6 +58,7 @@ import {
   type RuntimeCliOptions
 } from "./runtime-options.js";
 import type { FileSystem } from "../../utils/file-system.js";
+import { addWorktreeOptions, pickWorktreeOptions } from "./worktree-options.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
 const DEFAULT_RALPH_ITERATIONS = 3;
@@ -767,7 +768,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     .option("--tui", "Show a live dashboard while Ralph is running")
     .option("--no-tui", "Disable the live dashboard for this Ralph run");
 
-  addRuntimeOptions(run).action(async function (this: Command, docArg?: string) {
+  addRuntimeOptions(addWorktreeOptions(run)).action(async function (this: Command, docArg?: string) {
     const flags = resolveCommandFlags(program);
     const resources = createExecutionResources(container, flags, "ralph:run");
     const options = this.opts<
@@ -776,6 +777,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         iterations?: string;
         cwd?: string;
         tui?: boolean;
+        worktree?: boolean;
       } & RuntimeCliOptions
     >();
     const runtimeOptions = pickRuntimeOptions(options);
@@ -823,6 +825,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         docPath,
         maxIterations,
         runtimeConfigCwd: container.env.cwd,
+        worktree: pickWorktreeOptions(options as Record<string, unknown>),
         ...runtimeOptions
       };
       if (flags.dryRun) {

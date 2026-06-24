@@ -1,6 +1,12 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
+import {
+  exec as nodeExec,
+  spawn as nodeSpawn,
+  spawnSync as nodeSpawnSync
+} from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { promisify } from "node:util";
 import {
   discoverPlans,
   ensureSafeRunLogDir,
@@ -20,6 +26,14 @@ import {
   type AcpSpawnContext
 } from "@poe-code/agent-spawn";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import {
+  createWorktree,
+  reconcileWorktree,
+  updateWorktreeEntry,
+  type Worktree,
+  type WorktreeDeps,
+  type WorktreeReconciliationSummary
+} from "@poe-code/worktree";
 import { executePoeAgent } from "./poe-agent-runner.js";
 import { S, UserError, defineCommand } from "toolcraft";
 import {
@@ -57,7 +71,16 @@ import {
 } from "../runtime/loop.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
 
+const execShell = promisify(nodeExec);
 type SharedDiscoverPlansFs = NonNullable<Parameters<typeof discoverPlans>[0]["fs"]>;
+
+type WorktreeExecutionOptions = boolean;
+
+type NormalizedWorktreeOptions = {
+  enabled: boolean;
+  registryFile: string;
+  worktreeDir: string;
+};
 
 export type SuperintendentRunCommandResult = SuperintendentRunResult & {
   docPath: string;
@@ -106,6 +129,8 @@ export type RunCommandOptions = {
   stderr?: NodeJS.WritableStream;
   exit?: (code: number) => never;
   integrations?: Integrations | null;
+  worktree?: WorktreeExecutionOptions;
+  worktreeDeps?: WorktreeDeps;
 };
 
 type OutputKind = "info" | "success" | "error" | "tool" | "status";
@@ -146,9 +171,6 @@ const runParams = S.Object({
   runtimeImage: S.Optional(S.String({ description: "Override Docker runtime image" })),
   runtimeTemplate: S.Optional(S.String({ description: "Override E2B runtime template id" })),
   detach: S.Optional(S.Boolean({ description: "Run as a detached runtime job" })),
-  mountPoeCode: S.Optional(S.Boolean({
-    description: "Mount the local poe-code checkout into the runtime"
-  })),
   runnerSync: S.Optional(S.Enum(["both", "upload", "none"] as const, {
     description: "Override runner workspace sync: both, upload, or none"
   })),
@@ -157,6 +179,9 @@ const runParams = S.Object({
     description: "Preview the loop without launching agents or writing changes",
     scope: ["cli", "sdk"],
     global: true
+  })),
+  worktree: S.Optional(S.Boolean({
+    description: "Run in a managed git worktree and reconcile successful output"
   }))
 });
 
@@ -183,13 +208,13 @@ export const runCommand = defineCommand({
         ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
         ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
         ...(params.detach ? { detach: params.detach } : {}),
-        ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
         ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
         configuredDefaultAgent: commandConfig.configuredDefaultAgent,
         assumeYes: process.argv.includes("--yes"),
         interactive: Boolean(process.stdin.isTTY),
         useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
         dryRun: params.dryRun === true,
+        worktree: pickWorktreeOptions(params),
         env: process.env,
         integrations,
         ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
@@ -260,7 +285,6 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
           ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
           ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
           ...(params.detach ? { detach: params.detach } : {}),
-          ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
           ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
           configuredDefaultAgent: commandConfig.configuredDefaultAgent,
           assumeYes: true,
@@ -268,6 +292,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
           useDashboard: false,
           env: process.env,
           integrations,
+          worktree: pickWorktreeOptions(params),
           ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
           ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
         };
@@ -473,6 +498,14 @@ export async function runSuperintendentCommand(
       docPath: selectedDocPath,
       builderAgent: selectedBuilderAgent
     };
+  }
+
+  if (isWorktreeEnabled(options.worktree)) {
+    return await runSuperintendentInWorktree({
+      options,
+      selectedDocPath,
+      selectedBuilderAgent
+    });
   }
 
   if (!useDashboard) {
@@ -864,6 +897,246 @@ export async function runSuperintendentCommand(
     stderr.write(`${error.stack}\n`);
   }
   throw caughtError;
+}
+
+async function runSuperintendentInWorktree(input: {
+  options: RunCommandOptions;
+  selectedDocPath: string;
+  selectedBuilderAgent: string;
+}): Promise<SuperintendentRunCommandResult> {
+  const worktreeOptions = normalizeWorktreeOptions(input.options.cwd, input.options.worktree ?? false);
+  const deps = input.options.worktreeDeps ?? createNodeWorktreeDeps();
+  const worktree = await createWorktree({
+    cwd: input.options.cwd,
+    name: `superintendent-${randomUUID().slice(0, 8)}`,
+    baseBranch: "HEAD",
+    source: "superintendent",
+    agent: input.selectedBuilderAgent,
+    registryFile: worktreeOptions.registryFile,
+    worktreeDir: worktreeOptions.worktreeDir,
+    sourceCwd: input.options.cwd,
+    planPath: input.selectedDocPath,
+    deps
+  });
+
+  let result: SuperintendentRunCommandResult;
+  try {
+    result = await runSuperintendentCommand({
+      ...input.options,
+      cwd: worktree.path,
+      docPath: mapSourcePathIntoWorktree(input.options.cwd, input.selectedDocPath, worktree.path),
+      builderAgent: input.selectedBuilderAgent,
+      configuredDefaultAgent: input.selectedBuilderAgent,
+      assumeYes: true,
+      worktree: false,
+      worktreeDeps: deps
+    });
+  } catch (error) {
+    await markFailedSuperintendentWorktree({
+      sourceCwd: input.options.cwd,
+      worktree,
+      selectedBuilderAgent: input.selectedBuilderAgent,
+      worktreeOptions,
+      deps
+    });
+    throw error;
+  }
+
+  await reconcileWorktree({
+    cwd: input.options.cwd,
+    name: worktree.name,
+    registryFile: worktreeOptions.registryFile,
+    deps,
+    reconciliationAgent: async (agentInput) => {
+      const result = await spawn(input.selectedBuilderAgent, {
+        cwd: agentInput.sourceCwd,
+        prompt: agentInput.prompt,
+        mode: "auto",
+        useStdin: true,
+        ...(agentInput.resumeThreadId ? { resumeThreadId: agentInput.resumeThreadId } : {}),
+        ...(agentInput.signal ? { signal: agentInput.signal } : {})
+      });
+      return {
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exitCode: result.exitCode,
+        ...(result.threadId ? { threadId: result.threadId } : {})
+      };
+    }
+  });
+  return result;
+}
+
+async function markFailedSuperintendentWorktree(input: {
+  sourceCwd: string;
+  worktree: Worktree;
+  selectedBuilderAgent: string;
+  worktreeOptions: NormalizedWorktreeOptions;
+  deps: WorktreeDeps;
+}): Promise<void> {
+  const worktreeHead = (await input.deps.exec("git rev-parse HEAD", {
+    cwd: input.worktree.path
+  })).stdout.trim();
+  const status = (await input.deps.exec("git status --porcelain=v1 -z", {
+    cwd: input.worktree.path
+  })).stdout;
+  const hasCommittedChanges =
+    input.worktree.baseHead !== undefined && worktreeHead !== input.worktree.baseHead;
+  const hasUncommittedChanges = status.length > 0;
+  const summary: WorktreeReconciliationSummary = {
+    committed: hasCommittedChanges ? "present" : "none",
+    uncommitted: hasUncommittedChanges ? "present" : "none",
+    removed: false,
+    cleanup: "not_needed",
+    conflictFiles: []
+  };
+
+  await updateWorktreeEntry(
+    input.worktreeOptions.registryFile,
+    input.worktree.name,
+    (entry) => ({
+      ...entry,
+      status: "failed",
+      reconciledAt: new Date().toISOString(),
+      reconciliation: summary
+    }),
+    { fs: input.deps.fs }
+  );
+
+  if (hasCommittedChanges || hasUncommittedChanges) {
+    return;
+  }
+
+  const result = await spawn(input.selectedBuilderAgent, {
+    cwd: input.sourceCwd,
+    prompt: buildFailedRunCleanupPrompt(input.worktree),
+    mode: "auto",
+    useStdin: true
+  });
+  const removed = result.exitCode === 0 && !(await managedWorktreeExists(input.sourceCwd, input.worktree, input.deps));
+  await updateWorktreeEntry(
+    input.worktreeOptions.registryFile,
+    input.worktree.name,
+    (entry) => ({
+      ...entry,
+      status: "failed",
+      reconciledAt: new Date().toISOString(),
+      reconciliation: {
+        ...summary,
+        removed,
+        cleanup: removed ? "removed_by_agent" : "failed",
+        ...(result.threadId ? { threadId: result.threadId } : {})
+      }
+    }),
+    { fs: input.deps.fs }
+  );
+}
+
+function normalizeWorktreeOptions(
+  cwd: string,
+  options: WorktreeExecutionOptions
+): NormalizedWorktreeOptions {
+  if (options === false) {
+    return {
+      enabled: false,
+      registryFile: defaultRegistryFile(cwd),
+      worktreeDir: defaultWorktreeDir(cwd)
+    };
+  }
+  return {
+    enabled: true,
+    registryFile: defaultRegistryFile(cwd),
+    worktreeDir: defaultWorktreeDir(cwd)
+  };
+}
+
+function pickWorktreeOptions(params: { worktree?: boolean }): WorktreeExecutionOptions {
+  return params.worktree === true;
+}
+
+function isWorktreeEnabled(options: WorktreeExecutionOptions | undefined): boolean {
+  return options === true;
+}
+
+function defaultRegistryFile(cwd: string): string {
+  return path.join(cwd, ".poe-code", "worktrees.yaml");
+}
+
+function defaultWorktreeDir(cwd: string): string {
+  return path.join(cwd, ".poe-code", "worktrees");
+}
+
+function mapSourcePathIntoWorktree(sourceCwd: string, sourcePath: string, worktreeCwd: string): string {
+  if (!path.isAbsolute(sourcePath)) {
+    return sourcePath;
+  }
+  const relativePath = path.relative(sourceCwd, sourcePath);
+  if (relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))) {
+    return path.join(worktreeCwd, relativePath);
+  }
+  return sourcePath;
+}
+
+function buildFailedRunCleanupPrompt(worktree: Worktree): string {
+  return [
+    "A poe-code managed superintendent worktree run failed and produced no worktree changes.",
+    "",
+    `Worktree path: ${worktree.path}`,
+    `Worktree branch: ${worktree.branch}`,
+    "",
+    "Remove that git worktree and branch now. Then verify `git worktree list --porcelain`",
+    "does not contain the path."
+  ].join("\n");
+}
+
+async function managedWorktreeExists(
+  sourceCwd: string,
+  worktree: Worktree,
+  deps: WorktreeDeps
+): Promise<boolean> {
+  const gitOutput = await deps.exec("git worktree list --porcelain", { cwd: sourceCwd });
+  for (const line of gitOutput.stdout.split("\n")) {
+    if (line === `worktree ${worktree.path}`) {
+      return true;
+    }
+  }
+  try {
+    await deps.fs.lstat(worktree.path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function createNodeWorktreeDeps(): WorktreeDeps {
+  return {
+    fs: {
+      readFile: async (targetPath, encoding) => await fsPromises.readFile(targetPath, encoding),
+      writeFile: async (targetPath, data, options) => {
+        await fsPromises.writeFile(targetPath, data, options);
+      },
+      mkdir: async (targetPath, options) => {
+        await fsPromises.mkdir(targetPath, options);
+      },
+      rename: async (oldPath, newPath) => {
+        await fsPromises.rename(oldPath, newPath);
+      },
+      unlink: async (targetPath) => {
+        await fsPromises.unlink(targetPath);
+      },
+      lstat: async (targetPath) => await fsPromises.lstat(targetPath)
+    },
+    exec: async (command, options) => {
+      const result = await execShell(command, {
+        cwd: options?.cwd,
+        maxBuffer: 10 * 1024 * 1024
+      });
+      return {
+        stdout: result.stdout,
+        stderr: result.stderr
+      };
+    }
+  };
 }
 
 async function resolveDocPath(options: {

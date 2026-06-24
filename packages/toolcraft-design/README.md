@@ -5,10 +5,10 @@ Shared terminal design system for Toolcraft applications. It provides design tok
 ## Install
 
 ```sh
-npm install toolcraft-design
+npm install toolcraft
 ```
 
-Import from the package root:
+`toolcraft-design` is currently distributed through `toolcraft`. Import the design system from the bundled `toolcraft/design` entrypoint:
 
 ```ts
 import {
@@ -18,22 +18,22 @@ import {
   renderMarkdownHtml,
   renderTable,
   text
-} from "toolcraft-design";
+} from "toolcraft/design";
 ```
 
-Flat subpath imports are also public package exports. Use the kebab-case file name that matches the root export name:
+Flat subpath imports are also available through `toolcraft/design/*`. Use the kebab-case file name that matches the root export name:
 
 ```ts
-import { renderMarkdownHtml } from "toolcraft-design/render-markdown-html";
-import { renderTable } from "toolcraft-design/render-table";
-import { renderDetailCard } from "toolcraft-design/render-detail-card";
-```
-
-Consumers using the bundled Toolcraft design entrypoint can use the same exports through `toolcraft`:
-
-```ts
-import { renderMarkdownHtml } from "toolcraft/design";
+import { renderMarkdownHtml } from "toolcraft/design/render-markdown-html";
 import { renderTable } from "toolcraft/design/render-table";
+import { renderDetailCard } from "toolcraft/design/render-detail-card";
+```
+
+Inside this workspace, the design package exposes equivalent direct exports:
+
+```ts
+import { renderMarkdownHtml } from "toolcraft-design";
+import { renderTable } from "toolcraft-design/render-table";
 ```
 
 ## Public API

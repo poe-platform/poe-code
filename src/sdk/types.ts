@@ -63,6 +63,14 @@ export interface HookBridgeOptions {
 }
 
 import type { TraceSink } from "./trace.js";
+import type { Worktree, WorktreeReconciliationSummary } from "@poe-code/worktree";
+
+export type WorktreeExecutionOptions = boolean;
+
+export type WorktreeExecutionResult = {
+  worktree: Worktree;
+  reconciliation?: WorktreeReconciliationSummary;
+};
 
 /**
  * Options for spawning a provider CLI.
@@ -136,6 +144,8 @@ export interface SpawnOptions {
   mountPoeCode?: boolean;
   /** Runner workspace sync override: both, upload, or none */
   runnerSync?: RunnerSync;
+  /** Run the provider in a managed git worktree and reconcile successful output afterward */
+  worktree?: WorktreeExecutionOptions;
 }
 
 /**
@@ -168,6 +178,8 @@ export interface SpawnResult {
   detached?: { jobId: string; envId: string };
   /** Captured session messages and tool calls (ACP streaming only) */
   sessionResult?: SessionResult;
+  /** Managed worktree metadata when worktree mode is enabled */
+  worktree?: WorktreeExecutionResult;
 }
 
 export interface SpawnRetryOptions {

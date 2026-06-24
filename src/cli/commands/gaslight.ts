@@ -23,6 +23,7 @@ import {
 import { resolveServiceArgument } from "./configure.js";
 import { ValidationError } from "../errors.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
+import { addWorktreeOptions, pickWorktreeOptions } from "./worktree-options.js";
 
 const DEFAULT_AGENT = "claude-code";
 
@@ -32,6 +33,7 @@ interface GaslightCommandOptions {
   model?: string;
   mode?: "read" | "edit" | "yolo" | "auto";
   plans?: string[];
+  worktree?: boolean;
 }
 
 interface GaslightIngestCommandOptions {
@@ -292,19 +294,19 @@ async function scaffoldConfig(
 }
 
 export function registerGaslightCommand(program: Command, container: CliContainer): void {
-  const gaslight = program
-    .command("gaslight")
-    .description("Run a plan through a resumable sequence of agent follow-ups.")
-    .argument("[plan-path]", "Markdown plan to implement")
-    .option("--agent <agent>", "Agent to run")
-    .option("--config <path>", "gaslight.yaml variant to use")
-    .option("--model <model>", "Model to run")
-    .option("--plans <paths...>", "Markdown plans to run sequentially")
-    .addOption(
-      new Option("--mode <mode>", "Spawn mode")
-        .choices(["read", "edit", "yolo", "auto"])
-        .default("auto")
-    )
+  const gaslight = addWorktreeOptions(program
+      .command("gaslight")
+      .description("Run a plan through a resumable sequence of agent follow-ups.")
+      .argument("[plan-path]", "Markdown plan to implement")
+      .option("--agent <agent>", "Agent to run")
+      .option("--config <path>", "gaslight.yaml variant to use")
+      .option("--model <model>", "Model to run")
+      .option("--plans <paths...>", "Markdown plans to run sequentially")
+      .addOption(
+        new Option("--mode <mode>", "Spawn mode")
+          .choices(["read", "edit", "yolo", "auto"])
+          .default("auto")
+      ))
     .action(async function (this: Command, providedPlanPath: string | undefined) {
       const flags = resolveCommandFlags(program);
       const options = this.opts<GaslightCommandOptions>();
@@ -326,6 +328,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         mode: options.mode ?? "auto",
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
+        worktree: pickWorktreeOptions(options as Record<string, unknown>),
         fs: container.fs,
         onEvent(event: GaslightEvent) {
           if (event.type === "round.started") {

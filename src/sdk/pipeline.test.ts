@@ -4,6 +4,7 @@ import type { PipelineFileSystem, PipelineRunOptions, PipelineRunResult } from "
 
 const workspaceRunPipelineMock = vi.hoisted(() => vi.fn());
 const sdkSpawnAutonomousMock = vi.hoisted(() => vi.fn());
+const runWithOptionalWorktreeMock = vi.hoisted(() => vi.fn());
 const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url)
   .pathname;
 
@@ -16,6 +17,10 @@ vi.mock("./spawn.js", () => ({
   spawn: {
     autonomous: sdkSpawnAutonomousMock
   }
+}));
+
+vi.mock("./worktree.js", () => ({
+  runWithOptionalWorktree: runWithOptionalWorktreeMock
 }));
 
 vi.mock("@poe-code/pipeline", async (importOriginal) => {
@@ -86,6 +91,24 @@ describe("SDK pipeline", () => {
   beforeEach(() => {
     workspaceRunPipelineMock.mockReset();
     sdkSpawnAutonomousMock.mockReset();
+    runWithOptionalWorktreeMock.mockReset();
+    runWithOptionalWorktreeMock.mockImplementation(async (input) => {
+      const value = await input.run({
+        sourceCwd: input.cwd,
+        worktreeCwd: "/repo/.poe-code/worktrees/pipeline",
+        worktree: {
+          name: "pipeline",
+          path: "/repo/.poe-code/worktrees/pipeline",
+          branch: "poe-code/pipeline",
+          baseBranch: "HEAD",
+          createdAt: "2026-01-01T00:00:00.000Z",
+          source: "sdk",
+          agent: input.selectedAgent,
+          status: "active"
+        }
+      });
+      return { value };
+    });
   });
 
   afterEach(() => {
@@ -94,7 +117,8 @@ describe("SDK pipeline", () => {
 
   it("runs directly when the target file already has tasks", async () => {
     seedFs({
-      "/repo/feature.md": initializedPlan()
+      "/repo/feature.md": initializedPlan(),
+      "/repo/.poe-code/worktrees/pipeline/feature.md": initializedPlan()
     });
 
     const runAgent = vi.fn();
@@ -118,6 +142,37 @@ describe("SDK pipeline", () => {
         homeDir,
         plan: "feature.md",
         runAgent: expect.any(Function)
+      })
+    );
+  });
+
+  it("wraps the whole pipeline run in one worktree when enabled", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan(),
+      "/repo/.poe-code/worktrees/pipeline/feature.md": initializedPlan()
+    });
+    workspaceRunPipelineMock.mockResolvedValueOnce(workspaceResult);
+
+    await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "feature.md",
+      worktree: true
+    });
+
+    expect(runWithOptionalWorktreeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd,
+        selectedAgent: "codex",
+        worktree: true
+      })
+    );
+    expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+    expect(workspaceRunPipelineMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/repo/.poe-code/worktrees/pipeline",
+        plan: "feature.md"
       })
     );
   });

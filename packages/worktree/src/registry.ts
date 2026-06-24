@@ -116,6 +116,10 @@ function isWorktree(value: unknown): value is Worktree {
   const storyId = getOwnEntry(value, "storyId");
   const planPath = getOwnEntry(value, "planPath");
   const prompt = getOwnEntry(value, "prompt");
+  const sourceCwd = getOwnEntry(value, "sourceCwd");
+  const baseHead = getOwnEntry(value, "baseHead");
+  const reconciledAt = getOwnEntry(value, "reconciledAt");
+  const reconciliation = getOwnEntry(value, "reconciliation");
   return (
     typeof name === "string" &&
     typeof path === "string" &&
@@ -124,10 +128,58 @@ function isWorktree(value: unknown): value is Worktree {
     typeof createdAt === "string" &&
     typeof source === "string" &&
     typeof agent === "string" &&
-    (status === "active" || status === "done" || status === "failed" || status === "removing") &&
+    (
+      status === "active" ||
+      status === "reconciling" ||
+      status === "conflicted" ||
+      status === "cleanup_failed" ||
+      status === "done" ||
+      status === "failed" ||
+      status === "removing"
+    ) &&
     (storyId === undefined || typeof storyId === "string") &&
     (planPath === undefined || typeof planPath === "string") &&
-    (prompt === undefined || typeof prompt === "string")
+    (prompt === undefined || typeof prompt === "string") &&
+    (sourceCwd === undefined || typeof sourceCwd === "string") &&
+    (baseHead === undefined || typeof baseHead === "string") &&
+    (reconciledAt === undefined || typeof reconciledAt === "string") &&
+    (reconciliation === undefined || isReconciliationSummary(reconciliation))
+  );
+}
+
+function isReconciliationSummary(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const committed = getOwnEntry(value, "committed");
+  const uncommitted = getOwnEntry(value, "uncommitted");
+  const removed = getOwnEntry(value, "removed");
+  const cleanup = getOwnEntry(value, "cleanup");
+  const conflictFiles = getOwnEntry(value, "conflictFiles");
+  const threadId = getOwnEntry(value, "threadId");
+  return (
+    (
+      committed === "none" ||
+      committed === "present" ||
+      committed === "merged_by_agent" ||
+      committed === "failed"
+    ) &&
+    (
+      uncommitted === "none" ||
+      uncommitted === "present" ||
+      uncommitted === "applied_by_agent" ||
+      uncommitted === "failed"
+    ) &&
+    typeof removed === "boolean" &&
+    (
+      cleanup === "not_needed" ||
+      cleanup === "removed_by_agent" ||
+      cleanup === "nudged" ||
+      cleanup === "failed"
+    ) &&
+    Array.isArray(conflictFiles) &&
+    conflictFiles.every((file) => typeof file === "string") &&
+    (threadId === undefined || typeof threadId === "string")
   );
 }
 
@@ -171,4 +223,27 @@ export async function updateWorktreeStatus(
   }
   entry.status = status;
   await writeRegistry(registryFile, registry, fs);
+}
+
+export async function updateWorktreeEntry(
+  registryFile: string,
+  name: string,
+  update: (entry: Worktree) => Worktree,
+  deps: { fs: WorktreeFileSystem }
+): Promise<Worktree> {
+  const { fs } = deps;
+  const registry = await readRegistry(registryFile, fs);
+  let updated: Worktree | undefined;
+  const worktrees = registry.worktrees.map((entry) => {
+    if (entry.name !== name) {
+      return entry;
+    }
+    updated = update(entry);
+    return updated;
+  });
+  if (!updated) {
+    throw new Error(`Worktree "${name}" not found in registry`);
+  }
+  await writeRegistry(registryFile, { worktrees }, fs);
+  return updated;
 }

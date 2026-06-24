@@ -46,6 +46,7 @@ import { registerHarnessCommand } from "./commands/harness.js";
 import { registerBraintrustCommand } from "./commands/braintrust.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
+import { registerWorktreeCommand } from "./commands/worktree.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import { ValidationError } from "./errors.js";
@@ -147,6 +148,9 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["harness", "run"] },
   { path: ["harness", "new"], args: "<kind> <basename>" },
   { path: ["harness", "list"] },
+  { path: ["worktree", "list"] },
+  { path: ["worktree", "reconcile"], args: "<name>" },
+  { path: ["worktree", "remove"], args: "<name>" },
   { path: ["experiment", "install"] },
   { path: ["experiment", "run"] },
   { path: ["experiment", "journal"] },
@@ -954,6 +958,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);
+  registerWorktreeCommand(program, container);
   registerBraintrustCommand(program, container);
   registerTasksCommand(program, container);
   registerForwardedToolcraftCommand(

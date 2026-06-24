@@ -348,7 +348,6 @@ describe("experiment run command", () => {
       "--runtime-template",
       "tpl_123",
       "--detach",
-      "--mount-poe-code",
       "--runner-sync",
       "none"
     ]);
@@ -358,8 +357,37 @@ describe("experiment run command", () => {
         runtime: "e2b",
         runtimeTemplate: "tpl_123",
         detach: true,
-        mountPoeCode: true,
         runnerSync: "none"
+      })
+    );
+  });
+
+  it("passes worktree flags to the experiment SDK", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--worktree"
+    ]);
+
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        worktree: true
       })
     );
   });
@@ -2326,6 +2354,38 @@ describe("ralph run command", () => {
         docPath: "docs/loop.md",
         maxIterations: 5,
         runtimeConfigCwd: cwd
+      })
+    );
+  });
+
+  it("passes worktree flags to the Ralph SDK run", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--iterations",
+      "3",
+      "--worktree"
+    ]);
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        worktree: true
       })
     );
   });

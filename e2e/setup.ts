@@ -1,4 +1,4 @@
-import { runPreflight, formatPreflightResults } from '@poe-code/e2e-test-runner';
+import { runPreflight, formatPreflightResults } from '../packages/e2e-test-runner/src/preflight.js';
 
 
 export async function setup(): Promise<void> {

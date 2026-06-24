@@ -10,7 +10,8 @@ const harnessMocks = vi.hoisted(() => ({
   listBuiltinTemplatesMock: vi.fn(),
   selectMock: vi.fn(),
   promptTextMock: vi.fn(),
-  spawnMock: vi.fn()
+  spawnMock: vi.fn(),
+  runWithOptionalWorktreeMock: vi.fn()
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -48,6 +49,10 @@ vi.mock("toolcraft-design", async () => {
 
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: harnessMocks.spawnMock
+}));
+
+vi.mock("../../sdk/worktree.js", () => ({
+  runWithOptionalWorktree: harnessMocks.runWithOptionalWorktreeMock
 }));
 
 vi.mock("../../providers/index.js", () => ({
@@ -167,6 +172,45 @@ describe("harness command", () => {
       events: (async function* () {})(),
       result: Promise.resolve({ exitCode: 0, stdout: "spawned", stderr: "" })
     });
+    harnessMocks.runWithOptionalWorktreeMock.mockReset();
+    harnessMocks.runWithOptionalWorktreeMock.mockImplementation(async (input) => {
+      const enabled = input.worktree === true;
+      const worktreeCwd = enabled ? path.join(cwd, ".poe-code", "worktrees", "generated") : cwd;
+      const worktreeName = enabled ? "generated" : "source";
+      const value = await input.run({
+        sourceCwd: cwd,
+        worktreeCwd,
+        worktree: {
+          name: worktreeName,
+          path: worktreeCwd,
+          branch: enabled ? `poe-code/${worktreeName}` : "",
+          baseBranch: "HEAD",
+          createdAt: "2026-01-01T00:00:00.000Z",
+          source: "sdk",
+          agent: input.selectedAgent,
+          status: "active"
+        }
+      });
+      return {
+        value,
+        ...(enabled
+          ? {
+              worktree: {
+                worktree: {
+                  name: worktreeName,
+                  path: worktreeCwd,
+                  branch: `poe-code/${worktreeName}`,
+                  baseBranch: "HEAD",
+                  createdAt: "2026-01-01T00:00:00.000Z",
+                  source: "sdk",
+                  agent: input.selectedAgent,
+                  status: "done"
+                }
+              }
+            }
+          : {})
+      };
+    });
   });
 
   afterEach(() => {
@@ -207,6 +251,31 @@ describe("harness command", () => {
         activityTimeoutMs: 12_345,
         cwd: "/repo",
         prompt: "Build it"
+      })
+    );
+  });
+
+  it("passes worktree flags through the SDK helper and runs the harness path inside the worktree", async () => {
+    await runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--worktree",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(harnessMocks.runWithOptionalWorktreeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd,
+        selectedAgent: "codex",
+        worktree: true
+      })
+    );
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/.poe-code/worktrees/generated/harness.md",
+      expect.objectContaining({
+        snapshotPath: "/repo/.poe-code/worktrees/generated/.poe-code/harnesses/harness/snapshot.json"
       })
     );
   });

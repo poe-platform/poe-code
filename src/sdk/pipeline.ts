@@ -4,12 +4,14 @@ import {
   resolveAbsolutePlanPath,
   runPipeline as runWorkspacePipeline,
   type PipelineFileSystem,
-  type PipelineRunOptions,
+  type PipelineRunOptions as WorkspacePipelineRunOptions,
   type PipelineRunResult
 } from "@poe-code/pipeline";
 import { buildPipelineInitPrompt } from "../cli/commands/pipeline-init.js";
 import pipelineSkillPlan from "../templates/pipeline/SKILL_plan.md";
 import { spawn as sdkSpawn } from "./spawn.js";
+import { runWithOptionalWorktree } from "./worktree.js";
+import type { WorktreeExecutionOptions } from "./types.js";
 
 export type {
   AgentRunUsage,
@@ -29,7 +31,10 @@ export type {
   PlanSummary
 } from "@poe-code/pipeline";
 export { resolvePlanDirectory } from "@poe-code/pipeline";
-export type { PipelineRunOptions, PipelineRunResult };
+export type PipelineRunOptions = WorkspacePipelineRunOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+export type { PipelineRunResult };
 
 export interface PipelineInitSource {
   absolutePath: string;
@@ -37,7 +42,7 @@ export interface PipelineInitSource {
   title: string;
 }
 
-type PipelineAgentRunner = NonNullable<PipelineRunOptions["runAgent"]>;
+type PipelineAgentRunner = NonNullable<WorkspacePipelineRunOptions["runAgent"]>;
 type PipelineAgentRunnerInput = Parameters<PipelineAgentRunner>[0];
 type PipelineAgentRunnerResult = Awaited<ReturnType<PipelineAgentRunner>>;
 
@@ -125,6 +130,27 @@ async function runWithRetry<T>(
 }
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  if (isWorktreeEnabled(options.worktree)) {
+    const wrapped = await runWithOptionalWorktree({
+      cwd: options.cwd,
+      selectedAgent: options.agent,
+      ...(options.model ? { selectedModel: options.model } : {}),
+      worktree: options.worktree,
+      signal: options.signal,
+      run: async ({ worktreeCwd }) =>
+        await runPipelineDirect({
+          ...options,
+          cwd: worktreeCwd,
+          worktree: false
+        })
+    });
+    return wrapped.value;
+  }
+
+  return await runPipelineDirect(options);
+}
+
+async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineRunResult> {
   assertNotAborted(options.signal);
   const userRunAgent =
     options.runAgent ??
@@ -180,6 +206,10 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     ...options,
     runAgent: retryRunAgent
   });
+}
+
+function isWorktreeEnabled(worktree: WorktreeExecutionOptions | undefined): boolean {
+  return worktree === true;
 }
 
 export async function runPipelineInit(

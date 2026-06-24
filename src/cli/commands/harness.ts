@@ -17,6 +17,7 @@ import {
   makeLogModule,
   makeMetricModule,
   restore,
+  splitFrontmatter,
   type AgentSpawnEvent,
   type Diagnostic
 } from "@poe-code/safejs";
@@ -34,10 +35,16 @@ import { ReportedError, ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { runWithOptionalWorktree } from "../../sdk/worktree.js";
 import {
   isHarnessSpawnErrorRetryable,
   isHarnessSpawnResultRetryable
 } from "./harness-spawn-retry.js";
+import {
+  addWorktreeOptions,
+  isWorktreeRequested,
+  pickWorktreeOptions
+} from "./worktree-options.js";
 
 type HarnessRunOptions = {
   agent?: string;
@@ -46,6 +53,7 @@ type HarnessRunOptions = {
   model?: string;
   resume?: boolean;
   snapshotPath?: string;
+  worktree?: boolean;
   yes?: boolean;
 };
 
@@ -65,7 +73,7 @@ type HarnessPairWithLocation = HarnessPair & {
 export function registerHarnessCommand(program: Command, container: CliContainer): void {
   const harness = program.command("harness").description("Run and manage agent harness pairs.");
 
-  harness
+  addWorktreeOptions(harness
     .command("run")
     .description("Run a harness pair.")
     .argument("[md-path]", "Path to the harness .md file")
@@ -78,7 +86,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
       "--mode <mode>",
       "Override the mode from the harness frontmatter agent block (read|edit|auto|yolo)."
     )
-    .option("-y, --yes", "Accept defaults without prompting.")
+    .option("-y, --yes", "Accept defaults without prompting."))
     .action(async (mdPath: string | undefined, options: HarnessRunOptions) => {
       await executeHarnessRun(program, container, mdPath, options);
     });
@@ -123,6 +131,10 @@ async function executeHarnessRun(
   const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
   const snapshotPathIsDefault = options.snapshotPath === undefined;
   await prepareHarnessSnapshot(container, selectedPath, snapshotPath, Boolean(options.resume));
+  const worktreeOptions = pickWorktreeOptions(options as Record<string, unknown>);
+  const selectedAgent = isWorktreeRequested(options as Record<string, unknown>)
+    ? await resolveHarnessWorktreeAgent(container, selectedPath, options)
+    : options.agent ?? "codex";
 
   resources.logger.intro("harness run");
 
@@ -133,25 +145,43 @@ async function executeHarnessRun(
   const reportedSpawnFailures = new Set<string>();
   let result: Awaited<ReturnType<typeof runHarnessPair>>;
   try {
-    result = await withSpinner({
+    const wrapped = await withSpinner({
       message: () => formatRunMessage(baseMessage, progress.current()),
       fn: () =>
-        runHarnessPair(selectedPath, {
-          modulesFor: (frontmatter, meta) =>
-            createHarnessModules(container, resources.logger, frontmatter, meta, (error) => {
-              reportedSpawnFailures.add(error);
-            }),
-          onDiagnostics: (diagnostics) => {
-            lintDiagnostics.push(...diagnostics);
-          },
-          fix: Boolean(options.fix),
-          resume: Boolean(options.resume),
-          snapshotPath,
-          ...(snapshotPathIsDefault ? { snapshotPathIsDefault: true } : {}),
-          ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
+        runWithOptionalWorktree({
+          cwd: container.env.cwd,
+          selectedAgent,
+          worktree: worktreeOptions,
+          run: async ({ worktreeCwd }) => {
+            const runSelectedPath = mapSourcePathIntoWorktree(
+              container.env.cwd,
+              selectedPath,
+              worktreeCwd
+            );
+            const runSnapshotPath = mapSourcePathIntoWorktree(
+              container.env.cwd,
+              snapshotPath,
+              worktreeCwd
+            );
+            return await runHarnessPair(runSelectedPath, {
+              modulesFor: (frontmatter, meta) =>
+                createHarnessModules(container, resources.logger, frontmatter, meta, (error) => {
+                  reportedSpawnFailures.add(error);
+                }),
+              onDiagnostics: (diagnostics) => {
+                lintDiagnostics.push(...diagnostics);
+              },
+              fix: Boolean(options.fix),
+              resume: Boolean(options.resume),
+              snapshotPath: runSnapshotPath,
+              ...(snapshotPathIsDefault ? { snapshotPathIsDefault: true } : {}),
+              ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
+            });
+          }
         }),
       stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
     });
+    result = wrapped.value;
   } catch (error) {
     const message = formatUnknownError(error);
     if (isAlreadyReportedSpawnFailure(error, reportedSpawnFailures)) {
@@ -169,6 +199,44 @@ async function executeHarnessRun(
   if (!result.ok) {
     throw new ReportedError(formatSpawnFailureText(formatUnknownError(result.error)));
   }
+}
+
+async function resolveHarnessWorktreeAgent(
+  container: CliContainer,
+  selectedPath: string,
+  options: HarnessRunOptions
+): Promise<string> {
+  if (options.agent !== undefined) {
+    return options.agent;
+  }
+
+  const source = await container.fs.readFile(selectedPath, "utf8");
+  const { frontmatter } = splitFrontmatter(source);
+  const agentBlock = readOwn(frontmatter, "agent");
+  if (typeof agentBlock === "object" && agentBlock !== null) {
+    const agent = readOwn(agentBlock, "agent");
+    if (typeof agent === "string" && agent.length > 0) {
+      return agent;
+    }
+  }
+
+  throw new ValidationError(
+    "Cannot run harness with --worktree because no run agent could be resolved. Pass --agent <name> or define agent.agent in harness frontmatter."
+  );
+}
+
+function mapSourcePathIntoWorktree(sourceCwd: string, sourcePath: string, worktreeCwd: string): string {
+  const relativePath = path.relative(sourceCwd, sourcePath);
+  if (relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))) {
+    return path.join(worktreeCwd, relativePath);
+  }
+  return sourcePath;
+}
+
+function readOwn(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
 }
 
 function logHarnessResult(

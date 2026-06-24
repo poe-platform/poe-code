@@ -6,7 +6,9 @@ import {
   explorer,
   parse,
   render,
+  renderHtml,
   renderMarkdown,
+  renderMarkdownHtml,
   runExplorer,
   openExternal,
   renderTemplate,
@@ -22,6 +24,7 @@ import {
   type DetailItem,
   type ExplorerConfig,
   type MdNode,
+  type HtmlRenderOptions,
   type RenderOptions,
   type Row,
   type Tone
@@ -40,6 +43,7 @@ import {
 describe("design-system root exports", () => {
   it("re-exports terminal markdown helpers", () => {
     expect(renderMarkdown("# Heading")).toBe(render(parse("# Heading").ast));
+    expect(renderMarkdownHtml("# Heading")).toBe(renderHtml(parse("# Heading").ast));
   });
 
   it("re-exports renderMarkdown with render options intact", () => {
@@ -55,6 +59,10 @@ describe("design-system root exports", () => {
     expectTypeOf<RenderOptions>().toMatchTypeOf<{
       width?: number;
       showFrontmatter?: boolean;
+    }>();
+    expectTypeOf<HtmlRenderOptions>().toMatchTypeOf<{
+      showFrontmatter?: boolean;
+      allowRawHtml?: boolean;
     }>();
   });
 

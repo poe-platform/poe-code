@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { archivePlan, deletePlan, editFile, editPlan, resolveEditor } from "./actions.js";
+import {
+  archivePlan,
+  deletePlan,
+  editFile,
+  editPlan,
+  resolveEditor,
+  restorePlanFromLater,
+  savePlanForLater
+} from "./actions.js";
 import type { ActionFs } from "./types.js";
 
 function createMemFs(files: Record<string, string> = {}): ActionFs {
@@ -72,6 +80,80 @@ describe("plan actions", () => {
     );
 
     await expect(fs.readFile("/repo/.poe-code/experiments/plan.md", "utf8")).rejects.toThrow();
+  });
+
+  it("saves a plan for later with a persisted frontmatter reason", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature\n\nPlan body\n"
+    });
+
+    const savedPath = await savePlanForLater(
+      {
+        absolutePath: "/repo/docs/plans/feature.md",
+        format: "markdown"
+      },
+      fs,
+      { reason: "Blocked on API contract" }
+    );
+
+    expect(savedPath).toBe("/repo/docs/plans/later/feature.md");
+    await expect(fs.readFile("/repo/docs/plans/feature.md", "utf8")).rejects.toThrow();
+    await expect(fs.readFile("/repo/docs/plans/later/feature.md", "utf8")).resolves.toContain(
+      "saved_for_later:\n  reason: Blocked on API contract"
+    );
+  });
+
+  it("does not ask callers for a new reason when save-for-later metadata already exists", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": [
+        "---",
+        "saved_for_later:",
+        "  reason: Existing reason",
+        "---",
+        "# Feature"
+      ].join("\n")
+    });
+
+    await savePlanForLater(
+      {
+        absolutePath: "/repo/docs/plans/feature.md",
+        format: "markdown",
+        savedForLater: {
+          reason: "Existing reason"
+        }
+      },
+      fs,
+      {}
+    );
+
+    await expect(fs.readFile("/repo/docs/plans/later/feature.md", "utf8")).resolves.toContain(
+      "reason: Existing reason"
+    );
+  });
+
+  it("restores a saved-for-later plan without deleting its reason", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/later/feature.md": [
+        "---",
+        "saved_for_later:",
+        "  reason: Existing reason",
+        "---",
+        "# Feature"
+      ].join("\n")
+    });
+
+    const restoredPath = await restorePlanFromLater(
+      {
+        absolutePath: "/repo/docs/plans/later/feature.md"
+      },
+      fs
+    );
+
+    expect(restoredPath).toBe("/repo/docs/plans/feature.md");
+    await expect(fs.readFile("/repo/docs/plans/feature.md", "utf8")).resolves.toContain(
+      "reason: Existing reason"
+    );
+    await expect(fs.readFile("/repo/docs/plans/later/feature.md", "utf8")).rejects.toThrow();
   });
 
   it("opens a file in the resolved editor", () => {

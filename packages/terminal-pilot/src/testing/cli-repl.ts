@@ -1,6 +1,10 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { stripAnsi } from "../ansi.js";
 import { main } from "../cli.js";
-import { closeSharedTerminalPilotRuntime } from "../commands/runtime.js";
+import { createTerminalPilotRuntime } from "../commands/runtime.js";
+
+const cliPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "cli.ts");
 
 export type TerminalPilotCliRunResult = {
   exitCode: number;
@@ -15,7 +19,11 @@ export type TerminalPilotCliJsonRunResult<T> = {
 };
 
 function appendJsonOutputFlag(args: string[]): string[] {
-  if (args.includes("--json") || args.includes("--output") || args.some((arg) => arg.startsWith("--output="))) {
+  if (
+    args.includes("--json") ||
+    args.includes("--output") ||
+    args.some((arg) => arg.startsWith("--output="))
+  ) {
     return [...args];
   }
 
@@ -58,6 +66,8 @@ function canParseJson(text: string): boolean {
 }
 
 export function createTerminalPilotCliRepl() {
+  const terminalPilotRuntime = createTerminalPilotRuntime();
+
   return {
     async run(args: string[]): Promise<TerminalPilotCliRunResult> {
       const stdoutChunks: string[] = [];
@@ -69,19 +79,21 @@ export function createTerminalPilotCliRepl() {
       process.exitCode = 0;
       process.stdout.write = ((chunk: unknown, ...rest: unknown[]) => {
         stdoutChunks.push(toText(chunk));
-        const callback = typeof rest.at(-1) === "function" ? (rest.at(-1) as (() => void)) : undefined;
+        const callback =
+          typeof rest.at(-1) === "function" ? (rest.at(-1) as () => void) : undefined;
         callback?.();
         return true;
       }) as typeof process.stdout.write;
       process.stderr.write = ((chunk: unknown, ...rest: unknown[]) => {
         stderrChunks.push(toText(chunk));
-        const callback = typeof rest.at(-1) === "function" ? (rest.at(-1) as (() => void)) : undefined;
+        const callback =
+          typeof rest.at(-1) === "function" ? (rest.at(-1) as () => void) : undefined;
         callback?.();
         return true;
       }) as typeof process.stderr.write;
 
       try {
-        await main(["node", "terminal-pilot", ...args]);
+        await main(["node", cliPath, ...args], { terminalPilotRuntime });
       } finally {
         process.stdout.write = originalStdoutWrite;
         process.stderr.write = originalStderrWrite;
@@ -117,7 +129,9 @@ export function createTerminalPilotCliRepl() {
       }
 
       if (result.stdout.length === 0) {
-        throw new Error(`Expected JSON output for terminal-pilot ${args.join(" ")}, but stdout was empty.`);
+        throw new Error(
+          `Expected JSON output for terminal-pilot ${args.join(" ")}, but stdout was empty.`
+        );
       }
 
       return {
@@ -128,7 +142,7 @@ export function createTerminalPilotCliRepl() {
     },
 
     async close(): Promise<void> {
-      await closeSharedTerminalPilotRuntime();
+      await terminalPilotRuntime.close();
     }
   };
 }

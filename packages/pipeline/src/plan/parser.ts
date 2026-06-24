@@ -232,7 +232,7 @@ export const pipelineDocumentSchema: JsonSchema = {
     }
   },
   required: ["kind", "version", "tasks"],
-  additionalProperties: false
+  additionalProperties: true
 };
 
 function trimCarriageReturn(value: string): string {
@@ -532,20 +532,6 @@ export function parsePlan(
   if (!isRecord(document)) {
     throw new Error("Invalid plan YAML: expected a top-level object.");
   }
-  rejectUnknownProperties(document, [
-    "$schema",
-    "kind",
-    "version",
-    "name",
-    "state",
-    "extends",
-    "steps",
-    "tasks",
-    "vars",
-    "setup",
-    "teardown",
-    "mcp"
-  ]);
   const kind = getOwnEntry(document, "kind");
   if (kind === undefined) {
     throw new Error('Invalid plan YAML: missing required "kind".');

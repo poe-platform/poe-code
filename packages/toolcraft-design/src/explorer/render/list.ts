@@ -70,7 +70,7 @@ export function renderList(
     if (row.group && row.group !== lastGroup && y < bodyRect.height) {
       const hash = `group:${row.group}`;
       if (cache.get(y) !== hash) {
-        writeLine(screen, bodyRect, y, row.group, styles.muted);
+        writeLine(screen, bodyRect, y, formatGroupHeader(row.group, bodyRect), styles.muted);
         cache.set(y, hash);
       }
       y += 1;
@@ -106,6 +106,16 @@ export function renderList(
       y += 1;
     }
   }
+}
+
+function formatGroupHeader(label: string, rect: Rect): string {
+  const text = ` ${label} `;
+  const labelWidth = cellWidth(text, rect.x);
+  if (labelWidth >= rect.width) {
+    return label;
+  }
+
+  return `${text}${"─".repeat(rect.width - labelWidth)}`;
 }
 
 function renderRow(

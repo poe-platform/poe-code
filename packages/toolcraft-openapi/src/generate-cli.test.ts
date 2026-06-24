@@ -430,6 +430,37 @@ describe("runGenerateCli", () => {
     await expect(harness.fs.stat("/repo/src/generated/SKILL.md")).rejects.toThrow("ENOENT");
   });
 
+  it("writes generated skill files through symlinks that resolve inside the project", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    await harness.fs.mkdir("/repo/.agents/skills", { recursive: true });
+    await harness.fs.mkdir("/repo/.claude", { recursive: true });
+    await harness.fs.symlink("../.agents/skills", "/repo/.claude/skills");
+
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(exitCode).toBe(0);
+    expect(
+      await harness.fs.readFile("/repo/.agents/skills/internal-agent-api/SKILL.md", "utf8")
+    ).toBe(createExpectedFiles(specText)[".claude/skills/internal-agent-api/SKILL.md"]);
+    expect((await harness.fs.lstat("/repo/.claude/skills")).isSymbolicLink()).toBe(true);
+  });
+
+  it("rejects generated skill symlinks that resolve outside the project", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    await harness.fs.mkdir("/repo/.claude", { recursive: true });
+    await harness.fs.mkdir("/outside/skills", { recursive: true });
+    await harness.fs.symlink("/outside/skills", "/repo/.claude/skills");
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated skill output must remain inside the project directory."
+    );
+    await expect(
+      harness.fs.readFile("/outside/skills/internal-agent-api/SKILL.md", "utf8")
+    ).rejects.toThrow("ENOENT");
+  });
+
   it("treats a stale OpenAPI lock as drift in --check mode", async () => {
     const specText = createSpec("List bots.");
     const harness = createCliHarness({

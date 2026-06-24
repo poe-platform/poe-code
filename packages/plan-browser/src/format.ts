@@ -6,8 +6,8 @@ import {
 } from "@poe-code/experiment-loop";
 import { parseFrontmatter, type RalphFrontmatter } from "@poe-code/ralph";
 import { parseSuperintendentDoc } from "@poe-code/superintendent";
-import { parseDocument } from "yaml";
-import type { DiscoveryFs, PlanEntry } from "./types.js";
+import { parseDocument, stringify } from "yaml";
+import type { DiscoveryFs, PlanEntry, SavedForLaterMetadata } from "./types.js";
 
 const FRONTMATTER_FENCE = "---";
 
@@ -69,6 +69,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
   return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function parseSavedForLaterMetadata(value: unknown): SavedForLaterMetadata | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const reasonValue = getOwnEntry(value, "reason");
+  const reason = typeof reasonValue === "string" && reasonValue.trim().length > 0
+    ? reasonValue.trim()
+    : undefined;
+
+  return reason === undefined ? {} : { reason };
 }
 
 function stripBom(content: string): string {
@@ -167,6 +180,72 @@ export function splitFrontmatter(content: string, filePath: string): {
     body: readBody(normalizedContent, closingFenceIndex + FRONTMATTER_FENCE.length + 1),
     data: isRecord(parsed) ? parsed : {}
   };
+}
+
+export function readSavedForLaterMetadata(
+  content: string,
+  filePath: string
+): SavedForLaterMetadata | undefined {
+  const format = resolveFormatFromPath(filePath);
+  let data: Record<string, unknown> | undefined;
+
+  if (format === "yaml") {
+    const document = parseDocument(normalizeLineEndings(stripBom(content)));
+    if (document.errors.length > 0) {
+      throw new Error(`${filePath}: invalid YAML: ${document.errors[0]?.message}`);
+    }
+    const parsed = document.toJSON();
+    data = isRecord(parsed) ? parsed : undefined;
+  } else {
+    data = splitFrontmatter(content, filePath).data;
+  }
+
+  return data === undefined
+    ? undefined
+    : parseSavedForLaterMetadata(getOwnEntry(data, "saved_for_later"));
+}
+
+function setSavedForLaterReasonInYaml(yamlContent: string, filePath: string, reason: string): string {
+  const document = parseDocument(yamlContent.trim().length > 0 ? yamlContent : "{}");
+  if (document.errors.length > 0) {
+    throw new Error(`${filePath}: invalid YAML: ${document.errors[0]?.message}`);
+  }
+
+  const parsed = document.toJSON();
+  const data = isRecord(parsed) ? { ...parsed } : {};
+  const currentMetadata = getOwnEntry(data, "saved_for_later");
+  data.saved_for_later = {
+    ...(isRecord(currentMetadata) ? currentMetadata : {}),
+    reason
+  };
+
+  return stringify(data).trimEnd();
+}
+
+export function writeSavedForLaterReason(
+  content: string,
+  filePath: string,
+  reason: string
+): string {
+  const format = resolveFormatFromPath(filePath);
+
+  if (format === "yaml") {
+    return `${setSavedForLaterReasonInYaml(normalizeLineEndings(stripBom(content)), filePath, reason)}\n`;
+  }
+
+  const normalizedContent = normalizeLineEndings(stripBom(content));
+  const openingLineBreak = readOpeningLineBreak(normalizedContent);
+  if (openingLineBreak === undefined) {
+    const frontmatter = setSavedForLaterReasonInYaml("", filePath, reason);
+    return `---\n${frontmatter}\n---\n${normalizedContent}`;
+  }
+
+  const frontmatterStart = FRONTMATTER_FENCE.length + openingLineBreak.length;
+  const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart, filePath);
+  const frontmatterYaml = normalizedContent.slice(frontmatterStart, closingFenceIndex);
+  const frontmatter = setSavedForLaterReasonInYaml(frontmatterYaml, filePath, reason);
+  const body = readBody(normalizedContent, closingFenceIndex + FRONTMATTER_FENCE.length + 1);
+  return `---\n${frontmatter}\n---\n${body}`;
 }
 
 function formatStateLabel(value: string): string {

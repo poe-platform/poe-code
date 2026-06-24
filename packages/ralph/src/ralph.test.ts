@@ -458,14 +458,28 @@ describe("parseFrontmatter", () => {
   });
 
   it.each([
-    ["unknown agent key", ["agnet: codex"], "agnet"],
-    ["unknown iterations key", ["iteratons: 1"], "iteratons"],
     ["unknown hook strategy key", ["hooks:", "  from: claude", "  stratgey: transform"], "stratgey"],
     ["unknown hook scope key", ["hooks:", "  from: claude", "  scoep: user"], "scoep"]
   ])("rejects $0", (_name, yaml, key) => {
     const doc = ["---", ...yaml, "---", "Body"].join("\n");
 
     expect(() => parseFrontmatter(doc)).toThrow(String(key));
+  });
+
+  it("allows arbitrary top-level metadata keys", () => {
+    const doc = [
+      "---",
+      "agent: codex",
+      "saved_for_later:",
+      "  reason: Wait for queue capacity",
+      "custom_owner: platform",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data.agent).toBe("codex");
   });
 
   it("rejects a document declaring a different workflow kind", () => {

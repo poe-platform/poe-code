@@ -61,17 +61,21 @@ describe("runExplorer", () => {
   it("selects a row and exits via the primary action", async () => {
     const driver = currentDriver();
     const selected: string[] = [];
-    const result = runExplorer(config({
-      actions: [{
-        id: "open",
-        label: "Open",
-        primary: true,
-        handler: (ctx) => {
-          selected.push(ctx.row.id);
-          ctx.exit();
-        }
-      }]
-    }));
+    const result = runExplorer(
+      config({
+        actions: [
+          {
+            id: "open",
+            label: "Open",
+            primary: true,
+            handler: (ctx) => {
+              selected.push(ctx.row.id);
+              ctx.exit();
+            }
+          }
+        ]
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     driver.press(namedKey("down"));
@@ -84,19 +88,23 @@ describe("runExplorer", () => {
   it("runs a confirmed multi-select bulk action", async () => {
     const driver = currentDriver();
     const handledRows: string[][] = [];
-    const result = runExplorer(config({
-      multiSelect: true,
-      actions: [{
-        id: "delete",
-        label: "Delete",
-        key: "d",
-        destructive: true,
-        handler: (ctx) => {
-          handledRows.push(ctx.rows.map((row) => row.id));
-          ctx.exit();
-        }
-      }]
-    }));
+    const result = runExplorer(
+      config({
+        multiSelect: true,
+        actions: [
+          {
+            id: "delete",
+            label: "Delete",
+            key: "d",
+            destructive: true,
+            handler: (ctx) => {
+              handledRows.push(ctx.rows.map((row) => row.id));
+              ctx.exit();
+            }
+          }
+        ]
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     driver.press(key(" "));
@@ -113,19 +121,23 @@ describe("runExplorer", () => {
   it("keeps destructive actions single-row when multi-select is disabled", async () => {
     const driver = currentDriver();
     const handledRows: string[][] = [];
-    const result = runExplorer(config({
-      multiSelect: false,
-      actions: [{
-        id: "delete",
-        label: "Delete",
-        key: "d",
-        destructive: true,
-        handler: (ctx) => {
-          handledRows.push(ctx.rows.map((row) => row.id));
-          ctx.exit();
-        }
-      }]
-    }));
+    const result = runExplorer(
+      config({
+        multiSelect: false,
+        actions: [
+          {
+            id: "delete",
+            label: "Delete",
+            key: "d",
+            destructive: true,
+            handler: (ctx) => {
+              handledRows.push(ctx.rows.map((row) => row.id));
+              ctx.exit();
+            }
+          }
+        ]
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     driver.press(key(" "));
@@ -143,22 +155,24 @@ describe("runExplorer", () => {
   it("cancels stale async detail jobs when the cursor moves", async () => {
     const driver = currentDriver();
     let firstAborted = false;
-    const result = runExplorer(config({
-      detail: {
-        items: async (row, ctx) => {
-          if (row.id === "one") {
-            return new Promise((resolve) => {
-              ctx.signal.addEventListener("abort", () => {
-                firstAborted = true;
-                resolve([{ id: "stale", render: () => "detail one" }]);
+    const result = runExplorer(
+      config({
+        detail: {
+          items: async (row, ctx) => {
+            if (row.id === "one") {
+              return new Promise((resolve) => {
+                ctx.signal.addEventListener("abort", () => {
+                  firstAborted = true;
+                  resolve([{ id: "stale", render: () => "detail one" }]);
+                });
               });
-            });
-          }
+            }
 
-          return [{ id: row.id, render: () => `detail ${row.id}` }];
+            return [{ id: row.id, render: () => `detail ${row.id}` }];
+          }
         }
-      }
-    }));
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     driver.press(namedKey("down"));
@@ -173,16 +187,21 @@ describe("runExplorer", () => {
   it("renders asynchronous detail content after it resolves", async () => {
     const driver = currentDriver();
     let resolveDetail: ((value: string) => void) | undefined;
-    const result = runExplorer(config({
-      detail: {
-        items: async (row) => [{
-          id: row.id,
-          render: () => new Promise<string>((resolve) => {
-            resolveDetail = resolve;
-          })
-        }]
-      }
-    }));
+    const result = runExplorer(
+      config({
+        detail: {
+          items: async (row) => [
+            {
+              id: row.id,
+              render: () =>
+                new Promise<string>((resolve) => {
+                  resolveDetail = resolve;
+                })
+            }
+          ]
+        }
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     await waitFor(() => resolveDetail !== undefined);
@@ -199,18 +218,22 @@ describe("runExplorer", () => {
       throw new Error("save failed");
     });
     const opened: string[] = [];
-    const result = runExplorer(config({
-      reorder: { onReorder },
-      actions: [{
-        id: "open",
-        label: "Open",
-        primary: true,
-        handler: (ctx) => {
-          opened.push(ctx.row.id);
-          ctx.exit();
-        }
-      }]
-    }));
+    const result = runExplorer(
+      config({
+        reorder: { onReorder },
+        actions: [
+          {
+            id: "open",
+            label: "Open",
+            primary: true,
+            handler: (ctx) => {
+              opened.push(ctx.row.id);
+              ctx.exit();
+            }
+          }
+        ]
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     driver.press({ name: "down", ctrl: false, meta: false, shift: true });
@@ -255,20 +278,24 @@ describe("runExplorer", () => {
   it("round-trips through suspendAnd", async () => {
     const driver = currentDriver();
     let suspended = false;
-    const result = runExplorer(config({
-      actions: [{
-        id: "edit",
-        label: "Edit",
-        key: "e",
-        handler: async (ctx) => {
-          await ctx.suspendAnd(async () => {
-            suspended = true;
-            expect(driver.altScreen).toBe(false);
-          });
-          ctx.exit();
-        }
-      }]
-    }));
+    const result = runExplorer(
+      config({
+        actions: [
+          {
+            id: "edit",
+            label: "Edit",
+            key: "e",
+            handler: async (ctx) => {
+              await ctx.suspendAnd(async () => {
+                suspended = true;
+                expect(driver.altScreen).toBe(false);
+              });
+              ctx.exit();
+            }
+          }
+        ]
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     driver.press(key("e"));
@@ -279,6 +306,48 @@ describe("runExplorer", () => {
     expect(driver.enterAltScreenCount).toBeGreaterThanOrEqual(2);
   });
 
+  it("does not handle explorer keypresses while suspended", async () => {
+    const driver = currentDriver();
+    let releaseSuspended: (() => void) | undefined;
+    const handled: string[] = [];
+    const result = runExplorer(
+      config({
+        actions: [
+          {
+            id: "nested",
+            label: "Nested",
+            key: "s",
+            handler: async (ctx) => {
+              await ctx.suspendAnd(async () => {
+                await new Promise<void>((resolve) => {
+                  releaseSuspended = resolve;
+                });
+              });
+              ctx.exit();
+            }
+          },
+          {
+            id: "other",
+            label: "Other",
+            key: "o",
+            handler: () => {
+              handled.push("other");
+            }
+          }
+        ]
+      })
+    );
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(key("s"));
+    await waitFor(() => releaseSuspended !== undefined);
+    driver.press(key("o"));
+    releaseSuspended?.();
+
+    await expect(result).resolves.toBeNull();
+    expect(handled).toEqual([]);
+  });
+
   it("calls config refresh before reloading rows from an action refresh", async () => {
     const driver = currentDriver();
     let currentRows = rows;
@@ -286,19 +355,23 @@ describe("runExplorer", () => {
     const refresh = vi.fn(async () => {
       currentRows = [{ id: "fresh", title: "Fresh" }];
     });
-    const result = runExplorer(config({
-      rows: loadRows,
-      refresh,
-      actions: [{
-        id: "refresh",
-        label: "Refresh",
-        primary: true,
-        handler: async (ctx) => {
-          await ctx.refresh();
-          ctx.exit();
-        }
-      }]
-    }));
+    const result = runExplorer(
+      config({
+        rows: loadRows,
+        refresh,
+        actions: [
+          {
+            id: "refresh",
+            label: "Refresh",
+            primary: true,
+            handler: async (ctx) => {
+              await ctx.refresh();
+              ctx.exit();
+            }
+          }
+        ]
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("One"));
     expect(refresh).not.toHaveBeenCalled();
@@ -313,17 +386,20 @@ describe("runExplorer", () => {
     const driver = currentDriver();
     const pending: Array<(nextRows: Row[]) => void> = [];
     let initial = true;
-    const result = runExplorer(config({
-      rows: async () => initial
-        ? ((initial = false), [{ id: "initial", title: "Initial" }])
-        : new Promise<Row[]>((resolve) => pending.push(resolve)),
-      actions: ["a", "b"].map((binding) => ({
-        id: `reload-${binding}`,
-        label: `reload-${binding}`,
-        key: binding,
-        handler: async (ctx) => ctx.refresh()
-      }))
-    }));
+    const result = runExplorer(
+      config({
+        rows: async () =>
+          initial
+            ? ((initial = false), [{ id: "initial", title: "Initial" }])
+            : new Promise<Row[]>((resolve) => pending.push(resolve)),
+        actions: ["a", "b"].map((binding) => ({
+          id: `reload-${binding}`,
+          label: `reload-${binding}`,
+          key: binding,
+          handler: async (ctx) => ctx.refresh()
+        }))
+      })
+    );
 
     await waitFor(() => strippedOutput(driver).includes("Initial"));
     driver.press(key("a"));

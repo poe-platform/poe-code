@@ -1,7 +1,10 @@
 import path from "node:path";
 import { spawnSync as nodeSpawnSync } from "node:child_process";
 import { hasOwnErrorCode } from "./error-codes.js";
-import type { ActionFs } from "./types.js";
+import { readSavedForLaterMetadata, writeSavedForLaterReason } from "./format.js";
+import type { ActionFs, PlanFormat, SavedForLaterMetadata } from "./types.js";
+
+const LATER_DIRECTORY = "later";
 
 export function resolveEditor(env: Record<string, string | undefined> = process.env): string {
   const editor =
@@ -65,10 +68,89 @@ async function archiveSelectedPlan(
   return archivedPath;
 }
 
-async function rejectSymbolicLink(targetPath: string, fs: Pick<ActionFs, "lstat">): Promise<void> {
+export async function savePlanForLater(
+  entry: Pick<
+    {
+      absolutePath: string;
+      format: PlanFormat;
+      savedForLater?: SavedForLaterMetadata;
+    },
+    "absolutePath" | "format" | "savedForLater"
+  >,
+  fs: ActionFs,
+  options: { reason?: string } = {}
+): Promise<string> {
+  const reason = entry.savedForLater?.reason?.trim() || options.reason?.trim();
+  if (!reason) {
+    throw new Error("Save-for-later reason is required.");
+  }
+
+  const laterDir = path.join(path.dirname(entry.absolutePath), LATER_DIRECTORY);
+  const savedPath = path.join(laterDir, path.basename(entry.absolutePath));
+  await rejectExistingDestination(savedPath, "Save-for-later", fs);
+  await rejectSymbolicLink(laterDir, fs, "save plan for later through");
+
+  const content = await fs.readFile(entry.absolutePath, "utf8");
+  const currentMetadata = readSavedForLaterMetadata(content, entry.absolutePath);
+  const nextContent = currentMetadata?.reason
+    ? content
+    : writeSavedForLaterReason(content, entry.absolutePath, reason);
+  if (nextContent !== content) {
+    await fs.writeFile(entry.absolutePath, nextContent, "utf8");
+  }
+
+  const createdDirectory = await fs.mkdir(laterDir, { recursive: true });
+  try {
+    await rejectSymbolicLink(laterDir, fs, "save plan for later through");
+    await fs.rename(entry.absolutePath, savedPath);
+  } catch (error) {
+    if (createdDirectory !== undefined) {
+      await fs.rmdir(laterDir).catch(() => undefined);
+    }
+    throw error;
+  }
+
+  return savedPath;
+}
+
+export async function restorePlanFromLater(
+  entry: Pick<{ absolutePath: string }, "absolutePath">,
+  fs: ActionFs
+): Promise<string> {
+  const laterDir = path.dirname(entry.absolutePath);
+  if (path.basename(laterDir) !== LATER_DIRECTORY) {
+    throw new Error(`Plan is not saved for later: ${entry.absolutePath}`);
+  }
+
+  const restoredPath = path.join(path.dirname(laterDir), path.basename(entry.absolutePath));
+  await rejectExistingDestination(restoredPath, "Restore", fs);
+  await fs.rename(entry.absolutePath, restoredPath);
+  return restoredPath;
+}
+
+async function rejectExistingDestination(
+  destinationPath: string,
+  label: string,
+  fs: Pick<ActionFs, "readFile">
+): Promise<void> {
+  try {
+    await fs.readFile(destinationPath, "utf8");
+    throw new Error(`${label} destination already exists: ${destinationPath}`);
+  } catch (error) {
+    if (!hasErrorCode(error, "ENOENT")) {
+      throw error;
+    }
+  }
+}
+
+async function rejectSymbolicLink(
+  targetPath: string,
+  fs: Pick<ActionFs, "lstat">,
+  action = "archive plan through"
+): Promise<void> {
   try {
     if ((await fs.lstat(targetPath)).isSymbolicLink()) {
-      throw new Error(`Refusing to archive plan through symbolic link: ${targetPath}`);
+      throw new Error(`Refusing to ${action} symbolic link: ${targetPath}`);
     }
   } catch (error) {
     if (hasErrorCode(error, "ENOENT")) {

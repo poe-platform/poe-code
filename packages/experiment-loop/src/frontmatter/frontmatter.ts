@@ -132,7 +132,7 @@ export const experimentDocumentSchema: JsonSchema = {
     }
   },
   required: [],
-  additionalProperties: false
+  additionalProperties: true
 };
 
 export function parseExperimentFrontmatter(content: string): {
@@ -180,7 +180,6 @@ function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
 
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
-  validateFrontmatterFields(parsed);
   validateDocumentKind(parsed ? getOwnEntry(parsed, "kind") : undefined);
   validateDocumentVersion(parsed ? getOwnEntry(parsed, "version") : undefined);
   const agent = parseAgent(parsed ? getOwnEntry(parsed, "agent") : undefined);
@@ -369,32 +368,5 @@ function validateDocumentKind(value: unknown): void {
 function validateDocumentVersion(value: unknown): void {
   if (value !== undefined && value !== 1) {
     throw new Error("Experiment document version must be 1.");
-  }
-}
-
-function validateFrontmatterFields(value: Record<string, unknown> | undefined): void {
-  if (value === undefined) {
-    return;
-  }
-
-  const allowedFields = new Set([
-    "$schema",
-    "kind",
-    "version",
-    "agent",
-    "extends",
-    "metric",
-    "baseline",
-    "max_experiments",
-    "metric_timeout",
-    "maxExperiments",
-    "metricTimeout",
-    "status"
-  ]);
-
-  for (const field of Object.keys(value)) {
-    if (!allowedFields.has(field)) {
-      throw new Error(`Unknown experiment frontmatter field: "${field}".`);
-    }
   }
 }

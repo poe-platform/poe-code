@@ -254,5 +254,5 @@
     "kind",
     "version"
   ],
-  "additionalProperties": false
+  "additionalProperties": true
 }

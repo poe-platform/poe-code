@@ -5,6 +5,12 @@ import { fileURLToPath } from "node:url";
 import { runCLI } from "toolcraft/cli";
 import { configureTheme } from "toolcraft/design";
 import { createTerminalPilotGroup } from "./commands/index.js";
+import {
+  createDaemonTerminalPilotRuntime,
+  isTerminalPilotDaemonArgv,
+  runTerminalPilotDaemon
+} from "./commands/daemon-runtime.js";
+import type { TerminalPilotRuntime } from "./commands/runtime.js";
 
 configureTheme({ brand: "green", label: "Terminal Pilot" });
 
@@ -19,12 +25,23 @@ function normalizeArgv(argv: string[]): string[] {
   return argv;
 }
 
-export async function main(argv: string[] = process.argv): Promise<void> {
+export async function main(
+  argv: string[] = process.argv,
+  options: { terminalPilotRuntime?: TerminalPilotRuntime } = {}
+): Promise<void> {
+  if (isTerminalPilotDaemonArgv(argv)) {
+    await runTerminalPilotDaemon();
+    return;
+  }
+
   const originalArgv = process.argv;
   process.argv = normalizeArgv(argv);
 
   try {
     await runCLI(createTerminalPilotGroup(), {
+      services: {
+        terminalPilotRuntime: options.terminalPilotRuntime ?? createDaemonTerminalPilotRuntime()
+      },
       controls: {
         debug: true,
         output: true,

@@ -220,7 +220,7 @@ If the harness itself fails, poe-code still inspects the worktree. Reconciliatio
 
 - If the worktree has no changes, mark the registry entry `failed` and ask the selected agent to remove the worktree.
 - If the worktree has changes, leave the worktree in place by default and print the path. Do not reconcile failed runs automatically.
-- A follow-up `poe-code worktree reconcile <name>` command can reconcile a kept worktree after the user or another agent decides the output should be accepted.
+- A follow-up `poe-code worktree reconcile <name>` command can reconcile an existing failed worktree after the user or another agent decides the output should be accepted.
 
 This avoids silently applying partial or failing agent output into the source checkout.
 
@@ -510,7 +510,7 @@ export type WorktreeReconciliationSummary = {
   committed: "none" | "present" | "merged_by_agent" | "failed";
   uncommitted: "none" | "present" | "applied_by_agent" | "failed";
   removed: boolean;
-  cleanup: "not_needed" | "removed_by_agent" | "nudged" | "failed" | "kept";
+  cleanup: "not_needed" | "removed_by_agent" | "nudged" | "failed";
   conflictFiles: string[];
   threadId?: string;
 };
@@ -705,7 +705,7 @@ Do not write unit tests for GitHub workflows.
 
 ### Real-world test
 
-Run these commands in a disposable local clone of this repo:
+Run these commands when a valid agent credential is available:
 
 ```bash
 npm test -- packages/worktree/src/worktree.test.ts
@@ -765,22 +765,20 @@ Expected observation:
 
 ## 5. Code plan
 
-### Files to create
+### Files added
 
 - `packages/worktree/src/reconcile.ts`: reconciliation state machine, git state inspection, reconciliation agent prompt construction, verification, and resume cleanup nudges.
-- `packages/worktree/src/git.ts`: small helpers for command argument quoting, porcelain parsing, and unmerged path parsing.
 - `src/sdk/worktree.ts`: public poe-code SDK wrapper around `@poe-code/worktree` with default deps, registry path defaults, and reconciliation-agent spawn wiring.
 - `src/sdk/worktree.test.ts`: SDK tests proving the wrapper calls `@poe-code/worktree`, uses `spawn(...)`, preserves `threadId`, and resumes cleanup nudges.
 - `src/cli/commands/worktree-options.ts`: Commander flag registration and option normalization.
 - `src/cli/commands/worktree.ts`: user-facing `poe-code worktree list|reconcile|remove` commands.
 - `src/cli/commands/worktree-command.test.ts`: CLI coverage for management commands and shared flag behavior.
 
-### Files to change
+### Files changed
 
 - [packages/worktree/src/types.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/types.ts): extend registry types, statuses, and dependency types if signal support is needed.
 - [packages/worktree/src/create.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/create.ts): record `sourceCwd` and `baseHead`; keep safe name validation.
 - [packages/worktree/src/registry.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/registry.ts): validate new optional registry fields and statuses.
-- [packages/worktree/src/remove.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/remove.ts): support cleanup from reconciliation without duplicating registry removal logic.
 - [packages/worktree/src/index.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/index.ts): export new reconcile API and types.
 - [packages/worktree/src/worktree.test.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/worktree.test.ts): add TDD coverage for reconciliation.
 - [src/sdk/types.ts](/Users/kjopek/Workspace/poe-code/src/sdk/types.ts): add `WorktreeExecutionOptions`, `WorktreeExecutionResult`, `SpawnOptions.worktree`, and `SpawnResult.worktree`.
@@ -797,8 +795,8 @@ Expected observation:
 - [src/cli/commands/ralph.ts](/Users/kjopek/Workspace/poe-code/src/cli/commands/ralph.ts): add worktree flags around top-level ralph run via the SDK.
 - [packages/superintendent/src/commands/run.ts](/Users/kjopek/Workspace/poe-code/packages/superintendent/src/commands/run.ts): add worktree params and wrap the top-level run cwd via the SDK.
 - Any additional agent harness command files discovered during the audit: add the shared flags or record why the command is not repo-mutating and should not opt into worktree mode.
-- [packages/worktree/README.md](/Users/kjopek/Workspace/poe-code/packages/worktree/README.md): document new API and options after README edit permission is confirmed.
-- [packages/agent-harness-tools/README.md](/Users/kjopek/Workspace/poe-code/packages/agent-harness-tools/README.md): document any shared helper if it lands in this package instead of `src/workspace`.
+
+README updates are intentionally deferred until explicit README edit permission is given.
 
 ### Build order
 
@@ -815,7 +813,7 @@ Expected observation:
 11. Wire `harness run` through the SDK helper.
 12. Add flag parsing and top-level SDK helper wrapping for pipeline, gaslight, ralph, and superintendent.
 13. Audit remaining agent-spawning harness commands and wire any additional repo-mutating harnesses through the same SDK helper.
-14. Update package README files only after explicit permission.
+14. Defer package README updates until explicit permission.
 15. Run targeted tests.
 16. Run visual CLI screenshots for changed help output.
 17. Run the disposable real-world git proof.

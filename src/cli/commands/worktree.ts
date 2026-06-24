@@ -29,7 +29,7 @@ export function registerWorktreeCommand(program: Command, container: CliContaine
 
   worktree
     .command("reconcile")
-    .description("Reconcile a kept or failed managed worktree.")
+    .description("Reconcile an existing failed managed worktree.")
     .argument("<name>", "Managed worktree name")
     .requiredOption("--agent <name>", "Agent to perform reconciliation")
     .action(async (name: string, options: WorktreeReconcileOptions) => {

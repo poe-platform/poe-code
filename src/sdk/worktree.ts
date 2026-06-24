@@ -36,7 +36,6 @@ export type RunInWorktreeInput<T> = {
   selectedModel?: string;
   worktree: WorktreeExecutionOptions;
   run: (context: WorktreeExecutionContext) => Promise<T>;
-  reconcile?: boolean;
   signal?: AbortSignal;
   spawnAgent?: SpawnAgent;
   deps?: WorktreeDeps;
@@ -132,30 +131,27 @@ export async function runInWorktree<T>(
     throw error;
   }
 
-  let reconciliation: WorktreeReconciliationSummary | undefined;
-  if (input.reconcile !== false) {
-    reconciliation = await reconcileWorktree({
-      cwd: input.cwd,
-      name: worktree.name,
-      registryFile: options.registryFile,
-      deps,
-      signal: input.signal,
-      reconciliationAgent: async (agentInput) => {
-        const spawnAgent = input.spawnAgent ?? defaultSpawnAgent;
-        const result = await spawnAgent(input.selectedAgent, {
-          cwd: agentInput.sourceCwd,
-          prompt: agentInput.prompt,
-          mode: "auto",
-          ...(input.selectedModel ? { model: input.selectedModel } : {}),
-          ...(agentInput.resumeThreadId
-            ? { resumeThreadId: agentInput.resumeThreadId }
-            : {}),
-          worktree: false
-        });
-        return result;
-      }
-    });
-  }
+  const reconciliation = await reconcileWorktree({
+    cwd: input.cwd,
+    name: worktree.name,
+    registryFile: options.registryFile,
+    deps,
+    signal: input.signal,
+    reconciliationAgent: async (agentInput) => {
+      const spawnAgent = input.spawnAgent ?? defaultSpawnAgent;
+      const result = await spawnAgent(input.selectedAgent, {
+        cwd: agentInput.sourceCwd,
+        prompt: agentInput.prompt,
+        mode: "auto",
+        ...(input.selectedModel ? { model: input.selectedModel } : {}),
+        ...(agentInput.resumeThreadId
+          ? { resumeThreadId: agentInput.resumeThreadId }
+          : {}),
+        worktree: false
+      });
+      return result;
+    }
+  });
 
   return {
     value,

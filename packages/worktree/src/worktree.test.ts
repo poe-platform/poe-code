@@ -532,6 +532,7 @@ describe("reconcileWorktree", () => {
     expect(input.prompt).toContain("Committed changes: present");
     expect(input.prompt).toContain(" M src/changed.ts");
     expect(input.prompt).toContain("?? src/new.ts");
+    expect(input.prompt).not.toContain("Keep worktree");
   });
 
   it("records thread id and marks the registry done on successful reconciliation", async () => {

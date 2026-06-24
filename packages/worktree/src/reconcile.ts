@@ -212,7 +212,7 @@ function buildReconciliationPrompt(
     "- Preserve the requested worktree changes unless they are invalid or superseded by a clear source-checkout requirement.",
     "- Keep the repository buildable.",
     "- Do not commit unless completing an in-progress git merge requires a commit.",
-    "- Remove the managed worktree and branch when done unless Keep worktree is true.",
+    "- Remove the managed worktree and branch when done.",
     "- When done, leave `git status --porcelain=v1 -z` with no unmerged paths."
   ].join("\n");
 }

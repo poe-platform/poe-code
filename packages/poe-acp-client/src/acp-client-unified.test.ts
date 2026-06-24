@@ -1968,6 +1968,19 @@ describe("AcpClient", () => {
     });
   });
 
+  it("accepts ACP end_turn prompt responses", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ stopReason: "end_turn" } satisfies PromptResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    const turn = client.prompt("session-1", [{ type: "text", text: "Hello agent" }]);
+
+    await expect(turn.response).resolves.toEqual({ stopReason: "end_turn" });
+  });
+
   it("rejects prompt responses with invalid stopReason values", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock

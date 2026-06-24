@@ -114,6 +114,132 @@ HTML output is a fragment, not a full HTML document:
 
 Raw HTML in Markdown is escaped by default. Pass `{ allowRawHtml: true }` only when the input is trusted.
 
+#### Syntax highlighting
+
+Fenced code block syntax highlighting is opt-in:
+
+```ts
+import { renderMarkdown, renderMarkdownHtml } from "toolcraft-design";
+
+const html = renderMarkdownHtml("```ts\nconst value = \"hello\";\n```", {
+  syntaxHighlight: true
+});
+const terminal = renderMarkdown("```ts\nconst value = \"hello\";\n```", {
+  syntaxHighlight: true
+});
+```
+
+HTML highlighting emits escaped code text with neutral Toolcraft-owned `<span>` wrappers. The renderer does not ship or inject CSS, so consumers control the appearance:
+
+```html
+<pre><code class="language-ts"><span class="tc-token-keyword">const</span> value = <span class="tc-token-string">&quot;hello&quot;</span>;</code></pre>
+```
+
+Starter CSS:
+
+```css
+.tc-token-keyword,
+.tc-token-type,
+.tc-token-tag,
+.tc-token-command,
+.tc-token-decorator,
+.tc-token-directive,
+.tc-token-at-rule {
+  color: var(--code-keyword);
+  font-weight: 700;
+}
+
+.tc-token-string,
+.tc-token-template {
+  color: var(--code-string);
+}
+
+.tc-token-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.tc-token-number,
+.tc-token-boolean,
+.tc-token-null,
+.tc-token-parameter {
+  color: var(--code-number);
+}
+
+.tc-token-key,
+.tc-token-property,
+.tc-token-attribute,
+.tc-token-variable,
+.tc-token-function,
+.tc-token-anchor,
+.tc-token-label {
+  color: var(--code-symbol);
+}
+
+.tc-token-regex,
+.tc-token-color,
+.tc-token-important,
+.tc-token-flag,
+.tc-token-invalid {
+  color: var(--code-warning);
+}
+
+.tc-token-operator,
+.tc-token-punctuation,
+.tc-token-selector {
+  color: var(--code-muted);
+}
+```
+
+Available token classes:
+
+- `.tc-token-anchor`
+- `.tc-token-at-rule`
+- `.tc-token-attribute`
+- `.tc-token-boolean`
+- `.tc-token-color`
+- `.tc-token-command`
+- `.tc-token-comment`
+- `.tc-token-decorator`
+- `.tc-token-directive`
+- `.tc-token-flag`
+- `.tc-token-function`
+- `.tc-token-identifier`
+- `.tc-token-important`
+- `.tc-token-invalid`
+- `.tc-token-key`
+- `.tc-token-keyword`
+- `.tc-token-label`
+- `.tc-token-null`
+- `.tc-token-number`
+- `.tc-token-operator`
+- `.tc-token-parameter`
+- `.tc-token-plain`
+- `.tc-token-property`
+- `.tc-token-punctuation`
+- `.tc-token-regex`
+- `.tc-token-selector`
+- `.tc-token-string`
+- `.tc-token-tag`
+- `.tc-token-template`
+- `.tc-token-type`
+- `.tc-token-variable`
+
+The initial no-dependency highlighters cover these fence labels:
+
+- ECMAScript and TypeScript: `js`, `javascript`, `mjs`, `cjs`, `es6`, `jsx`, `ts`, `typescript`, `mts`, `cts`, `tsx`
+- Data: `json`, `jsonc`, `jsonl`, `yaml`, `yml`
+- CSS: `css`
+
+These language labels are recognized but intentionally render as plain escaped code until a tokenizer exists:
+
+- Styles and markup: `scss`, `sass`, `less`, `postcss`, `html`, `xml`, `svg`, `md`, `markdown`
+- Shell, Python, SQL, and line-oriented formats: `sh`, `bash`, `shell`, `shellscript`, `zsh`, `fish`, `py`, `python`, `sql`, `ddl`, `dml`, `diff`, `patch`, `dockerfile`, `docker`, `ini`, `properties`, `toml`
+- Explicit plain text: `text`, `txt`, `plain`, `plaintext`
+- Other known languages: `rb`, `ruby`, `go`, `golang`, `java`, `c`, `cpp`, `c++`, `cc`, `cxx`, `cs`, `csharp`, `c#`, `rs`, `rust`, `php`
+
+Unknown fence labels also render as plain escaped code. Code text is always escaped in HTML output, even when `allowRawHtml: true` is enabled.
+
 ### Static Rendering
 
 - `staticRender`: namespace containing the static rendering exports.

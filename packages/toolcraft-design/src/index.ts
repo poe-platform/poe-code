@@ -141,7 +141,13 @@ export type {
 
 // Terminal markdown
 export { parse, render, renderHtml, renderMarkdown, renderMarkdownHtml } from "./terminal-markdown/index.js";
-export type { MdNode, RenderOptions, HtmlRenderOptions } from "./terminal-markdown/index.js";
+export type {
+  CodeToken,
+  CodeTokenKind,
+  HtmlRenderOptions,
+  MdNode,
+  RenderOptions
+} from "./terminal-markdown/index.js";
 
 // Internal utilities (for advanced use)
 export { getTheme, resolveThemeName, resetThemeCache } from "./internal/theme-detect.js";

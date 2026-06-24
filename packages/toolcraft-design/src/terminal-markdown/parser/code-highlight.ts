@@ -25,7 +25,7 @@ type LexicalSpec = {
   nulls?: ReadonlySet<string>;
   commands?: ReadonlySet<string>;
   lineComments?: readonly string[];
-  blockComments?: boolean;
+  blockComments?: readonly BlockCommentDelimiter[];
   stringQuotes?: readonly string[];
   templateQuotes?: boolean;
   tripleStringQuotes?: boolean;
@@ -35,6 +35,13 @@ type LexicalSpec = {
   flags?: boolean;
   caseInsensitive?: boolean;
 };
+
+type BlockCommentDelimiter = {
+  start: string;
+  end: string;
+};
+
+const cStyleBlockComments = [{ start: "/*", end: "*/" }] as const;
 
 const codeLanguages: readonly CodeLanguageInfo[] = [
   {
@@ -74,11 +81,37 @@ const codeLanguages: readonly CodeLanguageInfo[] = [
   { id: "ruby", aliases: ["rb", "ruby"], family: "lexical", spec: "ruby" },
   { id: "go", aliases: ["go", "golang"], family: "lexical", spec: "go" },
   { id: "java", aliases: ["java"], family: "lexical", spec: "java" },
+  { id: "kotlin", aliases: ["kt", "kotlin", "kts"], family: "lexical", spec: "kotlin" },
+  { id: "swift", aliases: ["swift"], family: "lexical", spec: "swift" },
+  { id: "dart", aliases: ["dart"], family: "lexical", spec: "dart" },
+  { id: "scala", aliases: ["scala", "sc"], family: "lexical", spec: "scala" },
+  { id: "groovy", aliases: ["groovy", "gvy", "gy", "gsp"], family: "lexical", spec: "groovy" },
   { id: "c", aliases: ["c"], family: "lexical", spec: "c" },
   { id: "cpp", aliases: ["cpp", "c++", "cc", "cxx"], family: "lexical", spec: "cpp" },
   { id: "csharp", aliases: ["cs", "csharp", "c#"], family: "lexical", spec: "csharp" },
+  { id: "objective-c", aliases: ["objc", "objectivec", "objective-c", "m", "mm"], family: "lexical", spec: "objectivec" },
   { id: "rust", aliases: ["rs", "rust"], family: "lexical", spec: "rust" },
-  { id: "php", aliases: ["php"], family: "lexical", spec: "php" }
+  { id: "php", aliases: ["php"], family: "lexical", spec: "php" },
+  { id: "lua", aliases: ["lua"], family: "lexical", spec: "lua" },
+  { id: "perl", aliases: ["pl", "perl", "pm"], family: "lexical", spec: "perl" },
+  { id: "r", aliases: ["r", "rscript"], family: "lexical", spec: "r" },
+  { id: "powershell", aliases: ["ps1", "powershell", "pwsh"], family: "lexical", spec: "powershell" },
+  { id: "elixir", aliases: ["ex", "exs", "elixir"], family: "lexical", spec: "elixir" },
+  { id: "erlang", aliases: ["erl", "erlang", "hrl"], family: "lexical", spec: "erlang" },
+  { id: "haskell", aliases: ["hs", "haskell"], family: "lexical", spec: "haskell" },
+  { id: "clojure", aliases: ["clj", "cljs", "cljc", "clojure"], family: "lexical", spec: "clojure" },
+  { id: "fsharp", aliases: ["fs", "fsi", "fsx", "fsharp"], family: "lexical", spec: "fsharp" },
+  { id: "vb", aliases: ["vb", "vbnet"], family: "lexical", spec: "vb" },
+  { id: "graphql", aliases: ["graphql", "gql"], family: "lexical", spec: "graphql" },
+  { id: "protobuf", aliases: ["proto", "protobuf"], family: "lexical", spec: "protobuf" },
+  { id: "hcl", aliases: ["hcl", "tf", "terraform"], family: "lexical", spec: "hcl" },
+  { id: "nginx", aliases: ["nginx", "nginxconf"], family: "lexical", spec: "nginx" },
+  { id: "makefile", aliases: ["makefile", "mk"], family: "lexical", spec: "makefile" },
+  { id: "cmake", aliases: ["cmake"], family: "lexical", spec: "cmake" },
+  { id: "gradle", aliases: ["gradle"], family: "lexical", spec: "groovy" },
+  { id: "env", aliases: ["env", "dotenv"], family: "data", spec: "ini" },
+  { id: "vue", aliases: ["vue"], family: "markup", spec: "html" },
+  { id: "svelte", aliases: ["svelte"], family: "markup", spec: "html" }
 ] as const;
 
 const languageByAlias = new Map<string, CodeLanguageInfo>();
@@ -270,6 +303,21 @@ const javaTypes = new Set(["Boolean", "Byte", "Character", "Double", "Float", "I
 const javaBooleans = new Set(["true", "false"]);
 const javaNulls = new Set(["null"]);
 
+const kotlinKeywords = new Set(["as", "break", "by", "catch", "class", "companion", "constructor", "continue", "data", "do", "else", "enum", "expect", "finally", "for", "fun", "if", "import", "in", "interface", "internal", "is", "object", "out", "override", "package", "private", "protected", "public", "return", "sealed", "suspend", "throw", "try", "typealias", "val", "var", "when", "where", "while"]);
+const kotlinTypes = new Set(["Any", "Boolean", "Byte", "Char", "Double", "Float", "Int", "List", "Long", "Map", "Nothing", "Set", "Short", "String", "Unit"]);
+
+const swiftKeywords = new Set(["actor", "as", "associatedtype", "async", "await", "break", "case", "catch", "class", "continue", "defer", "deinit", "do", "else", "enum", "extension", "fallthrough", "for", "func", "guard", "if", "import", "in", "init", "inout", "let", "nil", "operator", "private", "protocol", "public", "repeat", "return", "self", "Self", "static", "struct", "subscript", "super", "switch", "throw", "throws", "try", "typealias", "var", "where", "while"]);
+const swiftTypes = new Set(["Any", "Array", "Bool", "Character", "Dictionary", "Double", "Float", "Int", "Optional", "Result", "Set", "String", "UInt", "Void"]);
+
+const dartKeywords = new Set(["abstract", "as", "assert", "async", "await", "base", "break", "case", "catch", "class", "const", "continue", "covariant", "default", "deferred", "do", "else", "enum", "export", "extends", "extension", "external", "factory", "false", "final", "finally", "for", "function", "get", "hide", "if", "implements", "import", "in", "interface", "is", "late", "library", "mixin", "new", "null", "on", "operator", "part", "required", "return", "sealed", "set", "show", "static", "super", "switch", "sync", "this", "throw", "true", "try", "typedef", "var", "void", "when", "while", "with", "yield"]);
+const dartTypes = new Set(["BigInt", "bool", "DateTime", "double", "Duration", "dynamic", "Future", "int", "Iterable", "List", "Map", "Never", "num", "Object", "Pattern", "Record", "Set", "Stream", "String", "Symbol", "Uri", "void"]);
+
+const scalaKeywords = new Set(["abstract", "case", "catch", "class", "def", "do", "else", "enum", "export", "extends", "false", "final", "finally", "for", "forSome", "given", "if", "implicit", "import", "lazy", "macro", "match", "new", "null", "object", "override", "package", "private", "protected", "return", "sealed", "super", "then", "this", "throw", "trait", "true", "try", "type", "val", "var", "while", "with", "yield"]);
+const scalaTypes = new Set(["Any", "Boolean", "Byte", "Char", "Double", "Either", "Float", "Int", "List", "Long", "Map", "None", "Option", "Seq", "Set", "Short", "Some", "String", "Unit"]);
+
+const groovyKeywords = new Set(["abstract", "as", "assert", "break", "case", "catch", "class", "const", "continue", "def", "default", "do", "else", "enum", "extends", "false", "final", "finally", "for", "goto", "if", "implements", "import", "in", "instanceof", "interface", "new", "null", "package", "private", "protected", "public", "return", "static", "super", "switch", "this", "throw", "throws", "trait", "true", "try", "var", "void", "while"]);
+const groovyTypes = new Set(["BigDecimal", "Boolean", "Closure", "Date", "Integer", "List", "Map", "Object", "String", "boolean", "def", "int", "long", "void"]);
+
 const cKeywords = new Set(["auto", "break", "case", "const", "continue", "default", "do", "else", "enum", "extern", "for", "goto", "if", "inline", "register", "restrict", "return", "sizeof", "static", "struct", "switch", "typedef", "union", "volatile", "while"]);
 const cTypes = new Set(["bool", "char", "double", "float", "int", "int16_t", "int32_t", "int64_t", "int8_t", "long", "short", "size_t", "uint16_t", "uint32_t", "uint64_t", "uint8_t", "void"]);
 
@@ -281,6 +329,9 @@ const cppNulls = new Set(["nullptr", "NULL"]);
 const csharpKeywords = new Set(["abstract", "as", "base", "break", "case", "catch", "checked", "class", "const", "continue", "default", "delegate", "do", "else", "enum", "event", "explicit", "extern", "finally", "fixed", "for", "foreach", "if", "implicit", "in", "interface", "internal", "is", "lock", "namespace", "new", "operator", "out", "override", "params", "private", "protected", "public", "readonly", "record", "ref", "return", "sealed", "sizeof", "stackalloc", "static", "struct", "switch", "this", "throw", "try", "typeof", "unchecked", "unsafe", "using", "virtual", "void", "volatile", "while"]);
 const csharpTypes = new Set(["bool", "byte", "char", "decimal", "double", "dynamic", "float", "int", "long", "nint", "nuint", "object", "sbyte", "short", "string", "uint", "ulong", "ushort", "var"]);
 
+const objectiveCKeywords = new Set([...cKeywords, "@autoreleasepool", "@catch", "@class", "@dynamic", "@end", "@finally", "@implementation", "@import", "@interface", "@optional", "@package", "@private", "@property", "@protected", "@protocol", "@public", "@selector", "@synthesize", "@throw", "@try", "YES", "NO", "nil", "self", "super"]);
+const objectiveCTypes = new Set([...cTypes, "BOOL", "Class", "CGFloat", "NSInteger", "NSObject", "NSString", "NSUInteger", "SEL", "id"]);
+
 const rustKeywords = new Set(["as", "async", "await", "box", "break", "const", "continue", "crate", "dyn", "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while"]);
 const rustTypes = new Set(["Box", "Option", "Result", "Some", "String", "Vec", "bool", "char", "f32", "f64", "i128", "i16", "i32", "i64", "i8", "isize", "str", "u128", "u16", "u32", "u64", "u8", "usize"]);
 const rustBooleans = new Set(["true", "false"]);
@@ -289,6 +340,23 @@ const rustNulls = new Set(["None"]);
 const phpKeywords = new Set(["abstract", "and", "array", "as", "break", "callable", "case", "catch", "class", "clone", "const", "continue", "declare", "default", "do", "echo", "else", "elseif", "empty", "enddeclare", "endfor", "endforeach", "endif", "endswitch", "endwhile", "enum", "extends", "final", "finally", "fn", "for", "foreach", "function", "global", "if", "implements", "include", "instanceof", "interface", "isset", "match", "namespace", "new", "or", "private", "protected", "public", "readonly", "require", "return", "static", "switch", "throw", "trait", "try", "use", "var", "while", "xor", "yield"]);
 const phpTypes = new Set(["array", "bool", "callable", "false", "float", "int", "iterable", "mixed", "never", "null", "object", "self", "static", "string", "true", "void"]);
 
+const luaKeywords = new Set(["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"]);
+const perlKeywords = new Set(["continue", "do", "else", "elsif", "for", "foreach", "given", "if", "last", "local", "my", "next", "our", "package", "redo", "require", "return", "state", "sub", "unless", "until", "use", "when", "while"]);
+const rKeywords = new Set(["break", "else", "FALSE", "for", "function", "if", "Inf", "in", "NA", "NaN", "next", "NULL", "repeat", "return", "TRUE", "while"]);
+const powershellKeywords = new Set(["begin", "break", "catch", "class", "continue", "data", "default", "do", "dynamicparam", "else", "elseif", "end", "enum", "exit", "filter", "finally", "for", "foreach", "from", "function", "if", "in", "param", "process", "return", "switch", "throw", "trap", "try", "until", "using", "var", "while"]);
+const elixirKeywords = new Set(["after", "alias", "and", "case", "catch", "cond", "def", "defdelegate", "defexception", "defimpl", "defmacro", "defmodule", "defp", "defprotocol", "defstruct", "do", "else", "end", "false", "fn", "for", "if", "import", "in", "nil", "not", "or", "quote", "raise", "receive", "require", "rescue", "super", "throw", "true", "try", "unless", "unquote", "use", "when", "with"]);
+const erlangKeywords = new Set(["after", "and", "andalso", "band", "begin", "bnot", "bor", "bsl", "bsr", "bxor", "case", "catch", "cond", "div", "end", "fun", "if", "let", "not", "of", "or", "orelse", "receive", "rem", "try", "when", "xor"]);
+const haskellKeywords = new Set(["as", "case", "class", "data", "default", "deriving", "do", "else", "family", "forall", "foreign", "hiding", "if", "import", "in", "infix", "infixl", "infixr", "instance", "let", "module", "newtype", "of", "qualified", "then", "type", "where"]);
+const clojureKeywords = new Set(["def", "defmacro", "defmethod", "defmulti", "defn", "defonce", "do", "doseq", "false", "fn", "for", "if", "let", "loop", "nil", "ns", "quote", "recur", "require", "true", "try", "when"]);
+const fsharpKeywords = new Set(["abstract", "and", "as", "assert", "base", "begin", "class", "default", "delegate", "do", "done", "downcast", "downto", "elif", "else", "end", "exception", "extern", "false", "finally", "for", "fun", "function", "global", "if", "in", "inherit", "inline", "interface", "internal", "lazy", "let", "match", "member", "module", "mutable", "namespace", "new", "null", "of", "open", "or", "override", "private", "public", "rec", "return", "static", "struct", "then", "to", "true", "try", "type", "upcast", "use", "val", "void", "when", "while", "with", "yield"]);
+const vbKeywords = new Set(["AddHandler", "And", "As", "Boolean", "ByRef", "Byte", "ByVal", "Call", "Case", "Catch", "Class", "Const", "Continue", "Date", "Decimal", "Dim", "Do", "Double", "Each", "Else", "ElseIf", "End", "Enum", "Erase", "Error", "Event", "Exit", "False", "Finally", "For", "Friend", "Function", "Get", "Global", "GoTo", "Handles", "If", "Implements", "Imports", "In", "Inherits", "Integer", "Interface", "Is", "Let", "Lib", "Like", "Long", "Loop", "Me", "Mod", "Module", "MustInherit", "MustOverride", "MyBase", "Namespace", "New", "Next", "Not", "Nothing", "Object", "Of", "On", "Option", "Or", "Overloads", "Overrides", "ParamArray", "Partial", "Private", "Property", "Protected", "Public", "RaiseEvent", "ReadOnly", "ReDim", "REM", "RemoveHandler", "Resume", "Return", "Select", "Set", "Shadows", "Shared", "Short", "Single", "Static", "Step", "Stop", "String", "Structure", "Sub", "SyncLock", "Then", "Throw", "To", "True", "Try", "Using", "Variant", "Wend", "When", "While", "With", "WithEvents", "WriteOnly"]);
+const graphqlKeywords = new Set(["directive", "enum", "extend", "false", "fragment", "implements", "input", "interface", "mutation", "null", "on", "query", "repeatable", "scalar", "schema", "subscription", "true", "type", "union"]);
+const protobufKeywords = new Set(["bool", "bytes", "double", "enum", "false", "fixed32", "fixed64", "float", "import", "int32", "int64", "map", "message", "oneof", "optional", "package", "proto2", "proto3", "public", "repeated", "reserved", "returns", "rpc", "service", "sfixed32", "sfixed64", "sint32", "sint64", "stream", "string", "syntax", "to", "true", "uint32", "uint64"]);
+const hclKeywords = new Set(["and", "bool", "data", "dynamic", "false", "for", "if", "in", "locals", "module", "null", "number", "or", "output", "provider", "resource", "string", "terraform", "true", "variable"]);
+const nginxKeywords = new Set(["access_log", "add_header", "deny", "error_log", "events", "fastcgi_pass", "gzip", "http", "include", "index", "listen", "location", "log_format", "proxy_pass", "return", "rewrite", "root", "server", "server_name", "try_files", "upstream"]);
+const makefileKeywords = new Set(["define", "else", "endef", "endif", "export", "ifneq", "ifeq", "ifdef", "ifndef", "include", "override", "private", "sinclude", "undefine", "unexport", "vpath"]);
+const cmakeKeywords = new Set(["add_compile_definitions", "add_custom_command", "add_custom_target", "add_executable", "add_library", "cmake_minimum_required", "else", "elseif", "endforeach", "endif", "endfunction", "endmacro", "find_package", "foreach", "function", "if", "include", "macro", "message", "option", "project", "return", "set", "target_compile_features", "target_include_directories", "target_link_libraries"]);
+
 const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
   javascript: {
     keywords: jsKeywords,
@@ -296,7 +364,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: new Set(["true", "false"]),
     nulls: new Set(["null"]),
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     templateQuotes: true,
     decorators: true
@@ -308,7 +376,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: new Set(["true", "false"]),
     nulls: new Set(["null"]),
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     templateQuotes: true,
     decorators: true
@@ -336,7 +404,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: new Set(["true", "false"]),
     nulls: new Set(["null"]),
     lineComments: ["--"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     caseInsensitive: true
   },
@@ -353,7 +421,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: goBooleans,
     nulls: goNulls,
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'", "`"]
   },
   java: {
@@ -362,7 +430,58 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: javaBooleans,
     nulls: javaNulls,
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  kotlin: {
+    keywords: kotlinKeywords,
+    types: kotlinTypes,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"],
+    templateQuotes: true,
+    decorators: true
+  },
+  swift: {
+    keywords: swiftKeywords,
+    types: swiftTypes,
+    booleans: cppBooleans,
+    nulls: new Set(["nil"]),
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  dart: {
+    keywords: dartKeywords,
+    types: dartTypes,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  scala: {
+    keywords: scalaKeywords,
+    types: scalaTypes,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  groovy: {
+    keywords: groovyKeywords,
+    types: groovyTypes,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     decorators: true
   },
@@ -372,7 +491,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: cppBooleans,
     nulls: cppNulls,
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"]
   },
   cpp: {
@@ -381,7 +500,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: cppBooleans,
     nulls: cppNulls,
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"]
   },
   csharp: {
@@ -390,7 +509,17 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: cppBooleans,
     nulls: javaNulls,
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  objectivec: {
+    keywords: objectiveCKeywords,
+    types: objectiveCTypes,
+    booleans: new Set(["YES", "NO", "true", "false"]),
+    nulls: new Set(["nil", "NULL", "nullptr"]),
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     decorators: true
   },
@@ -400,7 +529,7 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: rustBooleans,
     nulls: rustNulls,
     lineComments: ["//"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     rustAttributes: true
   },
@@ -410,9 +539,135 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     booleans: new Set(["true", "false"]),
     nulls: new Set(["null"]),
     lineComments: ["//", "#"],
-    blockComments: true,
+    blockComments: cStyleBlockComments,
     stringQuotes: ['"', "'"],
     variablePrefix: "$"
+  },
+  lua: {
+    keywords: luaKeywords,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["nil"]),
+    lineComments: ["--"],
+    stringQuotes: ['"', "'"]
+  },
+  perl: {
+    keywords: perlKeywords,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["undef"]),
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"],
+    variablePrefix: "$"
+  },
+  r: {
+    keywords: rKeywords,
+    booleans: new Set(["TRUE", "FALSE", "T", "F"]),
+    nulls: new Set(["NULL", "NA", "NaN"]),
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"]
+  },
+  powershell: {
+    keywords: powershellKeywords,
+    booleans: new Set(["$true", "$false", "true", "false"]),
+    nulls: new Set(["$null", "null"]),
+    commands: new Set(["Get-ChildItem", "Get-Content", "Invoke-Run", "Join-Path", "New-Item", "Remove-Item", "Set-Content", "Test-Path", "Write-Host", "Write-Output"]),
+    lineComments: ["#"],
+    blockComments: [{ start: "<#", end: "#>" }],
+    stringQuotes: ['"', "'"],
+    variablePrefix: "$",
+    flags: true
+  },
+  elixir: {
+    keywords: elixirKeywords,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["nil"]),
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"]
+  },
+  erlang: {
+    keywords: erlangKeywords,
+    booleans: new Set(["true", "false"]),
+    lineComments: ["%"],
+    stringQuotes: ['"', "'"]
+  },
+  haskell: {
+    keywords: haskellKeywords,
+    types: new Set(["Bool", "Char", "Double", "Either", "False", "Float", "IO", "Int", "Integer", "Maybe", "Nothing", "String", "True"]),
+    booleans: new Set(["True", "False"]),
+    nulls: new Set(["Nothing"]),
+    lineComments: ["--"],
+    blockComments: [{ start: "{-", end: "-}" }],
+    stringQuotes: ['"', "'"]
+  },
+  clojure: {
+    keywords: clojureKeywords,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["nil"]),
+    lineComments: [";"],
+    stringQuotes: ['"']
+  },
+  fsharp: {
+    keywords: fsharpKeywords,
+    types: new Set(["Async", "bool", "decimal", "float", "int", "list", "Map", "option", "Result", "seq", "string", "unit"]),
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["null", "None"]),
+    lineComments: ["//"],
+    blockComments: [{ start: "(*", end: "*)" }],
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  vb: {
+    keywords: vbKeywords,
+    types: new Set(["Boolean", "Byte", "Date", "Decimal", "Double", "Integer", "Long", "Object", "Short", "Single", "String"]),
+    booleans: new Set(["True", "False"]),
+    nulls: new Set(["Nothing", "Null"]),
+    lineComments: ["'"],
+    stringQuotes: ['"'],
+    caseInsensitive: true
+  },
+  graphql: {
+    keywords: graphqlKeywords,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["#"],
+    stringQuotes: ['"']
+  },
+  protobuf: {
+    keywords: protobufKeywords,
+    types: new Set(["Any", "Duration", "Timestamp"]),
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"]
+  },
+  hcl: {
+    keywords: hclKeywords,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["#", "//"],
+    blockComments: cStyleBlockComments,
+    stringQuotes: ['"', "'"]
+  },
+  nginx: {
+    keywords: nginxKeywords,
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"]
+  },
+  makefile: {
+    keywords: makefileKeywords,
+    commands: shellCommands,
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"],
+    variablePrefix: "$",
+    flags: true
+  },
+  cmake: {
+    keywords: cmakeKeywords,
+    booleans: new Set(["ON", "OFF", "TRUE", "FALSE"]),
+    nulls: new Set(["NOTFOUND"]),
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"],
+    caseInsensitive: true
   }
 };
 
@@ -481,7 +736,7 @@ function tokenizeLexical(source: string, language: CodeLanguageInfo): CodeToken[
       continue;
     }
 
-    const blockCommentEnd = spec.blockComments === true ? readBlockComment(source, index) : index;
+    const blockCommentEnd = readAnyBlockComment(source, index, spec.blockComments ?? []);
     if (blockCommentEnd > index) {
       emitter.push("comment", index, blockCommentEnd);
       index = blockCommentEnd;
@@ -502,8 +757,19 @@ function tokenizeLexical(source: string, language: CodeLanguageInfo): CodeToken[
 
     if (spec.variablePrefix === "$" && char === "$" && isIdentifierStart(source[index + 1] ?? "")) {
       index = readIdentifier(source, index + 1);
-      emitter.push("variable", start, index);
+      const variableKind = classifyLexicalWord(source.slice(start, index), spec);
+      emitter.push(variableKind === "plain" ? "variable" : variableKind, start, index);
       continue;
+    }
+
+    const commandEnd = readCommandIdentifier(source, index);
+    if (commandEnd > index) {
+      const commandKind = classifyLexicalWord(source.slice(start, commandEnd), spec);
+      if (commandKind === "command") {
+        emitter.push("command", start, commandEnd);
+        index = commandEnd;
+        continue;
+      }
     }
 
     if (spec.flags === true && char === "-" && isFlagStart(source[index + 1] ?? "")) {
@@ -582,7 +848,7 @@ function tokenizeJsonLike(source: string, allowComments: boolean): CodeToken[] {
         continue;
       }
 
-      const blockCommentEnd = readBlockComment(source, index);
+      const blockCommentEnd = readAnyBlockComment(source, index, cStyleBlockComments);
       if (blockCommentEnd > index) {
         emitter.push("comment", index, blockCommentEnd);
         index = blockCommentEnd;
@@ -697,7 +963,7 @@ function tokenizeStyle(source: string): CodeToken[] {
       continue;
     }
 
-    const blockCommentEnd = readBlockComment(source, index);
+    const blockCommentEnd = readAnyBlockComment(source, index, cStyleBlockComments);
     if (blockCommentEnd > index) {
       emitter.push("comment", index, blockCommentEnd);
       index = blockCommentEnd;
@@ -1069,6 +1335,19 @@ function readIdentifier(source: string, index: number): number {
   return index;
 }
 
+function readCommandIdentifier(source: string, index: number): number {
+  if (!isIdentifierStart(source[index] ?? "")) {
+    return index;
+  }
+
+  index += 1;
+  while (index < source.length && (isIdentifierPart(source[index]!) || source[index] === "-")) {
+    index += 1;
+  }
+
+  return index;
+}
+
 function readCssName(source: string, index: number): number {
   if (!isCssNameStart(source[index] ?? "")) {
     return index;
@@ -1180,15 +1459,24 @@ function readAnyLineComment(
   return index;
 }
 
-function readBlockComment(source: string, index: number): number {
-  if (!source.startsWith("/*", index)) {
-    return index;
+function readAnyBlockComment(
+  source: string,
+  index: number,
+  delimiters: readonly BlockCommentDelimiter[]
+): number {
+  for (const delimiter of delimiters) {
+    if (source.startsWith(delimiter.start, index)) {
+      return readDelimitedBlock(source, index + delimiter.start.length, delimiter.end);
+    }
   }
 
-  index += 2;
+  return index;
+}
+
+function readDelimitedBlock(source: string, index: number, endMarker: string): number {
   while (index < source.length) {
-    if (source.startsWith("*/", index)) {
-      return index + 2;
+    if (source.startsWith(endMarker, index)) {
+      return index + endMarker.length;
     }
 
     index += 1;

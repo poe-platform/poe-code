@@ -186,4 +186,93 @@ describe("code highlighting tokenizer", () => {
       expect.arrayContaining(["comment", "decorator", "keyword", "string", "number", "boolean", "null", "type"])
     );
   });
+
+  it("highlights expanded C-like and JVM language families", () => {
+    const examples = [
+      {
+        lang: "kotlin",
+        value: "// comment\n@JvmInline\nvalue class Runner(val name: String)\nfun call(): Boolean = true",
+        kinds: ["comment", "decorator", "keyword", "type", "boolean"]
+      },
+      {
+        lang: "swift",
+        value: "// comment\n@MainActor\nfunc call(name: String?) -> Bool { return true }",
+        kinds: ["comment", "decorator", "keyword", "type", "boolean"]
+      },
+      {
+        lang: "dart",
+        value: "// comment\nclass Runner { final String name = \"ready\"; bool ok = true; }",
+        kinds: ["comment", "keyword", "type", "string", "boolean"]
+      },
+      {
+        lang: "scala",
+        value: "// comment\ncase class Runner(name: String, ok: Boolean = true)",
+        kinds: ["comment", "keyword", "type", "boolean"]
+      },
+      {
+        lang: "groovy",
+        value: "// comment\nclass Runner { def name = \"ready\"; boolean ok = true }",
+        kinds: ["comment", "keyword", "type", "string", "boolean"]
+      },
+      {
+        lang: "objc",
+        value: "// comment\n@interface Runner : NSObject\n@property NSString *name;\n@end",
+        kinds: ["comment", "decorator", "type"]
+      }
+    ];
+
+    for (const example of examples) {
+      const tokens = highlightCodeBlock({ type: "code", lang: example.lang, value: example.value });
+
+      expect(tokens?.map((token) => token.value).join("")).toBe(example.value);
+      expect(tokens?.map((token) => token.kind)).toEqual(expect.arrayContaining(example.kinds));
+    }
+  });
+
+  it("highlights expanded scripting, functional, and config-oriented languages", () => {
+    const examples = [
+      {
+        lang: "lua",
+        value: "-- comment\nlocal value = \"ready\"\nreturn value == nil or true",
+        kinds: ["comment", "keyword", "string", "null", "boolean"]
+      },
+      {
+        lang: "perl",
+        value: "# comment\nmy $value = \"ready\";\nreturn undef;",
+        kinds: ["comment", "keyword", "variable", "string", "null"]
+      },
+      {
+        lang: "r",
+        value: "# comment\nvalue <- \"ready\"\nif (TRUE) return(NULL)",
+        kinds: ["comment", "string", "keyword", "boolean", "null"]
+      },
+      {
+        lang: "powershell",
+        value: "<# block #>\nfunction Invoke-Run { param($Path) Write-Output \"ready\" -Verbose; $null; $true }",
+        kinds: ["comment", "keyword", "variable", "command", "string", "flag"]
+      },
+      {
+        lang: "haskell",
+        value: "{- block -}\nmodule Runner where\nmain :: IO ()\nmain = pure True",
+        kinds: ["comment", "keyword", "type", "boolean"]
+      },
+      {
+        lang: "graphql",
+        value: "# comment\ntype Runner { id: ID! active: Boolean = true }",
+        kinds: ["comment", "keyword", "boolean"]
+      },
+      {
+        lang: "hcl",
+        value: "# comment\nresource \"aws_s3_bucket\" \"demo\" { force_destroy = true }",
+        kinds: ["comment", "keyword", "string", "boolean"]
+      }
+    ];
+
+    for (const example of examples) {
+      const tokens = highlightCodeBlock({ type: "code", lang: example.lang, value: example.value });
+
+      expect(tokens?.map((token) => token.value).join("")).toBe(example.value);
+      expect(tokens?.map((token) => token.kind)).toEqual(expect.arrayContaining(example.kinds));
+    }
+  });
 });

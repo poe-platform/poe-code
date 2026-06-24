@@ -237,11 +237,14 @@ The no-dependency highlighters cover these fence labels:
 - Line-oriented formats: `diff`, `patch`, `dockerfile`, `docker`
 - Config formats: `ini`, `properties`, `toml`
 - Ruby: `rb`, `ruby`
-- Go: `go`, `golang`
-- Java: `java`
-- C-family: `c`, `cpp`, `c++`, `cc`, `cxx`, `cs`, `csharp`, `c#`
+- Go and JVM languages: `go`, `golang`, `java`, `kt`, `kotlin`, `kts`, `scala`, `sc`, `groovy`, `gvy`, `gy`, `gsp`, `gradle`
+- Swift and Dart: `swift`, `dart`
+- C-family: `c`, `cpp`, `c++`, `cc`, `cxx`, `cs`, `csharp`, `c#`, `objc`, `objectivec`, `objective-c`, `m`, `mm`
 - Rust: `rs`, `rust`
 - PHP: `php`
+- Scripting and functional languages: `lua`, `pl`, `perl`, `pm`, `r`, `rscript`, `ps1`, `powershell`, `pwsh`, `ex`, `exs`, `elixir`, `erl`, `erlang`, `hrl`, `hs`, `haskell`, `clj`, `cljs`, `cljc`, `clojure`, `fs`, `fsi`, `fsx`, `fsharp`, `vb`, `vbnet`
+- Schema and infrastructure formats: `graphql`, `gql`, `proto`, `protobuf`, `hcl`, `tf`, `terraform`, `nginx`, `nginxconf`, `makefile`, `mk`, `cmake`, `env`, `dotenv`
+- Component formats: `vue`, `svelte`
 
 These language labels intentionally render as plain escaped code:
 

@@ -1,6 +1,6 @@
 import type { CodeToken, CodeTokenKind, MdNode } from "../ast.js";
 
-type CodeHighlightFamily = "lexical" | "data" | "style" | "line";
+type CodeHighlightFamily = "lexical" | "data" | "style" | "line" | "markup";
 
 type CodeLanguageInfo = {
   id: string;
@@ -21,11 +21,19 @@ type LexicalSpec = {
   keywords?: ReadonlySet<string>;
   types?: ReadonlySet<string>;
   constants?: ReadonlySet<string>;
+  booleans?: ReadonlySet<string>;
+  nulls?: ReadonlySet<string>;
+  commands?: ReadonlySet<string>;
   lineComments?: readonly string[];
   blockComments?: boolean;
   stringQuotes?: readonly string[];
   templateQuotes?: boolean;
+  tripleStringQuotes?: boolean;
   decorators?: boolean;
+  rustAttributes?: boolean;
+  variablePrefix?: "$";
+  flags?: boolean;
+  caseInsensitive?: boolean;
 };
 
 const codeLanguages: readonly CodeLanguageInfo[] = [
@@ -48,29 +56,29 @@ const codeLanguages: readonly CodeLanguageInfo[] = [
   { id: "jsonl", aliases: ["jsonl"], family: "data", spec: "json" },
   { id: "yaml", aliases: ["yaml", "yml"], family: "data", spec: "yaml" },
   { id: "css", aliases: ["css"], family: "style", spec: "css" },
-  { id: "scss", aliases: ["scss"] },
-  { id: "sass", aliases: ["sass"] },
-  { id: "less", aliases: ["less"] },
-  { id: "postcss", aliases: ["postcss"] },
-  { id: "shellscript", aliases: ["sh", "bash", "shell", "shellscript", "zsh", "fish"] },
-  { id: "python", aliases: ["py", "python"] },
-  { id: "sql", aliases: ["sql", "ddl", "dml"] },
-  { id: "html", aliases: ["html"] },
-  { id: "xml", aliases: ["xml", "svg"] },
-  { id: "markdown", aliases: ["md", "markdown"] },
-  { id: "diff", aliases: ["diff", "patch"] },
-  { id: "dockerfile", aliases: ["dockerfile", "docker"] },
-  { id: "ini", aliases: ["ini", "properties"] },
-  { id: "toml", aliases: ["toml"] },
+  { id: "scss", aliases: ["scss"], family: "style", spec: "css" },
+  { id: "sass", aliases: ["sass"], family: "style", spec: "css" },
+  { id: "less", aliases: ["less"], family: "style", spec: "css" },
+  { id: "postcss", aliases: ["postcss"], family: "style", spec: "css" },
+  { id: "shellscript", aliases: ["sh", "bash", "shell", "shellscript", "zsh", "fish"], family: "lexical", spec: "shell" },
+  { id: "python", aliases: ["py", "python"], family: "lexical", spec: "python" },
+  { id: "sql", aliases: ["sql", "ddl", "dml"], family: "lexical", spec: "sql" },
+  { id: "html", aliases: ["html"], family: "markup", spec: "html" },
+  { id: "xml", aliases: ["xml", "svg"], family: "markup", spec: "xml" },
+  { id: "markdown", aliases: ["md", "markdown"], family: "line", spec: "markdown" },
+  { id: "diff", aliases: ["diff", "patch"], family: "line", spec: "diff" },
+  { id: "dockerfile", aliases: ["dockerfile", "docker"], family: "line", spec: "dockerfile" },
+  { id: "ini", aliases: ["ini", "properties"], family: "data", spec: "ini" },
+  { id: "toml", aliases: ["toml"], family: "data", spec: "toml" },
   { id: "plaintext", aliases: ["text", "txt", "plain", "plaintext"], plain: true },
-  { id: "ruby", aliases: ["rb", "ruby"] },
-  { id: "go", aliases: ["go", "golang"] },
-  { id: "java", aliases: ["java"] },
-  { id: "c", aliases: ["c"] },
-  { id: "cpp", aliases: ["cpp", "c++", "cc", "cxx"] },
-  { id: "csharp", aliases: ["cs", "csharp", "c#"] },
-  { id: "rust", aliases: ["rs", "rust"] },
-  { id: "php", aliases: ["php"] }
+  { id: "ruby", aliases: ["rb", "ruby"], family: "lexical", spec: "ruby" },
+  { id: "go", aliases: ["go", "golang"], family: "lexical", spec: "go" },
+  { id: "java", aliases: ["java"], family: "lexical", spec: "java" },
+  { id: "c", aliases: ["c"], family: "lexical", spec: "c" },
+  { id: "cpp", aliases: ["cpp", "c++", "cc", "cxx"], family: "lexical", spec: "cpp" },
+  { id: "csharp", aliases: ["cs", "csharp", "c#"], family: "lexical", spec: "csharp" },
+  { id: "rust", aliases: ["rs", "rust"], family: "lexical", spec: "rust" },
+  { id: "php", aliases: ["php"], family: "lexical", spec: "php" }
 ] as const;
 
 const languageByAlias = new Map<string, CodeLanguageInfo>();
@@ -159,10 +167,134 @@ const tsTypes = new Set([
 
 const jsConstants = new Set(["true", "false", "null", "undefined", "NaN", "Infinity"]);
 
+const pythonKeywords = new Set([
+  "and",
+  "as",
+  "assert",
+  "async",
+  "await",
+  "break",
+  "case",
+  "class",
+  "continue",
+  "def",
+  "del",
+  "elif",
+  "else",
+  "except",
+  "finally",
+  "for",
+  "from",
+  "global",
+  "if",
+  "import",
+  "in",
+  "is",
+  "lambda",
+  "match",
+  "nonlocal",
+  "not",
+  "or",
+  "pass",
+  "raise",
+  "return",
+  "try",
+  "while",
+  "with",
+  "yield"
+]);
+
+const pythonTypes = new Set(["Any", "Callable", "Iterable", "None", "Protocol", "Self", "TypeVar", "bool", "bytes", "dict", "float", "int", "list", "object", "set", "str", "tuple"]);
+const pythonBooleans = new Set(["True", "False"]);
+const pythonNulls = new Set(["None", "NotImplemented", "Ellipsis"]);
+
+const shellKeywords = new Set(["case", "do", "done", "elif", "else", "esac", "fi", "for", "function", "if", "in", "select", "then", "until", "while"]);
+const shellCommands = new Set(["awk", "cat", "cd", "chmod", "cp", "echo", "env", "export", "find", "grep", "mkdir", "mv", "printf", "pwd", "rm", "sed", "test"]);
+
+const sqlKeywords = new Set([
+  "add",
+  "alter",
+  "and",
+  "as",
+  "by",
+  "case",
+  "create",
+  "delete",
+  "desc",
+  "distinct",
+  "drop",
+  "else",
+  "end",
+  "exists",
+  "from",
+  "group",
+  "having",
+  "in",
+  "insert",
+  "into",
+  "is",
+  "join",
+  "left",
+  "limit",
+  "not",
+  "null",
+  "on",
+  "or",
+  "order",
+  "outer",
+  "primary",
+  "references",
+  "right",
+  "select",
+  "set",
+  "table",
+  "then",
+  "union",
+  "update",
+  "values",
+  "when",
+  "where"
+]);
+
+const rubyKeywords = new Set(["alias", "and", "begin", "break", "case", "class", "def", "defined?", "do", "else", "elsif", "end", "ensure", "false", "for", "if", "in", "module", "next", "nil", "not", "or", "redo", "rescue", "retry", "return", "self", "super", "then", "true", "undef", "unless", "until", "when", "while", "yield"]);
+const rubyBooleans = new Set(["true", "false"]);
+const rubyNulls = new Set(["nil"]);
+
+const goKeywords = new Set(["break", "case", "chan", "const", "continue", "default", "defer", "else", "fallthrough", "for", "func", "go", "goto", "if", "import", "interface", "map", "package", "range", "return", "select", "struct", "switch", "type", "var"]);
+const goTypes = new Set(["any", "bool", "byte", "complex128", "complex64", "error", "float32", "float64", "int", "int16", "int32", "int64", "int8", "rune", "string", "uint", "uint16", "uint32", "uint64", "uint8", "uintptr"]);
+const goBooleans = new Set(["true", "false"]);
+const goNulls = new Set(["nil"]);
+
+const javaKeywords = new Set(["abstract", "assert", "break", "case", "catch", "class", "const", "continue", "default", "do", "else", "enum", "extends", "final", "finally", "for", "if", "implements", "import", "instanceof", "interface", "native", "new", "package", "private", "protected", "public", "return", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "volatile", "while"]);
+const javaTypes = new Set(["Boolean", "Byte", "Character", "Double", "Float", "Integer", "Long", "Object", "Optional", "Short", "String", "Void", "boolean", "byte", "char", "double", "float", "int", "long", "short", "void"]);
+const javaBooleans = new Set(["true", "false"]);
+const javaNulls = new Set(["null"]);
+
+const cKeywords = new Set(["auto", "break", "case", "const", "continue", "default", "do", "else", "enum", "extern", "for", "goto", "if", "inline", "register", "restrict", "return", "sizeof", "static", "struct", "switch", "typedef", "union", "volatile", "while"]);
+const cTypes = new Set(["bool", "char", "double", "float", "int", "int16_t", "int32_t", "int64_t", "int8_t", "long", "short", "size_t", "uint16_t", "uint32_t", "uint64_t", "uint8_t", "void"]);
+
+const cppKeywords = new Set([...cKeywords, "alignas", "alignof", "and", "bitand", "bitor", "catch", "class", "concept", "constexpr", "consteval", "constinit", "decltype", "delete", "explicit", "export", "friend", "mutable", "namespace", "new", "noexcept", "not", "operator", "or", "private", "protected", "public", "requires", "template", "this", "throw", "try", "typename", "using", "virtual", "xor"]);
+const cppTypes = new Set([...cTypes, "auto", "bool", "char16_t", "char32_t", "std", "string", "wstring"]);
+const cppBooleans = new Set(["true", "false"]);
+const cppNulls = new Set(["nullptr", "NULL"]);
+
+const csharpKeywords = new Set(["abstract", "as", "base", "break", "case", "catch", "checked", "class", "const", "continue", "default", "delegate", "do", "else", "enum", "event", "explicit", "extern", "finally", "fixed", "for", "foreach", "if", "implicit", "in", "interface", "internal", "is", "lock", "namespace", "new", "operator", "out", "override", "params", "private", "protected", "public", "readonly", "record", "ref", "return", "sealed", "sizeof", "stackalloc", "static", "struct", "switch", "this", "throw", "try", "typeof", "unchecked", "unsafe", "using", "virtual", "void", "volatile", "while"]);
+const csharpTypes = new Set(["bool", "byte", "char", "decimal", "double", "dynamic", "float", "int", "long", "nint", "nuint", "object", "sbyte", "short", "string", "uint", "ulong", "ushort", "var"]);
+
+const rustKeywords = new Set(["as", "async", "await", "box", "break", "const", "continue", "crate", "dyn", "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while"]);
+const rustTypes = new Set(["Box", "Option", "Result", "Some", "String", "Vec", "bool", "char", "f32", "f64", "i128", "i16", "i32", "i64", "i8", "isize", "str", "u128", "u16", "u32", "u64", "u8", "usize"]);
+const rustBooleans = new Set(["true", "false"]);
+const rustNulls = new Set(["None"]);
+
+const phpKeywords = new Set(["abstract", "and", "array", "as", "break", "callable", "case", "catch", "class", "clone", "const", "continue", "declare", "default", "do", "echo", "else", "elseif", "empty", "enddeclare", "endfor", "endforeach", "endif", "endswitch", "endwhile", "enum", "extends", "final", "finally", "fn", "for", "foreach", "function", "global", "if", "implements", "include", "instanceof", "interface", "isset", "match", "namespace", "new", "or", "private", "protected", "public", "readonly", "require", "return", "static", "switch", "throw", "trait", "try", "use", "var", "while", "xor", "yield"]);
+const phpTypes = new Set(["array", "bool", "callable", "false", "float", "int", "iterable", "mixed", "never", "null", "object", "self", "static", "string", "true", "void"]);
+
 const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
   javascript: {
     keywords: jsKeywords,
     constants: jsConstants,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["null"]),
     lineComments: ["//"],
     blockComments: true,
     stringQuotes: ['"', "'"],
@@ -173,11 +305,114 @@ const lexicalSpecs: Readonly<Record<string, LexicalSpec>> = {
     keywords: tsKeywords,
     types: tsTypes,
     constants: jsConstants,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["null"]),
     lineComments: ["//"],
     blockComments: true,
     stringQuotes: ['"', "'"],
     templateQuotes: true,
     decorators: true
+  },
+  shell: {
+    keywords: shellKeywords,
+    commands: shellCommands,
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"],
+    variablePrefix: "$",
+    flags: true
+  },
+  python: {
+    keywords: pythonKeywords,
+    types: pythonTypes,
+    booleans: pythonBooleans,
+    nulls: pythonNulls,
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"],
+    tripleStringQuotes: true,
+    decorators: true
+  },
+  sql: {
+    keywords: sqlKeywords,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["null"]),
+    lineComments: ["--"],
+    blockComments: true,
+    stringQuotes: ['"', "'"],
+    caseInsensitive: true
+  },
+  ruby: {
+    keywords: rubyKeywords,
+    booleans: rubyBooleans,
+    nulls: rubyNulls,
+    lineComments: ["#"],
+    stringQuotes: ['"', "'"]
+  },
+  go: {
+    keywords: goKeywords,
+    types: goTypes,
+    booleans: goBooleans,
+    nulls: goNulls,
+    lineComments: ["//"],
+    blockComments: true,
+    stringQuotes: ['"', "'", "`"]
+  },
+  java: {
+    keywords: javaKeywords,
+    types: javaTypes,
+    booleans: javaBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: true,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  c: {
+    keywords: cKeywords,
+    types: cTypes,
+    booleans: cppBooleans,
+    nulls: cppNulls,
+    lineComments: ["//"],
+    blockComments: true,
+    stringQuotes: ['"', "'"]
+  },
+  cpp: {
+    keywords: cppKeywords,
+    types: cppTypes,
+    booleans: cppBooleans,
+    nulls: cppNulls,
+    lineComments: ["//"],
+    blockComments: true,
+    stringQuotes: ['"', "'"]
+  },
+  csharp: {
+    keywords: csharpKeywords,
+    types: csharpTypes,
+    booleans: cppBooleans,
+    nulls: javaNulls,
+    lineComments: ["//"],
+    blockComments: true,
+    stringQuotes: ['"', "'"],
+    decorators: true
+  },
+  rust: {
+    keywords: rustKeywords,
+    types: rustTypes,
+    booleans: rustBooleans,
+    nulls: rustNulls,
+    lineComments: ["//"],
+    blockComments: true,
+    stringQuotes: ['"', "'"],
+    rustAttributes: true
+  },
+  php: {
+    keywords: phpKeywords,
+    types: phpTypes,
+    booleans: new Set(["true", "false"]),
+    nulls: new Set(["null"]),
+    lineComments: ["//", "#"],
+    blockComments: true,
+    stringQuotes: ['"', "'"],
+    variablePrefix: "$"
   }
 };
 
@@ -185,7 +420,8 @@ const tokenizers: Readonly<Record<CodeHighlightFamily, CodeTokenizer>> = {
   lexical: tokenizeLexical,
   data: tokenizeData,
   style: tokenizeStyle,
-  line: tokenizeLine
+  line: tokenizeLine,
+  markup: tokenizeMarkup
 };
 
 export function highlightCodeBlock(
@@ -252,9 +488,37 @@ function tokenizeLexical(source: string, language: CodeLanguageInfo): CodeToken[
       continue;
     }
 
+    if (spec.rustAttributes === true && source.startsWith("#[", index)) {
+      index = readUntil(source, index + 2, "]");
+      emitter.push("decorator", start, index);
+      continue;
+    }
+
     if (spec.decorators === true && char === "@" && isIdentifierStart(source[index + 1] ?? "")) {
       index = readIdentifier(source, index + 1);
       emitter.push("decorator", start, index);
+      continue;
+    }
+
+    if (spec.variablePrefix === "$" && char === "$" && isIdentifierStart(source[index + 1] ?? "")) {
+      index = readIdentifier(source, index + 1);
+      emitter.push("variable", start, index);
+      continue;
+    }
+
+    if (spec.flags === true && char === "-" && isFlagStart(source[index + 1] ?? "")) {
+      index = readFlag(source, index + 1);
+      emitter.push("flag", start, index);
+      continue;
+    }
+
+    if (
+      spec.tripleStringQuotes === true &&
+      (char === '"' || char === "'") &&
+      source.startsWith(char.repeat(3), index)
+    ) {
+      index = readTripleQuotedString(source, index, char);
+      emitter.push("string", start, index);
       continue;
     }
 
@@ -290,6 +554,10 @@ function tokenizeLexical(source: string, language: CodeLanguageInfo): CodeToken[
 }
 
 function tokenizeData(source: string, language: CodeLanguageInfo): CodeToken[] {
+  if (language.spec === "toml" || language.spec === "ini") {
+    return tokenizeConfig(source);
+  }
+
   return language.spec === "yaml" ? tokenizeYaml(source) : tokenizeJsonLike(source, language.spec === "jsonc");
 }
 
@@ -482,8 +750,214 @@ function tokenizeStyle(source: string): CodeToken[] {
   return emitter.tokens;
 }
 
-function tokenizeLine(source: string): CodeToken[] {
-  return [{ kind: "plain", value: source }];
+function tokenizeConfig(source: string): CodeToken[] {
+  const emitter = createEmitter(source);
+  let index = 0;
+  let atLineStart = true;
+
+  while (index < source.length) {
+    const start = index;
+
+    if (source[index] === "\n") {
+      emitter.pushPlain(index, index + 1);
+      index += 1;
+      atLineStart = true;
+      continue;
+    }
+
+    index = readSpacesAndTabs(source, index);
+    if (index > start) {
+      emitter.pushPlain(start, index);
+      continue;
+    }
+
+    if (source[index] === "#" || source[index] === ";") {
+      index = readUntilLineEnd(source, index);
+      emitter.push("comment", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    if (atLineStart && source[index] === "[") {
+      index = readUntil(source, index + 1, "]");
+      emitter.push("selector", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    if (atLineStart) {
+      const keyEnd = readConfigKey(source, index);
+      if (keyEnd > index) {
+        emitter.push("key", index, keyEnd);
+        index = keyEnd;
+        atLineStart = false;
+        continue;
+      }
+    }
+
+    if (source[index] === '"' || source[index] === "'") {
+      const quote = source[index]!;
+      index = readQuotedString(source, index, quote);
+      emitter.push("string", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    index = readNumber(source, index);
+    if (index > start) {
+      emitter.push("number", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    index = readIdentifier(source, index);
+    if (index > start) {
+      emitter.push(classifyDataWord(source.slice(start, index)), start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    emitter.pushPlain(start, start + 1);
+    index = start + 1;
+    atLineStart = false;
+  }
+
+  return emitter.tokens;
+}
+
+function tokenizeLine(source: string, language: CodeLanguageInfo): CodeToken[] {
+  const emitter = createEmitter(source);
+  let index = 0;
+  let atLineStart = true;
+
+  while (index < source.length) {
+    const start = index;
+
+    if (source[index] === "\n") {
+      emitter.pushPlain(index, index + 1);
+      index += 1;
+      atLineStart = true;
+      continue;
+    }
+
+    if (atLineStart && language.spec === "diff" && (source[index] === "+" || source[index] === "-")) {
+      index = readUntilLineEnd(source, index);
+      emitter.push(source[start] === "+" ? "string" : "important", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    if (atLineStart && language.spec === "markdown" && source[index] === "#") {
+      index = readUntilLineEnd(source, index);
+      emitter.push("keyword", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    if (atLineStart && language.spec === "dockerfile") {
+      const directiveEnd = readIdentifier(source, index);
+      if (directiveEnd > index) {
+        emitter.push("directive", index, directiveEnd);
+        index = directiveEnd;
+        atLineStart = false;
+        continue;
+      }
+    }
+
+    if (source[index] === "#" && language.spec !== "diff") {
+      index = readUntilLineEnd(source, index);
+      emitter.push("comment", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    if (source[index] === '"' || source[index] === "'") {
+      const quote = source[index]!;
+      index = readQuotedString(source, index, quote);
+      emitter.push("string", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    index = readNumber(source, index);
+    if (index > start) {
+      emitter.push("number", start, index);
+      atLineStart = false;
+      continue;
+    }
+
+    emitter.pushPlain(start, start + 1);
+    index = start + 1;
+    atLineStart = false;
+  }
+
+  return emitter.tokens;
+}
+
+function tokenizeMarkup(source: string): CodeToken[] {
+  const emitter = createEmitter(source);
+  let index = 0;
+
+  while (index < source.length) {
+    const start = index;
+
+    if (source.startsWith("<!--", index)) {
+      index = readUntil(source, index + 4, "-->");
+      emitter.push("comment", start, index);
+      continue;
+    }
+
+    if (source[index] === "<") {
+      emitter.push("punctuation", index, index + 1);
+      index += 1;
+      if (source[index] === "/") {
+        emitter.push("punctuation", index, index + 1);
+        index += 1;
+      }
+
+      const tagStart = index;
+      index = readIdentifier(source, index);
+      if (index > tagStart) {
+        emitter.push("tag", tagStart, index);
+      }
+
+      while (index < source.length && source[index] !== ">") {
+        const innerStart = index;
+        index = readWhitespace(source, index);
+        if (index > innerStart) {
+          emitter.pushPlain(innerStart, index);
+          continue;
+        }
+
+        if (source[index] === '"' || source[index] === "'") {
+          const quote = source[index]!;
+          index = readQuotedString(source, index, quote);
+          emitter.push("string", innerStart, index);
+          continue;
+        }
+
+        index = readIdentifier(source, index);
+        if (index > innerStart) {
+          emitter.push("attribute", innerStart, index);
+          continue;
+        }
+
+        emitter.push("punctuation", innerStart, innerStart + 1);
+        index = innerStart + 1;
+      }
+
+      if (source[index] === ">") {
+        emitter.push("punctuation", index, index + 1);
+        index += 1;
+      }
+      continue;
+    }
+
+    emitter.pushPlain(start, start + 1);
+    index = start + 1;
+  }
+
+  return emitter.tokens;
 }
 
 function createEmitter(source: string): TokenEmitter & { tokens: CodeToken[] } {
@@ -522,23 +996,29 @@ function pushToken(
 }
 
 function classifyLexicalWord(word: string, spec: LexicalSpec): CodeTokenKind {
-  if (word === "true" || word === "false") {
+  const lookup = spec.caseInsensitive === true ? word.toLowerCase() : word;
+
+  if (spec.booleans?.has(lookup) === true || spec.booleans?.has(word) === true) {
     return "boolean";
   }
 
-  if (word === "null") {
+  if (spec.nulls?.has(lookup) === true || spec.nulls?.has(word) === true) {
     return "null";
   }
 
-  if (spec.keywords?.has(word) === true) {
+  if (spec.keywords?.has(lookup) === true || spec.keywords?.has(word) === true) {
     return "keyword";
   }
 
-  if (spec.types?.has(word) === true) {
+  if (spec.types?.has(lookup) === true || spec.types?.has(word) === true) {
     return "type";
   }
 
-  if (spec.constants?.has(word) === true) {
+  if (spec.commands?.has(lookup) === true || spec.commands?.has(word) === true) {
+    return "command";
+  }
+
+  if (spec.constants?.has(lookup) === true || spec.constants?.has(word) === true) {
     return "number";
   }
 
@@ -666,6 +1146,26 @@ function readQuotedString(source: string, index: number, quote: string): number 
   return index;
 }
 
+function readTripleQuotedString(source: string, index: number, quote: string): number {
+  const marker = quote.repeat(3);
+  index += marker.length;
+
+  while (index < source.length) {
+    if (source.startsWith(marker, index)) {
+      return index + marker.length;
+    }
+
+    if (source[index] === "\\") {
+      index = Math.min(source.length, index + 2);
+      continue;
+    }
+
+    index += 1;
+  }
+
+  return index;
+}
+
 function readAnyLineComment(
   source: string,
   index: number,
@@ -705,6 +1205,18 @@ function readUntilLineEnd(source: string, index: number): number {
   return index;
 }
 
+function readUntil(source: string, index: number, marker: string): number {
+  while (index < source.length) {
+    if (source.startsWith(marker, index)) {
+      return index + marker.length;
+    }
+
+    index += 1;
+  }
+
+  return index;
+}
+
 function readYamlKey(source: string, index: number): number {
   const start = index;
   while (index < source.length) {
@@ -721,6 +1233,40 @@ function readYamlKey(source: string, index: number): number {
   }
 
   return start;
+}
+
+function readConfigKey(source: string, index: number): number {
+  const start = index;
+  while (index < source.length) {
+    const char = source[index]!;
+    if (char === "=" || char === ":") {
+      return trimRightIndex(source, start, index);
+    }
+
+    if (char === "\n" || char === "#" || char === ";") {
+      return start;
+    }
+
+    index += 1;
+  }
+
+  return start;
+}
+
+function readFlag(source: string, index: number): number {
+  while (index < source.length && isFlagPart(source[index]!)) {
+    index += 1;
+  }
+
+  return index;
+}
+
+function trimRightIndex(source: string, start: number, end: number): number {
+  while (end > start && (source[end - 1] === " " || source[end - 1] === "\t")) {
+    end -= 1;
+  }
+
+  return end;
 }
 
 function readCssColor(source: string, index: number): number {
@@ -762,6 +1308,14 @@ function isCssNameStart(char: string): boolean {
 
 function isCssNamePart(char: string): boolean {
   return isCssNameStart(char) || isDigit(char);
+}
+
+function isFlagStart(char: string): boolean {
+  return isAlpha(char) || char === "-";
+}
+
+function isFlagPart(char: string): boolean {
+  return isAlpha(char) || isDigit(char) || char === "-";
 }
 
 function isExponentStart(char: string): boolean {

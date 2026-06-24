@@ -215,12 +215,9 @@ describe("terminal markdown html renderer", () => {
     );
   });
 
-  it("falls back to plain code for unknown, plain-text, and known unhighlighted languages", () => {
+  it("falls back to plain code for unknown and plain-text languages", () => {
     expect(renderMarkdownHtml("```unknown-language\n<x>\n```", { syntaxHighlight: true })).toBe(
       '<pre><code class="language-unknown-language">&lt;x&gt;</code></pre>'
-    );
-    expect(renderMarkdownHtml("```ruby\nputs '<x>'\n```", { syntaxHighlight: true })).toBe(
-      '<pre><code class="language-ruby">puts \'&lt;x&gt;\'</code></pre>'
     );
     expect(renderMarkdownHtml("```text\nconst x = '<x>';\n```", { syntaxHighlight: true })).toBe(
       '<pre><code class="language-text">const x = \'&lt;x&gt;\';</code></pre>'

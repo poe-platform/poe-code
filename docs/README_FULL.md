@@ -31,6 +31,7 @@
   - [usage](#usage)
   - [models](#models)
   - [skill](#skill)
+  - [plan](#plan)
   - [pipeline](#pipeline)
   - [memory](#memory)
 - [SDK Reference](#sdk-reference)
@@ -896,6 +897,40 @@ poe-code skill install claude-code --name review-helper --file ./SKILL.md --loca
 poe-code skill unconfigure claude-code --global
 poe-code skill unconfigure claude-code --local --force
 ```
+
+---
+
+### plan
+
+Browse, list, view, edit, archive, delete, and draft shared plan documents. The shared plan directory resolves from `plan.plan_directory`, overridden by `POE_PLAN_DIRECTORY`, and defaults to `docs/plans`.
+
+```bash
+poe-code plan [question]
+poe-code plan browse
+poe-code plan list
+poe-code plan view [path]
+poe-code plan edit [path]
+poe-code plan archive [path]
+poe-code plan delete [path]
+poe-code plan install
+```
+
+**Plan kinds:** `plan`, `pipeline`, `experiment`, `ralph`, `superintendent`, and `superintendent-base`. Commands that discover plans accept `--kind <kind>` to filter by kind.
+
+**Interactive explorer:**
+
+- `poe-code plan` without a question opens the explorer and exposes `e` edit, `s` save/restore, `a` archive, `d` delete, and `n` new-plan actions.
+- Saving for later moves the selected plan into the plan directory's `later/` subdirectory and records a required `saved_for_later.reason` when the plan does not already provide one.
+- Saved-for-later plans are discovered from `later/`, grouped after active plans, and restored back to the active plan directory with the same `s` action.
+- Archive and delete prompt for confirmation unless `--yes` is set.
+
+**Non-interactive commands:**
+
+- `plan list` prints discovered plans. Use `--output terminal`, `--output md`, or `--output json`.
+- `plan view [path]` renders one plan preview. Without a path it prompts, or selects the first plan with `--yes`.
+- `plan edit`, `plan archive`, and `plan delete` select by explicit path, prompt interactively, or use the first plan when allowed by `--yes`/JSON behavior.
+- `plan [question]` drafts a new plan with the configured or selected agent instead of opening the explorer.
+- `plan install` installs the `/plan` five-levels skill for the chosen agent and scope.
 
 ---
 
@@ -2446,6 +2481,7 @@ poe-code/
 | `usage`                  | `balance`, `list`                                                       | Check usage/billing                                 |
 | `models`                 | —                                                                       | List available models                               |
 | `skill`                  | `configure`, `unconfigure`                                              | Agent skill management                              |
+| `plan`                   | `browse`, `list`, `view`, `edit`, `archive`, `delete`, `install`        | Shared plan browsing and drafting                   |
 | `pipeline`               | `run`, `init`, `validate`, `plan-path`, `install`                       | Pipeline plan generation, validation, and execution |
 | `memory`                 | `init`, `ls`, `show`, `search`, `status`, `clear`                       | Repo-scoped persistent memory operations            |
 

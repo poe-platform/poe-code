@@ -63,7 +63,7 @@ The package does not expose public subpath imports.
 - Root-level types: `Row`, `DetailItem`, `Detail`, `DetailCtx`, `Action`, `ActionContext`, `ExplorerConfig`, `ReorderContext`, `Tone`, `TwoPaneExplorerConfig`, `TwoPaneRow`, `TwoPaneAction`, `TwoPaneActionContext`.
 - The namespace also exports `createInitialState`, `resolveBindings`, and the remaining explorer event, binding, layout, size, state, and effect types.
 
-`runTwoPaneExplorer` renders two independently selectable panes with action shortcuts, refresh support, and active-pane switching. The explorer uses framed `Plans` and `Preview` panes; detail previews render Markdown content before fitting it into the terminal. Use `renderResourceBrowser` and `renderInspectorCard` for deterministic non-interactive snapshots that match the interactive browser language.
+`runTwoPaneExplorer` renders two independently selectable panes with action shortcuts, refresh support, and active-pane switching. The explorer uses framed `Plans` and `Preview` panes; detail previews render Markdown content before fitting it into the terminal. Actions that call `suspendAnd(...)` temporarily pause explorer key handling, leave the alternate screen, and restore the explorer after the prompt or editor completes, so embedded prompts receive input without racing the explorer. Use `renderResourceBrowser` and `renderInspectorCard` for deterministic non-interactive snapshots that match the interactive browser language.
 
 ### Terminal Markdown
 

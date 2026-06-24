@@ -56,9 +56,10 @@ Generation also writes a local skill to `.claude/skills/<skill-name>/SKILL.md`. 
 the generated CLI and MCP command surface, includes quick-start command examples, and caps the
 command catalog for very large specs. The generator infers the CLI command name from `package.json`
 `bin` entries, preferring the package binary over MCP-specific binaries; if no binary can be inferred,
-the skill uses `<cli>` as a placeholder. The generated TypeScript files intentionally do not include
-the spec hash, so metadata-only spec changes update only `openapi.lock` when the emitted code is
-unchanged.
+the skill uses `<cli>` as a placeholder. The generated skill path may pass through project-internal
+symlinks, such as `.claude/skills -> ../.agents/skills`, but symlinks that resolve outside the project
+are rejected. The generated TypeScript files intentionally do not include the spec hash, so
+metadata-only spec changes update only `openapi.lock` when the emitted code is unchanged.
 
 ### CI drift check
 

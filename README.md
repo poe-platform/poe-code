@@ -150,18 +150,17 @@ npx poe-code@latest install goose
 - `--dry-run` – show every mutation without touching disk.
 - `--yes` – accept defaults for prompts.
 
+#### Update Poe Code
+
+```bash
+npx poe-code@latest update
+npx poe-code@latest update --package-manager pnpm
+```
+
 ### Install a local skill file
 
 ```bash
 npx poe-code@latest skill install claude-code --name review-helper --file ./SKILL.md --local
-```
-
-## Development
-
-Running `npm install` in a clone also installs Poe Code skill templates into supported user skill directories such as `~/.claude/skills/` and `~/.codex/skills/`. Set `SKIP_SYNC_SKILLS=1` to opt out:
-
-```bash
-SKIP_SYNC_SKILLS=1 npm install
 ```
 
 ## Usage & Billing

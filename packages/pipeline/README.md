@@ -145,6 +145,8 @@ Pipeline processes tasks sequentially in plan order:
 
 Stop conditions: all work complete, a task/step fails, cancellation, or `maxRuns` reached.
 
+Pass `--worktree` to run the whole pipeline in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts.
+
 A failed task or step blocks all later tasks.
 
 ### Cancellation
@@ -202,7 +204,7 @@ POE_PIPELINE_TUI=true poe-code pipeline run
 poe-code pipeline install [--agent <name>] [--local|--global] [--force]
 poe-code pipeline validate <file> [--preview]
 poe-code pipeline plan-path
-poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>]
+poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>] [--worktree]
 ```
 
 ## Package API
@@ -216,6 +218,7 @@ const result = await runPipeline({
   homeDir: "/home/test",
   plan: ".poe-code/pipeline/plans/plan-auth.yaml",
   maxRuns: 5,
+  worktree: true,
   runAgent: async ({ agent, prompt, mode, cwd, model, mcpServers, signal }) => {
     return { stdout: "", stderr: "", exitCode: 0 };
   }

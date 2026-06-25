@@ -141,8 +141,10 @@ POE_EXPERIMENT_TUI=true poe-code experiment run
 ## CLI
 
 ```bash
-poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui]
+poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui] [--worktree]
 poe-code experiment validate [doc]
 poe-code experiment journal [doc]
 poe-code experiment install
 ```
+
+Pass `--worktree` to run the whole experiment loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts.

@@ -124,8 +124,10 @@ POE_RALPH_TUI=true poe-code ralph run
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--tui|--no-tui]
+poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--tui|--no-tui] [--worktree]
 ```
+
+Pass `--worktree` to run the whole Ralph loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts.
 
 ## Package API
 
@@ -138,6 +140,7 @@ const result = await runRalph({
   homeDir: "/home/test",
   docPath: ".poe-code/ralph/plans/refactor-auth.md",
   maxIterations: 3,
+  worktree: true,
   runAgent: async ({ agent, prompt, cwd, model, signal }) => {
     return { stdout: "", stderr: "", exitCode: 0 };
   }

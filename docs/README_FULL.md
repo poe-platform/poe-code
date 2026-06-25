@@ -28,15 +28,18 @@
   - [wrap](#wrap)
   - [test](#test)
   - [install](#install)
+  - [update](#update)
   - [usage](#usage)
   - [models](#models)
   - [skill](#skill)
   - [plan](#plan)
+  - [worktree](#worktree)
   - [pipeline](#pipeline)
   - [memory](#memory)
 - [SDK Reference](#sdk-reference)
   - [spawn()](#spawn-sdk)
   - [spawn.pretty()](#spawnpretty)
+  - [Managed worktrees](#managed-worktrees-sdk)
   - [Composable agent runtime](#composable-agent-runtime)
   - [getPoeApiKey()](#getpoeapikey)
   - [getPoeAuthIdentity()](#getpoeauthidentity)
@@ -476,16 +479,17 @@ poe-code gaslight ingest
 
 **Options:**
 
-| Option             | Default                                                    | Description                                    |
-| ------------------ | ---------------------------------------------------------- | ---------------------------------------------- |
-| `--agent <agent>`  | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run.                               |
-| `--config <path>`  | Default config lookup                                      | Use a specific gaslight config file.           |
-| `--model <model>`  | Agent/configured default                                   | Model override.                                |
-| `--mode <mode>`    | `auto`                                                     | Spawn mode: `read`, `edit`, `yolo`, or `auto`. |
-| `--plans <paths>`  | None                                                       | Markdown plans to run sequentially.            |
-| `install --local`  | Local when `--yes`                                         | Write `<cwd>/.poe-code/gaslight.yaml`.         |
-| `install --global` | None                                                       | Write `<homeDir>/.poe-code/gaslight.yaml`.     |
-| `install --force`  | `false`                                                    | Replace an existing gaslight config.           |
+| Option             | Default                                                    | Description                                                                                             |
+| ------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `--agent <agent>`  | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run.                                                                                        |
+| `--config <path>`  | Default config lookup                                      | Use a specific gaslight config file.                                                                    |
+| `--model <model>`  | Agent/configured default                                   | Model override.                                                                                         |
+| `--mode <mode>`    | `auto`                                                     | Spawn mode: `read`, `edit`, `yolo`, or `auto`.                                                          |
+| `--plans <paths>`  | None                                                       | Markdown plans to run sequentially.                                                                     |
+| `--worktree`       | `false`                                                    | Run the whole Gaslight execution in one managed git worktree and reconcile successful output afterward. |
+| `install --local`  | Local when `--yes`                                         | Write `<cwd>/.poe-code/gaslight.yaml`.                                                                  |
+| `install --global` | None                                                       | Write `<homeDir>/.poe-code/gaslight.yaml`.                                                              |
+| `install --force`  | `false`                                                    | Replace an existing gaslight config.                                                                    |
 
 **Ingest options:**
 
@@ -705,6 +709,35 @@ poe-code install codex
 poe-code install opencode
 poe-code install kimi
 poe-code install goose
+```
+
+---
+
+### update
+
+Update the globally installed `poe-code` package to the latest published version.
+
+```bash
+poe-code update
+```
+
+**Options:**
+
+| Option                        | Description                                                                |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| `--package-manager <manager>` | Override package-manager detection. Choices: `npm`, `bun`, `pnpm`, `yarn`. |
+| `--force`                     | Run the installer even when the installed version is already current.      |
+| `--no-version-check`          | Skip the npm registry version check before running the installer.          |
+
+`poe-code update` detects the package manager from npm runtime environment variables and falls back to `npm`. With `--dry-run`, it prints the installer command without running it.
+
+**Examples:**
+
+```bash
+poe-code update
+poe-code update --package-manager pnpm
+poe-code update --force
+poe-code update --no-version-check
 ```
 
 ### usage
@@ -934,6 +967,31 @@ poe-code plan install
 
 ---
 
+### worktree
+
+Manage poe-code managed git worktree runs. Worktree-enabled agent runs create isolated checkouts under `.poe-code/worktrees/`, record them in `.poe-code/worktrees.yaml`, and reconcile successful output back into the source checkout with the selected agent.
+
+```bash
+poe-code worktree list
+poe-code worktree reconcile <name> --agent <agent>
+poe-code worktree remove <name> [--delete-branch]
+```
+
+**Subcommands:**
+
+| Subcommand                         | Description                                                                  |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `list`                             | List managed worktrees and whether the underlying git worktree still exists. |
+| `reconcile <name> --agent <agent>` | Reconcile an existing failed managed worktree back into the source checkout. |
+| `remove <name>`                    | Remove a managed worktree from the registry and filesystem.                  |
+| `remove <name> --delete-branch`    | Also delete the managed branch after removing the worktree.                  |
+
+Commands that support isolated execution expose `--worktree`. In the CLI this currently includes `gaslight`, `pipeline run`, `ralph run`, `experiment run`, `harness run`, and `superintendent run`. The SDK also supports worktree mode for `spawn(...)`, `runPipeline(...)`, `runGaslight(...)`, `runRalph(...)`, and `runExperiment(...)`.
+
+Worktree mode requires the source checkout to be inside a git work tree and to have no uncommitted changes before the run starts. Successful runs always attempt reconciliation and managed worktree cleanup. Failed runs are marked in the registry; if they produced changes, the worktree is left in place for inspection or later `worktree reconcile`.
+
+---
+
 ### pipeline
 
 Run and manage fixed-step pipeline plans.
@@ -957,6 +1015,7 @@ poe-code pipeline run [--plan <path> | --plans <paths...>]
 | `--plan <path>`      | Run one pipeline plan file.                                                                                                                        |
 | `--plans <paths...>` | Run multiple plan files sequentially.                                                                                                              |
 | `--max-runs <n>`     | Stop after `n` agent executions.                                                                                                                   |
+| `--worktree`         | Run the whole pipeline in one managed git worktree and reconcile successful output afterward.                                                      |
 
 #### `pipeline init`
 
@@ -1136,6 +1195,14 @@ const { result: r4 } = spawn("claude-code", {
   prompt: "Let's debug this together",
   interactive: true
 });
+
+// Isolated worktree mode for agent-authored changes
+const { result: r5 } = spawn("codex", {
+  prompt: "Fix the failing tests",
+  cwd: "/path/to/project",
+  mode: "auto",
+  worktree: true
+});
 ```
 
 ### spawn.pretty()
@@ -1163,6 +1230,33 @@ const result2 = await spawn.pretty("claude-code", {
   cwd: "/path/to/project"
 });
 ```
+
+### Managed worktrees {#managed-worktrees-sdk}
+
+The SDK exports helpers for running arbitrary callbacks in managed git worktrees and for inspecting or repairing the worktree registry.
+
+```typescript
+import { runInWorktree, runWithOptionalWorktree, spawn } from "poe-code";
+
+const result = await runInWorktree({
+  cwd: process.cwd(),
+  selectedAgent: "codex",
+  worktree: true,
+  run: async ({ worktreeCwd }) => {
+    return await doWorkInside(worktreeCwd);
+  }
+});
+
+const { result: spawnResult } = spawn("codex", {
+  prompt: "Implement the plan",
+  cwd: process.cwd(),
+  worktree: true
+});
+```
+
+`runInWorktree(...)` creates a managed worktree, passes its path to the callback, then reconciles successful output back into the source checkout. `runWithOptionalWorktree(...)` runs the same callback directly when `worktree` is omitted or false. Failed runs are recorded in `.poe-code/worktrees.yaml`; changed failed worktrees stay available for inspection or later reconciliation.
+
+Registry helpers exported from the root package are `createManagedWorktree`, `listManagedWorktrees`, `reconcileManagedWorktree`, and `removeManagedWorktree`.
 
 ### Composable agent runtime
 
@@ -1231,11 +1325,11 @@ import type { SpawnOptions, SpawnResult } from "poe-code";
 interface SpawnOptions {
   /** The prompt to send to the provider */
   prompt: string;
-  /** Working directory for the service CLI */
+  /** Working directory or workspace locator for the service CLI */
   cwd?: string;
   /** Model identifier override */
   model?: string;
-  /** Permission mode: "yolo" | "edit" | "read" (default: "yolo") */
+  /** Permission mode: "yolo" | "auto" | "edit" | "read" (default: "yolo") */
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
@@ -1243,6 +1337,8 @@ interface SpawnOptions {
   mcpServers?: McpSpawnConfig;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
+  /** Run in a managed git worktree and reconcile successful output afterward */
+  worktree?: boolean;
 }
 ```
 
@@ -1260,6 +1356,8 @@ interface SpawnResult {
   threadId?: string;
   /** Path to the JSONL spawn log file (if logging was active) */
   logFile?: string;
+  /** Managed worktree metadata when worktree mode is enabled */
+  worktree?: { worktree: Worktree; reconciliation?: WorktreeReconciliationSummary };
 }
 ```
 

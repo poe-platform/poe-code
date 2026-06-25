@@ -33,7 +33,7 @@ ACP helpers validate protocol boundaries before forwarding data to callers:
 
 - JSON-RPC request ids must be finite integer ids.
 - Filesystem and terminal handler responses must match the declared ACP shapes.
-- Prompt responses must use supported stop reasons.
+- Prompt responses must use supported stop reasons: `completed`, `end_turn`, `cancelled`, or `max_tokens`.
 - Run-report generation rejects blank run ids, malformed timestamps, invalid exit statuses, and impossible usage counters.
 
 ## Config Options

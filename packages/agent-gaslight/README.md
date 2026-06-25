@@ -106,6 +106,7 @@ CLI options:
 - `--model <model>`: Optional model override.
 - `--mode <read|edit|yolo|auto>`: Spawn mode. Defaults to `auto`.
 - `--plans <paths...>`: Run multiple Markdown plans sequentially. Use either the positional plan path or `--plans`, not both.
+- `--worktree`: Run all rounds for the plan in one managed git worktree and reconcile successful output afterward.
 - `install --local`: Write `<cwd>/.poe-code/gaslight.yaml`.
 - `install --global`: Write `<homeDir>/.poe-code/gaslight.yaml`.
 - `install --force`: Replace an existing config.
@@ -147,6 +148,7 @@ const result = await runGaslight({
 - `signal`: Abort signal forwarded to every spawn.
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
+- `worktree`: When `true`, run the whole Gaslight execution in one managed git worktree and reconcile successful output afterward.
 
 After all rounds for a plan finish successfully, Gaslight leaves the plan file in place. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage.
 

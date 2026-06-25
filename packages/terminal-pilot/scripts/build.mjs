@@ -94,6 +94,9 @@ await esbuild.build({
   alias: workspaceAliases,
   external,
   loader: { ".md": "text" },
+  define: {
+    __TERMINAL_PILOT_VERSION__: JSON.stringify(packageJson.version)
+  }
 });
 
 const cliPath = path.join(distDir, "cli.js");

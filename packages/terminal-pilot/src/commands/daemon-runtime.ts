@@ -121,8 +121,7 @@ export async function runTerminalPilotDaemon(): Promise<void> {
       idleTimer = undefined;
     }
 
-    const sessions = await runtime.listSessions();
-    if (sessions.length > 0) {
+    if (await runtime.hasRetainedSessions()) {
       return;
     }
 
@@ -221,6 +220,10 @@ export function createDaemonTerminalPilotRuntime(): TerminalPilotRuntime {
       }));
     },
 
+    async hasRetainedSessions() {
+      return request("hasRetainedSessions");
+    },
+
     async close() {
       await request("shutdown").catch(() => undefined);
     }
@@ -281,6 +284,10 @@ async function handleRequest(runtime: TerminalPilotRuntime, request: RpcRequest)
   if (request.method === "listSessions") {
     const sessions = await runtime.listSessions();
     return sessions.map(formatNamedSession);
+  }
+
+  if (request.method === "hasRetainedSessions") {
+    return runtime.hasRetainedSessions();
   }
 
   if (request.method === "closeSession") {

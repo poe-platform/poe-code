@@ -14,6 +14,14 @@ import type { TerminalPilotRuntime } from "./commands/runtime.js";
 
 configureTheme({ brand: "green", label: "Terminal Pilot" });
 
+declare const __TERMINAL_PILOT_VERSION__: string | undefined;
+
+function getBundledPackageVersion(): string | undefined {
+  return typeof __TERMINAL_PILOT_VERSION__ === "string"
+    ? __TERMINAL_PILOT_VERSION__
+    : undefined;
+}
+
 function normalizeArgv(argv: string[]): string[] {
   if (
     argv.includes("--json") &&
@@ -27,7 +35,7 @@ function normalizeArgv(argv: string[]): string[] {
 
 export async function main(
   argv: string[] = process.argv,
-  options: { terminalPilotRuntime?: TerminalPilotRuntime } = {}
+  options: { terminalPilotRuntime?: TerminalPilotRuntime; packageVersion?: string } = {}
 ): Promise<void> {
   if (isTerminalPilotDaemonArgv(argv)) {
     await runTerminalPilotDaemon();
@@ -38,6 +46,7 @@ export async function main(
   process.argv = normalizeArgv(argv);
 
   try {
+    const packageVersion = options.packageVersion ?? getBundledPackageVersion();
     await runCLI(createTerminalPilotGroup(), {
       services: {
         terminalPilotRuntime: options.terminalPilotRuntime ?? createDaemonTerminalPilotRuntime()
@@ -47,7 +56,8 @@ export async function main(
         output: true,
         verbose: true,
         yes: true
-      }
+      },
+      ...(packageVersion === undefined ? {} : { version: packageVersion })
     });
   } finally {
     process.argv = originalArgv;

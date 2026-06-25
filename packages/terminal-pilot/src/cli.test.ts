@@ -32,6 +32,10 @@ const cliOptions = {
     terminalPilotRuntime: daemonRuntimeMock
   }
 };
+const cliOptionsWithVersion = {
+  ...cliOptions,
+  version: "9.8.7"
+};
 
 vi.mock("node:fs/promises", () => ({
   realpath: realpathMock
@@ -81,6 +85,15 @@ describe("terminal-pilot CLI entry point", () => {
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
     expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, cliOptions);
+  });
+
+  it("passes the bundled terminal-pilot package version to toolcraft", async () => {
+    const { main } = await import("./cli.js");
+
+    await main(["node", "terminal-pilot", "--version"], { packageVersion: "9.8.7" });
+
+    expect(runCLIMock).toHaveBeenCalledTimes(1);
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, cliOptionsWithVersion);
   });
 
   it("maps --json to toolcraft's output flag", async () => {

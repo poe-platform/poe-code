@@ -44,6 +44,7 @@ export interface TerminalPilotRuntime {
     env?: HandlerEnv
   ): Promise<{ exitCode: number; name: string }>;
   listSessions(): Promise<NamedSession[]>;
+  hasRetainedSessions(): Promise<boolean>;
   close(): Promise<void>;
 }
 
@@ -253,6 +254,10 @@ export function createTerminalPilotRuntime(
       };
     },
     listSessions,
+
+    async hasRetainedSessions(): Promise<boolean> {
+      return nameToId.size > 0 || pendingNames.size > 0;
+    },
 
     async close(): Promise<void> {
       if (pilotPromise === undefined) {

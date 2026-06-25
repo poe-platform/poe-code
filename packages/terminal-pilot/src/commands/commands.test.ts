@@ -622,6 +622,22 @@ describe("terminal-pilot commands", () => {
     });
   });
 
+  it("retains completed sessions for history reads until they are replaced or closed", async () => {
+    const session = createSessionMock({ id: "finished", exitCode: null });
+    const pilot = createPilotMock([], () => session);
+    const runtime = createTerminalPilotRuntime({ launchPilot: async () => pilot as never });
+
+    await runtime.createSession({ session: "job", command: "npm test" });
+    session.exitCode = 1;
+
+    await expect(runtime.listSessions()).resolves.toEqual([]);
+    await expect(runtime.hasRetainedSessions()).resolves.toBe(true);
+    await expect(runtime.resolveSession("job")).resolves.toMatchObject({
+      name: "job",
+      session
+    });
+  });
+
   it("waits, reads history, returns metadata, and closes named sessions", async () => {
     const session = createSessionMock({
       id: "session-custom",

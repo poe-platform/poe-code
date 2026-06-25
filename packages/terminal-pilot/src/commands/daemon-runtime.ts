@@ -191,7 +191,10 @@ export function createDaemonTerminalPilotRuntime(): TerminalPilotRuntime {
   return {
     async createSession(params, env) {
       const result = await request<{ name: string; session: SessionInfo }>("createSession", {
-        params,
+        params: {
+          ...params,
+          cwd: params.cwd ?? process.cwd()
+        },
         envSession: env?.get(SESSION_ENV_VAR)
       });
       return { name: result.name, session: proxySession(result.name, result.session) };

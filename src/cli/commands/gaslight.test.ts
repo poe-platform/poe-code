@@ -140,6 +140,29 @@ describe("gaslight command", () => {
     );
   });
 
+  it("passes worktree flags through to the SDK runner", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5",
+      "--worktree"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        worktree: true
+      })
+    );
+  });
+
   it("forwards an explicit gaslight mode to the runner", async () => {
     const program = createProgram();
     registerGaslightCommand(program, createContainer());

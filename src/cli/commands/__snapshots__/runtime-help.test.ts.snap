@@ -15,12 +15,13 @@ Options:
   --max-experiments <n>    Limit the number of experiments to run
   --tui                    Show a live dashboard while the experiment is running
   --no-tui                 Disable the live dashboard for this experiment run
+  --worktree               Run in a managed git worktree and reconcile
+                           successful output.
   --runtime <runtime>      Override runtime backend: host | docker | e2b
                            (choices: "host", "docker", "e2b")
   --runtime-image <ref>    Override Docker runtime image
   --runtime-template <id>  Override E2B runtime template id
   --detach                 Run as a detached runtime job
-  --mount-poe-code         Mount the local poe-code checkout into the runtime
   --runner-sync <mode>     Override runner workspace sync: both | upload | none
                            (choices: "both", "upload", "none")
   -h, --help               Display help for command
@@ -43,12 +44,13 @@ Options:
   -C, --cwd <path>         Working directory for the Ralph agent loop
   --tui                    Show a live dashboard while Ralph is running
   --no-tui                 Disable the live dashboard for this Ralph run
+  --worktree               Run in a managed git worktree and reconcile
+                           successful output.
   --runtime <runtime>      Override runtime backend: host | docker | e2b
                            (choices: "host", "docker", "e2b")
   --runtime-image <ref>    Override Docker runtime image
   --runtime-template <id>  Override E2B runtime template id
   --detach                 Run as a detached runtime job
-  --mount-poe-code         Mount the local poe-code checkout into the runtime
   --runner-sync <mode>     Override runner workspace sync: both | upload | none
                            (choices: "both", "upload", "none")
   -h, --help               Display help for command
@@ -103,8 +105,6 @@ Options:
   --runtime-image <ref>        Override Docker runtime image
   --runtime-template <id>      Override E2B runtime template id
   --detach                     Run as a detached runtime job
-  --mount-poe-code             Mount the local poe-code checkout into the
-                               runtime
   --runner-sync <mode>         Override runner workspace sync: both | upload |
                                none (choices: "both", "upload", "none")
   -h, --help                   Display help for command
@@ -124,9 +124,9 @@ OPTIONS
   --runtime-image <value>      Override Docker runtime image
   --runtime-template <value>   Override E2B runtime template id
   --detach                     Run as a detached runtime job
-  --mount-poe-code             Mount the local poe-code checkout into the runtime
   --runner-sync <value>        Override runner workspace sync: both, upload, or none
   --tui                        Show a live dashboard while Superintendent is running
+  --worktree                   Run in a managed git worktree and reconcile successful output
 
 Options: -v, --verbose
 "

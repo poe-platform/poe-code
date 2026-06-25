@@ -17,6 +17,10 @@
       "types": "./dist/design.d.ts",
       "import": "./dist/design.js"
     },
+    "./design/*": {
+      "types": "./dist/design/*.d.ts",
+      "import": "./dist/design/*.js"
+    },
     "./mcp": {
       "types": "./dist/mcp.d.ts",
       "import": "./dist/mcp.js"

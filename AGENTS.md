@@ -177,3 +177,15 @@ Test timeouts must be fixed
 When editing poe-code skills, edit templates SKILL_
 
 Then sync skills via `npm run sync-skills`
+
+
+## Agent harnesses
+
+When talking about agent harnesses, it's all of these
+
+ - agent-harness - the SafeJS 
+ - pipeline
+ - gaslight
+ - ralph
+ - superintendent
+ - ...

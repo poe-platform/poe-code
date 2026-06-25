@@ -12,6 +12,7 @@ import {
   updateWorktreeStatus
 } from "./registry.js";
 import { removeWorktree } from "./remove.js";
+import { reconcileWorktree, type WorktreeReconciliationAgent } from "./reconcile.js";
 
 const REGISTRY = "/repo/.poe-code/worktrees.yaml";
 const WORKTREE_DIR = "/repo/.poe-code/worktrees";
@@ -29,7 +30,60 @@ type ExtendedWorktreeFileSystem = WorktreeFileSystem & {
 };
 
 function createMockExec(): ExecFn {
-  return vi.fn<ExecFn>().mockResolvedValue({ stdout: "", stderr: "" });
+  return vi.fn<ExecFn>().mockImplementation(async (command) => {
+    if (command === "git rev-parse --is-inside-work-tree") {
+      return { stdout: "true\n", stderr: "" };
+    }
+    return { stdout: "", stderr: "" };
+  });
+}
+
+function createReconcileExec(options: {
+  destinationStatus?: string;
+  worktreeHead?: string;
+  worktreeStatus?: string;
+  committedPaths?: string;
+  sourceDiff?: string;
+  sourceStatus?: string;
+  unmerged?: string;
+  worktreeList?: string | (() => string);
+} = {}): ExecFn {
+  let sourceStatusCalls = 0;
+  return vi.fn<ExecFn>().mockImplementation(async (command, execOptions) => {
+    if (command === "git status --porcelain=v1 -z" && execOptions?.cwd === "/repo") {
+      sourceStatusCalls += 1;
+      if (sourceStatusCalls === 1) {
+        return { stdout: options.destinationStatus ?? "", stderr: "" };
+      }
+      return { stdout: options.sourceStatus ?? "", stderr: "" };
+    }
+    if (command === "git rev-parse HEAD" && execOptions?.cwd === `${WORKTREE_DIR}/wt`) {
+      return { stdout: `${options.worktreeHead ?? "base123"}\n`, stderr: "" };
+    }
+    if (command === "git status --porcelain=v1 -z" && execOptions?.cwd === `${WORKTREE_DIR}/wt`) {
+      return { stdout: options.worktreeStatus ?? "", stderr: "" };
+    }
+    if (
+      command === "git diff --name-only -z 'base123' 'head456'" &&
+      execOptions?.cwd === `${WORKTREE_DIR}/wt`
+    ) {
+      return { stdout: options.committedPaths ?? "", stderr: "" };
+    }
+    if (command === "git diff --name-only -z 'base123'" && execOptions?.cwd === "/repo") {
+      return { stdout: options.sourceDiff ?? "", stderr: "" };
+    }
+    if (command === "git diff --name-only --diff-filter=U -z" && execOptions?.cwd === "/repo") {
+      return { stdout: options.unmerged ?? "", stderr: "" };
+    }
+    if (command === "git worktree list --porcelain" && execOptions?.cwd === "/repo") {
+      const output =
+        typeof options.worktreeList === "function"
+          ? options.worktreeList()
+          : options.worktreeList ?? "";
+      return { stdout: output, stderr: "" };
+    }
+    return { stdout: "", stderr: "" };
+  });
 }
 
 async function withObjectPrototypeProperties<T>(
@@ -60,10 +114,11 @@ async function withObjectPrototypeProperties<T>(
 }
 
 function makeEntry(overrides: Partial<Worktree> = {}): Worktree {
+  const name = overrides.name ?? "test-worktree";
   return {
-    name: "test-worktree",
-    path: "/repo/.poe-code/worktrees/test-worktree",
-    branch: "poe-code/test-worktree",
+    name,
+    path: `/repo/.poe-code/worktrees/${name}`,
+    branch: `poe-code/${name}`,
     baseBranch: "main",
     createdAt: "2026-01-01T00:00:00.000Z",
     source: "build",
@@ -74,6 +129,91 @@ function makeEntry(overrides: Partial<Worktree> = {}): Worktree {
 }
 
 describe("createWorktree", () => {
+  it("records source checkout and base head metadata", async () => {
+    const fs = createMemFs();
+    const exec = vi.fn<ExecFn>().mockImplementation(async (command) => {
+      if (command === "git rev-parse --is-inside-work-tree") {
+        return { stdout: "true\n", stderr: "" };
+      }
+      if (command === "git rev-parse 'main'") {
+        return { stdout: "abc123\n", stderr: "" };
+      }
+      return { stdout: "", stderr: "" };
+    });
+
+    const result = await createWorktree({
+      cwd: "/repo",
+      name: "metadata",
+      baseBranch: "main",
+      source: "build",
+      agent: "codex",
+      sourceCwd: "/repo",
+      registryFile: REGISTRY,
+      worktreeDir: WORKTREE_DIR,
+      deps: { fs, exec }
+    });
+
+    expect(result).toMatchObject({
+      sourceCwd: "/repo",
+      baseHead: "abc123"
+    });
+    await expect(readRegistry(REGISTRY, fs)).resolves.toMatchObject({
+      worktrees: [
+        {
+          name: "metadata",
+          sourceCwd: "/repo",
+          baseHead: "abc123"
+        }
+      ]
+    });
+  });
+
+  it("rejects dirty destination checkout before creating a worktree", async () => {
+    const fs = createMemFs();
+    const exec = vi.fn<ExecFn>().mockImplementation(async (command) => {
+      if (command === "git rev-parse --is-inside-work-tree") {
+        return { stdout: "true\n", stderr: "" };
+      }
+      return { stdout: " M src/file.ts\0", stderr: "" };
+    });
+
+    await expect(createWorktree({
+      cwd: "/repo",
+      name: "dirty",
+      baseBranch: "main",
+      source: "build",
+      agent: "codex",
+      registryFile: REGISTRY,
+      worktreeDir: WORKTREE_DIR,
+      deps: { fs, exec }
+    })).rejects.toThrow("Cannot run with --worktree because the destination checkout has uncommitted changes.");
+
+    expect(exec).toHaveBeenCalledWith("git status --porcelain=v1 -z", { cwd: "/repo" });
+    expect(exec).not.toHaveBeenCalledWith(
+      `git worktree add -b 'poe-code/dirty' '${WORKTREE_DIR}/dirty' 'main'`,
+      { cwd: "/repo" }
+    );
+  });
+
+  it("rejects destinations outside a git work tree before creating a worktree", async () => {
+    const fs = createMemFs();
+    const exec = vi.fn<ExecFn>().mockResolvedValue({ stdout: "false\n", stderr: "" });
+
+    await expect(createWorktree({
+      cwd: "/tmp/not-repo",
+      name: "outside",
+      baseBranch: "main",
+      source: "build",
+      agent: "codex",
+      registryFile: REGISTRY,
+      worktreeDir: WORKTREE_DIR,
+      deps: { fs, exec }
+    })).rejects.toThrow("Cannot run with --worktree because the destination path is not inside a git work tree.");
+
+    expect(exec).toHaveBeenCalledWith("git rev-parse --is-inside-work-tree", { cwd: "/tmp/not-repo" });
+    expect(exec).not.toHaveBeenCalledWith("git status --porcelain=v1 -z", { cwd: "/tmp/not-repo" });
+  });
+
   it("runs git worktree add with correct arguments", async () => {
     const fs = createMemFs();
     const exec = createMockExec();
@@ -153,7 +293,7 @@ describe("createWorktree", () => {
 
   it("cleans up existing worktree and branch before creating", async () => {
     const fs = createMemFs();
-    const exec = vi.fn<ExecFn>().mockResolvedValue({ stdout: "", stderr: "" });
+    const exec = createMockExec();
 
     // First call: create the worktree
     await createWorktree({
@@ -198,6 +338,9 @@ describe("createWorktree", () => {
   it("ignores cleanup errors when no previous worktree exists", async () => {
     const fs = createMemFs();
     const exec = vi.fn<ExecFn>().mockImplementation(async (command: string) => {
+      if (command === "git rev-parse --is-inside-work-tree") {
+        return { stdout: "true\n", stderr: "" };
+      }
       if (command.includes("worktree remove") || command.includes("branch -D")) {
         throw new Error("not found");
       }
@@ -289,6 +432,9 @@ describe("createWorktree", () => {
     const oldEntry = makeEntry({ name: "feature" });
     const fs = createMemFs({ [REGISTRY]: stringify({ worktrees: [oldEntry] }, { lineWidth: 0 }) });
     const exec = vi.fn<ExecFn>().mockImplementation(async (command) => {
+      if (command === "git rev-parse --is-inside-work-tree") {
+        return { stdout: "true\n", stderr: "" };
+      }
       if (command.startsWith("git worktree add")) {
         throw new Error("replacement failed");
       }
@@ -327,6 +473,268 @@ describe("createWorktree", () => {
     expect(commands.filter((command) => command === `git worktree remove '${WORKTREE_DIR}/feature' --force`)).toHaveLength(2);
     expect(commands.filter((command) => command === "git branch -D 'poe-code/feature'")).toHaveLength(2);
   });
+});
+
+describe("reconcileWorktree", () => {
+  it("rejects dirty destination checkout before invoking the reconciliation agent", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo" }), fs);
+    const exec = vi.fn<ExecFn>().mockResolvedValue({ stdout: " M src/file.ts\0", stderr: "" });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>();
+
+    await expect(reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    })).rejects.toThrow("Cannot run with --worktree because the destination checkout has uncommitted changes.");
+
+    expect(reconciliationAgent).not.toHaveBeenCalled();
+  });
+
+  it("builds a reconciliation prompt with committed and uncommitted worktree state", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({
+      name: "wt",
+      sourceCwd: "/repo",
+      baseHead: "base123"
+    }), fs);
+    const exec = createReconcileExec({
+      worktreeHead: "head456",
+      worktreeStatus: " M src/changed.ts\0?? src/new.ts\0",
+      sourceStatus: " M src/changed.ts\0?? src/new.ts\0",
+      worktreeList: ""
+    });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>().mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread-1"
+    });
+
+    await reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    });
+
+    expect(reconciliationAgent).toHaveBeenCalledTimes(1);
+    const input = reconciliationAgent.mock.calls[0]![0];
+    expect(input.phase).toBe("reconcile");
+    expect(input.sourceCwd).toBe("/repo");
+    expect(input.prompt).toContain("Source checkout: /repo");
+    expect(input.prompt).toContain(`Worktree path: ${WORKTREE_DIR}/wt`);
+    expect(input.prompt).toContain("Base commit: base123");
+    expect(input.prompt).toContain("Worktree head: head456");
+    expect(input.prompt).toContain("Committed changes: present");
+    expect(input.prompt).toContain(" M src/changed.ts");
+    expect(input.prompt).toContain("?? src/new.ts");
+    expect(input.prompt).not.toContain("Keep worktree");
+  });
+
+  it("records thread id and marks the registry done on successful reconciliation", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo", baseHead: "base123" }), fs);
+    const exec = createReconcileExec({ worktreeList: "" });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>().mockResolvedValue({
+      stdout: "ok",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread-1"
+    });
+
+    const summary = await reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    });
+
+    expect(summary.threadId).toBe("thread-1");
+    expect(summary.cleanup).toBe("removed_by_agent");
+    await expect(readRegistry(REGISTRY, fs)).resolves.toMatchObject({
+      worktrees: [
+        {
+          name: "wt",
+          status: "done",
+          reconciliation: {
+            threadId: "thread-1",
+            cleanup: "removed_by_agent"
+          }
+        }
+      ]
+    });
+  });
+
+  it("fails reconciliation when the reconciliation agent exits non-zero", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo" }), fs);
+    const exec = createReconcileExec();
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>().mockResolvedValue({
+      stdout: "",
+      stderr: "failed",
+      exitCode: 1,
+      threadId: "thread-1"
+    });
+
+    await expect(reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    })).rejects.toThrow("Worktree reconciliation agent exited with code 1.");
+
+    await expect(readRegistry(REGISTRY, fs)).resolves.toMatchObject({
+      worktrees: [
+        {
+          name: "wt",
+          status: "conflicted",
+          reconciliation: {
+            committed: "failed",
+            uncommitted: "none",
+            threadId: "thread-1"
+          }
+        }
+      ]
+    });
+  });
+
+  it("marks reconciliation conflicted when post-agent verification finds unmerged paths", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo" }), fs);
+    const exec = createReconcileExec({ unmerged: "src/conflict.ts\0" });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>().mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    await expect(reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    })).rejects.toThrow("Worktree reconciliation left unresolved conflicts.");
+
+    await expect(readRegistry(REGISTRY, fs)).resolves.toMatchObject({
+      worktrees: [
+        {
+          name: "wt",
+          status: "conflicted",
+          reconciliation: {
+            conflictFiles: ["src/conflict.ts"]
+          }
+        }
+      ]
+    });
+  });
+
+  it("marks reconciliation conflicted when expected worktree changes are missing from source", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo", baseHead: "base123" }), fs);
+    const exec = createReconcileExec({
+      worktreeHead: "head456",
+      committedPaths: "src/committed.ts\0",
+      worktreeStatus: " M src/uncommitted.ts\0",
+      sourceDiff: "src/committed.ts\0"
+    });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>().mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    await expect(reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    })).rejects.toThrow("Worktree reconciliation did not apply expected worktree changes.");
+
+    await expect(readRegistry(REGISTRY, fs)).resolves.toMatchObject({
+      worktrees: [
+        {
+          name: "wt",
+          status: "conflicted",
+          reconciliation: {
+            conflictFiles: ["src/uncommitted.ts"]
+          }
+        }
+      ]
+    });
+  });
+
+  it("resumes the same reconciliation thread when cleanup leaves the worktree behind", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo" }), fs);
+    let listCalls = 0;
+    const exec = createReconcileExec({
+      worktreeList: () => {
+        listCalls += 1;
+        return listCalls === 1 ? `worktree ${WORKTREE_DIR}/wt\n` : "";
+      }
+    });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>()
+      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0, threadId: "thread-1" })
+      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0, threadId: "thread-1" });
+
+    const summary = await reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    });
+
+    expect(summary.cleanup).toBe("nudged");
+    expect(reconciliationAgent).toHaveBeenCalledTimes(2);
+    expect(reconciliationAgent.mock.calls[1]![0]).toMatchObject({
+      phase: "cleanup-nudge",
+      resumeThreadId: "thread-1"
+    });
+    expect(reconciliationAgent.mock.calls[1]![0].prompt).toContain(`Worktree path: ${WORKTREE_DIR}/wt`);
+  });
+
+  it("marks cleanup_failed when the cleanup nudge leaves the worktree behind", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo" }), fs);
+    const exec = createReconcileExec({ worktreeList: `worktree ${WORKTREE_DIR}/wt\n` });
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>().mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      threadId: "thread-1"
+    });
+
+    await expect(reconcileWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    })).rejects.toThrow("Worktree reconciliation cleanup failed.");
+
+    await expect(readRegistry(REGISTRY, fs)).resolves.toMatchObject({
+      worktrees: [
+        {
+          name: "wt",
+          status: "cleanup_failed",
+          reconciliation: {
+            cleanup: "failed",
+            threadId: "thread-1"
+          }
+        }
+      ]
+    });
+  });
+
 });
 
 describe("listWorktrees", () => {

@@ -32,6 +32,7 @@ import type {
   SpawnUsage
 } from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
+import { runInWorktree } from "./worktree.js";
 
 /**
  * Spawns an agent with optional streaming.
@@ -69,6 +70,47 @@ export function spawn(
     typeof promptOrOptions === "string"
       ? { ...maybeOptions, prompt: promptOrOptions }
       : promptOrOptions;
+
+  if (isWorktreeEnabled(options.worktree)) {
+    const worktreeOptions = options.worktree ?? true;
+    const queue = createEventQueue<AcpEvent>();
+    const result = runInWorktree({
+      cwd: options.cwd ?? process.cwd(),
+      selectedAgent: service,
+      ...(options.model ? { selectedModel: options.model } : {}),
+      worktree: worktreeOptions,
+      signal: options.signal,
+      run: async ({ worktreeCwd }) => {
+        const inner = spawn(service, {
+          ...options,
+          cwd: worktreeCwd,
+          worktree: false
+        });
+        const forwarded = forwardEvents(inner.events, queue.push);
+        const final = await inner.result;
+        await forwarded;
+        return final;
+      }
+    })
+      .then(({ value, worktree }) => {
+        queue.close();
+        const spawnResult: SpawnResult = value;
+        return {
+          ...spawnResult,
+          worktree
+        };
+      })
+      .catch((error: unknown) => {
+        queue.fail(error);
+        throw error;
+      });
+
+    return {
+      events: queue,
+      result
+    };
+  }
+
   const resolvedMcpServers = options.mcpServers ?? options.mcpConfig;
   const captureOtel = options.captureOtel ?? process.env.POE_CODE_CAPTURE_OTEL === "1";
   const captureOtelContent =
@@ -414,6 +456,19 @@ type SpawnHandle = {
   result: Promise<SpawnResult>;
   unstable_setSessionModel?(model: string): Promise<void>;
 };
+
+async function forwardEvents<T>(
+  events: AsyncIterable<T>,
+  emit: (event: T) => void
+): Promise<void> {
+  for await (const event of events) {
+    emit(event);
+  }
+}
+
+function isWorktreeEnabled(worktree: SpawnOptions["worktree"]): boolean {
+  return worktree === true;
+}
 
 function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined {
   if (!usage) {

@@ -26,6 +26,7 @@ import { registerLogoutCommand } from "./commands/logout.js";
 import { registerAuthCommand } from "./commands/auth.js";
 import { registerUtilsCommand } from "./commands/utils.js";
 import { registerInstallCommand } from "./commands/install.js";
+import { registerUpdateCommand } from "./commands/update.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerSkillCommand } from "./commands/skill.js";
@@ -45,6 +46,7 @@ import { registerHarnessCommand } from "./commands/harness.js";
 import { registerBraintrustCommand } from "./commands/braintrust.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
+import { registerWorktreeCommand } from "./commands/worktree.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import { ValidationError } from "./errors.js";
@@ -77,6 +79,7 @@ interface RootHelpCommandSpec {
 
 const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["install"] },
+  { path: ["update"] },
   { path: ["configure"] },
   { path: ["unconfigure"] },
   { path: ["login"] },
@@ -85,79 +88,15 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["agent"] },
   { path: ["spawn"] },
   { path: ["gaslight"], args: "[plan-path]" },
-  { path: ["gaslight", "ingest"] },
-  { path: ["gaslight", "install"] },
   { path: ["wrap"] },
   { path: ["test"] },
   { path: ["models"] },
-  { path: ["tasks", "verify"], args: "<list>" },
-  { path: ["tasks", "sync"], args: "<list>" },
-  { path: ["tasks", "import"] },
-  { path: ["tasks", "get"] },
-  { path: ["tasks", "set"] },
-  { path: ["tasks", "set-state"] },
-  { path: ["tasks", "next"] },
-  { path: ["tasks", "comment"] },
-  { path: ["tasks", "move"] },
-  { path: ["skill", "configure"] },
-  { path: ["skill", "unconfigure"] },
-  { path: ["pipeline", "install"] },
-  { path: ["pipeline", "run"] },
-  { path: ["pipeline", "validate"] },
-  { path: ["eval", "run"] },
-  { path: ["eval", "report"], args: "[run-id]" },
-  { path: ["eval", "init"], args: "<name>" },
-  { path: ["eval", "check"], args: "[eval-id]" },
-  { path: ["eval", "lint"], args: "[eval-id]" },
-  { path: ["maestro"], args: "[path]" },
-  { path: ["maestro", "tick"] },
-  { path: ["maestro", "tui"] },
+  { path: ["pipeline"] },
   { path: ["plan"], args: "[question]" },
-  { path: ["plan", "install"] },
-  { path: ["plan", "browse"] },
-  { path: ["plan", "list"] },
-  { path: ["plan", "view"] },
-  { path: ["plan", "edit"] },
-  { path: ["plan", "archive"] },
-  { path: ["plan", "delete"] },
-  { path: ["plan", "markdown-read"], args: "<file>" },
-  { path: ["plan", "markdown-read-section"], args: "<file> <section>" },
-  { path: ["plan", "markdown-reader-mcp"] },
-  { path: ["memory", "init"] },
-  { path: ["memory", "ls"] },
-  { path: ["memory", "show"] },
-  { path: ["memory", "search"] },
-  { path: ["memory", "write"] },
-  { path: ["memory", "append"] },
-  { path: ["memory", "ingest"] },
-  { path: ["memory", "query"] },
-  { path: ["memory", "clear"] },
-  { path: ["memory", "status"] },
-  { path: ["provider", "list"] },
-  { path: ["provider", "login"], args: "<id>" },
-  { path: ["provider", "logout"], args: "<id>" },
-  { path: ["braintrust", "status"] },
-  { path: ["runtime", "init"] },
-  { path: ["runtime", "build"] },
-  { path: ["runtime", "jobs"] },
-  { path: ["runtime", "templates", "ls"] },
-  { path: ["runtime", "templates", "clear"] },
-  { path: ["harness", "run"] },
-  { path: ["harness", "new"], args: "<kind> <basename>" },
-  { path: ["harness", "list"] },
-  { path: ["experiment", "install"] },
-  { path: ["experiment", "run"] },
-  { path: ["experiment", "journal"] },
-  { path: ["experiment", "validate"] },
-  { path: ["ralph", "init"] },
-  { path: ["ralph", "run"] },
-  { path: ["launch"] },
-  { path: ["approvals"], args: "[command]" },
-  { path: ["github-workflows"], args: "[automation]" },
-  { path: ["code-review"], args: "[command]" },
-  { path: ["usage"] },
-  { path: ["usage", "list"] },
-  { path: ["utils", "config"] }
+  { path: ["harness"] },
+  { path: ["experiment"] },
+  { path: ["ralph"] },
+  { path: ["usage"] }
 ] as const;
 
 function findCommandByPath(root: Command, path: readonly string[]): Command {
@@ -925,6 +864,7 @@ function bootstrapProgram(container: CliContainer): Command {
 
   registerVersionOption(program, container, packageJson.version);
   registerInstallCommand(program, container);
+  registerUpdateCommand(program, container, packageJson.version);
   registerConfigureCommand(program, container);
   registerAgentCommand(program, container);
   registerSpawnCommand(program, container, {
@@ -951,6 +891,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);
+  registerWorktreeCommand(program, container);
   registerBraintrustCommand(program, container);
   registerTasksCommand(program, container);
   registerForwardedToolcraftCommand(

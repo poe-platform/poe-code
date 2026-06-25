@@ -99,7 +99,7 @@ describe("createProgram", () => {
     stdoutSpy.mockRestore();
   });
 
-  it("registers the code-review command group in root help", () => {
+  it("registers the code-review command group without advertising it in root help", () => {
     const fs = createMemFs(homeDir);
     const program = createProgram({
       fs,
@@ -111,7 +111,7 @@ describe("createProgram", () => {
     });
 
     expect(program.commands.find((command) => command.name() === "code-review")).toBeDefined();
-    expect(program.helpInformation()).toContain("code-review");
+    expect(program.helpInformation()).not.toContain("code-review");
   });
 
   it("forwards code-review help through the root command", async () => {

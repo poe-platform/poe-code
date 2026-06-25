@@ -57,6 +57,12 @@ import {
   type TaskProgress
 } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { runWithOptionalWorktree } from "../../sdk/worktree.js";
+import {
+  addWorktreeOptions,
+  mapSourcePathIntoWorktree,
+  pickWorktreeOptions
+} from "./worktree-options.js";
 import {
   buildExecutionPrompt,
   interpolatePipelineVars,
@@ -867,7 +873,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .description("Run a fixed-step task pipeline plan.")
     .addHelpCommand(false);
 
-  pipeline
+  addWorktreeOptions(pipeline
     .command("run")
     .description(
       "Run the selected pipeline plan until completion, failure, cancellation, or max runs."
@@ -879,7 +885,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .option("--task <id>", "Run only the specified task")
     .option("--plan <path>", "Path to the pipeline plan file")
     .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
-    .option("--max-runs <n>", "Maximum number of agent executions to perform")
+    .option("--max-runs <n>", "Maximum number of agent executions to perform"))
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "pipeline:run");
@@ -967,107 +973,128 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           return;
         }
 
-        for (const [index, planPath] of planPaths.entries()) {
-          const totalPlans = planPaths.length;
-          if (totalPlans > 1) {
-            resources.logger.info(`Plan ${index + 1}/${totalPlans}: ${planPath}`);
-          }
+        const sequence = await runWithOptionalWorktree({
+          cwd: container.env.cwd,
+          selectedAgent: agent,
+          worktree: pickWorktreeOptions(options as Record<string, unknown>),
+          run: async ({ worktreeCwd }) => {
+            for (const [index, planPath] of planPaths.entries()) {
+              const totalPlans = planPaths.length;
+              if (totalPlans > 1) {
+                resources.logger.info(`Plan ${index + 1}/${totalPlans}: ${planPath}`);
+              }
 
-          const runOptions: PipelineRunOptions = {
-            agent,
-            cwd: container.env.cwd,
-            homeDir: container.env.homeDir,
-            planDirectory: commandConfig.planDirectory,
-            ...(options.model ? { model: options.model } : {}),
-            ...(options.task ? { task: options.task } : {}),
-            plan: planPath,
-            ...(maxRuns != null ? { maxRuns } : {}),
-            assumeYes: flags.assumeYes
-          };
-          if (integrations?.spawnMiddleware) {
-            runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
-          }
-
-          const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-          const result = useDashboard
-            ? await runPipelineWithDashboard({
-                agent,
-                ...(options.model ? { model: options.model } : {}),
+              const runPlanPath = mapSourcePathIntoWorktree(
+                container.env.cwd,
                 planPath,
-                planIndex: index,
-                totalPlans,
-                runOptions,
-                ...(integrations ? { integrations } : {})
-              })
-            : await runPipelineWithIntegrations(integrations, planPath, {
-                ...runOptions,
-                onPlanReloadError(error: Error) {
-                  resources.logger.warn(
-                    `Plan reload failed, using last good state: ${error.message}`
-                  );
-                },
-                ...mergePipelineCallbacks(
-                  {
-                    onPlanResolved(summary: PlanSummary) {
-                      resources.logger.resolved(
-                        "Config",
-                        formatPipelineConfigSummary({
-                          agent,
-                          model: options.model,
-                          planPath: summary.planPath,
-                          planIndex: index,
-                          totalPlans
-                        }).replaceAll(" · ", "\n   ")
+                worktreeCwd
+              );
+              const runPlanDirectory = mapSourcePathIntoWorktree(
+                container.env.cwd,
+                commandConfig.planDirectory,
+                worktreeCwd
+              );
+              const runOptions: PipelineRunOptions = {
+                agent,
+                cwd: worktreeCwd,
+                homeDir: container.env.homeDir,
+                planDirectory: runPlanDirectory,
+                ...(options.model ? { model: options.model } : {}),
+                ...(options.task ? { task: options.task } : {}),
+                plan: runPlanPath,
+                ...(maxRuns != null ? { maxRuns } : {}),
+                assumeYes: flags.assumeYes
+              };
+              if (integrations?.spawnMiddleware) {
+                runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
+              }
+
+              const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+              const result = useDashboard
+                ? await runPipelineWithDashboard({
+                    agent,
+                    ...(options.model ? { model: options.model } : {}),
+                    planPath: runPlanPath,
+                    planIndex: index,
+                    totalPlans,
+                    runOptions,
+                    ...(integrations ? { integrations } : {})
+                  })
+                : await runPipelineWithIntegrations(integrations, runPlanPath, {
+                    ...runOptions,
+                    onPlanReloadError(error: Error) {
+                      resources.logger.warn(
+                        `Plan reload failed, using last good state: ${error.message}`
                       );
-                      resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
                     },
-                    onTaskStart(progress: TaskProgress) {
-                      resources.logger.info(formatTaskStartMessage(progress));
-                    },
-                    onTaskComplete(progress: TaskCompletion) {
-                      resources.logger.info(formatTaskCompleteMessage(progress));
-                    }
-                  },
-                  integrations?.pipelineCallbacks
-                )
-              });
+                    ...mergePipelineCallbacks(
+                      {
+                        onPlanResolved(summary: PlanSummary) {
+                          resources.logger.resolved(
+                            "Config",
+                            formatPipelineConfigSummary({
+                              agent,
+                              model: options.model,
+                              planPath: summary.planPath,
+                              planIndex: index,
+                              totalPlans
+                            }).replaceAll(" · ", "\n   ")
+                          );
+                          resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
+                        },
+                        onTaskStart(progress: TaskProgress) {
+                          resources.logger.info(formatTaskStartMessage(progress));
+                        },
+                        onTaskComplete(progress: TaskCompletion) {
+                          resources.logger.info(formatTaskCompleteMessage(progress));
+                        }
+                      },
+                      integrations?.pipelineCallbacks
+                    )
+                  });
 
-          const summary = formatRunSummary(result);
+              const summary = formatRunSummary(result);
 
-          if (result.stopReason === "failed") {
-            process.exitCode = 1;
-            resources.logger.error(
-              `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
-            );
-            resources.logger.resolved("Run summary", summary);
-            return;
+              if (result.stopReason === "failed") {
+                process.exitCode = 1;
+                resources.logger.error(
+                  `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
+                );
+                resources.logger.resolved("Run summary", summary);
+                return "stopped";
+              }
+
+              if (result.stopReason === "cancelled") {
+                process.exitCode = 130;
+                resources.logger.warn("Pipeline run cancelled.");
+                resources.logger.resolved("Run summary", summary);
+                return "stopped";
+              }
+
+              if (result.stopReason === "nothing_to_run") {
+                resources.logger.info("Nothing to run.");
+                resources.logger.resolved("Run summary", summary);
+                continue;
+              }
+
+              if (result.stopReason === "max_runs") {
+                resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
+                resources.logger.resolved("Run summary", summary);
+                return "stopped";
+              }
+
+              resources.logger.resolved("Run summary", summary);
+            }
+
+            return "finished";
           }
+        });
 
-          if (result.stopReason === "cancelled") {
-            process.exitCode = 130;
-            resources.logger.warn("Pipeline run cancelled.");
-            resources.logger.resolved("Run summary", summary);
-            return;
-          }
-
-          if (result.stopReason === "nothing_to_run") {
-            resources.logger.info("Nothing to run.");
-            resources.logger.resolved("Run summary", summary);
-            continue;
-          }
-
-          if (result.stopReason === "max_runs") {
-            resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
-            resources.logger.resolved("Run summary", summary);
-            return;
-          }
-
-          resources.logger.resolved("Run summary", summary);
+        if (sequence.value === "finished") {
+          resources.logger.success(
+            planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
+          );
         }
-
-        resources.logger.success(
-          planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
-        );
       } finally {
         await integrations?.shutdown();
         resources.context.finalize();

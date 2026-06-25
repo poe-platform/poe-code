@@ -204,6 +204,24 @@ describe("terminal markdown entrypoint", () => {
     expect(output).toContain(" line 1\n");
     expect(output).toContain(" line 100\n");
   });
+
+  it("adds opt-in terminal syntax styling without changing code block shape", () => {
+    const markdown = ["```ts", 'const value = "<safe>"; // visible', "```"].join("\n");
+    const plainOutput = renderMarkdown(markdown, { width: 80 });
+    const highlightedOutput = renderMarkdown(markdown, { width: 80, syntaxHighlight: true });
+
+    expect(stripAnsi(highlightedOutput)).toBe(stripAnsi(plainOutput));
+    expect(highlightedOutput).not.toBe(plainOutput);
+    expect(highlightedOutput).toContain("\u001B[");
+  });
+
+  it("strips user ansi before applying opt-in syntax styling", () => {
+    const markdown = ["```js", "const \u001b[31mvalue\u001b[0m = 1;", "```"].join("\n");
+    const highlightedOutput = renderMarkdown(markdown, { width: 80, syntaxHighlight: true });
+
+    expect(highlightedOutput).not.toContain("\u001b[31mvalue");
+    expect(stripAnsi(highlightedOutput)).toContain(" const value = 1;\n");
+  });
 });
 
 function expectRenderedMarkdown(

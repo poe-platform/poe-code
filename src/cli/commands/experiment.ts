@@ -65,6 +65,11 @@ import {
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
+import {
+  addWorktreeOptions,
+  pickWorktreeOptions,
+  type WorktreeCliOptions
+} from "./worktree-options.js";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
 const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
@@ -277,6 +282,7 @@ function createExperimentDashboardRunAgent(options: {
             ...options.runtimeOptions,
             ...(input.signal ? { signal: input.signal } : {}),
             ...(options.middlewares ? { middlewares: options.middlewares } : {}),
+            worktree: false,
             useStdin: true,
             tee: {
               stderr: {
@@ -309,7 +315,8 @@ function createExperimentCliRunAgent(options: {
       mode: "yolo",
       ...options.runtimeOptions,
       ...(input.signal ? { signal: input.signal } : {}),
-      middlewares: options.middlewares
+      middlewares: options.middlewares,
+      worktree: false
     });
 }
 
@@ -731,7 +738,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .option("--tui", "Show a live dashboard while the experiment is running")
     .option("--no-tui", "Disable the live dashboard for this experiment run");
 
-  addRuntimeOptions(run)
+  addRuntimeOptions(addWorktreeOptions(run))
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "experiment:run");
@@ -739,8 +746,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
         agent?: string;
         maxExperiments?: string;
         tui?: boolean;
-      } & RuntimeCliOptions>();
+      } & RuntimeCliOptions & WorktreeCliOptions>();
       const runtimeOptions = pickRuntimeOptions(options);
+      const worktreeOptions = pickWorktreeOptions(options);
 
       resources.logger.intro("experiment run");
 
@@ -784,6 +792,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           docPath,
+          worktree: worktreeOptions,
           ...runtimeOptions,
           ...(maxExperiments !== undefined ? { maxExperiments } : {}),
           onExperimentStart(index, currentAgent) {

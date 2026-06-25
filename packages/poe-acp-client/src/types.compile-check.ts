@@ -234,7 +234,7 @@ type ignoredRequestIdString = AssertAssignable<RequestId, "req-1">;
 
 type ignoredStopReasonShape = AssertAssignable<
   StopReason,
-  "completed" | "cancelled" | "max_tokens"
+  "completed" | "end_turn" | "cancelled" | "max_tokens"
 >;
 
 type ignoredAcpErrorCodeShape = AssertAssignable<
@@ -803,5 +803,5 @@ const ignoredLegacyToolCallContent: ToolCallContent = {
   content: { type: "text", text: "legacy" },
 };
 
-// @ts-expect-error stop reason values are restricted to completed/cancelled/max_tokens
-const ignoredInvalidStopReason: StopReason = "end_turn";
+// @ts-expect-error stop reason values are restricted to completed/end_turn/cancelled/max_tokens
+const ignoredInvalidStopReason: StopReason = "tool_use";

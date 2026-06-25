@@ -12,10 +12,11 @@ import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache"
 import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import type { Dashboard } from "toolcraft-design";
 
-const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() => ({
+const { selectMock, cancelMock, resolvePipelineLoopAgentMock, runWithOptionalWorktreeMock } = vi.hoisted(() => ({
   selectMock: vi.fn(),
   cancelMock: vi.fn(),
-  resolvePipelineLoopAgentMock: vi.fn()
+  resolvePipelineLoopAgentMock: vi.fn(),
+  runWithOptionalWorktreeMock: vi.fn()
 }));
 
 const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
@@ -47,6 +48,10 @@ vi.mock("../../sdk/pipeline.js", () => ({
 
 vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
+}));
+
+vi.mock("../../sdk/worktree.js", () => ({
+  runWithOptionalWorktree: runWithOptionalWorktreeMock
 }));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
@@ -82,6 +87,26 @@ const homeDir = "/home/test";
 
 beforeEach(() => {
   resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
+  runWithOptionalWorktreeMock.mockReset();
+  runWithOptionalWorktreeMock.mockImplementation(async (input) => {
+    const enabled = input.worktree === true;
+    const worktreeCwd = enabled ? "/repo/.poe-code/worktrees/pipeline-wt" : input.cwd;
+    const value = await input.run({
+      sourceCwd: input.cwd,
+      worktreeCwd,
+      worktree: {
+        name: "pipeline-wt",
+        path: worktreeCwd,
+        branch: "poe-code/pipeline-wt",
+        baseBranch: "HEAD",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        source: "sdk",
+        agent: input.selectedAgent,
+        status: "active"
+      }
+    });
+    return { value };
+  });
   vi.mocked(sdkRunPipelineInit).mockResolvedValue({
     stopReason: "done",
     sourcesProcessed: 0
@@ -284,6 +309,59 @@ describe("pipeline run command", () => {
         agent: "codex",
         model: "gpt-5.2",
         maxRuns: 3
+      })
+    );
+  });
+
+  it("wraps multiple pipeline plans in one worktree from the CLI", async () => {
+    const fs = createMemFs({
+      "/repo/plan-a.md": "tasks: []\n",
+      "/repo/plan-b.md": "tasks: []\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--plans",
+      "plan-a.md",
+      "plan-b.md",
+      "--agent",
+      "codex",
+      "--worktree"
+    ]);
+
+    expect(runWithOptionalWorktreeMock).toHaveBeenCalledTimes(1);
+    expect(runWithOptionalWorktreeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd,
+        selectedAgent: "codex",
+        worktree: true
+      })
+    );
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        cwd: "/repo/.poe-code/worktrees/pipeline-wt",
+        plan: "plan-a.md"
+      })
+    );
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        cwd: "/repo/.poe-code/worktrees/pipeline-wt",
+        plan: "plan-b.md"
       })
     );
   });

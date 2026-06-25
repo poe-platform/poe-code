@@ -5,11 +5,13 @@ import { stripAnsi } from "../internal/strip-ansi.js";
 import { spacing } from "../tokens/spacing.js";
 import { typography } from "../tokens/typography.js";
 import { widths } from "../tokens/widths.js";
-import type { MdNode } from "./ast.js";
+import type { CodeToken, CodeTokenKind, MdNode } from "./ast.js";
+import { highlightCodeBlock } from "./parser/code-highlight.js";
 
 export interface RenderOptions {
   width?: number;
   showFrontmatter?: boolean;
+  syntaxHighlight?: boolean;
 }
 
 type TextFormatter = (text: string) => string;
@@ -28,6 +30,7 @@ interface FootnoteState {
 interface RenderContext {
   width: number;
   showFrontmatter: boolean;
+  syntaxHighlight: boolean;
   theme: ReturnType<typeof getTheme>;
   footnotes?: FootnoteState;
 }
@@ -44,6 +47,7 @@ export function render(ast: MdNode, options: RenderOptions = {}): string {
   const context: RenderContext = {
     width,
     showFrontmatter: options.showFrontmatter ?? false,
+    syntaxHighlight: options.syntaxHighlight ?? false,
     theme: getTheme(),
     footnotes: ast.type === "root" ? createFootnoteState(ast.children) : undefined
   };
@@ -169,12 +173,78 @@ function renderAlert(node: Extract<MdNode, { type: "alert" }>, context: RenderCo
 function renderCodeBlock(node: Extract<MdNode, { type: "code" }>, context: RenderContext): string {
   const indent = " ".repeat(spacing.sm);
   const lines = node.value.split("\n").map((line) => stripAnsi(line));
+  const strippedSource = lines.join("\n");
   const longestLine = lines.reduce((max, line) => Math.max(max, visibleWidth(line)), 0);
   const borderWidth = Math.max(3, Math.min(context.width - indent.length, longestLine));
   const border = context.theme.muted(`${indent}${lineChar.repeat(borderWidth)}`);
-  const content = lines.map((line) => `${indent}${line}`).join("\n");
+  const highlightedLines =
+    context.syntaxHighlight === true
+      ? renderCodeTokens(highlightCodeBlock({ lang: node.lang, value: strippedSource }), context)?.split("\n")
+      : undefined;
+  const content = (highlightedLines ?? lines).map((line) => `${indent}${line}`).join("\n");
 
   return `${border}\n${content}\n${border}\n\n`;
+}
+
+function renderCodeTokens(tokens: CodeToken[] | undefined, context: RenderContext): string | undefined {
+  if (tokens === undefined) {
+    return undefined;
+  }
+
+  return tokens.map((token) => styleCodeToken(token, context)).join("");
+}
+
+function styleCodeToken(token: CodeToken, context: RenderContext): string {
+  if (token.kind === "plain") {
+    return token.value;
+  }
+
+  return getCodeTokenFormatter(token.kind, context)(token.value);
+}
+
+function getCodeTokenFormatter(kind: CodeTokenKind, context: RenderContext): TextFormatter {
+  switch (kind) {
+    case "keyword":
+    case "type":
+    case "tag":
+    case "command":
+    case "decorator":
+    case "directive":
+    case "at-rule":
+      return (value) => context.theme.accent(typography.bold(value));
+    case "string":
+    case "template":
+      return context.theme.success;
+    case "number":
+    case "boolean":
+    case "null":
+    case "parameter":
+      return context.theme.number;
+    case "comment":
+      return context.theme.muted;
+    case "property":
+    case "key":
+    case "attribute":
+    case "variable":
+    case "function":
+    case "anchor":
+    case "label":
+      return context.theme.info;
+    case "regex":
+    case "color":
+    case "important":
+    case "flag":
+      return context.theme.warning;
+    case "invalid":
+      return context.theme.error;
+    case "operator":
+    case "punctuation":
+    case "selector":
+      return context.theme.muted;
+    case "identifier":
+    case "plain":
+      return (value) => value;
+  }
 }
 
 function renderList(node: Extract<MdNode, { type: "list" }>, context: RenderContext): string {

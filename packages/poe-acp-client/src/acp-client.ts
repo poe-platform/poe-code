@@ -112,6 +112,7 @@ type AcpClientPermissionHandler = (args: {
 
 const validStopReasons = new Set<PromptResponse["stopReason"]>([
   "completed",
+  "end_turn",
   "cancelled",
   "max_tokens",
 ]);
@@ -241,7 +242,7 @@ function assertPromptResponse(value: PromptResponse): void {
   if (!validStopReasons.has(value.stopReason)) {
     throw invalidResponse(
       "session/prompt",
-      '"stopReason" must be "completed", "cancelled", or "max_tokens".'
+      '"stopReason" must be "completed", "end_turn", "cancelled", or "max_tokens".'
     );
   }
 }

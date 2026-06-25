@@ -3,6 +3,44 @@ export type MdRange = {
   end: number;
 };
 
+export type CodeTokenKind =
+  | "anchor"
+  | "at-rule"
+  | "attribute"
+  | "boolean"
+  | "color"
+  | "command"
+  | "comment"
+  | "decorator"
+  | "directive"
+  | "flag"
+  | "function"
+  | "identifier"
+  | "important"
+  | "invalid"
+  | "key"
+  | "keyword"
+  | "label"
+  | "null"
+  | "number"
+  | "operator"
+  | "parameter"
+  | "plain"
+  | "property"
+  | "punctuation"
+  | "regex"
+  | "selector"
+  | "string"
+  | "tag"
+  | "template"
+  | "type"
+  | "variable";
+
+export type CodeToken = {
+  kind: CodeTokenKind;
+  value: string;
+};
+
 type MdNodeWithRange = {
   range?: MdRange;
 };
@@ -13,7 +51,7 @@ export type MdNode = MdNodeWithRange &
     | { type: "heading"; depth: 1 | 2 | 3 | 4 | 5 | 6; children: MdNode[] }
     | { type: "paragraph"; children: MdNode[] }
     | { type: "blockquote"; children: MdNode[] }
-    | { type: "code"; lang?: string; meta?: string; value: string }
+    | { type: "code"; lang?: string; meta?: string; value: string; tokens?: CodeToken[] }
     | { type: "list"; ordered: boolean; start?: number; children: MdNode[] }
     | { type: "listItem"; checked?: boolean; children: MdNode[] }
     | { type: "thematicBreak" }

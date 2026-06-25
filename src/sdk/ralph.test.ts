@@ -7,6 +7,7 @@ const buildSpawnArgsMock = vi.hoisted(() => vi.fn());
 const createPoeCommandSessionMock = vi.hoisted(() => vi.fn());
 const resolvePoeCommandExecutionMock = vi.hoisted(() => vi.fn());
 const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
+const runWithOptionalWorktreeMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/ralph", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/ralph")>();
@@ -35,6 +36,10 @@ vi.mock("./credentials.js", () => ({
   getPoeApiKey: getPoeApiKeyMock
 }));
 
+vi.mock("./worktree.js", () => ({
+  runWithOptionalWorktree: runWithOptionalWorktreeMock
+}));
+
 import { runRalph } from "./ralph.js";
 
 describe("SDK ralph", () => {
@@ -45,7 +50,25 @@ describe("SDK ralph", () => {
     createPoeCommandSessionMock.mockReset();
     resolvePoeCommandExecutionMock.mockReset();
     getPoeApiKeyMock.mockReset();
+    runWithOptionalWorktreeMock.mockReset();
     getPoeApiKeyMock.mockResolvedValue("stored-key");
+    runWithOptionalWorktreeMock.mockImplementation(async (input) => {
+      const value = await input.run({
+        sourceCwd: input.cwd,
+        worktreeCwd: "/repo/.poe-code/worktrees/ralph",
+        worktree: {
+          name: "ralph",
+          path: "/repo/.poe-code/worktrees/ralph",
+          branch: "poe-code/ralph",
+          baseBranch: "HEAD",
+          createdAt: "2026-01-01T00:00:00.000Z",
+          source: "sdk",
+          agent: input.selectedAgent,
+          status: "active"
+        }
+      });
+      return { value };
+    });
   });
 
   it("preserves a caller-provided runAgent", async () => {
@@ -75,6 +98,37 @@ describe("SDK ralph", () => {
       })
     );
     expect(spawnAutonomousMock).not.toHaveBeenCalled();
+  });
+
+  it("wraps the whole Ralph run in one worktree when enabled", async () => {
+    runWorkspaceRalphMock.mockResolvedValue({
+      stopReason: "max_iterations",
+      docPath: "docs/loop.md",
+      iterationsCompleted: 1,
+      totalDurationMs: 1_000
+    });
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/loop.md",
+      agent: "codex",
+      worktree: true
+    });
+
+    expect(runWithOptionalWorktreeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/repo",
+        selectedAgent: "codex",
+        worktree: true
+      })
+    );
+    expect(runWorkspaceRalphMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/repo/.poe-code/worktrees/ralph",
+        docPath: "docs/loop.md"
+      })
+    );
   });
 
   it("wires the default autonomous runner when no runAgent is provided", async () => {

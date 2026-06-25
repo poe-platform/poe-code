@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +12,7 @@ import { stripAnsi } from "../ansi.js";
 const testingDirectory = path.dirname(fileURLToPath(import.meta.url));
 const testCliPath = path.join(testingDirectory, "test-cli.js");
 const terminalPilotCliPath = path.join(testingDirectory, "..", "cli.ts");
+const terminalPilotDistCliPath = path.join(testingDirectory, "..", "..", "dist", "cli.js");
 const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
 
 function normalizeOutput(output: string): string {
@@ -45,8 +47,23 @@ async function runFixture(scriptName: string, input: string) {
   };
 }
 
+function resolveTerminalPilotCliCommand(env: NodeJS.ProcessEnv): { command: string; args: string[] } {
+  if (env.CI === "true" && existsSync(terminalPilotDistCliPath)) {
+    return {
+      command: process.execPath,
+      args: [terminalPilotDistCliPath]
+    };
+  }
+
+  return {
+    command: tsxPath,
+    args: [terminalPilotCliPath]
+  };
+}
+
 async function runTerminalPilotCli(args: string[], env: NodeJS.ProcessEnv) {
-  const child = spawn(tsxPath, [terminalPilotCliPath, ...args], {
+  const cli = resolveTerminalPilotCliCommand(env);
+  const child = spawn(cli.command, [...cli.args, ...args], {
     cwd: process.cwd(),
     env,
     stdio: ["ignore", "pipe", "pipe"]
@@ -154,6 +171,7 @@ describe("terminal-pilot CLI REPL runner", () => {
 describe("terminal-pilot CLI process runner", () => {
   it("preserves terminal sessions across separate CLI processes", async () => {
     const runtimeDir = await mkdtemp(path.join(os.tmpdir(), "terminal-pilot-cli-"));
+    let sessionClosed = false;
     const env = {
       ...process.env,
       TERMINAL_PILOT_RUNTIME_DIR: runtimeDir
@@ -177,10 +195,13 @@ describe("terminal-pilot CLI process runner", () => {
       );
       expect(closed.exitCode).toBe(0);
       expect(JSON.parse(closed.stdout)).toMatchObject({ exitCode: 0 });
+      sessionClosed = true;
     } finally {
-      await runTerminalPilotCli(["close-session", "-s", "P1", "--output", "json"], env).catch(
-        () => undefined
-      );
+      if (!sessionClosed) {
+        await runTerminalPilotCli(["close-session", "-s", "P1", "--output", "json"], env).catch(
+          () => undefined
+        );
+      }
       await rm(runtimeDir, { recursive: true, force: true });
     }
   });

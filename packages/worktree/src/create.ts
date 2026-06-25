@@ -13,6 +13,7 @@ export type CreateWorktreeOptions = {
   storyId?: string;
   planPath?: string;
   prompt?: string;
+  sourceCwd?: string;
   deps: WorktreeDeps;
 };
 
@@ -20,6 +21,18 @@ export async function createWorktree(
   opts: CreateWorktreeOptions
 ): Promise<Worktree> {
   assertSafeWorktreeName(opts.name);
+  await assertInsideGitWorkTree(opts.cwd, opts.deps);
+  const destinationStatus = await opts.deps.exec("git status --porcelain=v1 -z", {
+    cwd: opts.cwd
+  });
+  if (destinationStatus.stdout.length > 0) {
+    throw new Error(
+      "Cannot run with --worktree because the destination checkout has uncommitted changes.\nCommit, stash, or discard those changes before starting a worktree run."
+    );
+  }
+  const baseHead = (
+    await opts.deps.exec(`git rev-parse ${shellQuote(opts.baseBranch)}`, { cwd: opts.cwd })
+  ).stdout.trim();
   const branch = `poe-code/${opts.name}`;
   const worktreePath = join(opts.worktreeDir, opts.name);
   const registry = await readRegistry(opts.registryFile, opts.deps.fs);
@@ -68,7 +81,9 @@ export async function createWorktree(
     status: "active",
     ...(opts.storyId !== undefined && { storyId: opts.storyId }),
     ...(opts.planPath !== undefined && { planPath: opts.planPath }),
-    ...(opts.prompt !== undefined && { prompt: opts.prompt })
+    ...(opts.prompt !== undefined && { prompt: opts.prompt }),
+    sourceCwd: opts.sourceCwd ?? opts.cwd,
+    baseHead
   };
 
   try {
@@ -89,6 +104,18 @@ export async function createWorktree(
   }
 
   return entry;
+}
+
+async function assertInsideGitWorkTree(cwd: string, deps: WorktreeDeps): Promise<void> {
+  try {
+    const result = await deps.exec("git rev-parse --is-inside-work-tree", { cwd });
+    if (result.stdout.trim() === "true") {
+      return;
+    }
+  } catch {
+    // Normalize git's various cwd/repository failures into the worktree-mode error below.
+  }
+  throw new Error("Cannot run with --worktree because the destination path is not inside a git work tree.");
 }
 
 function shellQuote(value: string): string {

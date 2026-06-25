@@ -16,6 +16,17 @@ describe("toolcraft package exports", () => {
     });
   });
 
+  it("exports flat bundled design system subpaths", () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
+      exports?: Record<string, { import?: string; types?: string }>;
+    };
+
+    expect(packageJson.exports?.["./design/*"]).toEqual({
+      types: "./dist/design/*.d.ts",
+      import: "./dist/design/*.js",
+    });
+  });
+
   it("exports the human-in-loop entrypoint", () => {
     const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
       exports?: Record<string, { import?: string; types?: string }>;

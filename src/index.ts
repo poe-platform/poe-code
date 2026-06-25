@@ -119,7 +119,8 @@ export type {
   HookBridgeOptions,
   SpawnRetryOptions,
   SpawnUsage,
-  SpawnResult
+  SpawnResult,
+  WorktreeExecutionOptions
 } from "./sdk/types.js";
 export type {
   BridgeHookManifest,
@@ -198,6 +199,31 @@ export type {
   ExperimentRunResult,
   ExperimentJournalOptions
 } from "./sdk/experiment.js";
+export {
+  runInWorktree,
+  runWithOptionalWorktree,
+  createManagedWorktree,
+  reconcileManagedWorktree,
+  listManagedWorktrees,
+  removeManagedWorktree
+} from "./sdk/worktree.js";
+export type {
+  RunInWorktreeInput,
+  RunInWorktreeResult,
+  RunWithOptionalWorktreeInput,
+  RunWithOptionalWorktreeResult,
+  WorktreeExecutionContext,
+  WorktreeExecutionResult,
+  ManagedWorktreeCreateOptions,
+  ManagedWorktreeReconcileOptions,
+  ManagedWorktreeListOptions,
+  ManagedWorktreeRemoveOptions
+} from "./sdk/worktree.js";
+export type {
+  Worktree,
+  WorktreeStatus,
+  WorktreeReconciliationSummary
+} from "@poe-code/worktree";
 
 async function main(): Promise<void> {
   const [{ createProgram }, { createCliMain }] = await Promise.all([

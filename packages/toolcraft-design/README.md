@@ -5,16 +5,36 @@ Shared terminal design system for Toolcraft applications. It provides design tok
 ## Install
 
 ```sh
-npm install toolcraft-design
+npm install toolcraft
 ```
 
-Import from the package root:
+`toolcraft-design` is currently distributed through `toolcraft`, not installed directly from npm as a standalone package. Import the design system from the bundled `toolcraft/design` entrypoint:
 
 ```ts
-import { configureTheme, promptText, renderMarkdown, renderTable, text } from "toolcraft-design";
+import {
+  configureTheme,
+  promptText,
+  renderMarkdown,
+  renderMarkdownHtml,
+  renderTable,
+  text
+} from "toolcraft/design";
 ```
 
-The package does not expose public subpath imports.
+Flat subpath imports are also available through `toolcraft/design/*`. Use the kebab-case file name that matches the root export name:
+
+```ts
+import { renderMarkdownHtml } from "toolcraft/design/render-markdown-html";
+import { renderTable } from "toolcraft/design/render-table";
+import { renderDetailCard } from "toolcraft/design/render-detail-card";
+```
+
+Inside this workspace, the design package exposes equivalent direct exports:
+
+```ts
+import { renderMarkdownHtml } from "toolcraft-design";
+import { renderTable } from "toolcraft-design/render-table";
+```
 
 ## Public API
 
@@ -70,7 +90,169 @@ The package does not expose public subpath imports.
 - `parse`: parses Markdown into `MdNode` values.
 - `render`: renders parsed Markdown nodes for the terminal.
 - `renderMarkdown`: parses and renders a Markdown string.
-- Types: `MdNode`, `RenderOptions`.
+- `renderHtml`: renders parsed Markdown nodes as safe HTML fragments.
+- `renderMarkdownHtml`: parses and renders a Markdown string as a safe HTML fragment.
+- Types: `MdNode`, `RenderOptions`, `HtmlRenderOptions`.
+
+Terminal rendering and HTML rendering share the same parser and AST:
+
+```ts
+import { parse, render, renderHtml, renderMarkdownHtml } from "toolcraft-design";
+
+const markdown = "# Status\n\nUse `poe-code configure`.";
+const { ast } = parse(markdown);
+
+console.log(render(ast));
+console.log(renderHtml(ast));
+console.log(renderMarkdownHtml(markdown));
+```
+
+HTML output is a fragment, not a full HTML document:
+
+```html
+<h1>Status</h1>
+<p>Use <code>poe-code configure</code>.</p>
+```
+
+Raw HTML in Markdown is escaped by default. Pass `{ allowRawHtml: true }` only when the input is trusted.
+
+#### Syntax highlighting
+
+Fenced code block syntax highlighting is opt-in:
+
+```ts
+import { renderMarkdown, renderMarkdownHtml } from "toolcraft-design";
+
+const html = renderMarkdownHtml("```ts\nconst value = \"hello\";\n```", {
+  syntaxHighlight: true
+});
+const terminal = renderMarkdown("```ts\nconst value = \"hello\";\n```", {
+  syntaxHighlight: true
+});
+```
+
+HTML highlighting emits escaped code text with neutral Toolcraft-owned `<span>` wrappers. The renderer does not ship or inject CSS, so consumers control the appearance:
+
+```html
+<pre><code class="language-ts"><span class="tc-token-keyword">const</span> value = <span class="tc-token-string">&quot;hello&quot;</span>;</code></pre>
+```
+
+Starter CSS:
+
+```css
+.tc-token-keyword,
+.tc-token-type,
+.tc-token-tag,
+.tc-token-command,
+.tc-token-decorator,
+.tc-token-directive,
+.tc-token-at-rule {
+  color: var(--code-keyword);
+  font-weight: 700;
+}
+
+.tc-token-string,
+.tc-token-template {
+  color: var(--code-string);
+}
+
+.tc-token-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.tc-token-number,
+.tc-token-boolean,
+.tc-token-null,
+.tc-token-parameter {
+  color: var(--code-number);
+}
+
+.tc-token-key,
+.tc-token-property,
+.tc-token-attribute,
+.tc-token-variable,
+.tc-token-function,
+.tc-token-anchor,
+.tc-token-label {
+  color: var(--code-symbol);
+}
+
+.tc-token-regex,
+.tc-token-color,
+.tc-token-important,
+.tc-token-flag,
+.tc-token-invalid {
+  color: var(--code-warning);
+}
+
+.tc-token-operator,
+.tc-token-punctuation,
+.tc-token-selector {
+  color: var(--code-muted);
+}
+```
+
+Available token classes:
+
+- `.tc-token-anchor`
+- `.tc-token-at-rule`
+- `.tc-token-attribute`
+- `.tc-token-boolean`
+- `.tc-token-color`
+- `.tc-token-command`
+- `.tc-token-comment`
+- `.tc-token-decorator`
+- `.tc-token-directive`
+- `.tc-token-flag`
+- `.tc-token-function`
+- `.tc-token-identifier`
+- `.tc-token-important`
+- `.tc-token-invalid`
+- `.tc-token-key`
+- `.tc-token-keyword`
+- `.tc-token-label`
+- `.tc-token-null`
+- `.tc-token-number`
+- `.tc-token-operator`
+- `.tc-token-parameter`
+- `.tc-token-plain`
+- `.tc-token-property`
+- `.tc-token-punctuation`
+- `.tc-token-regex`
+- `.tc-token-selector`
+- `.tc-token-string`
+- `.tc-token-tag`
+- `.tc-token-template`
+- `.tc-token-type`
+- `.tc-token-variable`
+
+The no-dependency highlighters cover these fence labels:
+
+- ECMAScript and TypeScript: `js`, `javascript`, `mjs`, `cjs`, `es6`, `jsx`, `ts`, `typescript`, `mts`, `cts`, `tsx`
+- Data: `json`, `jsonc`, `jsonl`, `yaml`, `yml`
+- CSS and style dialects: `css`, `scss`, `sass`, `less`, `postcss`
+- Shell: `sh`, `bash`, `shell`, `shellscript`, `zsh`, `fish`
+- Python: `py`, `python`
+- SQL: `sql`, `ddl`, `dml`
+- Markup and Markdown: `html`, `xml`, `svg`, `md`, `markdown`
+- Line-oriented formats: `diff`, `patch`, `dockerfile`, `docker`
+- Config formats: `ini`, `properties`, `toml`
+- Ruby: `rb`, `ruby`
+- Go and JVM languages: `go`, `golang`, `java`, `kt`, `kotlin`, `kts`, `scala`, `sc`, `groovy`, `gvy`, `gy`, `gsp`, `gradle`
+- Swift and Dart: `swift`, `dart`
+- C-family: `c`, `cpp`, `c++`, `cc`, `cxx`, `cs`, `csharp`, `c#`, `objc`, `objectivec`, `objective-c`, `m`, `mm`
+- Rust: `rs`, `rust`
+- PHP: `php`
+- Scripting and functional languages: `lua`, `pl`, `perl`, `pm`, `r`, `rscript`, `ps1`, `powershell`, `pwsh`, `ex`, `exs`, `elixir`, `erl`, `erlang`, `hrl`, `hs`, `haskell`, `clj`, `cljs`, `cljc`, `clojure`, `fs`, `fsi`, `fsx`, `fsharp`, `vb`, `vbnet`
+- Schema and infrastructure formats: `graphql`, `gql`, `proto`, `protobuf`, `hcl`, `tf`, `terraform`, `nginx`, `nginxconf`, `makefile`, `mk`, `cmake`, `env`, `dotenv`
+- Component formats: `vue`, `svelte`
+
+These language labels intentionally render as plain escaped code:
+
+- Plain text: `text`, `txt`, `plain`, `plaintext`
+
+Unknown fence labels also render as plain escaped code. Code text is always escaped in HTML output, even when `allowRawHtml: true` is enabled.
 
 ### Static Rendering
 

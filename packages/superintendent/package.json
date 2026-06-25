@@ -41,6 +41,7 @@
     "toolcraft": "*",
     "toolcraft-design": "*",
     "@poe-code/poe-agent": "*",
-    "@poe-code/poe-code-config": "*"
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/worktree": "*"
   }
 }

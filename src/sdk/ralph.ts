@@ -1,6 +1,6 @@
 import {
   runRalph as runWorkspaceRalph,
-  type RalphRunOptions,
+  type RalphRunOptions as WorkspaceRalphRunOptions,
   type RalphRunResult
 } from "@poe-code/ralph";
 import {
@@ -11,16 +11,51 @@ import {
 import { buildSpawnArgs } from "@poe-code/agent-spawn";
 import { spawn as sdkSpawn } from "./spawn.js";
 import { getPoeApiKey } from "./credentials.js";
+import { runWithOptionalWorktree } from "./worktree.js";
+import type { WorktreeExecutionOptions } from "./types.js";
 
 export type {
   AgentRunInput,
   AgentRunResult,
-  RalphRunOptions,
   RalphRunResult,
   RalphStopReason
 } from "@poe-code/ralph";
 
+export type RalphRunOptions = WorkspaceRalphRunOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+
 export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult> {
+  if (isWorktreeEnabled(options.worktree)) {
+    const wrapped = await runWithOptionalWorktree<RalphRunResult>({
+      cwd: options.cwd,
+      selectedAgent: resolveWorktreeAgent(options.agent),
+      worktree: options.worktree,
+      signal: options.signal,
+      run: async ({ worktreeCwd }) =>
+        await runRalphDirect({
+          ...options,
+          cwd: worktreeCwd,
+          worktree: false
+        })
+    });
+    return wrapped.value;
+  }
+
+  return await runRalphDirect(options);
+}
+
+function resolveWorktreeAgent(agent: RalphRunOptions["agent"]): string {
+  if (typeof agent === "string" && agent.length > 0) {
+    return agent;
+  }
+  if (Array.isArray(agent) && typeof agent[0] === "string" && agent[0].length > 0) {
+    return agent[0];
+  }
+  throw new Error("runRalph with worktree requires a resolved agent.");
+}
+
+async function runRalphDirect(options: RalphRunOptions): Promise<RalphRunResult> {
   const reusableE2b = options.runtime === "e2b" && options.detach !== true;
   const e2bRunner = reusableE2b && !options.runAgent ? createReusableE2bRalphRunner(options) : null;
   const runAgent = options.runAgent ?? e2bRunner?.runAgent ?? createDefaultRalphRunAgent(options);
@@ -37,7 +72,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
 
 function createDefaultRalphRunAgent(
   options: RalphRunOptions
-): NonNullable<RalphRunOptions["runAgent"]> {
+): NonNullable<WorkspaceRalphRunOptions["runAgent"]> {
   return async (input) =>
     await sdkSpawn.autonomous(input.agent, {
       prompt: input.prompt,
@@ -60,7 +95,7 @@ function createDefaultRalphRunAgent(
 }
 
 function createReusableE2bRalphRunner(options: RalphRunOptions): {
-  runAgent: NonNullable<RalphRunOptions["runAgent"]>;
+  runAgent: NonNullable<WorkspaceRalphRunOptions["runAgent"]>;
   close(): Promise<void>;
 } {
   const autonomousRunAgent = createDefaultRalphRunAgent(options);
@@ -146,4 +181,8 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
       await session?.close();
     }
   };
+}
+
+function isWorktreeEnabled(worktree: WorktreeExecutionOptions | undefined): boolean {
+  return worktree === true;
 }

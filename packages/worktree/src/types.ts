@@ -1,4 +1,20 @@
-export type WorktreeStatus = "active" | "done" | "failed" | "removing";
+export type WorktreeStatus =
+  | "active"
+  | "reconciling"
+  | "conflicted"
+  | "cleanup_failed"
+  | "done"
+  | "failed"
+  | "removing";
+
+export type WorktreeReconciliationSummary = {
+  committed: "none" | "present" | "merged_by_agent" | "failed";
+  uncommitted: "none" | "present" | "applied_by_agent" | "failed";
+  removed: boolean;
+  cleanup: "not_needed" | "removed_by_agent" | "nudged" | "failed";
+  conflictFiles: string[];
+  threadId?: string;
+};
 
 export type Worktree = {
   name: string;
@@ -12,6 +28,10 @@ export type Worktree = {
   storyId?: string;
   planPath?: string;
   prompt?: string;
+  sourceCwd?: string;
+  baseHead?: string;
+  reconciledAt?: string;
+  reconciliation?: WorktreeReconciliationSummary;
 };
 
 export type WorktreeRegistry = {

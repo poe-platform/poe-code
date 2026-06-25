@@ -43,6 +43,7 @@ const hostRunnerExecMock = vi.hoisted(() => vi.fn(() => ({ pid: 42 })));
 // experiment.test.ts
 const runExperimentLoopMock = vi.hoisted(() => vi.fn());
 const spawnAutonomousMock = vi.hoisted(() => vi.fn());
+const runWithOptionalWorktreeMock = vi.hoisted(() => vi.fn());
 
 vi.mock("auth-store", async (importOriginal) => {
   const actual = await importOriginal<typeof import("auth-store")>();
@@ -99,6 +100,10 @@ vi.mock("./spawn.js", () => ({
   spawn: Object.assign(vi.fn(), {
     autonomous: spawnAutonomousMock
   })
+}));
+
+vi.mock("./worktree.js", () => ({
+  runWithOptionalWorktree: runWithOptionalWorktreeMock
 }));
 
 import { createSdkContainer } from "./container.js";
@@ -761,6 +766,24 @@ describe("SDK experiment", () => {
   beforeEach(() => {
     runExperimentLoopMock.mockReset();
     spawnAutonomousMock.mockReset();
+    runWithOptionalWorktreeMock.mockReset();
+    runWithOptionalWorktreeMock.mockImplementation(async (input) => ({
+      value: await input.run({
+        sourceCwd: input.cwd,
+        worktreeCwd: "/repo/.poe-code/worktrees/experiment-wt",
+        worktree: {
+          name: "experiment-wt",
+          path: "/repo/.poe-code/worktrees/experiment-wt",
+          branch: "poe-code/experiment-wt",
+          baseBranch: "HEAD",
+          createdAt: "2026-06-24T00:00:00.000Z",
+          source: "sdk",
+          agent: input.selectedAgent,
+          status: "active",
+          sourceCwd: input.cwd
+        }
+      })
+    }));
   });
 
   it("forwards CLI-parity options and wires the default agent runner", async () => {
@@ -829,7 +852,8 @@ describe("SDK experiment", () => {
       mode: "yolo",
       runtime: "e2b",
       runtimeTemplate: "tpl_123",
-      mountPoeCode: true
+      mountPoeCode: true,
+      worktree: false
     });
     expect(agentResult).toEqual({
       stdout: "done",
@@ -890,5 +914,43 @@ describe("SDK experiment", () => {
         logFileName: "attempt.jsonl"
       })
     );
+  });
+
+  it("wraps the whole experiment run in one worktree when enabled", async () => {
+    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => ({
+      stopReason: "max_experiments",
+      docPath: options.docPath,
+      experimentsCompleted: 1,
+      experimentsKept: 1,
+      totalDurationMs: 1
+    }));
+
+    const result = await runExperiment({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/experiment.md",
+      agent: "codex",
+      worktree: true
+    });
+
+    expect(runWithOptionalWorktreeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/repo",
+        selectedAgent: "codex",
+        worktree: true,
+        run: expect.any(Function)
+      })
+    );
+    expect(runExperimentLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/repo/.poe-code/worktrees/experiment-wt",
+        docPath: "/repo/docs/plans/experiment.md"
+      })
+    );
+    expect(result).toMatchObject({
+      stopReason: "max_experiments",
+      experimentsCompleted: 1,
+      experimentsKept: 1
+    });
   });
 });

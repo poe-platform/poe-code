@@ -242,7 +242,8 @@ describe("agent command", () => {
         inputTokens: 12,
         outputTokens: 0,
         cachedTokens: 6,
-        costUsd: 0.02
+        costUsd: 0.02,
+        costSource: "reported"
       }
     ]);
   });

@@ -6,7 +6,9 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
-const { findPackageMetadata, packageMetadata } = await import("./package-metadata.js");
+const { findEntrypointPackageMetadata, findPackageMetadata, packageMetadata } = await import(
+  "./package-metadata.js"
+);
 
 describe("packageMetadata", () => {
   beforeEach(() => {
@@ -43,5 +45,26 @@ describe("packageMetadata", () => {
     );
 
     expect(findPackageMetadata("file:///repo/packages/mytool/src/bin.ts")).toBeUndefined();
+  });
+
+  it("reads entrypoint package metadata through a symlinked global bin", () => {
+    vol.fromJSON(
+      {
+        "/repo/packages/mytool/package.json": JSON.stringify({
+          name: "mytool",
+          version: "2.3.4",
+        }),
+        "/repo/packages/mytool/dist/bin.js": "",
+        "/usr/local/bin": null,
+      },
+      "/"
+    );
+    vol.symlinkSync("/repo/packages/mytool/dist/bin.js", "/usr/local/bin/mytool");
+
+    expect(findEntrypointPackageMetadata("/usr/local/bin/mytool")).toEqual({
+      name: "mytool",
+      path: "/repo/packages/mytool/package.json",
+      version: "2.3.4",
+    });
   });
 });

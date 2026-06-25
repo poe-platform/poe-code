@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,9 +24,16 @@ function pathFromInput(from: PackageMetadataInput): string {
 
 function getSearchDirectory(from: PackageMetadataInput): string {
   const resolved = pathFromInput(from);
+  let searchPath = resolved;
 
   try {
-    return statSync(resolved).isDirectory() ? resolved : path.dirname(resolved);
+    searchPath = realpathSync(resolved);
+  } catch {
+    searchPath = resolved;
+  }
+
+  try {
+    return statSync(searchPath).isDirectory() ? searchPath : path.dirname(searchPath);
   } catch {
     return path.dirname(resolved);
   }

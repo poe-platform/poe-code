@@ -99,6 +99,7 @@ export function sessionUpdateToEvents(
 
     if (update.cost && update.cost.currency === "USD") {
       (usage as { costUsd?: number }).costUsd = update.cost.amount;
+      (usage as { costSource?: "reported" }).costSource = "reported";
     }
 
     return [usage];

@@ -167,6 +167,7 @@ export interface UsageEvent {
   outputTokens: number;
   cachedTokens?: number;
   costUsd?: number;
+  costSource?: "reported" | "estimated";
   _meta?: Record<string, unknown>;
 }
 
@@ -193,6 +194,7 @@ export interface SpawnResultEvent {
     outputTokens: number;
     cachedTokens?: number;
     costUsd?: number;
+    costSource?: "reported" | "estimated";
   };
   protocolVersion?: number;
   _meta?: Record<string, unknown>;

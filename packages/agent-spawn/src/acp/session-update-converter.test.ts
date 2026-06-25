@@ -154,7 +154,8 @@ describe("session-update-converter", () => {
         inputTokens: 100,
         outputTokens: 0,
         cachedTokens: 50,
-        costUsd: 0.01
+        costUsd: 0.01,
+        costSource: "reported"
       }]);
     });
 

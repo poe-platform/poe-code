@@ -13,12 +13,12 @@
 
 `WORKFLOW.md` frontmatter is the maestro config.
 
-| Field       | Type   | Default                                                                                       | Behavior                                                                                                                   |
-| ----------- | ------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `tasks`     | object | required                                                                                      | Task-list backend config passed to `@poe-code/task-list`.                                                                  |
-| `states`    | object | required                                                                                      | State map. States with `prompt` are active and dispatched; states with `terminal: true` stop work and clean up workspaces. |
-| `polling`   | object | `{ interval_ms: 30000 }`                                                                      | Polling behavior.                                                                                                          |
-| `workspace` | object | `{ root: "<os tmp>/poe-code-maestro" }`                                                       | Workspace allocation behavior.                                                                                             |
+| Field       | Type   | Default                                                                        | Behavior                                                                                                                   |
+| ----------- | ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `tasks`     | object | required                                                                       | Task-list backend config passed to `@poe-code/task-list`.                                                                  |
+| `states`    | object | required                                                                       | State map. States with `prompt` are active and dispatched; states with `terminal: true` stop work and clean up workspaces. |
+| `polling`   | object | `{ interval_ms: 30000 }`                                                       | Polling behavior.                                                                                                          |
+| `workspace` | object | `{ root: "<os tmp>/poe-code-maestro" }`                                        | Workspace allocation behavior.                                                                                             |
 | `agent`     | object | `{ service: "codex", max_concurrent_agents: 1, max_retry_backoff_ms: 300000 }` | Agent dispatch behavior.                                                                                                   |
 
 `tasks` fields:
@@ -58,6 +58,10 @@ State definition fields:
 | `model`    | string                       | agent runner default     | Model for this state. Falls back to the agent runner's default when omitted.                       |
 | `mode`     | `"yolo" \| "edit" \| "read"` | `"yolo"`                 | Spawn mode for this state.                                                                         |
 | `terminal` | boolean                      | `false`                  | Marks this state as terminal. Terminal states are not dispatched and their workspaces are removed. |
+
+State names, prompts, workflow paths, and workflow config shapes are validated
+before tasks are dispatched. Blank state names/prompts and unsafe workflow names
+are rejected instead of falling back to defaults.
 
 ### Template variables
 

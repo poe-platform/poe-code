@@ -54,7 +54,7 @@ import { renderTable } from "toolcraft-design/render-table";
 - `helpFormatter`, `helpFormatterPlain`: styled and plain help formatting APIs.
 - `formatColumns`, `formatCommand`, `formatUsage`, `formatOption`, `formatCommandList`, `formatOptionList`: individual help-formatting functions.
 - `formatCommandNotFound`, `formatCommandNotFoundPanel`: command error rendering.
-- `renderTable`, `renderDetailCard`: tabular and detail-card rendering.
+- `renderTable`, `renderDetailCard`, `renderInspectorCard`, `renderResourceBrowser`: tabular, detail-card, inspector-panel, and grouped resource-browser rendering.
 - `getTemplatePartialNames`, `renderTemplate`, `resolveTemplatePartials`: template rendering utilities.
 - `openExternal`: opens a URL or file with the platform browser command.
 - Types: `Color`, `LoggerOutput`, `CommandInfo`, `OptionInfo`, `FormatColumnsOptions`, `TableColumn`, `RenderTableOptions`, `DetailCardRow`, `DetailCardSection`, `RenderDetailCardOptions`, `RenderTemplateOptions`, `TemplateEscape`.
@@ -79,9 +79,11 @@ import { renderTable } from "toolcraft-design/render-table";
 ### Explorer
 
 - `explorer`: namespace containing the complete explorer API.
-- `runExplorer`, `singleDetail`: root-level explorer exports.
-- Root-level types: `Row`, `DetailItem`, `Detail`, `DetailCtx`, `Action`, `ActionContext`, `ExplorerConfig`, `ReorderContext`, `Tone`.
+- `runExplorer`, `runTwoPaneExplorer`, `singleDetail`: root-level explorer exports.
+- Root-level types: `Row`, `DetailItem`, `Detail`, `DetailCtx`, `Action`, `ActionContext`, `ExplorerConfig`, `ReorderContext`, `Tone`, `TwoPaneExplorerConfig`, `TwoPaneRow`, `TwoPaneAction`, `TwoPaneActionContext`.
 - The namespace also exports `createInitialState`, `resolveBindings`, and the remaining explorer event, binding, layout, size, state, and effect types.
+
+`runTwoPaneExplorer` renders two independently selectable panes with action shortcuts, refresh support, and active-pane switching. The explorer uses framed `Plans` and `Preview` panes; detail previews render Markdown content before fitting it into the terminal. Actions that call `suspendAnd(...)` temporarily pause explorer key handling, leave the alternate screen, and restore the explorer after the prompt or editor completes, so embedded prompts receive input without racing the explorer. Use `renderResourceBrowser` and `renderInspectorCard` for deterministic non-interactive snapshots that match the interactive browser language.
 
 ### Terminal Markdown
 

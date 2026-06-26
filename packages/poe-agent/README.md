@@ -145,6 +145,16 @@ If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (
 
 `mcpServers` stays separate from `pluginsConfig`; MCP servers still use the dedicated `mcpServers` option.
 
+## Validation and tool safety
+
+- `.run()`, `.stream()`, `.acp()`, and `AgentSession.sendMessage()` reject blank prompts before a model call starts.
+- `maxIterations` and `maxToolCallIterations` must be positive safe integers.
+- File and shell plugins reject empty `allowedPaths` entries during construction.
+- Read-mode shell policy rejects write-capable `sed`, `awk`, and `git diff` output options while allowing read-only Git commands with directory global options.
+- Web tools reject localhost, private-network, metadata-service, and non-HTTP(S) fetch URLs before fetching.
+- Session stores reject malformed session ids and malformed JSONL entries with file/line context.
+- Plugin tool schemas reject inherited-only or malformed argument properties before tool execution.
+
 ## Hook decisions
 
 Most hooks return `"skip"`, `"abort"`, or `undefined`.

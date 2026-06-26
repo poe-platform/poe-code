@@ -81,5 +81,6 @@ Any other CLI/provider environment variables are inherited from the current proc
 ## Notes
 
 - The SDK always passes `--yes` to suppress interactive prompts.
-- JSONL parsing is defensive: malformed lines are skipped.
+- JSONL parsing is defensive: malformed lines are skipped, malformed SDK events are rejected, and the final result must be a valid `spawn_result`.
+- Spawn arguments are serialized without shell interpolation and validate supported enum values before invoking the CLI.
 - Runtime dependencies are stdlib only.

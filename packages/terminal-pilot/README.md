@@ -48,6 +48,17 @@ terminal-pilot uninstall claude-code
 
 By default, `install` targets the current project (`--local`). Use `--global` to install in the user's home directory. You cannot pass both `--local` and `--global`.
 
+### Session commands
+
+Session-oriented CLI commands such as `create-session`, `fill`, `type`, `press-key`, `wait-for`,
+`read-screen`, `read-history`, `resize`, `close-session`, and `list-sessions` share a lightweight
+background daemon. That lets separate `terminal-pilot` invocations address the same PTY session
+without reusing process-local singleton state. The daemon starts on demand, communicates over a
+local socket, and exits shortly after the last session is closed.
+
+Use `--session <name>` on commands that target a session, or set `TERMINAL_PILOT_SESSION` for a
+series of commands that should use the same named session.
+
 ## What it includes
 
 - **SDK:** `TerminalPilot` → `TerminalSession` → `TerminalScreen`
@@ -217,9 +228,14 @@ class TerminalScreen {
 
 ## Environment variables
 
-There are **no terminal-pilot-specific environment variables**.
+- `TERMINAL_PILOT_SESSION` — default named session for commands that accept `--session`.
+- `TERMINAL_PILOT_RUNTIME_DIR` — directory used for the CLI daemon socket. Defaults to a
+  user-scoped directory under the system temp directory. On Windows this value is hashed into the
+  named-pipe path.
 
-Runtime environment is controlled per session via `newSession({ env })`. There are no package-level config files or config options beyond the per-session options.
+Runtime environment for spawned programs is controlled per session via `newSession({ env })`.
+There are no package-level config files or config options beyond the per-session options and daemon
+environment variables above.
 
 ## Testing
 

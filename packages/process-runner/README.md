@@ -32,6 +32,14 @@ Low-level process execution abstraction. Single interface for launching processe
 - `extraArgs`: additional runtime arguments.
 - `containerName`: optional container name prefix.
 
+## Validation and workspace transfer
+
+- Docker port mappings are validated before run arguments are serialized.
+- Workspace upload size limits must be positive finite numbers.
+- Workspace uploads exclude `.git` metadata by default and follow gitignore rules. A file inside an ignored directory is included only when the parent path is also unignored.
+- Dockerfile template-cache hashes include the Dockerfile, build context files, and build args, but ignore files excluded by `.dockerignore`.
+- Docker wait output and detached-command completion markers must contain canonical exit-code data; malformed runtime output is rejected instead of being parsed as a prefix.
+
 ## Environment variables
 
 This package exposes no environment variables.

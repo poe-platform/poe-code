@@ -68,6 +68,11 @@ spawn an agent. When the automation runs, it always leaves a visible response.
 When the issue lacks enough detail for a code change, it asks for the missing
 details and leaves the issue open instead of closing it.
 
+Automation discovery validates configured MCP server commands and required
+secrets before a workflow starts. TruffleHog PR scans validate
+`maxFindings` as a positive decimal integer, and the generated workflows use the
+run-level agent override when automation discovery supplied a default agent.
+
 ### List available automations
 
 ```bash

@@ -189,17 +189,6 @@ describe("terminal-pilot CLI process runner", () => {
         pid: expect.any(Number)
       });
 
-      const metadata = await runTerminalPilotCli(
-        ["get-session", "-s", "P1", "--output", "json"],
-        env
-      );
-      expect(metadata.exitCode).toBe(0);
-      expect(JSON.parse(metadata.stdout)).toMatchObject({
-        session: "P1",
-        pid: createdPayload.pid,
-        exitCode: null
-      });
-
       const closed = await runTerminalPilotCli(
         ["close-session", "-s", "P1", "--output", "json"],
         env

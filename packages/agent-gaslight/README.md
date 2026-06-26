@@ -2,7 +2,7 @@
 
 Every coding agent has the same flaw: it declares victory too early. "Done! ✨" — with uncommitted changes, untested code, and a TODO it quietly decided was out of scope.
 
-You already know the fix. You lean in and type *"did you actually test this?"* and the agent goes *"You're absolutely right!"* and finds three bugs. Then *"did you commit?"* and it sheepishly commits. You are not pair programming, you are babysitting.
+You already know the fix. You lean in and type _"did you actually test this?"_ and the agent goes _"You're absolutely right!"_ and finds three bugs. Then _"did you commit?"_ and it sheepishly commits. You are not pair programming, you are babysitting.
 
 Gaslight automates the babysitting. It runs your plan through one agent conversation, then follows up with a scripted list of pointed questions — each one resuming the same thread, so the agent has to face its own work.
 
@@ -48,6 +48,10 @@ followups:
   - Did you push the changes and waited for release to go green?
 ```
 
+## Environment variables
+
+This package exposes no environment variables. It delegates agent execution to `@poe-code/agent-spawn`, so spawned agents may still require their usual credentials or CLI environment.
+
 ## Configuration
 
 The package loads the first existing file in this order:
@@ -63,7 +67,12 @@ followups:
   - Did you forget something?
 ```
 
-`prompt` and `followups` must be non-empty. Pass both directly to `runGaslight` to bypass configuration lookup.
+Supported config keys:
+
+- `prompt`: Required non-empty string used for the initial implementation round.
+- `followups`: Required non-empty array of non-empty strings. Each follow-up resumes the previous round's thread.
+
+Pass both directly to `runGaslight` to bypass configuration lookup.
 
 ## CLI
 
@@ -90,6 +99,29 @@ poe-code gaslight ingest --agent claude-code --sources claude,codex --since 30d 
 
 By default, ingest writes a temporary curated Markdown analysis input under `<cwd>/.poe-code/ingest/` so the analysis agent can read it from the workspace, then deletes it after analysis. Pass `--keep-data <path>` to preserve the file for inspection.
 
+CLI options:
+
+- `--agent <agent>`: Agent id to run. Without `--yes`, omitted values are prompted.
+- `--config <path>`: Use a specific `gaslight.yaml` variant instead of the default lookup order.
+- `--model <model>`: Optional model override.
+- `--mode <read|edit|yolo|auto>`: Spawn mode. Defaults to `auto`.
+- `--plans <paths...>`: Run multiple Markdown plans sequentially. Use either the positional plan path or `--plans`, not both.
+- `--worktree`: Run all rounds for the plan in one managed git worktree and reconcile successful output afterward.
+- `install --local`: Write `<cwd>/.poe-code/gaslight.yaml`.
+- `install --global`: Write `<homeDir>/.poe-code/gaslight.yaml`.
+- `install --force`: Replace an existing config.
+
+Ingest CLI options:
+
+- `ingest --agent <agent>`: Agent id used to analyze extracted prompts.
+- `ingest --model <model>`: Optional model override for the analysis agent.
+- `ingest --sources <sources>`: Comma-separated trace sources. Supported values are `claude` and `codex`.
+- `ingest --since <duration>`: Only include recently updated traces. Defaults to `30d`.
+- `ingest --limit <number>`: Maximum extracted human prompts. Defaults to `200`.
+- `ingest --output <path>`: Generated gaslight config path.
+- `ingest --keep-data <path>`: Persist the curated analysis input at this path.
+- `ingest --all-workspaces`: Read traces from every workspace instead of only the current workspace.
+
 ## SDK
 
 ```ts
@@ -107,7 +139,7 @@ const result = await runGaslight({
 - `planPaths`: Required plan paths, resolved from `cwd`.
 - `agent`: Required agent identifier.
 - `model`: Optional model override.
-- `mode`: Spawn mode: `read`, `edit`, or `yolo`. Defaults to `edit`.
+- `mode`: Spawn mode: `read`, `edit`, `yolo`, or `auto`. Defaults to `auto`.
 - `cwd`: Working directory. Defaults to `process.cwd()`.
 - `homeDir`: Home directory used for global config lookup. Defaults to `os.homedir()`.
 - `prompt`: Initial prompt. Must be provided together with `followups`.
@@ -116,6 +148,7 @@ const result = await runGaslight({
 - `signal`: Abort signal forwarded to every spawn.
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
+- `worktree`: When `true`, run the whole Gaslight execution in one managed git worktree and reconcile successful output afterward.
 
 After all rounds for a plan finish successfully, Gaslight leaves the plan file in place. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage.
 

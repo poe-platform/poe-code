@@ -79,6 +79,8 @@ Utilities are especially useful for scripting and CI/CD.
 
 ```bash
 npx poe-code@latest spawn codex "Say hello"
+npx poe-code@latest spawn codex "Review only" --mode read
+npx poe-code@latest spawn codex "Continue" --resume-thread-id <thread-id>
 ```
 
 #### Spawn against a GitHub repository
@@ -92,6 +94,22 @@ npx poe-code@latest spawn codex "Review the auth module" --cwd github://owner/re
 
 ```bash
 echo "Say hello" | npx poe-code@latest spawn codex
+```
+
+#### Run a plan with follow-up checks
+
+Gaslight runs Markdown plans, then resumes the same agent thread with configured follow-up prompts such as testing, simplification, and commit checks. Completed plan files stay in place so the same plan can be inspected or rerun.
+
+```bash
+npx poe-code@latest gaslight install --local
+npx poe-code@latest gaslight docs/plans/feature.md --agent claude-code --mode edit
+npx poe-code@latest gaslight --plans docs/plans/a.md docs/plans/b.md --agent claude-code
+```
+
+Generate a Gaslight config from local Claude and Codex traces:
+
+```bash
+npx poe-code@latest gaslight ingest --agent claude-code --sources claude,codex --since 30d
 ```
 
 #### Review a GitHub pull request
@@ -131,6 +149,19 @@ npx poe-code@latest install goose
 
 - `--dry-run` – show every mutation without touching disk.
 - `--yes` – accept defaults for prompts.
+
+#### Update Poe Code
+
+```bash
+npx poe-code@latest update
+npx poe-code@latest update --package-manager pnpm
+```
+
+### Install a local skill file
+
+```bash
+npx poe-code@latest skill install claude-code --name review-helper --file ./SKILL.md --local
+```
 
 ## Usage & Billing
 
@@ -232,10 +263,10 @@ Returns `{ stdout, stderr, exitCode }`.
 Same as `spawn()`, but renders the ACP event stream to stdout with colored, formatted output — matching the CLI's visual style.
 
 ```typescript
-import { spawn } from "poe-code"
+import { spawn } from "poe-code";
 
-const result = await spawn.pretty("codex", "Fix the bug in auth.ts")
-console.log(result.exitCode)
+const result = await spawn.pretty("codex", "Fix the bug in auth.ts");
+console.log(result.exitCode);
 ```
 
 Returns `Promise<{ stdout, stderr, exitCode }>`.

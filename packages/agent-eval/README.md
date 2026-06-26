@@ -12,10 +12,10 @@ Configuration lives at `<source>/.poe-code-eval.json`.
 
 Supported keys:
 
-- `judge`: default judge override with `agent` and `model`.
-- `out`: output directory for matrix runs and reports, relative to the source directory unless absolute.
-- `weights`: scoring weights with `tests` and `judge`.
-- `clone_cache_dir`: optional shared clone cache directory, or `null`.
+- `judge`: default judge override with non-blank `agent` and `model`.
+- `out`: non-blank output directory for matrix runs and reports, relative to the source directory unless absolute.
+- `weights`: scoring weights with finite `tests` and `judge` values from `0` through `1`.
+- `clone_cache_dir`: optional non-blank shared clone cache directory, or `null`.
 
 ## CLI Quickstart
 
@@ -37,7 +37,7 @@ poe-code eval check .
 poe-code eval lint .
 ```
 
-`poe-code eval init` creates `eval.yaml`, `plan.md`, `oracle/tests/example.test.ts`, `oracle/solution/`, and `starter/`. `eval.yaml` defines metadata, target repo/ref, budgets, judge rubric, weights, and optional verification. `plan.md` contains YAML frontmatter with `kind` plus the task body dispatched to the agent or workflow. `starter/` is copied into the cloned target before dispatch when present.
+`poe-code eval init` creates `eval.yaml`, `plan.md`, `oracle/tests/example.test.ts`, `oracle/solution/`, and `starter/`. `eval.yaml` defines metadata, target repo/ref, budgets, judge rubric, weights, and optional verification. Required strings must be non-blank, budgets must be positive integers, timeouts must be non-negative integers, weights must be finite numbers from `0` through `1`, and the judge rubric must contain at least one non-blank line. `plan.md` contains YAML frontmatter with `kind` plus the task body dispatched to the agent or workflow. `starter/` is copied into the cloned target before dispatch when present.
 
 By default, the scorer is the vitest convention: tests live in `oracle/tests/`, receive `CLONE_DIR` and `ORACLE_DIR` environment variables, and run automatically with `vitest run`. Use `CLONE_DIR` to inspect the agent's edited target clone and `ORACLE_DIR` to read oracle assets.
 
@@ -60,7 +60,11 @@ describe("example", () => {
 
 Set `scorer.command` in `eval.yaml` when you need a non-vitest scorer, such as a Python target, `cargo test`, or a custom validation script. Custom scorers run inside the clone and still receive `CLONE_DIR` and `ORACLE_DIR`; they must write the configured result file.
 
-Per-case scorer output is written to each run's `result.json` under `tests.cases`.
+Per-case scorer output is written to each run's `result.json` under `tests.cases`. Report loading validates `result.json` and `trace.json` artifacts, rejects malformed numeric ranges and mismatched aggregate cells, and only reads canonical files from the configured output directory.
+
+## Output formats
+
+`poe-code eval report` supports `--format table`, `--format md`, and `--format json`. `poe-code eval run` also honors the process output format selected by Toolcraft (`terminal`, Markdown, or JSON) so forwarded CLI output remains machine-readable when requested.
 
 ## Plan kinds
 

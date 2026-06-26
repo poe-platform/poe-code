@@ -26,6 +26,7 @@ status:
   state: open
   iteration: 0
 ---
+
 # Refactor the auth module
 
 Split the monolithic auth.ts into separate files for session management,
@@ -54,17 +55,18 @@ agent: claude-code:anthropic/claude-opus-4.7
 
 Ralph supports `{{ variable }}` syntax in doc bodies. Variables are interpolated before the prompt is sent to the agent but preserved as-is in the file.
 
-| Variable | Resolves to |
-|---|---|
-| `{{ current_file }}` | Absolute path of the Ralph doc being run |
+| Variable                  | Resolves to                              |
+| ------------------------- | ---------------------------------------- |
+| `{{ current_file }}`      | Absolute path of the Ralph doc being run |
 | `{{ current_iteration }}` | Current one-based Ralph iteration number |
-| `{{ max_iterations }}` | Configured maximum Ralph iterations |
+| `{{ max_iterations }}`    | Configured maximum Ralph iterations      |
 
 ```markdown
 ---
 agent: claude-code
 iterations: 3
 ---
+
 # Improve {{ current_file }}
 
 Review and improve the plan in this file.
@@ -78,6 +80,10 @@ Docs are auto-discovered from `.poe-code/ralph/plans/` — you almost never need
 2. One doc found — use it
 3. Multiple — prompt for selection
 4. None — fail
+
+Ralph frontmatter validates plan status, iteration counters, configured agents,
+and maximum iterations before a run starts. Invalid plan metadata is reported as
+a document error instead of being coerced.
 
 ## Custom Plan Directory
 
@@ -118,8 +124,10 @@ POE_RALPH_TUI=true poe-code ralph run
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--tui|--no-tui]
+poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--tui|--no-tui] [--worktree]
 ```
+
+Pass `--worktree` to run the whole Ralph loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts.
 
 ## Package API
 
@@ -132,6 +140,7 @@ const result = await runRalph({
   homeDir: "/home/test",
   docPath: ".poe-code/ralph/plans/refactor-auth.md",
   maxIterations: 3,
+  worktree: true,
   runAgent: async ({ agent, prompt, cwd, model, signal }) => {
     return { stdout: "", stderr: "", exitCode: 0 };
   }

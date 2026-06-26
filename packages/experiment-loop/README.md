@@ -81,6 +81,10 @@ Register them as `metric:*` npm scripts:
 - `minimize` — lower is better (duration, bundle size)
 - `stable` — must not change (test count during optimization)
 
+Experiment documents validate prompt text, metric directions, baseline numbers,
+agent frontmatter, supported document versions, and stable-metric deltas before
+the loop runs. Completion callbacks are awaited before the run command returns.
+
 ### Metric chains
 
 All metrics must pass, scores are tracked independently:
@@ -137,8 +141,10 @@ POE_EXPERIMENT_TUI=true poe-code experiment run
 ## CLI
 
 ```bash
-poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui]
+poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui] [--worktree]
 poe-code experiment validate [doc]
 poe-code experiment journal [doc]
 poe-code experiment install
 ```
+
+Pass `--worktree` to run the whole experiment loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts.

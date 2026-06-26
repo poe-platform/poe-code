@@ -26,6 +26,11 @@ Duplicate mapping keys use YAML's last-wins behavior by default, matching the
 legacy frontmatter readers. Callers that need strict YAML mappings can pass
 `{ uniqueKeys: true }` to `parseFrontmatter` or `parseFrontmatterDocument`.
 
+Diagnostics preserve original source offsets, including CRLF line endings.
+Opening fences may include trailing spaces or tabs. A missing closing fence is
+reported through diagnostics, and non-object YAML roots are rejected before
+frontmatter is written.
+
 ## Environment
 
 This package reads no environment variables.

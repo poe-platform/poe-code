@@ -18,6 +18,11 @@ A chain must contain exactly one document layer. Data layers before and after th
 - With `autoExtend: true`, documents that do not set `extends` try to inherit from matching bases automatically.
 - Optional auto-extend discovery is ignored when it finds the document itself, so a document can safely live in a configured base directory without creating a circular extends error.
 - Prompt values can compose with the `{{yield}}` token across resolved base layers.
+- Path-valued `extends` entries are trimmed before lookup.
+- Frontmatter-only prompt documents preserve their prompt even when the Markdown body is empty.
+- Markdown that starts with a horizontal rule is treated as prompt body unless it is valid frontmatter.
+- Blank partial names are rejected before hidden dotfiles are read, and prototype-named partials resolve as own entries.
+- Prompt document real paths must stay inside the configured roots; the normal macOS `/var` system alias is allowed.
 
 ## Environment variables
 

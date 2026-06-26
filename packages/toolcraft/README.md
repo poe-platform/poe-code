@@ -46,7 +46,7 @@ Once the tool map exists, the rest is mechanical: add commands to `root`, expose
 npm install toolcraft
 ```
 
-`toolcraft-schema` is a dependency and its `S` builders are re-exported from `toolcraft`. Requires Node 20+.
+`toolcraft-schema` is a dependency and its `S` builders are re-exported from `toolcraft`. Requires Node.js >= 18.18.
 
 ## Hello world
 
@@ -181,7 +181,9 @@ The same `root` flows into all three. No duplication.
 
 **Tree**: the `root` group is a `defineGroup` whose children are commands and sub-groups. Any depth. CLI flags, MCP tool names, and SDK methods are derived from the path.
 
-**CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table.
+**Validation**: CLI, MCP, SDK, and preset-file inputs all enforce the same `toolcraft-schema` constraints, including string lengths and patterns, numeric ranges and integer schemas, and array `minItems`/`maxItems`. CLI array options also accept negative numeric array values when the item schema allows them instead of treating those values as new flags.
+
+**CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table. When `controls.output` is enabled, `--help --output json` returns a stable JSON help document for groups and commands, including usage, visible commands, options, positional markers, secrets, and examples. Unknown help targets fail with suggestions and a pointer to the nearest valid help command.
 
 **Examples**: commands may declare `examples: Array<{ title, params }>` alongside their params.
 CLI help renders an `Examples` section for the command, and MCP tool descriptions include the
@@ -428,9 +430,15 @@ export function slackApprovalProvider(opts: {
 
 Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Usage mistakes include a pointer to the relevant command help. Any other thrown error is treated as unexpected and shows a trimmed stack with `--debug`; use `--debug=raw` to include framework and runtime frames.
 
-HTTP-style errors with request/response context print the request, status, and a response-body snippet by default. `--verbose` or `--debug` prints headers and the full request/response bodies, with authorization headers redacted.
+HTTP-style errors with request/response context print the request, status, and a concise summary by default. The summary extracts common fields such as error code, message, request id, retry-after, hints, and field errors when they are present, then falls back to a response-body snippet. `--verbose` or `--debug` prints headers and the full request/response bodies, with authorization headers redacted.
 
 Enable structured error reports with `errorReports: true`, `errorReports: { dir }`, or `TOOLCRAFT_ERROR_REPORTS=1`. Reports are written under `.toolcraft/errors` by default, include argv, parsed params, resolved secret presence, structured error fields, stack/cause chains, and HTTP transcripts, and redact declared secrets plus parameter names that look sensitive.
+
+## Runtime diagnostics
+
+Handlers receive `diagnostics` and `progress` in the shared runtime context. `progress(message)` emits an info-level progress diagnostic. `diagnostics.emit({ level, message, category, data })` supports `error`, `warn`, `info`, `debug`, and `trace` events for categories such as `runtime`, `http`, `auth`, `retry`, and `progress`.
+
+CLI, SDK, and MCP runtimes share the same logger and log-level gates. The default diagnostic level is `warn`; `silent` suppresses diagnostic events. CLI apps can enable `controls.logLevel` to expose `--log-level <silent|error|warn|info|debug|trace>`, and `controls.verbose` maps `--verbose` to trace-level diagnostics when no explicit log level is passed.
 
 ## Migrating from a folder of scripts
 
@@ -488,6 +496,10 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 ### `runCLI(root, options)`
 
 - `casing?: "kebab" | "snake"` — generated CLI flag style.
+- `argv?: readonly string[]` — explicit argv vector for embedded runners and tests. Defaults to `process.argv` and is used for routing, help rendering, version lookup, error reports, and output-mode detection.
+- `controls?: { debug?: boolean; logLevel?: boolean; output?: boolean; verbose?: boolean; yes?: boolean }` — opts into global CLI controls such as `--debug`, `--log-level`, `--output`, `--verbose`, and `--yes`.
+- `logLevel?: "silent" | "error" | "warn" | "info" | "debug" | "trace"` — default runtime diagnostic level.
+- `logger?: RuntimeLogger | ((event) => void)` — receives diagnostic events that pass the configured log level.
 - `services?: TServices` — merged into every handler context.
 - `version?: string` — surfaced via `--version`.
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
@@ -501,6 +513,8 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `casing?: "camel"` — generated SDK member style.
 - `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
+- `logLevel?: "silent" | "error" | "warn" | "info" | "debug" | "trace"` — default runtime diagnostic level.
+- `logger?: RuntimeLogger | ((event) => void)` — receives diagnostic events that pass the configured log level.
 
 ### `createMCPServer(root, options)` / `runMCP(root, options)`
 
@@ -508,6 +522,8 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `version: string`
 - `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
+- `logLevel?: "silent" | "error" | "warn" | "info" | "debug" | "trace"` — default runtime diagnostic level.
+- `logger?: RuntimeLogger | ((event) => void)` — receives diagnostic events that pass the configured log level.
 - `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
 - `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).
 - `casing?: "snake" | "camel"` — affects MCP input-schema property names, output-schema property names, and structured result keys. Tool names always stay `__`-joined snake_case.
@@ -530,6 +546,7 @@ type HumanInLoopRuntimeOptions = {
 - `fetch: typeof globalThis.fetch`
 - `fs: { readFile, writeFile, exists }`
 - `env: { get(key: string): string | undefined }`
+- `diagnostics: RuntimeLogger`
 - `progress(message: string): void`
 - All `services` keys merged in.
 
@@ -538,7 +555,7 @@ type HumanInLoopRuntimeOptions = {
 - `defineCommand`, `defineGroup`
 - `S`, `toJsonSchema`, type helpers — re-exported from `toolcraft-schema`
 - `UserError`, `ApprovalDeclinedError`, `HttpError` and the HTTP error subclasses.
-- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, schema types from `toolcraft-schema`.
+- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, `LogLevel`, `RuntimeLogger`, `RuntimeLoggerInput`, `DiagnosticLogEvent`, schema types from `toolcraft-schema`.
 
 Subpath imports:
 

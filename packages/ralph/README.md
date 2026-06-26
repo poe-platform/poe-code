@@ -114,11 +114,15 @@ poe-code ralph run --no-tui
 POE_RALPH_TUI=true poe-code ralph run
 ```
 
+## Archive Configuration
+
+Ralph archives completed docs by default. Disable this with `poe-code ralph run --no-archive`, `{ "ralph": { "archive": false } }`, or `POE_RALPH_ARCHIVE=false`.
+
 ## CLI
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--tui|--no-tui]
+poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui]
 ```
 
 ## Package API

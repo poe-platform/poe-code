@@ -2,6 +2,7 @@ import path from "node:path";
 import { Option, type Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { spawn, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
+import { readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import { cancel, intro, isCancel, multiselect, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import {
@@ -24,16 +25,40 @@ import { resolveServiceArgument } from "./configure.js";
 import { ValidationError } from "../errors.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { addWorktreeOptions, pickWorktreeOptions } from "./worktree-options.js";
+import { gaslightConfigScope } from "../../services/config.js";
 
 const DEFAULT_AGENT = "claude-code";
 
 interface GaslightCommandOptions {
   agent?: string;
+  archive?: boolean;
   config?: string;
   model?: string;
   mode?: "read" | "edit" | "yolo" | "auto";
   plans?: string[];
   worktree?: boolean;
+}
+
+async function resolveGaslightCommandConfig(
+  container: CliContainer
+): Promise<{ archive?: boolean }> {
+  const configDoc = await readMergedDocumentReadonly(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const rawGaslightConfig = configDoc[gaslightConfigScope.scope];
+  const hasArchiveConfig =
+    (typeof rawGaslightConfig === "object" &&
+      rawGaslightConfig !== null &&
+      "archive" in rawGaslightConfig) ||
+    container.env.variables.POE_GASLIGHT_ARCHIVE !== undefined;
+  const gaslightConfig = resolveScope(
+    gaslightConfigScope.schema,
+    rawGaslightConfig,
+    container.env.variables
+  );
+  return hasArchiveConfig ? { archive: gaslightConfig.archive === true } : {};
 }
 
 interface GaslightIngestCommandOptions {
@@ -299,6 +324,8 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       .description("Run a plan through a resumable sequence of agent follow-ups.")
       .argument("[plan-path]", "Markdown plan to implement")
       .option("--agent <agent>", "Agent to run")
+      .option("--archive", "Archive each plan after all gaslight rounds succeed")
+      .option("--no-archive", "Leave plans in place after gaslight rounds succeed")
       .option("--config <path>", "gaslight.yaml variant to use")
       .option("--model <model>", "Model to run")
       .option("--plans <paths...>", "Markdown plans to run sequentially")
@@ -316,6 +343,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         positionalPlanPath: providedPlanPath,
         optionPlanPaths: options.plans
       });
+      const commandConfig = await resolveGaslightCommandConfig(container);
       const { agent, model } = await resolveAgentAndModel(program, container, options);
       const logger = container.loggerFactory.create();
 
@@ -325,6 +353,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         agent,
         ...(model ? { model } : {}),
         ...(options.config ? { configPath: options.config } : {}),
+        archive: options.archive ?? commandConfig.archive,
         mode: options.mode ?? "auto",
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,

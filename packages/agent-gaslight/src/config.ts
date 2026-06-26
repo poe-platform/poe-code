@@ -5,6 +5,7 @@ import type { GaslightConfig, GaslightFileSystem } from "./types.js";
 
 export const GASLIGHT_CONFIG_EXAMPLE = [
   "prompt: Implement",
+  "archive: false",
   "followups:",
   "  - Is this best you can do?",
   "  - Did you test it well? Like real end to end test?",
@@ -55,7 +56,9 @@ function validateConfig(
 
   const config = value as Record<string, unknown>;
   if (options.rejectExtraKeys) {
-    const extraKey = objectKeys(config).find((key) => key !== "prompt" && key !== "followups");
+    const extraKey = objectKeys(config).find(
+      (key) => key !== "prompt" && key !== "followups" && key !== "archive"
+    );
     if (extraKey) {
       throw new Error(`Invalid gaslight config at ${configPath}: unexpected key "${extraKey}".`);
     }
@@ -74,10 +77,14 @@ function validateConfig(
       `Invalid gaslight config at ${configPath}: followups must be a non-empty array of non-empty strings.`
     );
   }
+  if (config.archive !== undefined && typeof config.archive !== "boolean") {
+    throw new Error(`Invalid gaslight config at ${configPath}: archive must be a boolean.`);
+  }
 
   return {
     prompt: config.prompt.trim(),
-    followups: config.followups.map((followup) => (followup as string).trim())
+    followups: config.followups.map((followup) => (followup as string).trim()),
+    ...(config.archive !== undefined ? { archive: config.archive } : {})
   };
 }
 

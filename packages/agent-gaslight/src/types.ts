@@ -60,6 +60,7 @@ export interface GaslightOptions {
   agent: string;
   model?: string;
   mode?: SpawnMode;
+  archive?: boolean;
   cwd?: string;
   homeDir?: string;
   configPath?: string;
@@ -74,6 +75,7 @@ export interface GaslightOptions {
 export interface GaslightConfig {
   prompt: string;
   followups: string[];
+  archive?: boolean;
   path: string;
 }
 

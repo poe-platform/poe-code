@@ -198,6 +198,64 @@ describe("runGaslight", () => {
     expect(result.plans.map((plan) => plan.archivedPath)).toEqual([undefined, undefined]);
   });
 
+  it("archives each plan after successful gaslight rounds when enabled", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/docs/plans/01-first.md": "# First",
+        "/repo/docs/plans/02-second.md": "# Second"
+      })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "first start", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "first followup",
+        stderr: "",
+        threadId: "two"
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "second start",
+        stderr: "",
+        threadId: "three"
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "second followup",
+        stderr: "",
+        threadId: "four"
+      });
+
+    const result = await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/01-first.md", "docs/plans/02-second.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Check again"],
+      archive: true,
+      fs,
+      spawn
+    });
+
+    await expect(fs.readFile("/repo/docs/plans/01-first.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(fs.readFile("/repo/docs/plans/02-second.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(fs.readFile("/repo/docs/plans/archive/first.md", "utf8")).resolves.toContain(
+      "# First"
+    );
+    await expect(fs.readFile("/repo/docs/plans/archive/second.md", "utf8")).resolves.toContain(
+      "# Second"
+    );
+    expect(result.plans.map((plan) => plan.archivedPath)).toEqual([
+      "docs/plans/archive/first.md",
+      "docs/plans/archive/second.md"
+    ]);
+  });
+
   it("leaves the active plan in place when a later round fails", async () => {
     const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
     const spawn = vi

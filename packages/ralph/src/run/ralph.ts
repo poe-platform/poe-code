@@ -214,15 +214,17 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
 
   if (stopReason === "max_iterations" && !archived && iterationsCompleted > 0) {
     await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
-    const id = path.basename(absoluteDocPath, ".md").replace(/^\d+-/, "");
-    await archivePlanShared({
-      cwd: options.cwd,
-      homeDir: options.homeDir,
-      planDirectory,
-      id,
-      fs: fs as unknown as SharedArchivePlanFs
-    });
-    archived = true;
+    if (options.archive !== false) {
+      const id = path.basename(absoluteDocPath, ".md").replace(/^\d+-/, "");
+      await archivePlanShared({
+        cwd: options.cwd,
+        homeDir: options.homeDir,
+        planDirectory,
+        id,
+        fs: fs as unknown as SharedArchivePlanFs
+      });
+      archived = true;
+    }
   } else if (stopReason === "cancelled" && !archived) {
     await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
   }

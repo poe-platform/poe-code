@@ -34,6 +34,7 @@ export type SimulationOptions = {
   docContent?: string;
   docPath?: string;
   maxIterations: number;
+  archive?: boolean;
   turns: TurnSpec[];
   files?: Record<string, string>;
   signal?: AbortSignal;
@@ -197,6 +198,7 @@ export function createRalphSimulation(options: SimulationOptions): {
         homeDir,
         docPath,
         maxIterations: options.maxIterations,
+        archive: options.archive,
         ...(options.signal ? { signal: options.signal } : {}),
         fs,
         runAgent: async (input) => {

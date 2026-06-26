@@ -66,6 +66,7 @@ export interface RalphRunOptions {
   homeDir: string;
   docPath: string;
   maxIterations?: number;
+  archive?: boolean;
   runtime?: "host" | "docker" | "e2b";
   runtimeImage?: string;
   runtimeTemplate?: string;

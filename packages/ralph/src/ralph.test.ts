@@ -1060,6 +1060,27 @@ describe("createRalphSimulation", () => {
     expect(body).toBe("# Archive me");
   });
 
+  it("leaves the completed plan active when archive is disabled", async () => {
+    const sim = createRalphSimulation({
+      docPath: ".poe-code/ralph/plans/plan.md",
+      docContent: "# Keep me",
+      maxIterations: 1,
+      archive: false,
+      turns: [successTurn()]
+    });
+
+    const { fs, readFile } = await sim.run();
+
+    const completed = await readFile(".poe-code/ralph/plans/plan.md");
+    expect(parseFrontmatter(completed).data.status).toEqual({
+      state: "completed",
+      iteration: 1
+    });
+    await expect(
+      fs.readFile("/repo/.poe-code/ralph/plans/archive/plan.md", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("archives a relative doc from its own directory", async () => {
     const sim = createRalphSimulation({
       docPath: "plan.md",

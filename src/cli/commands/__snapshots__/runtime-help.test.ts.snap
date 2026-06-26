@@ -42,6 +42,8 @@ Options:
   --agent <name>           Override the agent from frontmatter
   --iterations <n>         Override iterations from frontmatter
   -C, --cwd <path>         Working directory for the Ralph agent loop
+  --archive                Archive the doc after successful completion
+  --no-archive             Leave the completed doc in place
   --tui                    Show a live dashboard while Ralph is running
   --no-tui                 Disable the live dashboard for this Ralph run
   --worktree               Run in a managed git worktree and reconcile

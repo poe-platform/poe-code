@@ -147,7 +147,7 @@ No intermediate status is written before spawn. If an execution is aborted, the 
 
 ### Plan Archiving
 
-When all tasks complete successfully, the plan moves to `plans/archive/`. Plans already complete at start are not archived.
+When all tasks complete successfully, the plan moves to `plans/archive/`. Plans already complete at start are not archived. Disable this with `poe-code pipeline run --no-archive` or `{ "pipeline": { "archive": false } }` in config.
 
 ## Plan Discovery
 

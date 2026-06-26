@@ -2,6 +2,7 @@ import { promises as nodeFs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawn as defaultSpawn, type SpawnUsage } from "@poe-code/agent-spawn";
+import { archivePlan as archivePlanShared } from "@poe-code/agent-harness-tools";
 import { loadGaslightConfig } from "./config.js";
 import type {
   GaslightFileSystem,
@@ -10,6 +11,8 @@ import type {
   GaslightResult,
   GaslightRound
 } from "./types.js";
+
+type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 
 function summarize(stdout: string, stderr: string): string {
   return stdout.trim() || stderr.trim();
@@ -54,6 +57,24 @@ function resolvePlanPath(cwd: string, homeDir: string, planPath: string): string
     return path.join(homeDir, planPath.slice(2));
   }
   return path.resolve(cwd, planPath);
+}
+
+function planIdFromPath(planPath: string): string {
+  const stem = path.basename(planPath, ".md");
+  let index = 0;
+  while (index < stem.length && stem.charCodeAt(index) >= 48 && stem.charCodeAt(index) <= 57) {
+    index += 1;
+  }
+
+  if (index > 0 && stem[index] === "-" && index < stem.length - 1) {
+    return stem.slice(index + 1);
+  }
+
+  return stem;
+}
+
+function archivedPlanPath(planPath: string): string {
+  return path.join(path.dirname(planPath), "archive", `${planIdFromPath(planPath)}.md`);
 }
 
 function validateInlineConfig(prompt: string | undefined, followups: string[] | undefined): void {
@@ -125,10 +146,11 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
     await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
   }
 
-  const config =
+  const config: { prompt: string; followups: string[]; archive?: boolean } =
     options.prompt !== undefined && options.followups !== undefined
       ? { prompt: options.prompt.trim(), followups: options.followups.map((value) => value.trim()) }
       : await loadGaslightConfig(cwd, homeDir, fs, options.configPath);
+  const shouldArchive = options.archive ?? config.archive ?? false;
   const rounds: GaslightRound[] = [];
   const plans: GaslightPlanResult[] = [];
   let usage: SpawnUsage | undefined;
@@ -199,8 +221,22 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       }
     }
 
+    let archivedPath: string | undefined;
+    if (shouldArchive) {
+      const id = planIdFromPath(planPath);
+      await archivePlanShared({
+        cwd,
+        homeDir,
+        planDirectory: path.dirname(planPath),
+        id,
+        fs: fs as unknown as ArchivePlanFs
+      });
+      archivedPath = archivedPlanPath(planPath);
+    }
+
     plans.push({
       planPath,
+      ...(archivedPath ? { archivedPath } : {}),
       rounds: planRounds,
       ...(planUsage ? { usage: planUsage } : {})
     });

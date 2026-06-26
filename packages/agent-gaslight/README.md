@@ -41,6 +41,7 @@ followups:
 
 ```yaml
 prompt: Implement
+archive: false
 followups:
   - Is this best you can do? Maybe we could simplify a bit.
   - Did you test it well? Like real end to end test?
@@ -63,15 +64,18 @@ followups:
   - Did you forget something?
 ```
 
-`prompt` and `followups` must be non-empty. Pass both directly to `runGaslight` to bypass configuration lookup.
+`prompt` and `followups` must be non-empty. `archive` is optional and defaults to `false`. Pass `prompt` and `followups` directly to `runGaslight` to bypass configuration lookup.
 
 ## CLI
 
 ```sh
 poe-code gaslight docs/plans/feature.md --agent claude-code --model Claude-Sonnet-4.5
+poe-code gaslight docs/plans/feature.md --archive
 ```
 
 Omit the plan path to pick one interactively from your plans directory.
+
+The CLI also honors `{ "gaslight": { "archive": true } }` or `POE_GASLIGHT_ARCHIVE=true`; use `--archive` or `--no-archive` for a one-off override.
 
 Scaffold `gaslight.yaml` at project or user scope:
 
@@ -108,6 +112,7 @@ const result = await runGaslight({
 - `agent`: Required agent identifier.
 - `model`: Optional model override.
 - `mode`: Spawn mode: `read`, `edit`, or `yolo`. Defaults to `edit`.
+- `archive`: Move each plan under sibling `archive/` after all rounds succeed. Defaults to `false`.
 - `cwd`: Working directory. Defaults to `process.cwd()`.
 - `homeDir`: Home directory used for global config lookup. Defaults to `os.homedir()`.
 - `prompt`: Initial prompt. Must be provided together with `followups`.
@@ -117,7 +122,7 @@ const result = await runGaslight({
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
 
-After all rounds for a plan finish successfully, Gaslight leaves the plan file in place. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage.
+After all rounds for a plan finish successfully, Gaslight leaves the plan file in place unless `archive` is enabled. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage.
 
 ## Ingest options
 

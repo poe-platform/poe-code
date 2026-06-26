@@ -61,6 +61,12 @@ export const coreConfigScope = defineScope("core", {
 });
 
 export const ralphConfigScope = defineScope("ralph", {
+  archive: {
+    type: "boolean",
+    default: true,
+    env: "POE_RALPH_ARCHIVE",
+    doc: "Archive Ralph docs after successful completion"
+  },
   tui: {
     type: "boolean",
     default: false,
@@ -70,6 +76,12 @@ export const ralphConfigScope = defineScope("ralph", {
 });
 
 export const pipelineConfigScope = defineScope("pipeline", {
+  archive: {
+    type: "boolean",
+    default: true,
+    env: "POE_PIPELINE_ARCHIVE",
+    doc: "Archive pipeline plans after successful completion"
+  },
   plan_directory: {
     type: "string",
     default: ".poe-code/pipeline/plans",
@@ -81,6 +93,15 @@ export const pipelineConfigScope = defineScope("pipeline", {
     default: false,
     env: "POE_PIPELINE_TUI",
     doc: "Enable the Pipeline dashboard by default for terminal TTY runs"
+  }
+});
+
+export const gaslightConfigScope = defineScope("gaslight", {
+  archive: {
+    type: "boolean",
+    default: false,
+    env: "POE_GASLIGHT_ARCHIVE",
+    doc: "Archive Gaslight plans after all follow-up rounds succeed"
   }
 });
 
@@ -113,6 +134,7 @@ export const knownConfigScopes = [
   coreConfigScope,
   ralphConfigScope,
   pipelineConfigScope,
+  gaslightConfigScope,
   experimentConfigScope,
   planConfigScope,
   agentConfigScope,

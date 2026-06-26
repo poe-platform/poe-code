@@ -140,6 +140,75 @@ describe("gaslight command", () => {
     );
   });
 
+  it("forwards archive from the gaslight config scope", async () => {
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(vi.fn(), vi.fn(), {
+        "/repo/docs/plans/a.md": "# A",
+        "/repo/.poe-code/config.json": `${JSON.stringify({ gaslight: { archive: true } }, null, 2)}\n`
+      })
+    );
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ archive: true }));
+  });
+
+  it("does not pass the gaslight archive default over gaslight.yaml options", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({ archive: expect.any(Boolean) })
+    );
+  });
+
+  it("lets --no-archive override gaslight archive config", async () => {
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(vi.fn(), vi.fn(), {
+        "/repo/docs/plans/a.md": "# A",
+        "/repo/.poe-code/config.json": `${JSON.stringify({ gaslight: { archive: true } }, null, 2)}\n`
+      })
+    );
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5",
+      "--no-archive"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ archive: false }));
+  });
+
   it("passes worktree flags through to the SDK runner", async () => {
     const program = createProgram();
     registerGaslightCommand(program, createContainer());

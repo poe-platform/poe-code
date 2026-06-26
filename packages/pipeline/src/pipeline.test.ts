@@ -3591,6 +3591,45 @@ describe("createPipelineSimulation", () => {
     expect(originalEntries.sort()).toEqual(["archive", "next.md"]);
   });
 
+  it("leaves the completed plan active when archive is disabled", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix it",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      planDirectory: "docs/plans",
+      archive: false,
+      fs,
+      runAgent: async () => ({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    });
+
+    expect(result.stopReason).toBe("completed");
+    await expect(fs.stat("/repo/docs/plans/plan.md")).resolves.toMatchObject({});
+    await expect(fs.stat("/repo/docs/plans/archive/plan.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("archives a prefixed plan file by id without renumbering remaining active files", async () => {
     const fs = createFs({
       "/repo/docs/plans/01-plan.md": [

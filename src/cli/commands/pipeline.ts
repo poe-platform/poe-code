@@ -91,6 +91,7 @@ async function resolvePipelineCommandConfig(
 ): Promise<{
   configDoc: ConfigDocument;
   planDirectory: string;
+  archive: boolean;
   tui: boolean;
 }> {
   const [configDoc, pipelineYamlConfig] = await Promise.all([
@@ -122,6 +123,7 @@ async function resolvePipelineCommandConfig(
   return {
     configDoc,
     planDirectory,
+    archive: pipelineConfig.archive === true,
     tui: pipelineConfig.tui === true
   };
 }
@@ -321,6 +323,7 @@ async function dryRunPipelinePlans(options: {
   planPaths: string[];
   task?: string;
   maxRuns?: number;
+  archive: boolean;
 }): Promise<void> {
   for (const planPath of options.planPaths) {
     const absolutePath = resolveAbsolutePlanPath(
@@ -342,7 +345,7 @@ async function dryRunPipelinePlans(options: {
     options.resources.logger.dryRun(
       `Tasks: ${summary.done} done, ${summary.failed} failed, ${summary.open} open`
     );
-    if (summary.open === 0 && summary.failed === 0 && summary.total > 0) {
+    if (summary.open === 0 && summary.failed === 0 && summary.total > 0 && options.archive) {
       options.resources.logger.dryRun(`Would archive after completion: ${planPath}`);
     }
   }
@@ -882,6 +885,8 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .option("--model <model>", "Model override passed to the agent")
     .option("--tui", "Show a live dashboard while the pipeline is running")
     .option("--no-tui", "Disable the live dashboard for this pipeline run")
+    .option("--archive", "Archive each plan after successful completion")
+    .option("--no-archive", "Leave completed plans in place")
     .option("--task <id>", "Run only the specified task")
     .option("--plan <path>", "Path to the pipeline plan file")
     .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
@@ -893,6 +898,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         agent?: string;
         model?: string;
         tui?: boolean;
+        archive?: boolean;
         task?: string;
         plan?: string;
         plans?: string[];
@@ -929,6 +935,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             container,
             resources,
             planPaths,
+            archive: options.archive ?? commandConfig.archive,
             ...(maxRuns !== undefined ? { maxRuns } : {}),
             ...(options.task ? { task: options.task } : {})
           });
@@ -1002,6 +1009,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
                 ...(options.model ? { model: options.model } : {}),
                 ...(options.task ? { task: options.task } : {}),
                 plan: runPlanPath,
+                archive: options.archive ?? commandConfig.archive,
                 ...(maxRuns != null ? { maxRuns } : {}),
                 assumeYes: flags.assumeYes
               };

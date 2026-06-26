@@ -309,6 +309,7 @@ async function resolveRalphCommandConfig(
   container: CliContainer,
   options: { readOnly?: boolean } = {}
 ): Promise<{
+  archive: boolean;
   planDirectory: string;
   tui: boolean;
 }> {
@@ -329,6 +330,7 @@ async function resolveRalphCommandConfig(
     container.env.variables
   );
   return {
+    archive: ralphConfig.archive === true,
     planDirectory: planConfig.plan_directory,
     tui: ralphConfig.tui === true
   };
@@ -765,6 +767,8 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     .option("--agent <name>", "Override the agent from frontmatter")
     .option("--iterations <n>", "Override iterations from frontmatter")
     .option("-C, --cwd <path>", "Working directory for the Ralph agent loop")
+    .option("--archive", "Archive the doc after successful completion")
+    .option("--no-archive", "Leave the completed doc in place")
     .option("--tui", "Show a live dashboard while Ralph is running")
     .option("--no-tui", "Disable the live dashboard for this Ralph run");
 
@@ -776,6 +780,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         agent?: string;
         iterations?: string;
         cwd?: string;
+        archive?: boolean;
         tui?: boolean;
         worktree?: boolean;
       } & RuntimeCliOptions
@@ -824,6 +829,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         homeDir: container.env.homeDir,
         docPath,
         maxIterations,
+        archive: options.archive ?? commandConfig.archive,
         runtimeConfigCwd: container.env.cwd,
         worktree: pickWorktreeOptions(options as Record<string, unknown>),
         ...runtimeOptions

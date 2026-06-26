@@ -20,6 +20,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-traces": "*",
     "@poe-code/agent-spawn": "*",
     "parse-duration": "^2.1.5",

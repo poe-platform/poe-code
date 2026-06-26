@@ -2358,6 +2358,75 @@ describe("ralph run command", () => {
     );
   });
 
+  it("passes ralph archive config to the SDK", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/config.json": JSON.stringify({
+          ralph: { archive: false }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--iterations",
+      "5"
+    ]);
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        archive: false
+      })
+    );
+  });
+
+  it("lets --archive override disabled ralph archive config", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/.poe-code/config.json": JSON.stringify({
+          ralph: { archive: false }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--iterations",
+      "5",
+      "--archive"
+    ]);
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        archive: true
+      })
+    );
+  });
+
   it("passes worktree flags to the Ralph SDK run", async () => {
     const container = createCliContainer({
       fs: createMemFs({

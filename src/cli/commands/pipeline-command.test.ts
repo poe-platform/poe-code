@@ -313,6 +313,77 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("passes pipeline archive config to the SDK", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/config.json": JSON.stringify({
+        pipeline: { archive: false }
+      }),
+      "/repo/custom-plan.yaml": "tasks: []\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--plan",
+      "custom-plan.yaml",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        archive: false
+      })
+    );
+  });
+
+  it("lets --archive override disabled pipeline archive config", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/config.json": JSON.stringify({
+        pipeline: { archive: false }
+      }),
+      "/repo/custom-plan.yaml": "tasks: []\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--plan",
+      "custom-plan.yaml",
+      "--agent",
+      "codex",
+      "--archive"
+    ]);
+
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        archive: true
+      })
+    );
+  });
+
   it("wraps multiple pipeline plans in one worktree from the CLI", async () => {
     const fs = createMemFs({
       "/repo/plan-a.md": "tasks: []\n",

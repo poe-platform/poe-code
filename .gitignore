@@ -63,3 +63,4 @@ output/playwright/
 
 # local harness frontmatter (may contain confidential model IDs / bug lists)
 harnesses/fix-bugs/fix-bugs.md
+.env

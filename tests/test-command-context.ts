@@ -10,9 +10,14 @@ export function createTestCommandContext(fs: FileSystem): CommandContext {
   });
 
   return {
+    dryRun: false,
     fs,
     runCommand: runner,
+    runCommandWithEnv(command, args, options) {
+      return runner(command, args, options);
+    },
     flushDryRun() {},
-    complete: () => {}
+    complete: () => {},
+    finalize: () => {}
   };
 }

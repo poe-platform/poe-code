@@ -1,18 +1,24 @@
 model_provider = "{{providerId}}"
+{{#forcedLoginMethod}}
+forced_login_method = "{{forcedLoginMethod}}"
+{{/forcedLoginMethod}}
 {{#model}}
 model = "{{{model}}}"
 {{/model}}
+{{#reasoningEffort}}
 model_reasoning_effort = "{{reasoningEffort}}"
-model_verbosity = "medium"
+{{/reasoningEffort}}
 
 {{#model}}
 [profiles."{{{profileName}}}"]
 model = "{{{model}}}"
 model_provider = "{{providerId}}"
+{{#reasoningEffort}}
 model_reasoning_effort = "{{reasoningEffort}}"
-model_verbosity = "medium"
+{{/reasoningEffort}}
 
 {{/model}}
+{{^codexBuiltInProvider}}
 [model_providers.{{providerId}}]
 name = "{{providerId}}"
 base_url = "{{{baseUrl}}}"
@@ -20,3 +26,4 @@ wire_api = "responses"
 experimental_bearer_token = "{{apiKey}}"
 requires_openai_auth = false
 supports_websockets = false
+{{/codexBuiltInProvider}}

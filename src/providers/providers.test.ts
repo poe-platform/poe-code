@@ -153,7 +153,11 @@ describe("claude-code service", () => {
     const context = {
       env,
       command: {
+        dryRun: options.dryRun ?? false,
         runCommand,
+        runCommandWithEnv(command, args, runOptions) {
+          return runCommand(command, args, runOptions);
+        },
         fs: mockFsObj
       },
       logger,
@@ -491,7 +495,11 @@ describe("codex service", () => {
     const context = {
       env,
       command: {
+        dryRun: options.dryRun ?? false,
         runCommand,
+        runCommandWithEnv(command, args, runOptions) {
+          return runCommand(command, args, runOptions);
+        },
         fs: mockFsObj
       },
       logger,
@@ -520,7 +528,6 @@ describe("codex service", () => {
       credential: "sk-test",
       extraEnv: {}
     },
-    reasoningEffort: DEFAULT_REASONING,
     ...overrides
   });
 
@@ -536,6 +543,22 @@ describe("codex service", () => {
       fs: mockFsObj,
       env,
       command: createTestCommandContext(mockFsObj),
+      options: buildConfigureOptions(overrides)
+    });
+  }
+
+  async function configureCodexWithCommand(
+    runCommand: ReturnType<typeof vi.fn>,
+    overrides: Partial<ConfigureOptions> = {}
+  ): Promise<void> {
+    const command = createTestCommandContext(mockFsObj);
+    command.runCommand = runCommand;
+    command.runCommandWithEnv = (commandName, args, options) =>
+      runCommand(commandName, args, options);
+    await codexService.codexService.configure({
+      fs: mockFsObj,
+      env,
+      command,
       options: buildConfigureOptions(overrides)
     });
   }
@@ -557,8 +580,8 @@ describe("codex service", () => {
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
     expect(doc["model"]).toBeUndefined();
-    expect(doc["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
-    expect(doc["model_verbosity"]).toBe("medium");
+    expect(doc["model_reasoning_effort"]).toBeUndefined();
+    expect(doc["model_verbosity"]).toBeUndefined();
     expect(doc["profiles"]).toBeUndefined();
 
     const providers = doc["model_providers"] as Record<string, Record<string, unknown>>;
@@ -571,6 +594,37 @@ describe("codex service", () => {
     await expect(
       mockFsObj.readFile(`${configPath}.backup.20240101T000000`, "utf8")
     ).rejects.toThrow();
+  });
+
+  it("writes Codex built-in OpenAI config and logs in with stdin API key", async () => {
+    const runCommand = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await configureCodexWithCommand(runCommand, {
+      provider: {
+        id: "openai",
+        apiShape: "openai-responses",
+        baseUrl: "https://api.openai.com/v1",
+        credential: "sk-openai-test",
+        extraEnv: {}
+      }
+    });
+
+    const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
+    expect(doc["model_provider"]).toBe("openai");
+    expect(doc["forced_login_method"]).toBe("api");
+    expect(doc["model"]).toBeUndefined();
+    expect(doc["model_reasoning_effort"]).toBeUndefined();
+    expect(doc["model_verbosity"]).toBeUndefined();
+    expect(doc["model_providers"]).toBeUndefined();
+    expect(runCommand).toHaveBeenCalledWith(
+      "codex",
+      ["login", "--with-api-key"],
+      {
+        env: { CODEX_HOME: configDir },
+        stdin: "sk-openai-test"
+      }
+    );
+    expect(runCommand.mock.calls.flatMap((call) => call[1])).not.toContain("sk-openai-test");
   });
 
   it("restores overwritten Codex selection after unconfigure", async () => {
@@ -606,20 +660,20 @@ describe("codex service", () => {
         modelInput: { kind: "freeform" },
         extraEnv: {}
       },
-      model: "iris-alpha",
-      reasoningEffort: "medium"
+      model: "iris-alpha"
     });
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("cloudflare");
     expect(doc["model"]).toBe("iris-alpha");
-    expect(doc["model_reasoning_effort"]).toBe("medium");
-    expect(doc["model_verbosity"]).toBe("medium");
+    expect(doc["model_reasoning_effort"]).toBeUndefined();
+    expect(doc["model_verbosity"]).toBeUndefined();
 
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
     const irisProfile = profiles["iris-alpha"];
     expect(irisProfile["model"]).toBe("iris-alpha");
     expect(irisProfile["model_provider"]).toBe("cloudflare");
+    expect(irisProfile["model_reasoning_effort"]).toBeUndefined();
   });
 
   it("writes opus model as opus profile", async () => {

@@ -297,7 +297,7 @@ async function hasMaterialConfigureChange(input: {
       command,
       options: input.payload
     },
-    { observers: createNoopMutationObservers() }
+    { observers: createNoopMutationObservers(), sideEffects: false }
   );
 
   const isolated = input.adapter.isolatedEnv;
@@ -311,7 +311,8 @@ async function hasMaterialConfigureChange(input: {
       payload: input.payload,
       isolated,
       providerName: input.adapter.name,
-      observers: createNoopMutationObservers()
+      observers: createNoopMutationObservers(),
+      sideEffects: false
     });
   }
 
@@ -320,6 +321,7 @@ async function hasMaterialConfigureChange(input: {
 
 function createSilentDryRunCommand(base: CommandContext, fs: CommandContext["fs"]): CommandContext {
   return {
+    dryRun: base.dryRun,
     fs,
     runCommand: base.runCommand,
     runCommandWithEnv: base.runCommandWithEnv,

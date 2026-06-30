@@ -9,19 +9,20 @@ import {
   isConfigObject
 } from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
-import {
-  DEFAULT_REASONING,
-  PROVIDER_NAME,
-  stripModelNamespace
-} from "../cli/constants.js";
+import { PROVIDER_NAME, stripModelNamespace } from "../cli/constants.js";
 import { codexAgent } from "@poe-code/agent-defs";
 import type { ActiveProvider } from "../cli/commands/shared.js";
+import type {
+  ProviderService,
+  ServiceExecutionContext,
+  ServiceRunOptions
+} from "../cli/service-registry.js";
 
 type CodexConfigureContext = {
   env: CliEnvironment;
   provider: ActiveProvider;
   model?: string;
-  reasoningEffort: string;
+  reasoningEffort?: string;
   timestamp?: () => string;
 };
 
@@ -31,6 +32,7 @@ type CodexUnconfigureContext = {
 };
 
 const PROFILE_KEYWORDS = ["opus", "sonnet", "haiku", "codex", "pro"] as const;
+const CODEX_OPENAI_PROVIDER_ID = "openai";
 
 export function deriveCodexProfileName(model: string): string {
   const stripped = stripModelNamespace(model);
@@ -45,12 +47,57 @@ function resolveCodexConfigModel(model: string, provider: ActiveProvider): strin
   return provider.modelInput?.kind === "freeform" ? model : stripModelNamespace(model);
 }
 
-function resolveOptionalCodexModel(value: unknown): string | undefined {
+function resolveOptionalCodexText(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
   }
-  const model = value.trim();
-  return model.length > 0 ? model : undefined;
+  const text = value.trim();
+  return text.length > 0 ? text : undefined;
+}
+
+function isCodexBuiltInProvider(providerId: string | undefined): boolean {
+  return providerId === CODEX_OPENAI_PROVIDER_ID;
+}
+
+function resolveCodexHome(context: ServiceExecutionContext<CodexConfigureContext>): string {
+  const codexDirectory = context.env.resolveHomePath(".codex");
+  if (!context.pathMapper) {
+    return codexDirectory;
+  }
+  return context.pathMapper.mapTargetDirectory({
+    targetDirectory: codexDirectory,
+    env: context.env
+  });
+}
+
+async function loginCodexWithApiKey(
+  context: ServiceExecutionContext<CodexConfigureContext>
+): Promise<void> {
+  const credential = context.options.provider?.credential;
+  if (
+    context.command.dryRun ||
+    !isCodexBuiltInProvider(context.options.provider?.id) ||
+    !credential
+  ) {
+    return;
+  }
+
+  const result = await context.command.runCommand(
+    "codex",
+    ["login", "--with-api-key"],
+    {
+      env: { CODEX_HOME: resolveCodexHome(context) },
+      stdin: credential
+    }
+  );
+  if (result.exitCode !== 0) {
+    const stderr = result.stderr.trim();
+    throw new Error(
+      stderr.length > 0
+        ? `codex login --with-api-key failed: ${stderr}`
+        : `codex login --with-api-key failed with exit code ${result.exitCode}.`
+    );
+  }
 }
 
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
@@ -149,22 +196,22 @@ function isTableEmpty(value: unknown): value is ConfigObject {
   return isConfigObject(value) && Object.keys(value).length === 0;
 }
 
-export const codexService = createProvider<CodexConfigureContext, CodexUnconfigureContext>({
+const baseCodexService = createProvider<CodexConfigureContext, CodexUnconfigureContext>({
   ...codexAgent,
   supportsStdinPrompt: true,
-  configurePrompts: {
-    reasoningEffort: {
-      label: "Codex reasoning effort",
-      defaultValue: DEFAULT_REASONING
-    }
-  },
   extendConfigurePayload({ commandOptions, logger }) {
-    const model = resolveOptionalCodexModel(commandOptions.model);
-    if (model === undefined) {
-      return undefined;
+    const model = resolveOptionalCodexText(commandOptions.model);
+    const reasoningEffort = resolveOptionalCodexText(commandOptions.reasoningEffort);
+    const extension: Record<string, string> = {};
+    if (model !== undefined) {
+      logger.resolved("Codex model", model);
+      extension.model = model;
     }
-    logger.resolved("Codex model", model);
-    return { model };
+    if (reasoningEffort !== undefined) {
+      logger.resolved("Codex reasoning effort", reasoningEffort);
+      extension.reasoningEffort = reasoningEffort;
+    }
+    return Object.keys(extension).length === 0 ? undefined : extension;
   },
   isolatedEnv: {
     agentBinary: codexAgent.binaryName!,
@@ -200,7 +247,7 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
         templateId: "codex/config.toml.mustache",
         context: (ctx) => {
           const options = ctx as unknown as CodexConfigureContext;
-          const requestedModel = resolveOptionalCodexModel(options.model);
+          const requestedModel = resolveOptionalCodexText(options.model);
           const model =
             requestedModel === undefined
               ? undefined
@@ -208,9 +255,15 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
           const templateContext: ConfigObject = {
             apiKey: options.provider?.credential,
             baseUrl: options.provider?.baseUrl ?? "",
-            providerId: options.provider?.id ?? PROVIDER_NAME,
-            reasoningEffort: options.reasoningEffort
+            codexBuiltInProvider: isCodexBuiltInProvider(options.provider?.id),
+            providerId: options.provider?.id ?? PROVIDER_NAME
           };
+          if (isCodexBuiltInProvider(options.provider?.id)) {
+            templateContext["forcedLoginMethod"] = "api";
+          }
+          if (options.reasoningEffort !== undefined) {
+            templateContext["reasoningEffort"] = options.reasoningEffort;
+          }
           if (model !== undefined) {
             templateContext["model"] = model;
             templateContext["profileName"] = deriveCodexProfileName(model);
@@ -239,5 +292,16 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
   },
   install: CODEX_INSTALL_DEFINITION
 });
+
+export const codexService: ProviderService<CodexConfigureContext, CodexUnconfigureContext> = {
+  ...baseCodexService,
+  async configure(context, runOptions?: ServiceRunOptions) {
+    await baseCodexService.configure(context, runOptions);
+    if (runOptions?.sideEffects === false) {
+      return;
+    }
+    await loginCodexWithApiKey(context);
+  }
+};
 
 export const provider = codexService;

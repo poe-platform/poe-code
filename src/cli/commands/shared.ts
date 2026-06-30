@@ -544,6 +544,7 @@ export async function applyIsolatedConfiguration(input: {
   isolated: ProviderIsolatedEnv;
   providerName: string;
   observers?: MutationObservers;
+  sideEffects?: boolean;
 }): Promise<void> {
   await input.adapter.configure(
     {
@@ -561,7 +562,9 @@ export async function applyIsolatedConfiguration(input: {
           })
       }
     },
-    input.observers ? { observers: input.observers } : undefined
+    input.observers || input.sideEffects === false
+      ? { observers: input.observers, sideEffects: input.sideEffects }
+      : undefined
   );
 }
 

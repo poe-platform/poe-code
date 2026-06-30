@@ -23,6 +23,7 @@ export interface CommandContextComplete {
 }
 
 export interface CommandContext {
+  dryRun?: boolean;
   fs: FileSystem;
   runCommand: CommandRunner;
   runCommandWithEnv(
@@ -51,6 +52,7 @@ export function createCommandContextFactory(
   const create = (options: CommandContextOptions): CommandContext => {
     if (!options.dryRun) {
       return {
+        dryRun: false,
         fs,
         runCommand: options.runner,
         runCommandWithEnv(command, args, runOptions) {
@@ -97,6 +99,7 @@ export function createCommandContextFactory(
     };
 
     return {
+      dryRun: true,
       fs: proxyFs,
       runCommand: options.runner,
       runCommandWithEnv(command, args, runOptions) {

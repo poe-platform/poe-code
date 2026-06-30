@@ -17,6 +17,7 @@ export interface ServiceManifestPathMapper {
 
 export interface ServiceRunOptions {
   observers?: MutationObservers;
+  sideEffects?: boolean;
 }
 
 export interface ProviderColorSet {

@@ -10,6 +10,7 @@ import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { claudeCodeAgent } from "@poe-code/agent-defs";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import type { AuthProvider } from "@poe-code/providers";
+import type { CommandRunner } from "../../utils/command-checks.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type { PromptFn } from "../types.js";
 import { PROVIDER_NAME } from "../constants.js";
@@ -25,13 +26,15 @@ const fixtureDir = path.join(import.meta.dirname, "__fixtures__");
 function createContainer(
   fs: FileSystem,
   envVars: Record<string, string | undefined> = {},
-  prompts: PromptFn = vi.fn().mockResolvedValue({})
+  prompts: PromptFn = vi.fn().mockResolvedValue({}),
+  commandRunner?: CommandRunner
 ) {
   return createCliContainer({
     fs,
     prompts,
     env: { cwd, homeDir, variables: envVars },
-    logger: () => {}
+    logger: () => {},
+    commandRunner
   });
 }
 
@@ -265,8 +268,8 @@ describe("configure provider resolution", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
-  it("prompts for Codex reasoning effort without --yes", async () => {
-    const prompts = vi.fn().mockResolvedValue({ reasoningEffort: "high" });
+  it("does not prompt for Codex reasoning effort without --yes", async () => {
+    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
     const container = createContainer(fs, { POE_API_KEY: "sk-env" }, prompts);
     vi.spyOn(container.providerRegistry, "resolveCredential").mockImplementation(
       async (_id, options) => options?.apiKey ?? "sk-test"
@@ -281,9 +284,7 @@ describe("configure provider resolution", () => {
     registerConfigureCommand(program, container);
     await program.parseAsync(["node", "cli", "configure", "codex", "--model", "openai/gpt-5"]);
 
-    expect(prompts).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "reasoningEffort", initial: "medium" })
-    );
+    expect(prompts).not.toHaveBeenCalled();
   });
 
   it("keeps claude-code on Poe with --yes when only POE_API_KEY is set", async () => {
@@ -492,13 +493,14 @@ describe("configure provider resolution", () => {
   });
 
   it("prompts for an explicit OpenAI provider API key even with --yes", async () => {
+    const commandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
     const prompts = vi.fn().mockImplementation(async (descriptor) => {
       if (descriptor.name === "apiKey") {
         return { apiKey: "sk-openai-test" };
       }
       throw new Error(`Unexpected prompt: ${descriptor.name}`);
     });
-    const container = createContainer(fs, {}, prompts);
+    const container = createContainer(fs, {}, prompts, commandRunner);
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "openai"
@@ -513,14 +515,36 @@ describe("configure provider resolution", () => {
     );
     const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
     expect(document.model_provider).toBe("openai");
+    expect(document.forced_login_method).toBe("api");
     expect(document.model).toBeUndefined();
-    const providers = document.model_providers as Record<string, Record<string, unknown>>;
-    expect(providers.openai?.experimental_bearer_token).toBe("sk-openai-test");
+    expect(document.model_providers).toBeUndefined();
+    expect(commandRunner).toHaveBeenCalledWith(
+      "codex",
+      ["login", "--with-api-key"],
+      expect.objectContaining({
+        env: { CODEX_HOME: `${homeDir}/.codex` },
+        stdin: "sk-openai-test"
+      })
+    );
+    expect(commandRunner).toHaveBeenCalledWith(
+      "codex",
+      ["login", "--with-api-key"],
+      expect.objectContaining({
+        env: { CODEX_HOME: `${homeDir}/.poe-code/codex` },
+        stdin: "sk-openai-test"
+      })
+    );
   });
 
   it("does not prompt for or write a default Codex model when none is supplied", async () => {
+    const commandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
     const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
-    const container = createContainer(fs, { OPENAI_API_KEY: "sk-openai-env" }, prompts);
+    const container = createContainer(
+      fs,
+      { OPENAI_API_KEY: "sk-openai-env" },
+      prompts,
+      commandRunner
+    );
     const resolveModelSpy = vi.spyOn(container.options, "resolveModel");
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
@@ -532,27 +556,33 @@ describe("configure provider resolution", () => {
     const rawConfig = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
     expect(rawConfig).toMatchInlineSnapshot(`
       "model_provider = "openai"
-      model_reasoning_effort = "medium"
-      model_verbosity = "medium"
-
-      [model_providers.openai]
-      name = "openai"
-      base_url = "https://api.openai.com/v1"
-      wire_api = "responses"
-      experimental_bearer_token = "sk-openai-env"
-      requires_openai_auth = false
-      supports_websockets = false
+      forced_login_method = "api"
       "
     `);
     const document = parseToml(rawConfig);
     expect(document.model_provider).toBe("openai");
+    expect(document.forced_login_method).toBe("api");
     expect(document.model).toBeUndefined();
+    expect(document.model_reasoning_effort).toBeUndefined();
+    expect(document.model_providers).toBeUndefined();
     expect(document.profiles).toBeUndefined();
+    expect(commandRunner).toHaveBeenCalledWith(
+      "codex",
+      ["login", "--with-api-key"],
+      expect.objectContaining({ stdin: "sk-openai-env" })
+    );
+    expect(commandRunner.mock.calls.flatMap((call) => call[1])).not.toContain("sk-openai-env");
   });
 
   it("writes the supplied Codex model without requiring a maintained default", async () => {
+    const commandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
     const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
-    const container = createContainer(fs, { OPENAI_API_KEY: "sk-openai-env" }, prompts);
+    const container = createContainer(
+      fs,
+      { OPENAI_API_KEY: "sk-openai-env" },
+      prompts,
+      commandRunner
+    );
     const resolveModelSpy = vi.spyOn(container.options, "resolveModel");
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
@@ -564,30 +594,46 @@ describe("configure provider resolution", () => {
     const rawConfig = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
     expect(rawConfig).toMatchInlineSnapshot(`
       "model_provider = "openai"
+      forced_login_method = "api"
       model = "gpt-5.4-codex"
-      model_reasoning_effort = "medium"
-      model_verbosity = "medium"
 
       [profiles.codex]
       model = "gpt-5.4-codex"
       model_provider = "openai"
-      model_reasoning_effort = "medium"
-      model_verbosity = "medium"
-
-      [model_providers.openai]
-      name = "openai"
-      base_url = "https://api.openai.com/v1"
-      wire_api = "responses"
-      experimental_bearer_token = "sk-openai-env"
-      requires_openai_auth = false
-      supports_websockets = false
       "
     `);
     const document = parseToml(rawConfig);
     expect(document.model_provider).toBe("openai");
+    expect(document.forced_login_method).toBe("api");
     expect(document.model).toBe("gpt-5.4-codex");
+    expect(document.model_reasoning_effort).toBeUndefined();
+    expect(document.model_providers).toBeUndefined();
     const profiles = document.profiles as Record<string, Record<string, unknown>>;
     expect(profiles.codex?.model).toBe("gpt-5.4-codex");
+    expect(profiles.codex?.model_reasoning_effort).toBeUndefined();
+  });
+
+  it("writes explicit Codex reasoning effort when supplied", async () => {
+    const commandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
+    const container = createContainer(
+      fs,
+      { OPENAI_API_KEY: "sk-openai-env" },
+      prompts,
+      commandRunner
+    );
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "openai",
+      model: "openai/gpt-5.4-codex",
+      reasoningEffort: "high"
+    });
+
+    expect(prompts).not.toHaveBeenCalled();
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    expect(document.model_reasoning_effort).toBe("high");
+    const profiles = document.profiles as Record<string, Record<string, unknown>>;
+    expect(profiles.codex?.model_reasoning_effort).toBe("high");
   });
 
   it("does not persist global codex configuration when isolated setup fails", async () => {

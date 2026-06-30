@@ -40,7 +40,7 @@ describe("createCliContainer", () => {
     expect(container.providerRegistry).toBeInstanceOf(ProviderRegistry);
   });
 
-  it("registers Poe, Anthropic, and Cloudflare auth providers", () => {
+  it("registers Poe, Anthropic, OpenAI, and Cloudflare auth providers", () => {
     const container = createCliContainer({
       fs: createMemfs(),
       prompts: vi.fn(),
@@ -50,6 +50,7 @@ describe("createCliContainer", () => {
     expect(container.providerRegistry.list().map((provider) => provider.id)).toEqual([
       "poe",
       "anthropic",
+      "openai",
       "cloudflare"
     ]);
   });

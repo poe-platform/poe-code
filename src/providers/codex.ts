@@ -10,7 +10,6 @@ import {
 } from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
 import {
-  DEFAULT_CODEX_MODEL,
   DEFAULT_REASONING,
   PROVIDER_NAME,
   stripModelNamespace
@@ -21,7 +20,7 @@ import type { ActiveProvider } from "../cli/commands/shared.js";
 type CodexConfigureContext = {
   env: CliEnvironment;
   provider: ActiveProvider;
-  model: string;
+  model?: string;
   reasoningEffort: string;
   timestamp?: () => string;
 };
@@ -42,9 +41,16 @@ export function deriveCodexProfileName(model: string): string {
   return stripped;
 }
 
-function resolveCodexConfigModel(options: CodexConfigureContext): string {
-  const model = options.model ?? DEFAULT_CODEX_MODEL;
-  return options.provider?.modelInput?.kind === "freeform" ? model : stripModelNamespace(model);
+function resolveCodexConfigModel(model: string, provider: ActiveProvider): string {
+  return provider.modelInput?.kind === "freeform" ? model : stripModelNamespace(model);
+}
+
+function resolveOptionalCodexModel(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const model = value.trim();
+  return model.length > 0 ? model : undefined;
 }
 
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
@@ -147,14 +153,18 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
   ...codexAgent,
   supportsStdinPrompt: true,
   configurePrompts: {
-    model: {
-      label: "Codex model",
-      defaultValue: DEFAULT_CODEX_MODEL
-    },
     reasoningEffort: {
       label: "Codex reasoning effort",
       defaultValue: DEFAULT_REASONING
     }
+  },
+  extendConfigurePayload({ commandOptions, logger }) {
+    const model = resolveOptionalCodexModel(commandOptions.model);
+    if (model === undefined) {
+      return undefined;
+    }
+    logger.resolved("Codex model", model);
+    return { model };
   },
   isolatedEnv: {
     agentBinary: codexAgent.binaryName!,
@@ -167,7 +177,7 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
   test(context) {
     return context.runCheck(
       createSpawnHealthCheck("codex", {
-        model: context.model ?? DEFAULT_CODEX_MODEL,
+        model: context.model,
         expectedOutput: "CODEX_OK",
         hooks: context.hooks
       })
@@ -190,15 +200,22 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
         templateId: "codex/config.toml.mustache",
         context: (ctx) => {
           const options = ctx as unknown as CodexConfigureContext;
-          const model = resolveCodexConfigModel(options);
-          return {
+          const requestedModel = resolveOptionalCodexModel(options.model);
+          const model =
+            requestedModel === undefined
+              ? undefined
+              : resolveCodexConfigModel(requestedModel, options.provider);
+          const templateContext: ConfigObject = {
             apiKey: options.provider?.credential,
             baseUrl: options.provider?.baseUrl ?? "",
-            model,
             providerId: options.provider?.id ?? PROVIDER_NAME,
-            reasoningEffort: options.reasoningEffort,
-            profileName: deriveCodexProfileName(model)
+            reasoningEffort: options.reasoningEffort
           };
+          if (model !== undefined) {
+            templateContext["model"] = model;
+            templateContext["profileName"] = deriveCodexProfileName(model);
+          }
+          return templateContext;
         }
       })
     ],

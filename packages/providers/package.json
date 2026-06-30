@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc"
+    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc"
   },
   "dependencies": {
     "@poe-code/agent-defs": "*",

@@ -3,7 +3,6 @@ import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { cloudflareProvider } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
-import { DEFAULT_CODEX_MODEL } from "../cli/constants.js";
 
 const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
@@ -885,12 +884,7 @@ describe("SDK spawn()", () => {
       },
       registry: {
         get: vi.fn(() => ({
-          name: "codex",
-          configurePrompts: {
-            model: {
-              defaultValue: DEFAULT_CODEX_MODEL
-            }
-          }
+          name: "codex"
         }))
       }
     } as any);

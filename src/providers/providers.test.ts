@@ -29,7 +29,6 @@ import { AcpClient } from "@poe-code/poe-acp-client";
 import {
   CLAUDE_CODE_VARIANTS,
   stripModelNamespace,
-  DEFAULT_CODEX_MODEL,
   DEFAULT_KIMI_MODEL,
   DEFAULT_GOOSE_MODEL,
   DEFAULT_GEMINI_MODEL,
@@ -64,6 +63,8 @@ const resolveVariantModel = (variant: keyof typeof CLAUDE_CODE_VARIANTS): string
 const CLAUDE_MODEL_HAIKU = resolveVariantModel("haiku");
 const CLAUDE_MODEL_SONNET = resolveVariantModel("sonnet");
 const CLAUDE_MODEL_OPUS = resolveVariantModel("opus");
+const CODEX_EXPLICIT_MODEL = "openai/gpt-5.4-codex";
+const CODEX_EXPLICIT_MODEL_ID = "gpt-5.4-codex";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -519,7 +520,6 @@ describe("codex service", () => {
       credential: "sk-test",
       extraEnv: {}
     },
-    model: DEFAULT_CODEX_MODEL,
     reasoningEffort: DEFAULT_REASONING,
     ...overrides
   });
@@ -549,24 +549,17 @@ describe("codex service", () => {
     });
   }
 
-  it("writes codex config as profile from template", async () => {
+  it("writes codex provider config without a default model", async () => {
     await configureCodex({
       timestamp: () => "20240101T000000"
     });
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
-    expect(doc["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
+    expect(doc["model"]).toBeUndefined();
     expect(doc["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
     expect(doc["model_verbosity"]).toBe("medium");
-
-    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
-    const codexProfile = profiles[defaultProfileName];
-    expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
-    expect(codexProfile["model_provider"]).toBe("poe");
-    expect(codexProfile["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
-    expect(codexProfile["model_verbosity"]).toBe("medium");
+    expect(doc["profiles"]).toBeUndefined();
 
     const providers = doc["model_providers"] as Record<string, Record<string, unknown>>;
     expect(providers["poe"]["experimental_bearer_token"]).toBe("sk-test");
@@ -644,7 +637,7 @@ describe("codex service", () => {
   });
 
   it("replaces stale profile when reconfiguring with a different model", async () => {
-    await configureCodex({ model: DEFAULT_CODEX_MODEL });
+    await configureCodex({ model: CODEX_EXPLICIT_MODEL });
 
     await configureCodex({
       model: "anthropic/claude-opus-4.7",
@@ -653,7 +646,7 @@ describe("codex service", () => {
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
+    const defaultProfileName = codexService.deriveCodexProfileName(CODEX_EXPLICIT_MODEL);
     expect(profiles["opus"]).toBeDefined();
     expect(profiles[defaultProfileName]).toBeUndefined();
   });
@@ -742,7 +735,7 @@ describe("codex service", () => {
       configPath,
       [
         'model_provider="poe"',
-        `model="${DEFAULT_CODEX_MODEL}"`,
+        `model="${CODEX_EXPLICIT_MODEL_ID}"`,
         'model_reasoning_effort="medium"',
         'model_verbosity="medium"',
         "",
@@ -773,7 +766,7 @@ describe("codex service", () => {
       configPath,
       [
         'model_provider="poe"',
-        `model="${DEFAULT_CODEX_MODEL}"`,
+        `model="${CODEX_EXPLICIT_MODEL_ID}"`,
         'model_reasoning_effort="medium"',
         "",
         "[model_providers.poe]",
@@ -802,7 +795,7 @@ describe("codex service", () => {
       configPath,
       [
         'model_provider="poe"',
-        `model="${DEFAULT_CODEX_MODEL}"`,
+        `model="${CODEX_EXPLICIT_MODEL_ID}"`,
         'model_reasoning_effort="medium"',
         "",
         "[model_providers.poe]",
@@ -881,15 +874,9 @@ describe("codex service", () => {
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
+    expect(doc["model"]).toBeUndefined();
     expect(doc["features"]).toEqual({ foo: true });
-
-    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
-    const codexProfile = profiles[defaultProfileName];
-    expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
-    expect(codexProfile["model_provider"]).toBe("poe");
-    expect(codexProfile["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
-    expect(codexProfile["model_verbosity"]).toBe("medium");
+    expect(doc["profiles"]).toBeUndefined();
 
     const providers = doc["model_providers"] as Record<string, unknown>;
     expect(providers).toBeDefined();

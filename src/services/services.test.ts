@@ -14,10 +14,7 @@ import {
 } from "./config.js";
 import { createPoeClient } from "./llm-client.js";
 import type { HttpClient } from "../cli/http.js";
-import {
-  DEFAULT_CLAUDE_CODE_MODEL,
-  DEFAULT_CODEX_MODEL
-} from "../cli/constants.js";
+import { DEFAULT_CLAUDE_CODE_MODEL } from "../cli/constants.js";
 import {
   MixedStrategy,
   SmartStrategy,
@@ -967,8 +964,7 @@ describe("RoundRobinStrategy", () => {
     const model5 = strategy.getNextModel();
     const model6 = strategy.getNextModel();
     const model7 = strategy.getNextModel();
-    const model8 = strategy.getNextModel();
-    const model9 = strategy.getNextModel(); // Should wrap around
+    const model8 = strategy.getNextModel(); // Should wrap around
 
     expect(model1).toBe(CLAUDE_MODEL_SONNET);
     expect(model2).toBe("gpt-5.5");
@@ -977,8 +973,7 @@ describe("RoundRobinStrategy", () => {
     expect(model5).toBe("gpt-5.4-pro");
     expect(model6).toBe("gpt-4o");
     expect(model7).toBe("Claude-3.5-Sonnet");
-    expect(model8).toBe(DEFAULT_CODEX_MODEL);
-    expect(model9).toBe(CLAUDE_MODEL_SONNET); // Wrapped around
+    expect(model8).toBe(CLAUDE_MODEL_SONNET); // Wrapped around
   });
 
   it("cycles through custom model order", () => {

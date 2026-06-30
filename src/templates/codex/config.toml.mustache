@@ -1,14 +1,18 @@
 model_provider = "{{providerId}}"
+{{#model}}
 model = "{{{model}}}"
+{{/model}}
 model_reasoning_effort = "{{reasoningEffort}}"
 model_verbosity = "medium"
 
+{{#model}}
 [profiles."{{{profileName}}}"]
 model = "{{{model}}}"
 model_provider = "{{providerId}}"
 model_reasoning_effort = "{{reasoningEffort}}"
 model_verbosity = "medium"
 
+{{/model}}
 [model_providers.{{providerId}}]
 name = "{{providerId}}"
 base_url = "{{{baseUrl}}}"

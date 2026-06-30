@@ -844,10 +844,11 @@ async function resolveProvider(
   }
 
   if (explicit) {
-    if (options.apiKey === undefined && !(await container.providerRegistry.isLoggedIn(explicit))) {
-      throw new Error(
-        `Provider "${explicit}" is not configured. Run \`poe-code provider login ${explicit}\` first, or pass --api-key.`
-      );
+    if (options.apiKey === undefined) {
+      const loggedIn = await container.providerRegistry.isLoggedIn(explicit);
+      if (!loggedIn) {
+        await triggerProviderLogin(container, explicit, options.apiKey, flags);
+      }
     }
     return explicit;
   }

@@ -3,8 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import {
-  DEFAULT_CLAUDE_CODE_MODEL,
-  DEFAULT_CODEX_MODEL
+  DEFAULT_CLAUDE_CODE_MODEL
 } from "../cli/constants.js";
 import { hasOwnErrorCode } from "../utils/error-codes.js";
 
@@ -20,8 +19,7 @@ export const AVAILABLE_MODELS = Object.freeze([
   "gpt-5.4-chat",
   "gpt-5.4-pro",
   "gpt-4o",
-  "Claude-3.5-Sonnet",
-  DEFAULT_CODEX_MODEL,
+  "Claude-3.5-Sonnet"
 ] as const);
 
 export type ModelIdentifier = (typeof AVAILABLE_MODELS)[number];

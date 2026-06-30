@@ -27,8 +27,6 @@ export function stripModelNamespace(model: string): string {
   return id.toLowerCase();
 }
 
-export const DEFAULT_CODEX_MODEL = "openai/gpt-5.5";
-
 export const KIMI_MODELS = [
   "novitaai/kimi-k2.5",
   "novitaai/kimi-k2-thinking",

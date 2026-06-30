@@ -22,6 +22,7 @@ function makeContainer(overrides: Partial<Container> = {}): Container {
   return {
     id: 'test-container',
     home: CONTAINER_HOME,
+    workspace: `${CONTAINER_HOME}/workspace`,
     destroy: vi.fn(),
     exec: vi.fn(),
     execOrThrow: vi.fn(),

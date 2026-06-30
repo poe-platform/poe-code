@@ -7,6 +7,7 @@ exports[`provider list > snapshots provider shape and agent columns 1`] = `
 ├──────────────────────┼────────────────┼────────────────────────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
 │ poe                  │ [-]            │ POE_API_KEY, POE_BASE_URL          │ chat-completions, responses, messages                │ claude-code, codex, goose, kimi, opencode, poe-agent         │
 │ anthropic            │ [-]            │ ANTHROPIC_API_KEY                  │ messages                                             │ claude-code                                                  │
+│ openai               │ [-]            │ OPENAI_API_KEY                     │ responses, chat-completions                          │ codex, goose, kimi, opencode, poe-agent                      │
 │ cloudflare           │ [-]            │ CF_AIG_TOKEN, CF_AIG_BASE_URL      │ chat-completions, responses, messages, generations   │ claude-code, codex, gemini-cli, goose, kimi, opencode, poe-… │
 └──────────────────────┴────────────────┴────────────────────────────────────┴──────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────┘"
 `;

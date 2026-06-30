@@ -27,11 +27,12 @@ describe("createSdkContainer", () => {
     expect(container.registry.list().length).toBeGreaterThan(0);
   });
 
-  it("registers Poe, Anthropic, and Cloudflare auth providers", () => {
+  it("registers Poe, Anthropic, OpenAI, and Cloudflare auth providers", () => {
     const container = createSdkContainer({ cwd: "/repo", homeDir: "/home/test" });
     expect(container.providerRegistry.list().map((provider) => provider.id)).toEqual([
       "poe",
       "anthropic",
+      "openai",
       "cloudflare"
     ]);
   });

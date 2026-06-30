@@ -49,6 +49,10 @@ registry.get("anthropic"); // AuthProvider | undefined
 registry.forAgent({ id: "claude-code", apiShapes: ["anthropic-messages"] });
 ```
 
+First-party providers live in `src/providers/<id>.ts`. The package build generates the
+first-party provider barrel and `allAuthProviders` from those files, so adding a provider
+does not require hand-editing the public registry.
+
 ## Auth strategies
 
 Strategies are dispatched on `auth.kind`. The registry login and credential-resolution APIs
@@ -118,6 +122,7 @@ Declared environment variables:
 - `ANTHROPIC_API_KEY` - Anthropic API key.
 - `CF_AIG_TOKEN` - Cloudflare AI Gateway token.
 - `CF_AIG_BASE_URL` - Cloudflare AI Gateway root URL, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+- `OPENAI_API_KEY` - OpenAI API key.
 
 ## Configuration options
 

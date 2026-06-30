@@ -14,6 +14,7 @@ function makeMockContainer(): Container {
   return {
     id: 'test-123',
     home: '/home/mock',
+    workspace: '/home/mock/workspace',
     destroy: vi.fn(),
     exec: vi.fn().mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' }),
     execOrThrow: vi.fn().mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' }),

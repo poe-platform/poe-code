@@ -261,11 +261,7 @@ describe("configure provider resolution", () => {
     registerConfigureCommand(program, container);
     await program.parseAsync(argv);
 
-    expect(resolveModelSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assumeDefault: true
-      })
-    );
+    expect(resolveModelSpy).not.toHaveBeenCalled();
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -427,17 +423,19 @@ describe("configure provider resolution", () => {
     ).rejects.toThrow('Provider "cloudflare" base URL must be an http(s) URL.');
   });
 
-  it("requires a model for Cloudflare configure with --yes", async () => {
+  it("configures Codex against Cloudflare without requiring a model", async () => {
     const container = createContainer(fs);
 
-    await expect(
-      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
-        provider: "cloudflare",
-        apiKey: "sk-cloudflare-test",
-        baseUrl:
-          "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
-      })
-    ).rejects.toThrow('Provider "cloudflare" requires a model for "Codex model". Pass --model.');
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      baseUrl:
+        "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    expect(document.model_provider).toBe("cloudflare");
+    expect(document.model).toBeUndefined();
   });
 
   it("configures claude-code against Cloudflare with an explicit matching base URL", async () => {
@@ -491,6 +489,105 @@ describe("configure provider resolution", () => {
       provider: "cloudflare",
       apiShape: "openai-responses"
     });
+  });
+
+  it("prompts for an explicit OpenAI provider API key even with --yes", async () => {
+    const prompts = vi.fn().mockImplementation(async (descriptor) => {
+      if (descriptor.name === "apiKey") {
+        return { apiKey: "sk-openai-test" };
+      }
+      throw new Error(`Unexpected prompt: ${descriptor.name}`);
+    });
+    const container = createContainer(fs, {}, prompts);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "openai"
+    });
+
+    expect(prompts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "apiKey",
+        message: "OpenAI API key",
+        type: "password"
+      })
+    );
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    expect(document.model_provider).toBe("openai");
+    expect(document.model).toBeUndefined();
+    const providers = document.model_providers as Record<string, Record<string, unknown>>;
+    expect(providers.openai?.experimental_bearer_token).toBe("sk-openai-test");
+  });
+
+  it("does not prompt for or write a default Codex model when none is supplied", async () => {
+    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
+    const container = createContainer(fs, { OPENAI_API_KEY: "sk-openai-env" }, prompts);
+    const resolveModelSpy = vi.spyOn(container.options, "resolveModel");
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "openai"
+    });
+
+    expect(resolveModelSpy).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
+    const rawConfig = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
+    expect(rawConfig).toMatchInlineSnapshot(`
+      "model_provider = "openai"
+      model_reasoning_effort = "medium"
+      model_verbosity = "medium"
+
+      [model_providers.openai]
+      name = "openai"
+      base_url = "https://api.openai.com/v1"
+      wire_api = "responses"
+      experimental_bearer_token = "sk-openai-env"
+      requires_openai_auth = false
+      supports_websockets = false
+      "
+    `);
+    const document = parseToml(rawConfig);
+    expect(document.model_provider).toBe("openai");
+    expect(document.model).toBeUndefined();
+    expect(document.profiles).toBeUndefined();
+  });
+
+  it("writes the supplied Codex model without requiring a maintained default", async () => {
+    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
+    const container = createContainer(fs, { OPENAI_API_KEY: "sk-openai-env" }, prompts);
+    const resolveModelSpy = vi.spyOn(container.options, "resolveModel");
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "openai",
+      model: "openai/gpt-5.4-codex"
+    });
+
+    expect(resolveModelSpy).not.toHaveBeenCalled();
+    const rawConfig = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
+    expect(rawConfig).toMatchInlineSnapshot(`
+      "model_provider = "openai"
+      model = "gpt-5.4-codex"
+      model_reasoning_effort = "medium"
+      model_verbosity = "medium"
+
+      [profiles.codex]
+      model = "gpt-5.4-codex"
+      model_provider = "openai"
+      model_reasoning_effort = "medium"
+      model_verbosity = "medium"
+
+      [model_providers.openai]
+      name = "openai"
+      base_url = "https://api.openai.com/v1"
+      wire_api = "responses"
+      experimental_bearer_token = "sk-openai-env"
+      requires_openai_auth = false
+      supports_websockets = false
+      "
+    `);
+    const document = parseToml(rawConfig);
+    expect(document.model_provider).toBe("openai");
+    expect(document.model).toBe("gpt-5.4-codex");
+    const profiles = document.profiles as Record<string, Record<string, unknown>>;
+    expect(profiles.codex?.model).toBe("gpt-5.4-codex");
   });
 
   it("does not persist global codex configuration when isolated setup fails", async () => {

@@ -474,7 +474,7 @@ tasks:
       Each test: expect(result.trim()).toContain(expected) or
       expect(result.trim()).not.toContain(forbidden).
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: tests-footnotes-frontmatter

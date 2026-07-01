@@ -476,6 +476,61 @@ describe("terminal markdown plaintext renderer", () => {
     expect(renderPlaintext(ast)).toBe(renderMarkdownPlaintext(markdown));
   });
 
+  describe("tables", () => {
+    it("renders two columns with one body row", () => {
+      const result = renderMarkdownPlaintext("| Name | Age |\n|------|-----|\n| Alice | 30 |");
+
+      expect(result.trim()).toContain("Name is Alice. Age is 30.");
+    });
+
+    it("renders two columns with two body rows", () => {
+      const result = renderMarkdownPlaintext(
+        "| Name | Age |\n|------|-----|\n| Alice | 30 |\n| Bob | 25 |"
+      );
+
+      expect(result.trim()).toContain("Name is Alice. Age is 30. Name is Bob. Age is 25.");
+    });
+
+    it("skips empty cell values", () => {
+      const result = renderMarkdownPlaintext("| A | B |\n|---|---|\n| foo |  |");
+
+      expect(result.trim()).toContain("A is foo.");
+      expect(result.trim()).not.toContain("B is .");
+    });
+
+    it("ignores alignment annotations", () => {
+      const result = renderMarkdownPlaintext("| Name | Age | Status |\n|:---:|---:|:---|\n| Alice | 30 | ready |");
+
+      expect(result.trim()).toContain("Name is Alice. Age is 30. Status is ready.");
+    });
+
+    it("renders formatted cell text without markdown markers", () => {
+      const result = renderMarkdownPlaintext("| Name |\n|------|\n| **Alice** |");
+
+      expect(result.trim()).toContain("Name is Alice.");
+    });
+
+    it("renders link text in cells without the URL by default", () => {
+      const result = renderMarkdownPlaintext("| Url |\n|-----|\n| [site](https://x.com) |");
+
+      expect(result.trim()).toContain("Url is site.");
+      expect(result.trim()).not.toContain("https://x.com");
+    });
+
+    it("renders a single-column table", () => {
+      const result = renderMarkdownPlaintext("| Item |\n|------|\n| Foo |");
+
+      expect(result.trim()).toContain("Item is Foo.");
+    });
+
+    it("skips empty header cells", () => {
+      const result = renderMarkdownPlaintext("| | B |\n|---|---|\n| 1 | 2 |");
+
+      expect(result.trim()).toContain("B is 2.");
+      expect(result.trim()).not.toContain(" is 1.");
+    });
+  });
+
   it("renders table body cells as header-labelled sentences", () => {
     const markdown = [
       "| Name | Age | Status |",

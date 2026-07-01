@@ -213,7 +213,7 @@ tasks:
       Unused definitions (never referenced) must NOT appear in the output.
       Do NOT touch any other file.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: wire-exports

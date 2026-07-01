@@ -51,6 +51,14 @@ function renderInline(node: MdNode, ctx: PlaintextContext): string {
     }
     case "image":
       return node.alt;
+    case "footnoteReference": {
+      if (!ctx.footnoteOrder.includes(node.label)) {
+        ctx.footnoteOrder.push(node.label);
+      }
+
+      const index = ctx.footnoteOrder.indexOf(node.label) + 1;
+      return `[${index}]`;
+    }
     default:
       return "";
   }
@@ -62,8 +70,14 @@ function renderChildren(nodes: MdNode[], ctx: PlaintextContext): string {
 
 function renderBlock(node: MdNode, ctx: PlaintextContext): string {
   switch (node.type) {
-    case "root":
-      return renderBlockChildren(node.children, ctx).trim();
+    case "root": {
+      collectFootnoteDefinitions(node.children, ctx);
+
+      const text = renderBlockChildren(node.children, ctx).trim();
+      const footnotes = renderReferencedFootnotes(ctx);
+
+      return footnotes.length === 0 ? text : `${text}\n\n${footnotes}`.trim();
+    }
     case "paragraph":
       return `${renderChildren(node.children, ctx).trim()}\n\n`;
     case "thematicBreak":
@@ -158,6 +172,8 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
         .map(([key, value]) => `${capitalize(key)}: ${String(value)}.`)
         .join(" ")}\n\n`;
     }
+    case "footnoteDefinition":
+      return "";
     default:
       return "";
   }
@@ -184,10 +200,51 @@ function isBlockNode(node: MdNode): boolean {
     case "tableCell":
     case "code":
     case "frontmatter":
+    case "footnoteDefinition":
       return true;
     default:
       return false;
   }
+}
+
+function collectFootnoteDefinitions(nodes: MdNode[], ctx: PlaintextContext): void {
+  for (const node of nodes) {
+    if (node.type === "footnoteDefinition") {
+      ctx.footnoteDefinitions.set(
+        node.label,
+        renderBlockChildren(node.children, createFootnoteDefinitionContext(ctx)).trim()
+      );
+      continue;
+    }
+
+    if ("children" in node) {
+      collectFootnoteDefinitions(node.children, ctx);
+    }
+  }
+}
+
+function createFootnoteDefinitionContext(ctx: PlaintextContext): PlaintextContext {
+  return {
+    announceHeadings: ctx.announceHeadings,
+    announceCode: ctx.announceCode,
+    announceAlerts: ctx.announceAlerts,
+    showLinks: ctx.showLinks,
+    expandLinks: ctx.expandLinks,
+    includeFrontmatter: ctx.includeFrontmatter,
+    footnoteDefinitions: new Map(),
+    footnoteOrder: []
+  };
+}
+
+function renderReferencedFootnotes(ctx: PlaintextContext): string {
+  return ctx.footnoteOrder
+    .map((label, index) => {
+      const definitionText = ctx.footnoteDefinitions.get(label);
+
+      return definitionText === undefined ? "" : `Note ${index + 1}: ${definitionText}.`;
+    })
+    .filter((value) => value.length > 0)
+    .join(" ");
 }
 
 function getOrderedListPrefix(index: number): string {

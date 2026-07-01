@@ -42,7 +42,7 @@ tasks:
       Do NOT touch any other file.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: implement-inline-nodes
     title: Implement inline node rendering (text, emphasis, strong, strikethrough,
@@ -72,7 +72,7 @@ tasks:
       Do not implement block nodes yet.
       Do NOT touch any other file.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: implement-block-nodes

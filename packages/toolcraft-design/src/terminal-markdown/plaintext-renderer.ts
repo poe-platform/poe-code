@@ -160,8 +160,9 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
       return "";
     case "code": {
       const prefix = ctx.announceCode ? "Code: " : "";
+      const value = node.value.length === 0 && ctx.announceCode ? "Code:" : `${prefix}${node.value}`;
 
-      return `${prefix}${node.value}\n\n`;
+      return `${value}\n\n`;
     }
     case "frontmatter": {
       if (!ctx.includeFrontmatter) {
@@ -285,9 +286,9 @@ function trimBlockSeparators(value: string): string {
 
 export function renderPlaintext(ast: MdNode, options?: PlaintextRenderOptions): string {
   return renderBlock(ast, {
-    announceHeadings: options?.announceHeadings ?? false,
-    announceCode: options?.announceCode ?? false,
-    announceAlerts: options?.announceAlerts ?? false,
+    announceHeadings: options?.announceHeadings ?? true,
+    announceCode: options?.announceCode ?? true,
+    announceAlerts: options?.announceAlerts ?? true,
     showLinks: options?.showLinks ?? false,
     expandLinks: options?.expandLinks ?? false,
     includeFrontmatter: options?.includeFrontmatter ?? false,

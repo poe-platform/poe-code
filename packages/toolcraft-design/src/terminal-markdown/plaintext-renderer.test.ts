@@ -141,6 +141,203 @@ describe("inline nodes", () => {
   });
 });
 
+describe("block nodes", () => {
+  describe("headings", () => {
+    it("# Title with default options", () => {
+      const result = renderMarkdownPlaintext("# Title");
+
+      expect(result.trim()).toBe("Section: Title");
+    });
+
+    it("## Sub with default options", () => {
+      const result = renderMarkdownPlaintext("## Sub");
+
+      expect(result.trim()).toBe("Subsection: Sub");
+    });
+
+    it("### Deep with default options", () => {
+      const result = renderMarkdownPlaintext("### Deep");
+
+      expect(result.trim()).toBe("Topic: Deep");
+    });
+
+    it("#### Four with default options", () => {
+      const result = renderMarkdownPlaintext("#### Four");
+
+      expect(result.trim()).toBe("Topic: Four");
+    });
+
+    it("# Title with announceHeadings disabled", () => {
+      const result = renderMarkdownPlaintext("# Title", {
+        announceHeadings: false
+      });
+
+      expect(result.trim()).toBe("Title");
+      expect(result).not.toContain("Section:");
+    });
+
+    it("# Code `x` here", () => {
+      const result = renderMarkdownPlaintext("# Code `x` here");
+
+      expect(result).toContain("Code x here");
+    });
+
+    it("# [link](http://x.com) text with default options", () => {
+      const result = renderMarkdownPlaintext("# [link](http://x.com) text");
+
+      expect(result).toContain("link text");
+      expect(result).not.toContain("http://x.com");
+    });
+
+    it("# **bold** and *italic*", () => {
+      const result = renderMarkdownPlaintext("# **bold** and *italic*");
+
+      expect(result).toContain("bold and italic");
+    });
+  });
+
+  describe("paragraphs", () => {
+    it("Hello.", () => {
+      const result = renderMarkdownPlaintext("Hello.");
+
+      expect(result).toBe("Hello.");
+    });
+
+    it("Line one.\\nLine two. soft wrap", () => {
+      const result = renderMarkdownPlaintext("Line one.\nLine two.");
+
+      expect(result).toContain("Line one.");
+    });
+
+    it("paragraph output trims to final sentence", () => {
+      const result = renderMarkdownPlaintext("Hello.");
+
+      expect(result.trim()).toBe("Hello.");
+    });
+  });
+
+  describe("blockquotes", () => {
+    it("> quoted text", () => {
+      const result = renderMarkdownPlaintext("> quoted text");
+
+      expect(result.trim()).toBe("Quote: quoted text");
+    });
+
+    it("> > nested", () => {
+      const result = renderMarkdownPlaintext("> > nested");
+
+      expect(result.trim()).toBe("Quote: Quote: nested");
+    });
+
+    it("> # heading\\n> para", () => {
+      const result = renderMarkdownPlaintext("> # heading\n> para");
+
+      expect(result).toContain("Quote: ");
+      expect(result).toContain("Section: heading");
+    });
+
+    it("> - item a\\n> - item b", () => {
+      const result = renderMarkdownPlaintext("> - item a\n> - item b");
+
+      expect(result).toContain("Quote: ");
+      expect(result).toContain("item a");
+    });
+  });
+
+  describe("alerts", () => {
+    it("> [!NOTE]\\n> body with default options", () => {
+      const result = renderMarkdownPlaintext("> [!NOTE]\n> body");
+
+      expect(result.trim()).toBe("NOTE: body");
+    });
+
+    it("> [!TIP]\\n> t", () => {
+      const result = renderMarkdownPlaintext("> [!TIP]\n> t");
+
+      expect(result.trim()).toBe("TIP: t");
+    });
+
+    it("> [!IMPORTANT]\\n> i", () => {
+      const result = renderMarkdownPlaintext("> [!IMPORTANT]\n> i");
+
+      expect(result.trim()).toBe("IMPORTANT: i");
+    });
+
+    it("> [!WARNING]\\n> w", () => {
+      const result = renderMarkdownPlaintext("> [!WARNING]\n> w");
+
+      expect(result.trim()).toBe("WARNING: w");
+    });
+
+    it("> [!CAUTION]\\n> c", () => {
+      const result = renderMarkdownPlaintext("> [!CAUTION]\n> c");
+
+      expect(result.trim()).toBe("CAUTION: c");
+    });
+
+    it("> [!NOTE]\\n> body with announceAlerts disabled", () => {
+      const result = renderMarkdownPlaintext("> [!NOTE]\n> body", {
+        announceAlerts: false
+      });
+
+      expect(result.trim()).toBe("body");
+      expect(result).not.toContain("NOTE:");
+    });
+  });
+
+  describe("code blocks", () => {
+    it("fenced code with default options", () => {
+      const result = renderMarkdownPlaintext("```\nfoo\n```");
+
+      expect(result.trim()).toBe("Code: foo");
+    });
+
+    it("fenced code with announceCode disabled", () => {
+      const result = renderMarkdownPlaintext("```\nfoo\n```", {
+        announceCode: false
+      });
+
+      expect(result.trim()).toBe("foo");
+      expect(result).not.toContain("Code:");
+    });
+
+    it("language tag is not spoken", () => {
+      const result = renderMarkdownPlaintext("```ts\nconst x = 1;\n```");
+
+      expect(result).not.toContain("ts");
+    });
+
+    it("multi-line code", () => {
+      const result = renderMarkdownPlaintext("```\nline1\nline2\n```");
+
+      expect(result).toContain("line1");
+      expect(result).toContain("line2");
+    });
+
+    it("empty code block has no trailing garbage", () => {
+      const result = renderMarkdownPlaintext("```\n\n```");
+
+      expect(result).not.toContain("Code: \n");
+    });
+  });
+
+  describe("thematic breaks", () => {
+    it("--- alone", () => {
+      const result = renderMarkdownPlaintext("---");
+
+      expect(result.trim()).toBe("");
+    });
+
+    it("text, thematic break, and more", () => {
+      const result = renderMarkdownPlaintext("text\n\n---\n\nmore");
+
+      expect(result).toContain("text");
+      expect(result).toContain("more");
+      expect(result).not.toContain("---");
+    });
+  });
+});
+
 describe("terminal markdown plaintext renderer", () => {
   it("matches parsed markdown rendering", () => {
     const markdown = "Hello **world**";

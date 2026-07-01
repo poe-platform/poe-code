@@ -327,7 +327,7 @@ tasks:
       markdown input so failures are self-describing.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: tests-block-nodes
     title: Tests — block nodes (heading, paragraph, blockquote, alert, code,
@@ -383,7 +383,7 @@ tasks:
       Each test: expect(result).toBe / .toContain / .not.toContain.
       Trim output before asserting when checking "starts with".
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: tests-lists

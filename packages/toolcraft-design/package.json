@@ -30,6 +30,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./render-markdown-plaintext": {
+      "types": "./dist/render-markdown-plaintext.d.ts",
+      "import": "./dist/render-markdown-plaintext.js"
+    },
     "./*": {
       "types": "./dist/*.d.ts",
       "import": "./dist/*.js"

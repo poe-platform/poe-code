@@ -17,6 +17,10 @@
       "types": "./dist/design.d.ts",
       "import": "./dist/design.js"
     },
+    "./design/render-markdown-plaintext": {
+      "types": "./dist/design/render-markdown-plaintext.d.ts",
+      "import": "./dist/design/render-markdown-plaintext.js"
+    },
     "./design/*": {
       "types": "./dist/design/*.d.ts",
       "import": "./dist/design/*.js"

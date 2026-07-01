@@ -140,12 +140,21 @@ export type {
 } from "./static/index.js";
 
 // Terminal markdown
-export { parse, render, renderHtml, renderMarkdown, renderMarkdownHtml } from "./terminal-markdown/index.js";
+export {
+  parse,
+  render,
+  renderHtml,
+  renderMarkdown,
+  renderMarkdownHtml,
+  renderPlaintext,
+  renderMarkdownPlaintext
+} from "./terminal-markdown/index.js";
 export type {
   CodeToken,
   CodeTokenKind,
   HtmlRenderOptions,
   MdNode,
+  PlaintextRenderOptions,
   RenderOptions
 } from "./terminal-markdown/index.js";
 

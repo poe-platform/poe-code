@@ -5,6 +5,8 @@ import { render, type RenderOptions } from "./renderer.js";
 export type { CodeToken, CodeTokenKind, MdNode } from "./ast.js";
 export { renderHtml } from "./html-renderer.js";
 export type { HtmlRenderOptions } from "./html-renderer.js";
+export { renderPlaintext, renderMarkdownPlaintext } from "./plaintext-renderer.js";
+export type { PlaintextRenderOptions } from "./plaintext-renderer.js";
 export { parse } from "./parser.js";
 export { render } from "./renderer.js";
 export type { RenderOptions } from "./renderer.js";

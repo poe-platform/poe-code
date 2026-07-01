@@ -214,7 +214,7 @@ tasks:
       Do NOT touch any other file.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: wire-exports
     title: Wire exports through index.ts, toolcraft-design, and toolcraft
@@ -254,8 +254,8 @@ tasks:
 
       Do NOT change renderer.ts, html-renderer.ts, or any test file.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: tests-inline-and-text
     title: Tests — inline nodes (text, emphasis, strong, strikethrough, inlineCode,

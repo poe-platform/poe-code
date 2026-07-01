@@ -986,9 +986,7 @@ describe("parseInline", () => {
 
   it("parses inline HTML tags as html nodes (test 53)", () => {
     expect(parseInline("<kbd>Ctrl</kbd> + <br/>")).toEqual([
-      { type: "html", value: "<kbd>" },
-      { type: "text", value: "Ctrl" },
-      { type: "html", value: "</kbd>" },
+      { type: "html", value: "<kbd>Ctrl</kbd>" },
       { type: "text", value: " + " },
       { type: "html", value: "<br/>" }
     ]);

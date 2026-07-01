@@ -1233,12 +1233,16 @@ function parseInlineHtmlTag(
     }
 
     if (input[index] === ">") {
+      const tagEnd = index + 1;
+      const closingTagEnd = findClosingInlineHtmlTagEnd(input, tagEnd, tagName);
+      const nodeEnd = closingTagEnd ?? tagEnd;
+
       return {
         node: withRange(
-          { type: "html", value: input.slice(start, index + 1) },
-          offsets === undefined ? { start, end: index + 1 } : createRange(offsets, start, index + 1)
+          { type: "html", value: input.slice(start, nodeEnd) },
+          offsets === undefined ? { start, end: nodeEnd } : createRange(offsets, start, nodeEnd)
         ),
-        end: index + 1
+        end: nodeEnd
       };
     }
 
@@ -1311,6 +1315,61 @@ function parseInlineHtmlTag(
   }
 
   return null;
+}
+
+function findClosingInlineHtmlTagEnd(
+  input: string,
+  start: number,
+  tagName: string
+): number | undefined {
+  let index = start;
+
+  while (index < input.length) {
+    if (input[index] !== "<") {
+      index += 1;
+      continue;
+    }
+
+    const closingEnd = readClosingInlineHtmlTagEnd(input, index, tagName);
+
+    if (closingEnd !== undefined) {
+      return closingEnd;
+    }
+
+    index += 1;
+  }
+
+  return undefined;
+}
+
+function readClosingInlineHtmlTagEnd(
+  input: string,
+  start: number,
+  tagName: string
+): number | undefined {
+  let index = start + 1;
+
+  if (index >= input.length || input[index] !== "/") {
+    return undefined;
+  }
+
+  index += 1;
+
+  for (const expectedChar of tagName) {
+    if (index >= input.length || input[index]?.toLowerCase() !== expectedChar) {
+      return undefined;
+    }
+
+    index += 1;
+  }
+
+  index = skipHtmlWhitespace(input, index);
+
+  if (index >= input.length || input[index] !== ">") {
+    return undefined;
+  }
+
+  return index + 1;
 }
 
 function decodeEscapes(value: string): string {

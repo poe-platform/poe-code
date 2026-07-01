@@ -73,13 +73,13 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
     case "root": {
       collectFootnoteDefinitions(node.children, ctx);
 
-      const text = renderBlockChildren(node.children, ctx).trim();
+      const text = trimBlockSeparators(renderBlockChildren(node.children, ctx));
       const footnotes = renderReferencedFootnotes(ctx);
 
-      return footnotes.length === 0 ? text : `${text}\n\n${footnotes}`.trim();
+      return footnotes.length === 0 ? text : trimBlockSeparators(`${text}\n\n${footnotes}`);
     }
     case "paragraph":
-      return `${renderChildren(node.children, ctx).trim()}\n\n`;
+      return `${renderChildren(node.children, ctx)}\n\n`;
     case "thematicBreak":
       return "";
     case "heading": {
@@ -266,6 +266,21 @@ function getUnorderedListSeparator(itemCount: number): string {
 
 function capitalize(value: string): string {
   return value.length === 0 ? value : `${value[0]?.toUpperCase()}${value.slice(1)}`;
+}
+
+function trimBlockSeparators(value: string): string {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && value[start] === "\n") {
+    start += 1;
+  }
+
+  while (end > start && value[end - 1] === "\n") {
+    end -= 1;
+  }
+
+  return value.slice(start, end);
 }
 
 export function renderPlaintext(ast: MdNode, options?: PlaintextRenderOptions): string {

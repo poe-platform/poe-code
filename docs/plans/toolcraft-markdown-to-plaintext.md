@@ -326,7 +326,7 @@ tasks:
       expect(result).not.toContain(forbidden). Name each it() with the
       markdown input so failures are self-describing.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: tests-block-nodes

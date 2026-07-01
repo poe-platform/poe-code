@@ -1,4 +1,5 @@
 import type { MdNode } from "./ast.js";
+import { parse } from "./parser.js";
 
 export interface PlaintextRenderOptions {
   announceHeadings?: boolean;
@@ -59,19 +60,94 @@ function renderChildren(nodes: MdNode[], ctx: PlaintextContext): string {
   return nodes.map((node) => renderInline(node, ctx)).join("");
 }
 
-export function renderPlaintext(ast: MdNode, options?: PlaintextRenderOptions): string {
-  void ast;
-  void options;
+function renderBlock(node: MdNode, ctx: PlaintextContext): string {
+  switch (node.type) {
+    case "root":
+      return renderBlockChildren(node.children, ctx).trim();
+    case "paragraph":
+      return `${renderChildren(node.children, ctx).trim()}\n\n`;
+    case "thematicBreak":
+      return "";
+    case "heading": {
+      const prefix =
+        ctx.announceHeadings && node.depth === 1
+          ? "Section: "
+          : ctx.announceHeadings && node.depth === 2
+            ? "Subsection: "
+            : ctx.announceHeadings
+              ? "Topic: "
+              : "";
 
-  return "";
+      return `${prefix}${renderChildren(node.children, ctx).trim()}\n\n`;
+    }
+    case "blockquote":
+      return `Quote: ${renderBlockChildren(node.children, ctx).trim()}\n\n`;
+    case "alert": {
+      const prefix = ctx.announceAlerts ? `${node.kind}: ` : "";
+
+      return `${prefix}${renderBlockChildren(node.children, ctx).trim()}\n\n`;
+    }
+    case "code": {
+      const prefix = ctx.announceCode ? "Code: " : "";
+
+      return `${prefix}${node.value}\n\n`;
+    }
+    case "frontmatter": {
+      if (!ctx.includeFrontmatter) {
+        return "";
+      }
+
+      return `${Object.entries(node.data)
+        .map(([key, value]) => `${capitalize(key)}: ${String(value)}.`)
+        .join(" ")}\n\n`;
+    }
+    default:
+      return "";
+  }
+}
+
+function renderBlockChildren(nodes: MdNode[], ctx: PlaintextContext): string {
+  return nodes.map((node) => (isBlockNode(node) ? renderBlock(node, ctx) : renderInline(node, ctx))).join("");
+}
+
+function isBlockNode(node: MdNode): boolean {
+  switch (node.type) {
+    case "root":
+    case "paragraph":
+    case "thematicBreak":
+    case "heading":
+    case "blockquote":
+    case "alert":
+    case "code":
+    case "frontmatter":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function capitalize(value: string): string {
+  return value.length === 0 ? value : `${value[0]?.toUpperCase()}${value.slice(1)}`;
+}
+
+export function renderPlaintext(ast: MdNode, options?: PlaintextRenderOptions): string {
+  return renderBlock(ast, {
+    announceHeadings: options?.announceHeadings ?? false,
+    announceCode: options?.announceCode ?? false,
+    announceAlerts: options?.announceAlerts ?? false,
+    showLinks: options?.showLinks ?? false,
+    expandLinks: options?.expandLinks ?? false,
+    includeFrontmatter: options?.includeFrontmatter ?? false,
+    footnoteDefinitions: new Map(),
+    footnoteOrder: []
+  });
 }
 
 export function renderMarkdownPlaintext(
   markdown: string,
   options?: PlaintextRenderOptions
 ): string {
-  void markdown;
-  void options;
+  const { ast } = parse(markdown);
 
-  return "";
+  return renderPlaintext(ast, options);
 }

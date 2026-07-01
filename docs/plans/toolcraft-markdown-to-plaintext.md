@@ -73,7 +73,7 @@ tasks:
       Do NOT touch any other file.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: implement-block-nodes
     title: Implement block node rendering (heading, paragraph, blockquote, alert,
@@ -109,7 +109,7 @@ tasks:
       on the root node. Import parse from ./parser.js for renderMarkdownPlaintext.
       Do NOT touch any other file.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: implement-list-nodes

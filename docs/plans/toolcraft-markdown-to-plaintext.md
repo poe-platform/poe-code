@@ -640,7 +640,7 @@ tasks:
       Each test: .toBe / .toContain / .not.toContain.\n"
     status:
       implement: done
-      commit: open
+      commit: done
 ---
 
 # Context

@@ -2,14 +2,16 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: agent-traces-usage-fields
     title: Extract token usage in claude and codex trace readers
-    prompt: |
+    prompt: >
       In packages/agent-traces, extend the trace model and the two existing
+
       readers so a normalized trace carries reported token usage and model
+
       info. Do NOT create a new package; extend the existing one.
+
 
       1. In packages/agent-traces/src/types.ts add to `NormalizedTrace`:
          - `model?: string`
@@ -60,16 +62,21 @@ tasks:
 
       4. Export `TraceUsage` from packages/agent-traces/src/index.ts.
 
+
       TDD: write vitest tests first, colocated as src/readers/*.test.ts,
+
       using the injected `AgentTraceFileSystem` / sqlite factory fakes the
+
       existing tests already use (never touch real disk). Cover: usage
+
       present, usage absent, multiple usage records (last one wins),
+
       malformed usage values ignored.
+
       Update packages/agent-traces/README.md to document the new fields.
     status:
       implement: done
       test: done
-
   - id: agent-traces-structured-turns
     title: Emit structured turns (tools, MCP, skills, system) from readers
     prompt: |
@@ -158,15 +165,19 @@ tasks:
       implement: done
       refactor: done
       test: done
-
   - id: agent-traces-subagent-children
     title: Discover nested subagent traces in the claude reader
-    prompt: |
+    prompt: >
       In packages/agent-traces, make the claude reader surface subagent
+
       (Task/Agent tool) transcripts as child traces, so a viewer can drill
+
       from a session into the agents it spawned. Verified on-disk layout
+
       (real files):
+
       - Parent session: `~/.claude/projects/<enc-cwd>/<sessionId>.jsonl`
+
       - Subagent transcripts: sibling directory
         `~/.claude/projects/<enc-cwd>/<sessionId>/subagents/agent-<agentId>.jsonl`
         — full JSONL transcripts in the same record format as the parent
@@ -209,26 +220,37 @@ tasks:
          undefined for them.
 
       TDD with the injected-fs fixture pattern: fixture with a parent
+
       transcript (two Agent tool_use blocks), a subagents dir with two
+
       matching children + one orphan (toolUseId not in the parent — must be
+
       excluded), a nested depth-2 child hanging off a subagent's own
+
       tool_use, and a broken meta.json. Assert children ordering follows
+
       tool_use order in the transcript. Update the README.
     status:
       implement: done
       test: done
-
   - id: agent-traces-poe-code-reader
     title: Add poe-code spawn-log reader to agent-traces
-    prompt: |
+    prompt: >
       In packages/agent-traces, add a third trace reader for poe-code's own
+
       spawn logs, following the exact same `TraceReader` interface as
+
       packages/agent-traces/src/readers/claude.ts and codex.ts. No if/case
+
       branching on source anywhere outside the reader itself — consumers must
+
       keep iterating the `traceReaders` array.
 
+
       Format facts (verified against real files):
+
       - Location: `~/.poe-code/spawn-logs/*.jsonl`
+
       - Filename: `<YYYYMMDD>-<HHMMSS>-<mmm>-<agent>-<sessionId>.jsonl`,
         e.g. `20260701-192947-526-codex-b65c65af-8890-4034-be7c-d4caa92346c4.jsonl`
       - JSONL events, one per line, all with optional `_meta` (may carry
@@ -250,8 +272,12 @@ tasks:
         call-count based, not content based — that is expected.
 
       Implementation (packages/agent-traces/src/readers/poe-code.ts):
+
       1. Add `"poe-code"` to the `AgentTraceSource` union in src/types.ts.
-      2. `defaultRoots(homeDir)` returns `[join(homeDir, ".poe-code", "spawn-logs")]`.
+
+      2. `defaultRoots(homeDir)` returns `[join(homeDir, ".poe-code",
+      "spawn-logs")]`.
+
       3. `discover(options)`: readdir the root, keep `*.jsonl`, parse the
          filename (string splitting on "-", no regexes) into timestamp,
          agent, sessionId. Build `TraceReference` with `source: "poe-code"`,
@@ -279,14 +305,17 @@ tasks:
          `traceReaders` array.
 
       TDD first, same injected-fs test pattern as the other reader tests.
+
       Cover: filename parsing, since filter, turn mapping incl. redacted
+
       titles, usage from last usage event, fallback to spawn_result, file
+
       with only session_start + error (real case — must not crash, no
+
       usage). Document the reader in packages/agent-traces/README.md.
     status:
       implement: done
       test: done
-
   - id: agent-trace-viewer-core
     title: Create @poe-code/agent-trace-viewer package with SDK core
     prompt: |
@@ -403,14 +432,17 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: agent-trace-viewer-tui
     title: Interactive trace explorer UI with context gauge and breakdown
-    prompt: |
+    prompt: >
       In the existing packages/agent-trace-viewer package, add the
+
       presentation layer. Use ONLY toolcraft-design primitives — no chalk,
+
       no @clack/prompts, no ink. Study packages/plan-browser/src for the
+
       canonical explorer usage before writing code.
+
 
       1. src/render.ts — pure string-returning renderers (unit-testable):
          - `renderContextGauge(context: ContextUsage, width?: number): string`
@@ -478,20 +510,28 @@ tasks:
 
       3. Export `runTraceViewer` and the render functions from src/index.ts.
 
+
       TDD: unit-test renderers with fixed inputs (strip ANSI or snapshot
+
       with ANSI — follow whatever plan-browser render tests do). Gauge edge
+
       cases: 0 tokens, percent > 100, tiny width, estimated label.
+
       Breakdown edge cases: single category, item overflow (`… n more`),
+
       empty breakdown, redacted poe-code trace (counts, ~0 tokens).
+
       Subagent renderer cases: empty list renders nothing, depth
+
       indentation, long description truncation. Test the non-interactive
+
       branch via the injected `output` writable. Do NOT write tests driving
+
       the interactive explorer loop.
     status:
       implement: done
       refactor: done
       test: done
-
   - id: traces-cli-command
     title: Register poe-code traces command
     prompt: |
@@ -543,7 +583,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: traces-visual-qa
     title: Screenshot QA and polish for traces command
     prompt: |
@@ -589,6 +628,8 @@ tasks:
          breakdown-estimate caveat). Do not touch the root README.
     status:
       implement: done
+name: agent-trace-viewer
+state: archived
 ---
 
 # Context

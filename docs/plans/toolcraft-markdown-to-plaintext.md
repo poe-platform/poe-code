@@ -41,11 +41,12 @@ tasks:
       Do NOT implement any rendering logic yet — just the types and stubs.
       Do NOT touch any other file.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: implement-inline-nodes
-    title: Implement inline node rendering (text, emphasis, strong, strikethrough, inlineCode, break, link, image, html)
+    title: Implement inline node rendering (text, emphasis, strong, strikethrough,
+      inlineCode, break, link, image, html)
     prompt: |
       In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.ts,
       add a function renderInline(node: MdNode, ctx: PlaintextContext): string
@@ -75,7 +76,8 @@ tasks:
       commit: open
 
   - id: implement-block-nodes
-    title: Implement block node rendering (heading, paragraph, blockquote, alert, code, thematicBreak, root)
+    title: Implement block node rendering (heading, paragraph, blockquote, alert,
+      code, thematicBreak, root)
     prompt: |
       In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.ts,
       add a function renderBlock(node: MdNode, ctx: PlaintextContext): string
@@ -256,7 +258,8 @@ tasks:
       commit: open
 
   - id: tests-inline-and-text
-    title: Tests — inline nodes (text, emphasis, strong, strikethrough, inlineCode, break, link, image, html)
+    title: Tests — inline nodes (text, emphasis, strong, strikethrough, inlineCode,
+      break, link, image, html)
     prompt: |
       Create packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts
       if it does not exist yet. Use vitest. Import parse from "./parser.js" and
@@ -327,7 +330,8 @@ tasks:
       commit: open
 
   - id: tests-block-nodes
-    title: Tests — block nodes (heading, paragraph, blockquote, alert, code, thematicBreak)
+    title: Tests — block nodes (heading, paragraph, blockquote, alert, code,
+      thematicBreak)
     prompt: |
       In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts,
       add a describe block "block nodes" with these tests:
@@ -528,61 +532,112 @@ tasks:
 
   - id: tests-edge-cases
     title: Tests — unicode, edge inputs, and option combinations
-    prompt: |
-      In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts,
-      add describe blocks "unicode and special chars", "edge inputs", and
-      "option combinations".
+    prompt: "In
+      packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.test.t\
+      s,
+
+      add describe blocks \"unicode and special chars\", \"edge inputs\", and
+
+      \"option combinations\".
+
 
       UNICODE AND SPECIAL CHARS
-        - "Hello 🎉 world" → result contains "🎉"
-        - Arabic text: "مرحبا" → result contains "مرحبا"
-        - CJK: "你好世界" → result contains "你好世界"
-        - "foo—bar" (em-dash) → result contains "—"
-        - "foo–bar" (en-dash) → result contains "–"
-        - " zero" (null byte in input) → does not throw; result is a string
-        - "[31mred[0m" (ANSI escape in source text)
-          → result does NOT contain ""
-          (ANSI is stripped from text nodes — test actual behavior)
+
+      \  - \"Hello 🎉 world\" → result contains \"🎉\"
+
+      \  - Arabic text: \"مرحبا\" → result contains \"مرحبا\"
+
+      \  - CJK: \"你好世界\" → result contains \"你好世界\"
+
+      \  - \"foo—bar\" (em-dash) → result contains \"—\"
+
+      \  - \"foo–bar\" (en-dash) → result contains \"–\"
+
+      \  - \"\0zero\" (null byte in input) → does not throw; result is a string
+
+      \  - \"\e[31mred\e[0m\" (ANSI escape in source text)
+
+      \    → result does NOT contain \"\e\"
+
+      \    (ANSI is stripped from text nodes — test actual behavior)
+
 
       EDGE INPUTS
-        - "" (empty string) → ""
-        - "   " (whitespace only) → "" or only whitespace (no crash)
-        - "---" (only thematic break) → "" or whitespace (no markdown chars)
-        - deeply nested: "- > - > text"
-          → result contains "text" and does not throw
-        - unclosed bold: "**unclosed"
-          → does not throw; result is a string
-        - broken link: "[text]()" → result contains "text" (best-effort)
-        - very long line: "a".repeat(10001) as paragraph
-          → result.length >= 10001 (no truncation) and does not throw
-        - document with only an image (no text nodes):
-          "![a dog](dog.png)" → result.trim() === "a dog"
+
+      \  - \"\" (empty string) → \"\"
+
+      \  - \"   \" (whitespace only) → \"\" or only whitespace (no crash)
+
+      \  - \"---\" (only thematic break) → \"\" or whitespace (no markdown
+      chars)
+
+      \  - deeply nested: \"- > - > text\"
+
+      \    → result contains \"text\" and does not throw
+
+      \  - unclosed bold: \"**unclosed\"
+
+      \    → does not throw; result is a string
+
+      \  - broken link: \"[text]()\" → result contains \"text\" (best-effort)
+
+      \  - very long line: \"a\".repeat(10001) as paragraph
+
+      \    → result.length >= 10001 (no truncation) and does not throw
+
+      \  - document with only an image (no text nodes):
+
+      \    \"![a dog](dog.png)\" → result.trim() === \"a dog\"
+
 
       OPTION COMBINATIONS — no markdown syntax artifacts
-        Use this realistic multi-element document as input:
-          "# Title\n\n**bold** and *italic* and ~~strike~~\n\n"
-          + "- item a\n- item b\n\n"
-          + "[link text](https://example.com)\n\n"
-          + "```js\nconst x = 1;\n```\n\n"
-          + "| H1 | H2 |\n|----|----|\n| v1 | v2 |\n\n"
-          + "> [!WARNING]\n> watch out\n"
 
-        With all defaults:
-          → result does not contain "#"
-          → result does not contain "*"
-          → result does not contain "`"
-          → result does not contain "~~"
-          → result does not contain ">"  (blockquote / alert syntax)
-          → result does not contain "|"  (table syntax)
-          → result does not contain "["  (link/footnote syntax — only "[1]" from
-            footnotes is allowed; assert none here since no footnotes in doc)
+      \  Use this realistic multi-element document as input:
 
-        With { expandLinks: true, announceHeadings: false, announceCode: false }:
-          → result contains "https://example.com"
-          → result does NOT start with "Section:"
-          → result does NOT contain "Code: "
+      \    \"# Title\\n\\n**bold** and *italic* and ~~strike~~\\n\\n\"
 
-      Each test: .toBe / .toContain / .not.toContain.
+      \    + \"- item a\\n- item b\\n\\n\"
+
+      \    + \"[link text](https://example.com)\\n\\n\"
+
+      \    + \"```js\\nconst x = 1;\\n```\\n\\n\"
+
+      \    + \"| H1 | H2 |\\n|----|----|\\n| v1 | v2 |\\n\\n\"
+
+      \    + \"> [!WARNING]\\n> watch out\\n\"
+
+
+      \  With all defaults:
+
+      \    → result does not contain \"#\"
+
+      \    → result does not contain \"*\"
+
+      \    → result does not contain \"`\"
+
+      \    → result does not contain \"~~\"
+
+      \    → result does not contain \">\"  (blockquote / alert syntax)
+
+      \    → result does not contain \"|\"  (table syntax)
+
+      \    → result does not contain \"[\"  (link/footnote syntax — only \"[1]\"
+      from
+
+      \      footnotes is allowed; assert none here since no footnotes in doc)
+
+
+      \  With { expandLinks: true, announceHeadings: false, announceCode: false
+      }:
+
+      \    → result contains \"https://example.com\"
+
+      \    → result does NOT start with \"Section:\"
+
+      \    → result does NOT contain \"Code: \"
+
+
+      Each test: .toBe / .toContain / .not.toContain.\n"
     status:
       implement: open
       commit: open

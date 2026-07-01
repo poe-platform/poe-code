@@ -110,7 +110,7 @@ tasks:
       Do NOT touch any other file.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: implement-list-nodes
     title: Implement list and listItem rendering
@@ -144,8 +144,8 @@ tasks:
 
       Do NOT touch any other file.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: implement-table-nodes
     title: Implement table rendering

@@ -87,6 +87,30 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
 
       return `${prefix}${renderBlockChildren(node.children, ctx).trim()}\n\n`;
     }
+    case "list": {
+      const items = node.children
+        .filter((child): child is Extract<MdNode, { type: "listItem" }> => child.type === "listItem")
+        .map((child, index) => {
+          const text = renderBlock(child, ctx).trim();
+
+          return node.ordered ? `${getOrderedListPrefix(index)}${text}` : text;
+        });
+
+      return `${items.join(node.ordered ? " " : getUnorderedListSeparator(items.length))}\n\n`;
+    }
+    case "listItem": {
+      const text = renderBlockChildren(node.children, ctx).trim();
+
+      if (node.checked === true) {
+        return `done: ${text}`;
+      }
+
+      if (node.checked === false) {
+        return `to do: ${text}`;
+      }
+
+      return text;
+    }
     case "code": {
       const prefix = ctx.announceCode ? "Code: " : "";
 
@@ -118,12 +142,31 @@ function isBlockNode(node: MdNode): boolean {
     case "heading":
     case "blockquote":
     case "alert":
+    case "list":
+    case "listItem":
     case "code":
     case "frontmatter":
       return true;
     default:
       return false;
   }
+}
+
+function getOrderedListPrefix(index: number): string {
+  switch (index) {
+    case 0:
+      return "First, ";
+    case 1:
+      return "Second, ";
+    case 2:
+      return "Third, ";
+    default:
+      return "Next, ";
+  }
+}
+
+function getUnorderedListSeparator(itemCount: number): string {
+  return itemCount <= 3 ? ", " : "; ";
 }
 
 function capitalize(value: string): string {

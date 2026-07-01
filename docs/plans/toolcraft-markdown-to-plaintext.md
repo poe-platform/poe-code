@@ -176,8 +176,8 @@ tasks:
 
       Do NOT touch any other file.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: implement-footnote-nodes
     title: Implement footnote reference and definition rendering
@@ -654,6 +654,7 @@ it walks the `MdNode` AST produced by the shared parser and emits a plain
 string. It never changes the parser or the terminal renderer.
 
 Key design choices:
+
 - Strikethrough and raw HTML are silently omitted (not spoken).
 - Lists use English ordinals ("First, Second, Third, Next") for ordered lists
   and comma/semicolon join for unordered, instead of bullet symbols.

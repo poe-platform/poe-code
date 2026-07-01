@@ -89,7 +89,9 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
     }
     case "list": {
       const items = node.children
-        .filter((child): child is Extract<MdNode, { type: "listItem" }> => child.type === "listItem")
+        .filter(
+          (child): child is Extract<MdNode, { type: "listItem" }> => child.type === "listItem"
+        )
         .map((child, index) => {
           const text = renderBlock(child, ctx).trim();
 
@@ -111,6 +113,37 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
 
       return text;
     }
+    case "table": {
+      const [headerRow, ...bodyRows] = node.children.filter(
+        (child): child is Extract<MdNode, { type: "tableRow" }> => child.type === "tableRow"
+      );
+
+      if (!headerRow) {
+        return "\n\n";
+      }
+
+      const headers = headerRow.children.map((cell) =>
+        cell.type === "tableCell" ? renderChildren(cell.children, ctx).trim() : ""
+      );
+
+      const sentences = bodyRows.flatMap((row) =>
+        row.children.flatMap((cell, index) => {
+          if (cell.type !== "tableCell") {
+            return [];
+          }
+
+          const header = headers[index]?.trim() ?? "";
+          const value = renderChildren(cell.children, ctx).trim();
+
+          return value === "" ? [] : `${header} is ${value}.`;
+        })
+      );
+
+      return `${sentences.join(" ")}\n\n`;
+    }
+    case "tableRow":
+    case "tableCell":
+      return "";
     case "code": {
       const prefix = ctx.announceCode ? "Code: " : "";
 
@@ -131,7 +164,9 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
 }
 
 function renderBlockChildren(nodes: MdNode[], ctx: PlaintextContext): string {
-  return nodes.map((node) => (isBlockNode(node) ? renderBlock(node, ctx) : renderInline(node, ctx))).join("");
+  return nodes
+    .map((node) => (isBlockNode(node) ? renderBlock(node, ctx) : renderInline(node, ctx)))
+    .join("");
 }
 
 function isBlockNode(node: MdNode): boolean {
@@ -144,6 +179,9 @@ function isBlockNode(node: MdNode): boolean {
     case "alert":
     case "list":
     case "listItem":
+    case "table":
+    case "tableRow":
+    case "tableCell":
     case "code":
     case "frontmatter":
       return true;

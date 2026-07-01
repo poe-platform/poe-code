@@ -170,7 +170,7 @@ function renderBlock(node: MdNode, ctx: PlaintextContext): string {
       }
 
       return `${Object.entries(node.data)
-        .map(([key, value]) => `${capitalize(key)}: ${String(value)}.`)
+        .map(([key, value]) => `${key}: ${String(value)}.`)
         .join(" ")}\n\n`;
     }
     case "footnoteDefinition":
@@ -263,10 +263,6 @@ function getOrderedListPrefix(index: number): string {
 
 function getUnorderedListSeparator(itemCount: number): string {
   return itemCount <= 3 ? ", " : "; ";
-}
-
-function capitalize(value: string): string {
-  return value.length === 0 ? value : `${value[0]?.toUpperCase()}${value.slice(1)}`;
 }
 
 function trimBlockSeparators(value: string): string {

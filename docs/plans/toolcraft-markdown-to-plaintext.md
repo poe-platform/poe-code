@@ -475,7 +475,7 @@ tasks:
       expect(result.trim()).not.toContain(forbidden).
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: tests-footnotes-frontmatter
     title: Tests — footnotes and frontmatter
@@ -527,8 +527,8 @@ tasks:
 
       Each test: .toBe / .toContain / .not.toContain.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: tests-edge-cases
     title: Tests — unicode, edge inputs, and option combinations

@@ -468,6 +468,73 @@ describe("block nodes", () => {
   });
 });
 
+describe("footnotes", () => {
+  it("renders a paragraph with one reference and one definition", () => {
+    const result = renderMarkdownPlaintext("See note[^1].\n\n[^1]: This is the note.");
+
+    expect(result).toContain("[1]");
+    expect(result).toContain("Note 1: This is the note.");
+  });
+
+  it("renders two references in order", () => {
+    const result = renderMarkdownPlaintext("A[^a] and B[^b].\n\n[^a]: Alpha.\n\n[^b]: Beta.");
+
+    expect(result).toContain("[1]");
+    expect(result).toContain("[2]");
+    expect(result).toContain("Note 1: Alpha.");
+    expect(result).toContain("Note 2: Beta.");
+  });
+
+  it("uses reference order to determine note number", () => {
+    const result = renderMarkdownPlaintext("B[^b] then A[^a].\n\n[^a]: Alpha.\n\n[^b]: Beta.");
+
+    expect(result).toContain("Note 1: Beta.");
+    expect(result).toContain("Note 2: Alpha.");
+  });
+
+  it("omits unused definitions", () => {
+    const result = renderMarkdownPlaintext("No refs here.\n\n[^unused]: Never referenced.");
+
+    expect(result).not.toContain("Note 1");
+    expect(result).not.toContain("Never referenced");
+  });
+});
+
+describe("frontmatter", () => {
+  it("omits frontmatter by default", () => {
+    const result = renderMarkdownPlaintext("---\ntitle: Hello\n---\nBody text.");
+
+    expect(result).not.toContain("title");
+    expect(result).toContain("Body text.");
+  });
+
+  it("includes frontmatter when requested", () => {
+    const result = renderMarkdownPlaintext("---\ntitle: Hello\n---\nBody.", {
+      includeFrontmatter: true
+    });
+
+    expect(result).toContain("title: Hello");
+  });
+
+  it("includes multiple keys", () => {
+    const result = renderMarkdownPlaintext("---\ntitle: T\ndate: 2025-01-01\n---\nBody.", {
+      includeFrontmatter: true
+    });
+
+    expect(result).toContain("title: T");
+    expect(result).toContain("date: 2025-01-01");
+  });
+
+  it("does not throw for array values", () => {
+    const render = () =>
+      renderMarkdownPlaintext("---\ntags:\n  - a\n  - b\n---\nBody.", {
+        includeFrontmatter: true
+      });
+
+    expect(render()).toContain("Body.");
+  });
+});
+
 describe("terminal markdown plaintext renderer", () => {
   it("matches parsed markdown rendering", () => {
     const markdown = "Hello **world**";

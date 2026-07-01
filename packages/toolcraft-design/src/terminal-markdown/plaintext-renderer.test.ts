@@ -336,6 +336,136 @@ describe("block nodes", () => {
       expect(result).not.toContain("---");
     });
   });
+
+  describe("lists", () => {
+    describe("unordered", () => {
+      it("- a", () => {
+        const result = renderMarkdownPlaintext("- a");
+
+        expect(result).toContain("a");
+      });
+
+      it("- a\\n- b", () => {
+        const result = renderMarkdownPlaintext("- a\n- b");
+
+        expect(result.trim()).toBe("a, b");
+      });
+
+      it("- a\\n- b\\n- c", () => {
+        const result = renderMarkdownPlaintext("- a\n- b\n- c");
+
+        expect(result.trim()).toBe("a, b, c");
+      });
+
+      it("- a\\n- b\\n- c\\n- d", () => {
+        const result = renderMarkdownPlaintext("- a\n- b\n- c\n- d");
+
+        expect(result.trim()).toBe("a; b; c; d");
+      });
+
+      it("five items", () => {
+        const result = renderMarkdownPlaintext("- a\n- b\n- c\n- d\n- e");
+
+        expect(result.trim()).toBe("a; b; c; d; e");
+      });
+    });
+
+    describe("ordered", () => {
+      it("1. a", () => {
+        const result = renderMarkdownPlaintext("1. a");
+
+        expect(result.trim()).toBe("First, a");
+      });
+
+      it("1. a\\n2. b", () => {
+        const result = renderMarkdownPlaintext("1. a\n2. b");
+
+        expect(result.trim()).toBe("First, a Second, b");
+      });
+
+      it("1. a\\n2. b\\n3. c", () => {
+        const result = renderMarkdownPlaintext("1. a\n2. b\n3. c");
+
+        expect(result.trim()).toBe("First, a Second, b Third, c");
+      });
+
+      it("1. a\\n2. b\\n3. c\\n4. d", () => {
+        const result = renderMarkdownPlaintext("1. a\n2. b\n3. c\n4. d");
+
+        expect(result.trim()).toBe("First, a Second, b Third, c Next, d");
+      });
+
+      it("ten items", () => {
+        const result = renderMarkdownPlaintext(
+          "1. a\n2. b\n3. c\n4. d\n5. e\n6. f\n7. g\n8. h\n9. i\n10. j"
+        );
+
+        expect(result.trim()).toBe(
+          "First, a Second, b Third, c Next, d Next, e Next, f Next, g Next, h Next, i Next, j"
+        );
+      });
+    });
+
+    describe("task lists", () => {
+      it("- [ ] todo item", () => {
+        const result = renderMarkdownPlaintext("- [ ] todo item");
+
+        expect(result).toContain("to do: todo item");
+      });
+
+      it("- [x] done item", () => {
+        const result = renderMarkdownPlaintext("- [x] done item");
+
+        expect(result).toContain("done: done item");
+      });
+
+      it("- [x] done\\n- [ ] todo", () => {
+        const result = renderMarkdownPlaintext("- [x] done\n- [ ] todo");
+
+        expect(result).toContain("done: done");
+        expect(result).toContain("to do: todo");
+      });
+
+      it("- [ ] a\\n- [x] b\\n- [ ] c", () => {
+        const result = renderMarkdownPlaintext("- [ ] a\n- [x] b\n- [ ] c");
+
+        expect(result).toContain("to do: a");
+        expect(result).toContain("done: b");
+      });
+    });
+
+    describe("nested lists", () => {
+      it("unordered list with unordered sub-list", () => {
+        const result = renderMarkdownPlaintext("- parent\n  - child a\n  - child b");
+
+        expect(result).toContain("parent");
+        expect(result).toContain("child a");
+        expect(result).toContain("child b");
+        expect(result).not.toContain("-");
+        expect(result).not.toContain("*");
+        expect(result).not.toContain("•");
+        expect(result).not.toContain("·");
+      });
+
+      it("ordered list with unordered sub-list", () => {
+        const result = renderMarkdownPlaintext("1. first\n   - x\n   - y\n2. second");
+
+        expect(result).toContain("First, first");
+        expect(result).toContain("x");
+        expect(result).toContain("Second, second");
+      });
+    });
+
+    describe("list items with paragraph children", () => {
+      it("- \\n  multi\\n  line\\n  item", () => {
+        const result = renderMarkdownPlaintext("- \n  multi\n  line\n  item");
+
+        expect(result).toContain("multi");
+        expect(result).toContain("line");
+        expect(result).toContain("item");
+      });
+    });
+  });
 });
 
 describe("terminal markdown plaintext renderer", () => {

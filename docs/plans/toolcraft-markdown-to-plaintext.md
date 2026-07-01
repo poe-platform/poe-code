@@ -384,7 +384,7 @@ tasks:
       Trim output before asserting when checking "starts with".
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: tests-lists
     title: Tests — list rendering (ordered, unordered, task lists, nested)
@@ -428,8 +428,8 @@ tasks:
 
       Each test: expect(result.trim()).toBe(expected) or .toContain/.not.toContain.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: tests-tables
     title: Tests — table rendering

@@ -15,6 +15,7 @@ import {
   resolveScreenshotTarget,
   resolveScreenshotTimeoutMs,
   runScreenshot,
+  shouldUsePtyScreenshot,
   usePtyScreenshot
 } from "./screenshot.js";
 
@@ -135,6 +136,24 @@ describe("usePtyScreenshot", () => {
     expect(usePtyScreenshot({})).toBe(false);
     expect(usePtyScreenshot({ POE_SCREENSHOT_PTY: "0" })).toBe(false);
     expect(usePtyScreenshot({ POE_SCREENSHOT_PTY: "1" })).toBe(true);
+  });
+});
+
+describe("shouldUsePtyScreenshot", () => {
+  it("uses PTY capture for interactive poe-code screenshots", () => {
+    expect(shouldUsePtyScreenshot(resolveScreenshotTarget(["--poe-code", "traces"]), {})).toBe(true);
+  });
+
+  it("keeps non-interactive poe-code screenshots on transcript capture", () => {
+    expect(shouldUsePtyScreenshot(resolveScreenshotTarget(["--poe-code", "traces", "--yes"]), {}))
+      .toBe(false);
+    expect(shouldUsePtyScreenshot(resolveScreenshotTarget(["--poe-code", "traces", "--help"]), {}))
+      .toBe(false);
+  });
+
+  it("honors the explicit PTY environment override", () => {
+    expect(shouldUsePtyScreenshot(resolveScreenshotTarget(["echo", "hello"]), { POE_SCREENSHOT_PTY: "1" }))
+      .toBe(true);
   });
 });
 

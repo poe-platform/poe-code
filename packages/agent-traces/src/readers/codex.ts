@@ -6,6 +6,7 @@ import type {
   NormalizedTraceTurn,
   SqliteTraceDatabase,
   SqliteTraceDatabaseFactory,
+  TraceUsage,
   TraceReader,
   TraceReference
 } from "../types.js";
@@ -22,6 +23,16 @@ interface CodexThreadRow {
   cwd?: string;
   title?: string;
   first_user_message?: string;
+}
+
+interface RolloutReadResult {
+  turns: NormalizedTraceTurn[];
+  usage?: TraceUsage;
+  contextWindow?: number;
+}
+
+interface CodexRolloutState {
+  toolNamesByCallId: Map<string, string>;
 }
 
 function isMissingFile(error: unknown): boolean {
@@ -137,13 +148,214 @@ function textFromUserMessage(payload: Record<string, unknown>): string {
   return textFromContent(payload.message);
 }
 
-function turnFromRolloutRecord(record: Record<string, unknown>): NormalizedTraceTurn | undefined {
-  const payload = asRecord(record.payload);
-  if (!payload || typeof payload.type !== "string") {
+function textFromAgentMessage(payload: Record<string, unknown>): string {
+  if (typeof payload.message === "string") {
+    return payload.message.trim();
+  }
+  if (typeof payload.text === "string") {
+    return payload.text.trim();
+  }
+  const content = textFromContent(payload.content);
+  if (content.length > 0) {
+    return content;
+  }
+  return textFromContent(payload.message);
+}
+
+function textFromReasoning(payload: Record<string, unknown>): string {
+  if (typeof payload.text === "string") {
+    return payload.text.trim();
+  }
+  const content = textFromContent(payload.content);
+  if (content.length > 0) {
+    return content;
+  }
+  return textFromContent(payload.summary);
+}
+
+function textFromBaseInstructions(payload: Record<string, unknown>): string {
+  const baseInstructions = asRecord(payload.base_instructions);
+  return typeof baseInstructions?.text === "string" ? baseInstructions.text : "";
+}
+
+function stringifyJson(value: unknown): string {
+  const text = JSON.stringify(value);
+  return typeof text === "string" ? text : "";
+}
+
+function callIdFromPayload(payload: Record<string, unknown>): string | undefined {
+  if (typeof payload.call_id === "string" && payload.call_id.length > 0) {
+    return payload.call_id;
+  }
+  return typeof payload.id === "string" && payload.id.length > 0 ? payload.id : undefined;
+}
+
+function callArgumentText(payload: Record<string, unknown>): string {
+  if (typeof payload.arguments === "string") {
+    return payload.arguments;
+  }
+  return "arguments" in payload ? stringifyJson(payload.arguments) : "";
+}
+
+function callOutputText(payload: Record<string, unknown>): string {
+  return typeof payload.output === "string" ? payload.output : "";
+}
+
+function rememberToolName(payload: Record<string, unknown>, state: CodexRolloutState): void {
+  if (typeof payload.name !== "string") {
+    return;
+  }
+  const callId = callIdFromPayload(payload);
+  if (callId) {
+    state.toolNamesByCallId.set(callId, payload.name);
+  }
+  if (
+    typeof payload.id === "string" &&
+    typeof payload.call_id === "string" &&
+    payload.id !== payload.call_id
+  ) {
+    state.toolNamesByCallId.set(payload.id, payload.name);
+  }
+}
+
+function contentTextsFromMcpResult(result: unknown): string {
+  const resultRecord = asRecord(result);
+  const ok = asRecord(resultRecord?.Ok);
+  return textFromContent(ok?.content);
+}
+
+function mcpToolCallEndTurn(
+  payload: Record<string, unknown>,
+  timestamp: Date | undefined
+): NormalizedTraceTurn | undefined {
+  const invocation = asRecord(payload.invocation);
+  if (!invocation) {
     return undefined;
   }
-  const timestamp = parseDate(record.timestamp);
-  if (payload.type === "user_message") {
+  const toolName = typeof invocation.tool === "string" ? invocation.tool : undefined;
+  const mcpServer = typeof invocation.server === "string" ? invocation.server : undefined;
+  const argumentText = "arguments" in invocation ? stringifyJson(invocation.arguments) : "";
+  const resultText = contentTextsFromMcpResult(payload.result);
+  const text = [argumentText, resultText]
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+    .join("\n");
+
+  if (text.length === 0) {
+    return undefined;
+  }
+
+  return {
+    role: "tool",
+    text,
+    ...(timestamp ? { timestamp } : {}),
+    sourceKind: "tool_result",
+    ...(toolName ? { toolName } : {}),
+    ...(mcpServer ? { mcpServer } : {})
+  };
+}
+
+function tokenCount(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+function usageFromTokenCountPayload(payload: Record<string, unknown>): {
+  usage: TraceUsage;
+  contextWindow?: number;
+} {
+  const info = asRecord(payload.info);
+  const lastTokenUsage = asRecord(info?.last_token_usage);
+  const inputTokens = tokenCount(lastTokenUsage?.input_tokens) ?? 0;
+  const outputTokens = tokenCount(lastTokenUsage?.output_tokens) ?? 0;
+  const cachedTokens = tokenCount(lastTokenUsage?.cached_input_tokens);
+  const contextWindow = tokenCount(info?.model_context_window);
+
+  return {
+    usage: {
+      source: "reported",
+      inputTokens,
+      outputTokens,
+      ...(cachedTokens !== undefined ? { cachedTokens } : {}),
+      contextTokens: tokenCount(lastTokenUsage?.total_tokens) ?? 0
+    },
+    ...(contextWindow !== undefined ? { contextWindow } : {})
+  };
+}
+
+function turnFromRolloutRecord(
+  record: Record<string, unknown>,
+  state: CodexRolloutState
+): NormalizedTraceTurn | undefined {
+  const payload = asRecord(record.payload);
+  if (!payload) {
+    return undefined;
+  }
+  const payloadType =
+    typeof payload.type === "string"
+      ? payload.type
+      : typeof record.type === "string"
+        ? record.type
+        : undefined;
+  const timestamp = parseDate(record.timestamp) ?? parseDate(payload.timestamp);
+  if (payloadType === "session_meta") {
+    const text = textFromBaseInstructions(payload);
+    return text.length === 0
+      ? undefined
+      : {
+          role: "system",
+          text,
+          ...(timestamp ? { timestamp } : {}),
+          sourceKind: "base_instructions"
+        };
+  }
+  if (payloadType === "reasoning") {
+    const text = textFromReasoning(payload);
+    return text.length === 0
+      ? undefined
+      : {
+          role: "assistant",
+          text,
+          ...(timestamp ? { timestamp } : {}),
+          sourceKind: "reasoning"
+        };
+  }
+  if (payloadType === "agent_message") {
+    const text = textFromAgentMessage(payload);
+    return text.length === 0
+      ? undefined
+      : {
+          role: "assistant",
+          text,
+          ...(timestamp ? { timestamp } : {}),
+          sourceKind: "agent_message"
+        };
+  }
+  if (payloadType === "function_call" || payloadType === "custom_tool_call") {
+    rememberToolName(payload, state);
+    const toolName = typeof payload.name === "string" ? payload.name : undefined;
+    return {
+      role: "tool",
+      text: callArgumentText(payload),
+      ...(timestamp ? { timestamp } : {}),
+      sourceKind: "tool_use",
+      ...(toolName ? { toolName } : {})
+    };
+  }
+  if (payloadType === "function_call_output" || payloadType === "custom_tool_call_output") {
+    const callId = callIdFromPayload(payload);
+    const toolName = callId ? state.toolNamesByCallId.get(callId) : undefined;
+    return {
+      role: "tool",
+      text: callOutputText(payload),
+      ...(timestamp ? { timestamp } : {}),
+      sourceKind: "tool_result",
+      ...(toolName ? { toolName } : {})
+    };
+  }
+  if (payloadType === "mcp_tool_call_end") {
+    return mcpToolCallEndTurn(payload, timestamp);
+  }
+  if (payloadType === "user_message") {
     const text = textFromUserMessage(payload);
     return text.length === 0
       ? undefined
@@ -154,7 +366,7 @@ function turnFromRolloutRecord(record: Record<string, unknown>): NormalizedTrace
           sourceKind: "user_message"
         };
   }
-  if (payload.type === "message") {
+  if (payloadType === "message") {
     const text = textFromContent(payload.content);
     if (text.length === 0) {
       return undefined;
@@ -171,16 +383,35 @@ function turnFromRolloutRecord(record: Record<string, unknown>): NormalizedTrace
   return undefined;
 }
 
-async function readRollout(
-  filePath: string,
-  fs: AgentTraceFileSystem
-): Promise<NormalizedTraceTurn[]> {
+async function readRollout(filePath: string, fs: AgentTraceFileSystem): Promise<RolloutReadResult> {
   const content = await fs.readFile(filePath, "utf8");
-  return parseJsonLines(content)
+  const records = parseJsonLines(content)
     .map(asRecord)
-    .filter((record): record is Record<string, unknown> => record !== undefined)
-    .map(turnFromRolloutRecord)
-    .filter((turn): turn is NormalizedTraceTurn => turn !== undefined);
+    .filter((record): record is Record<string, unknown> => record !== undefined);
+  const turns: NormalizedTraceTurn[] = [];
+  let tokenCountPayload: { usage: TraceUsage; contextWindow?: number } | undefined;
+  const state: CodexRolloutState = {
+    toolNamesByCallId: new Map()
+  };
+
+  for (const record of records) {
+    const payload = asRecord(record.payload);
+    if (payload?.type === "token_count") {
+      tokenCountPayload = usageFromTokenCountPayload(payload);
+    }
+    const turn = turnFromRolloutRecord(record, state);
+    if (turn) {
+      turns.push(turn);
+    }
+  }
+
+  return {
+    turns,
+    ...(tokenCountPayload?.usage ? { usage: tokenCountPayload.usage } : {}),
+    ...(tokenCountPayload?.contextWindow !== undefined
+      ? { contextWindow: tokenCountPayload.contextWindow }
+      : {})
+  };
 }
 
 function referenceFromRow(row: CodexThreadRow): TraceReference {
@@ -273,10 +504,16 @@ export const codexTraceReader: TraceReader = {
   async read(reference, options): Promise<NormalizedTrace> {
     const createdAt = reference.metadata?.createdAt;
     const updatedAt = reference.metadata?.updatedAt;
+    const model = reference.metadata?.model;
     let turns: NormalizedTraceTurn[] = [];
+    let usage: TraceUsage | undefined;
+    let contextWindow: number | undefined;
     if (reference.path) {
       try {
-        turns = await readRollout(reference.path, options.fs);
+        const rollout = await readRollout(reference.path, options.fs);
+        turns = rollout.turns;
+        usage = rollout.usage;
+        contextWindow = rollout.contextWindow;
       } catch (error) {
         if (!isMissingFile(error)) {
           throw error;
@@ -296,6 +533,9 @@ export const codexTraceReader: TraceReader = {
       ...(reference.path ? { path: reference.path } : {}),
       ...(reference.cwd ? { cwd: reference.cwd } : {}),
       ...(reference.title ? { title: reference.title } : {}),
+      ...(typeof model === "string" ? { model } : {}),
+      ...(contextWindow !== undefined ? { contextWindow } : {}),
+      ...(usage ? { usage } : {}),
       ...(createdAt instanceof Date ? { createdAt } : {}),
       ...(updatedAt instanceof Date
         ? { updatedAt }

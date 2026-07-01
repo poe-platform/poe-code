@@ -1,4 +1,4 @@
-export type AgentTraceSource = "claude" | "codex";
+export type AgentTraceSource = "claude" | "codex" | "poe-code";
 
 export interface AgentTraceFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
@@ -33,6 +33,8 @@ export interface TraceReference {
   cwd?: string;
   updatedAt?: Date;
   title?: string;
+  agentType?: string;
+  spawnDepth?: number;
   metadata?: Record<string, unknown>;
 }
 
@@ -42,9 +44,22 @@ export interface NormalizedTrace {
   path?: string;
   cwd?: string;
   title?: string;
+  model?: string;
+  contextWindow?: number;
+  usage?: TraceUsage;
   createdAt?: Date;
   updatedAt?: Date;
+  children?: TraceReference[];
   turns: NormalizedTraceTurn[];
+}
+
+export interface TraceUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens?: number;
+  cacheCreationTokens?: number;
+  contextTokens: number;
+  source: "reported";
 }
 
 export interface NormalizedTraceTurn {
@@ -53,6 +68,9 @@ export interface NormalizedTraceTurn {
   text: string;
   timestamp?: Date;
   sourceKind?: string;
+  toolName?: string;
+  mcpServer?: string;
+  skillName?: string;
 }
 
 export interface HumanPromptRecord {

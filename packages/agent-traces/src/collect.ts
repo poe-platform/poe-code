@@ -9,7 +9,7 @@ import type {
   TraceReader
 } from "./types.js";
 
-const DEFAULT_SOURCES: AgentTraceSource[] = ["claude", "codex"];
+const DEFAULT_SOURCES: AgentTraceSource[] = traceReaders.map((reader) => reader.id);
 
 function compareRecordsNewestFirst(first: HumanPromptRecord, second: HumanPromptRecord): number {
   const firstTime = first.timestamp ? new Date(first.timestamp).getTime() : 0;

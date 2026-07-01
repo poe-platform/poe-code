@@ -242,6 +242,19 @@ export function usePtyScreenshot(env: NodeJS.ProcessEnv): boolean {
   return env.POE_SCREENSHOT_PTY === "1";
 }
 
+export function shouldUsePtyScreenshot(
+  target: ScreenshotTarget,
+  env: NodeJS.ProcessEnv
+): boolean {
+  if (usePtyScreenshot(env)) {
+    return true;
+  }
+  if (!target.forceTty) {
+    return false;
+  }
+  return !target.displayArgs.includes("--yes") && !target.displayArgs.includes("--help");
+}
+
 function decodeScreenshotKeyToken(token: string): string[] {
   if (token.length === 0) {
     return [];
@@ -390,13 +403,17 @@ export async function runScreenshot(
     }
   }
 
-  if (usePtyScreenshot(process.env)) {
+  const usePty = shouldUsePtyScreenshot(target, process.env);
+  if (usePty) {
     await runPtyScreenshot({
       target,
       spawnSpec,
       outputPath,
       options,
-      screenshotKeys
+      screenshotKeys,
+      captureDelayMs: usePtyScreenshot(process.env)
+        ? undefined
+        : resolvePositiveInteger(process.env.POE_SCREENSHOT_CAPTURE_DELAY_MS, 7000)
     });
     return;
   }
@@ -468,6 +485,7 @@ async function runPtyScreenshot(opts: {
   outputPath: string;
   options: ScreenshotOptions;
   screenshotKeys: readonly string[];
+  captureDelayMs?: number;
 }): Promise<void> {
   const { TerminalPilot } = await import("terminal-pilot");
   const pilot = await (TerminalPilot as { launch(): Promise<PseudoTerminalPilot> }).launch();
@@ -488,7 +506,11 @@ async function runPtyScreenshot(opts: {
 
     const cancelInput = schedulePtyScreenshotKeys(session, opts.screenshotKeys, process.env);
     try {
-      commandCode = await session.waitForExit({ timeout: timeoutMs });
+      if (opts.captureDelayMs !== undefined) {
+        await sleep(opts.captureDelayMs);
+      } else {
+        commandCode = await session.waitForExit({ timeout: timeoutMs });
+      }
     } catch {
       timedOut = true;
       commandCode = session.exitCode ?? 1;
@@ -520,6 +542,12 @@ async function runPtyScreenshot(opts: {
     const label = [opts.target.command, ...opts.target.args].join(" ");
     process.stderr.write(`${label} exited with code ${commandCode} — screenshot saved\n`);
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function resolvePtySize(env: NodeJS.ProcessEnv): { cols: number; rows: number } {

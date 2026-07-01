@@ -4,7 +4,12 @@ export {
   collectHumanPromptsWithStats
 } from "./collect.js";
 export { writeHumanPromptJsonl } from "./jsonl.js";
-export { claudeTraceReader, codexTraceReader, traceReaders } from "./readers/index.js";
+export {
+  claudeTraceReader,
+  codexTraceReader,
+  poeCodeTraceReader,
+  traceReaders
+} from "./readers/index.js";
 export type {
   AgentTraceFileSystem,
   AgentTraceSource,
@@ -18,5 +23,6 @@ export type {
   TraceDiscoverOptions,
   TraceReadOptions,
   TraceReader,
-  TraceReference
+  TraceReference,
+  TraceUsage
 } from "./types.js";

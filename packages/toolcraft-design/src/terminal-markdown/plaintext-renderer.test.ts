@@ -141,6 +141,135 @@ describe("inline nodes", () => {
   });
 });
 
+describe("unicode and special chars", () => {
+  it("preserves emoji", () => {
+    const result = renderMarkdownPlaintext("Hello 🎉 world");
+
+    expect(result).toContain("🎉");
+  });
+
+  it("preserves Arabic text", () => {
+    const result = renderMarkdownPlaintext("مرحبا");
+
+    expect(result).toContain("مرحبا");
+  });
+
+  it("preserves CJK text", () => {
+    const result = renderMarkdownPlaintext("你好世界");
+
+    expect(result).toContain("你好世界");
+  });
+
+  it("preserves em dash", () => {
+    const result = renderMarkdownPlaintext("foo—bar");
+
+    expect(result).toContain("—");
+  });
+
+  it("preserves en dash", () => {
+    const result = renderMarkdownPlaintext("foo–bar");
+
+    expect(result).toContain("–");
+  });
+
+  it("renders null byte input as a string", () => {
+    const result = renderMarkdownPlaintext("\0zero");
+
+    expect(typeof result).toBe("string");
+  });
+
+  it("strips ANSI escape sequences from source text", () => {
+    const result = renderMarkdownPlaintext("\u001b[31mred\u001b[0m");
+
+    expect(result).not.toContain("\u001b");
+  });
+});
+
+describe("edge inputs", () => {
+  it("renders an empty string as empty", () => {
+    const result = renderMarkdownPlaintext("");
+
+    expect(result).toBe("");
+  });
+
+  it("renders whitespace only without crashing", () => {
+    const result = renderMarkdownPlaintext("   ");
+
+    expect(result.trim()).toBe("");
+  });
+
+  it("renders only thematic break without markdown markers", () => {
+    const result = renderMarkdownPlaintext("---");
+
+    expect(result.trim()).toBe("");
+    expect(result).not.toContain("-");
+  });
+
+  it("renders deeply nested mixed markers without crashing", () => {
+    const result = renderMarkdownPlaintext("- > - > text");
+
+    expect(result).toContain("text");
+  });
+
+  it("renders unclosed bold input as a string", () => {
+    const result = renderMarkdownPlaintext("**unclosed");
+
+    expect(typeof result).toBe("string");
+  });
+
+  it("renders broken link text best-effort", () => {
+    const result = renderMarkdownPlaintext("[text]()");
+
+    expect(result).toContain("text");
+  });
+
+  it("renders a very long line without truncation", () => {
+    const result = renderMarkdownPlaintext("a".repeat(10001));
+
+    expect(result.length >= 10001).toBe(true);
+  });
+
+  it("renders image-only document as alt text", () => {
+    const result = renderMarkdownPlaintext("![a dog](dog.png)");
+
+    expect(result.trim()).toBe("a dog");
+  });
+});
+
+describe("option combinations", () => {
+  const markdown =
+    "# Title\n\n**bold** and *italic* and ~~strike~~\n\n" +
+    "- item a\n- item b\n\n" +
+    "[link text](https://example.com)\n\n" +
+    "```js\nconst x = 1;\n```\n\n" +
+    "| H1 | H2 |\n|----|----|\n| v1 | v2 |\n\n" +
+    "> [!WARNING]\n> watch out\n";
+
+  it("renders defaults without markdown syntax artifacts", () => {
+    const result = renderMarkdownPlaintext(markdown);
+
+    expect(result).not.toContain("#");
+    expect(result).not.toContain("*");
+    expect(result).not.toContain("`");
+    expect(result).not.toContain("~~");
+    expect(result).not.toContain(">");
+    expect(result).not.toContain("|");
+    expect(result).not.toContain("[");
+  });
+
+  it("expands links while suppressing heading and code announcements", () => {
+    const result = renderMarkdownPlaintext(markdown, {
+      expandLinks: true,
+      announceHeadings: false,
+      announceCode: false
+    });
+
+    expect(result).toContain("https://example.com");
+    expect(result.startsWith("Section:")).toBe(false);
+    expect(result).not.toContain("Code: ");
+  });
+});
+
 describe("block nodes", () => {
   describe("headings", () => {
     it("# Title with default options", () => {

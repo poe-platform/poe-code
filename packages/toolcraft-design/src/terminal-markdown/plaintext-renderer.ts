@@ -1,4 +1,5 @@
 import type { MdNode } from "./ast.js";
+import { stripAnsi } from "../internal/strip-ansi.js";
 import { parse } from "./parser.js";
 
 export interface PlaintextRenderOptions {
@@ -24,14 +25,14 @@ interface PlaintextContext {
 function renderInline(node: MdNode, ctx: PlaintextContext): string {
   switch (node.type) {
     case "text":
-      return node.value;
+      return stripAnsi(node.value);
     case "emphasis":
     case "strong":
       return renderChildren(node.children, ctx);
     case "strikethrough":
       return "";
     case "inlineCode":
-      return node.value;
+      return stripAnsi(node.value);
     case "break":
       return " ";
     case "html":
@@ -40,7 +41,7 @@ function renderInline(node: MdNode, ctx: PlaintextContext): string {
       const childText = renderChildren(node.children, ctx) || node.url;
 
       if (ctx.expandLinks) {
-        return `${childText} ${node.url}`;
+        return `${childText} ${stripAnsi(node.url)}`;
       }
 
       if (ctx.showLinks) {
@@ -50,7 +51,7 @@ function renderInline(node: MdNode, ctx: PlaintextContext): string {
       return childText;
     }
     case "image":
-      return node.alt;
+      return stripAnsi(node.alt);
     case "footnoteReference": {
       if (!ctx.footnoteOrder.includes(node.label)) {
         ctx.footnoteOrder.push(node.label);

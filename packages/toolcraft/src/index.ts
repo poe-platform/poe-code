@@ -1034,6 +1034,24 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
   ];
 }
 
+export function hasMcpProxyConfig(group: Group<any>): boolean {
+  const configSymbol = Object.getOwnPropertySymbols(group).find(
+    (candidate) => candidate.description === groupConfigSymbol.description
+  );
+  const config =
+    configSymbol === undefined
+      ? undefined
+      : (group as unknown as Record<PropertyKey, InternalGroupConfig<any>>)[configSymbol];
+  if (config?.mcp !== undefined) {
+    return true;
+  }
+
+  const children = config?.children ?? group.children;
+  return children.some(
+    (child) => child.kind === "group" && hasMcpProxyConfig(child)
+  );
+}
+
 export { S, toJsonSchema } from "toolcraft-schema";
 export {
   AuthenticationError,

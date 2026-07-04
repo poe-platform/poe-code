@@ -6,8 +6,8 @@ import { CommanderError } from "commander";
 import type { AnySchema } from "toolcraft-schema";
 import type { Command, SecretDeclarations } from "./index.js";
 import { ApprovalDeclinedError } from "./human-in-loop/types.js";
-import { findProjectRoot } from "./mcp-proxy.js";
 import { findPackageMetadata } from "./package-metadata.js";
+import { findProjectRoot } from "./project-root.js";
 import { isSensitiveName, redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
 import { UserError } from "./user-error.js";
 

@@ -1,3 +1,4 @@
+import "./node-require-shim.js";
 import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -50,14 +51,12 @@ import {
   UserError,
   assertCommandRequirements,
   getCommandSourcePath,
+  hasMcpProxyConfig,
   resolveCommandSecrets
 } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
-import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
-import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
-import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
-import { resolveMcpProxies } from "./mcp-proxy.js";
+import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/types.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
@@ -88,6 +87,15 @@ const RESERVED_SERVICE_NAMES = new Set([
 const RESERVED_SERVICE_NAMES_MESSAGE =
   "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
 const NULL_OPTION_VALUE = Symbol("toolcraft.cli.null");
+const optionalModulePaths = {
+  approvals: "./human-in-loop/approvals-commands.js",
+  humanInLoop: "./human-in-loop/gate.js",
+  mcpProxy: "./mcp-proxy.js"
+} as const;
+
+function importOptionalModule<T>(specifier: string): Promise<T> {
+  return import(specifier) as Promise<T>;
+}
 
 type Casing = "kebab" | "snake";
 type ScalarSchema = Extract<AnySchema, { kind: "string" | "number" | "boolean" | "enum" }>;
@@ -4510,12 +4518,13 @@ async function executeCommand<TServices extends object>(
         }
       }
 
-      const result = await invokeWithHumanInLoop(
-        state.command,
-        context,
-        runtimeOptions,
-        state.commandPath
-      );
+      const result = state.command.humanInLoop
+        ? await (
+            await importOptionalModule<typeof import("./human-in-loop/gate.js")>(
+              optionalModulePaths.humanInLoop
+            )
+          ).invokeWithHumanInLoop(state.command, context, runtimeOptions, state.commandPath)
+        : await state.command.handler(context);
 
       if (output === "rich" && runtime.isFixture) {
         writeRichHeader(`${state.command.name} (fixture)`);
@@ -5349,8 +5358,19 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   try {
     const normalizedRoot = normalizeRoots(roots, argv);
-    const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
-    await resolveMcpProxies(root, { projectRoot: options.projectRoot });
+    const root =
+      options.approvals === true
+        ? (
+            await importOptionalModule<typeof import("./human-in-loop/approvals-commands.js")>(
+              optionalModulePaths.approvals
+            )
+          ).mergeApprovalsGroup(normalizedRoot)
+        : normalizedRoot;
+    if (hasMcpProxyConfig(root)) {
+      await (
+        await importOptionalModule<typeof import("./mcp-proxy.js")>(optionalModulePaths.mcpProxy)
+      ).resolveMcpProxies(root, { projectRoot: options.projectRoot });
+    }
     const casing = options.casing ?? "kebab";
     const services = (options.services ?? {}) as TServices;
     const runtimeOptions = options.humanInLoop ?? {};

@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
@@ -9,7 +8,10 @@ import type { Tool } from "tiny-mcp-client";
 import type { Command, Group, Scope } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { convertJsonSchema } from "./json-schema-converter.js";
+import { findProjectRoot } from "./project-root.js";
 import type { ObjectSchema } from "toolcraft-schema";
+
+export { findProjectRoot } from "./project-root.js";
 
 const GROUP_CONFIG_SYMBOL_DESCRIPTION = "toolcraft.group.config";
 const MCP_PROXY_SCHEMA_URL =
@@ -556,27 +558,6 @@ function collectProxyGroups(root: Group<any>): Group<any>[] {
 
 export function hasMcpProxyGroups(root: Group<any>): boolean {
   return collectProxyGroups(root).length > 0;
-}
-
-export function findProjectRoot(from: string = process.cwd()): string | undefined {
-  let current = process.cwd();
-  if (from !== current) {
-    current = path.resolve(from);
-  }
-
-  while (true) {
-    if (existsSync(path.join(current, "package.json"))) {
-      return current;
-    }
-
-    const parent = path.dirname(current);
-
-    if (parent === current) {
-      return undefined;
-    }
-
-    current = parent;
-  }
 }
 
 export function resolveCachePath(name: string, projectRoot?: string): string {

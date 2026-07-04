@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
+          registry-url: https://registry.npmjs.org
       - name: Upgrade npm for trusted publishing
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
@@ -56,6 +57,8 @@ jobs:
           npm publish --provenance --access public
       - name: Publish terminal-png-mcp
         working-directory: packages/terminal-png-mcp
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if npm view "terminal-png-mcp@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
             echo "terminal-png-mcp@${{ steps.version.outputs.next }} is already published"

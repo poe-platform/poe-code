@@ -13,6 +13,11 @@ const params = S.Object({
   timeout: S.Optional(
     S.Number({ short: "t", description: "Maximum wait time in milliseconds", minimum: 0 })
   ),
+  scope: S.Optional(
+    S.Enum(["history", "screen"], {
+      description: "Search all captured output or only the current visible screen"
+    })
+  ),
   literal: S.Optional(
     S.Boolean({
       short: "l",
@@ -44,10 +49,14 @@ export const waitFor = defineCommand<
       env
     );
     const pattern = params.literal === true ? params.pattern : new RegExp(params.pattern);
-    const line =
-      params.timeout === undefined
-        ? await namedSession.session.waitFor(pattern)
-        : await namedSession.session.waitFor(pattern, { timeout: params.timeout });
+    const options =
+      params.timeout === undefined && params.scope === undefined
+        ? undefined
+        : {
+            ...(params.timeout === undefined ? {} : { timeout: params.timeout }),
+            ...(params.scope === undefined ? {} : { scope: params.scope })
+          };
+    const line = await namedSession.session.waitFor(pattern, options);
 
     return { matched: true, line };
   }

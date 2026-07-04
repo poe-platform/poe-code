@@ -196,6 +196,24 @@ describe("TerminalSession spawn helper setup", () => {
     await waiting;
   });
 
+  it("waits for a pattern on the current screen without matching prior output", async () => {
+    vi.useFakeTimers();
+    const pty = createPtyMock();
+    spawnMock.mockReturnValue(pty);
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+
+    pty.emitData("Agent traces");
+    pty.emitData("\x1b[2J\x1b[HLoading");
+
+    const waiting = session.waitFor("Agent traces", { scope: "screen", timeout: 1000 });
+    await vi.advanceTimersByTimeAsync(100);
+    pty.emitData("\x1b[HAgent traces");
+    await vi.advanceTimersByTimeAsync(100);
+
+    await expect(waiting).resolves.toBe("Agent traces");
+  });
+
   it.each([Number.NaN, Number.POSITIVE_INFINITY, -1])(
     "rejects invalid waitForExit timeout %s",
     async (timeout) => {

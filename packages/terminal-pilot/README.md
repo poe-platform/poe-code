@@ -168,7 +168,10 @@ class TerminalSession {
   press(key: TerminalKey): Promise<void>;
   send(raw: string): Promise<void>; // raw bytes / escape sequences
   signal(signal: string): Promise<void>;
-  waitFor(pattern: string | RegExp, options?: WaitForOptions): Promise<string>;
+  waitFor(
+    pattern: string | RegExp,
+    options?: { timeout?: number; scope?: "history" | "screen" }
+  ): Promise<string>;
   waitForExit(options?: { timeout?: number }): Promise<number>; // throws on timeout
   waitForQuiet(ms: number): Promise<void>;
   screen(): Promise<TerminalScreen>;
@@ -248,6 +251,15 @@ Typical fixture workflow:
 3. `type(...)`, `fill(...)`, `press(...)`, or `signal(...)`
 4. Assert with `screen()` or `history()`
 5. `close()` the session
+
+`waitFor(...)` searches captured output history by default. Use
+`waitFor(pattern, { scope: "screen" })` when command echoes or previous output could match before
+the expected interactive screen is visible.
+
+When launching an interactive program through `npm run`, npm can buffer printable raw keys such as
+`q` until `Enter` is pressed. Prefer launching the underlying executable directly for raw-key tests.
+If the npm wrapper is part of the behavior under test, use `Control+c` for teardown and treat
+printable-key delivery as npm-wrapper behavior rather than application behavior.
 
 Example fixture-based test:
 

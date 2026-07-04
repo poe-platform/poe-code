@@ -11,7 +11,7 @@ import {
   type TerminalPilotRuntime
 } from "./runtime.js";
 import type { TerminalKey } from "../keys.js";
-import type { TerminalSession } from "../terminal-session.js";
+import type { TerminalSession, WaitForOptions } from "../terminal-session.js";
 
 const RUNTIME_DIR_ENV = "TERMINAL_PILOT_RUNTIME_DIR";
 const DAEMON_ARG = "__daemon";
@@ -167,7 +167,7 @@ export function createDaemonTerminalPilotRuntime(): TerminalPilotRuntime {
       signal: async (signal: string) => {
         await request("sessionAction", { name, action: "signal", args: [signal] });
       },
-      waitFor: async (pattern: string | RegExp, options?: { timeout?: number }) =>
+      waitFor: async (pattern: string | RegExp, options?: WaitForOptions) =>
         request("sessionAction", {
           name,
           action: "waitFor",

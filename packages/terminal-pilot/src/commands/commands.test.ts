@@ -668,7 +668,8 @@ describe("terminal-pilot commands", () => {
         params: {
           session: "tests",
           pattern: "Select.*agent",
-          timeout: 5000
+          timeout: 5000,
+          scope: "screen"
         }
       })
     ).resolves.toEqual({
@@ -676,7 +677,10 @@ describe("terminal-pilot commands", () => {
       line: "Select an agent"
     });
 
-    expect(session.waitFor).toHaveBeenCalledWith(expect.any(RegExp), { timeout: 5000 });
+    expect(session.waitFor).toHaveBeenCalledWith(expect.any(RegExp), {
+      timeout: 5000,
+      scope: "screen"
+    });
 
     await expect(
       waitForExit.handler({

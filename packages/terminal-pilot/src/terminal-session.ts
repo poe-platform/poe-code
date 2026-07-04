@@ -31,6 +31,7 @@ type TerminalSessionOptions = {
 
 export type WaitForOptions = {
   timeout?: number;
+  scope?: "history" | "screen";
 };
 
 export type HistoryOptions = {
@@ -142,11 +143,14 @@ export class TerminalSession {
 
   async waitFor(pattern: string | RegExp, opts?: WaitForOptions): Promise<string> {
     const timeout = opts?.timeout ?? DEFAULT_TIMEOUT_MS;
+    const scope = opts?.scope ?? "history";
     assertTimeout(timeout);
+    assertWaitScope(scope);
     const startedAt = Date.now();
 
     while (Date.now() - startedAt <= timeout) {
-      const matched = matchPattern(this.rawBuffer, pattern);
+      const source = scope === "screen" ? (await this.screen()).text : this.rawBuffer;
+      const matched = matchPattern(source, pattern);
       if (matched !== null) {
         return matched;
       }
@@ -291,6 +295,12 @@ function assertTerminalGeometry(cols: number, rows: number): void {
 function assertTimeout(timeout: number): void {
   if (!Number.isFinite(timeout) || timeout < 0) {
     throw new Error("Timeout must be a finite non-negative number.");
+  }
+}
+
+function assertWaitScope(scope: string): void {
+  if (scope !== "history" && scope !== "screen") {
+    throw new Error('Wait scope must be either "history" or "screen".');
   }
 }
 

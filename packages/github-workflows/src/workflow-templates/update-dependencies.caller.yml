@@ -1,7 +1,5 @@
 name: 'Update Dependencies'
 on:
-  schedule:
-    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 # Keep these permissions in sync with the reusable workflow referenced below.

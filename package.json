@@ -2,6 +2,7 @@
   "name": "poe-code",
   "version": "0.0.0-dev",
   "description": "CLI tool to configure Poe API for developer workflows.",
+  "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -101,6 +102,7 @@
     "tiny-stdio-mcp-test-server": "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   },
   "files": [
+    "LICENSE",
     "dist",
     "packages/agent-mcp-config/dist",
     "packages/agent-skill-config/dist",

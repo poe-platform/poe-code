@@ -1,6 +1,7 @@
 {
   "name": "terminal-png",
   "version": "0.1.0",
+  "license": "MIT",
   "description": "Render PNG images from ANSI terminal output.",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,6 +16,7 @@
     "compare": "tsx scripts/compare.ts"
   },
   "files": [
+    "LICENSE",
     "dist",
     "bin",
     "assets"

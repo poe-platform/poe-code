@@ -45,6 +45,7 @@
     "@opencode-ai/plugin": "^1.3.0"
   },
   "files": [
+    "LICENSE",
     "dist",
     "README.md"
   ],

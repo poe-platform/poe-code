@@ -36,6 +36,7 @@ export interface PackageInfo {
   isRoot: boolean;
   private: boolean;
   version: string;
+  license: string | undefined;
   dependencies: Record<string, string>;
   peerDependencies: Record<string, string>;
   optionalDependencies: Record<string, string>;
@@ -238,6 +239,7 @@ async function loadPackage(
     isRoot,
     private: pkg.private === true,
     version: typeof pkg.version === "string" ? pkg.version : "0.0.0",
+    license: typeof pkg.license === "string" ? pkg.license : undefined,
     dependencies: toStringRecord(pkg.dependencies),
     peerDependencies: toStringRecord(pkg.peerDependencies),
     optionalDependencies: toStringRecord(pkg.optionalDependencies),

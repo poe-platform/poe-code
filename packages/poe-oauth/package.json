@@ -1,6 +1,7 @@
 {
   "name": "poe-oauth",
   "version": "0.0.1",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,6 +15,7 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "repository": {

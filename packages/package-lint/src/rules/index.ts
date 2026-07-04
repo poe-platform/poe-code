@@ -13,6 +13,7 @@ import { publishedBinMustBeExecutable } from "./published-bin-must-be-executable
 import { packageReadmeRequired } from "./package-readme-required.js";
 import { runtimeFileAssetsCollocated } from "./runtime-file-assets-collocated.js";
 import { runtimeFileAssetsPackaged } from "./runtime-file-assets-packaged.js";
+import { publishedLicenseRequired } from "./published-license-required.js";
 
 export const rules: Rule[] = [
   shippedDistDepsUnresolvable,
@@ -28,7 +29,8 @@ export const rules: Rule[] = [
   publishedBinMustBeExecutable,
   packageReadmeRequired,
   runtimeFileAssetsCollocated,
-  runtimeFileAssetsPackaged
+  runtimeFileAssetsPackaged,
+  publishedLicenseRequired
 ];
 
 export function runRules(model: WorkspaceModel, build?: BuildView, only?: string[]): LintResult {

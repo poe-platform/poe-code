@@ -23,6 +23,7 @@
     "smoke:verbose": "cd ../.. && tsx packages/terminal-pilot-mcp/scripts/smoke-test.ts --verbose"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "engines": {

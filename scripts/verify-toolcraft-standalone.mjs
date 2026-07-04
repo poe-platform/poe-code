@@ -169,6 +169,15 @@ try {
   };
 
   const toolcraftPackageJson = readTarJson(tarballs.agentKit, "package/package.json");
+  const toolcraftSchemaPackageJson = readTarJson(
+    tarballs.agentKitSchema,
+    "package/package.json"
+  );
+  assert(toolcraftPackageJson.license === "MIT", "Expected toolcraft to declare the MIT license.");
+  assert(
+    toolcraftSchemaPackageJson.license === "MIT",
+    "Expected toolcraft-schema to declare the MIT license."
+  );
   const bundledRuntimeDependencies = toolcraftPackageJson.bundleDependencies ?? [];
   assert(
     Array.isArray(bundledRuntimeDependencies) && bundledRuntimeDependencies.length > 0,
@@ -182,6 +191,7 @@ try {
         "package/dist/index.js",
         "package/dist/cli.js",
         "package/dist/design.js",
+        "package/LICENSE",
         ...bundledRuntimeDependencies.map(
           (dependencyName) => `package/node_modules/${dependencyName}/package.json`
         )
@@ -189,7 +199,7 @@ try {
     },
     {
       tarball: tarballs.agentKitSchema,
-      requiredEntries: ["package/dist/index.js"]
+      requiredEntries: ["package/dist/index.js", "package/LICENSE"]
     },
     {
       tarball: tarballs.agentKitOpenApi,

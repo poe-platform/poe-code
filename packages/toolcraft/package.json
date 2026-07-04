@@ -1,6 +1,7 @@
 {
   "name": "toolcraft",
   "version": "0.0.51",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -68,6 +69,7 @@
     "yaml": "^2.8.2"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "engines": {

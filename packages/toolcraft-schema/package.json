@@ -1,6 +1,7 @@
 {
   "name": "toolcraft-schema",
   "version": "0.0.1",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,6 +18,7 @@
     "lint": "cd ../.. && eslint packages/toolcraft-schema/src --ext ts && tsc -p packages/toolcraft-schema/tsconfig.json --noEmit"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "engines": {

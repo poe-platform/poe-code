@@ -1,6 +1,7 @@
 {
   "name": "tokenfill",
   "version": "0.0.1",
+  "license": "MIT",
   "private": false,
   "type": "module",
   "main": "dist/index.js",
@@ -19,6 +20,7 @@
     "prepack": "node ../../scripts/set-bin-executable.mjs"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "dependencies": {

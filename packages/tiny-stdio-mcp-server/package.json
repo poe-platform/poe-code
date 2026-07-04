@@ -27,6 +27,7 @@
     "prepublishOnly": "tsc"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "engines": {

@@ -1,6 +1,7 @@
 {
   "name": "toolcraft-openapi",
   "version": "0.0.1",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,6 +23,7 @@
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/frontmatter auth-store"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "bin": {

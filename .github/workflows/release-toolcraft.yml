@@ -9,8 +9,20 @@ on:
       - "packages/toolcraft-design/**"
       - "packages/toolcraft-schema/**"
       - "packages/toolcraft-openapi/**"
+      - "packages/agent-defs/**"
+      - "packages/agent-human-in-loop/**"
+      - "packages/agent-mcp-config/**"
+      - "packages/auth-store/**"
+      - "packages/config-mutations/**"
+      - "packages/frontmatter/**"
+      - "packages/mcp-oauth/**"
+      - "packages/process-runner/**"
+      - "packages/task-list/**"
+      - "packages/tiny-mcp-client/**"
       - "scripts/toolcraft-standalone-bundle.mjs"
+      - "scripts/manage-bundled-workspace-deps.mjs"
       - "scripts/verify-toolcraft-cli-bundle.mjs"
+      - "scripts/verify-toolcraft-standalone.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/release-toolcraft.yml"
@@ -52,27 +64,115 @@ jobs:
       - name: Compute next version
         id: version
         run: |
-          V1=$(npm view toolcraft-schema version 2>/dev/null || echo "0.0.0")
-          V2=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
-          V3=$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")
-          REMOTE=$(printf "%s\n%s\n%s" "$V1" "$V2" "$V3" | sort -V | tail -n1)
+          PACKAGES=(
+            "@poe-code/agent-defs"
+            "@poe-code/agent-human-in-loop"
+            "@poe-code/agent-mcp-config"
+            "@poe-code/config-mutations"
+            "@poe-code/frontmatter"
+            "@poe-code/process-runner"
+            "@poe-code/task-list"
+            "auth-store"
+            "mcp-oauth"
+            "tiny-mcp-client"
+            "toolcraft-design"
+            "toolcraft-schema"
+            "toolcraft"
+            "toolcraft-openapi"
+          )
+          REMOTE=$(
+            for PACKAGE in "${PACKAGES[@]}"; do
+              npm view "$PACKAGE" version 2>/dev/null || echo "0.0.0"
+            done | sort -V | tail -n1
+          )
           NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
       - name: Prepare lockstep package versions
         uses: ./.github/actions/prepare-lockstep-release
         with:
           version: ${{ steps.version.outputs.next }}
-          packages: '["packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
+          packages: '["packages/agent-defs", "packages/agent-human-in-loop", "packages/agent-mcp-config", "packages/auth-store", "packages/config-mutations", "packages/frontmatter", "packages/mcp-oauth", "packages/process-runner", "packages/task-list", "packages/tiny-mcp-client", "packages/toolcraft-design", "packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
       - name: Build toolcraft packages and dependencies
         run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
         run: npm run smoke:toolcraft-standalone
+      - name: Publish agent-defs
+        working-directory: packages/agent-defs
+        run: npm publish --provenance --access public
+      - name: Publish agent-human-in-loop
+        working-directory: packages/agent-human-in-loop
+        run: npm publish --provenance --access public
+      - name: Publish auth-store
+        working-directory: packages/auth-store
+        run: npm publish --provenance --access public
+      - name: Publish frontmatter
+        working-directory: packages/frontmatter
+        run: npm publish --provenance --access public
+      - name: Publish process-runner
+        working-directory: packages/process-runner
+        run: npm publish --provenance --access public
+      - name: Publish toolcraft-design
+        working-directory: packages/toolcraft-design
+        run: npm publish --provenance --access public
+      - name: Publish config-mutations
+        working-directory: packages/config-mutations
+        run: npm publish --provenance --access public
+      - name: Publish agent-mcp-config
+        working-directory: packages/agent-mcp-config
+        run: npm publish --provenance --access public
+      - name: Publish task-list
+        working-directory: packages/task-list
+        run: npm publish --provenance --access public
+      - name: Publish mcp-oauth
+        working-directory: packages/mcp-oauth
+        run: npm publish --provenance --access public
+      - name: Publish tiny-mcp-client
+        working-directory: packages/tiny-mcp-client
+        run: npm publish --provenance --access public
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public
+      - name: Verify packed composition signatures
+        run: |
+          PACK_DIR=$(mktemp -d)
+          TARBALL=$(npm pack packages/toolcraft --pack-destination "$PACK_DIR" --json | node -e "let input=''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input)[0].filename));")
+          tar -xOf "$PACK_DIR/$TARBALL" package/composition.json > "$PACK_DIR/composition.json"
+          tar -xOf "$PACK_DIR/$TARBALL" package/package.json > "$PACK_DIR/package.json"
+          AUDIT_DIR=$(mktemp -d)
+          node --input-type=module - "$PACK_DIR/composition.json" "$PACK_DIR/package.json" "$AUDIT_DIR/package.json" <<'NODE'
+          import { readFile } from "node:fs/promises";
+          import { execFileSync } from "node:child_process";
+          import { writeFile } from "node:fs/promises";
+
+          const composition = JSON.parse(await readFile(process.argv[2], "utf8"));
+          const packageManifest = JSON.parse(await readFile(process.argv[3], "utf8"));
+          const dependencies = {};
+          for (const entry of composition.packages) {
+            if (entry.name === packageManifest.name) {
+              continue;
+            }
+            execFileSync("npm", ["view", `${entry.name}@${entry.version}`, "version"], {
+              stdio: "inherit"
+            });
+            dependencies[entry.name] = entry.version;
+          }
+          await writeFile(
+            process.argv[4],
+            `${JSON.stringify({ name: "toolcraft-composition-audit", private: true, dependencies }, null, 2)}\n`
+          );
+          NODE
+          npm install --ignore-scripts --prefix "$AUDIT_DIR"
+          npm audit signatures --prefix "$AUDIT_DIR"
       - name: Publish toolcraft
         working-directory: packages/toolcraft
         run: npm publish --provenance --access public
       - name: Publish toolcraft-openapi
         working-directory: packages/toolcraft-openapi
         run: npm publish --provenance --access public
+      - name: Verify installed Toolcraft signatures
+        run: |
+          AUDIT_DIR=$(mktemp -d)
+          printf '%s\n' '{"name":"toolcraft-signature-audit","private":true}' > "$AUDIT_DIR/package.json"
+          cd "$AUDIT_DIR"
+          npm install "toolcraft@${{ steps.version.outputs.next }}"
+          npm audit signatures

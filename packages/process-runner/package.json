@@ -2,7 +2,7 @@
   "name": "@poe-code/process-runner",
   "version": "0.0.1",
   "license": "MIT",
-  "private": true,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,8 +27,14 @@
     "lint": "cd ../.. && eslint packages/process-runner/src --ext ts && tsc -p packages/process-runner/tsconfig.json --noEmit"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/process-runner"
+  },
   "dependencies": {
     "ignore": "^5.3.2"
   }

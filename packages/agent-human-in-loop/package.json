@@ -2,7 +2,7 @@
   "name": "@poe-code/agent-human-in-loop",
   "version": "0.0.1",
   "license": "MIT",
-  "private": true,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,8 +19,14 @@
     "dev": "tsx example.ts"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/agent-human-in-loop"
+  },
   "dependencies": {},
   "devDependencies": {}
 }

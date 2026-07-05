@@ -2,7 +2,7 @@
   "name": "@poe-code/frontmatter",
   "version": "0.0.1",
   "license": "MIT",
-  "private": true,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,8 +18,14 @@
     "test:unit": "cd ../.. && vitest run packages/frontmatter/src"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/frontmatter"
+  },
   "dependencies": {
     "yaml": "^2.8.2"
   }

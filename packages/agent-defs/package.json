@@ -2,7 +2,7 @@
   "name": "@poe-code/agent-defs",
   "version": "0.0.1",
   "license": "MIT",
-  "private": true,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,6 +16,12 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc"
   },
   "files": [
-    "dist"
-  ]
+    "dist",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/agent-defs"
+  }
 }

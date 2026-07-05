@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertSafeBundledPath,
   createBundledCompositionManifest,
+  restoreGeneratedFiles,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
 
@@ -75,6 +76,29 @@ describe("assertSafeBundledPath", () => {
     expect(() => assertSafeBundledPath("/repo/pkg", "/outside/dependency", fs)).toThrow(
       "Bundled dependency output must remain inside the package directory."
     );
+  });
+});
+
+describe("restoreGeneratedFiles", () => {
+  it("restores existing generated files and removes newly created files", () => {
+    const volume = Volume.fromJSON({
+      "/repo/pkg/package.json": "{}",
+      "/repo/pkg/composition.json": "generated root",
+      "/repo/pkg/dist/composition.json": "generated dist"
+    });
+    const fs = createFsFromVolume(volume);
+
+    restoreGeneratedFiles(
+      "/repo/pkg",
+      [
+        { path: "/repo/pkg/composition.json", originalContent: "original root" },
+        { path: "/repo/pkg/dist/composition.json", originalContent: null }
+      ],
+      fs
+    );
+
+    expect(fs.readFileSync("/repo/pkg/composition.json", "utf8")).toBe("original root");
+    expect(fs.existsSync("/repo/pkg/dist/composition.json")).toBe(false);
   });
 });
 

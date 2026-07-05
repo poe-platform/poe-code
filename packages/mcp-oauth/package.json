@@ -2,7 +2,7 @@
   "name": "mcp-oauth",
   "version": "0.0.1",
   "license": "MIT",
-  "private": true,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,14 +16,15 @@
     "build": "tsc"
   },
   "dependencies": {
-    "auth-store": "*",
+    "auth-store": "^0.0.1",
     "jose": "^6.1.2"
   },
   "devDependencies": {
     "tiny-oauth-test-server": "*"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",

@@ -2,7 +2,6 @@
   "name": "toolcraft-design",
   "version": "0.0.2",
   "license": "MIT",
-  "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,10 +17,11 @@
     "generate:design-docs:all": "tsx scripts/generate-docs.ts all"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "dependencies": {
-    "@poe-code/frontmatter": "*",
+    "@poe-code/frontmatter": "^0.0.1",
     "fast-string-width": "^3.0.2",
     "fast-wrap-ansi": "^0.2.0",
     "sisteransi": "^1.0.5"

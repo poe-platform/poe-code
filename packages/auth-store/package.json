@@ -2,7 +2,7 @@
   "name": "auth-store",
   "version": "0.0.1",
   "license": "MIT",
-  "private": true,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,8 @@
   },
   "dependencies": {},
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",

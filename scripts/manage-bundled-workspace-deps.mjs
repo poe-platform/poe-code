@@ -217,6 +217,22 @@ export function assertSafeBundledPath(
   }
 }
 
+export function restoreGeneratedFiles(
+  packageDir,
+  generatedFiles,
+  fileSystem = { existsSync, realpathSync, rmSync, writeFileSync }
+) {
+  for (const generatedFile of generatedFiles) {
+    const generatedPath = typeof generatedFile === "string" ? generatedFile : generatedFile.path;
+    assertSafeBundledPath(packageDir, generatedPath, fileSystem);
+    if (typeof generatedFile === "object" && generatedFile.originalContent !== null) {
+      fileSystem.writeFileSync(generatedPath, generatedFile.originalContent, "utf8");
+    } else {
+      fileSystem.rmSync(generatedPath, { recursive: true, force: true });
+    }
+  }
+}
+
 function prepare(packageDir, dependencyNames) {
   const tempDir = path.join(os.tmpdir(), `poe-code-bundled-workspace-deps-${process.pid}`);
   ensureRemoved(tempDir);
@@ -262,6 +278,10 @@ function prepare(packageDir, dependencyNames) {
     path.join(packageDir, compositionFileName),
     path.join(packageDir, "dist", compositionFileName)
   ];
+  const generatedFiles = compositionPaths.map((generatedPath) => ({
+    path: generatedPath,
+    originalContent: existsSync(generatedPath) ? readFileSync(generatedPath, "utf8") : null
+  }));
   assertSafeBundledPath(packageDir, stampPath);
   const compositionContent = `${JSON.stringify(
     createBundledCompositionManifest(packageDir),
@@ -274,7 +294,7 @@ function prepare(packageDir, dependencyNames) {
   }
   writeFileSync(
     stampPath,
-    JSON.stringify({ bundledDirs, generatedFiles: compositionPaths }, null, 2) + "\n",
+    JSON.stringify({ bundledDirs, generatedFiles }, null, 2) + "\n",
     "utf8"
   );
   ensureRemoved(tempDir);
@@ -317,10 +337,7 @@ function cleanup(packageDir) {
     ensureRemoved(nodeModulesDir);
   }
 
-  for (const generatedFile of generatedFiles) {
-    assertSafeBundledPath(packageDir, generatedFile);
-    ensureRemoved(generatedFile);
-  }
+  restoreGeneratedFiles(packageDir, generatedFiles);
 
   ensureRemoved(stampPath);
 }

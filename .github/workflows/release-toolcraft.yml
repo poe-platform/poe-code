@@ -65,8 +65,21 @@ jobs:
       - name: Compute next version
         id: version
         run: |
-          REMOTE=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
-          NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
+          VERSIONS=(
+            "$(npm view toolcraft-schema version 2>/dev/null || echo "0.0.0")"
+            "$(npm view toolcraft version 2>/dev/null || echo "0.0.0")"
+            "$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")"
+          )
+          NEXT=$(node -e '
+            const semver = require("semver");
+            const versions = process.argv.slice(1);
+            const highest = versions.sort(semver.compare).at(-1);
+            const next = versions.every((version) => version === highest)
+              ? semver.inc(highest, "patch")
+              : highest;
+            if (!next) process.exit(1);
+            console.log(next);
+          ' "${VERSIONS[@]}")
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
       - name: Prepare lockstep package versions
         uses: ./.github/actions/prepare-lockstep-release
@@ -79,7 +92,20 @@ jobs:
         run: npm run smoke:toolcraft-standalone
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
-        run: npm publish --provenance --access public
+        run: |
+          if npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+            exit 0
+          fi
+          npm publish --provenance --access public
+      - name: Wait for toolcraft-schema registry availability
+        run: |
+          for _ in {1..12}; do
+            if npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 5
+          done
+          npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version
       - name: Verify packed Toolcraft signatures
         run: |
           PACK_DIR=$(mktemp -d)
@@ -90,10 +116,18 @@ jobs:
           npm audit signatures --prefix "$AUDIT_DIR"
       - name: Publish toolcraft
         working-directory: packages/toolcraft
-        run: npm publish --provenance --access public
+        run: |
+          if npm view "toolcraft@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+            exit 0
+          fi
+          npm publish --provenance --access public
       - name: Publish toolcraft-openapi
         working-directory: packages/toolcraft-openapi
-        run: npm publish --provenance --access public
+        run: |
+          if npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+            exit 0
+          fi
+          npm publish --provenance --access public
       - name: Verify installed Toolcraft signatures
         run: |
           AUDIT_DIR=$(mktemp -d)

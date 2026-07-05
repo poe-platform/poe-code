@@ -2,11 +2,32 @@ import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
 import {
+  anonymizeBundledWorkspaceManifest,
   assertSafeBundledPath,
   createBundledCompositionManifest,
   restoreGeneratedFiles,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
+
+describe("anonymizeBundledWorkspaceManifest", () => {
+  it("removes registry identity while preserving runtime package metadata", () => {
+    expect(
+      anonymizeBundledWorkspaceManifest({
+        name: "tiny-mcp-client",
+        version: "0.1.0",
+        type: "module",
+        exports: {
+          ".": "./dist/index.js"
+        }
+      })
+    ).toEqual({
+      type: "module",
+      exports: {
+        ".": "./dist/index.js"
+      }
+    });
+  });
+});
 
 describe("createBundledCompositionManifest", () => {
   it("lists root, scoped, and nested bundled packages with exact licenses and versions", () => {

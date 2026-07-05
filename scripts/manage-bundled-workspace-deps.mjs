@@ -183,6 +183,21 @@ export function sanitizeBundledWorkspaceManifest(manifest, bundledDependencyName
   return sanitized;
 }
 
+export function anonymizeBundledWorkspaceManifest(manifest) {
+  const anonymized = structuredClone(manifest);
+  delete anonymized.name;
+  delete anonymized.version;
+  return anonymized;
+}
+
+function anonymizeExtractedManifest(packageDir, targetDir) {
+  const packageJsonPath = path.join(targetDir, "package.json");
+  assertSafeBundledPath(packageDir, packageJsonPath);
+  const manifest = readJson(packageJsonPath);
+  const anonymized = anonymizeBundledWorkspaceManifest(manifest);
+  writeFileSync(packageJsonPath, `${JSON.stringify(anonymized, null, 2)}\n`, "utf8");
+}
+
 function sanitizeExtractedManifest(packageDir, targetDir, bundledDependencyNames) {
   const packageJsonPath = path.join(targetDir, "package.json");
   assertSafeBundledPath(packageDir, packageJsonPath);
@@ -239,6 +254,7 @@ function prepare(packageDir, dependencyNames) {
   mkdirSync(tempDir, { recursive: true });
 
   const bundledDirs = [];
+  const bundledWorkspaceDirs = [];
   const bundledDependencyNames = new Set(dependencyNames);
 
   for (const dependencyName of dependencyNames) {
@@ -271,6 +287,7 @@ function prepare(packageDir, dependencyNames) {
     renameSync(extractedDir, targetDir);
     sanitizeExtractedManifest(packageDir, targetDir, bundledDependencyNames);
     bundledDirs.push(targetDir);
+    bundledWorkspaceDirs.push(targetDir);
   }
 
   const stampPath = path.join(packageDir, stampFileName);
@@ -291,6 +308,9 @@ function prepare(packageDir, dependencyNames) {
   for (const compositionPath of compositionPaths) {
     assertSafeBundledPath(packageDir, compositionPath);
     writeFileSync(compositionPath, compositionContent, "utf8");
+  }
+  for (const bundledWorkspaceDir of bundledWorkspaceDirs) {
+    anonymizeExtractedManifest(packageDir, bundledWorkspaceDir);
   }
   writeFileSync(
     stampPath,

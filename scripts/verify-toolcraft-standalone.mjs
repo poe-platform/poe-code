@@ -266,12 +266,16 @@ try {
       `package/node_modules/${dependencyName}/package.json`
     );
     assert(
-      compositionByName.get(dependencyName)?.version === bundledPackageJson.version,
-      `Expected composition to include exact version for ${dependencyName}.`
+      typeof compositionByName.get(dependencyName)?.version === "string",
+      `Expected composition to include the source version for ${dependencyName}.`
     );
     assert(
       compositionByName.get(dependencyName)?.license === bundledPackageJson.license,
       `Expected composition to include the license for ${dependencyName}.`
+    );
+    assert(
+      bundledPackageJson.name === undefined && bundledPackageJson.version === undefined,
+      `Expected bundled ${dependencyName} to omit its registry identity.`
     );
   }
 

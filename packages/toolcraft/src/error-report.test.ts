@@ -15,7 +15,7 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
-const { writeErrorReport } = await import("./error-report.js");
+const { renderErrorReport, writeErrorReport } = await import("./error-report.js");
 
 const originalErrorReportsEnv = process.env.TOOLCRAFT_ERROR_REPORTS;
 
@@ -107,7 +107,7 @@ async function readOnlyReportFile(projectRoot: string): Promise<string | undefin
   return readFile(reportPath, "utf8");
 }
 
-describe("writeErrorReport", () => {
+describe("error reports", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -125,8 +125,40 @@ describe("writeErrorReport", () => {
     }
   });
 
+  it("renders declared-secret redaction assertions without writing a report file", async () => {
+    const assertionCommand = defineCommand({
+      name: "verify",
+      params: S.Object({}),
+      secrets: {
+        primaryToken: { env: "PRIMARY_TOKEN" },
+        backupToken: { env: "BACKUP_TOKEN" }
+      },
+      handler: async () => null
+    });
+    const primaryToken = "primary-secret-value";
+    const backupToken = "backup-secret-value";
+
+    const result = renderErrorReport({
+      command: assertionCommand,
+      commandPath: "verify",
+      env: {
+        PRIMARY_TOKEN: primaryToken,
+        BACKUP_TOKEN: backupToken
+      },
+      error: new Error(`failed with ${primaryToken} and ${backupToken}`),
+      version: "1.2.3"
+    });
+
+    expect(result.redactedKeys).toEqual(["PRIMARY_TOKEN", "BACKUP_TOKEN"]);
+    expect(result.content).toContain("PRIMARY_TOKEN=<set, 20 chars>");
+    expect(result.content).toContain("BACKUP_TOKEN=<set, 19 chars>");
+    expect(result.content).not.toContain(primaryToken);
+    expect(result.content).not.toContain(backupToken);
+    await expect(readOnlyReportFile("/repo")).resolves.toBeUndefined();
+  });
+
   it("writes all report sections for an HttpError-like failure when enabled", async () => {
-    const result = await writeErrorReport({
+    const reportContext = {
       argv: ["node", "toolcraft", "widgets", "create", "--api-key", "super-secret-key"],
       command,
       commandPath: "widgets.create",
@@ -141,17 +173,23 @@ describe("writeErrorReport", () => {
         refreshToken: "default-redacted-token",
         secretLabel: "public-secret-name"
       },
-      projectRoot: "/repo",
       secrets: {
         poeApiKey: "12345678901234567890123456789012"
       },
       version: "1.2.3"
+    };
+    const rendered = renderErrorReport(reportContext);
+    const result = await writeErrorReport({
+      ...reportContext,
+      errorReports: true,
+      projectRoot: "/repo"
     });
 
     expect(result?.displayPath).toContain(".toolcraft/errors/");
     expect(result?.displayPath).toMatch(/widgets-create-[0-9a-f-]+\.log$/);
     const report = await readOnlyReportFile("/repo");
 
+    expect(report).toBe(rendered.content);
     expect(report).toContain("toolcraft version: 1.2.3");
     expect(report).toContain("node version:");
     expect(report).toContain("platform:");

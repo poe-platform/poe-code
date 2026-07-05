@@ -69,6 +69,9 @@ import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
+export { renderErrorReport } from "./error-report.js";
+export type { ErrorReportRenderContext, ErrorReportRenderResult } from "./error-report.js";
+
 configureTheme({ brand: "blue", label: "Toolcraft" });
 
 export { configureTheme };

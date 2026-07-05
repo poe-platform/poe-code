@@ -1,7 +1,11 @@
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
-import { createCLICommandTreeSnapshot, runCLI } from "./cli.js";
-import type { CLICommandTreeSnapshot, RunCLIOptions } from "./cli.js";
+import { createCLICommandTreeSnapshot, renderErrorReport, runCLI } from "./cli.js";
+import type {
+  CLICommandTreeSnapshot,
+  ErrorReportRenderResult,
+  RunCLIOptions,
+} from "./cli.js";
 
 const ignoredCommand = defineCommand({
   name: "deploy",
@@ -51,4 +55,11 @@ const ignoredSnapshot: Promise<CLICommandTreeSnapshot> = createCLICommandTreeSna
   version: ignoredOptions.version,
 });
 void ignoredSnapshot;
+const ignoredRenderedReport: ErrorReportRenderResult = renderErrorReport({
+  command: ignoredCommand,
+  env: {},
+  error: new Error("fixture"),
+  version: "1.0.0",
+});
+void ignoredRenderedReport;
 void ignoredServiceOptions;

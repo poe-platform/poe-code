@@ -33,6 +33,16 @@ export interface ErrorReportResult {
   displayPath: string;
 }
 
+export type ErrorReportRenderContext = Omit<
+  ErrorReportContext,
+  "errorReports" | "projectRoot"
+>;
+
+export interface ErrorReportRenderResult {
+  content: string;
+  redactedKeys: string[];
+}
+
 interface HttpErrorLike {
   name: "HttpError";
   message: string;
@@ -303,7 +313,7 @@ function collectSensitiveParamValues(
 }
 
 function createReportStringRedactor(
-  context: ErrorReportContext,
+  context: ErrorReportRenderContext,
   env: Record<string, string | undefined>
 ): (value: string) => string {
   const values = new Set<string>();
@@ -550,7 +560,7 @@ function resolveToolcraftVersion(version: string | undefined): string {
   );
 }
 
-function buildReport(context: ErrorReportContext): string {
+function buildReport(context: ErrorReportRenderContext): string {
   const env = context.env ?? process.env;
   const error = context.error;
   const redactString = createReportStringRedactor(context, env);
@@ -602,6 +612,20 @@ function buildReport(context: ErrorReportContext): string {
   return `${lines.join("\n")}\n`;
 }
 
+/**
+ * Renders the exact redacted content used by `writeErrorReport` without checking report enablement
+ * or writing to the filesystem. `redactedKeys` lists every environment variable declared by the
+ * command's secrets in declaration order, including variables that are currently unset.
+ */
+export function renderErrorReport(
+  context: ErrorReportRenderContext
+): ErrorReportRenderResult {
+  return {
+    content: buildReport(context),
+    redactedKeys: commandSecretEnvNames(context.command?.secrets)
+  };
+}
+
 export async function writeErrorReport(
   context: ErrorReportContext
 ): Promise<ErrorReportResult | undefined> {
@@ -620,7 +644,7 @@ export async function writeErrorReport(
   if (reportDirMustStayWithinProject(context.errorReports)) {
     await assertReportDirWithinProject(projectRoot, reportDir);
   }
-  await writeFile(absolutePath, buildReport(context));
+  await writeFile(absolutePath, renderErrorReport(context).content);
 
   return {
     absolutePath,

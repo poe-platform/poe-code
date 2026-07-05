@@ -109,6 +109,7 @@ function runConsumerSmoke(projectDir, tarballs) {
         'await import("toolcraft");',
         'const toolcraftCli = await import("toolcraft/cli");',
         'if (typeof toolcraftCli.createCLICommandTreeSnapshot !== "function") throw new Error("Missing createCLICommandTreeSnapshot export.");',
+        'if (typeof toolcraftCli.renderErrorReport !== "function") throw new Error("Missing renderErrorReport export.");',
         'await import("toolcraft/design");',
         'await import("toolcraft/mcp");',
         'await import("toolcraft/mcp-proxy");',

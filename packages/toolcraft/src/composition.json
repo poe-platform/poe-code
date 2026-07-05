@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "name": "toolcraft",
+      "version": "0.0.51",
+      "license": "MIT"
+    }
+  ]
+}

@@ -110,6 +110,9 @@ function runConsumerSmoke(projectDir, tarballs) {
         'const toolcraftCli = await import("toolcraft/cli");',
         'if (typeof toolcraftCli.createCLICommandTreeSnapshot !== "function") throw new Error("Missing createCLICommandTreeSnapshot export.");',
         'if (typeof toolcraftCli.renderErrorReport !== "function") throw new Error("Missing renderErrorReport export.");',
+        'const { loadToolcraftComposition } = await import("toolcraft/composition");',
+        'const composition = await loadToolcraftComposition();',
+        'if (composition.schemaVersion !== 1 || !composition.packages.some(({ name }) => name === "toolcraft")) throw new Error("Invalid Toolcraft composition manifest.");',
         'await import("toolcraft/design");',
         'await import("toolcraft/mcp");',
         'await import("toolcraft/mcp-proxy");',
@@ -171,6 +174,7 @@ try {
   };
 
   const toolcraftPackageJson = readTarJson(tarballs.agentKit, "package/package.json");
+  const toolcraftComposition = readTarJson(tarballs.agentKit, "package/composition.json");
   const toolcraftSchemaPackageJson = readTarJson(tarballs.agentKitSchema, "package/package.json");
   assert(toolcraftPackageJson.license === "MIT", "Expected toolcraft to declare the MIT license.");
   assert(
@@ -178,6 +182,11 @@ try {
     "Expected toolcraft-schema to declare the MIT license."
   );
   const bundledRuntimeDependencies = toolcraftPackageJson.bundleDependencies ?? [];
+  assert(
+    toolcraftPackageJson.toolcraftComposition === "./composition.json",
+    "Expected toolcraft to advertise its composition manifest."
+  );
+  assert(toolcraftComposition.schemaVersion === 1, "Expected composition schema version 1.");
   assert(
     Array.isArray(bundledRuntimeDependencies) && bundledRuntimeDependencies.length > 0,
     "Expected toolcraft to declare bundled runtime dependencies."
@@ -191,6 +200,7 @@ try {
         "package/dist/index.js",
         "package/dist/cli.js",
         "package/dist/design.js",
+        "package/composition.json",
         "package/LICENSE",
         ...bundledRuntimeDependencies.map(
           (dependencyName) => `package/node_modules/${dependencyName}/package.json`
@@ -240,6 +250,28 @@ try {
     assert(
       !toolcraftPackageJson.dependencies?.[dependencyName],
       `Expected bundled ${dependencyName} to be omitted from required dependencies.`
+    );
+  }
+
+  const compositionByName = new Map(
+    toolcraftComposition.packages.map((entry) => [entry.name, entry])
+  );
+  assert(
+    compositionByName.get("toolcraft")?.version === toolcraftPackageJson.version,
+    "Expected composition to include the exact toolcraft version."
+  );
+  for (const dependencyName of bundledRuntimeDependencies) {
+    const bundledPackageJson = readTarJson(
+      tarballs.agentKit,
+      `package/node_modules/${dependencyName}/package.json`
+    );
+    assert(
+      compositionByName.get(dependencyName)?.version === bundledPackageJson.version,
+      `Expected composition to include exact version for ${dependencyName}.`
+    );
+    assert(
+      compositionByName.get(dependencyName)?.license === bundledPackageJson.license,
+      `Expected composition to include the license for ${dependencyName}.`
     );
   }
 

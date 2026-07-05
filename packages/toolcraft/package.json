@@ -14,6 +14,10 @@
       "types": "./dist/cli.d.ts",
       "import": "./dist/cli.js"
     },
+    "./composition": {
+      "types": "./dist/composition.d.ts",
+      "import": "./dist/composition.js"
+    },
     "./design": {
       "types": "./dist/design.d.ts",
       "import": "./dist/design.js"
@@ -48,7 +52,7 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && tsc && cp src/composition.json dist/composition.json",
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
@@ -70,8 +74,10 @@
   },
   "files": [
     "LICENSE",
+    "composition.json",
     "dist"
   ],
+  "toolcraftComposition": "./composition.json",
   "engines": {
     "node": ">=18.18"
   },

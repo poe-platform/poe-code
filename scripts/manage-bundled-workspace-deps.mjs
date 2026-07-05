@@ -1,5 +1,15 @@
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+  existsSync,
+  readdirSync
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const packagesDir = path.join(repoRoot, "packages");
 const stampFileName = ".bundled-workspace-deps.json";
+const compositionFileName = "composition.json";
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
@@ -47,6 +58,90 @@ function dependencyParentDir(packageDir, dependencyName) {
 
 function ensureRemoved(targetPath) {
   rmSync(targetPath, { recursive: true, force: true });
+}
+
+function readCompositionPackage(packageDir, fileSystem) {
+  const manifest = JSON.parse(
+    fileSystem.readFileSync(path.join(packageDir, "package.json"), "utf8")
+  );
+  for (const field of ["name", "version", "license"]) {
+    if (typeof manifest[field] !== "string" || manifest[field].length === 0) {
+      throw new Error(`Bundled package ${packageDir} must declare a non-empty ${field}.`);
+    }
+  }
+
+  return {
+    name: manifest.name,
+    version: manifest.version,
+    license: manifest.license
+  };
+}
+
+function listInstalledPackageDirs(nodeModulesDir, fileSystem) {
+  if (!fileSystem.existsSync(nodeModulesDir)) {
+    return [];
+  }
+
+  const packageDirs = [];
+  for (const entry of fileSystem.readdirSync(nodeModulesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+    if (entry.name.startsWith(".")) {
+      continue;
+    }
+
+    const entryDir = path.join(nodeModulesDir, entry.name);
+    if (!entry.name.startsWith("@")) {
+      packageDirs.push(entryDir);
+      continue;
+    }
+
+    for (const scopedEntry of fileSystem.readdirSync(entryDir, { withFileTypes: true })) {
+      if (scopedEntry.isDirectory()) {
+        packageDirs.push(path.join(entryDir, scopedEntry.name));
+      }
+    }
+  }
+
+  return packageDirs;
+}
+
+function compareCompositionPackages(left, right) {
+  for (const field of ["name", "version", "license"]) {
+    if (left[field] < right[field]) {
+      return -1;
+    }
+    if (left[field] > right[field]) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+export function createBundledCompositionManifest(
+  packageDir,
+  fileSystem = { existsSync, readFileSync, readdirSync }
+) {
+  const packages = new Map();
+
+  function visit(currentPackageDir) {
+    const entry = readCompositionPackage(currentPackageDir, fileSystem);
+    packages.set(`${entry.name}\0${entry.version}\0${entry.license}`, entry);
+    for (const dependencyDir of listInstalledPackageDirs(
+      path.join(currentPackageDir, "node_modules"),
+      fileSystem
+    )) {
+      visit(dependencyDir);
+    }
+  }
+
+  visit(packageDir);
+
+  return {
+    schemaVersion: 1,
+    packages: [...packages.values()].sort(compareCompositionPackages)
+  };
 }
 
 export function sanitizeBundledWorkspaceManifest(manifest, bundledDependencyNames) {
@@ -96,7 +191,11 @@ function sanitizeExtractedManifest(packageDir, targetDir, bundledDependencyNames
   writeFileSync(packageJsonPath, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
 }
 
-export function assertSafeBundledPath(packageDir, targetPath, fileSystem = { existsSync, realpathSync }) {
+export function assertSafeBundledPath(
+  packageDir,
+  targetPath,
+  fileSystem = { existsSync, realpathSync }
+) {
   let existingPath = targetPath;
   while (!fileSystem.existsSync(existingPath)) {
     const parentPath = path.dirname(existingPath);
@@ -159,10 +258,23 @@ function prepare(packageDir, dependencyNames) {
   }
 
   const stampPath = path.join(packageDir, stampFileName);
+  const compositionPaths = [
+    path.join(packageDir, compositionFileName),
+    path.join(packageDir, "dist", compositionFileName)
+  ];
   assertSafeBundledPath(packageDir, stampPath);
+  const compositionContent = `${JSON.stringify(
+    createBundledCompositionManifest(packageDir),
+    null,
+    2
+  )}\n`;
+  for (const compositionPath of compositionPaths) {
+    assertSafeBundledPath(packageDir, compositionPath);
+    writeFileSync(compositionPath, compositionContent, "utf8");
+  }
   writeFileSync(
     stampPath,
-    JSON.stringify({ bundledDirs }, null, 2) + "\n",
+    JSON.stringify({ bundledDirs, generatedFiles: compositionPaths }, null, 2) + "\n",
     "utf8"
   );
   ensureRemoved(tempDir);
@@ -190,7 +302,7 @@ function cleanup(packageDir) {
   }
 
   assertSafeBundledPath(packageDir, stampPath);
-  const { bundledDirs } = readJson(stampPath);
+  const { bundledDirs, generatedFiles = [] } = readJson(stampPath);
   for (const bundledDir of bundledDirs) {
     assertSafeBundledPath(packageDir, bundledDir);
     ensureRemoved(bundledDir);
@@ -203,6 +315,11 @@ function cleanup(packageDir) {
   const nodeModulesDir = path.join(packageDir, "node_modules");
   if (existsSync(nodeModulesDir) && readdirSync(nodeModulesDir).length === 0) {
     ensureRemoved(nodeModulesDir);
+  }
+
+  for (const generatedFile of generatedFiles) {
+    assertSafeBundledPath(packageDir, generatedFile);
+    ensureRemoved(generatedFile);
   }
 
   ensureRemoved(stampPath);

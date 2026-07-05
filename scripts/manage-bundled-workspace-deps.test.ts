@@ -3,12 +3,55 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertSafeBundledPath,
+  createBundledCompositionManifest,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
 
+describe("createBundledCompositionManifest", () => {
+  it("lists root, scoped, and nested bundled packages with exact licenses and versions", () => {
+    const volume = Volume.fromJSON({
+      "/repo/pkg/package.json": JSON.stringify({
+        name: "toolcraft",
+        version: "1.2.3",
+        license: "MIT"
+      }),
+      "/repo/pkg/node_modules/@poe-code/frontmatter/package.json": JSON.stringify({
+        name: "@poe-code/frontmatter",
+        version: "2.0.0",
+        license: "MIT"
+      }),
+      "/repo/pkg/node_modules/toolcraft-design/package.json": JSON.stringify({
+        name: "toolcraft-design",
+        version: "3.0.0",
+        license: "Apache-2.0"
+      }),
+      "/repo/pkg/node_modules/toolcraft-design/node_modules/sisteransi/package.json":
+        JSON.stringify({
+          name: "sisteransi",
+          version: "1.0.5",
+          license: "MIT"
+        })
+    });
+    const fs = createFsFromVolume(volume);
+
+    expect(createBundledCompositionManifest("/repo/pkg", fs)).toEqual({
+      schemaVersion: 1,
+      packages: [
+        { name: "@poe-code/frontmatter", version: "2.0.0", license: "MIT" },
+        { name: "sisteransi", version: "1.0.5", license: "MIT" },
+        { name: "toolcraft", version: "1.2.3", license: "MIT" },
+        { name: "toolcraft-design", version: "3.0.0", license: "Apache-2.0" }
+      ]
+    });
+  });
+});
+
 describe("assertSafeBundledPath", () => {
   it("rejects dependency output through a symlinked node_modules directory", () => {
-    const volume = Volume.fromJSON({ "/repo/pkg/package.json": "{}", "/outside/marker": "outside" });
+    const volume = Volume.fromJSON({
+      "/repo/pkg/package.json": "{}",
+      "/outside/marker": "outside"
+    });
     volume.symlinkSync("/outside", "/repo/pkg/node_modules");
     const fs = createFsFromVolume(volume);
 
@@ -56,12 +99,15 @@ describe("sanitizeBundledWorkspaceManifest", () => {
     };
 
     expect(
-      sanitizeBundledWorkspaceManifest(manifest, new Set([
-        "@poe-code/agent-defs",
-        "@poe-code/config-mutations",
-        "toolcraft-design",
-        "@poe-code/frontmatter"
-      ]))
+      sanitizeBundledWorkspaceManifest(
+        manifest,
+        new Set([
+          "@poe-code/agent-defs",
+          "@poe-code/config-mutations",
+          "toolcraft-design",
+          "@poe-code/frontmatter"
+        ])
+      )
     ).toEqual({
       name: "@poe-code/agent-skill-config",
       dependencies: {

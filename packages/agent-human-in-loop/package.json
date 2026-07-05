@@ -1,6 +1,7 @@
 {
   "name": "@poe-code/agent-human-in-loop",
   "version": "0.0.1",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",

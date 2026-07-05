@@ -1,6 +1,7 @@
 {
   "name": "toolcraft-design",
   "version": "0.0.2",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "main": "dist/index.js",

@@ -169,10 +169,7 @@ try {
   };
 
   const toolcraftPackageJson = readTarJson(tarballs.agentKit, "package/package.json");
-  const toolcraftSchemaPackageJson = readTarJson(
-    tarballs.agentKitSchema,
-    "package/package.json"
-  );
+  const toolcraftSchemaPackageJson = readTarJson(tarballs.agentKitSchema, "package/package.json");
   assert(toolcraftPackageJson.license === "MIT", "Expected toolcraft to declare the MIT license.");
   assert(
     toolcraftSchemaPackageJson.license === "MIT",
@@ -183,6 +180,7 @@ try {
     Array.isArray(bundledRuntimeDependencies) && bundledRuntimeDependencies.length > 0,
     "Expected toolcraft to declare bundled runtime dependencies."
   );
+  const toolcraftTarEntries = new Set(listTarEntries(tarballs.agentKit));
 
   const packAssertions = [
     {
@@ -223,6 +221,16 @@ try {
   }
 
   for (const dependencyName of bundledRuntimeDependencies) {
+    const bundledPackagePath = `package/node_modules/${dependencyName}`;
+    const bundledPackageJson = readTarJson(tarballs.agentKit, `${bundledPackagePath}/package.json`);
+    assert(
+      bundledPackageJson.license === "MIT",
+      `Expected bundled ${dependencyName} to declare the MIT license.`
+    );
+    assert(
+      toolcraftTarEntries.has(`${bundledPackagePath}/LICENSE`),
+      `Expected bundled ${dependencyName} to include LICENSE.`
+    );
     assert(
       toolcraftPackageJson.optionalDependencies?.[dependencyName],
       `Expected bundled ${dependencyName} to be an optional dependency for standalone installers.`

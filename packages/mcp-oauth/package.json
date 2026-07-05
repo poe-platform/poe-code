@@ -2,7 +2,7 @@
   "name": "mcp-oauth",
   "version": "0.0.1",
   "license": "MIT",
-  "publishConfig": { "access": "public" },
+  "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -7,18 +7,22 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc"
+    "build": "node scripts/build.mjs"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/tiny-mcp-client"
   },
-  "dependencies": {
-    "mcp-oauth": "^0.0.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
+    "mcp-oauth": "*",
     "tiny-stdio-mcp-server": "*"
+  },
+  "poeCode": {
+    "inlinedDependencies": [
+      "mcp-oauth"
+    ]
   }
 }

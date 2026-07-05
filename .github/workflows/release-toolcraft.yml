@@ -74,7 +74,6 @@ jobs:
             "@poe-code/process-runner"
             "@poe-code/task-list"
             "auth-store"
-            "mcp-oauth"
             "tiny-mcp-client"
             "toolcraft-design"
             "toolcraft-schema"
@@ -92,7 +91,7 @@ jobs:
         uses: ./.github/actions/prepare-lockstep-release
         with:
           version: ${{ steps.version.outputs.next }}
-          packages: '["packages/agent-defs", "packages/agent-human-in-loop", "packages/agent-mcp-config", "packages/auth-store", "packages/config-mutations", "packages/frontmatter", "packages/mcp-oauth", "packages/process-runner", "packages/task-list", "packages/tiny-mcp-client", "packages/toolcraft-design", "packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
+          packages: '["packages/agent-defs", "packages/agent-human-in-loop", "packages/agent-mcp-config", "packages/auth-store", "packages/config-mutations", "packages/frontmatter", "packages/process-runner", "packages/task-list", "packages/tiny-mcp-client", "packages/toolcraft-design", "packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
       - name: Build toolcraft packages and dependencies
         run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
@@ -100,65 +99,40 @@ jobs:
       - name: Publish agent-defs
         working-directory: packages/agent-defs
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish agent-human-in-loop
         working-directory: packages/agent-human-in-loop
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish auth-store
         working-directory: packages/auth-store
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish frontmatter
         working-directory: packages/frontmatter
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish process-runner
         working-directory: packages/process-runner
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish toolcraft-design
         working-directory: packages/toolcraft-design
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish config-mutations
         working-directory: packages/config-mutations
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish agent-mcp-config
         working-directory: packages/agent-mcp-config
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish task-list
         working-directory: packages/task-list
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish mcp-oauth
-        working-directory: packages/mcp-oauth
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish tiny-mcp-client
         working-directory: packages/tiny-mcp-client
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public
       - name: Verify packed composition signatures
         run: |
           PACK_DIR=$(mktemp -d)
-          TARBALL=$(npm pack packages/toolcraft --pack-destination "$PACK_DIR" --json | node -e "let input=''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input)[0].filename));")
+          TARBALL=$(npm pack ./packages/toolcraft --pack-destination "$PACK_DIR" --json | node -e "let input=''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input)[0].filename));")
           tar -xOf "$PACK_DIR/$TARBALL" package/composition.json > "$PACK_DIR/composition.json"
           tar -xOf "$PACK_DIR/$TARBALL" package/package.json > "$PACK_DIR/package.json"
           AUDIT_DIR=$(mktemp -d)

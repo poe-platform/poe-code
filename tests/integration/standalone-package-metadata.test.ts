@@ -9,6 +9,7 @@ type PackageJson = {
   bundledDependencies?: string[];
   bundleDependencies?: string[];
   dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
   engines?: Record<string, string>;
   exports?: Record<string, unknown>;
   files?: string[];
@@ -94,6 +95,19 @@ describe("standalone package publish metadata", () => {
       types: "./dist/design.d.ts",
       import: "./dist/design.js"
     });
+  });
+
+  it("inlines private mcp-oauth into tiny-mcp-client", () => {
+    const oauthPackage = readPackageJson("packages/mcp-oauth/package.json");
+    const clientPackage = readPackageJson("packages/tiny-mcp-client/package.json");
+    const toolcraftPackage = readPackageJson("packages/toolcraft/package.json");
+
+    expect(oauthPackage.private).toBe(true);
+    expect(oauthPackage.publishConfig).toBeUndefined();
+    expect(clientPackage.dependencies?.["mcp-oauth"]).toBeUndefined();
+    expect(clientPackage.devDependencies?.["mcp-oauth"]).toBe("*");
+    expect(toolcraftPackage.bundleDependencies).not.toContain("mcp-oauth");
+    expect(toolcraftPackage.optionalDependencies?.["mcp-oauth"]).toBeUndefined();
   });
 
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {

@@ -53,6 +53,22 @@ describe("imported-workspace-dep-unresolvable", () => {
     expect(importedWorkspaceDepUnresolvable.run(model)).toHaveLength(0);
   });
 
+  it("passes when the imported workspace package is compiled into the published entrypoint", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/pub/package.json": pkgJson({
+        name: "pub",
+        repository: { directory: "packages/pub" },
+        poeCode: { inlinedDependencies: ["priv"] }
+      }),
+      "/repo/packages/pub/src/index.ts": 'export { z } from "priv";\n',
+      "/repo/packages/priv/package.json": pkgJson({ name: "priv", private: true }),
+      "/repo/.github/workflows/release-pub.yml": releaseWorkflow("packages/pub")
+    });
+
+    expect(importedWorkspaceDepUnresolvable.run(model)).toHaveLength(0);
+  });
+
   it("ignores type-only and test imports", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

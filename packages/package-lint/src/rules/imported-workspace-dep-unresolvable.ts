@@ -18,6 +18,7 @@ export const importedWorkspaceDepUnresolvable: Rule = {
     for (const pkg of model.packages) {
       if (!isPublishedNpm(pkg) || !released.has(pkg.dir)) continue;
       const bundled = new Set(pkg.bundledDependencies);
+      const inlined = new Set(pkg.inlinedDependencies);
       const unresolvable = new Map<string, Set<string>>();
 
       for (const ref of model.sourceImports.get(pkg.dir) ?? []) {
@@ -25,6 +26,7 @@ export const importedWorkspaceDepUnresolvable: Rule = {
         const dep = model.byName.get(ref.packageName);
         if (!dep || dep.name === pkg.name) continue; // only workspace deps, not self
         if (bundled.has(dep.name)) continue; // vendored into the tarball
+        if (inlined.has(dep.name)) continue; // compiled into the published entrypoint
         if (isPublishedNpm(dep) && released.has(dep.dir)) continue; // dep itself reaches npm
         const files = unresolvable.get(dep.name) ?? new Set<string>();
         files.add(ref.file);

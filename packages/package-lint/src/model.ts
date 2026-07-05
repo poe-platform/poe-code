@@ -42,6 +42,8 @@ export interface PackageInfo {
   optionalDependencies: Record<string, string>;
   /** Names vendored into this package's published tarball (npm `bundledDependencies`). */
   bundledDependencies: string[];
+  /** Workspace packages compiled into this package's published runtime and type entrypoints. */
+  inlinedDependencies: string[];
   repositoryDirectory: string | undefined;
   ecosystem: Ecosystem;
   main: string | undefined;
@@ -232,6 +234,10 @@ async function loadPackage(
   const raw = await fs.readFile(path.join(absDir, "package.json"));
   const pkg = JSON.parse(raw) as Record<string, unknown>;
   const repository = pkg.repository as { directory?: unknown } | undefined;
+  const poeCode =
+    pkg.poeCode && typeof pkg.poeCode === "object" && !Array.isArray(pkg.poeCode)
+      ? (pkg.poeCode as Record<string, unknown>)
+      : undefined;
 
   return {
     name: typeof pkg.name === "string" ? pkg.name : relDir,
@@ -244,6 +250,7 @@ async function loadPackage(
     peerDependencies: toStringRecord(pkg.peerDependencies),
     optionalDependencies: toStringRecord(pkg.optionalDependencies),
     bundledDependencies: toStringArray(pkg.bundledDependencies ?? pkg.bundleDependencies),
+    inlinedDependencies: toStringArray(poeCode?.inlinedDependencies),
     repositoryDirectory:
       typeof repository?.directory === "string" ? repository.directory : undefined,
     ecosystem,

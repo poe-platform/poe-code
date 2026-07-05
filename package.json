@@ -279,6 +279,8 @@
     "opencode-poe-auth": "*",
     "poe-oauth": "*",
     "prettier": "^3.8.1",
+    "rollup": "4.62.0",
+    "rollup-plugin-dts": "6.4.1",
     "terminal-pilot": "^0.0.1",
     "terminal-pilot-mcp": "*",
     "terminal-png": "*",

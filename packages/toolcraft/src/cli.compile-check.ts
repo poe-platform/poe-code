@@ -1,7 +1,7 @@
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
-import { runCLI } from "./cli.js";
-import type { RunCLIOptions } from "./cli.js";
+import { createCLICommandTreeSnapshot, runCLI } from "./cli.js";
+import type { CLICommandTreeSnapshot, RunCLIOptions } from "./cli.js";
 
 const ignoredCommand = defineCommand({
   name: "deploy",
@@ -43,4 +43,12 @@ const ignoredServiceOptions: RunCLIOptions<{ marker: string }> = {
 
 void runCLI(ignoredRoot, ignoredOptions);
 void runCLI([ignoredRoot], ignoredOptions);
+const ignoredSnapshot: Promise<CLICommandTreeSnapshot> = createCLICommandTreeSnapshot(ignoredRoot, {
+  approvals: true,
+  casing: "kebab",
+  controls: ignoredOptions.controls,
+  presets: true,
+  version: ignoredOptions.version,
+});
+void ignoredSnapshot;
 void ignoredServiceOptions;

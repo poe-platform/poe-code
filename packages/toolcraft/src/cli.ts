@@ -269,6 +269,101 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   errorReports?: ErrorReportsOption;
 }
 
+export interface CLICommandTreeSnapshotOption {
+  name: string;
+  flags: string[];
+  type: string;
+  required: boolean;
+  hidden: boolean;
+  description?: string;
+  default?: unknown;
+  positional?: boolean;
+  global?: boolean;
+  dynamic?: boolean;
+}
+
+export interface CLICommandTreeSnapshotCommand {
+  kind: "command";
+  name: string;
+  path: string[];
+  aliases: string[];
+  hidden: boolean;
+  default: boolean;
+  description?: string;
+  options: CLICommandTreeSnapshotOption[];
+}
+
+export interface CLICommandTreeSnapshotGroup {
+  kind: "group";
+  name: string;
+  path: string[];
+  aliases: string[];
+  hidden: false;
+  default: boolean;
+  description?: string;
+  children: CLICommandTreeSnapshotNode[];
+}
+
+export type CLICommandTreeSnapshotNode =
+  | CLICommandTreeSnapshotCommand
+  | CLICommandTreeSnapshotGroup;
+
+export interface CLICommandTreeSnapshot {
+  schemaVersion: 1;
+  globalOptions: CLICommandTreeSnapshotOption[];
+  root: CLICommandTreeSnapshotGroup;
+}
+
+export interface CLICommandTreeSnapshotOptions {
+  approvals?: boolean;
+  argv?: readonly string[];
+  casing?: Casing;
+  controls?: CLIControls;
+  presets?: boolean;
+  version?: string;
+}
+
+/**
+ * Returns the resolved CLI command surface as deterministic plain data.
+ *
+ * Schema version 1 is independent of human-facing help layout. Nodes and options retain
+ * declaration order, paths exclude the root name, non-CLI nodes are omitted, hidden commands
+ * remain present, and Toolcraft-controlled global options are reported separately. A future
+ * incompatible shape change will increment `schemaVersion`.
+ */
+export async function createCLICommandTreeSnapshot<TServices extends object>(
+  roots: Group<TServices> | Group<TServices>[],
+  options: CLICommandTreeSnapshotOptions = {}
+): Promise<CLICommandTreeSnapshot> {
+  const argv = [...(options.argv ?? ["node", "toolcraft"])];
+  const normalizedRoot = normalizeRoots(roots, argv);
+  const root =
+    options.approvals === true
+      ? (
+          await importOptionalModule<typeof import("./human-in-loop/approvals-commands.js")>(
+            optionalModulePaths.approvals
+          )
+        ).mergeApprovalsGroup(normalizedRoot)
+      : normalizedRoot;
+  const controls = resolveCLIControls(options.controls);
+  const presetsEnabled = options.presets === true;
+  const globalLongOptionFlags = getGlobalLongOptionFlags(
+    presetsEnabled,
+    options.version !== undefined,
+    controls
+  );
+
+  return {
+    schemaVersion: 1,
+    globalOptions: createGlobalSnapshotOptions(
+      presetsEnabled,
+      options.version !== undefined,
+      controls
+    ),
+    root: createSnapshotGroup(root, options.casing ?? "kebab", globalLongOptionFlags, [], false)
+  };
+}
+
 function inferProgramName(argv: string[]): string {
   const entrypoint = argv[1];
 
@@ -2451,6 +2546,190 @@ function getNodeCommandNames<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>
 ): string[] {
   return [node.name, ...node.aliases].filter((name) => name.length > 0);
+}
+
+function createGlobalSnapshotOptions(
+  presetsEnabled: boolean,
+  versionEnabled: boolean,
+  controls: ResolvedCLIControls
+): CLICommandTreeSnapshotOption[] {
+  const options: CLICommandTreeSnapshotOption[] = [
+    {
+      name: "help",
+      flags: ["-h", "--help"],
+      type: "boolean",
+      required: false,
+      hidden: false,
+      description: "Display help for command."
+    }
+  ];
+
+  if (presetsEnabled) {
+    options.push({
+      name: "preset",
+      flags: ["--preset"],
+      type: "string",
+      required: false,
+      hidden: true,
+      description: "Load parameter defaults from a JSON file."
+    });
+  }
+  if (controls.yes) {
+    options.push({
+      name: "yes",
+      flags: ["--yes"],
+      type: "boolean",
+      required: false,
+      hidden: true,
+      description: "Accept defaults and skip prompts."
+    });
+  }
+  if (controls.output) {
+    options.push({
+      name: "output",
+      flags: ["--output"],
+      type: "enum",
+      required: false,
+      hidden: true,
+      description: "Output format."
+    });
+  }
+  if (controls.debug) {
+    options.push({
+      name: "debug",
+      flags: ["--debug"],
+      type: "enum",
+      required: false,
+      hidden: true,
+      description: "Print stack traces for unexpected errors."
+    });
+  }
+  if (controls.logLevel) {
+    options.push({
+      name: "logLevel",
+      flags: ["--log-level"],
+      type: "enum",
+      required: false,
+      hidden: true,
+      description: "Set runtime diagnostic log level."
+    });
+  }
+  if (controls.verbose) {
+    options.push({
+      name: "verbose",
+      flags: ["-v", "--verbose"],
+      type: "boolean",
+      required: false,
+      hidden: true,
+      description: "Print detailed runtime diagnostics."
+    });
+  }
+  if (versionEnabled) {
+    options.push({
+      name: "version",
+      flags: ["--version"],
+      type: "boolean",
+      required: false,
+      hidden: false,
+      description: "Output the version number."
+    });
+  }
+
+  return options;
+}
+
+function createSnapshotGroup<TServices extends object>(
+  group: Group<TServices>,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>,
+  pathSegments: string[],
+  isDefault: boolean
+): CLICommandTreeSnapshotGroup {
+  const children = group.children
+    .filter((child) => isNodeVisibleInScope(child, "cli"))
+    .map((child) =>
+      createSnapshotNode(
+        child,
+        casing,
+        globalLongOptionFlags,
+        [...pathSegments, child.name],
+        group.default === child
+      )
+    );
+
+  return {
+    kind: "group",
+    name: group.name,
+    path: pathSegments,
+    aliases: [...group.aliases],
+    hidden: false,
+    default: isDefault,
+    ...(group.description === undefined ? {} : { description: group.description }),
+    children
+  };
+}
+
+function createSnapshotNode<TServices extends object>(
+  node: Command<TServices, any, any, any> | Group<TServices>,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>,
+  pathSegments: string[],
+  isDefault: boolean
+): CLICommandTreeSnapshotNode {
+  if (node.kind === "group") {
+    return createSnapshotGroup(node, casing, globalLongOptionFlags, pathSegments, isDefault);
+  }
+
+  const collected = collectFields(node.params, casing, globalLongOptionFlags);
+  const fields = assignPositionals(collected.fields, node.positional);
+  validateUniqueOptionFlags(fields, globalLongOptionFlags);
+
+  return {
+    kind: "command",
+    name: node.name,
+    path: pathSegments,
+    aliases: [...node.aliases],
+    hidden: node.hidden,
+    default: isDefault,
+    ...(node.description === undefined ? {} : { description: node.description }),
+    options: [
+      ...fields.map((field) => createFieldSnapshotOption(field, globalLongOptionFlags)),
+      ...collected.dynamicFields.flatMap((field) => createDynamicSnapshotOptions(field, casing))
+    ]
+  };
+}
+
+function createFieldSnapshotOption(
+  field: FieldDefinition,
+  globalLongOptionFlags: ReadonlySet<string>
+): CLICommandTreeSnapshotOption {
+  return {
+    name: field.displayPath,
+    flags: formatHelpFieldFlags(field, globalLongOptionFlags).split(", "),
+    type: formatJsonHelpSchemaType(field.schema),
+    required: field.requiredWhenActive,
+    hidden: false,
+    ...(field.description === undefined ? {} : { description: field.description }),
+    ...(field.hasDefault ? { default: field.defaultValue } : {}),
+    ...(field.positionalIndex === undefined ? {} : { positional: true }),
+    ...(field.global === true ? { global: true } : {})
+  };
+}
+
+function createDynamicSnapshotOptions(
+  field: DynamicFieldDefinition,
+  casing: Casing
+): CLICommandTreeSnapshotOption[] {
+  return formatDynamicHelpFields(field, casing).map((row) => ({
+    name: field.displayPath,
+    flags: [row.flags],
+    type: describeDynamicFieldType(field),
+    required: field.requiredWhenActive,
+    hidden: false,
+    ...(field.description === undefined ? {} : { description: field.description }),
+    ...(field.hasDefault ? { default: field.defaultValue } : {}),
+    dynamic: true
+  }));
 }
 
 function addGlobalOptions(

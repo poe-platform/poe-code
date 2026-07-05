@@ -445,6 +445,32 @@ Pattern for adopting toolcraft incrementally:
 
 If you have an existing MCP server you want to keep running, use the MCP proxy: a `defineGroup` with an `mcp` field pulls its tools into your tree without rewriting them.
 
+## Standalone Bundles
+
+Toolcraft supports standalone ESM CLI bundles built with esbuild `0.28.1`. The release workflow builds and starts the same recipe on Node.js `18.18.0`, `20`, `22`, and `24`. Use `node18` as the compilation target so one artifact runs across those supported runtimes.
+
+Install the supported bundler with `npm install --save-dev esbuild@0.28.1`.
+
+```js
+import { build } from "esbuild";
+
+await build({
+  entryPoints: ["src/cli.ts"],
+  outfile: "dist/cli.js",
+  bundle: true,
+  format: "esm",
+  platform: "node",
+  target: "node18",
+  splitting: false,
+  sourcemap: "external",
+  sourcesContent: true
+});
+```
+
+Import the command definitions from `toolcraft` and the CLI runner from `toolcraft/cli`. A command tree that does not configure MCP proxies, process runners, or human-in-loop gates leaves those optional integrations out of the bundle.
+
+esbuild records dependency paths relative to the build layout. A standalone install can produce `node_modules/toolcraft/...`, while a hoisted workspace can produce `../../node_modules/toolcraft/...` in module-label comments and source-map `sources`. For layout-independent artifacts, canonicalize every dependency path by keeping the substring from the first `node_modules/` segment onward. Parse the source map as JSON and apply the same operation to each string in `sources`; do not modify application source paths. Serialize the map, then hash or publish the canonical bundle and map.
+
 ## Environment variables
 
 - `TOOLCRAFT_MCP_REFRESH` — MCP proxy cache refresh (`unset` = use cache, `1`/`true` = refresh all, comma-separated names = refresh those).

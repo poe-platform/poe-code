@@ -9,6 +9,10 @@ on:
       - "packages/toolcraft-design/**"
       - "packages/toolcraft-schema/**"
       - "packages/toolcraft-openapi/**"
+      - "scripts/toolcraft-standalone-bundle.mjs"
+      - "scripts/verify-toolcraft-cli-bundle.mjs"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/release-toolcraft.yml"
 concurrency:
   group: release-toolcraft
@@ -17,7 +21,24 @@ permissions:
   contents: read
   id-token: write
 jobs:
+  standalone-bundle:
+    strategy:
+      matrix:
+        node-version: [18.18.0, 20, 22, 24]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build toolcraft and bundled dependencies
+        run: npx turbo build --filter=toolcraft
+      - name: Build and start the standalone CLI bundle
+        run: npm run smoke:toolcraft-bundle
   publish:
+    needs: standalone-bundle
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

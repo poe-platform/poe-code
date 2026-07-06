@@ -13,7 +13,7 @@ Portable agent skill and hook sync for project, global, and secret GitHub Gist-b
 
 When neither variable is set, the CLI attempts `gh auth token` for Gist-backed commands.
 
-## Config
+## Configuration Options
 
 Config is stored under `~/.agent-stash`.
 

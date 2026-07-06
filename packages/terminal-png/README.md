@@ -14,7 +14,7 @@ await renderTerminalPng(ansiText, {
 });
 ```
 
-Options:
+## Configuration Options
 
 - `output`: path to the output PNG file
 - `window`: include terminal window chrome
@@ -25,3 +25,7 @@ Options:
 ```sh
 terminal-png <input.ansi> -o <output.png> [--window] [--padding 20]
 ```
+
+## Environment Variables
+
+This package does not read public environment variables. The comparison script inherits `PATH` only to locate the local CLI under test.

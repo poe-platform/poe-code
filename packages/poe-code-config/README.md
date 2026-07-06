@@ -24,6 +24,14 @@ flags and caller-specific constants are applied outside this package.
 
 Use `resolveConfigPath(homeDir)` for the global file and `resolveProjectConfigPath(cwd)` for the project file.
 
+## Environment Variables
+
+This package resolves only environment variables declared by compiled config schemas. It does not hard-code package-specific env names.
+
+## Configuration Options
+
+Config options are schema-declared scope fields. Built-in scopes documented below include runtime execution options and runner sync options; other packages contribute their own scopes with `defineScope(...)`.
+
 ## Schema compilation
 
 Packages can define declarative config fragments with `defineScope(...)` and export them from production entrypoints. `compileConfigSchemaFromEntrypoints(...)` walks static imports and re-exports from those entrypoints, collects reachable exported `defineScope(...)` calls, merges fragments by scope name, and emits a JSON Schema document through `toolcraft-schema`.
@@ -114,8 +122,8 @@ Example:
 ```json
 {
   "models": {
-    "default": "anthropic/claude-opus-4.7",
-    "codex": "openai/gpt-5.3-codex"
+    "default": "<model-id>",
+    "codex": "<model-id>"
   }
 }
 ```

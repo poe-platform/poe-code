@@ -26,6 +26,7 @@ status:
   state: open
   iteration: 0
 ---
+
 # Refactor the auth module
 
 Split the monolithic auth.ts into separate files for session management,
@@ -47,24 +48,38 @@ agent:
 Use `agent:provider/model` notation:
 
 ```yaml
-agent: claude-code:anthropic/claude-opus-4.7
+agent: "claude-code:<provider>/<model>"
 ```
 
 ## Template Variables
 
 Ralph supports `{{ variable }}` syntax in doc bodies. Variables are interpolated before the prompt is sent to the agent but preserved as-is in the file.
 
-| Variable | Resolves to |
-|---|---|
-| `{{ current_file }}` | Absolute path of the Ralph doc being run |
+## Configuration Options
+
+Ralph configuration lives in the markdown document frontmatter:
+
+- `agent`: one agent, or a list for round-robin execution.
+- `iterations`: maximum iteration count.
+- `status.state`: run state.
+- `status.iteration`: current iteration.
+
+## Environment Variables
+
+This package does not read public environment variables directly.
+
+| Variable                  | Resolves to                              |
+| ------------------------- | ---------------------------------------- |
+| `{{ current_file }}`      | Absolute path of the Ralph doc being run |
 | `{{ current_iteration }}` | Current one-based Ralph iteration number |
-| `{{ max_iterations }}` | Configured maximum Ralph iterations |
+| `{{ max_iterations }}`    | Configured maximum Ralph iterations      |
 
 ```markdown
 ---
 agent: claude-code
 iterations: 3
 ---
+
 # Improve {{ current_file }}
 
 Review and improve the plan in this file.
@@ -72,23 +87,23 @@ Review and improve the plan in this file.
 
 ## Doc Discovery
 
-Docs are auto-discovered from `.poe-code/ralph/plans/` — you almost never need to pass a path manually.
+Docs are auto-discovered from the shared plan directory, `docs/plans` by default. You usually do not need to pass a path manually.
 
-1. Scan `.poe-code/ralph/plans/` under the current working directory for `.md` files
+1. Scan the configured plan directory for `.md` files
 2. One doc found — use it
 3. Multiple — prompt for selection
 4. None — fail
 
 ## Custom Plan Directory
 
-By default docs are discovered from `.poe-code/ralph/plans/`. To use a different directory:
+By default docs are discovered from `docs/plans`. To use a different directory:
 
 ```bash
 # Set plan directory in project config (.poe-code/config.json)
-# { "ralph": { "plan_directory": "docs/plans" } }
+# { "plan": { "plan_directory": "docs/ralph-plans" } }
 
 # Or via env
-POE_RALPH_PLAN_DIRECTORY=docs/plans poe-code ralph run
+POE_PLAN_DIRECTORY=docs/ralph-plans poe-code ralph run
 
 # Or point to a specific doc directly
 poe-code ralph run docs/plans/refactor-auth.md
@@ -122,7 +137,7 @@ Ralph archives completed docs by default. Disable this with `poe-code ralph run 
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui]
+poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--runtime host|docker|e2b] [--worktree]
 ```
 
 ## Package API
@@ -134,7 +149,7 @@ const result = await runRalph({
   agent: "claude-code",
   cwd: process.cwd(),
   homeDir: "/home/test",
-  docPath: ".poe-code/ralph/plans/refactor-auth.md",
+  docPath: "docs/plans/refactor-auth.md",
   maxIterations: 3,
   runAgent: async ({ agent, prompt, cwd, model, signal }) => {
     return { stdout: "", stderr: "", exitCode: 0 };

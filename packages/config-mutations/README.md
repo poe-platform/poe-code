@@ -38,14 +38,14 @@ await runMutations(
 
 `MutationContext` controls execution:
 
-| Option | Type | Description |
-| ------ | ---- | ----------- |
-| `fs` | `FileSystem` | Required filesystem adapter. |
-| `homeDir` | `string` | Required home directory for `~` expansion. |
-| `dryRun` | `boolean` | Reports changes without writing them. |
-| `observers` | `MutationObservers` | Receives mutation lifecycle events. |
-| `templates` | `TemplateLoader` | Loads templates referenced by template mutations. |
-| `pathMapper` | `PathMapper` | Redirects target directories for isolated config flows. |
+| Option       | Type                | Description                                             |
+| ------------ | ------------------- | ------------------------------------------------------- |
+| `fs`         | `FileSystem`        | Required filesystem adapter.                            |
+| `homeDir`    | `string`            | Required home directory for `~` expansion.              |
+| `dryRun`     | `boolean`           | Reports changes without writing them.                   |
+| `observers`  | `MutationObservers` | Receives mutation lifecycle events.                     |
+| `templates`  | `TemplateLoader`    | Loads templates referenced by template mutations.       |
+| `pathMapper` | `PathMapper`        | Redirects target directories for isolated config flows. |
 
 Mutation builders also expose per-mutation options such as target path, format,
 label, force removal, backup behavior, template id, and transform callbacks.

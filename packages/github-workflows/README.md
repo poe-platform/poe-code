@@ -12,6 +12,8 @@ Run the same assertion locally or in CI with:
 npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
 ```
 
+See [GitHub persistent storage options](docs/github-persistent-storage.md) for workflow-safe cache, artifact, and repository-variable tradeoffs.
+
 ## Quickstart
 
 ### 1. Add repository secrets
@@ -73,6 +75,20 @@ details and leaves the issue open instead of closing it.
 ```bash
 poe-code gh list
 ```
+
+## CLI Commands
+
+| Command                             | Purpose                                                            |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| `poe-code gh list`                  | List built-in and repo-local automations.                          |
+| `poe-code gh install [name]`        | Install one automation, or all automations when `name` is omitted. |
+| `poe-code gh uninstall <name>`      | Remove an installed automation workflow.                           |
+| `poe-code gh run [name]`            | Run an automation locally or in GitHub Actions.                    |
+| `poe-code gh prepare <name>`        | Install and configure the agent required by an automation.         |
+| `poe-code gh prompt-preview <name>` | Preview the resolved prompt for an automation.                     |
+| `poe-code gh variables`             | Show shared prompt variables and their source.                     |
+| `poe-code gh require-* <name>`      | Validate comment author and prefix gates inside workflows.         |
+| `poe-code gh trufflehog-pr-scan`    | Run TruffleHog PR scan helpers.                                    |
 
 ---
 
@@ -181,7 +197,7 @@ Rules:
 - Only one `{{yield}}` per prompt is allowed.
 - If neither side uses `{{yield}}`, the child prompt replaces the base (existing behavior).
 - If the child has no prompt body, `{{yield}}` resolves to an empty string.
-- `{{yield}}` is resolved before template variables like `{{url}}`, so both work together seamlessly.
+- `{{yield}}` is resolved before template variables like `{{url}}`, so both can appear in the same prompt.
 
 ### `extends` vs `--eject`
 
@@ -294,6 +310,6 @@ first failed run's stderr/stdout when present.
 
 ---
 
-## Config
+## Configuration Options
 
 This package does not expose any config options.

@@ -45,3 +45,18 @@ await store.delete();
 
 - Uses the `security` CLI (`add-generic-password`, `find-generic-password`, `delete-generic-password`)
 - Configurable service and account names
+
+## Configuration Options
+
+`createSecretStore()` accepts:
+
+- `backendEnvVar`: optional env var name that selects `file` or `keychain`.
+- `fileStore.salt`: application-specific encryption salt.
+- `fileStore.defaultDirectory`: default credential directory.
+- `fileStore.defaultFileName`: encrypted file name.
+- `keychainStore.service`: macOS Keychain service name.
+- `keychainStore.account`: macOS Keychain account name.
+
+## Environment Variables
+
+This package reads only the caller-selected `backendEnvVar`. It does not define a fixed public env var.

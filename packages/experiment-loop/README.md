@@ -57,12 +57,22 @@ From the CLI: `poe-code experiment run --agent claude-code,codex`
 Use `agent:provider/model` notation:
 
 ```yaml
-agent: claude-code:anthropic/claude-opus-4.7
+agent: "claude-code:<provider>/<model>"
 ```
 
 ## Metric Scripts
 
 Metric scripts decide what "better" means. Each must exit 0 on success and print a single number to stdout.
+
+## Environment Variables
+
+- `SHELL`: shell used when the runner needs a system shell. Defaults to `sh`.
+- `POE_PLAN_DIRECTORY`: overrides the shared plan directory used to discover experiment docs.
+- `POE_EXPERIMENT_TUI`: enables or disables the live terminal dashboard.
+
+## Configuration Options
+
+Experiment docs use YAML frontmatter. Main fields are `agent`, `metric`, `baseline`, and `status`. Runtime config can also come from `.poe-code/config.json`: `plan.plan_directory` changes doc discovery, and `experiment.tui` sets the dashboard default.
 
 Register them as `metric:*` npm scripts:
 
@@ -140,5 +150,6 @@ POE_EXPERIMENT_TUI=true poe-code experiment run
 poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui]
 poe-code experiment validate [doc]
 poe-code experiment journal [doc]
+poe-code experiment plan-path
 poe-code experiment install
 ```

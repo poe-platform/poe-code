@@ -15,9 +15,7 @@ Register the plugin with OpenCode:
 ```ts
 import { PoeAuthPlugin } from "opencode-poe-auth";
 
-const INTERNAL_PLUGINS = [
-  PoeAuthPlugin
-];
+const INTERNAL_PLUGINS = [PoeAuthPlugin];
 ```
 
 The plugin registers the `poe` auth provider and exposes two auth methods:
@@ -29,6 +27,6 @@ The plugin registers the `poe` auth provider and exposes two auth methods:
 
 This package does not expose any environment variables.
 
-## Config
+## Configuration Options
 
 This package does not expose any plugin-specific config options.

@@ -1,4 +1,4 @@
-# `agent-code-review`
+# agent-code-review
 
 Internal package for agent-assisted GitHub code review. It owns code-review configuration, SDK run-option resolution, Markdown profile and prompt loading, YAML review state, the Toolcraft CLI group, and the spawned-agent MCP process.
 
@@ -32,7 +32,7 @@ Configuration uses the normal `.poe-code/config.json` hierarchy under the `codeR
 - Review YAML and ingest `source.yaml` documents use `version: 1`; malformed documents report the path and failing field on read.
 - `humanGate.provider` defaults to `none`.
 
-## Environment
+## Environment Variables
 
 The package defines no environment variables of its own. Runtime review does not require `OPENAI_API_KEY`; only `gh` CLI authentication and a configured `poe-code` agent are needed.
 
@@ -60,16 +60,16 @@ The package defines no environment variables of its own. Runtime review does not
 
 ## CLI
 
-The workflow uses these commands:
+The root CLI forwards `poe-code code-review ...`, but the group is intentionally hidden from root help. Use `poe-code code-review --help` for the command list.
 
 - `install`: run `poe-code code-review install [--cwd <repo>] [--force]` to install repo-local starter profiles and prompts.
 - `profiles`: run `poe-code code-review profiles [--cwd <repo>]` to list available reviewer profiles. Add or edit `.poe-code/code-review/profiles/*.md`, or rely on the built-in `generic` fallback when the directory contains no profiles.
 - `prompt-preview`: run `poe-code code-review prompt-preview --spawn <orchestrator|reviewer|profile-synthesis> [--profile <name>] [--cwd <repo>]` to render the exact effective spawn prompt without GitHub, model, or agent calls.
 - `ingest`: run `poe-code code-review ingest <github-username> --repo <owner/name> [--repo <owner/name>...] [--profile <name>] [--agent <agent>] [--cwd <repo>]` to synthesize a profile from authored GitHub review history; repeat `--repo` for each source repository.
-- `run`: run `poe-code code-review run <github-pr-url> [--cwd <repo>] [--agent <agent>] [--profiles <profile>...] [--additional-feedback <text>]` to fetch the PR, launch review agents, and create a merged YAML draft without publishing it.
+- `run`: run `poe-code code-review run <github-pr-url> [--cwd <repo>] [--agent <agent>] [--draft-store <dir>] [--profile-path <path>] [--prompt-path <path>] [--profiles <profile>...] [--additional-feedback <text>]` to fetch the PR, launch review agents, and create a merged YAML draft without publishing it.
 - `drafts`: run `poe-code code-review drafts <github-pr-url> [--cwd <repo>] [--draft-store <dir>]` to read the active YAML draft.
 - `commit`: run `poe-code code-review commit <github-pr-url> [--cwd <repo>] [--draft-store <dir>] [--actor <name>] [--dry-run]` to validate and publish the final merged review. `--dry-run` returns only the payload that would be submitted and leaves YAML state active.
-- `agent-mcp`: run `poe-code code-review agent-mcp --role <agent|orchestrator|subagent> --session <id> --actor <name> --cwd <repo> [--draft-store <dir>] --agent <agent> [--profiles <csv>]` to start the stdio MCP process intended for spawned review agents.
+- `agent-mcp`: run `poe-code code-review agent-mcp --role <agent|orchestrator|subagent> --session <id> --actor <name> --cwd <repo> [--draft-store <dir>] --agent <agent> [--profiles <csv>] [--profile-directories <csv>]` to start the stdio MCP process intended for spawned review agents.
 
 ## Prompt composition and preview
 
@@ -79,6 +79,7 @@ Repo-local role prompts live in `.poe-code/code-review/prompts/*.md`. A plain Ma
 ---
 extends: true
 ---
+
 Apply the repository security policy before reviewing.
 
 {{yield}}
@@ -129,7 +130,7 @@ Slack approval, ticketing, or any other human-gate integration belongs outside `
 await runCodeReview({
   prUrl: "https://github.com/acme/widgets/pull/123",
   cwd: process.cwd(),
-  additionalFeedback: "Please verify rollback coverage before approval.",
+  additionalFeedback: "Please verify rollback coverage before approval."
 });
 ```
 

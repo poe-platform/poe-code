@@ -1,4 +1,4 @@
-# `github-review`
+# github-review
 
 Reusable SDK for GitHub pull request and review mechanics backed exclusively by the GitHub CLI (`gh`). It provides the GitHub transport and validation layer for code-review workflows, and intentionally contains no agent, profile, session, draft-store, or orchestration behavior.
 
@@ -25,9 +25,13 @@ For non-interactive CI, provide a token for `gh`, for example `GH_TOKEN`, with a
 - `submitPullRequestReview`, `editPullRequestReviewComment`, and `deletePullRequestReviewComment` write live GitHub review data through `gh api`.
 - `GitHubRateLimitError` and `parseGitHubApiResponse` support rate-aware callers handling GitHub API responses.
 
-## Environment and configuration
+## Environment Variables
 
-The SDK reads no environment variables and no configuration files of its own. Repository access, authentication, and rate-limit policy are determined by the `gh` CLI environment provided by the host process.
+The SDK reads no environment variables of its own. Repository access and authentication are determined by the `gh` CLI environment provided by the host process.
+
+## Configuration Options
+
+This package reads no config files. Live calls accept injectable runner and pagination/rate-limit options documented below.
 
 ## Testing and embedding
 
@@ -39,13 +43,12 @@ import { fetchPullRequestMetadata, type CommandRunner } from "github-review";
 const runner: CommandRunner = (_command, _args) => ({
   code: 0,
   stdout: JSON.stringify({ number: 123, title: "Review me" }),
-  stderr: "",
+  stderr: ""
 });
 
-const pullRequest = fetchPullRequestMetadata(
-  "https://github.com/acme/widgets/pull/123",
-  { runner },
-);
+const pullRequest = fetchPullRequestMetadata("https://github.com/acme/widgets/pull/123", {
+  runner
+});
 ```
 
 Review-history ingest uses `gh api --include` to parse GitHub pagination and rate-limit headers. When remaining API requests fall to ten or fewer, it calls `onRateLimit` when provided and throws `GitHubRateLimitError` with a resumable endpoint and partial-result count so callers can stop and resume cleanly.

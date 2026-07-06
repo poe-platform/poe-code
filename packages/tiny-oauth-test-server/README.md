@@ -24,7 +24,7 @@ The implementation uses `jose` for JWT and JWKS interoperability, while key gene
 import { createOAuthTestServer } from "tiny-oauth-test-server";
 
 const server = createOAuthTestServer({
-  defaultTokenTtlSeconds: 60,
+  defaultTokenTtlSeconds: 60
 });
 
 const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
@@ -35,7 +35,7 @@ console.log(`${server.issuer}/.well-known/oauth-authorization-server`);
 const token = await server.issueTokenFor({
   clientId: "demo-client",
   resource: "https://resource.example.com/mcp",
-  scopes: ["mcp.read"],
+  scopes: ["mcp.read"]
 });
 
 console.log(token);
@@ -111,46 +111,46 @@ Overrides the next authorization decision.
 
 Marks a previously issued access token or refresh token as revoked in the server's in-memory state.
 
-## `createOAuthTestServer` Options
+## Configuration Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `issuer` | none | Issuer URL to publish in metadata and JWTs. If omitted, the server uses the runtime listening URL. |
-| `signingKey` | none | Private signing key as a PEM string or private JWK object. Supports P-256 EC (`ES256`) and RSA (`RS256`). |
-| `signingKeySeed` | none | Deterministic seed for generating a reproducible ES256 key at startup. Ignored when `signingKey` is provided. |
-| `clockSkewSeconds` | `0` | Extra skew allowed when validating authorization-code and refresh-token expiry. |
-| `defaultTokenTtlSeconds` | `60` | Default `expires_in` for access tokens. |
-| `requireDcr` | `true` | When `true`, non-static clients must register before `/authorize`. When `false`, unknown public clients are accepted for loopback redirects. |
-| `staticClients` | `[]` | Preloaded clients. Each item is `{ clientId, redirectUris, scopes? }`. |
-| `defaultAuthorization` | `{ autoApprove: false }` | Default consent behavior. Useful for CLI auto-approval. Supports `{ autoApprove?, scopes? }`. |
+| Option                   | Default                  | Description                                                                                                                                  |
+| ------------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `issuer`                 | none                     | Issuer URL to publish in metadata and JWTs. If omitted, the server uses the runtime listening URL.                                           |
+| `signingKey`             | none                     | Private signing key as a PEM string or private JWK object. Supports P-256 EC (`ES256`) and RSA (`RS256`).                                    |
+| `signingKeySeed`         | none                     | Deterministic seed for generating a reproducible ES256 key at startup. Ignored when `signingKey` is provided.                                |
+| `clockSkewSeconds`       | `0`                      | Extra skew allowed when validating authorization-code and refresh-token expiry.                                                              |
+| `defaultTokenTtlSeconds` | `60`                     | Default `expires_in` for access tokens.                                                                                                      |
+| `requireDcr`             | `true`                   | When `true`, non-static clients must register before `/authorize`. When `false`, unknown public clients are accepted for loopback redirects. |
+| `staticClients`          | `[]`                     | Preloaded clients. Each item is `{ clientId, redirectUris, scopes? }`.                                                                       |
+| `defaultAuthorization`   | `{ autoApprove: false }` | Default consent behavior. Useful for CLI auto-approval. Supports `{ autoApprove?, scopes? }`.                                                |
 
 ## CLI Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--port <port>` | `0` | Port to listen on. `0` requests an ephemeral port. |
-| `--hostname <hostname>` | `127.0.0.1` | Hostname to bind to. |
-| `--issuer <url>` | none | Issuer URL to publish in metadata and JWTs. |
-| `--ttl-seconds <seconds>` | `60` | Access token TTL in seconds. |
-| `--auto-approve` | `false` | Auto-approve every authorization request. |
-| `--static-client <client_id:redirect_uri[,redirect_uri...]>` | none | Register a repeatable static client. Provide the flag multiple times for multiple clients. |
+| Option                                                       | Default     | Description                                                                                |
+| ------------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------ |
+| `--port <port>`                                              | `0`         | Port to listen on. `0` requests an ephemeral port.                                         |
+| `--hostname <hostname>`                                      | `127.0.0.1` | Hostname to bind to.                                                                       |
+| `--issuer <url>`                                             | none        | Issuer URL to publish in metadata and JWTs.                                                |
+| `--ttl-seconds <seconds>`                                    | `60`        | Access token TTL in seconds.                                                               |
+| `--auto-approve`                                             | `false`     | Auto-approve every authorization request.                                                  |
+| `--static-client <client_id:redirect_uri[,redirect_uri...]>` | none        | Register a repeatable static client. Provide the flag multiple times for multiple clients. |
 
 ## Endpoints
 
 ### Spec endpoints
 
-| Method | Path | Description |
-| --- | --- | --- |
-| `GET` | `/.well-known/oauth-authorization-server` | RFC 8414 authorization-server metadata |
-| `POST` | `/register` | RFC 7591 dynamic client registration |
-| `GET` | `/authorize` | Consent page or auto-approval redirect |
-| `POST` | `/token` | `authorization_code` and `refresh_token` grants |
-| `GET` | `/.well-known/jwks.json` | Public verification keys |
+| Method | Path                                      | Description                                     |
+| ------ | ----------------------------------------- | ----------------------------------------------- |
+| `GET`  | `/.well-known/oauth-authorization-server` | RFC 8414 authorization-server metadata          |
+| `POST` | `/register`                               | RFC 7591 dynamic client registration            |
+| `GET`  | `/authorize`                              | Consent page or auto-approval redirect          |
+| `POST` | `/token`                                  | `authorization_code` and `refresh_token` grants |
+| `GET`  | `/.well-known/jwks.json`                  | Public verification keys                        |
 
 ### Test-only helper endpoint
 
-| Method | Path | Description |
-| --- | --- | --- |
+| Method | Path                   | Description                                                                                                                                   |
+| ------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `POST` | `/testing/issue-token` | Calls the same direct access-token minting path as `issueTokenFor(...)` and returns an RFC 6749-shaped token response without a refresh token |
 
 Example:

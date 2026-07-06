@@ -2,11 +2,19 @@
 
 Reusable runtime components for autonomous single-document workflows.
 
-This package is intended to hold shared runtime building blocks for agent-driven workflows that operate on a single source document or plan.
+This package holds the shared runtime pieces used by `pipeline`, `experiment`,
+`ralph`, and `superintendent`: document discovery, plan archiving, agent
+selection, workflow stages, hooks, run logs, runtime backends, and Poe command
+execution.
 
-## Status
+## Public API
 
-Shared helpers are exported from `src/index.ts` as they are added.
+- Document workflow helpers: `runDocumentWorkflow`, `runDocumentWorkflowSequence`, `runWorkflowStage`, `runWorkflowHook`.
+- Plan helpers: `discoverPlans`, `archivePlan`, `openPlanList`, `discoverWorkflowDocs`, `resolveWorkflowPath`.
+- Agent helpers: `resolveLoopAgent`, `normalizeParticipantConfig`, `selectParticipantAgent`.
+- Runtime helpers: `runPoeCommand`, `createPoeCommandSession`, `applyRuntimeOverrides`, `resolvePoeCommandExecution`.
+- Logging helpers: `resolveRunLogDir`, `ensureSafeRunLogDir`, `makeRunLogFileName`, `streamLogFile`, `wrapForLogTee`.
+- Backend helpers: `ExecutionEnvFactory`, `OpenedEnv`, workspace transfer utilities, and binary detection.
 
 ## ExecutionEnv Contract
 
@@ -76,11 +84,13 @@ Notes:
 
 This package does not read config files directly, but Poe Code callers commonly pass `configuredDefaultAgent` from merged `core.defaultAgent`.
 
-- User config: `~/.poe-code/config.json` → `core.defaultAgent`
-- Project config: `./.poe-code/config.json` → `core.defaultAgent`
+- User config: `~/.poe-code/config.json` feeds `core.defaultAgent`.
+- Project config: `./.poe-code/config.json` feeds `core.defaultAgent`.
 
 ## Environment Variables
 
-This package does not read environment variables directly, but Poe Code callers commonly source `configuredDefaultAgent` from:
+This package does not read environment variables directly. Poe Code callers
+commonly source `configuredDefaultAgent` from:
 
-- `POE_DEFAULT_AGENT` → overrides file-backed `core.defaultAgent` values and then feeds `configuredDefaultAgent`
+- `POE_DEFAULT_AGENT`: overrides file-backed `core.defaultAgent` values before
+  callers pass `configuredDefaultAgent`.

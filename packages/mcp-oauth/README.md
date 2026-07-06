@@ -2,7 +2,38 @@
 
 OAuth client primitives for MCP HTTP transports.
 
-## Config
+## Usage
+
+```ts
+import {
+  createAuthStoreSessionStore,
+  createDefaultOAuthClientProvider,
+  createJwksTokenVerifier
+} from "mcp-oauth";
+
+const provider = createDefaultOAuthClientProvider({
+  client: { mode: "dynamic" },
+  browser: { openBrowser: async (url) => console.log(url) },
+  sessionStore: createAuthStoreSessionStore({ serviceName: "mcp-client" })
+});
+
+const verifier = createJwksTokenVerifier({
+  jwksUrl: "https://example.com/.well-known/jwks.json"
+});
+```
+
+## Public API
+
+- `createDefaultOAuthClientProvider(options)`: default MCP OAuth client provider with dynamic or static client registration.
+- `createOAuthClientProvider(options)`: lower-level provider constructor.
+- `createAuthStoreSessionStore(options)`: persisted OAuth session store backed by `auth-store`.
+- `createLoopbackAuthorizationSession(options)`: local callback server for browser authorization.
+- `generateCodeVerifier()` and `generateCodeChallenge(...)`: PKCE helpers.
+- `canonicalizeResourceIndicator(value)`: resource indicator canonicalization.
+- `createJwksTokenVerifier(options)`: JWKS-backed access-token verifier for MCP servers.
+- `OAuthError`: token endpoint error type.
+
+## Configuration
 
 `createDefaultOAuthClientProvider(options)` accepts:
 
@@ -28,4 +59,5 @@ OAuth client primitives for MCP HTTP transports.
 
 ## Environment Variables
 
-None directly. When `authStore` is used, `auth-store` honors its own backend env var configuration.
+This package exposes no direct environment variables. When `authStore` is used,
+`auth-store` honors its own backend environment variables.

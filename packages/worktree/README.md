@@ -34,19 +34,29 @@ await removeWorktree({ deps, registryPath: created.registryPath, name: created.w
 - `updateWorktreeStatus(options)`: updates one registry entry status.
 - Types: `Worktree`, `WorktreeStatus`, `WorktreeRegistry`, `WorktreeDeps`, `WorktreeFileSystem`, and `ExecFn`.
 
+## CLI
+
+The root CLI exposes worktree maintenance commands:
+
+| Command                              | Purpose                                       |
+| ------------------------------------ | --------------------------------------------- |
+| `poe-code worktree list`             | List managed worktrees.                       |
+| `poe-code worktree reconcile <name>` | Reconcile a failed managed worktree.          |
+| `poe-code worktree remove <name>`    | Remove a managed worktree and registry entry. |
+
 ## Config Options
 
 The package has no global config file. Options are passed per operation:
 
-| Option | Description |
-| ------ | ----------- |
-| `deps` | Injected filesystem and `exec` implementations. |
-| `registryPath` | YAML registry file path. |
-| `worktreeDir` | Parent directory for created worktrees. |
-| `name` | Worktree name. |
-| `baseBranch` | Branch used as the worktree base. |
-| `source` | Creation source recorded in the registry. |
-| `agent` | Agent recorded in the registry. |
+| Option                          | Description                                      |
+| ------------------------------- | ------------------------------------------------ |
+| `deps`                          | Injected filesystem and `exec` implementations.  |
+| `registryPath`                  | YAML registry file path.                         |
+| `worktreeDir`                   | Parent directory for created worktrees.          |
+| `name`                          | Worktree name.                                   |
+| `baseBranch`                    | Branch used as the worktree base.                |
+| `source`                        | Creation source recorded in the registry.        |
+| `agent`                         | Agent recorded in the registry.                  |
 | `storyId`, `planPath`, `prompt` | Optional metadata stored on the worktree record. |
 
 ## Environment Variables

@@ -5,13 +5,13 @@ Step-based task pipeline for running task plans through the existing agent spawn
 ## Quickstart
 
 ```bash
-# 1. Install pipeline scaffolding
+# 1. Install pipeline support files
 poe-code pipeline install --local
 
 # 2. Create a plan — use your coding agent (Claude Code, Codex, etc.) to write
 #    a markdown plan
 
-# 3. Generate a pipeline YAML from the plan using /poe-code-pipeline-plan
+# 3. Generate a pipeline plan from the feature plan using /poe-code-pipeline-plan
 #    (skill installed in step 1)
 
 # 4. Run it
@@ -20,7 +20,10 @@ poe-code pipeline run
 
 ## Example Plan
 
-```yaml
+```md
+---
+kind: pipeline
+version: 1
 tasks:
   - id: fix-timeout
     title: Fix timeout bug
@@ -40,6 +43,11 @@ tasks:
       security_review: open
       test: open
       commit: open
+---
+
+# Context
+
+Fix the session refresh timeout regression and add retry handling.
 ```
 
 Each step becomes its own agent execution. Steps are resolved from `.poe-code/pipeline/steps.yaml` (or `~/.poe-code/pipeline/steps.yaml`). See [Step Configuration](#step-configuration).
@@ -51,6 +59,14 @@ Pipeline ships with no hardcoded steps. Definitions are resolved from:
 1. `~/.poe-code/pipeline/steps.yaml` (global)
 2. `.poe-code/pipeline/steps.yaml` (project, overrides global by step name)
 
+## Environment Variables
+
+This package does not read public environment variables directly. The CLI resolves config and agent credentials before calling the runner.
+
+## Configuration Options
+
+Pipeline config is split between `.poe-code/config.json`, `.poe-code/pipeline/steps.yaml`, and plan frontmatter. `plan.plan_directory` controls discovery, `pipeline.tui` controls the dashboard default, and `pipeline.archive` controls successful-plan archiving. Step definitions accept `prompt`, `agent`, `model`, `mode`, and inherited `mcp`, `setup`, and `teardown` settings.
+
 ```yaml
 steps:
   implement:
@@ -59,7 +75,7 @@ steps:
       {{prompt}}
       Follow TDD. Add or update focused tests first, then implement.
     agent: codex
-    model: o3
+    model: "<model-id>"
 
   security_review:
     mode: read
@@ -120,8 +136,7 @@ Hooks can be defined in `steps.yaml` (shared defaults) or in the plan file (per-
 
 ```yaml
 setup: false
-tasks:
-  ...
+tasks: ...
 ```
 
 If setup fails, no tasks run. If teardown fails, the pipeline returns `stopReason: "failed"`.
@@ -147,7 +162,7 @@ No intermediate status is written before spawn. If an execution is aborted, the 
 
 ### Plan Archiving
 
-When all tasks complete successfully, the plan moves to `plans/archive/`. Plans already complete at start are not archived. Disable this with `poe-code pipeline run --no-archive` or `{ "pipeline": { "archive": false } }` in config.
+When all tasks complete successfully, the plan moves to an `archive/` folder next to the plan file. Plans already complete at start are not archived. Disable this with `poe-code pipeline run --no-archive` or `{ "pipeline": { "archive": false } }` in config.
 
 ## Plan Discovery
 
@@ -171,7 +186,7 @@ By default plans are discovered from `docs/plans`. To use a different directory:
 POE_PLAN_DIRECTORY=docs/plans poe-code pipeline run
 
 # Or point to a specific file directly
-poe-code pipeline run --plan docs/plans/my-feature.yaml
+poe-code pipeline run --plan docs/plans/my-feature.md
 ```
 
 ## Dashboard Configuration
@@ -199,6 +214,12 @@ poe-code pipeline plan-path
 poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>]
 ```
 
+Example:
+
+```bash
+poe-code pipeline run --plan docs/plans/my-feature.md
+```
+
 ## Package API
 
 ```ts
@@ -208,7 +229,7 @@ const result = await runPipeline({
   agent: "claude-code",
   cwd: process.cwd(),
   homeDir: "/home/test",
-  plan: ".poe-code/pipeline/plans/plan-auth.yaml",
+  plan: ".poe-code/pipeline/plans/plan-auth.md",
   maxRuns: 5,
   runAgent: async ({ agent, prompt, mode, cwd, model, mcpServers, signal }) => {
     return { stdout: "", stderr: "", exitCode: 0 };
@@ -221,23 +242,21 @@ Exports: `runPipeline`, `resolvePlanPath`, `parsePlan`, `writeTaskStatus`, `load
 ## Testing Helper
 
 ```ts
-import {
-  createPipelineSimulation,
-  successTurn,
-  failTurn
-} from "@poe-code/pipeline/testing";
+import { createPipelineSimulation, successTurn, failTurn } from "@poe-code/pipeline/testing";
 
 const sim = createPipelineSimulation({
   projectSteps: {
     implement: { mode: "yolo", prompt: "Implement {{id}}" }
   },
   plan: {
-    tasks: [{
-      id: "task-1",
-      title: "Demo task",
-      prompt: "Do the thing",
-      status: { implement: "open" }
-    }]
+    tasks: [
+      {
+        id: "task-1",
+        title: "Demo task",
+        prompt: "Do the thing",
+        status: { implement: "open" }
+      }
+    ]
   },
   turns: [successTurn()]
 });

@@ -26,10 +26,10 @@ Duplicate mapping keys use YAML's last-wins behavior by default, matching the
 legacy frontmatter readers. Callers that need strict YAML mappings can pass
 `{ uniqueKeys: true }` to `parseFrontmatter` or `parseFrontmatterDocument`.
 
-## Environment
+## Environment Variables
 
 This package reads no environment variables.
 
-## Config
+## Configuration Options
 
 This package has no configuration options.

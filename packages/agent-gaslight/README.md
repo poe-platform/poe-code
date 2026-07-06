@@ -1,10 +1,8 @@
 # @poe-code/agent-gaslight
 
-Every coding agent has the same flaw: it declares victory too early. "Done! ✨" — with uncommitted changes, untested code, and a TODO it quietly decided was out of scope.
+Runs a plan through one agent conversation, then sends scripted follow-up prompts in the same thread.
 
-You already know the fix. You lean in and type *"did you actually test this?"* and the agent goes *"You're absolutely right!"* and finds three bugs. Then *"did you commit?"* and it sheepishly commits. You are not pair programming, you are babysitting.
-
-Gaslight automates the babysitting. It runs your plan through one agent conversation, then follows up with a scripted list of pointed questions — each one resuming the same thread, so the agent has to face its own work.
+Use it when a task needs repeated checks such as simplify, test, commit, and push verification.
 
 ## How it works
 
@@ -12,41 +10,16 @@ Gaslight automates the babysitting. It runs your plan through one agent conversa
 2. Rounds 2..n: each follow-up prompt resumes the same conversation.
 3. You get a summary per round plus total token and cost usage.
 
-The agent can't claim it's done until it has survived every question.
-
-## Use cases
-
-**The amnesiac committer.** The agent writes beautiful code and walks away leaving `git status` a mess. Follow up with:
-
-```yaml
-followups:
-  - Did you commit the changes?
-```
-
-**The optimistic tester.** "All tests pass" (it ran one unit test, once, on the happy path). Follow up with:
-
-```yaml
-followups:
-  - Did you test it well? Like real end to end test?
-```
-
-**The premature simplifier-in-reverse.** First drafts are always over-engineered. Follow up with:
-
-```yaml
-followups:
-  - Is this best you can do? Maybe we could simplify a bit.
-```
-
-**The full guilt trip.** Chain them. Order matters — simplify before you test, test before you commit, commit before you push:
+## Example follow-ups
 
 ```yaml
 prompt: Implement
 archive: false
 followups:
-  - Is this best you can do? Maybe we could simplify a bit.
-  - Did you test it well? Like real end to end test?
+  - Can this be simpler?
+  - Did you test the real workflow?
   - Did you commit the changes?
-  - Did you push the changes and waited for release to go green?
+  - Did you push and verify the release?
 ```
 
 ## Configuration
@@ -59,9 +32,9 @@ The package loads the first existing file in this order:
 ```yaml
 prompt: Implement
 followups:
-  - Is this best you can do?
-  - Did you test it well? Like real end to end test?
-  - Did you forget something?
+  - Can this be simpler?
+  - Did you test the real workflow?
+  - Did you forget anything?
 ```
 
 `prompt` and `followups` must be non-empty. `archive` is optional and defaults to `false`. Pass `prompt` and `followups` directly to `runGaslight` to bypass configuration lookup.
@@ -69,15 +42,15 @@ followups:
 ## CLI
 
 ```sh
-poe-code gaslight docs/plans/feature.md --agent claude-code --model Claude-Sonnet-4.5
+poe-code gaslight docs/plans/feature.md --agent claude-code --model <model-id>
 poe-code gaslight docs/plans/feature.md --archive
 ```
 
 Omit the plan path to pick one interactively from your plans directory.
 
-The CLI also honors `{ "gaslight": { "archive": true } }` or `POE_GASLIGHT_ARCHIVE=true`; use `--archive` or `--no-archive` for a one-off override.
+The CLI also honors `{ "gaslight": { "archive": true } }`; use `--archive` or `--no-archive` for a one-off override.
 
-Scaffold `gaslight.yaml` at project or user scope:
+Create `gaslight.yaml` at project or user scope:
 
 ```sh
 poe-code gaslight install --local
@@ -94,6 +67,10 @@ poe-code gaslight ingest --agent claude-code --sources claude,codex --since 30d 
 
 By default, ingest writes a temporary curated Markdown analysis input under `<cwd>/.poe-code/ingest/` so the analysis agent can read it from the workspace, then deletes it after analysis. Pass `--keep-data <path>` to preserve the file for inspection.
 
+## Environment Variables
+
+This package does not read public environment variables directly. The CLI resolves agents, config, and workspace paths before calling the package runner.
+
 ## SDK
 
 ```ts
@@ -102,7 +79,7 @@ import { runGaslight } from "@poe-code/agent-gaslight";
 const result = await runGaslight({
   planPaths: ["docs/plans/feature.md"],
   agent: "claude-code",
-  model: "Claude-Sonnet-4.5"
+  model: "<model-id>"
 });
 ```
 
@@ -142,9 +119,3 @@ After all rounds for a plan finish successfully, Gaslight leaves the plan file i
 - `collectHumanPrompts`: Injectable trace collector for tests and custom hosts.
 
 The ingest result contains the generated config path, prompt data path, prompt count, and trace count.
-
-## FAQ
-
-**Isn't this just nagging?** Yes. It works on agents for the same reason it works on people, except the agent never gets annoyed and the questions never get old.
-
-**Is it actually gaslighting?** Technically no — gaslighting would be telling the agent it never wrote the code. We just ask it leading questions until it doubts itself productively. The name stays.

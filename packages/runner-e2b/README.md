@@ -6,11 +6,15 @@ This package implements the shared `ExecutionEnvFactory` contract for `runtime.t
 It is responsible for opening E2B sandboxes, resolving or building templates from the Poe Code
 runtime config, uploading/downloading workspaces, and reconnecting to detached sandboxes.
 
-## API key
+## Environment Variables
+
+- `E2B_API_KEY`: E2B API key. Highest-priority credential source.
+
+## API Key
 
 The E2B API key is read from the `e2b` config scope. Resolution order:
 
-1. `E2B_API_KEY` environment variable.
+1. `E2B_API_KEY`.
 2. `e2b.api_key` in the project config (`<cwd>/.poe-code/config.json`).
 3. `e2b.api_key` in the global config (`~/.poe-code/config.json`).
 
@@ -26,7 +30,7 @@ Example global config:
 
 Missing key on `open()` or `attach()` raises an error pointing to both locations.
 
-## Runtime Config
+## Configuration Options
 
 Use these options under the `runtime` config scope:
 

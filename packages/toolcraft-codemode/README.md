@@ -63,7 +63,7 @@ On success, the model's script return value is returned by the `execute` tool as
 
 The model must emit source accepted by [`@poe-code/safejs`](../safejs/README.md). This package does not define a second grammar.
 
-## Options
+## Configuration Options
 
 `codeMode(root, options?: CodeModeOptions)` wraps a toolcraft root in a `code_mode` group.
 
@@ -86,10 +86,6 @@ The model must emit source accepted by [`@poe-code/safejs`](../safejs/README.md)
 | `getSchemas.scope`     | `["mcp", "sdk"]`  | Scope for the `get_schemas` meta-tool.                                      |
 | `execute.scope`        | `["mcp", "sdk"]`  | Scope for the `execute` meta-tool.                                          |
 
-## Env Vars
+## Environment Variables
 
-None.
-
-## Config
-
-None. This package is options-only.
+This package does not read public environment variables directly.

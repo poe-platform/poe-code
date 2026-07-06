@@ -19,7 +19,7 @@ import {
 } from "@poe-code/poe-agent";
 
 const result = await agent()
-  .model("anthropic/claude-sonnet-4.6")
+  .model("<model-id>")
   .use(systemPromptPlugin())
   .use(memoryPlugin({ cwd: process.cwd() }))
   .use(filesPlugin({ cwd: process.cwd() }))
@@ -131,7 +131,7 @@ Example:
 
 ```ts
 await createAgentSession({
-  model: "anthropic/claude-sonnet-4.6",
+  model: "<model-id>",
   pluginsConfig: [
     { name: "system-prompt" },
     { name: "files", options: { allowedPaths: ["src"] } },
@@ -348,7 +348,11 @@ Tools can return either a string or structured `ToolResult` parts:
 
 This lets tools return screenshots/images and structured failures instead of only plain text.
 
-## Environment variables
+## Configuration Options
+
+Runtime behavior is configured through builder methods, run options, `createAgentSession()` options, and plugin options documented above. The package does not read a package-level config file; callers decide model, credentials, cwd, MCP servers, plugins, persistence, and policy at construction time.
+
+## Environment Variables
 
 This package reads:
 

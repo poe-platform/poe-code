@@ -1,10 +1,12 @@
 # @poe-code/agent-eval
 
-`@poe-code/agent-eval` is the private workspace package for running repeatable agent evaluation matrices: it opens an eval source directory, clones each target repo into isolated run directories, dispatches the configured plan through the selected agent or poe-code workflow, scores the resulting clone with the eval oracle, optionally asks a judge agent for rubric scores, writes per-run artifacts, and renders aggregate reports while the public CLI remains registered by `packages/poe-code`.
+`@poe-code/agent-eval` runs repeatable agent evaluation matrices. It opens an eval source directory, clones each target repo into isolated run directories, dispatches the configured plan through the selected agent or poe-code workflow, scores the resulting clone with the eval oracle, optionally asks a judge agent for rubric scores, writes per-run artifacts, and renders aggregate reports.
+
+This is a private workspace package. The public CLI entry is registered by the root `poe-code` package.
 
 ## Environment Variables
 
-None.
+`agent-eval` does not define package-level environment variables. Scorer commands receive per-run variables such as `CLONE_DIR` and `ORACLE_DIR`; configure agent credentials through the selected poe-code agent/provider instead.
 
 ## Configuration
 
@@ -21,9 +23,23 @@ Supported keys:
 
 ```sh
 cd ../poe-code-eval
-poe-code eval run --agent claude-code --model anthropic/claude-opus-4.7
+poe-code eval run --agent claude-code --model <model-id>
 poe-code eval report
 ```
+
+## CLI Commands
+
+| Command                | Purpose                                         |
+| ---------------------- | ----------------------------------------------- |
+| `poe-code eval run`    | Run an eval matrix for one or more agents.      |
+| `poe-code eval report` | Render run reports as table, Markdown, or JSON. |
+| `poe-code eval init`   | Create a minimal eval folder.                   |
+| `poe-code eval check`  | Verify an eval oracle against its solution.     |
+| `poe-code eval lint`   | Lint eval metadata without cloning targets.     |
+
+## Manual QA
+
+Use [qa/run-one.md](qa/run-one.md) for a throwaway single-eval validation pass.
 
 ## Authoring an eval
 

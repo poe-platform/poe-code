@@ -1,8 +1,7 @@
 # toolcraft-openapi
 
-tools for agents and humans
-
-Scaffold for OpenAPI-driven toolcraft clients.
+Generate Toolcraft command clients from OpenAPI documents and share the same
+surface across CLI, MCP, and SDK usage.
 
 ## Usage
 
@@ -18,20 +17,21 @@ const auth = bearerTokenAuth({
 
 ## Generator CLI
 
-`toolcraft-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
-command files.
+`toolcraft-openapi-generate` reads an OpenAPI document from disk or a URL and
+writes generated command files.
 
-- `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
-- `--output <dir>` — directory for generated files. Defaults to `src/generated`.
-- `--check` — exits non-zero when generated files would change.
-- `--diff` — prints the generated file changes without writing them.
+- `--input <path-or-url>` - OpenAPI document to read. Defaults to `openapi.json`.
+- `--output <dir>` - directory for generated files. Defaults to `src/generated`.
+- `--check` - exits non-zero when generated files would change.
+- `--diff` - prints generated file changes without writing them.
 
-When `toolcraft.yml` is present next to the input file, the generator validates it, prints
-diagnostics, and uses it to shape generated command names for mapped resources.
+When `toolcraft.yml` is present next to the input file, the generator validates
+it, prints diagnostics, and uses it to shape generated command names for mapped
+resources.
 
-The default generated integration point is `src/generated/client.ts`. Application code should
-provide deployment-specific configuration and let the generated client own the full OpenAPI-derived
-command surface:
+The default generated integration point is `src/generated/client.ts`.
+Application code provides deployment-specific configuration and lets the
+generated client own the OpenAPI-derived command surface:
 
 ```ts
 import { defineGeneratedClient } from "./generated/client.js";
@@ -47,7 +47,7 @@ export const client = defineGeneratedClient({
 });
 ```
 
-Generated lower-level group and operation exports remain available for consumers that intentionally
+Generated lower-level group and operation exports remain available when callers
 want a curated command surface with `defineClient()`.
 
 ### CI drift check
@@ -73,11 +73,11 @@ toolcraft-openapi-generate --check
 - `CommandContributor`
 - `AuthProvider`
 
-## Environment variables
+## Environment Variables
 
-- `<envVar passed to bearerTokenAuth>` — bearer token override; wins over stored credentials.
-- `AUTH_BACKEND` — forwarded to `auth-store` to select `file` or `keychain` storage.
-- `TOOLCRAFT_OPENAPI_ENV` — selects a configured OpenAPI environment when using
+- `<envVar passed to bearerTokenAuth>` - bearer token override; wins over stored credentials.
+- `AUTH_BACKEND` - forwarded to `auth-store` to select `file` or `keychain` storage.
+- `TOOLCRAFT_OPENAPI_ENV` - selects a configured OpenAPI environment when using
   `resolveOpenApiBaseUrl`.
 
 ## Configuration
@@ -110,15 +110,15 @@ unspecified_endpoints:
 
 Supported keys:
 
-- `edition` — required when `toolcraft.yml` exists. Currently `2026-05-16`.
-- `environments` — named base URLs for `resolveOpenApiBaseUrl`.
-- `client_settings.idempotency_header` — header used for generated idempotency keys.
-- `client_settings.auth.*.env` — declarative auth environment metadata.
-- `pagination` — named request/response field mappings. Schemes are validated today; iterator
+- `edition` - required when `toolcraft.yml` exists. Currently `2026-05-16`.
+- `environments` - named base URLs for `resolveOpenApiBaseUrl`.
+- `client_settings.idempotency_header` - header used for generated idempotency keys.
+- `client_settings.auth.*.env` - declarative auth environment metadata.
+- `pagination` - named request/response field mappings. Schemes are validated today; iterator
   generation is not implemented yet.
-- `resources` — resource/method mapping. Mapped methods shape generated names and file paths.
-- `readme.examples` — examples emitted into generated command help and MCP descriptions.
-- `unspecified_endpoints` — endpoints intentionally omitted from `resources`.
+- `resources` - resource/method mapping. Mapped methods shape generated names and file paths.
+- `readme.examples` - examples emitted into generated command help and MCP descriptions.
+- `unspecified_endpoints` - endpoints intentionally omitted from `resources`.
 
 Mapped idempotent methods with `client_settings.idempotency_header` get an optional
 `idempotencyKey` param across CLI, MCP, and SDK surfaces. Mapped methods also get a CLI/SDK
@@ -127,20 +127,20 @@ Mapped idempotent methods with `client_settings.idempotency_header` get an optio
 
 Diagnostics use stable codes:
 
-- `TOOLCRAFT_OPENAPI_001` — endpoint is not mapped or listed in `unspecified_endpoints`.
-- `TOOLCRAFT_OPENAPI_002` — duplicate configured method path.
-- `TOOLCRAFT_OPENAPI_003` — unknown pagination scheme.
-- `TOOLCRAFT_OPENAPI_004` — reserved for spec drift.
-- `TOOLCRAFT_OPENAPI_005` — reserved method name.
-- `TOOLCRAFT_OPENAPI_006` — missing or unsupported edition.
-- `TOOLCRAFT_OPENAPI_007` — invalid config shape.
+- `TOOLCRAFT_OPENAPI_001` - endpoint is not mapped or listed in `unspecified_endpoints`.
+- `TOOLCRAFT_OPENAPI_002` - duplicate configured method path.
+- `TOOLCRAFT_OPENAPI_003` - unknown pagination scheme.
+- `TOOLCRAFT_OPENAPI_004` - reserved for spec drift.
+- `TOOLCRAFT_OPENAPI_005` - reserved method name.
+- `TOOLCRAFT_OPENAPI_006` - missing or unsupported edition.
+- `TOOLCRAFT_OPENAPI_007` - invalid config shape.
 
 ### `bearerTokenAuth(opts)`
 
-- `serviceName: string` — auth-store service name and file-store key.
-- `envVar: string` — environment variable checked before stored credentials.
-- `whoamiPath?: string` — optional authenticated endpoint used by `login` and `status`.
-- `commandPrefix?: string` — CLI auth group name. Defaults to `auth`.
+- `serviceName: string` - auth-store service name and file-store key.
+- `envVar: string` - environment variable checked before stored credentials.
+- `whoamiPath?: string` - optional authenticated endpoint used by `login` and `status`.
+- `commandPrefix?: string` - CLI auth group name. Defaults to `auth`.
 
 ## Auth commands
 

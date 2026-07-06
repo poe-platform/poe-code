@@ -90,3 +90,13 @@ tokenizer.free();
 
 - Output is deterministic for the same token count and encoding.
 - Requests larger than the built-in corpus size throw an error.
+
+## Configuration Options
+
+- CLI: `--json`, `--tokenizer <encoding>`.
+- Library: `tokenfill(count, { encoding? })`.
+- Tokenizer utility: `createTokenizer({ encoding })`.
+
+## Environment Variables
+
+This package does not read public environment variables.

@@ -6,11 +6,11 @@ Backend-aware e2e test runner for poe-code.
 
 The runner supports three isolation backends:
 
-| Backend | How commands run | `container.home` | Best fit | Extra prerequisites |
-| --- | --- | --- | --- | --- |
-| `env` | Directly on the host with a fresh HOME/XDG environment | Temporary host directory | CI, fast host-based runs | No extra runtime beyond the common prerequisites |
-| `sandbox` | On the host inside a sandbox with a fresh HOME/XDG environment | Temporary host directory | Local development default | macOS: `sandbox-exec`; Linux: `bwrap` |
-| `podman` | Inside a persistent rootless container | `/home/poe` | Containerized debugging or parity runs | Podman installed and running, plus a container image |
+| Backend   | How commands run                                               | `container.home`         | Best fit                               | Extra prerequisites                                  |
+| --------- | -------------------------------------------------------------- | ------------------------ | -------------------------------------- | ---------------------------------------------------- |
+| `env`     | Directly on the host with a fresh HOME/XDG environment         | Temporary host directory | CI, fast host-based runs               | No extra runtime beyond the common prerequisites     |
+| `sandbox` | On the host inside a sandbox with a fresh HOME/XDG environment | Temporary host directory | Local development default              | macOS: `sandbox-exec`; Linux: `bwrap`                |
+| `podman`  | Inside a persistent rootless container                         | `/home/poe`              | Containerized debugging or parity runs | Podman installed and running, plus a container image |
 
 ### Backend selection
 
@@ -21,16 +21,20 @@ Backend resolution is:
 3. local machine → `sandbox`
 4. if the sandbox runtime is unavailable locally, fall back to `env`
 
-## Environment variables
+## Environment Variables
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `POE_API_KEY` | Yes | API key used by `container.login()` and preflight checks. |
-| `E2E_BACKEND` | No | Force `env`, `sandbox`, or `podman`. Defaults to `env` in CI and `sandbox` locally, with local fallback to `env` when sandboxing is unavailable. |
-| `E2E_PODMAN_IMAGE` | Podman only | Default image for the `podman` backend. You can also pass `options.image`. |
-| `POE_SNAPSHOT_MODE` | No | Snapshot mode for proxy-backed tests: `playback` or `record`. |
-| `POE_SNAPSHOT_MISS` | No | Snapshot miss behavior: `error`, `warn`, `passthrough`, or `record`. |
-| `E2E_VERBOSE` | No | Enables extra podman backend debug logging. |
+| Variable            | Required    | Description                                                                                                                                      |
+| ------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POE_API_KEY`       | Yes         | API key used by `container.login()` and preflight checks.                                                                                        |
+| `E2E_BACKEND`       | No          | Force `env`, `sandbox`, or `podman`. Defaults to `env` in CI and `sandbox` locally, with local fallback to `env` when sandboxing is unavailable. |
+| `E2E_PODMAN_IMAGE`  | Podman only | Default image for the `podman` backend. You can also pass `options.image`.                                                                       |
+| `POE_SNAPSHOT_MODE` | No          | Snapshot mode for proxy-backed tests: `playback` or `record`.                                                                                    |
+| `POE_SNAPSHOT_MISS` | No          | Snapshot miss behavior: `error`, `warn`, `passthrough`, or `record`.                                                                             |
+| `E2E_VERBOSE`       | No          | Enables extra podman backend debug logging.                                                                                                      |
+
+## Configuration Options
+
+Use `useContainer(options)` for normal Vitest tests. Pass `testName`, optional `workspaceDir`, and optional `useSnapshots`. For manual lifecycle control, pass `ContainerOptions` to `createBackendContainer(backend, options?)`; `image` is required for podman unless `E2E_PODMAN_IMAGE` is set.
 
 ## Prerequisites
 
@@ -67,31 +71,31 @@ All backends require:
 ### 1. Vitest setup
 
 ```typescript
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ['e2e/**/*.test.ts'],
+    include: ["e2e/**/*.test.ts"],
     testTimeout: 300000,
     hookTimeout: 300000,
     maxWorkers: 1,
-    globalSetup: ['./e2e/setup.ts'],
-    setupFiles: ['@poe-code/e2e-test-runner/matchers'],
-  },
+    globalSetup: ["./e2e/setup.ts"],
+    setupFiles: ["@poe-code/e2e-test-runner/matchers"]
+  }
 });
 ```
 
 ### 2. Global setup
 
 ```typescript
-import { runPreflight, formatPreflightResults } from '@poe-code/e2e-test-runner';
+import { runPreflight, formatPreflightResults } from "@poe-code/e2e-test-runner";
 
 export async function setup(): Promise<void> {
   const { passed, results } = await runPreflight();
   console.error(formatPreflightResults(results));
 
   if (!passed) {
-    throw new Error('Preflight checks failed');
+    throw new Error("Preflight checks failed");
   }
 }
 ```
@@ -101,14 +105,14 @@ export async function setup(): Promise<void> {
 `useContainer()` is the preferred API because it automatically creates a backend-aware container per test and destroys it in `afterEach`.
 
 ```typescript
-import { describe, expect, it } from 'vitest';
-import { useContainer } from '@poe-code/e2e-test-runner';
+import { describe, expect, it } from "vitest";
+import { useContainer } from "@poe-code/e2e-test-runner";
 
-describe('claude-code', () => {
-  const container = useContainer({ testName: 'claude-code' });
+describe("claude-code", () => {
+  const container = useContainer({ testName: "claude-code" });
 
-  it('configures the agent', async () => {
-    const result = await container.exec('poe-code configure claude-code --yes');
+  it("configures the agent", async () => {
+    const result = await container.exec("poe-code configure claude-code --yes");
     expect(result).toHaveExitCode(0);
 
     await expect(container).toHaveFile(`${container.home}/.claude/settings.json`);
@@ -122,31 +126,27 @@ describe('claude-code', () => {
 
 Preferred Vitest helper.
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `testName` | `string` | Yes | Stable name used for logs and snapshots. |
-| `workspaceDir` | `string` | No | Workspace root. Defaults to `process.cwd()`. |
-| `useSnapshots` | `boolean` | No | Enable proxy snapshot playback/recording. |
+| Option         | Type      | Required | Description                                  |
+| -------------- | --------- | -------- | -------------------------------------------- |
+| `testName`     | `string`  | Yes      | Stable name used for logs and snapshots.     |
+| `workspaceDir` | `string`  | No       | Workspace root. Defaults to `process.cwd()`. |
+| `useSnapshots` | `boolean` | No       | Enable proxy snapshot playback/recording.    |
 
 ### `createBackendContainer(backend, options?)`
 
 Low-level factory when you want to manage lifecycle yourself.
 
 ```typescript
-import {
-  createBackendContainer,
-  resolveBackend,
-  setWorkspaceDir,
-} from '@poe-code/e2e-test-runner';
+import { createBackendContainer, resolveBackend, setWorkspaceDir } from "@poe-code/e2e-test-runner";
 
 setWorkspaceDir(process.cwd());
 const container = await createBackendContainer(resolveBackend(), {
-  testName: 'manual-test',
+  testName: "manual-test"
 });
 
 try {
   await container.login();
-  await container.execOrThrow('poe-code configure codex --yes');
+  await container.execOrThrow("poe-code configure codex --yes");
 } finally {
   await container.destroy();
 }
@@ -154,11 +154,11 @@ try {
 
 ### `ContainerOptions`
 
-| Option | Type | Applies to | Description |
-| --- | --- | --- | --- |
-| `image` | `string` | `podman` | Container image. Required for podman unless `E2E_PODMAN_IMAGE` is set. |
-| `testName` | `string` | all backends | Label used for logs and snapshots. |
-| `useSnapshots` | `boolean` | all backends | Enable proxy snapshot playback/recording. |
+| Option         | Type      | Applies to   | Description                                                            |
+| -------------- | --------- | ------------ | ---------------------------------------------------------------------- |
+| `image`        | `string`  | `podman`     | Container image. Required for podman unless `E2E_PODMAN_IMAGE` is set. |
+| `testName`     | `string`  | all backends | Label used for logs and snapshots.                                     |
+| `useSnapshots` | `boolean` | all backends | Enable proxy snapshot playback/recording.                              |
 
 ### `Container` interface
 

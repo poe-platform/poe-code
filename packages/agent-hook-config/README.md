@@ -4,10 +4,10 @@
 
 ## Supported Pairs
 
-| Source | Target | Strategy | Notes |
-|--------|--------|----------|-------|
-| claude-code | codex | transform | event subset, command-only handlers, placeholder rewrite |
-| claude-code | claude-code | symlink | identity (share between project and user) |
+| Source      | Target      | Strategy  | Notes                                                    |
+| ----------- | ----------- | --------- | -------------------------------------------------------- |
+| claude-code | codex       | transform | event subset, command-only handlers, placeholder rewrite |
+| claude-code | claude-code | symlink   | identity (share between project and user)                |
 
 ## Transform Contract: `claude-code` → `codex`
 
@@ -37,10 +37,13 @@ Callers and external tools identify bridge-generated entries by checking for `st
 
 The three call sites that feed the runner's `hooks` option are `poe-code spawn --hooks-from`, pipeline `StepDefinition.hooks`, and ralph step `hooks`.
 
-## Environment And Configuration
+## Environment Variables
 
-- Environment variables: none.
-- Configuration options: none.
+This package reads no environment variables.
+
+## Configuration Options
+
+This package exposes no configuration options.
 
 ## Non-Goals
 

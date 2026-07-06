@@ -37,7 +37,7 @@ preview of the first discovered plan and exits:
 poe-code --yes plan browse
 ```
 
-## Configuration
+## Configuration Options
 
 This package does not introduce any new config keys.
 
@@ -51,6 +51,10 @@ It respects the existing config option:
 It also respects the existing environment variable:
 
 - `POE_PLAN_DIRECTORY`
+
+## Environment Variables
+
+- `POE_PLAN_DIRECTORY`: overrides the shared plan directory.
 
 ## Public API
 

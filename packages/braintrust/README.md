@@ -32,17 +32,17 @@ Configure the integration under `integrations.braintrust` in poe-code config:
 
 Keys:
 
-| Key | Type | Meaning |
-| --- | --- | --- |
-| `enabled` | `boolean` | Enables or disables Braintrust integration. Defaults to `false`. When not `true`, the Braintrust package is not loaded. |
-| `apiKey` | `string` | Braintrust API key. Required when `enabled` is `true`; commonly supplied through config interpolation as `${BRAINTRUST_API_KEY}`. |
-| `project` | `string` | Braintrust project name used for logs and experiment rows. Required when `enabled` is `true`. |
-| `apiUrl` | `string` | Optional Braintrust API URL override for non-default deployments or proxies. |
+| Key       | Type      | Meaning                                                                                                                           |
+| --------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled` | `boolean` | Enables or disables Braintrust integration. Defaults to `false`. When not `true`, the Braintrust package is not loaded.           |
+| `apiKey`  | `string`  | Braintrust API key. Required when `enabled` is `true`; commonly supplied through config interpolation as `${BRAINTRUST_API_KEY}`. |
+| `project` | `string`  | Braintrust project name used for logs and experiment rows. Required when `enabled` is `true`.                                     |
+| `apiUrl`  | `string`  | Optional Braintrust API URL override for non-default deployments or proxies.                                                      |
 
 ## Environment Variables
 
-| Variable | Meaning |
-| --- | --- |
+| Variable             | Meaning                                                                                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `BRAINTRUST_API_KEY` | Braintrust API key. This package does not read the environment directly; use config interpolation, for example `"apiKey": "${BRAINTRUST_API_KEY}"`. |
 
 ## What Lands In Braintrust

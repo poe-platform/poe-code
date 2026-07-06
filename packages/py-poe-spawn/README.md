@@ -78,6 +78,10 @@ The package does not define its own configuration env vars. It relies on:
 
 Any other CLI/provider environment variables are inherited from the current process.
 
+## Configuration Options
+
+All configuration is passed as `spawn(...)` keyword arguments: `cwd`, `model`, `mode`, `args`, `mcp_servers`, `log_dir`, `activity_timeout_ms`, and `cancel_event`. The SDK always adds `--yes` and does not read a Python config file.
+
 ## Notes
 
 - The SDK always passes `--yes` to suppress interactive prompts.

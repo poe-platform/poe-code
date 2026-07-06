@@ -4,7 +4,7 @@
 
 Use it when plain stdio is not enough: menus, prompts, arrow-key navigation, confirmations, and terminal redraws such as `poe-code configure`.
 
-For design rationale and scope, see `docs/plans/terminal-pilot.md`.
+For design history, see [terminal-pilot](../../docs/plans/archive/terminal-pilot.md).
 
 For the MCP server, see [terminal-pilot-mcp](../terminal-pilot-mcp).
 
@@ -218,11 +218,15 @@ class TerminalScreen {
 }
 ```
 
-## Environment variables
+## Environment Variables
 
 There are **no terminal-pilot-specific environment variables**.
 
 Runtime environment is controlled per session via `newSession({ env })`. There are no package-level config files or config options beyond the per-session options.
+
+## Configuration Options
+
+Configure sessions with `newSession({ command, args, cwd, env, cols, rows, observe })`. CLI skill installation is controlled by `install`/`uninstall` flags: target agent plus optional `--local` or `--global`.
 
 ## Testing
 
@@ -232,7 +236,7 @@ Interactive fixtures live under `packages/terminal-pilot/src/testing/`:
 - `menu-cli.ts` - arrow-key menu fixture
 - `fixtures.test.ts` - examples of driving both fixtures
 
-Run just the fixture tests:
+Run the fixture tests only:
 
 ```sh
 npx vitest run packages/terminal-pilot/src/testing/fixtures.test.ts

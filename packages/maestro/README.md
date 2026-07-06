@@ -1,6 +1,6 @@
 # @poe-code/maestro
 
-## Env Vars
+## Environment Variables
 
 | Env var            | Used by                               | Behavior                                                                                                                                                                                                                               |
 | ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -9,16 +9,16 @@
 
 `WORKFLOW.md` string config values can also reference environment variables with `$NAME`. The referenced name must contain only uppercase letters, digits, and `_`.
 
-## Config
+## Configuration Options
 
 `WORKFLOW.md` frontmatter is the maestro config.
 
-| Field       | Type   | Default                                                                                       | Behavior                                                                                                                   |
-| ----------- | ------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `tasks`     | object | required                                                                                      | Task-list backend config passed to `@poe-code/task-list`.                                                                  |
-| `states`    | object | required                                                                                      | State map. States with `prompt` are active and dispatched; states with `terminal: true` stop work and clean up workspaces. |
-| `polling`   | object | `{ interval_ms: 30000 }`                                                                      | Polling behavior.                                                                                                          |
-| `workspace` | object | `{ root: "<os tmp>/poe-code-maestro" }`                                                       | Workspace allocation behavior.                                                                                             |
+| Field       | Type   | Default                                                                        | Behavior                                                                                                                   |
+| ----------- | ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `tasks`     | object | required                                                                       | Task-list backend config passed to `@poe-code/task-list`.                                                                  |
+| `states`    | object | required                                                                       | State map. States with `prompt` are active and dispatched; states with `terminal: true` stop work and clean up workspaces. |
+| `polling`   | object | `{ interval_ms: 30000 }`                                                       | Polling behavior.                                                                                                          |
+| `workspace` | object | `{ root: "<os tmp>/poe-code-maestro" }`                                        | Workspace allocation behavior.                                                                                             |
 | `agent`     | object | `{ service: "codex", max_concurrent_agents: 1, max_retry_backoff_ms: 300000 }` | Agent dispatch behavior.                                                                                                   |
 
 `tasks` fields:

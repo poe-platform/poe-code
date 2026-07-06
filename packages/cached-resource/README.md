@@ -24,12 +24,12 @@ import { createCachedResource, resolveCacheDir } from "@poe-code/cached-resource
 const bundledModels = [{ id: "gpt-4", name: "GPT-4" }];
 
 const cache = createCachedResource(bundledModels, {
-  freshTtl: 60_000,        // data is "fresh" for 60 seconds
-  staleTtl: 86_400_000,    // data is usable for 24 hours
-  fetchTimeout: 5_000,     // abort network request after 5 seconds
+  freshTtl: 60_000, // data is "fresh" for 60 seconds
+  staleTtl: 86_400_000, // data is usable for 24 hours
+  fetchTimeout: 5_000, // abort network request after 5 seconds
   apiEndpoint: "https://api.example.com/models",
   cacheDir: resolveCacheDir("my-app"),
-  cacheName: "models",
+  cacheName: "models"
 });
 
 const { data, timestamp } = await cache.get();
@@ -69,6 +69,14 @@ await cache.clear();
 const { memoryCacheSize, memoryCacheMax, cacheDir } = cache.stats();
 ```
 
+## Environment Variables
+
+This package does not read public environment variables directly. Use `resolveCacheDir(appName)` to follow platform cache directory conventions.
+
+## Configuration Options
+
+Pass a `CacheConfig` object to `createCachedResource(...)`. It controls freshness windows, fetch timeout, remote endpoint, cache directory, and cache file name. Per-call behavior is controlled by `FetchOptions`.
+
 ## API
 
 ### `createCachedResource<T>(bundledData, config, deps?)`
@@ -77,20 +85,20 @@ Factory function that creates a cache instance.
 
 **Parameters:**
 
-| Parameter | Type | Description |
-|---|---|---|
-| `bundledData` | `T` | Static fallback data, always available |
-| `config` | `CacheConfig` | Cache configuration (see below) |
-| `deps` | `CachedResourceDeps` | Optional dependency injection for `fs` and `fetch` |
+| Parameter     | Type                 | Description                                        |
+| ------------- | -------------------- | -------------------------------------------------- |
+| `bundledData` | `T`                  | Static fallback data, always available             |
+| `config`      | `CacheConfig`        | Cache configuration (see below)                    |
+| `deps`        | `CachedResourceDeps` | Optional dependency injection for `fs` and `fetch` |
 
 **Returns:** `CachedResource<T>`
 
-| Method | Signature | Description |
-|---|---|---|
-| `get` | `(options?: FetchOptions) => Promise<CachedData<T>>` | Resolve data through the three-tier cache |
-| `refresh` | `() => Promise<CachedData<T>>` | Shorthand for `get({ forceRefresh: true })` |
-| `clear` | `() => Promise<void>` | Clear memory and filesystem caches |
-| `stats` | `() => CacheStats` | Return memory cache size, max, and cache directory path |
+| Method    | Signature                                            | Description                                             |
+| --------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| `get`     | `(options?: FetchOptions) => Promise<CachedData<T>>` | Resolve data through the three-tier cache               |
+| `refresh` | `() => Promise<CachedData<T>>`                       | Shorthand for `get({ forceRefresh: true })`             |
+| `clear`   | `() => Promise<void>`                                | Clear memory and filesystem caches                      |
+| `stats`   | `() => CacheStats`                                   | Return memory cache size, max, and cache directory path |
 
 ### `resolveCacheDir(appName)`
 
@@ -98,28 +106,28 @@ Returns an XDG-compliant cache directory path: `$XDG_CACHE_HOME/<appName>` or `~
 
 ### `CacheConfig`
 
-| Property | Type | Description |
-|---|---|---|
-| `freshTtl` | `number` | Milliseconds before cached data is considered stale (triggers background revalidation) |
-| `staleTtl` | `number` | Milliseconds before cached data is expired and discarded |
-| `fetchTimeout` | `number` | Milliseconds before a network request is aborted |
-| `apiEndpoint` | `string` | URL to fetch fresh data from |
-| `cacheDir` | `string` | Directory for filesystem cache files |
-| `cacheName` | `string` | Base name for the cache file (`<cacheName>.json`) |
+| Property       | Type     | Description                                                                            |
+| -------------- | -------- | -------------------------------------------------------------------------------------- |
+| `freshTtl`     | `number` | Milliseconds before cached data is considered stale (triggers background revalidation) |
+| `staleTtl`     | `number` | Milliseconds before cached data is expired and discarded                               |
+| `fetchTimeout` | `number` | Milliseconds before a network request is aborted                                       |
+| `apiEndpoint`  | `string` | URL to fetch fresh data from                                                           |
+| `cacheDir`     | `string` | Directory for filesystem cache files                                                   |
+| `cacheName`    | `string` | Base name for the cache file (`<cacheName>.json`)                                      |
 
 ### `FetchOptions`
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `forceRefresh` | `boolean` | `false` | Skip all caches, fetch from network |
+| Property        | Type      | Default | Description                                               |
+| --------------- | --------- | ------- | --------------------------------------------------------- |
+| `forceRefresh`  | `boolean` | `false` | Skip all caches, fetch from network                       |
 | `preferOffline` | `boolean` | `false` | Return cached/bundled data, only fetch if no cache exists |
-| `offline` | `boolean` | `false` | Never hit the network, return cached or bundled data |
+| `offline`       | `boolean` | `false` | Never hit the network, return cached or bundled data      |
 
 ### `CachedData<T>`
 
-| Property | Type | Description |
-|---|---|---|
-| `data` | `T` | The cached resource data |
+| Property    | Type     | Description                                                                  |
+| ----------- | -------- | ---------------------------------------------------------------------------- |
+| `data`      | `T`      | The cached resource data                                                     |
 | `timestamp` | `number` | Unix timestamp (ms) when the data was fetched. `0` for bundled fallback data |
 
 ## Testing
@@ -138,7 +146,7 @@ const mockCache = createMockCachedResource([{ id: "gpt-4" }]);
 // Use in tests
 mockCache.get.mockResolvedValue({
   data: [{ id: "gpt-4" }],
-  timestamp: Date.now(),
+  timestamp: Date.now()
 });
 
 // Inject into the code under test

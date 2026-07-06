@@ -16,15 +16,31 @@ Repo-scoped persistent memory for poe-code projects. Memory lives at `<repo>/.po
         └── superintendent.md
 ```
 
-Default memory root: `<repo>/.poe-code/memory/`. Override it with:
-
-- `POE_CODE_MEMORY_ROOT` environment variable (absolute, or relative to the current working directory)
-- `memory.root` in `.poe-code/config.json` (project config wins over global; env wins over both)
+Default memory root: `<repo>/.poe-code/memory/`.
 
 - `INDEX.md`: regenerated from `pages/**/*.md`
 - `LOG.md`: append-only change log written by reconcile
 - `pages/`: markdown memory pages with YAML frontmatter
 - `.cache/ingest/`: content-hash ingest cache
+
+## Environment Variables
+
+- `POE_CODE_MEMORY_ROOT`: absolute path or cwd-relative path for the memory directory. Overrides project and global config.
+
+## Configuration Options
+
+Configure under `.poe-code/config.json`:
+
+- `memory.root`: absolute or cwd-relative path for the memory directory
+- `memory.ingestAgent`: override the spawned agent for `ingest`, `lint`, `query`, and `explain`
+- `memory.ingestTimeoutMs`: timeout for ingest/lint agent runs
+- `memory.maxPageBytes`: soft warning threshold for oversized pages
+- `memory.confidence.rejectUntagged`: make untagged long page bodies a lint error
+- `memory.confidence.minInferredConfidence`: lower bound for `inferred` confidence tags
+- `memory.cache.enabled`: enable or disable ingest-cache reads and writes
+- `memory.cache.maxAgeMs`: ignore or prune stale cache entries
+- `memory.mcp.allowWrites`: default `--allow-writes` for `poe-code memory-mcp`
+- `memory.query.defaultBudgetTokens`: default budget for `query` and `explain`
 
 ## CLI
 
@@ -46,33 +62,21 @@ Default memory root: `<repo>/.poe-code/memory/`. Override it with:
 - `poe-code memory clear --yes`: wipe memory and `.cache/`
 - `poe-code memory-mcp [--allow-writes] [--print-mcp-config]`: start or print config for the stdio MCP server
 
-## Config knobs
-
-Configure under `.poe-code/config.json`:
-
-- `memory.root`: absolute or cwd-relative path for the memory directory (overridden by `POE_CODE_MEMORY_ROOT`)
-- `memory.ingestAgent`: override the spawned agent for `ingest`, `lint`, `query`, and `explain`
-- `memory.ingestTimeoutMs`: timeout for ingest/lint agent runs
-- `memory.maxPageBytes`: soft warning threshold for oversized pages
-- `memory.confidence.rejectUntagged`: make untagged long page bodies a lint error
-- `memory.confidence.minInferredConfidence`: lower bound for `inferred` confidence tags
-- `memory.cache.enabled`: enable or disable ingest-cache reads and writes
-- `memory.cache.maxAgeMs`: ignore or prune stale cache entries
-- `memory.mcp.allowWrites`: default `--allow-writes` for `poe-code memory-mcp`
-- `memory.query.defaultBudgetTokens`: default budget for `query` and `explain`
-
 ## Confidence tags
 
 Non-trivial claims use HTML comment tags directly above the paragraph they qualify:
 
 ```md
 <!-- memory:extracted source=packages/superintendent/src/phases.ts#L42-L58 -->
+
 The loop has four phases: build, inspect, review, checkpoint.
 
 <!-- memory:inferred confidence=0.7 -->
+
 Checkpoint frequency scales with phase duration.
 
 <!-- memory:ambiguous reason="conflicting incident notes" -->
+
 The inspect phase may retry up to 3 times on ENOENT.
 ```
 
@@ -109,6 +113,10 @@ Config snippet:
   }
 }
 ```
+
+## Manual QA
+
+Use [QA.md](QA.md) for package-level validation after behavior changes.
 
 ## SDK
 

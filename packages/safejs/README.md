@@ -8,7 +8,7 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 
 ## Why use it
 
-- **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — are just JS. No DSL, no JSON state machine, no per-step LLM round trip.
+- **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — run as a JavaScript subset. No DSL, no JSON state machine, no per-step LLM round trip.
 - **Deterministic & sandboxed.** No `eval`, no `Function` constructor, no `class`, no dynamic import, no `globalThis`, and no built-in filesystem, process, subprocess, or network access. Imports are limited to modules you register. Budgets cap steps, depth, deadlines, string, array, and collection sizes.
 - **Crash-safe long runs.** Every `await` yields a snapshot. The scheduler writes them atomically to disk on an interval. A run can be resumed against the original source — the source hash is verified before restore.
 - **File-based plans.** A `.safejs` file, legacy `.ajs` file, or markdown file with YAML frontmatter and a `js` fenced block is the unit of work. Frontmatter holds the plan; the script walks it.
@@ -18,7 +18,7 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 
 SafeJS runs untrusted-by-default code. The interpreter ships **no** `fs`, `exec`, `process`, or network primitives, and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
 
-When you need filesystem, subprocess, or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific paths, commands, or URLs) and register it explicitly. Don't ship a generic `fs` module — narrow the capability to what this harness actually needs. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add.
+When you need filesystem, subprocess, or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific paths, commands, or URLs) and register it explicitly. Don't ship a generic `fs` module — narrow the capability to what the harness needs. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add.
 
 ## Scripts are JavaScript
 
@@ -84,7 +84,7 @@ const tools = await fs.tools();
 const result = await fs.tool("read_file", { path: "/tmp/work/notes.md" });
 ```
 
-The host wires up the actual transport via a `connectMcp` callback (see [`src/modules/mcp.ts`](src/modules/mcp.ts)). The script just composes calls.
+The host wires up the actual transport via a `connectMcp` callback (see [`src/modules/mcp.ts`](src/modules/mcp.ts)). The script composes tool calls.
 
 ### 3. Sandboxed user scripting
 
@@ -262,7 +262,7 @@ The runtime accepts plain objects or `Map`s at both levels:
 const modules = new Map([["custom", new Map([["hello", (name: string) => `hello ${name}`]])]]);
 ```
 
-For lint, the simplest shape is just an export list:
+For lint, an export list is enough when cycle diagnostics are not needed:
 
 ```ts
 const lintModules = { custom: ["hello"] };
@@ -285,7 +285,7 @@ no module bodies to inspect.
 ## Gotchas
 
 - **No mutable closures.** Lambdas cannot capture an outer `let`. The idiomatic loop is recursion (see `examples/experiment.md`) or `for…of` whose body does not return a closure that reads the loop variable.
-- **Harness lint rejects `function`.** The runtime can execute function declarations and expressions, but linted harnesses should use arrows. The lint error is explicit but easy to hit when porting existing JS.
+- **Harness lint rejects `function`.** The runtime can execute function declarations and expressions, but linted harnesses should use arrows. This commonly appears when porting existing JS.
 - **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
 - **Seed `Math.random()` when replay matters.** Pass `randomSeed` to make random values deterministic. Snapshots persist the seeded RNG state so resumes stay deterministic.
@@ -293,7 +293,7 @@ no module bodies to inspect.
 - **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
 - **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.
 - **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
-- **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no graceful degradation; size budgets generously for your workload or wrap the run in your own retry policy.
+- **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no partial-result fallback; choose budgets that fit the workload or wrap the run in your own retry policy.
 
 ## What's intentionally limited
 
@@ -302,10 +302,10 @@ no module bodies to inspect.
 - No async generators. Synchronous generators work, but a generator suspended mid-iteration cannot be snapshotted.
 - Regex support covers common literals, `RegExp`, and string methods, but not backreferences, lookaround, named groups, or Unicode property escapes.
 - `Map` and `Set` work at runtime, but their constructors require `new`, so linted harnesses need an explicit suppression to construct them directly.
-- No filesystem, network, or process modules in the box. Build them as host modules with the surface you actually want to expose.
+- No filesystem, network, or process modules in the box. Build them as host modules with the surface you want to expose.
 - No multi-file imports — a script is a single module body. Compose by registering more modules.
 
-## Environment variables
+## Environment Variables
 
 This package does not read package-level environment variables. `makeEnvModule(allowList)` reads from `process.env`, but only for names in `allowList`. `parse`, `lint`, `run`, `dump`, `restore`, and `runHarness` do not read environment variables on their own.
 

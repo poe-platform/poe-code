@@ -1,8 +1,8 @@
 # @poe-code/agent-trace-viewer
 
-Non-UI core for listing, loading, and summarizing normalized agent traces.
-
-The package builds on `@poe-code/agent-traces` readers and exposes the SDK surface that future CLI and UI layers should consume directly.
+Core SDK and CLI wiring for listing, loading, and summarizing normalized agent
+traces. The package builds on `@poe-code/agent-traces` readers and powers
+`poe-code traces`.
 
 ## CLI Usage
 
@@ -87,6 +87,10 @@ Detects the trace source from the first JSONL line:
 
 Reads the first line of a JSONL file, detects the source, builds a minimal trace reference, and delegates to `loadTrace`.
 
+## Environment Variables
+
+This package exposes no environment variables.
+
 ## Configuration
 
-This package does not introduce any new config keys or environment variables.
+This package exposes no package-level configuration options.

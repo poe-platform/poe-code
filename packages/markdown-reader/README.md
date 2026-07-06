@@ -2,7 +2,7 @@
 
 ## Overview
 
-`@poe-code/markdown-reader` reads markdown files into a compact table of contents and can return one resolved section at a time from either the SDK or a standalone stdio MCP server, so agents and CLI flows can pull just the markdown they need without loading an entire document into context.
+`@poe-code/markdown-reader` reads markdown files into a compact table of contents and can return one resolved section at a time from either the SDK or a standalone stdio MCP server, so agents and CLI flows can pull the needed section without loading an entire document into context.
 
 ## SDK usage
 
@@ -25,6 +25,16 @@ const { markdown, section } = await readSection({ file, section: "2.1" });
 ```sh
 poe-code plan markdown-reader-mcp
 ```
+
+## Configuration Options
+
+- `file`: markdown file path to read.
+- `section`: section id or heading path for `readSection`.
+- `fs`: optional filesystem dependency for tests and embedded hosts.
+
+## Environment Variables
+
+This package does not read public environment variables.
 
 ## Example agent configuration
 

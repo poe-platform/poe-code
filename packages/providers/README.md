@@ -2,8 +2,6 @@
 
 Auth-provider abstraction for poe-code: declarative provider manifests plus pluggable auth strategies. Each provider declares its id, label, API shapes, and the auth method it uses. Providers may declare a default base URL when one exists.
 
-See [docs/plans/provider-abstraction.md](../../docs/plans/provider-abstraction.md) for the full design.
-
 ## Shape
 
 ```ts
@@ -93,6 +91,12 @@ matching what `login()` would use in CI.
 
 ## CLI integration
 
+| Command                    | Purpose                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `poe-code provider list`   | List available providers and whether Poe Code can resolve credentials for each one.                                     |
+| `poe-code provider login`  | Store a provider credential and optional endpoint metadata. Supports `--api-key`, `--base-url`, and `--shape-base-url`. |
+| `poe-code provider logout` | Remove stored provider credentials and metadata.                                                                        |
+
 `poe-code provider login <id>` stores the provider credential and any provider endpoint
 metadata needed later by `poe-code configure`. `--base-url <url>` must be an `http` or
 `https` URL; for providers with `apiShapes[].baseUrlPath`, Poe Code derives and stores the
@@ -110,7 +114,7 @@ login metadata, then the shape's default URL. Providers with `modelInput: { kind
 use the configured model, an explicit `--model`, or an interactive text prompt; `--yes`
 requires one of those model sources.
 
-## Environment variables
+## Environment Variables
 
 This package does not read `process.env` directly. Consumers pass environment variables in
 via provider declarations (e.g. `auth.envVar` and `baseUrlEnvVar`),
@@ -124,7 +128,7 @@ Declared environment variables:
 - `CF_AIG_BASE_URL` - Cloudflare AI Gateway root URL, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
 - `OPENAI_API_KEY` - OpenAI API key.
 
-## Configuration options
+## Configuration Options
 
 No runtime configuration; everything is declared per-provider via the `AuthProvider`
 manifest.

@@ -14,7 +14,7 @@ npm install tiny-stdio-mcp-server
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
 
 const schema = defineSchema({
-  text: { type: "string", description: "Text to reverse" },
+  text: { type: "string", description: "Text to reverse" }
 });
 
 createServer({ name: "my-server", version: "1.0.0" })
@@ -49,7 +49,7 @@ Register a tool. The handler receives typed args matching the schema and returns
 ```ts
 const schema = defineSchema({
   query: { type: "string", description: "Search query" },
-  limit: { type: "number", description: "Max results", optional: true },
+  limit: { type: "number", description: "Max results", optional: true }
 });
 
 server.tool("search", "Search for things", schema, async ({ query, limit }) => {
@@ -62,7 +62,7 @@ For structured-data tools, pass a root-object output schema. The server advertis
 
 ```ts
 const input = defineSchema({
-  query: { type: "string" },
+  query: { type: "string" }
 });
 const output = defineSchema({
   items: {
@@ -71,16 +71,22 @@ const output = defineSchema({
       type: "object",
       properties: {
         title: { type: "string" },
-        score: { type: "number" },
+        score: { type: "number" }
       },
-      required: ["title", "score"],
-    },
-  },
+      required: ["title", "score"]
+    }
+  }
 });
 
-server.tool("search", "Search", input, async ({ query }) => ({
-  items: [{ title: query, score: 1 }],
-}), output);
+server.tool(
+  "search",
+  "Search",
+  input,
+  async ({ query }) => ({
+    items: [{ title: query, score: 1 }]
+  }),
+  output
+);
 ```
 
 Output schemas must have `type: "object"` at the root. Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
@@ -113,6 +119,12 @@ await server.connectSDK(sdkTransport);
 
 Dynamically add/remove tools at runtime and notify connected clients.
 
+## Configuration Options
+
+- `createServer({ name, version })`: server identity sent during MCP initialization.
+- `.tool(name, description, schema, handler, outputSchema?)`: tool metadata, input schema, handler, and optional structured output schema.
+- `.connect({ readable, writable })`: custom stream transport for tests or embedded hosts.
+
 ## `defineSchema(definition)`
 
 Type-safe schema builder. Returns a JSON Schema object with inferred TypeScript types.
@@ -120,10 +132,14 @@ Type-safe schema builder. Returns a JSON Schema object with inferred TypeScript 
 ```ts
 const schema = defineSchema({
   name: { type: "string", description: "User name" },
-  age: { type: "number", description: "User age", optional: true },
+  age: { type: "number", description: "User age", optional: true }
 });
 // Handler receives: { name: string; age?: number }
 ```
+
+## Environment Variables
+
+This package does not read public environment variables.
 
 Supported types: `string`, `number`, `boolean`, `object`, `array`.
 
@@ -189,8 +205,12 @@ Use `createTestPair` with the official MCP SDK for in-memory testing:
 ```ts
 import { createTestPair } from "tiny-stdio-mcp-server/testing";
 
-const server = createServer({ name: "test", version: "1.0.0" })
-  .tool("ping", "Ping", defineSchema({}), () => "pong");
+const server = createServer({ name: "test", version: "1.0.0" }).tool(
+  "ping",
+  "Ping",
+  defineSchema({}),
+  () => "pong"
+);
 
 const { client, cleanup } = await createTestPair(server);
 

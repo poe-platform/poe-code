@@ -6,7 +6,7 @@ Define a command once. Get a typed CLI, an MCP server, and a typed SDK from the 
 
 ## Why
 
-You have a folder of one-off scripts and a couple of MCP servers. Each one re-derives its own argument parsing, env handling, and help text. Running them from a chatbot needs another adapter. Calling them from another script means subprocessing.
+You have one-off scripts and MCP servers. Each one re-derives argument parsing, env handling, and help text. Running them from a chatbot needs another adapter. Calling them from another script means subprocessing.
 
 `toolcraft` is the consolidation step. You write each operation as one `defineCommand`, group them, and pick which surfaces to expose:
 
@@ -30,7 +30,7 @@ Before writing toolcraft code, make a small tool map. For each script or MCP too
 - **Surfaces** — where it should appear: CLI, MCP, SDK, or all three.
 - **Safety** — whether it needs approval, auth, or another precondition.
 
-Keep the first migration boring:
+Keep the first migration direct:
 
 1. Wrap existing scripts as thin `defineCommand` handlers.
 2. Proxy existing MCP servers with `defineGroup({ mcp })` when you do not want to rewrite them yet.
@@ -38,7 +38,7 @@ Keep the first migration boring:
 4. Add MCP scope only to tools that are safe and useful for agents.
 5. Document exposed env vars and config options in the package README.
 
-Once the tool map exists, the rest is mechanical: add commands to `root`, expose the same tree through CLI, MCP, and SDK, and remove old entrypoints when they are no longer needed.
+After the tool map exists, add commands to `root`, expose the same tree through CLI, MCP, and SDK, and remove old entrypoints when they are no longer needed.
 
 ## Install
 
@@ -471,11 +471,15 @@ Import the command definitions from `toolcraft` and the CLI runner from `toolcra
 
 esbuild records dependency paths relative to the build layout. A standalone install can produce `node_modules/toolcraft/...`, while a hoisted workspace can produce `../../node_modules/toolcraft/...` in module-label comments and source-map `sources`. For layout-independent artifacts, canonicalize every dependency path by keeping the substring from the first `node_modules/` segment onward. Parse the source map as JSON and apply the same operation to each string in `sources`; do not modify application source paths. Serialize the map, then hash or publish the canonical bundle and map.
 
-## Environment variables
+## Environment Variables
 
 - `TOOLCRAFT_MCP_REFRESH` — MCP proxy cache refresh (`unset` = use cache, `1`/`true` = refresh all, comma-separated names = refresh those).
 - `TOOLCRAFT_ERROR_REPORTS=1` — enables structured error report files for CLI, MCP, and SDK surfaces that wire `errorReports`.
 - Per-command `secrets` declarations name additional env vars. They are read at command run time and passed to the handler.
+
+## Configuration Options
+
+Toolcraft configuration is code-first. Use `defineCommand(config)` and `defineGroup(config)` for the command tree, then pass runtime options to `runCLI`, `createSDK`, `createMCPServer`, or `runMCP`. MCP proxy schemas are cached under `.toolcraft/mcp`, and optional human-in-loop state is configured with `HumanInLoopRuntimeOptions`.
 
 ## API reference
 
@@ -573,3 +577,12 @@ Subpath imports:
 - `toolcraft/mcp` — `runMCP`, `createMCPServer`
 - `toolcraft/human-in-loop` — provider helpers
 - `toolcraft/mcp-proxy` — proxy internals
+
+## Manual QA
+
+Use these package-local walkthroughs after behavior changes:
+
+- [Help output](QA-help-output.md)
+- [Error UX](QA-error-ux.md)
+- [Human-in-loop](QA-human-in-loop.md)
+- [MCP proxy](QA-mcp-proxy.md)

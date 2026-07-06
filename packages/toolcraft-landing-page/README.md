@@ -46,25 +46,25 @@ Documentation links on the page point at the toolcraft package README on GitHub;
 
 `renderLandingPage(page)` accepts these fields:
 
-| Option | Type | Description |
-| ------ | ---- | ----------- |
-| `title` | `string` | HTML document title. |
-| `description` | `string` | Meta description and page summary. |
-| `name` | `string` | Product or package name. |
-| `headline` | `string` | Hero headline. |
-| `headlineHighlight` | `string` | Optional highlighted headline segment. |
-| `tagline` | `string` | Hero supporting copy. |
-| `accent` | `string` | CSS color name or hex color. Unsafe values fall back to the default accent. |
-| `install` | `string` | Optional install command shown in the hero. |
-| `version` | `string` | Optional version label. |
-| `repoUrl` | `string` | Optional HTTP(S) repository link. |
-| `docsUrl` | `string` | HTTP(S) documentation link used for README anchors. |
-| `useCases` | `{ title, description, example }[]` | Use-case rows with code examples. |
-| `example` | `{ source, surfaces }` | Main source example and generated surface examples. |
-| `features` | `{ name, description }[]` | Feature cards. |
-| `quickstart` | `string` | Quickstart code block. |
-| `includeJs` | `boolean` | Include copy-button JavaScript when `true`. |
+| Option              | Type                                | Description                                                                 |
+| ------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
+| `title`             | `string`                            | HTML document title.                                                        |
+| `description`       | `string`                            | Meta description and page summary.                                          |
+| `name`              | `string`                            | Product or package name.                                                    |
+| `headline`          | `string`                            | Hero headline.                                                              |
+| `headlineHighlight` | `string`                            | Optional highlighted headline segment.                                      |
+| `tagline`           | `string`                            | Hero supporting copy.                                                       |
+| `accent`            | `string`                            | CSS color name or hex color. Unsafe values fall back to the default accent. |
+| `install`           | `string`                            | Optional install command shown in the hero.                                 |
+| `version`           | `string`                            | Optional version label.                                                     |
+| `repoUrl`           | `string`                            | Optional HTTP(S) repository link.                                           |
+| `docsUrl`           | `string`                            | HTTP(S) documentation link used for README anchors.                         |
+| `useCases`          | `{ title, description, example }[]` | Use-case rows with code examples.                                           |
+| `example`           | `{ source, surfaces }`              | Main source example and generated surface examples.                         |
+| `features`          | `{ name, description }[]`           | Feature cards.                                                              |
+| `quickstart`        | `string`                            | Quickstart code block.                                                      |
+| `includeJs`         | `boolean`                           | Include copy-button JavaScript when `true`.                                 |
 
-## Environment variables
+## Environment Variables
 
-None.
+The renderer does not read environment variables. The site build uses the bundled page definition and writes static files from package inputs only.

@@ -36,13 +36,13 @@ console.log(supportedAgents);
 
 `ApplyOptions` controls how mutations are applied:
 
-| Option | Type | Description |
-| ------ | ---- | ----------- |
-| `fs` | `FileSystem` | Filesystem adapter from `@poe-code/config-mutations`. |
-| `homeDir` | `string` | Home directory used to resolve `~` in agent config paths. |
-| `platform` | `"darwin" \| "linux" \| "win32"` | Selects platform-specific config paths. |
-| `dryRun` | `boolean` | Computes mutations without writing files. |
-| `observers` | `MutationObservers` | Receives mutation lifecycle events. |
+| Option      | Type                             | Description                                               |
+| ----------- | -------------------------------- | --------------------------------------------------------- |
+| `fs`        | `FileSystem`                     | Filesystem adapter from `@poe-code/config-mutations`.     |
+| `homeDir`   | `string`                         | Home directory used to resolve `~` in agent config paths. |
+| `platform`  | `"darwin" \| "linux" \| "win32"` | Selects platform-specific config paths.                   |
+| `dryRun`    | `boolean`                        | Computes mutations without writing files.                 |
+| `observers` | `MutationObservers`              | Receives mutation lifecycle events.                       |
 
 The package's built-in agent config table declares `configFile`, `configKey`,
 `format`, `shape`, and optional `mcpOutputFormat` per supported agent.

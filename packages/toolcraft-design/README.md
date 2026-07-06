@@ -118,16 +118,16 @@ Raw HTML in Markdown is escaped by default. Pass `{ allowRawHtml: true }` only w
 
 Fenced code block syntax highlighting is opt-in:
 
-```ts
+````ts
 import { renderMarkdown, renderMarkdownHtml } from "toolcraft-design";
 
-const html = renderMarkdownHtml("```ts\nconst value = \"hello\";\n```", {
+const html = renderMarkdownHtml('```ts\nconst value = "hello";\n```', {
   syntaxHighlight: true
 });
-const terminal = renderMarkdown("```ts\nconst value = \"hello\";\n```", {
+const terminal = renderMarkdown('```ts\nconst value = "hello";\n```', {
   syntaxHighlight: true
 });
-```
+````
 
 HTML highlighting emits escaped code text with neutral Toolcraft-owned `<span>` wrappers. The renderer does not ship or inject CSS, so consumers control the appearance:
 
@@ -340,3 +340,7 @@ nvm exec 18.18 node packages/toolcraft-design/scripts/check-node18.mjs
 - `NO_COLOR`: disables color when `FORCE_COLOR` does not enable it.
 - `TERM`: participates in color support detection; an unset or `dumb` terminal disables color unless forced.
 - `POE_NO_SPINNER`: uses non-animated spinner behavior when set to `1`.
+
+## Configuration Options
+
+Use `configureTheme({ brand?, label? })` for process-local brand settings, `withOutputFormat(format, fn)` for scoped output-format overrides, and component-specific options such as `RenderTableOptions`, `RenderMarkdownOptions`, prompt options, dashboard options, and explorer config. Environment variables above are process defaults, not config files.

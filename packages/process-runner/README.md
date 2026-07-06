@@ -32,7 +32,7 @@ Low-level process execution abstraction. Single interface for launching processe
 - `extraArgs`: additional runtime arguments.
 - `containerName`: optional container name prefix.
 
-## Environment variables
+## Environment Variables
 
 This package exposes no environment variables.
 

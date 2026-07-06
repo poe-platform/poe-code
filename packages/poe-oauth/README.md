@@ -11,8 +11,12 @@ import { createOAuthClient } from "poe-oauth";
 
 const client = createOAuthClient({
   clientId: "your-client-id",
-  openBrowser: async (url) => { /* open url in browser */ },
-  readLine: async () => { /* read manual paste from terminal */ }
+  openBrowser: async (url) => {
+    /* open url in browser */
+  },
+  readLine: async () => {
+    /* read manual paste from terminal */
+  }
 });
 // Defaults to https://poe.com/oauth/authorize and https://api.poe.com/token
 // Override with authorizationEndpoint / tokenEndpoint if needed
@@ -38,6 +42,19 @@ const client = createOAuthClient({
 ```
 
 Defaults to "Connected to Poe" / "You can close this tab and return to your terminal." when omitted.
+
+## Configuration Options
+
+- `clientId`: Poe OAuth client id.
+- `authorizationEndpoint`: optional authorization endpoint override.
+- `tokenEndpoint`: optional token endpoint override.
+- `openBrowser`: callback used to open the authorization URL.
+- `readLine`: callback used for manual code-paste fallback.
+- `landingPage`: success page copy for the local callback server.
+
+## Environment Variables
+
+This package does not read public environment variables.
 
 ## Check auth
 

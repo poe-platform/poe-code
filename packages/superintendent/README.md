@@ -9,12 +9,18 @@ This package provides:
 - markdown document parsing for superintendent plans with YAML frontmatter
 - Task Board parsing and runtime status writers
 - runtime orchestration for builder, inspectors, superintendent, and owner review
-- cmdkit command groups that can be composed into CLI, SDK, and MCP surfaces
+- Toolcraft command groups that can be composed into CLI, SDK, and MCP surfaces
 - testing helpers for in-memory loop simulation
 
 The canonical workflow artifact is a single markdown file with frontmatter plus a required `## Task Board` section in the body.
 
 ## CLI commands and usage
+
+Root CLI entrypoint:
+
+```sh
+poe-code superintendent --help
+```
 
 Local development entrypoint:
 
@@ -31,19 +37,23 @@ node packages/superintendent/dist/cli.js --help
 Main commands:
 
 ```sh
-npx tsx packages/superintendent/src/cli.ts run <doc> [--agent <builder-agent>]
-npx tsx packages/superintendent/src/cli.ts validate <doc>
-npx tsx packages/superintendent/src/cli.ts complete <doc> [--reason <text>]
-npx tsx packages/superintendent/src/cli.ts builder run <doc>
-npx tsx packages/superintendent/src/cli.ts inspector list <doc>
-npx tsx packages/superintendent/src/cli.ts inspector run <doc> [name]
+poe-code superintendent run [doc] [--agent <builder-agent>]
+poe-code superintendent validate <doc>
+poe-code superintendent complete <doc> [--reason <text>]
+poe-code superintendent install [agent] [--scope local|global]
+poe-code superintendent plan-path
+poe-code superintendent builder run <doc>
+poe-code superintendent inspector list <doc>
+poe-code superintendent inspector run <doc> [name]
 ```
 
 Behavior notes:
 
-- `run` starts the full loop and uses the live dashboard in terminal output. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
+- `run` starts the full loop and uses the live dashboard in terminal output. It also accepts shared runtime flags: `--runtime host|docker|e2b`, `--runtime-image`, `--runtime-template`, `--detach`, `--runner-sync`, `--tui`, and `--worktree`. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
 - `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
+- `install` installs the Superintendent skill and scaffolds the shared plan directory.
+- `plan-path` prints the directory where superintendent plan files belong.
 - `builder run` executes only the builder role.
 - `inspector run` executes one named inspector, or all configured inspectors when `name` is omitted.
 
@@ -146,7 +156,7 @@ Re-exported from `./testing/index.js`:
 
 - `superintendentGroup`
 
-## Environment variables
+## Environment Variables
 
 Superintendent-specific config env var:
 
@@ -158,7 +168,7 @@ The package also respects these generic runtime variables:
 - `HOME` / `USERPROFILE` — used when resolving workflow-relative document paths for `run`
 - `EDITOR` / `VISUAL` — used by the dashboard edit action; falls back to `vi`
 
-## Configuration options
+## Configuration Options
 
 Configuration lives in the superintendent markdown document frontmatter.
 

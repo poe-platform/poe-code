@@ -46,7 +46,7 @@ interface EventDef<TState extends string = string> {
 
 Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the package uses `defaultStateMachine`, whose event names are `plan`, `start`, `complete`, and `archive`.
 
-## Options
+## Configuration Options
 
 | Option            | Type                                           | Default                    | Behavior                                                                                                          |
 | ----------------- | ---------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -59,7 +59,7 @@ Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the pac
 | `fs`              | `TaskListFs`                                   | `node:fs/promises` adapter | Injectable filesystem, primarily for tests.                                                                       |
 | `stateMachine`    | `StateMachineDef`                              | `defaultStateMachine`      | Overrides the task lifecycle used by `create`, `fire`, `canFire`, and `events`.                                   |
 
-## Env vars
+## Environment Variables
 
 | Env var   | Behavior                                                        |
 | --------- | --------------------------------------------------------------- |
@@ -231,7 +231,7 @@ interface SyncGhProjectReport extends VerifyGhProjectReport {
 }
 ```
 
-The CLI exposes the same verification and provisioning flow:
+The root CLI exposes verification, provisioning, and task mutation commands:
 
 ```sh
 poe-code tasks verify <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --project octo-org/7 --states queued,agent-running,human-review,done,failed,archived --json
@@ -248,6 +248,18 @@ poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --
 | `--states <csv>`           | `verify`, `sync` | Required task state names.                          |
 | `--json`                   | `verify`, `sync` | Prints the report as JSON.                          |
 | `--yes`                    | `sync`           | Confirms non-interactive provisioning.              |
+
+Additional task backend commands:
+
+| Command                                 | Purpose                                               |
+| --------------------------------------- | ----------------------------------------------------- |
+| `poe-code tasks move`                   | Move tasks between workflow-configured backends.      |
+| `poe-code tasks import`                 | Import Markdown task files into a configured backend. |
+| `poe-code tasks get <id>`               | Read one task.                                        |
+| `poe-code tasks set <id>`               | Update one task.                                      |
+| `poe-code tasks set-state <id> <state>` | Set one task's state.                                 |
+| `poe-code tasks next <id>`              | Advance one task to the next workflow state.          |
+| `poe-code tasks comment <id>`           | Add a task comment when the backend supports it.      |
 
 The `Status` field name and option names are matched case-sensitively. The field must be named `Status`, and required option names must match exactly. For example, `status` is treated as a missing field, and `Done` is treated as missing when the required state is `done`.
 

@@ -28,7 +28,7 @@ const records = await collectHumanPrompts({
 });
 ```
 
-## Options
+## Configuration Options
 
 - `sources`: Trace sources to read. Defaults to all registered trace readers.
 - `cwd`: Workspace filter. Defaults to `process.cwd()`.
@@ -102,3 +102,7 @@ or Codex rollout payload types.
 ## Privacy
 
 This package only reads local trace stores and returns normalized records. It does not send prompts to any model or write project files by itself. Use `writeHumanPromptJsonl` with an explicit path when another package needs a prompt data file.
+
+## Environment Variables
+
+This package does not read public environment variables directly. Pass `cwd`, `homeDir`, filesystem, and SQLite dependencies through options.

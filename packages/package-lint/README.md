@@ -32,10 +32,10 @@ malformed `package.json`).
 | `shipped-dist-deps-unresolvable`        | Every runtime dependency of a shipped, tsc-emitted bin entry resolves from the published tarball — it is in root `dependencies`, a Node builtin, or itself a shipped package.                                                     |
 | `no-published-to-private-dep`           | No published package depends (deps / peer / optional) on a private workspace package.                                                                                                                                             |
 | `published-dep-needs-version-range`     | A published → published workspace dependency uses a concrete range, never `*` / `workspace:*`, and that range includes the workspace package version.                                                                             |
-| `public-needs-publish-wiring`           | Hygiene: a public package with no release workflow or no `repository.directory` has no publish path (warning). Whether it is actually needed on npm is decided from real imports below, not declarations.                         |
+| `public-needs-publish-wiring`           | Hygiene: a public package with no release workflow or no `repository.directory` has no publish path (warning). Whether it is needed on npm is decided from real imports below, not declarations.                                  |
 | `release-workflow-maps-to-package`      | Every release workflow publishes an existing, non-private (or pypi) package.                                                                                                                                                      |
 | `no-cross-package-relative-import`      | No source file imports a sibling package by a relative path that escapes its own directory (e.g. `../../mcp-oauth/dist/index.js`); import the sibling by package name. Error in shipped code, warning in tests.                   |
-| `imported-workspace-dep-unresolvable`   | Import-driven: every workspace package a published package's shipped source actually imports (runtime, non-type-only) is vendored (`bundledDependencies`) or itself reaches npm. Catches undeclared imports of private packages.  |
+| `imported-workspace-dep-unresolvable`   | Import-driven: every workspace package imported by a published package's shipped source (runtime, non-type-only) is vendored (`bundledDependencies`) or itself reaches npm. Catches undeclared imports of private packages.       |
 | `exports-subpath-resolvable`            | Import-driven: a bare subpath import of a workspace package (e.g. `toolcraft/cli`) is a subpath the target's `exports` map exposes. Node gates `exports` — an unlisted subpath is `ERR_PACKAGE_PATH_NOT_EXPORTED` once published. |
 | `bundle-self-contained` _(build-aware)_ | The bundled entry inlines every referenced workspace package and externalizes nothing absent from root `dependencies`. Consumes `dist/metafile.json`; skipped when absent.                                                        |
 | `package-readme-required`               | Every workspace package under `packages/*` has a package-local `README.md` documenting env vars and config options.                                                                                                               |
@@ -44,7 +44,7 @@ malformed `package.json`).
 
 Imports are parsed with the TypeScript compiler's own scanner (the engine
 `typescript-eslint` runs on) over each package's `src`, so the import-driven
-rules reflect what the code actually imports, not what `package.json` declares.
+rules reflect code imports, not what `package.json` declares.
 
 A package with a Python project file (`pyproject.toml` / `setup.py` /
 `setup.cfg`) is tagged `pypi` and exempt from the npm rules.
@@ -56,10 +56,13 @@ AST. The scanner supports package-local finite paths through `node:fs`,
 arrays, and directory enumeration. Dynamic user/workspace inputs are ignored
 unless a package declares a finite asset explicitly.
 
+## Environment Variables
+
+No environment variables are read by package-lint.
+
 ## Configuration
 
-No environment variables are read by package-lint. Behavior is controlled by the
-flags above and by optional package manifest metadata; all rules run by default.
+Behavior is controlled by the flags above and by optional package manifest metadata; all rules run by default.
 
 Packages may declare finite runtime assets that cannot be inferred precisely
 from source:

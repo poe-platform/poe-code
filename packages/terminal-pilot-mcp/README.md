@@ -127,6 +127,10 @@ Minimal MCP flow:
 {"tool":"terminal_close_session","arguments":{"session":"<session>"}}
 ```
 
-## Environment variables
+## Environment Variables
 
 There are no environment variables specific to this package. The MCP server inherits the process environment; spawned terminal sessions inherit from that unless overridden per session.
+
+## Configuration Options
+
+Configure the server through the MCP client entry: `command` and optional `args`. Runtime session behavior is configured per tool call with fields such as `command`, `args`, `cwd`, `cols`, `rows`, `observe`, `timeout`, and `last`.

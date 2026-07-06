@@ -19,11 +19,11 @@ A chain must contain exactly one document layer. Data layers before and after th
 - Optional auto-extend discovery is ignored when it finds the document itself, so a document can safely live in a configured base directory without creating a circular extends error.
 - Prompt values can compose with the `{{yield}}` token across resolved base layers.
 
-## Environment variables
+## Environment Variables
 
 This package does not read or expose any environment variables.
 
-## Config options
+## Configuration Options
 
 ### `ResolveOptions`
 

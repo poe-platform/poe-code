@@ -28,8 +28,12 @@ Braintrust emission expects a parent span-like object with `startSpan`, `log`, a
 
 OpenTelemetry emission expects a tracer-like object with `startSpan`. Agent spans set `gen_ai.system`, request model, agent name, token usage, and Poe Code session/thread attributes. Tool spans set tool name and tool-call id attributes. Non-primitive inputs and outputs are serialized as JSON attributes.
 
-## Configuration
+## Configuration Options
 
-No env vars, no config.
+None. The package receives trace context and sink/emitter objects from callers.
+
+## Environment Variables
+
+This package does not read public environment variables.
 
 Failed or aborted spawns still invoke a trace sink once with all trace data captured before failure.

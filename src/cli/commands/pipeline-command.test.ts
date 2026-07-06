@@ -12,12 +12,13 @@ import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache"
 import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import type { Dashboard } from "toolcraft-design";
 
-const { selectMock, cancelMock, resolvePipelineLoopAgentMock, runWithOptionalWorktreeMock } = vi.hoisted(() => ({
-  selectMock: vi.fn(),
-  cancelMock: vi.fn(),
-  resolvePipelineLoopAgentMock: vi.fn(),
-  runWithOptionalWorktreeMock: vi.fn()
-}));
+const { selectMock, cancelMock, resolvePipelineLoopAgentMock, runWithOptionalWorktreeMock } =
+  vi.hoisted(() => ({
+    selectMock: vi.fn(),
+    cancelMock: vi.fn(),
+    resolvePipelineLoopAgentMock: vi.fn(),
+    runWithOptionalWorktreeMock: vi.fn()
+  }));
 
 const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
 
@@ -2052,9 +2053,9 @@ describe("pipeline init command", () => {
     expect(logs.some((message) => message.includes("Would initialize: docs/plans/alpha.md"))).toBe(
       true
     );
-    expect(logs.some((message) => message.includes("Would generate pipeline plans with codex"))).toBe(
-      true
-    );
+    expect(
+      logs.some((message) => message.includes("Would generate pipeline plans with codex"))
+    ).toBe(true);
   });
 
   it("uses core.defaultAgent for init with --yes and preserves the model", async () => {
@@ -2583,9 +2584,9 @@ describe("pipeline install command", () => {
   it("ships markdown frontmatter instructions in the pipeline skill template", () => {
     expect(pipelineSkillPlan).toContain("Generate a Pipeline plan markdown file");
     expect(pipelineSkillPlan).toContain(
-      "A file in the plan directory matches the topic (filename stem or `# heading`) → overwrite it, regardless of its `kind:`. One file per topic."
+      "A file in the plan directory matches the topic (filename stem or `# heading`): overwrite it, regardless of its `kind:`. One file per topic."
     );
-    expect(pipelineSkillPlan).toContain("Otherwise → create `<plan-directory>/<name>.md`.");
+    expect(pipelineSkillPlan).toContain("Otherwise: create `<plan-directory>/<name>.md`.");
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
     expect(pipelineSkillPlan).toContain("```markdown");
@@ -2766,15 +2767,7 @@ describe("pipeline install command", () => {
 
     await expect(
       withMockedTerminal(
-        () =>
-          program.parseAsync([
-            "node",
-            "cli",
-            "pipeline",
-            "install",
-            "--agent",
-            "claude-code"
-          ]),
+        () => program.parseAsync(["node", "cli", "pipeline", "install", "--agent", "claude-code"]),
         { stdin: false }
       )
     ).rejects.toThrow(

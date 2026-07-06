@@ -255,6 +255,63 @@ defineCommand<Services>({
 
 Services are merged into the handler context alongside the built-ins (`fetch`, `fs`, `env`, `progress`).
 
+## Testing commands
+
+Use `createCommandTestHarness` to exercise the same command pipeline as the SDK without assembling a handler context by hand:
+
+```ts
+import { expect, it } from "vitest";
+import { createCommandTestHarness, fakeService } from "toolcraft/testing";
+import { root } from "./root.js";
+
+it("creates a deployment", async () => {
+  const deployments = fakeService({
+    create: async (name: string) => ({ id: "dep-1", name })
+  });
+  const harness = createCommandTestHarness(root, {
+    services: { deployments },
+    env: { HOME: "/test/home" },
+    secrets: { apiKey: "test-token" },
+    fs: { "/test/input.json": "{}" },
+    fetch: [{ method: "POST", url: "https://api.example.com/deployments", json: { ok: true } }],
+    confirmations: "approve",
+    apiVersion: "1.2.0",
+    logLevel: "debug"
+  });
+
+  const result = await harness.run<{ id: string }>(["deploy", "create"], {
+    name: "production"
+  });
+
+  expect(result).toMatchObject({ ok: true, value: { id: "dep-1" } });
+});
+```
+
+Harness options provide injected `services`, an explicit `env`, named `secrets`, an initial file map or `HandlerFs`, a fetch implementation or `fakeFetch` routes, confirmation behavior (`"approve"`, `"decline"`, or a callback), `apiVersion`, and `logLevel`. `fakeService`, `fakeFetch`, and `createMemoryFs` are also exported for standalone tests.
+
+Each `run()` returns a `RunResult` instead of throwing. Assert `ok`, `value`, or `error`, and use `failedAt` to identify the pipeline stage: `resolve`, `secrets`, `requirements`, `params`, `confirm`, `handler`, or `render`. The result also captures `pending`, diagnostic `logs`, `progress`, `confirmations`, the ordered effect `timeline`, `fsChanges`, and rendered rich, Markdown, and JSON output. Pre-handler validation can therefore be asserted directly:
+
+```ts
+const result = await harness.run(["deploy", "create"], { name: 42 });
+
+expect(result.ok).toBe(false);
+expect(result.failedAt).toBe("params");
+expect(result.timeline).toEqual([]);
+expect(deployments.calls).toEqual([]);
+```
+
+The harness is hermetic by default: it never falls back to `process.env`, starts with an in-memory filesystem, blocks unmatched network requests, records injected service and effect calls, and uses deterministic timestamp-free pending approval data. Provide every external input through the harness options.
+
+Use `parity()` when a command must behave identically through the real SDK, MCP, and CLI adapters:
+
+```ts
+const parity = await harness.parity(["deploy", "create"], { name: "production" });
+
+expect(parity.agree, parity.diff).toBe(true);
+expect(parity.sdk.value).toEqual(parity.mcp.value);
+expect(parity.mcp.value).toEqual(parity.cli.value);
+```
+
 ## Output rendering
 
 Handlers return raw values. Add `result:` when a command returns structured data and may be exposed over MCP; Toolcraft turns that schema into MCP `outputSchema`, validates the returned object, returns it as `structuredContent`, and keeps a JSON text backstop for older MCP clients.

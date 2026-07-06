@@ -1,7 +1,7 @@
-import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { InvalidTransitionError, type Task } from "@poe-code/task-list";
-import type { Command, CommandNode, HandlerEnv, HandlerFs, HandlerContext } from "../index.js";
+import type { Command, CommandNode, HandlerContext } from "../index.js";
 import { UserError, resolveCommandSecrets } from "../index.js";
+import { createEnv, createFs } from "../runtime/io.js";
 import { ensureApprovalList } from "./approval-tasks.js";
 import { resolveProvider } from "./gate.js";
 import type { ApprovalPayload } from "./approval-tasks.js";
@@ -244,38 +244,6 @@ function createHandlerContext(
     diagnostics,
     progress(message: string): void {
       diagnostics.emit({ level: "info", message, category: "progress" });
-    }
-  };
-}
-
-function createFs(): HandlerFs {
-  return {
-    readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
-    writeFile: async (
-      path: string,
-      contents: string,
-      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
-    ) => {
-      await writeFile(path, contents, options);
-    },
-    exists: async (path: string) => {
-      try {
-        await access(path);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    lstat: async (path: string) => lstat(path),
-    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
-    unlink: async (path: string) => unlink(path)
-  };
-}
-
-function createEnv(values: Record<string, string | undefined> = process.env): HandlerEnv {
-  return {
-    get(key: string): string | undefined {
-      return values[key];
     }
   };
 }

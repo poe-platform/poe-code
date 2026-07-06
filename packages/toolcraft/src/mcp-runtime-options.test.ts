@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import { defineCommand, defineGroup } from "./index.js";
+import { defineCommand, defineGroup, type HandlerFs } from "./index.js";
 
 const invokeWithHumanInLoopMock = vi.hoisted(() => vi.fn());
 
@@ -158,6 +158,112 @@ describe("createMCPServer fetch runtime options plumbing", () => {
         ]
       });
       expect(injectedFetch).toHaveBeenCalledWith("https://api.example.com/items");
+    } finally {
+      await cleanup();
+    }
+  });
+});
+
+describe("createMCPServer hermetic runtime options plumbing", () => {
+  beforeEach(() => {
+    invokeWithHumanInLoopMock.mockReset();
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("uses options.env for secrets, requirements, and handler env and options.fs for handler fs", async () => {
+    const injectedEnv = {
+      POE_API_KEY: "auth-token",
+      TOOL_TOKEN: "secret-token",
+      TOOL_VALUE: "visible-value"
+    };
+    const injectedFs = {
+      readFile: vi.fn(async () => "contents"),
+      writeFile: vi.fn(async () => undefined),
+      exists: vi.fn(async () => true),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
+      rename: vi.fn(async () => undefined),
+      unlink: vi.fn(async () => undefined)
+    } satisfies HandlerFs;
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "inspect",
+            scope: ["mcp"],
+            params: S.Object({}),
+            secrets: {
+              token: {
+                env: "TOOL_TOKEN"
+              }
+            },
+            requires: {
+              auth: true
+            },
+            handler: async ({ env, fs, secrets }) => {
+              expect(env.get("TOOL_VALUE")).toBe("visible-value");
+              expect(fs).toBe(injectedFs);
+              expect(secrets.token).toBe("secret-token");
+              return fs.readFile("/virtual/input.txt");
+            }
+          })
+        ]
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true,
+        env: injectedEnv,
+        fs: injectedFs
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(client.callTool({ name: "inspect", arguments: {} })).resolves.toEqual({
+        content: [{ type: "text", text: "contents" }]
+      });
+      expect(injectedFs.readFile).toHaveBeenCalledWith("/virtual/input.txt");
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("passes options.apiVersion to command requirement checks", async () => {
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "deploy",
+            scope: ["mcp"],
+            params: S.Object({}),
+            requires: {
+              apiVersion: ">=1.2.3"
+            },
+            handler: async () => "deployed"
+          })
+        ]
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true,
+        apiVersion: "1.2.3"
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(client.callTool({ name: "deploy", arguments: {} })).resolves.toEqual({
+        content: [{ type: "text", text: "deployed" }]
+      });
     } finally {
       await cleanup();
     }

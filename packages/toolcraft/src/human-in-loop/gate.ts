@@ -3,12 +3,18 @@ import { enqueueApproval, ensureApprovalList } from "./approval-tasks.js";
 import { defaultProviderForPlatform } from "./default-provider.js";
 import { spawnApprovalRunner } from "./spawn.js";
 import { ApprovalDeclinedError } from "./types.js";
-import type { HumanInLoopPending, HumanInLoopProvider, HumanInLoopRuntimeOptions } from "./types.js";
+import type {
+  HumanInLoopPending,
+  HumanInLoopProvider,
+  HumanInLoopRuntimeOptions
+} from "./types.js";
 
 const providersByRuntime = new WeakMap<HumanInLoopRuntimeOptions, HumanInLoopProvider>();
 let providerWithoutRuntime: HumanInLoopProvider | undefined;
 
-export function resolveProvider(runtimeOptions: HumanInLoopRuntimeOptions | undefined): HumanInLoopProvider {
+export function resolveProvider(
+  runtimeOptions: HumanInLoopRuntimeOptions | undefined
+): HumanInLoopProvider {
   if (runtimeOptions?.provider !== undefined) {
     return runtimeOptions.provider;
   }
@@ -33,6 +39,10 @@ export async function invokeWithHumanInLoop<T>(
   ctx: HandlerContext<any, any, any>,
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
   commandPath: string,
+  options: {
+    enqueueApproval?: typeof enqueueApproval;
+    spawnRunner?: boolean;
+  } = {}
 ): Promise<T | HumanInLoopPending> {
   if (!node.humanInLoop) {
     return node.handler(ctx);
@@ -40,22 +50,24 @@ export async function invokeWithHumanInLoop<T>(
 
   const message = node.humanInLoop.message({
     params: ctx.params,
-    commandPath,
+    commandPath
   });
 
   if (node.humanInLoop.mode === "async") {
     const { tasks } = await ensureApprovalList(runtimeOptions);
-    const { approvalId, pending } = await enqueueApproval({
+    const { approvalId, pending } = await (options.enqueueApproval ?? enqueueApproval)({
       tasks,
       payload: {
         commandPath,
         params: ctx.params,
         message,
-        declineInputPrompt: node.humanInLoop.declineInputPrompt,
-      },
+        declineInputPrompt: node.humanInLoop.declineInputPrompt
+      }
     });
 
-    spawnApprovalRunner(approvalId, runtimeOptions as HumanInLoopRuntimeOptions);
+    if (options.spawnRunner !== false) {
+      spawnApprovalRunner(approvalId, runtimeOptions as HumanInLoopRuntimeOptions);
+    }
 
     return pending;
   }
@@ -63,13 +75,13 @@ export async function invokeWithHumanInLoop<T>(
   const provider = resolveProvider(runtimeOptions);
   const result = await provider.requestApproval({
     message,
-    declineInputPrompt: node.humanInLoop.declineInputPrompt,
+    declineInputPrompt: node.humanInLoop.declineInputPrompt
   });
 
   if (result.outcome === "declined") {
     throw new ApprovalDeclinedError({
       reason: result.reason,
-      commandPath,
+      commandPath
     });
   }
 

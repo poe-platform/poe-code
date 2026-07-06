@@ -1,14 +1,5 @@
-import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
-import type {
-  Command,
-  Group,
-  HandlerEnv,
-  HandlerFs,
-  LogLevel,
-  RuntimeLoggerInput,
-  Scope
-} from "./index.js";
+import type { Command, Group, HandlerFs, LogLevel, RuntimeLoggerInput, Scope } from "./index.js";
 import {
   ToolcraftBugError,
   UserError,
@@ -26,20 +17,7 @@ import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 import { createRuntimeLogger } from "./runtime-logging.js";
-
-const RESERVED_SERVICE_NAMES = new Set([
-  "params",
-  "secrets",
-  "fetch",
-  "fs",
-  "env",
-  "diagnostics",
-  "progress",
-  "runtimeOptions",
-  "root"
-]);
-const RESERVED_SERVICE_NAMES_MESSAGE =
-  "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
+import { createEnv, createFs, validateServices } from "./runtime/io.js";
 
 type ScopeInput = readonly Scope[] | undefined;
 type HumanInLoopMode = "sync" | "async";
@@ -232,7 +210,9 @@ type SDKChildrenShape<
 
 export interface CreateSDKOptions<TServices extends object = Record<string, unknown>> {
   approvals?: boolean;
+  env?: Record<string, string>;
   fetch?: typeof globalThis.fetch;
+  fs?: HandlerFs;
   services?: TServices;
   casing?: "camel";
   humanInLoop?: HumanInLoopRuntimeOptions;
@@ -307,48 +287,6 @@ function isOptional(schema: AnySchema): boolean {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function createFs(): HandlerFs {
-  return {
-    readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
-    writeFile: async (
-      path: string,
-      contents: string,
-      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
-    ) => {
-      await writeFile(path, contents, options);
-    },
-    exists: async (path: string) => {
-      try {
-        await access(path);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    lstat: async (path: string) => lstat(path),
-    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
-    unlink: async (path: string) => unlink(path)
-  };
-}
-
-function createEnv(values: Record<string, string | undefined> = process.env): HandlerEnv {
-  return {
-    get(key: string): string | undefined {
-      return values[key];
-    }
-  };
-}
-
-function validateServices(services: Record<string, unknown>): void {
-  for (const name of Object.keys(services)) {
-    if (RESERVED_SERVICE_NAMES.has(name)) {
-      throw new Error(
-        `Service name "${name}" is reserved. Choose a different name. ${RESERVED_SERVICE_NAMES_MESSAGE}`
-      );
-    }
-  }
 }
 
 function formatAvailableList(values: Iterable<string>): string {
@@ -553,7 +491,7 @@ function validateArrayConstraints(
   }
 }
 
-function validateObjectSchema(
+export function validateObjectSchema(
   schema: ObjectSchema<any>,
   value: unknown,
   label: string,
@@ -730,15 +668,15 @@ function createResolvedSDK(
         let validatedParams: unknown;
 
         try {
-          secrets = resolveCommandSecrets(node);
+          secrets = resolveCommandSecrets(node, options.env);
           const baseContext = {
             ...services,
             runtimeOptions,
             root,
             secrets,
             fetch: runtimeFetch,
-            fs: createFs(),
-            env: createEnv(),
+            fs: createFs(options.fs),
+            env: createEnv(options.env),
             diagnostics,
             progress(message: string): void {
               diagnostics.emit({ level: "info", message, category: "progress" });
@@ -749,7 +687,8 @@ function createResolvedSDK(
             node,
             { ...baseContext, params: undefined },
             {
-              apiVersion: options.apiVersion
+              apiVersion: options.apiVersion,
+              env: options.env
             }
           );
 

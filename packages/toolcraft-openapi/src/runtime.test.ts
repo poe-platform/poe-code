@@ -10,6 +10,7 @@ import {
 } from "toolcraft";
 import { runCLI } from "toolcraft/cli";
 import { createMCPServer } from "toolcraft/mcp";
+import { createCommandTestHarness } from "toolcraft/testing";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import {
   commandsFromSpec,
@@ -579,14 +580,21 @@ describe("commandsFromSpec", () => {
     );
 
     if (command?.kind !== "command") throw new Error("Expected runtime command.");
-    await command.handler({
-      params: {},
-      baseUrl: "https://default.example.com",
-      tokenSource: createAuthProvider([]),
+    if (group?.kind !== "group") throw new Error("Expected runtime group.");
+    const harness = createCommandTestHarness(defineGroup({ name: "test", children: [group] }), {
+      services: {
+        baseUrl: "https://default.example.com",
+        tokenSource: createAuthProvider([])
+      },
       fetch
     });
 
-    expect(fetch).toHaveBeenCalledWith("https://alt.example.com/bots", expect.any(Object));
+    const result = await harness.run([group.name, command.name]);
+
+    expect(result.ok).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0]?.[0]).toHaveProperty("url", "https://alt.example.com/bots");
+    expect(fetch.mock.calls[0]?.[0]).toHaveProperty("method", "GET");
   });
 
   it("does not use Function to build runtime handlers", async () => {

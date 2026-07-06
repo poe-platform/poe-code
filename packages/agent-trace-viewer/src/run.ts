@@ -8,13 +8,12 @@ import {
   type ExplorerConfig,
   type Row
 } from "toolcraft-design";
-import type { AgentTraceFileSystem, AgentTraceSource, TraceReference } from "@poe-code/agent-traces";
-import {
-  listTraces,
-  loadSubagentSummaries,
-  loadTrace,
-  loadTraceFromFile
-} from "./loader.js";
+import type {
+  AgentTraceFileSystem,
+  AgentTraceSource,
+  TraceReference
+} from "@poe-code/agent-traces";
+import { listTraces, loadSubagentSummaries, loadTrace, loadTraceFromFile } from "./loader.js";
 import { renderTraceDetail, renderTraceLine } from "./render.js";
 import type { SubagentSummary, TraceView } from "./types.js";
 
@@ -61,15 +60,16 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
     return;
   }
 
-  const discover = () => listTraces({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    fs: options.fs,
-    sources: options.sources,
-    allWorkspaces: options.allWorkspaces,
-    since: options.since,
-    limit: options.limit
-  });
+  const discover = () =>
+    listTraces({
+      cwd: options.cwd,
+      homeDir: options.homeDir,
+      fs: options.fs,
+      sources: options.sources,
+      allWorkspaces: options.allWorkspaces,
+      since: options.since,
+      limit: options.limit ?? Number.POSITIVE_INFINITY
+    });
   const references = await discover();
 
   if (references.length === 0) {
@@ -87,13 +87,15 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
     return;
   }
 
-  await runExplorer(buildTraceExplorerConfig({
-    title: "Agent traces",
-    references,
-    fs: options.fs,
-    output,
-    onRefresh: discover
-  }));
+  await runExplorer(
+    buildTraceExplorerConfig({
+      title: "Agent traces",
+      references,
+      fs: options.fs,
+      output,
+      onRefresh: discover
+    })
+  );
 }
 
 function renderTraceReferenceTable(references: TraceReference[]): string {
@@ -204,13 +206,15 @@ function buildTraceExplorerConfig(options: {
         }
 
         ctx.exit(async () => {
-          await runExplorer(buildTraceExplorerConfig({
-            title: `${ctx.row.title} subagents`,
-            references: children,
-            fs: options.fs,
-            output: options.output,
-            onRefresh: async () => children
-          }));
+          await runExplorer(
+            buildTraceExplorerConfig({
+              title: `${ctx.row.title} subagents`,
+              references: children,
+              fs: options.fs,
+              output: options.output,
+              onRefresh: async () => children
+            })
+          );
         });
       }
     },
@@ -292,7 +296,10 @@ function newestDateByFolder(references: TraceReference[]): Map<string, number> {
   const newestByFolder = new Map<string, number>();
   for (const reference of references) {
     const folder = traceFolder(reference);
-    newestByFolder.set(folder, Math.max(newestByFolder.get(folder) ?? 0, dateValue(reference.updatedAt)));
+    newestByFolder.set(
+      folder,
+      Math.max(newestByFolder.get(folder) ?? 0, dateValue(reference.updatedAt))
+    );
   }
   return newestByFolder;
 }
@@ -304,7 +311,8 @@ function compareTraceFolders(
 ): number {
   const leftFolder = traceFolder(left);
   const rightFolder = traceFolder(right);
-  const folderDateOrder = (folderUpdatedAt.get(rightFolder) ?? 0) - (folderUpdatedAt.get(leftFolder) ?? 0);
+  const folderDateOrder =
+    (folderUpdatedAt.get(rightFolder) ?? 0) - (folderUpdatedAt.get(leftFolder) ?? 0);
   if (folderDateOrder !== 0) {
     return folderDateOrder;
   }

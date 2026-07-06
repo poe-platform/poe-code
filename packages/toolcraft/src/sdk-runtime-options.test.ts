@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import { defineCommand, defineGroup } from "./index.js";
+import { defineCommand, defineGroup, type HandlerFs } from "./index.js";
 
 const invokeWithHumanInLoopMock = vi.hoisted(() => vi.fn());
 
@@ -124,6 +124,63 @@ describe("createSDK fetch runtime options plumbing", () => {
 
     await expect(sdk.load({})).resolves.toEqual({ ok: true });
     expect(injectedFetch).toHaveBeenCalledWith("https://api.example.com/items");
+  });
+});
+
+describe("createSDK hermetic runtime options plumbing", () => {
+  it("uses options.env for secrets, requirements, and handler env and options.fs for handler fs", async () => {
+    invokeWithHumanInLoopMock.mockReset();
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
+    const injectedEnv = {
+      POE_API_KEY: "auth-token",
+      TOOL_TOKEN: "secret-token",
+      TOOL_VALUE: "visible-value"
+    };
+    const injectedFs = {
+      readFile: vi.fn(async () => "contents"),
+      writeFile: vi.fn(async () => undefined),
+      exists: vi.fn(async () => true),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
+      rename: vi.fn(async () => undefined),
+      unlink: vi.fn(async () => undefined)
+    } satisfies HandlerFs;
+
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "inspect",
+            params: S.Object({}),
+            secrets: {
+              token: {
+                env: "TOOL_TOKEN"
+              }
+            },
+            requires: {
+              auth: true
+            },
+            handler: async ({ env, fs, secrets }) => {
+              expect(env.get("TOOL_VALUE")).toBe("visible-value");
+              expect(fs).toBe(injectedFs);
+              expect(secrets.token).toBe("secret-token");
+              return fs.readFile("/virtual/input.txt");
+            }
+          })
+        ]
+      }),
+      {
+        env: injectedEnv,
+        fs: injectedFs
+      }
+    ) as {
+      inspect(params: Record<string, never>): Promise<string>;
+    };
+
+    await expect(sdk.inspect({})).resolves.toBe("contents");
+    expect(injectedFs.readFile).toHaveBeenCalledWith("/virtual/input.txt");
   });
 });
 

@@ -1,6 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { defineGroup, type HandlerFs } from "toolcraft";
+import { createCommandTestHarness, fakeService, type RunResult } from "toolcraft/testing";
+import { describe, expect, it } from "vitest";
 import { parseSuperintendentDoc } from "../document/parse.js";
+import { completeCommand } from "./complete.js";
+
+const targetPath = "docs/plans/feature.md";
+const root = defineGroup({ name: "test", children: [completeCommand] });
 
 const document = `---
 kind: superintendent
@@ -59,6 +65,13 @@ status:
 - [x] Already done
 `;
 
+type CompleteResult = {
+  path: string;
+  state: "completed";
+  reason?: string;
+  dryRun?: true;
+};
+
 async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
   const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
   Object.defineProperty(Object.prototype, "code", {
@@ -78,49 +91,70 @@ async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<
   }
 }
 
-async function runComplete(options: { content?: string; reason?: string } = {}): Promise<{
-  result: unknown;
-  updatedContent: string;
-  writeFile: ReturnType<typeof vi.fn>;
-}> {
-  const { completeCommand } = await import("./complete.js");
-  const writeFile = vi.fn(async () => undefined);
-  const targetPath = "docs/plans/feature.md";
+function createVolumeFs(volume: Volume, overrides: Partial<HandlerFs> = {}): HandlerFs {
+  const rawFs = createFsFromVolume(volume).promises;
+  const baseFs: HandlerFs = {
+    async readFile(filePath, encoding = "utf8") {
+      return String(await rawFs.readFile(filePath, encoding));
+    },
+    async lstat(filePath) {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
+    async writeFile(filePath, content, options) {
+      await rawFs.writeFile(filePath, content, options);
+    },
+    async rename(fromPath, toPath) {
+      await rawFs.rename(fromPath, toPath);
+    },
+    async unlink(filePath) {
+      await rawFs.unlink(filePath);
+    },
+    async exists(filePath) {
+      try {
+        await rawFs.access(filePath);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  };
+  return { ...baseFs, ...overrides };
+}
 
-  const result = await completeCommand.handler({
-    params: { path: targetPath, reason: options.reason },
-    secrets: {},
-    fetch: globalThis.fetch,
-    fs: {
-      readFile: vi.fn(async (inputPath: string) => {
-        expect(inputPath).toBe(targetPath);
-        return options.content ?? document;
-      }),
-      lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
-      writeFile,
-      rename: vi.fn(async () => undefined),
-      unlink: vi.fn(async () => undefined),
-      exists: vi.fn(async () => true)
-    },
-    env: {
-      get: vi.fn(() => undefined)
-    },
-    progress: vi.fn()
+async function runComplete(
+  options: {
+    content?: string;
+    params?: Record<string, unknown>;
+    fs?: HandlerFs;
+  } = {}
+): Promise<{
+  harness: ReturnType<typeof createCommandTestHarness>;
+  result: RunResult<CompleteResult>;
+  updatedContent: string;
+}> {
+  const harness = createCommandTestHarness(root, {
+    fs: options.fs ?? { [targetPath]: options.content ?? document }
+  });
+  const result = await harness.run<CompleteResult>(["complete"], {
+    path: targetPath,
+    ...options.params
   });
 
   return {
+    harness,
     result,
-    updatedContent: String(writeFile.mock.calls[0]?.[1] ?? ""),
-    writeFile
+    updatedContent: harness.fs.snapshot()[targetPath] ?? ""
   };
 }
 
 describe("superintendent complete command", () => {
   it("sets state to completed", async () => {
-    const { updatedContent, writeFile } = await runComplete();
-    const updated = parseSuperintendentDoc("docs/plans/feature.md", updatedContent);
+    const { result, updatedContent } = await runComplete();
+    const updated = parseSuperintendentDoc(targetPath, updatedContent);
 
-    expect(writeFile).toHaveBeenCalledTimes(1);
+    expect(result.ok).toBe(true);
+    expect(result.fsChanges.filter((change) => change.op === "writeFile")).toHaveLength(1);
     expect(updated.frontmatter.status).toEqual({
       state: "completed",
       round: 2,
@@ -130,257 +164,175 @@ describe("superintendent complete command", () => {
 
   it("preserves the existing task board without rewriting tasks", async () => {
     const { updatedContent } = await runComplete();
-    const updated = parseSuperintendentDoc("docs/plans/feature.md", updatedContent);
-    const original = parseSuperintendentDoc("docs/plans/feature.md", document);
+    const updated = parseSuperintendentDoc(targetPath, updatedContent);
+    const original = parseSuperintendentDoc(targetPath, document);
 
     expect(updated.body).toBe(original.body);
   });
 
   it("accepts an optional reason", async () => {
-    const { updatedContent, result } = await runComplete({
-      reason: "operator override"
+    const { result, updatedContent } = await runComplete({
+      params: { reason: "operator override" }
     });
 
     expect(updatedContent).toContain("reason: operator override");
-    expect(result).toEqual({
-      path: "docs/plans/feature.md",
+    expect(result.value).toEqual({
+      path: targetPath,
       state: "completed",
       reason: "operator override"
     });
   });
 
   it("removes an existing reason when no reason is provided", async () => {
-    const { updatedContent } = await runComplete({
-      content: documentWithReason
-    });
+    const { updatedContent } = await runComplete({ content: documentWithReason });
 
     expect(updatedContent).not.toContain("reason:");
   });
 
   it("previews completion without writing during dry run", async () => {
-    const { completeCommand } = await import("./complete.js");
-    const writeFile = vi.fn(async () => undefined);
-
-    const result = await completeCommand.handler({
-      params: { path: "docs/plans/feature.md", reason: "operator override", dryRun: true },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: {
-        readFile: vi.fn(async () => document),
-        lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
-        writeFile,
-        rename: vi.fn(async () => undefined),
-        unlink: vi.fn(async () => undefined),
-        exists: vi.fn(async () => true)
-      },
-      env: { get: vi.fn(() => undefined) },
-      progress: vi.fn()
+    const { result } = await runComplete({
+      params: { reason: "operator override", dryRun: true }
     });
 
-    expect(writeFile).not.toHaveBeenCalled();
-    expect(result).toEqual({
-      path: "docs/plans/feature.md",
+    expect(result.fsChanges).toEqual([]);
+    expect(result.value).toEqual({
+      path: targetPath,
       state: "completed",
       reason: "operator override",
       dryRun: true
     });
   });
 
-  it("rejects a symlinked document path before writing", async () => {
-    const { completeCommand } = await import("./complete.js");
-    const writeFile = vi.fn(async () => undefined);
+  it("rejects invalid params before invoking injected services", async () => {
+    const service = fakeService({ execute: () => "unused" });
+    const harness = createCommandTestHarness(root, {
+      fs: { [targetPath]: document },
+      services: { service }
+    });
 
-    await expect(completeCommand.handler({
-      params: { path: "docs/plans/feature.md" },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: {
-        readFile: vi.fn(async () => document),
-        lstat: vi.fn(async () => ({ isSymbolicLink: () => true })),
-        writeFile,
-        rename: vi.fn(async () => undefined),
-        unlink: vi.fn(async () => undefined),
-        exists: vi.fn(async () => true)
-      },
-      env: { get: vi.fn(() => undefined) },
-      progress: vi.fn()
-    })).rejects.toThrow(/symbolic link/i);
-    expect(writeFile).not.toHaveBeenCalled();
+    const result = await harness.run(["complete"], { path: 42 });
+
+    expect(result.ok).toBe(false);
+    expect(result.failedAt).toBe("params");
+    expect(result.timeline).toEqual([]);
+    expect(service.calls).toEqual([]);
+  });
+
+  it("rejects a symlinked document path before writing", async () => {
+    const fs = createVolumeFs(Volume.fromJSON({ [targetPath]: document }, "/"), {
+      lstat: async () => ({ isSymbolicLink: () => true })
+    });
+    const { result } = await runComplete({ fs });
+
+    expect(result.failedAt).toBe("handler");
+    expect(result.error).toHaveProperty("message", expect.stringMatching(/symbolic link/i));
+    expect(result.fsChanges).toEqual([]);
   });
 
   it("reports a domain not-found error for missing documents", async () => {
-    const { completeCommand } = await import("./complete.js");
-    const writeFile = vi.fn(async () => undefined);
+    const harness = createCommandTestHarness(root);
+    const result = await harness.run(["complete"], {
+      path: "docs/plans/missing.md",
+      dryRun: true
+    });
 
-    await expect(completeCommand.handler({
-      params: { path: "docs/plans/missing.md", dryRun: true },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: {
-        readFile: vi.fn(async () => {
-          const error = new Error("missing") as NodeJS.ErrnoException;
-          error.code = "ENOENT";
-          throw error;
-        }),
-        lstat: vi.fn(async () => {
-          const error = new Error("missing") as NodeJS.ErrnoException;
-          error.code = "ENOENT";
-          throw error;
-        }),
-        writeFile,
-        rename: vi.fn(async () => undefined),
-        unlink: vi.fn(async () => undefined),
-        exists: vi.fn(async () => false)
-      },
-      env: { get: vi.fn(() => undefined) },
-      progress: vi.fn()
-    })).rejects.toThrow("Superintendent document not found: docs/plans/missing.md");
-    expect(writeFile).not.toHaveBeenCalled();
+    expect(result.failedAt).toBe("handler");
+    expect(result.error).toHaveProperty(
+      "message",
+      "Superintendent document not found: docs/plans/missing.md"
+    );
+    expect(result.fsChanges).toEqual([]);
   });
 
   it("does not follow a preexisting legacy temp path symlink", async () => {
-    const { completeCommand } = await import("./complete.js");
-    const targetPath = "/repo/docs/plans/feature.md";
+    const absoluteTargetPath = "/repo/docs/plans/feature.md";
     const outsidePath = "/outside/target.md";
     const volume = Volume.fromJSON(
       {
-        [targetPath]: document,
+        [absoluteTargetPath]: document,
         [outsidePath]: "outside stays unchanged\n"
       },
       "/"
     );
-    volume.symlinkSync(outsidePath, `${targetPath}.tmp`);
-    const rawFs = createFsFromVolume(volume).promises;
+    volume.symlinkSync(outsidePath, `${absoluteTargetPath}.tmp`);
+    const fs = createVolumeFs(volume);
+    const harness = createCommandTestHarness(root, { fs });
 
-    await completeCommand.handler({
-      params: { path: targetPath },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: {
-        readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-        lstat: async (filePath: string) => {
-          const stat = await rawFs.lstat(filePath);
-          return { isSymbolicLink: () => stat.isSymbolicLink() };
-        },
-        writeFile: async (
-          filePath: string,
-          content: string,
-          options?: { encoding?: BufferEncoding; flag?: string }
-        ) => {
-          await rawFs.writeFile(filePath, content, options);
-        },
-        rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
-        unlink: (filePath: string) => rawFs.unlink(filePath),
-        exists: vi.fn(async () => true)
-      },
-      env: { get: vi.fn(() => undefined) },
-      progress: vi.fn()
+    const result = await harness.run(["complete"], { path: absoluteTargetPath });
+
+    expect(result.ok).toBe(true);
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside stays unchanged\n");
+    await expect(fs.lstat(absoluteTargetPath)).resolves.toMatchObject({
+      isSymbolicLink: expect.any(Function)
     });
-
-    await expect(rawFs.readFile(outsidePath, "utf8")).resolves.toBe(
-      "outside stays unchanged\n"
-    );
-    const documentStat = await rawFs.lstat(targetPath);
-    expect(documentStat.isSymbolicLink()).toBe(false);
-    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toContain("state: completed");
+    expect((await fs.lstat(absoluteTargetPath)).isSymbolicLink()).toBe(false);
+    await expect(fs.readFile(absoluteTargetPath, "utf8")).resolves.toContain("state: completed");
   });
 
   it("does not remove a colliding completion temp symlink it did not create", async () => {
-    const { completeCommand } = await import("./complete.js");
-    const targetPath = "/repo/docs/plans/feature.md";
+    const absoluteTargetPath = "/repo/docs/plans/feature.md";
     const outsidePath = "/outside/target.md";
     const volume = Volume.fromJSON(
       {
-        [targetPath]: document,
+        [absoluteTargetPath]: document,
         [outsidePath]: "outside stays unchanged\n"
       },
       "/"
     );
     const rawFs = createFsFromVolume(volume).promises;
     let temporaryPath: string | undefined;
+    const fs = createVolumeFs(volume, {
+      async writeFile(filePath, content, options) {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${absoluteTargetPath}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync(outsidePath, filePath);
+        }
+        await rawFs.writeFile(filePath, content, options);
+      }
+    });
+    const harness = createCommandTestHarness(root, { fs });
 
-    await expect(completeCommand.handler({
-      params: { path: targetPath },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: {
-        readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-        lstat: async (filePath: string) => {
-          const stat = await rawFs.lstat(filePath);
-          return { isSymbolicLink: () => stat.isSymbolicLink() };
-        },
-        writeFile: async (
-          filePath: string,
-          content: string,
-          options?: { encoding?: BufferEncoding; flag?: string }
-        ) => {
-          if (
-            temporaryPath === undefined &&
-            filePath.startsWith(`${targetPath}.`) &&
-            filePath.endsWith(".tmp")
-          ) {
-            temporaryPath = filePath;
-            volume.symlinkSync(outsidePath, filePath);
-          }
+    const result = await harness.run(["complete"], { path: absoluteTargetPath });
 
-          await rawFs.writeFile(filePath, content, options);
-        },
-        rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
-        unlink: (filePath: string) => rawFs.unlink(filePath),
-        exists: vi.fn(async () => true)
-      },
-      env: { get: vi.fn(() => undefined) },
-      progress: vi.fn()
-    })).rejects.toMatchObject({ code: "EEXIST" });
-
+    expect(result.failedAt).toBe("handler");
+    expect(result.error).toHaveProperty("code", "EEXIST");
     expect(temporaryPath).toBeDefined();
-    await expect(rawFs.readFile(outsidePath, "utf8")).resolves.toBe(
-      "outside stays unchanged\n"
-    );
-    const tempStat = await rawFs.lstat(temporaryPath as string);
-    expect(tempStat.isSymbolicLink()).toBe(true);
-    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(document);
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside stays unchanged\n");
+    if (temporaryPath === undefined) {
+      throw new Error("Expected a completion temporary path.");
+    }
+    expect((await fs.lstat(temporaryPath)).isSymbolicLink()).toBe(true);
+    await expect(fs.readFile(absoluteTargetPath, "utf8")).resolves.toBe(document);
   });
 
   it("preserves the document when completion persistence fails", async () => {
-    const { completeCommand } = await import("./complete.js");
-    const targetPath = "/repo/docs/plans/feature.md";
-    const volume = Volume.fromJSON({ [targetPath]: document }, "/");
+    const absoluteTargetPath = "/repo/docs/plans/feature.md";
+    const volume = Volume.fromJSON({ [absoluteTargetPath]: document }, "/");
     const rawFs = createFsFromVolume(volume).promises;
     let temporaryPath: string | undefined;
-
-    await withObjectPrototypeCode("EEXIST", async () => {
-      await expect(completeCommand.handler({
-        params: { path: targetPath },
-        secrets: {},
-        fetch: globalThis.fetch,
-        fs: {
-          readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-          lstat: async (filePath: string) => {
-            const stat = await rawFs.lstat(filePath);
-            return { isSymbolicLink: () => stat.isSymbolicLink() };
-          },
-          writeFile: async (
-            filePath: string,
-            content: string,
-            options?: { encoding?: BufferEncoding; flag?: string }
-          ) => {
-            temporaryPath = filePath;
-            await rawFs.writeFile(filePath, content.slice(0, 12), options);
-            throw new Error("disk full");
-          },
-          rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
-          unlink: (filePath: string) => rawFs.unlink(filePath),
-          exists: vi.fn(async () => true)
-        },
-        env: { get: vi.fn(() => undefined) },
-        progress: vi.fn()
-      })).rejects.toThrow("disk full");
+    const fs = createVolumeFs(volume, {
+      async writeFile(filePath, content, options) {
+        temporaryPath = filePath;
+        await rawFs.writeFile(filePath, content.slice(0, 12), options);
+        throw new Error("disk full");
+      }
     });
-    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(document);
-    expect(temporaryPath?.startsWith(`${targetPath}.`)).toBe(true);
+    const harness = createCommandTestHarness(root, { fs });
+
+    const result = await withObjectPrototypeCode("EEXIST", () =>
+      harness.run(["complete"], { path: absoluteTargetPath })
+    );
+
+    expect(result.failedAt).toBe("handler");
+    expect(result.error).toHaveProperty("message", "disk full");
+    await expect(fs.readFile(absoluteTargetPath, "utf8")).resolves.toBe(document);
+    expect(temporaryPath?.startsWith(`${absoluteTargetPath}.`)).toBe(true);
     expect(temporaryPath?.endsWith(".tmp")).toBe(true);
-    await expect(rawFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
   });

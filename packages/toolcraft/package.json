@@ -49,6 +49,10 @@
     "./source-snippet": {
       "types": "./dist/source-snippet.d.ts",
       "import": "./dist/source-snippet.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
     }
   },
   "scripts": {

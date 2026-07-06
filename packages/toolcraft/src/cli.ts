@@ -1,5 +1,5 @@
 import "./node-require-shim.js";
-import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   Command as CommanderCommand,
@@ -68,6 +68,7 @@ import { renderSourceSnippet } from "./source-snippet.js";
 import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+import { RESERVED_SERVICE_NAMES, createEnv, createFs, validateServices } from "./runtime/io.js";
 
 export { renderErrorReport } from "./error-report.js";
 export type { ErrorReportRenderContext, ErrorReportRenderResult } from "./error-report.js";
@@ -76,19 +77,6 @@ configureTheme({ brand: "blue", label: "Toolcraft" });
 
 export { configureTheme };
 
-const RESERVED_SERVICE_NAMES = new Set([
-  "params",
-  "secrets",
-  "fetch",
-  "fs",
-  "env",
-  "diagnostics",
-  "progress",
-  "runtimeOptions",
-  "root"
-]);
-const RESERVED_SERVICE_NAMES_MESSAGE =
-  "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
 const NULL_OPTION_VALUE = Symbol("toolcraft.cli.null");
 const optionalModulePaths = {
   approvals: "./human-in-loop/approvals-commands.js",
@@ -259,10 +247,13 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   argv?: readonly string[];
   casing?: Casing;
   controls?: CLIControls;
+  env?: Record<string, string>;
   fetch?: typeof globalThis.fetch;
+  fs?: HandlerFs;
   humanInLoop?: HumanInLoopRuntimeOptions;
   logLevel?: LogLevel;
   logger?: RuntimeLoggerInput;
+  outputEmitter?: (entry: string) => void;
   projectRoot?: string;
   rootDisplayName?: string;
   rootUsageName?: string;
@@ -3041,38 +3032,6 @@ async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Pr
   }
 }
 
-function createFs(): HandlerFs {
-  return {
-    readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
-    writeFile: async (
-      path: string,
-      contents: string,
-      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
-    ) => {
-      await writeFile(path, contents, options);
-    },
-    exists: async (path: string) => {
-      try {
-        await access(path);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    lstat: async (path: string) => lstat(path),
-    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
-    unlink: async (path: string) => unlink(path)
-  };
-}
-
-function createEnv(values: Record<string, string | undefined> = process.env): HandlerEnv {
-  return {
-    get(key: string): string | undefined {
-      return values[key];
-    }
-  };
-}
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3657,18 +3616,20 @@ async function resolveFixtureRuntime<TServices extends object>(
   command: Command<TServices, any, any, any>,
   services: TServices,
   requirementOptions: CommandRequirementOptions,
-  runtimeFetch: typeof globalThis.fetch
+  runtimeFetch: typeof globalThis.fetch,
+  runtimeEnv?: Record<string, string>,
+  runtimeFs?: HandlerFs
 ): Promise<ResolvedFixtureRuntime<TServices>> {
   const selector = process.env.TOOLCRAFT_FIXTURE;
 
   if (selector === undefined || selector.length === 0) {
     return {
-      env: createEnv(),
+      env: createEnv(runtimeEnv),
       fetch: runtimeFetch,
-      fs: createFs(),
+      fs: createFs(runtimeFs),
       isFixture: false,
       requirementOptions,
-      secrets: resolveCommandSecrets(command),
+      secrets: resolveCommandSecrets(command, runtimeEnv),
       services
     };
   }
@@ -3756,8 +3717,11 @@ type CliErrorPattern =
       debugStackMode: DebugStackMode | undefined;
     };
 
-function renderCliErrorPattern(pattern: CliErrorPattern): void {
-  const logger = createLogger();
+function renderCliErrorPattern(
+  pattern: CliErrorPattern,
+  outputEmitter?: (entry: string) => void
+): void {
+  const logger = createLogger(outputEmitter);
 
   if (pattern.kind === "usage") {
     logger.error(
@@ -3812,16 +3776,6 @@ function renderCliErrorPattern(pattern: CliErrorPattern): void {
     process.stderr.write(`${formatDebugStack(pattern.stack, pattern.debugStackMode)}\n`);
   }
   process.exitCode = 1;
-}
-
-function validateServices(services: Record<string, unknown>): void {
-  for (const name of Object.keys(services)) {
-    if (RESERVED_SERVICE_NAMES.has(name)) {
-      throw new Error(
-        `Service name "${name}" is reserved. Choose a different name. ${RESERVED_SERVICE_NAMES_MESSAGE}`
-      );
-    }
-  }
 }
 
 function getNestedValue(target: Record<string, unknown>, path: string[]): unknown {
@@ -4689,6 +4643,9 @@ async function executeCommand<TServices extends object>(
   requirementOptions: CommandRequirementOptions,
   runtimeFetch: typeof globalThis.fetch,
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
+  runtimeEnv: Record<string, string> | undefined,
+  runtimeFs: HandlerFs | undefined,
+  outputEmitter: ((entry: string) => void) | undefined,
   diagnosticsOptions: {
     logLevel?: LogLevel;
     logger?: RuntimeLoggerInput;
@@ -4701,7 +4658,7 @@ async function executeCommand<TServices extends object>(
     secrets?: Record<string, string | undefined>;
   }) => void
 ): Promise<void> {
-  const logger = createLogger();
+  const logger = createLogger(outputEmitter);
   const primitives = {
     logger,
     renderTable,
@@ -4724,7 +4681,9 @@ async function executeCommand<TServices extends object>(
     state.command,
     services,
     requirementOptions,
-    runtimeFetch
+    runtimeFetch,
+    runtimeEnv,
+    runtimeFs
   );
   const preflightContext = {
     ...runtime.services,
@@ -4817,7 +4776,15 @@ async function executeCommand<TServices extends object>(
         return;
       }
 
-      const renderStatus = renderResult(state.command, result, output, primitives);
+      const renderStatus = renderResult(
+        state.command,
+        result,
+        output,
+        primitives,
+        outputEmitter === undefined
+          ? undefined
+          : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk)
+      );
       if (renderStatus.mcpError) {
         process.exitCode = 1;
       }
@@ -5161,10 +5128,11 @@ async function handleRunError(
     argv?: readonly string[];
     rootUsageName: string;
     commandPath: string;
+    outputEmitter?: (entry: string) => void;
     userErrorPattern: "definition" | "runtime-user" | "usage";
   }
 ): Promise<void> {
-  const logger = createLogger();
+  const logger = createLogger(options.outputEmitter);
 
   await withOutputFormat(options.output, async () => {
     if (error instanceof UserError) {
@@ -5185,17 +5153,21 @@ async function handleRunError(
             : {
                 kind: "runtime-user",
                 message: error.message
-              }
+              },
+        options.outputEmitter
       );
       return;
     }
 
     if (error instanceof Error && error.name === "ToolcraftBugError") {
-      renderCliErrorPattern({
-        kind: "toolcraft-bug",
-        error,
-        debugStackMode: options.debugStackMode
-      });
+      renderCliErrorPattern(
+        {
+          kind: "toolcraft-bug",
+          error,
+          debugStackMode: options.debugStackMode
+        },
+        options.outputEmitter
+      );
       return;
     }
 
@@ -5248,12 +5220,15 @@ async function handleRunError(
     }
 
     const message = error instanceof Error ? error.message : String(error);
-    renderCliErrorPattern({
-      kind: "unexpected",
-      message,
-      stack: error instanceof Error ? error.stack : undefined,
-      debugStackMode: options.debugStackMode
-    });
+    renderCliErrorPattern(
+      {
+        kind: "unexpected",
+        message,
+        stack: error instanceof Error ? error.stack : undefined,
+        debugStackMode: options.debugStackMode
+      },
+      options.outputEmitter
+    );
   });
 }
 
@@ -5589,7 +5564,9 @@ function isCommandNameCharacter(character: string): boolean {
   const isLowercaseLetter = code >= 97 && code <= 122;
   const isUppercaseLetter = code >= 65 && code <= 90;
   const isDigit = code >= 48 && code <= 57;
-  return isLowercaseLetter || isUppercaseLetter || isDigit || character === "-" || character === "_";
+  return (
+    isLowercaseLetter || isUppercaseLetter || isDigit || character === "-" || character === "_"
+  );
 }
 
 function getDefaultCommanderCommandName(command: CommanderCommand): string | undefined {
@@ -5664,7 +5641,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       root
     } as TServices;
     const requirementOptions = {
-      apiVersion: options.apiVersion
+      apiVersion: options.apiVersion,
+      env: options.env
     } satisfies CommandRequirementOptions;
 
     validateServices(services as Record<string, unknown>);
@@ -5714,6 +5692,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         requirementOptions,
         runtimeFetch,
         runtimeOptions,
+        options.env,
+        options.fs,
+        options.outputEmitter,
         {
           logLevel: options.logLevel,
           logger: options.logger,
@@ -5805,6 +5786,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       argv,
       rootUsageName,
       commandPath: resolvedCommandPath,
+      outputEmitter: options.outputEmitter,
       userErrorPattern: errorReportContext?.params === undefined ? userErrorPattern : "runtime-user"
     });
   }

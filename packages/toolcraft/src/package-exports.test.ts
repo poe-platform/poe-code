@@ -12,7 +12,7 @@ describe("toolcraft package exports", () => {
 
     expect(packageJson.exports?.["./design"]).toEqual({
       types: "./dist/design.d.ts",
-      import: "./dist/design.js",
+      import: "./dist/design.js"
     });
   });
 
@@ -23,7 +23,7 @@ describe("toolcraft package exports", () => {
 
     expect(packageJson.exports?.["./design/*"]).toEqual({
       types: "./dist/design/*.d.ts",
-      import: "./dist/design/*.js",
+      import: "./dist/design/*.js"
     });
   });
 
@@ -34,7 +34,7 @@ describe("toolcraft package exports", () => {
 
     expect(packageJson.exports?.["./human-in-loop"]).toEqual({
       types: "./dist/human-in-loop/index.d.ts",
-      import: "./dist/human-in-loop/index.js",
+      import: "./dist/human-in-loop/index.js"
     });
   });
 
@@ -45,7 +45,18 @@ describe("toolcraft package exports", () => {
 
     expect(packageJson.exports?.["./source-snippet"]).toEqual({
       types: "./dist/source-snippet.d.ts",
-      import: "./dist/source-snippet.js",
+      import: "./dist/source-snippet.js"
+    });
+  });
+
+  it("exports the testing entrypoint", () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
+      exports?: Record<string, { import?: string; types?: string }>;
+    };
+
+    expect(packageJson.exports?.["./testing"]).toEqual({
+      types: "./dist/testing/index.d.ts",
+      import: "./dist/testing/index.js"
     });
   });
 });

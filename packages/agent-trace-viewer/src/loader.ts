@@ -1,16 +1,7 @@
-import {
-  traceReaders,
-  type AgentTraceSource,
-  type TraceReference
-} from "@poe-code/agent-traces";
+import { traceReaders, type AgentTraceSource, type TraceReference } from "@poe-code/agent-traces";
 import { computeContextBreakdown } from "./breakdown.js";
 import { computeContextUsage } from "./context.js";
-import type {
-  ListTracesOptions,
-  LoadTraceOptions,
-  SubagentSummary,
-  TraceView
-} from "./types.js";
+import type { ListTracesOptions, LoadTraceOptions, SubagentSummary, TraceView } from "./types.js";
 
 export async function listTraces(options: ListTracesOptions): Promise<TraceReference[]> {
   const readers =
@@ -39,7 +30,7 @@ export async function listTraces(options: ListTracesOptions): Promise<TraceRefer
   const sorted = discovered.sort(
     (left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt)
   );
-  return options.limit === undefined ? sorted : sorted.slice(0, options.limit);
+  return sorted.slice(0, options.limit ?? 50);
 }
 
 export async function loadTrace(

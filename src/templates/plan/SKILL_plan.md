@@ -1,6 +1,6 @@
 ---
 name: poe-code-plan
-description: 'Draft a feature plan in five levels (what, UX, implementation, interfaces/tests, code). Triggers: plan this feature, draft a plan, feature plan, plan levels.'
+description: "Draft a feature plan in five levels (what, UX, implementation, interfaces/tests, code). Triggers: plan this feature, draft a plan, feature plan, plan levels."
 ---
 
 ## If The Request Is Empty

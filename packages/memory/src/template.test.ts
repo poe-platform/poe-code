@@ -7,8 +7,8 @@ describe("SKILL_memory template", () => {
     const template = readFileSync(resolve(import.meta.dirname, "templates", "SKILL_memory.md"), "utf8");
 
     expect(template).toContain("## CLI — `poe-code memory <subcommand>`");
-    expect(template).toContain("| `query \"<question>\"` | answer a question from memory only, with citations |");
-    expect(template).toContain("| `list_pages` | enumerate pages (preferred over shelling out to `memory ls`) |");
+    expect(template).toMatch(/\| `query "<question>"`\s+\| answer a question from memory only, with citations\s+\|/);
+    expect(template).toMatch(/\| `list_pages`\s+\| enumerate pages \(preferred over shelling out to `memory ls`\)\s+\|/);
     expect(template).toContain("Never call `memory clear` without explicit user request");
   });
 });

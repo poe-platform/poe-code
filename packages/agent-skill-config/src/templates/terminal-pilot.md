@@ -1,6 +1,6 @@
 ---
 name: terminal-pilot
-description: 'Terminal automation skill using the terminal-pilot CLI'
+description: "Terminal automation skill using the terminal-pilot CLI"
 ---
 
 # Terminal Pilot

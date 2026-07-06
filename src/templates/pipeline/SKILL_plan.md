@@ -1,17 +1,17 @@
 ---
 name: poe-code-pipeline-plan
-description: 'Generate a Pipeline plan markdown file with YAML frontmatter from a user request. Triggers on: create a pipeline plan, write plan for, plan this feature, pipeline plan.'
+description: "Generate a Pipeline plan markdown file with YAML frontmatter from a user request. Triggers on: create a pipeline plan, write plan for, plan this feature, pipeline plan."
 ---
 
 # Pipeline plan
 
-Write the plan as YAML frontmatter. Each task's `prompt` must be self-contained — no relying on the markdown body or earlier tasks at runtime.
+Write the plan as YAML frontmatter. Each task's `prompt` must be self-contained; do not rely on the markdown body or earlier tasks at runtime.
 
 ## Where to write (first match wins)
 
-1. Request mentions an `.md` file → edit it in place.
-2. A file in the plan directory matches the topic (filename stem or `# heading`) → overwrite it, regardless of its `kind:`. One file per topic.
-3. Otherwise → create `<plan-directory>/<name>.md`.
+1. Request mentions an `.md` file: edit it in place.
+2. A file in the plan directory matches the topic (filename stem or `# heading`): overwrite it, regardless of its `kind:`. One file per topic.
+3. Otherwise: create `<plan-directory>/<name>.md`.
 
 ## Steps
 
@@ -72,7 +72,7 @@ tasks:
 Design notes or acceptance criteria.
 ```
 
-Stepless variant — when no `steps.yaml` is present, `status` is a scalar instead of a per-step map:
+Stepless variant: when no `steps.yaml` is present, `status` is a scalar instead of a per-step map:
 
 ```yaml
 tasks:
@@ -91,4 +91,4 @@ tasks:
     status: open
 ```
 
-Validate with `poe-code pipeline validate <path>` (or `npx poe-code …`).
+Validate with `poe-code pipeline validate <path>` or `npx poe-code ...`.

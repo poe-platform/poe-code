@@ -1,6 +1,6 @@
 ---
 name: poe-code-experiment-plan
-description: 'Create an experiment plan for the poe-code experiment loop. Triggers on: create experiment, experiment plan, karpathy loop.'
+description: "Create an experiment plan for the poe-code experiment loop. Triggers on: create experiment, experiment plan, karpathy loop."
 ---
 
 ## If The Request Is Empty
@@ -36,15 +36,15 @@ baseline: null
 ---
 ```
 
-Use snake_case for frontmatter fields. Do **not** write runtime state like `status` into the document frontmatter — the journal sidecar is authoritative.
+Use snake_case for frontmatter fields. Do **not** write runtime state like `status` into the document frontmatter; the journal sidecar is authoritative.
 
 To pin a specific model, use the agent specifier notation `agent:provider/model`:
 
 ```yaml
-agent: claude-code:anthropic/claude-opus-4.7
+agent: claude-code:<model-id>
 ```
 
-For multiple metrics (chain — all must pass, scores tracked independently):
+For multiple metrics, all metrics must pass and scores are tracked independently:
 
 ```yaml
 metric:
@@ -58,7 +58,7 @@ metric:
 
 ## Metric Scripts
 
-Every metric must have an explicit `script` field — the full command to run in cwd.
+Every metric must have an explicit `script` field: the full command to run in cwd.
 
 The script must:
 
@@ -129,8 +129,8 @@ console.log(stdout.trim());
 - Frontmatter fields are snake_case only.
 - Use `direction: maximize` when higher scores are better, `direction: minimize` when lower is better, `direction: stable` when the value must not change.
 - Use `delta` to allow variance. Without delta, comparisons are strict (must improve or stay equal). With `delta: 5`, a regression up to 5 is tolerated for minimize/maximize, and stable accepts ±5 drift.
-- Metric scripts must output raw values, not pass/fail — the loop handles baseline comparison.
-- The `baseline` field starts as `null` — the loop measures it automatically before the first experiment.
+- Metric scripts must output raw values, not pass/fail; the loop handles baseline comparison.
+- The `baseline` field starts as `null`; the loop measures it automatically before the first experiment.
 - Do not add `max_experiments` to the frontmatter unless the user explicitly requests a limit. The loop defaults to unlimited.
 - Use `metric_timeout` if the user wants to override the default metric timeout.
 - Do not write `status` in frontmatter. Runtime progress belongs in the journal file, not the plan doc.
@@ -141,7 +141,7 @@ console.log(stdout.trim());
 2. Run each metric script 3 times (using the exact `script` command from the frontmatter) and record the scores.
 3. Check the results:
    - Do the scores make sense for what you're measuring?
-   - Is the variance low enough? If scores swing wildly between runs, the metric is too noisy — the loop won't be able to distinguish real improvements from random fluctuation.
+   - Is the variance low enough? If scores swing wildly between runs, the metric is too noisy for the loop to distinguish real improvements from random fluctuation.
    - Does the script exit 0 consistently? Flaky failures will cause false discards.
 4. If a metric is too noisy, fix it (pin random seeds, increase sample size, average multiple runs inside the script) and re-verify.
 5. Report the scores and variance to the user before finishing.
@@ -154,7 +154,7 @@ Created:
   scripts/metric-<name>.mjs  (if needed)
 
 Verification (3 runs):
-  metric:<name>  →  42, 43, 42  (variance: 0.3)  ✓ stable
+  metric:<name>  ->  42, 43, 42  (variance: 0.3)  stable
 
 Run with:
   poe-code experiment run <plan-directory>/<name>.md

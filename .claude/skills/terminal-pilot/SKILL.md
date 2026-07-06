@@ -1,6 +1,6 @@
 ---
 name: terminal-pilot
-description: 'Terminal automation skill using poe-code terminal-pilot MCP'
+description: "Terminal automation skill using poe-code terminal-pilot MCP"
 ---
 
 # Terminal Pilot

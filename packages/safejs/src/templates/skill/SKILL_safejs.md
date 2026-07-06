@@ -29,7 +29,7 @@ default function, not from schema initializers. Return a serializable summary.
 `spawn(definition, options)` resolves to `{ exitCode, stdout, stderr, summary,
 durationMs, usage? }`. Read `summary` for the agent's response. Real harness
 runs show a numbered lifecycle line for every spawn, so sequential loop spawns
-remain easy to follow.
+remain readable.
 
 Set `options.label` when the prompt is generated, verbose, or sensitive. The
 label is used only for lifecycle output and is not sent to the agent:

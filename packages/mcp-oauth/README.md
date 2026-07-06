@@ -53,6 +53,11 @@ const verifier = createJwksTokenVerifier({
 - `jwksUrl`
 - `clockSkewSeconds` optional, defaults to `30`
 - `allowedAlgorithms` optional asymmetric allow-list
+- `jwksCacheTtlMs` optional, defaults to `300000`
+- `jwksFetchTimeoutMs` optional, defaults to `5000`
+- `jwksRefreshCooldownMs` optional, defaults to `30000`
+- `allowInsecureJwks` optional, defaults to `false`; non-HTTPS JWKS URLs are only accepted for loopback hosts unless enabled
+- `requireAccessTokenType` optional, defaults to `false`; when enabled, requires the JWT `typ` header to be `at+jwt`
 - `fetch` optional override
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.

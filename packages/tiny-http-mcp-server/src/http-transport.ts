@@ -39,7 +39,7 @@ export type HttpObservabilityEvent =
   | {
       type: "auth.failure";
       statusCode: number;
-      challenge: string;
+      challenge?: string;
       sessionId?: string;
     }
   | { type: "session.created"; sessionId: string }

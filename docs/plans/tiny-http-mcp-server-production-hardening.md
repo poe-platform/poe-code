@@ -281,7 +281,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: jwks-verifier-hardening
     title: JWKS verifier - require exp, timeouts, rotation, multi-aud
@@ -315,10 +315,10 @@ tasks:
       requireAccessTokenType (default off) enforcing typ "at+jwt" (RFC 9068).
       Update the mcp-oauth README with the new options.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: http-rejection-bodies

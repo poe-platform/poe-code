@@ -4,7 +4,7 @@ import {
   createProtectedResourceMetadataDocument,
   type HttpServer,
   type ProtectedResourceMetadataOptions,
-  type TinyHttpMcpServerOAuthOptions,
+  type TinyHttpMcpServerOAuthOptions
 } from "./http-server.js";
 import type { HttpObservabilityOptions } from "./http-transport.js";
 import { PROTECTED_RESOURCE_METADATA_PATH } from "./auth.js";
@@ -26,16 +26,12 @@ function normalizePath(path: string): string {
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
-function setHardeningHeaders(res: {
-  set(field: string, value: string): unknown;
-}): void {
+function setHardeningHeaders(res: { set(field: string, value: string): unknown }): void {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("Referrer-Policy", "no-referrer");
 }
 
-function readSessionId(
-  headers: Record<string, string | string[] | undefined>
-): string | undefined {
+function readSessionId(headers: Record<string, string | string[] | undefined>): string | undefined {
   const value = headers["mcp-session-id"];
   const sessionId = Array.isArray(value) ? value[0] : value;
   return sessionId !== undefined && sessionId.length > 0 ? sessionId : undefined;
@@ -86,9 +82,7 @@ export interface CreateExpressOAuthHandlersOptions {
   observability?: HttpObservabilityOptions;
 }
 
-export function createExpressOAuthHandlers(
-  options: CreateExpressOAuthHandlersOptions
-): {
+export function createExpressOAuthHandlers(options: CreateExpressOAuthHandlersOptions): {
   metadataMiddleware: RequestHandler;
   mcpMiddleware: RequestHandler;
 } {
@@ -98,7 +92,7 @@ export function createExpressOAuthHandlers(
   return {
     metadataMiddleware: createProtectedResourceMetadataRouter({
       ...options.oauth,
-      path,
+      path
     }),
     mcpMiddleware: async (req, res, next) => {
       if (req.method === "OPTIONS") {
@@ -106,28 +100,27 @@ export function createExpressOAuthHandlers(
         return;
       }
 
-      const authorization = await authorizeBearerRequest(
-        req as AuthenticatedIncomingMessage,
-        {
-          ...options.oauth,
-          protectedResourcePath: path,
-          trustedProxy: options.trustedProxy,
-        }
-      );
+      const authorization = await authorizeBearerRequest(req as AuthenticatedIncomingMessage, {
+        ...options.oauth,
+        protectedResourcePath: path,
+        trustedProxy: options.trustedProxy
+      });
       if (!authorization.ok) {
         options.observability?.onEvent?.({
           type: "auth.failure",
           statusCode: authorization.statusCode,
-          challenge: authorization.challenge,
-          sessionId: readSessionId(req.headers),
+          ...(authorization.statusCode === 503 ? {} : { challenge: authorization.challenge }),
+          sessionId: readSessionId(req.headers)
         });
-        res.set("WWW-Authenticate", authorization.challenge);
+        if (authorization.statusCode !== 503) {
+          res.set("WWW-Authenticate", authorization.challenge);
+        }
         setHardeningHeaders(res);
         res.status(authorization.statusCode).end();
         return;
       }
 
       await mcpMiddleware(req, res, next);
-    },
+    }
   };
 }

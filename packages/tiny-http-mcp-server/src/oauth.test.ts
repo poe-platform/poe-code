@@ -7,7 +7,7 @@ import {
   createExpressOAuthHandlers,
   createHttpServer,
   defineSchema,
-  type TinyHttpMcpServerOAuthOptions,
+  type TinyHttpMcpServerOAuthOptions
 } from "./index.js";
 import { createInMemoryTokenVerifier, createTestMcpServer, nodeFetch } from "./testing.js";
 
@@ -16,10 +16,7 @@ const PROTECTED_RESOURCE = "https://example.com/mcp";
 const AUTHORIZATION_SERVER = "https://auth.example.com";
 const REQUIRED_SCOPE = "mcp.read";
 
-function readChallengeParam(
-  challenge: string | null,
-  name: string
-): string | null {
+function readChallengeParam(challenge: string | null, name: string): string | null {
   if (challenge === null) {
     return null;
   }
@@ -31,7 +28,7 @@ function readChallengeParam(
   }
 
   const valueStart = startIndex + prefix.length;
-  const valueEnd = challenge.indexOf("\"", valueStart);
+  const valueEnd = challenge.indexOf('"', valueStart);
   if (valueEnd < 0) {
     return null;
   }
@@ -44,7 +41,7 @@ function createInitializeRequestBody(): string {
     jsonrpc: "2.0",
     id: 1,
     method: "initialize",
-    params: { protocolVersion: "2025-03-26" },
+    params: { protocolVersion: "2025-03-26" }
   });
 }
 
@@ -55,8 +52,8 @@ function createToolCallRequestBody(name: string): string {
     method: "tools/call",
     params: {
       name,
-      arguments: {},
-    },
+      arguments: {}
+    }
   });
 }
 
@@ -65,7 +62,7 @@ function createProtectedResourceMetadata(): {
   verifier: ReturnType<typeof createInMemoryTokenVerifier>;
 } {
   const verifier = createInMemoryTokenVerifier({
-    now: () => TEST_NOW,
+    now: () => TEST_NOW
   });
 
   return {
@@ -75,9 +72,9 @@ function createProtectedResourceMetadata(): {
       bearerMethodsSupported: ["header"],
       scopesSupported: [REQUIRED_SCOPE, "mcp.write"],
       requiredScopes: [REQUIRED_SCOPE],
-      verifier: verifier.verifier,
+      verifier: verifier.verifier
     },
-    verifier,
+    verifier
   };
 }
 
@@ -135,7 +132,7 @@ describe("OAuth protected resource", () => {
           server.closeIdleConnections?.();
           server.closeAllConnections?.();
         });
-      },
+      }
     };
   }
 
@@ -144,7 +141,7 @@ describe("OAuth protected resource", () => {
     const server = createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
-      oauth,
+      oauth
     });
     const handle = await server.listenHttp({ port: 0 });
     trackCleanup(handle.close);
@@ -160,7 +157,7 @@ describe("OAuth protected resource", () => {
       resource: PROTECTED_RESOURCE,
       authorization_servers: [AUTHORIZATION_SERVER],
       bearer_methods_supported: ["header"],
-      scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
+      scopes_supported: [REQUIRED_SCOPE, "mcp.write"]
     });
   });
 
@@ -171,8 +168,8 @@ describe("OAuth protected resource", () => {
       version: "1.0.0",
       oauth: {
         ...oauth,
-        resource: "https://example.com/tenant/mcp",
-      },
+        resource: "https://example.com/tenant/mcp"
+      }
     }).listenHttp({ port: 0, path: "/tenant/mcp" });
     trackCleanup(handle.close);
 
@@ -193,7 +190,7 @@ describe("OAuth protected resource", () => {
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -201,9 +198,9 @@ describe("OAuth protected resource", () => {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -218,7 +215,7 @@ describe("OAuth protected resource", () => {
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0, path: "/mcp/" });
     trackCleanup(handle.close);
 
@@ -226,9 +223,9 @@ describe("OAuth protected resource", () => {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
     const resourceMetadataUrl = readChallengeParam(
       response.headers.get("www-authenticate"),
@@ -238,7 +235,7 @@ describe("OAuth protected resource", () => {
     expect(response.status).toBe(401);
     expect(resourceMetadataUrl).toBeTruthy();
     await expect(nodeFetch(resourceMetadataUrl ?? "")).resolves.toMatchObject({
-      status: 200,
+      status: 200
     });
   });
 
@@ -251,13 +248,13 @@ describe("OAuth protected resource", () => {
       scopes: [REQUIRED_SCOPE],
       expiresAt: TEST_NOW + 300,
       clientId: "test-client",
-      subject: "alice",
+      subject: "alice"
     });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -266,9 +263,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(200);
@@ -282,7 +279,7 @@ describe("OAuth protected resource", () => {
       version: "1.0.0",
       oauth,
       allowedOrigins: ["https://client.example.com"],
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -291,22 +288,20 @@ describe("OAuth protected resource", () => {
       headers: {
         Origin: "https://client.example.com",
         "Access-Control-Request-Method": "POST",
-        "Access-Control-Request-Headers": "authorization,content-type",
-      },
+        "Access-Control-Request-Headers": "authorization,content-type"
+      }
     });
     const post = await nodeFetch(handle.url, {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(preflight.status).toBe(204);
-    expect(preflight.headers.get("access-control-allow-origin")).toBe(
-      "https://client.example.com"
-    );
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("https://client.example.com");
     expect(preflight.headers.get("access-control-allow-methods")).toContain("POST");
     expect(preflight.headers.get("access-control-allow-headers")).toBe(
       "authorization,content-type"
@@ -319,7 +314,7 @@ describe("OAuth protected resource", () => {
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth,
+      oauth
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -327,9 +322,7 @@ describe("OAuth protected resource", () => {
     });
     trackCleanup(handle.close);
 
-    const response = await nodeFetch(
-      `${handle.baseUrl}/.well-known/oauth-protected-resource/mcp`
-    );
+    const response = await nodeFetch(`${handle.baseUrl}/.well-known/oauth-protected-resource/mcp`);
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
@@ -338,7 +331,7 @@ describe("OAuth protected resource", () => {
       resource: PROTECTED_RESOURCE,
       authorization_servers: [AUTHORIZATION_SERVER],
       bearer_methods_supported: ["header"],
-      scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
+      scopes_supported: [REQUIRED_SCOPE, "mcp.write"]
     });
   });
 
@@ -348,12 +341,12 @@ describe("OAuth protected resource", () => {
       name: "oauth-express-server",
       version: "1.0.0",
       allowedOrigins: ["https://client.example.com"],
-      enableJsonResponse: true,
+      enableJsonResponse: true
     });
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server,
-      oauth,
+      oauth
     });
     const handle = await listenExpressApp((app) => {
       app.use("/mcp", handlers.mcpMiddleware);
@@ -364,22 +357,20 @@ describe("OAuth protected resource", () => {
       method: "OPTIONS",
       headers: {
         Origin: "https://client.example.com",
-        "Access-Control-Request-Method": "POST",
-      },
+        "Access-Control-Request-Method": "POST"
+      }
     });
     const post = await nodeFetch(`${handle.baseUrl}/mcp`, {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(preflight.status).toBe(204);
-    expect(preflight.headers.get("access-control-allow-origin")).toBe(
-      "https://client.example.com"
-    );
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("https://client.example.com");
     expect(post.status).toBe(401);
   });
 
@@ -390,8 +381,8 @@ describe("OAuth protected resource", () => {
       server: createTestMcpServer(),
       oauth: {
         ...oauth,
-        resource: "https://example.com/tenant/mcp",
-      },
+        resource: "https://example.com/tenant/mcp"
+      }
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -402,9 +393,7 @@ describe("OAuth protected resource", () => {
     const pathResponse = await nodeFetch(
       `${handle.baseUrl}/.well-known/oauth-protected-resource/tenant/mcp`
     );
-    const rootResponse = await nodeFetch(
-      `${handle.baseUrl}/.well-known/oauth-protected-resource`
-    );
+    const rootResponse = await nodeFetch(`${handle.baseUrl}/.well-known/oauth-protected-resource`);
 
     expect(pathResponse.status).toBe(200);
     expect(rootResponse.status).toBe(404);
@@ -415,7 +404,7 @@ describe("OAuth protected resource", () => {
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth,
+      oauth
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -427,15 +416,53 @@ describe("OAuth protected resource", () => {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
       `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource/mcp"`
     );
+  });
+
+  it("returns 503 without a Bearer challenge through the Express OAuth handlers", async () => {
+    const handlers = createExpressOAuthHandlers({
+      path: "/mcp",
+      server: createTestMcpServer(),
+      oauth: {
+        resource: PROTECTED_RESOURCE,
+        authorizationServers: [AUTHORIZATION_SERVER],
+        bearerMethodsSupported: ["header"],
+        scopesSupported: [REQUIRED_SCOPE],
+        requiredScopes: [REQUIRED_SCOPE],
+        verifier: {
+          async verify() {
+            throw Object.assign(new Error("identity provider unavailable"), {
+              error: "temporarily_unavailable" as const
+            });
+          }
+        }
+      }
+    });
+    const handle = await listenExpressApp((app) => {
+      app.use("/mcp", handlers.mcpMiddleware);
+    });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(`${handle.baseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: "Bearer verifier-error-token",
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("www-authenticate")).toBeNull();
   });
 
   it("returns 403 insufficient_scope through the Express OAuth handlers", async () => {
@@ -445,12 +472,12 @@ describe("OAuth protected resource", () => {
       issuer: AUTHORIZATION_SERVER,
       audience: [PROTECTED_RESOURCE],
       scopes: ["mcp.write"],
-      expiresAt: TEST_NOW + 300,
+      expiresAt: TEST_NOW + 300
     });
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth,
+      oauth
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -463,9 +490,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(403);
@@ -477,7 +504,7 @@ describe("OAuth protected resource", () => {
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
       server: createTestMcpServer(),
-      oauth,
+      oauth
     });
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
@@ -491,9 +518,9 @@ describe("OAuth protected resource", () => {
         Accept: "application/json, text/event-stream",
         "Content-Type": "application/json",
         "X-Forwarded-Host": "public.example.com",
-        "X-Forwarded-Proto": "https",
+        "X-Forwarded-Proto": "https"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -508,7 +535,7 @@ describe("OAuth protected resource", () => {
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -517,9 +544,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         "Content-Type": "application/json",
-        "X-Forwarded-Proto": "not a protocol",
+        "X-Forwarded-Proto": "not a protocol"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -534,7 +561,7 @@ describe("OAuth protected resource", () => {
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     });
     const req = Object.assign(Readable.from([createInitializeRequestBody()]), {
       method: "POST",
@@ -542,9 +569,9 @@ describe("OAuth protected resource", () => {
       headers: {
         accept: "application/json, text/event-stream",
         "content-type": "application/json",
-        host: "bad host",
+        host: "bad host"
       },
-      socket: {},
+      socket: {}
     }) as IncomingMessage;
     const headers = new Map<string, string | number | readonly string[]>();
     const res = {
@@ -566,7 +593,7 @@ describe("OAuth protected resource", () => {
       end(this: { writableEnded: boolean }) {
         this.writableEnded = true;
         return this;
-      },
+      }
     };
 
     await server.handleRequest(req, res as never);
@@ -581,7 +608,7 @@ describe("OAuth protected resource", () => {
     const verifier = {
       verify: vi.fn(async () => {
         throw new Error("not reached");
-      }),
+      })
     };
     const handle = await createHttpServer({
       name: "oauth-http-server",
@@ -590,9 +617,9 @@ describe("OAuth protected resource", () => {
         resource: PROTECTED_RESOURCE,
         authorizationServers: [AUTHORIZATION_SERVER],
         requiredScopes: [REQUIRED_SCOPE],
-        verifier,
+        verifier
       },
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -601,9 +628,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: "Bearer abc\tdef",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -620,13 +647,13 @@ describe("OAuth protected resource", () => {
       issuer: AUTHORIZATION_SERVER,
       audience: [PROTECTED_RESOURCE],
       scopes: [REQUIRED_SCOPE],
-      expiresAt: TEST_NOW - 1,
+      expiresAt: TEST_NOW - 1
     });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -635,9 +662,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -653,13 +680,13 @@ describe("OAuth protected resource", () => {
       issuer: AUTHORIZATION_SERVER,
       audience: ["https://example.com/other"],
       scopes: [REQUIRED_SCOPE],
-      expiresAt: TEST_NOW + 300,
+      expiresAt: TEST_NOW + 300
     });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -668,9 +695,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -686,13 +713,13 @@ describe("OAuth protected resource", () => {
       issuer: AUTHORIZATION_SERVER,
       audience: ["https://public.example.com/mcp"],
       scopes: [REQUIRED_SCOPE],
-      expiresAt: TEST_NOW + 300,
+      expiresAt: TEST_NOW + 300
     });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -703,9 +730,9 @@ describe("OAuth protected resource", () => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
         "X-Forwarded-Host": "public.example.com",
-        "X-Forwarded-Proto": "https",
+        "X-Forwarded-Proto": "https"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -721,13 +748,13 @@ describe("OAuth protected resource", () => {
       issuer: "https://rogue.example.com",
       audience: [PROTECTED_RESOURCE],
       scopes: [REQUIRED_SCOPE],
-      expiresAt: TEST_NOW + 300,
+      expiresAt: TEST_NOW + 300
     });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -736,9 +763,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
@@ -754,13 +781,13 @@ describe("OAuth protected resource", () => {
       issuer: AUTHORIZATION_SERVER,
       audience: [PROTECTED_RESOURCE],
       scopes: ["mcp.write"],
-      expiresAt: TEST_NOW + 300,
+      expiresAt: TEST_NOW + 300
     });
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -769,9 +796,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(403);
@@ -798,12 +825,12 @@ describe("OAuth protected resource", () => {
               audience: [PROTECTED_RESOURCE],
               scopes: ["mcp.write"],
               expiresAt: TEST_NOW + 300,
-              claims: {},
+              claims: {}
             };
-          },
-        },
+          }
+        }
       },
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -812,18 +839,14 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: "Bearer verifier-ignored-scopes",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(403);
-    expect(response.headers.get("www-authenticate")).toContain(
-      'error="insufficient_scope"'
-    );
-    expect(response.headers.get("www-authenticate")).toContain(
-      `scope="${REQUIRED_SCOPE}"`
-    );
+    expect(response.headers.get("www-authenticate")).toContain('error="insufficient_scope"');
+    expect(response.headers.get("www-authenticate")).toContain(`scope="${REQUIRED_SCOPE}"`);
   });
 
   it("closes an OAuth SSE stream when its bearer token expires", async () => {
@@ -833,7 +856,7 @@ describe("OAuth protected resource", () => {
       audience: [PROTECTED_RESOURCE],
       scopes: [REQUIRED_SCOPE],
       expiresAt: TEST_NOW + 60,
-      subject: "alice",
+      subject: "alice"
     });
     const events: Array<{ type: string }> = [];
     const handle = await createHttpServer({
@@ -845,8 +868,8 @@ describe("OAuth protected resource", () => {
       observability: {
         onEvent(event) {
           events.push(event);
-        },
-      },
+        }
+      }
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -855,9 +878,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id");
     expect(sessionId).toBeTruthy();
@@ -871,8 +894,8 @@ describe("OAuth protected resource", () => {
           Accept: "text/event-stream",
           Authorization: `Bearer ${token}`,
           "Mcp-Session-Id": String(sessionId),
-          "MCP-Protocol-Version": "2025-03-26",
-        },
+          "MCP-Protocol-Version": "2025-03-26"
+        }
       });
       const reader = streamResponse.body!.getReader();
       const closed = reader.read();
@@ -901,16 +924,16 @@ describe("OAuth protected resource", () => {
           throw Object.assign(new Error("insufficient scope"), {
             error: "insufficient_scope" as const,
             errorDescription: "insufficient scope",
-            scope: [REQUIRED_SCOPE],
+            scope: [REQUIRED_SCOPE]
           });
-        },
-      },
+        }
+      }
     };
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -919,9 +942,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: "Bearer verifier-error-token",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(403);
@@ -940,14 +963,14 @@ describe("OAuth protected resource", () => {
       verifier: {
         async verify() {
           throw new Error("database-password=s3cr3t");
-        },
-      },
+        }
+      }
     };
     const handle = await createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).listenHttp({ port: 0 });
     trackCleanup(handle.close);
 
@@ -956,15 +979,52 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: "Bearer verifier-error-token",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
       `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="token verification failed"`
     );
+  });
+
+  it("returns 503 without a Bearer challenge when token verification is temporarily unavailable", async () => {
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth: {
+        resource: PROTECTED_RESOURCE,
+        authorizationServers: [AUTHORIZATION_SERVER],
+        bearerMethodsSupported: ["header"] as const,
+        scopesSupported: [REQUIRED_SCOPE],
+        requiredScopes: [REQUIRED_SCOPE],
+        verifier: {
+          async verify() {
+            throw Object.assign(new Error("token verification temporarily unavailable"), {
+              error: "temporarily_unavailable" as const,
+              errorDescription: "token verification temporarily unavailable"
+            });
+          }
+        }
+      },
+      enableJsonResponse: true
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: "Bearer verifier-error-token",
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("www-authenticate")).toBeNull();
   });
 
   it("passes verified token claims to tools through request.auth", async () => {
@@ -978,14 +1038,14 @@ describe("OAuth protected resource", () => {
       clientId: "test-client",
       subject: "alice",
       claims: {
-        tenant: "acme",
-      },
+        tenant: "acme"
+      }
     });
     const server = createHttpServer({
       name: "oauth-http-server",
       version: "1.0.0",
       oauth,
-      enableJsonResponse: true,
+      enableJsonResponse: true
     }).tool("auth_snapshot", "Return auth info", defineSchema({}), (_args, { request }) =>
       JSON.stringify({
         token: request.auth?.token,
@@ -995,7 +1055,7 @@ describe("OAuth protected resource", () => {
         audience: request.auth?.audience,
         subject: request.auth?.subject,
         resource: request.auth?.resource?.toString(),
-        claims: request.auth?.claims,
+        claims: request.auth?.claims
       })
     );
     const handle = await server.listenHttp({ port: 0 });
@@ -1006,9 +1066,9 @@ describe("OAuth protected resource", () => {
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: createInitializeRequestBody(),
+      body: createInitializeRequestBody()
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id");
 
@@ -1021,12 +1081,14 @@ describe("OAuth protected resource", () => {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        ...(sessionId === null ? {} : {
-          "Mcp-Session-Id": sessionId,
-          "MCP-Protocol-Version": "2025-03-26",
-        }),
+        ...(sessionId === null
+          ? {}
+          : {
+              "Mcp-Session-Id": sessionId,
+              "MCP-Protocol-Version": "2025-03-26"
+            })
       },
-      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
     });
 
     expect(initializedResponse.status).toBe(202);
@@ -1037,12 +1099,14 @@ describe("OAuth protected resource", () => {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        ...(sessionId === null ? {} : {
-          "Mcp-Session-Id": sessionId,
-          "MCP-Protocol-Version": "2025-03-26",
-        }),
+        ...(sessionId === null
+          ? {}
+          : {
+              "Mcp-Session-Id": sessionId,
+              "MCP-Protocol-Version": "2025-03-26"
+            })
       },
-      body: createToolCallRequestBody("auth_snapshot"),
+      body: createToolCallRequestBody("auth_snapshot")
     });
 
     expect(toolResponse.status).toBe(200);
@@ -1070,8 +1134,8 @@ describe("OAuth protected resource", () => {
         scope: `${REQUIRED_SCOPE} mcp.write`,
         sub: "alice",
         client_id: "test-client",
-        tenant: "acme",
-      },
+        tenant: "acme"
+      }
     });
   });
   it("binds OAuth sessions to the verified token subject", async () => {

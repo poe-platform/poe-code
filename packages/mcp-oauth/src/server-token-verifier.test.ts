@@ -13,7 +13,7 @@ async function withObjectPrototypeProperties<T>(
     Object.defineProperty(Object.prototype, key, {
       configurable: true,
       value,
-      writable: true,
+      writable: true
     });
   }
 
@@ -53,8 +53,8 @@ describe("createJwksTokenVerifier", () => {
           {
             status: 200,
             headers: {
-              "Content-Type": "application/json",
-            },
+              "Content-Type": "application/json"
+            }
           }
         );
       },
@@ -67,11 +67,11 @@ describe("createJwksTokenVerifier", () => {
         const now = Math.floor(Date.now() / 1_000);
         return new SignJWT({
           client_id: input.clientId,
-          scope: input.scopes.join(" "),
+          scope: input.scopes.join(" ")
         })
           .setProtectedHeader({
             alg: "ES256",
-            typ: "JWT",
+            typ: "JWT"
           })
           .setIssuer(issuer)
           .setAudience(input.resource)
@@ -79,7 +79,7 @@ describe("createJwksTokenVerifier", () => {
           .setIssuedAt(now)
           .setExpirationTime(now + (input.ttlSeconds ?? 60))
           .sign(privateKey);
-      },
+      }
     };
   }
 
@@ -87,12 +87,12 @@ describe("createJwksTokenVerifier", () => {
     const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
 
     await expect(
@@ -100,14 +100,14 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [oauth.issuer],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).resolves.toMatchObject({
       token,
       issuer: oauth.issuer,
       audience: ["https://resource.example.com/mcp"],
       scopes: ["mcp.read"],
-      clientId: "demo-client",
+      clientId: "demo-client"
     });
   });
 
@@ -119,21 +119,24 @@ describe("createJwksTokenVerifier", () => {
       jwksUrl: "https://auth.example.com/.well-known/jwks.json",
       fetch: async () => {
         fetchCount += 1;
-        return new Response(JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      },
+        return new Response(
+          JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
     });
     const token = await new SignJWT({
       client_id: "demo-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     })
       .setProtectedHeader({
         alg: "ES256",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
       .setAudience("https://resource.example.com/mcp")
@@ -145,7 +148,7 @@ describe("createJwksTokenVerifier", () => {
       token,
       resource: "https://resource.example.com/mcp",
       authorizationServers: ["https://auth.example.com"],
-      requiredScopes: ["mcp.read"],
+      requiredScopes: ["mcp.read"]
     };
 
     await verifier.verify(input);
@@ -158,12 +161,12 @@ describe("createJwksTokenVerifier", () => {
     const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/other",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
 
     await expect(
@@ -171,11 +174,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [oauth.issuer],
-        requiredScopes: [],
+        requiredScopes: []
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "audience mismatch",
+      errorDescription: "audience mismatch"
     });
   });
 
@@ -183,12 +186,12 @@ describe("createJwksTokenVerifier", () => {
     const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
 
     await expect(
@@ -196,14 +199,14 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "HTTPS://RESOURCE.EXAMPLE.COM:443/mcp#ignored",
         authorizationServers: [oauth.issuer],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).resolves.toMatchObject({
-      audience: ["https://resource.example.com/mcp"],
+      audience: ["https://resource.example.com/mcp"]
     });
   });
 
-  it("rejects tokens that contain multiple audiences", async () => {
+  it("accepts tokens when one of multiple audiences matches", async () => {
     const { privateKey, publicKey } = await generateKeyPair("ES256");
     const publicJwk = await exportJWK(publicKey);
     const verifier = createJwksTokenVerifier({
@@ -212,23 +215,20 @@ describe("createJwksTokenVerifier", () => {
         new Response(JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }), {
           status: 200,
           headers: {
-            "Content-Type": "application/json",
-          },
-        }),
+            "Content-Type": "application/json"
+          }
+        })
     });
     const token = await new SignJWT({
       client_id: "demo-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     })
       .setProtectedHeader({
         alg: "ES256",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
-      .setAudience([
-        "https://resource.example.com/mcp",
-        "https://resource.example.com/other",
-      ])
+      .setAudience(["https://resource.example.com/other", "https://resource.example.com/mcp"])
       .setSubject("demo-client")
       .setIssuedAt(Math.floor(Date.now() / 1_000))
       .setExpirationTime("2m")
@@ -239,11 +239,10 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
-    ).rejects.toMatchObject({
-      error: "invalid_token",
-      errorDescription: "audience mismatch",
+    ).resolves.toMatchObject({
+      audience: ["https://resource.example.com/mcp"]
     });
   });
 
@@ -251,12 +250,12 @@ describe("createJwksTokenVerifier", () => {
     const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
-      scopes: ["mcp.write"],
+      scopes: ["mcp.write"]
     });
 
     await expect(
@@ -264,12 +263,12 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [oauth.issuer],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "insufficient_scope",
       errorDescription: "insufficient scope",
-      scope: ["mcp.read"],
+      scope: ["mcp.read"]
     });
   });
 
@@ -282,16 +281,16 @@ describe("createJwksTokenVerifier", () => {
         new Response(JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }), {
           status: 200,
           headers: {
-            "Content-Type": "application/json",
-          },
-        }),
+            "Content-Type": "application/json"
+          }
+        })
     });
     const token = await new SignJWT({
-      client_id: "demo-client",
+      client_id: "demo-client"
     })
       .setProtectedHeader({
         alg: "ES256",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
       .setAudience("https://resource.example.com/mcp")
@@ -302,7 +301,7 @@ describe("createJwksTokenVerifier", () => {
 
     await withObjectPrototypeProperties(
       {
-        scope: "mcp.read",
+        scope: "mcp.read"
       },
       async () => {
         await expect(
@@ -310,12 +309,12 @@ describe("createJwksTokenVerifier", () => {
             token,
             resource: "https://resource.example.com/mcp",
             authorizationServers: ["https://auth.example.com"],
-            requiredScopes: ["mcp.read"],
+            requiredScopes: ["mcp.read"]
           })
         ).rejects.toMatchObject({
           error: "insufficient_scope",
           errorDescription: "insufficient scope",
-          scope: ["mcp.read"],
+          scope: ["mcp.read"]
         });
       }
     );
@@ -330,17 +329,17 @@ describe("createJwksTokenVerifier", () => {
         new Response(JSON.stringify({}), {
           status: 200,
           headers: {
-            "Content-Type": "application/json",
-          },
-        }),
+            "Content-Type": "application/json"
+          }
+        })
     });
     const token = await new SignJWT({
       client_id: "demo-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     })
       .setProtectedHeader({
         alg: "ES256",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
       .setAudience("https://resource.example.com/mcp")
@@ -351,7 +350,7 @@ describe("createJwksTokenVerifier", () => {
 
     await withObjectPrototypeProperties(
       {
-        keys: [{ ...publicJwk, alg: "ES256", use: "sig" }],
+        keys: [{ ...publicJwk, alg: "ES256", use: "sig" }]
       },
       async () => {
         await expect(
@@ -359,11 +358,11 @@ describe("createJwksTokenVerifier", () => {
             token,
             resource: "https://resource.example.com/mcp",
             authorizationServers: ["https://auth.example.com"],
-            requiredScopes: ["mcp.read"],
+            requiredScopes: ["mcp.read"]
           })
         ).rejects.toMatchObject({
-          error: "invalid_token",
-          errorDescription: "invalid JWKS document",
+          error: "temporarily_unavailable",
+          errorDescription: "token verification temporarily unavailable"
         });
       }
     );
@@ -373,12 +372,12 @@ describe("createJwksTokenVerifier", () => {
     const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
 
     await expect(
@@ -386,21 +385,22 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [oauth.issuer],
-        requiredScopes: ["mcp.read", "mcp.write"],
+        requiredScopes: ["mcp.read", "mcp.write"]
       })
     ).rejects.toMatchObject({
       error: "insufficient_scope",
       errorDescription: "insufficient scope",
-      scope: ["mcp.read", "mcp.write"],
+      scope: ["mcp.read", "mcp.write"]
     });
   });
 
   it("tries every matching kid in the JWKS until one verifies the signature", async () => {
     const { publicKey: wrongPublicKey } = await generateKeyPair("ES256");
-    const { privateKey: correctPrivateKey, publicKey: correctPublicKey } = await generateKeyPair("ES256");
+    const { privateKey: correctPrivateKey, publicKey: correctPublicKey } =
+      await generateKeyPair("ES256");
     const [wrongPublicJwk, correctPublicJwk] = await Promise.all([
       exportJWK(wrongPublicKey),
-      exportJWK(correctPublicKey),
+      exportJWK(correctPublicKey)
     ]);
     const verifier = createJwksTokenVerifier({
       jwksUrl: "https://auth.example.com/.well-known/jwks.json",
@@ -409,25 +409,25 @@ describe("createJwksTokenVerifier", () => {
           JSON.stringify({
             keys: [
               { ...wrongPublicJwk, alg: "ES256", use: "sig", kid: "shared-kid" },
-              { ...correctPublicJwk, alg: "ES256", use: "sig", kid: "shared-kid" },
-            ],
+              { ...correctPublicJwk, alg: "ES256", use: "sig", kid: "shared-kid" }
+            ]
           }),
           {
             status: 200,
             headers: {
-              "Content-Type": "application/json",
-            },
+              "Content-Type": "application/json"
+            }
           }
-        ),
+        )
     });
     const token = await new SignJWT({
       client_id: "demo-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     })
       .setProtectedHeader({
         alg: "ES256",
         kid: "shared-kid",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
       .setAudience("https://resource.example.com/mcp")
@@ -441,12 +441,12 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).resolves.toMatchObject({
       audience: ["https://resource.example.com/mcp"],
       clientId: "demo-client",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
   });
 
@@ -455,7 +455,7 @@ describe("createJwksTokenVerifier", () => {
       jwksUrl: "https://auth.example.com/.well-known/jwks.json",
       fetch: async () => {
         throw new Error("JWKS should not be fetched for alg=none");
-      },
+      }
     });
     const token = createUnsecuredJwt({
       aud: "https://resource.example.com/mcp",
@@ -463,7 +463,7 @@ describe("createJwksTokenVerifier", () => {
       exp: Math.floor(Date.now() / 1_000) + 120,
       iss: "https://auth.example.com",
       scope: "mcp.read",
-      sub: "demo-client",
+      sub: "demo-client"
     });
 
     await expect(
@@ -471,11 +471,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "unsupported token algorithm",
+      errorDescription: "unsupported token algorithm"
     });
   });
 
@@ -485,15 +485,15 @@ describe("createJwksTokenVerifier", () => {
       allowedAlgorithms: ["HS256"],
       fetch: async () => {
         throw new Error("JWKS should not be fetched for unsupported HS* verification");
-      },
+      }
     });
     const token = await new SignJWT({
       client_id: "demo-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     })
       .setProtectedHeader({
         alg: "HS256",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
       .setAudience("https://resource.example.com/mcp")
@@ -507,11 +507,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "unsupported token algorithm",
+      errorDescription: "unsupported token algorithm"
     });
   });
 
@@ -519,12 +519,12 @@ describe("createJwksTokenVerifier", () => {
     const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
 
     await expect(
@@ -532,11 +532,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [`${oauth.issuer}/`],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "issuer mismatch",
+      errorDescription: "issuer mismatch"
     });
   });
 
@@ -547,13 +547,13 @@ describe("createJwksTokenVerifier", () => {
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
       clockSkewSeconds: 30,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
       scopes: ["mcp.read"],
-      ttlSeconds: 1,
+      ttlSeconds: 1
     });
     vi.setSystemTime(new Date("2026-05-28T10:00:21.000Z"));
 
@@ -562,11 +562,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [oauth.issuer],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).resolves.toMatchObject({
       clientId: "demo-client",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
   });
 
@@ -577,13 +577,13 @@ describe("createJwksTokenVerifier", () => {
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
       clockSkewSeconds: 30,
-      fetch: oauth.fetch,
+      fetch: oauth.fetch
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
       scopes: ["mcp.read"],
-      ttlSeconds: 1,
+      ttlSeconds: 1
     });
     vi.setSystemTime(new Date("2026-05-28T10:00:32.000Z"));
 
@@ -592,11 +592,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: [oauth.issuer],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "token expired",
+      errorDescription: "token expired"
     });
   });
 
@@ -610,18 +610,18 @@ describe("createJwksTokenVerifier", () => {
         new Response(JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }), {
           status: 200,
           headers: {
-            "Content-Type": "application/json",
-          },
-        }),
+            "Content-Type": "application/json"
+          }
+        })
     });
     const now = Math.floor(Date.now() / 1_000);
     const token = await new SignJWT({
       client_id: "demo-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     })
       .setProtectedHeader({
         alg: "ES256",
-        typ: "JWT",
+        typ: "JWT"
       })
       .setIssuer("https://auth.example.com")
       .setAudience("https://resource.example.com/mcp")
@@ -636,11 +636,11 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "token not active yet",
+      errorDescription: "token not active yet"
     });
   });
 
@@ -649,7 +649,7 @@ describe("createJwksTokenVerifier", () => {
       jwksUrl: "https://auth.example.com/.well-known/jwks.json",
       fetch: async () => {
         throw new Error("JWKS should not be fetched for unsupported critical headers");
-      },
+      }
     });
     const now = Math.floor(Date.now() / 1_000);
     const token = [
@@ -657,7 +657,7 @@ describe("createJwksTokenVerifier", () => {
         alg: "ES256",
         typ: "JWT",
         crit: ["future"],
-        future: true,
+        future: true
       }),
       encodeBase64Url({
         aud: "https://resource.example.com/mcp",
@@ -666,9 +666,9 @@ describe("createJwksTokenVerifier", () => {
         iat: now,
         iss: "https://auth.example.com",
         scope: "mcp.read",
-        sub: "demo-client",
+        sub: "demo-client"
       }),
-      "invalid-signature",
+      "invalid-signature"
     ].join(".");
 
     await expect(
@@ -676,11 +676,330 @@ describe("createJwksTokenVerifier", () => {
         token,
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
-        requiredScopes: ["mcp.read"],
+        requiredScopes: ["mcp.read"]
       })
     ).rejects.toMatchObject({
       error: "invalid_token",
-      errorDescription: "unsupported critical token claims",
+      errorDescription: "unsupported critical token claims"
+    });
+  });
+
+  it("rejects tokens without an expiry", async () => {
+    const oauth = await createOAuthFixture();
+    const { privateKey, publicKey } = await generateKeyPair("ES256");
+    const publicJwk = await exportJWK(publicKey);
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
+      fetch: async () => new Response(JSON.stringify({ keys: [publicJwk] }))
+    });
+    const token = await new SignJWT({ scope: "mcp.read" })
+      .setProtectedHeader({ alg: "ES256", typ: "JWT" })
+      .setIssuer(oauth.issuer)
+      .setAudience("https://resource.example.com/mcp")
+      .sign(privateKey);
+
+    await expect(
+      verifier.verify({
+        token,
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: [oauth.issuer],
+        requiredScopes: ["mcp.read"]
+      })
+    ).rejects.toMatchObject({
+      error: "invalid_token",
+      errorDescription: "token missing expiry"
+    });
+  });
+
+  it("times out JWKS fetches and reports the IdP outage", async () => {
+    const { privateKey } = await generateKeyPair("ES256");
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      jwksFetchTimeoutMs: 5,
+      fetch: async (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              reject(init.signal?.reason);
+            },
+            { once: true }
+          );
+        })
+    });
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: "ES256", typ: "JWT" })
+      .setIssuer("https://auth.example.com")
+      .setAudience("https://resource.example.com/mcp")
+      .setExpirationTime("2m")
+      .sign(privateKey);
+
+    await expect(
+      verifier.verify({
+        token,
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: ["https://auth.example.com"],
+        requiredScopes: []
+      })
+    ).rejects.toMatchObject({
+      error: "temporarily_unavailable",
+      errorDescription: "token verification temporarily unavailable"
+    });
+  });
+
+  it.each([
+    [
+      "network errors",
+      async () => {
+        throw new Error("connection reset");
+      }
+    ],
+    ["non-success responses", async () => new Response("unavailable", { status: 503 })],
+    ["malformed documents", async () => new Response(JSON.stringify({ nope: [] }))],
+    ["malformed key sets", async () => new Response(JSON.stringify({ keys: [null] }))]
+  ])("reports %s loading JWKS as temporarily unavailable", async (_name, fetchImplementation) => {
+    const { privateKey } = await generateKeyPair("ES256");
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: fetchImplementation
+    });
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: "ES256", typ: "JWT" })
+      .setIssuer("https://auth.example.com")
+      .setAudience("https://resource.example.com/mcp")
+      .setExpirationTime("2m")
+      .sign(privateKey);
+
+    await expect(
+      verifier.verify({
+        token,
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: ["https://auth.example.com"],
+        requiredScopes: []
+      })
+    ).rejects.toMatchObject({
+      error: "temporarily_unavailable"
+    });
+  });
+
+  it("reports malformed JWKS key material as temporarily unavailable", async () => {
+    const { privateKey } = await generateKeyPair("ES256");
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            keys: [
+              {
+                alg: "ES256",
+                crv: "P-256",
+                kid: "malformed",
+                kty: "EC",
+                x: "invalid",
+                y: "invalid"
+              }
+            ]
+          })
+        )
+    });
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: "ES256", kid: "malformed", typ: "JWT" })
+      .setIssuer("https://auth.example.com")
+      .setAudience("https://resource.example.com/mcp")
+      .setExpirationTime("2m")
+      .sign(privateKey);
+
+    await expect(
+      verifier.verify({
+        token,
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: ["https://auth.example.com"],
+        requiredScopes: []
+      })
+    ).rejects.toMatchObject({
+      error: "temporarily_unavailable"
+    });
+  });
+
+  it("refetches JWKS once when a rotated kid is not cached", async () => {
+    const oldKeys = await generateKeyPair("ES256");
+    const newKeys = await generateKeyPair("ES256");
+    const oldJwk = { ...(await exportJWK(oldKeys.publicKey)), kid: "old" };
+    const newJwk = { ...(await exportJWK(newKeys.publicKey)), kid: "new" };
+    let fetchCount = 0;
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () => {
+        fetchCount += 1;
+        return new Response(JSON.stringify({ keys: fetchCount === 1 ? [oldJwk] : [newJwk] }));
+      }
+    });
+    const issue = (kid: string, privateKey: CryptoKey) =>
+      new SignJWT({ scope: "mcp.read" })
+        .setProtectedHeader({ alg: "ES256", kid, typ: "JWT" })
+        .setIssuer("https://auth.example.com")
+        .setAudience("https://resource.example.com/mcp")
+        .setExpirationTime("2m")
+        .sign(privateKey);
+    const input = {
+      resource: "https://resource.example.com/mcp",
+      authorizationServers: ["https://auth.example.com"],
+      requiredScopes: ["mcp.read"]
+    };
+
+    await verifier.verify({ ...input, token: await issue("old", oldKeys.privateKey) });
+    await expect(
+      verifier.verify({
+        ...input,
+        token: await issue("new", newKeys.privateKey)
+      })
+    ).resolves.toMatchObject({ scopes: ["mcp.read"] });
+    expect(fetchCount).toBe(2);
+  });
+
+  it("shares a cache-busting JWKS refresh across concurrent requests", async () => {
+    const oldKeys = await generateKeyPair("ES256");
+    const newKeys = await generateKeyPair("ES256");
+    const oldJwk = { ...(await exportJWK(oldKeys.publicKey)), kid: "old" };
+    const newJwk = { ...(await exportJWK(newKeys.publicKey)), kid: "new" };
+    let fetchCount = 0;
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () => {
+        fetchCount += 1;
+        return new Response(JSON.stringify({ keys: fetchCount === 1 ? [oldJwk] : [newJwk] }));
+      }
+    });
+    const issue = (kid: string, privateKey: CryptoKey) =>
+      new SignJWT({})
+        .setProtectedHeader({ alg: "ES256", kid, typ: "JWT" })
+        .setIssuer("https://auth.example.com")
+        .setAudience("https://resource.example.com/mcp")
+        .setExpirationTime("2m")
+        .sign(privateKey);
+    const input = {
+      resource: "https://resource.example.com/mcp",
+      authorizationServers: ["https://auth.example.com"],
+      requiredScopes: []
+    };
+
+    await verifier.verify({ ...input, token: await issue("old", oldKeys.privateKey) });
+    const rotatedToken = await issue("new", newKeys.privateKey);
+
+    await expect(
+      Promise.all([
+        verifier.verify({ ...input, token: rotatedToken }),
+        verifier.verify({ ...input, token: rotatedToken })
+      ])
+    ).resolves.toHaveLength(2);
+    expect(fetchCount).toBe(2);
+  });
+
+  it("rate-limits cache-busting JWKS refreshes", async () => {
+    const cachedKeys = await generateKeyPair("ES256");
+    const unknownKeys = await generateKeyPair("ES256");
+    const cachedJwk = { ...(await exportJWK(cachedKeys.publicKey)), kid: "cached" };
+    let fetchCount = 0;
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      jwksRefreshCooldownMs: 30_000,
+      fetch: async () => {
+        fetchCount += 1;
+        return new Response(JSON.stringify({ keys: [cachedJwk] }));
+      }
+    });
+    const issue = (kid: string, privateKey: CryptoKey) =>
+      new SignJWT({})
+        .setProtectedHeader({ alg: "ES256", kid, typ: "JWT" })
+        .setIssuer("https://auth.example.com")
+        .setAudience("https://resource.example.com/mcp")
+        .setExpirationTime("2m")
+        .sign(privateKey);
+    const input = {
+      resource: "https://resource.example.com/mcp",
+      authorizationServers: ["https://auth.example.com"],
+      requiredScopes: []
+    };
+
+    await verifier.verify({ ...input, token: await issue("cached", cachedKeys.privateKey) });
+    const unknownToken = await issue("unknown", unknownKeys.privateKey);
+    await expect(verifier.verify({ ...input, token: unknownToken })).rejects.toMatchObject({
+      error: "invalid_token"
+    });
+    await expect(verifier.verify({ ...input, token: unknownToken })).rejects.toMatchObject({
+      error: "invalid_token"
+    });
+    expect(fetchCount).toBe(2);
+  });
+
+  it("rejects insecure remote JWKS URLs unless explicitly allowed", () => {
+    expect(() =>
+      createJwksTokenVerifier({
+        jwksUrl: "http://auth.example.com/.well-known/jwks.json"
+      })
+    ).toThrow("jwksUrl must use HTTPS for non-loopback hosts");
+    expect(() =>
+      createJwksTokenVerifier({
+        jwksUrl: "http://auth.example.com/.well-known/jwks.json",
+        allowInsecureJwks: true
+      })
+    ).not.toThrow();
+    expect(() =>
+      createJwksTokenVerifier({
+        jwksUrl: "http://127.0.0.1/.well-known/jwks.json"
+      })
+    ).not.toThrow();
+  });
+
+  it("optionally requires RFC 9068 access-token typ", async () => {
+    const { privateKey, publicKey } = await generateKeyPair("ES256");
+    const publicJwk = await exportJWK(publicKey);
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () => new Response(JSON.stringify({ keys: [publicJwk] })),
+      requireAccessTokenType: true
+    });
+    const issue = (typ: string) =>
+      new SignJWT({ scope: "mcp.read" })
+        .setProtectedHeader({ alg: "ES256", typ })
+        .setIssuer("https://auth.example.com")
+        .setAudience("https://resource.example.com/mcp")
+        .setExpirationTime("2m")
+        .sign(privateKey);
+    const input = {
+      resource: "https://resource.example.com/mcp",
+      authorizationServers: ["https://auth.example.com"],
+      requiredScopes: ["mcp.read"]
+    };
+
+    await expect(verifier.verify({ ...input, token: await issue("JWT") })).rejects.toMatchObject({
+      error: "invalid_token",
+      errorDescription: "invalid access token type"
+    });
+    await expect(
+      verifier.verify({ ...input, token: await issue("at+jwt") })
+    ).resolves.toMatchObject({
+      audience: ["https://resource.example.com/mcp"],
+      scopes: ["mcp.read"]
+    });
+  });
+
+  it("does not disclose unexpected JOSE error messages", async () => {
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () => new Response(JSON.stringify({ keys: [] }))
+    });
+
+    await expect(
+      verifier.verify({
+        token: "not-a-jwt",
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: ["https://auth.example.com"],
+        requiredScopes: []
+      })
+    ).rejects.toMatchObject({
+      error: "invalid_token",
+      errorDescription: "token verification failed"
     });
   });
 });
@@ -689,10 +1008,10 @@ function createUnsecuredJwt(payload: Record<string, unknown>): string {
   return [
     encodeBase64Url({
       alg: "none",
-      typ: "JWT",
+      typ: "JWT"
     }),
     encodeBase64Url(payload),
-    "",
+    ""
   ].join(".");
 }
 

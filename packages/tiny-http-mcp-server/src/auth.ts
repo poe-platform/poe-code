@@ -1,7 +1,6 @@
 import type { IncomingMessage } from "node:http";
 
-export const PROTECTED_RESOURCE_METADATA_PATH =
-  "/.well-known/oauth-protected-resource";
+export const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource";
 export const PROTECTED_RESOURCE_METADATA_CACHE_CONTROL = "public, max-age=300";
 
 export interface VerifiedAccessToken {
@@ -81,15 +80,14 @@ export interface BearerAuthOptions {
 
 export type BearerAuthResult =
   | { ok: true; auth: RequestAuthInfo }
-  | { ok: false; statusCode: 401 | 403; challenge: string };
+  | { ok: false; statusCode: 401 | 403; challenge: string }
+  | { ok: false; statusCode: 503 };
 
 function toUrlString(value: string | URL): string {
   return value instanceof URL ? value.toString() : value;
 }
 
-function readSingleHeaderValue(
-  value: string | string[] | undefined
-): string | undefined {
+function readSingleHeaderValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
@@ -110,10 +108,7 @@ function getRequestProtocol(
   return "encrypted" in req.socket && req.socket.encrypted ? "https" : "http";
 }
 
-function getRequestHost(
-  req: Pick<IncomingMessage, "headers">,
-  trustedProxy = false
-): string {
+function getRequestHost(req: Pick<IncomingMessage, "headers">, trustedProxy = false): string {
   if (trustedProxy) {
     const forwardedHost = readSingleHeaderValue(req.headers["x-forwarded-host"])
       ?.split(",")[0]
@@ -154,12 +149,12 @@ function formatScope(scope: readonly string[]): string | undefined {
 function hasBearerTokenWhitespace(value: string): boolean {
   for (const character of value) {
     if (
-      character === " "
-      || character === "\t"
-      || character === "\n"
-      || character === "\r"
-      || character === "\f"
-      || character === "\v"
+      character === " " ||
+      character === "\t" ||
+      character === "\n" ||
+      character === "\r" ||
+      character === "\f" ||
+      character === "\v"
     ) {
       return true;
     }
@@ -183,7 +178,7 @@ function readBearerToken(
   if (separatorIndex <= 0) {
     return {
       kind: "malformed",
-      errorDescription: "malformed bearer token",
+      errorDescription: "malformed bearer token"
     };
   }
 
@@ -193,7 +188,7 @@ function readBearerToken(
   if (scheme.toLowerCase() !== "bearer" || token.length === 0 || hasBearerTokenWhitespace(token)) {
     return {
       kind: "malformed",
-      errorDescription: "malformed bearer token",
+      errorDescription: "malformed bearer token"
     };
   }
 
@@ -212,10 +207,10 @@ function normalizeTokenVerificationError(
     };
 
     if (
-      isBearerChallengeErrorCode(challengeError.error)
-      && (challengeError.errorDescription === undefined
-        || typeof challengeError.errorDescription === "string")
-      && (challengeError.scope === undefined || isStringArray(challengeError.scope))
+      isBearerChallengeErrorCode(challengeError.error) &&
+      (challengeError.errorDescription === undefined ||
+        typeof challengeError.errorDescription === "string") &&
+      (challengeError.scope === undefined || isStringArray(challengeError.scope))
     ) {
       const scope = challengeError.scope ?? [];
 
@@ -224,14 +219,14 @@ function normalizeTokenVerificationError(
         ...(challengeError.errorDescription === undefined
           ? {}
           : {
-              errorDescription: challengeError.errorDescription,
+              errorDescription: challengeError.errorDescription
             }),
         scope:
           scope.length > 0
             ? [...scope]
             : challengeError.error === "insufficient_scope"
               ? requiredScopes
-              : undefined,
+              : undefined
       };
     }
   }
@@ -240,28 +235,32 @@ function normalizeTokenVerificationError(
     return {
       error: error.error,
       errorDescription: error.errorDescription,
-      scope:
-        error.scope ?? (error.error === "insufficient_scope" ? requiredScopes : undefined),
+      scope: error.scope ?? (error.error === "insufficient_scope" ? requiredScopes : undefined)
     };
   }
 
   if (error instanceof Error) {
     return {
       error: "invalid_token",
-      errorDescription: "token verification failed",
+      errorDescription: "token verification failed"
     };
   }
 
   return {
     error: "invalid_token",
-    errorDescription: "token verification failed",
+    errorDescription: "token verification failed"
   };
 }
 
-function toRequestAuthInfo(
-  verifiedToken: VerifiedAccessToken,
-  resource: string
-): RequestAuthInfo {
+function isTemporarilyUnavailableError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  return (error as { error?: unknown }).error === "temporarily_unavailable";
+}
+
+function toRequestAuthInfo(verifiedToken: VerifiedAccessToken, resource: string): RequestAuthInfo {
   const audience = [...verifiedToken.audience];
   const scopes = [...verifiedToken.scopes];
   const claims = { ...verifiedToken.claims };
@@ -280,9 +279,9 @@ function toRequestAuthInfo(
       ...(verifiedToken.subject === undefined
         ? {}
         : {
-            subject: verifiedToken.subject,
-          }),
-    },
+            subject: verifiedToken.subject
+          })
+    }
   };
 }
 
@@ -309,7 +308,7 @@ export function createBearerChallenge(
 ): string {
   const parts = [
     'Bearer realm="mcp"',
-    `resource_metadata="${escapeChallengeValue(getProtectedResourceMetadataUrl(req, protectedResourcePath, trustedProxy))}"`,
+    `resource_metadata="${escapeChallengeValue(getProtectedResourceMetadataUrl(req, protectedResourcePath, trustedProxy))}"`
   ];
 
   if (options.error !== undefined) {
@@ -337,12 +336,7 @@ export async function authorizeBearerRequest(
     return {
       ok: false,
       statusCode: 401,
-      challenge: createBearerChallenge(
-        req,
-        {},
-        options.protectedResourcePath,
-        options.trustedProxy
-      ),
+      challenge: createBearerChallenge(req, {}, options.protectedResourcePath, options.trustedProxy)
     };
   }
 
@@ -350,10 +344,15 @@ export async function authorizeBearerRequest(
     return {
       ok: false,
       statusCode: 401,
-      challenge: createBearerChallenge(req, {
-        error: "invalid_token",
-        errorDescription: authorization.errorDescription,
-      }, options.protectedResourcePath, options.trustedProxy),
+      challenge: createBearerChallenge(
+        req,
+        {
+          error: "invalid_token",
+          errorDescription: authorization.errorDescription
+        },
+        options.protectedResourcePath,
+        options.trustedProxy
+      )
     };
   }
 
@@ -364,7 +363,7 @@ export async function authorizeBearerRequest(
       token: authorization.token,
       resource: toUrlString(options.resource),
       authorizationServers: options.authorizationServers.map(toUrlString),
-      requiredScopes,
+      requiredScopes
     });
     const verifiedScopes = new Set(verifiedToken.scopes);
     if (requiredScopes.some((scope) => !verifiedScopes.has(scope))) {
@@ -376,11 +375,11 @@ export async function authorizeBearerRequest(
           {
             error: "insufficient_scope",
             errorDescription: "insufficient scope",
-            scope: requiredScopes,
+            scope: requiredScopes
           },
           options.protectedResourcePath,
           options.trustedProxy
-        ),
+        )
       };
     }
     const auth = toRequestAuthInfo(verifiedToken, toUrlString(options.resource));
@@ -389,9 +388,16 @@ export async function authorizeBearerRequest(
 
     return {
       ok: true,
-      auth,
+      auth
     };
   } catch (error) {
+    if (isTemporarilyUnavailableError(error)) {
+      return {
+        ok: false,
+        statusCode: 503
+      };
+    }
+
     const challengeOptions = normalizeTokenVerificationError(error, requiredScopes);
     return {
       ok: false,
@@ -401,7 +407,7 @@ export async function authorizeBearerRequest(
         challengeOptions,
         options.protectedResourcePath,
         options.trustedProxy
-      ),
+      )
     };
   }
 }

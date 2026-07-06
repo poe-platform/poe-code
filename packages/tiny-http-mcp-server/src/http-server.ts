@@ -239,13 +239,15 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
       options.observability?.onEvent?.({
         type: "auth.failure",
         statusCode: authorization.statusCode,
-        challenge: authorization.challenge,
+        ...(authorization.statusCode === 503 ? {} : { challenge: authorization.challenge }),
         sessionId: Array.isArray(req.headers["mcp-session-id"])
           ? req.headers["mcp-session-id"][0]
           : req.headers["mcp-session-id"]
       });
       res.writeHead(authorization.statusCode, {
-        "WWW-Authenticate": authorization.challenge,
+        ...(authorization.statusCode === 503
+          ? {}
+          : { "WWW-Authenticate": authorization.challenge }),
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer"
       });

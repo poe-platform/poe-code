@@ -27,6 +27,7 @@ export type HttpObservabilityEvent =
       statusCode: number;
       durationMs: number;
       sessionId?: string;
+      reason?: string;
     }
   | {
       type: "request.error";
@@ -133,6 +134,7 @@ export class StreamableHttpTransport {
   private readonly sseEventHistory = new Map<string, Array<{ id: number; data: string }>>();
   private readonly responseRequestIds = new WeakMap<ServerResponse, string>();
   private readonly responseOrigins = new WeakMap<ServerResponse, string>();
+  private readonly responseRejectionReasons = new WeakMap<ServerResponse, string>();
   private nextNotificationEventId = 1;
   private nextRequestId = 1;
   private activeToolCalls = 0;
@@ -214,12 +216,32 @@ export class StreamableHttpTransport {
 
     try {
       if (this.closed) {
-        this.respondWithStatus(res, 503);
+        this.respondWithRejection(
+          res,
+          503,
+          "transport_closed",
+          "The transport is closed; create or use an active transport."
+        );
         return;
       }
 
-      if (!this.acceptsHost(req) || !this.acceptsOrigin(req)) {
-        this.respondWithStatus(res, 403);
+      if (!this.acceptsHost(req)) {
+        this.respondWithRejection(
+          res,
+          403,
+          "host_not_allowed",
+          `Host ${JSON.stringify(this.readRequestHost(req))} is not allowed; add it to allowedHosts.`
+        );
+        return;
+      }
+
+      if (!this.acceptsOrigin(req)) {
+        this.respondWithRejection(
+          res,
+          403,
+          "origin_not_allowed",
+          `Origin ${JSON.stringify(this.readOrigin(req) ?? "")} is not allowed; add it to allowedOrigins.`
+        );
         return;
       }
 
@@ -263,7 +285,10 @@ export class StreamableHttpTransport {
         method: req.method ?? "",
         statusCode: res.statusCode,
         durationMs: Date.now() - startedAt,
-        sessionId: this.readSessionId(req)
+        sessionId: this.readSessionId(req),
+        ...(res.statusCode < 200 || res.statusCode >= 300
+          ? { reason: this.responseRejectionReasons.get(res) ?? "http_error" }
+          : {})
       });
     }
   }
@@ -301,7 +326,13 @@ export class StreamableHttpTransport {
     }
 
     if (!this.acceptsConfiguredResponse(req)) {
-      this.respondWithStatus(res, 406);
+      const expectedType = this.enableJsonResponse ? "application/json" : "text/event-stream";
+      this.respondWithRejection(
+        res,
+        406,
+        "response_type_not_acceptable",
+        `Accept must allow ${expectedType}.`
+      );
       return;
     }
 
@@ -340,12 +371,22 @@ export class StreamableHttpTransport {
 
       if (headerSessionId === undefined) {
         if (initMessage === undefined) {
-          this.respondWithStatus(res, 400);
+          this.respondWithRejection(
+            res,
+            400,
+            "session_id_required",
+            "Mcp-Session-Id is required; initialize a session first."
+          );
           return;
         }
 
         if (this.maxSessions !== undefined && this.sessionCount() >= this.maxSessions) {
-          this.respondWithStatus(res, 503);
+          this.respondWithRejection(
+            res,
+            503,
+            "session_limit_reached",
+            "The server has reached its session limit; close a session or retry later."
+          );
           return;
         }
 
@@ -366,7 +407,12 @@ export class StreamableHttpTransport {
       } else {
         activeSession = this.getActiveSession(headerSessionId, req);
         if (activeSession === undefined) {
-          this.respondWithStatus(res, 404);
+          this.respondWithRejection(
+            res,
+            404,
+            "session_not_found",
+            "Session was not found or has expired; reinitialize the session."
+          );
           return;
         }
 
@@ -376,7 +422,12 @@ export class StreamableHttpTransport {
           activeSession.protocolVersion !== undefined &&
           !this.acceptsProtocolVersion(req, activeSession.protocolVersion)
         ) {
-          this.respondWithStatus(res, 400);
+          this.respondWithRejection(
+            res,
+            400,
+            "protocol_version_mismatch",
+            `MCP-Protocol-Version must match the session protocol version ${activeSession.protocolVersion}.`
+          );
           return;
         }
         await this.ensureLocalMessageSession(sessionId, activeSession);
@@ -535,19 +586,34 @@ export class StreamableHttpTransport {
     }
 
     if (!this.acceptsResponseType(req, "text/event-stream")) {
-      this.respondWithStatus(res, 406);
+      this.respondWithRejection(
+        res,
+        406,
+        "response_type_not_acceptable",
+        "Accept must allow text/event-stream."
+      );
       return;
     }
 
     const sessionId = this.readSessionId(req);
     if (sessionId === undefined) {
-      this.respondWithStatus(res, 400);
+      this.respondWithRejection(
+        res,
+        400,
+        "session_id_required",
+        "Mcp-Session-Id is required; initialize a session first."
+      );
       return;
     }
 
     const session = this.getActiveSession(sessionId, req);
     if (session === undefined) {
-      this.respondWithStatus(res, 404);
+      this.respondWithRejection(
+        res,
+        404,
+        "session_not_found",
+        "Session was not found or has expired; reinitialize the session."
+      );
       return;
     }
 
@@ -557,14 +623,24 @@ export class StreamableHttpTransport {
       session.protocolVersion !== undefined &&
       !this.acceptsProtocolVersion(req, session.protocolVersion)
     ) {
-      this.respondWithStatus(res, 400);
+      this.respondWithRejection(
+        res,
+        400,
+        "protocol_version_mismatch",
+        `MCP-Protocol-Version must match the session protocol version ${session.protocolVersion}.`
+      );
       return;
     }
     await this.ensureLocalMessageSession(sessionId, session);
 
     const existingStreams = this.sseStreams.get(sessionId);
     if ((existingStreams?.size ?? 0) >= this.maxStreamsPerSession) {
-      this.respondWithStatus(res, 409);
+      this.respondWithRejection(
+        res,
+        409,
+        "stream_limit_reached",
+        "This session already has the maximum number of streams; close a stream and retry."
+      );
       return;
     }
 
@@ -624,13 +700,23 @@ export class StreamableHttpTransport {
 
     const sessionId = this.readSessionId(req);
     if (sessionId === undefined) {
-      this.respondWithStatus(res, 400);
+      this.respondWithRejection(
+        res,
+        400,
+        "session_id_required",
+        "Mcp-Session-Id is required; initialize a session first."
+      );
       return;
     }
 
     const session = this.getActiveSession(sessionId, req);
     if (session === undefined) {
-      this.respondWithStatus(res, 404);
+      this.respondWithRejection(
+        res,
+        404,
+        "session_not_found",
+        "Session was not found or has expired; reinitialize the session."
+      );
       return;
     }
 
@@ -638,12 +724,22 @@ export class StreamableHttpTransport {
       session.protocolVersion !== undefined &&
       !this.acceptsProtocolVersion(req, session.protocolVersion)
     ) {
-      this.respondWithStatus(res, 400);
+      this.respondWithRejection(
+        res,
+        400,
+        "protocol_version_mismatch",
+        `MCP-Protocol-Version must match the session protocol version ${session.protocolVersion}.`
+      );
       return;
     }
 
     if (!this.deleteSession(sessionId, "client")) {
-      this.respondWithStatus(res, 404);
+      this.respondWithRejection(
+        res,
+        404,
+        "session_not_found",
+        "Session was not found or has expired; reinitialize the session."
+      );
       return;
     }
 
@@ -1110,12 +1206,29 @@ export class StreamableHttpTransport {
     message: string,
     id: string | number | null = null
   ): void {
+    this.responseRejectionReasons.set(res, "json_rpc_error");
     this.respondWithStatus(
       res,
       statusCode,
       undefined,
       { "Content-Type": "application/json" },
       formatErrorResponse(id, { code: errorCode, message })
+    );
+  }
+
+  private respondWithRejection(
+    res: ServerResponse,
+    statusCode: number,
+    reason: string,
+    message: string
+  ): void {
+    this.responseRejectionReasons.set(res, reason);
+    this.respondWithStatus(
+      res,
+      statusCode,
+      undefined,
+      { "Content-Type": "application/json" },
+      JSON.stringify({ error: reason, message })
     );
   }
 

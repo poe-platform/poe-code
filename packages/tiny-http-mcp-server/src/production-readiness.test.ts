@@ -175,6 +175,23 @@ async function readSseJson(response: Response): Promise<Record<string, unknown>>
 }
 
 describe("HTTP MCP production readiness", () => {
+  async function expectRejection(
+    response: Response,
+    events: HttpObservabilityEvent[],
+    statusCode: number,
+    reason: string,
+    message: string
+  ): Promise<void> {
+    expect(response.status).toBe(statusCode);
+    expect(response.headers.get("content-type")).toBe("application/json");
+    expect(await response.text()).toBe(JSON.stringify({ error: reason, message }));
+    expect(events.at(-1)).toMatchObject({
+      type: "request.end",
+      statusCode,
+      reason
+    });
+  }
+
   it("enforces request body and batch limits before dispatching messages", async () => {
     const bodyLimitedServer = createHttpServer({
       name: "limits",
@@ -436,6 +453,223 @@ describe("HTTP MCP production readiness", () => {
     expect(rejectedHost.headers.get("vary")).toContain("Origin");
   });
 
+  it("returns observable JSON reasons for rejected hosts and origins", async () => {
+    const events: HttpObservabilityEvent[] = [];
+    const server = createHttpServer({
+      name: "access-rejections",
+      version: "1.0.0",
+      allowedHosts: ["mcp.example.com"],
+      allowedOrigins: ["https://client.example.com"],
+      observability: {
+        onEvent: (event) => {
+          events.push(event);
+        }
+      }
+    });
+    const message = {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
+    };
+
+    const rejectedHost = await postJsonRpc(server, message, {
+      headers: { Host: "attacker.example.com" }
+    });
+    await expectRejection(
+      rejectedHost,
+      events,
+      403,
+      "host_not_allowed",
+      'Host "attacker.example.com" is not allowed; add it to allowedHosts.'
+    );
+
+    const rejectedOrigin = await postJsonRpc(server, message, {
+      headers: {
+        Host: "mcp.example.com",
+        Origin: "https://attacker.example.com"
+      }
+    });
+    await expectRejection(
+      rejectedOrigin,
+      events,
+      403,
+      "origin_not_allowed",
+      'Origin "https://attacker.example.com" is not allowed; add it to allowedOrigins.'
+    );
+  });
+
+  it("returns observable JSON reasons for session rejections on every method", async () => {
+    const events: HttpObservabilityEvent[] = [];
+    const server = createHttpServer({
+      name: "session-rejections",
+      version: "1.0.0",
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-rejections-id",
+      observability: {
+        onEvent: (event) => {
+          events.push(event);
+        }
+      }
+    });
+    const missingSessionRequests = [
+      postJsonRpc(server, { jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      dispatch(server, { method: "GET", headers: { Accept: "text/event-stream" } }),
+      dispatch(server, { method: "DELETE" })
+    ];
+
+    for (const pendingResponse of missingSessionRequests) {
+      await expectRejection(
+        await pendingResponse,
+        events,
+        400,
+        "session_id_required",
+        "Mcp-Session-Id is required; initialize a session first."
+      );
+    }
+
+    const unknownSessionHeaders = {
+      "Mcp-Session-Id": "missing-session",
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+    };
+    const unknownSessionRequests = [
+      postJsonRpc(
+        server,
+        { jsonrpc: "2.0", id: 2, method: "tools/list" },
+        { sessionId: "missing-session" }
+      ),
+      dispatch(server, {
+        method: "GET",
+        headers: { Accept: "text/event-stream", ...unknownSessionHeaders }
+      }),
+      dispatch(server, { method: "DELETE", headers: unknownSessionHeaders })
+    ];
+
+    for (const pendingResponse of unknownSessionRequests) {
+      await expectRejection(
+        await pendingResponse,
+        events,
+        404,
+        "session_not_found",
+        "Session was not found or has expired; reinitialize the session."
+      );
+    }
+
+    const sessionId = await initializeSession(server);
+    const mismatchedHeaders = {
+      "Mcp-Session-Id": sessionId,
+      "MCP-Protocol-Version": "2099-01-01"
+    };
+    const protocolMismatchRequests = [
+      dispatch(server, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...mismatchedHeaders
+        },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/list" })
+      }),
+      dispatch(server, {
+        method: "GET",
+        headers: { Accept: "text/event-stream", ...mismatchedHeaders }
+      }),
+      dispatch(server, { method: "DELETE", headers: mismatchedHeaders })
+    ];
+
+    for (const pendingResponse of protocolMismatchRequests) {
+      await expectRejection(
+        await pendingResponse,
+        events,
+        400,
+        "protocol_version_mismatch",
+        `MCP-Protocol-Version must match the session protocol version ${TEST_PROTOCOL_VERSION}.`
+      );
+    }
+  });
+
+  it("returns observable JSON reasons for negotiation, stream, and session limits", async () => {
+    const events: HttpObservabilityEvent[] = [];
+    let nextSession = 1;
+    const server = createHttpServer({
+      name: "capacity-rejections",
+      version: "1.0.0",
+      enableJsonResponse: true,
+      maxSessions: 1,
+      sessionIdGenerator: () => `capacity-session-${nextSession++}`,
+      observability: {
+        onEvent: (event) => {
+          events.push(event);
+        }
+      }
+    });
+
+    const rejectedPostAccept = await postJsonRpc(
+      server,
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
+      },
+      { headers: { Accept: "text/plain" } }
+    );
+    await expectRejection(
+      rejectedPostAccept,
+      events,
+      406,
+      "response_type_not_acceptable",
+      "Accept must allow application/json."
+    );
+
+    const sessionId = await initializeSession(server);
+    const rejectedGetAccept = await dispatch(server, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Mcp-Session-Id": sessionId,
+        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+      }
+    });
+    await expectRejection(
+      rejectedGetAccept,
+      events,
+      406,
+      "response_type_not_acceptable",
+      "Accept must allow text/event-stream."
+    );
+
+    const streamHeaders = {
+      Accept: "text/event-stream",
+      "Mcp-Session-Id": sessionId,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+    };
+    const firstStream = await dispatchRaw(server, { method: "GET", headers: streamHeaders });
+    const rejectedStream = await dispatch(server, { method: "GET", headers: streamHeaders });
+    await expectRejection(
+      rejectedStream,
+      events,
+      409,
+      "stream_limit_reached",
+      "This session already has the maximum number of streams; close a stream and retry."
+    );
+    firstStream.response.end();
+
+    const rejectedSession = await postJsonRpc(server, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "initialize",
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
+    });
+    await expectRejection(
+      rejectedSession,
+      events,
+      503,
+      "session_limit_reached",
+      "The server has reached its session limit; close a session or retry later."
+    );
+  });
+
   it("validates the forwarded request host when the proxy is trusted", async () => {
     const server = createHttpServer({
       name: "trusted-proxy-host",
@@ -515,7 +749,13 @@ describe("HTTP MCP production readiness", () => {
       params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
 
-    expect(response.status).toBe(503);
+    await expectRejection(
+      response,
+      events,
+      503,
+      "transport_closed",
+      "The transport is closed; create or use an active transport."
+    );
     expect(events).not.toContainEqual(
       expect.objectContaining({
         type: "session.created"
@@ -968,9 +1208,7 @@ describe("HTTP MCP production readiness", () => {
     });
 
     expect(preflight.status).toBe(204);
-    expect(preflight.headers.get("access-control-allow-origin")).toBe(
-      "https://client.example.com"
-    );
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("https://client.example.com");
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toContain("resource_metadata=");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");

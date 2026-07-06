@@ -319,7 +319,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: http-rejection-bodies
     title: Actionable JSON bodies on every transport rejection
@@ -339,10 +339,10 @@ tasks:
       error responses (parse errors, etc.) stay as they are. TDD: each
       rejection path asserts its reason in body and event.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: express-mount-path-challenge

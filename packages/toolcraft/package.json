@@ -100,8 +100,8 @@
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
-    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client auth-store",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client auth-store"
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client auth-store",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client auth-store"
   },
   "dependencies": {
     "toolcraft-schema": "^0.0.1",
@@ -131,6 +131,7 @@
     "directory": "packages/toolcraft"
   },
   "bundleDependencies": [
+    "toolcraft-schema",
     "toolcraft-design",
     "@poe-code/frontmatter",
     "@poe-code/agent-mcp-config",

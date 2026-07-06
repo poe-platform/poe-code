@@ -1379,6 +1379,38 @@ function createSdkTransport() {
 }
 
 describe("createServer", () => {
+  it("runs custom methods with session notifications and aborts them on close", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const notifications: unknown[] = [];
+    let sessionSignal: AbortSignal | undefined;
+    server.method("example/subscribe", async (_params, session) => {
+      sessionSignal = session.signal;
+      await session.notify("notifications/example", { value: 1 });
+      return { subscribed: true };
+    });
+    const session = server.createMessageSession((notification) => {
+      notifications.push(notification);
+    });
+
+    await session.handleMessage("initialize", {
+      protocolVersion: "2025-11-25",
+      capabilities: {},
+      clientInfo: { name: "test", version: "1.0.0" }
+    });
+    await session.handleMessage("notifications/initialized");
+    await expect(session.handleMessage("example/subscribe", {})).resolves.toEqual({
+      result: { subscribed: true }
+    });
+    expect(notifications).toContainEqual({
+      jsonrpc: "2.0",
+      method: "notifications/example",
+      params: { value: 1 }
+    });
+
+    session.close();
+    expect(sessionSignal?.aborted).toBe(true);
+  });
+
   describe("server creation", () => {
     it("creates a server with options", () => {
       const server = createServer({ name: "test", version: "1.0.0" });

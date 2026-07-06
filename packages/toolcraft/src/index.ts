@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
-import type { ObjectSchema, Static } from "toolcraft-schema";
+import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "toolcraft-design";
 import { ApprovalDeclinedError } from "./human-in-loop/types.js";
 import type {
@@ -12,6 +12,15 @@ import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-
 import { ToolcraftBugError, UserError } from "./user-error.js";
 import { suggest } from "./suggest.js";
 import type { RuntimeLogger } from "./runtime-logging.js";
+import type { StreamStatusEvent, ToolcraftStream } from "./stream.js";
+
+export { createManagedStream } from "./stream.js";
+export type {
+  StreamConsumerOptions,
+  StreamStatusEvent,
+  StreamStatusType,
+  ToolcraftStream
+} from "./stream.js";
 
 const commandConfigSymbol = Symbol("toolcraft.command.config");
 const groupConfigSymbol = Symbol("toolcraft.group.config");
@@ -161,8 +170,39 @@ export interface CommandConfig<
   confirm?: boolean;
   humanInLoop?: HumanInLoopConfig<TParamsSchema> | null;
   requires?: Requires<CommandCheckContext<TParamsSchema, TSecrets, TServices>>;
-  handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
+  handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult> | TResult;
   render?: Renderers<TResult>;
+}
+
+export interface StreamDefinition<TEventSchema extends AnySchema = AnySchema> {
+  event: TEventSchema;
+  bufferSize: number;
+}
+
+export type StreamHandlerContext<
+  TParamsSchema extends ObjectSchema<any>,
+  TSecrets extends SecretDeclarations | undefined,
+  TServices extends object
+> = HandlerContext<TParamsSchema, TSecrets, TServices> & {
+  signal: AbortSignal;
+  status(event: StreamStatusEvent): void;
+  refreshSecrets(): Promise<InferSecrets<TSecrets>>;
+};
+
+export interface StreamCommandConfig<
+  TServices extends object,
+  TParamsSchema extends ObjectSchema<any>,
+  TSecrets extends SecretDeclarations | undefined,
+  TEventSchema extends AnySchema
+> extends Omit<
+    CommandConfig<TServices, TParamsSchema, TSecrets, AsyncIterable<Static<TEventSchema>>>,
+    "handler" | "render" | "result" | "humanInLoop" | "confirm"
+  > {
+  event: TEventSchema;
+  handler: (
+    ctx: StreamHandlerContext<TParamsSchema, TSecrets, TServices>
+  ) => AsyncIterable<Static<TEventSchema>> | Promise<AsyncIterable<Static<TEventSchema>>>;
+  render?: Renderers<Static<TEventSchema>>;
 }
 
 export interface Command<
@@ -180,12 +220,13 @@ export interface Command<
   positional: string[];
   params: TParamsSchema;
   result?: ObjectSchema<any>;
+  stream?: StreamDefinition<any>;
   secrets: SecretDeclarations;
   scope: Scope[];
   confirm: boolean;
   humanInLoop?: HumanInLoopConfig<TParamsSchema> | null;
   requires?: Requires<any>;
-  handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
+  handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult> | TResult;
   render?: Renderers<TResult>;
 }
 
@@ -740,6 +781,7 @@ function createBaseCommand<
     positional: [...(config.positional ?? [])],
     params: config.params,
     result: config.result,
+    stream: undefined,
     secrets: cloneSecrets(config.secrets),
     scope: resolveCommandScope(config.scope, undefined),
     confirm: config.confirm ?? false,
@@ -833,6 +875,7 @@ function materializeCommand<
     positional: [...command.positional],
     params: command.params,
     result: internal.result,
+    stream: command.stream,
     secrets: mergeSecrets(inherited.secrets, internal.secrets),
     scope: resolveCommandScope(internal.scope, inherited.scope),
     confirm: command.confirm,
@@ -987,6 +1030,49 @@ export function defineCommand<
       TOwnScope,
       ResolveOwnHumanInLoopMode<TOwnHumanInLoop>
     >;
+}
+
+export function defineStreamCommand<
+  TServices extends object = EmptyServices,
+  TName extends string = string,
+  TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
+  TSecrets extends SecretDeclarations | undefined = undefined,
+  TEventSchema extends AnySchema = AnySchema,
+  TOwnScope extends ScopeInput = undefined
+>(
+  config: Omit<
+    StreamCommandConfig<TServices, TParamsSchema, TSecrets, TEventSchema>,
+    "name" | "scope"
+  > & {
+    name: TName;
+    scope?: TOwnScope;
+  }
+): Command<TServices, TParamsSchema, TSecrets, AsyncIterable<Static<TEventSchema>>> &
+  TypedCommandMetadata<
+    TName,
+    TParamsSchema,
+    ToolcraftStream<Static<TEventSchema>>,
+    TOwnScope,
+    undefined
+  > {
+  const command = defineCommand({
+    ...config,
+    confirm: false,
+    humanInLoop: null,
+    handler: config.handler as never,
+    render: undefined
+  } as never) as Command<
+    TServices,
+    TParamsSchema,
+    TSecrets,
+    AsyncIterable<Static<TEventSchema>>
+  >;
+  command.stream = {
+    event: config.event,
+    bufferSize: 1
+  };
+  command.render = config.render as never;
+  return command as never;
 }
 
 export function defineGroup<

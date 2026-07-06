@@ -33,6 +33,7 @@ import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 import { createRuntimeLogger } from "./runtime-logging.js";
 import { createEnv, createFs, validateServices } from "./runtime/io.js";
+import { createManagedStream, type ToolcraftStream } from "./stream.js";
 
 type Casing = "snake" | "camel";
 type CmdkitServer = Omit<TinyServer, "connect"> & {
@@ -48,6 +49,13 @@ type ToolContent =
         | { uri: string; mimeType: string; text: string }
         | { uri: string; mimeType: string; blob: string };
     };
+
+export const MCP_STREAM_METHODS = {
+  list: "toolcraft/streams/list",
+  subscribe: "toolcraft/streams/subscribe",
+  unsubscribe: "toolcraft/streams/unsubscribe",
+  notification: "notifications/toolcraft/stream"
+} as const;
 
 interface ToolDefinition<TServices extends object> {
   command: Command<TServices, any, any, any>;
@@ -1084,8 +1092,135 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     version,
     validateToolArguments: false
   });
+  const streamTools = tools.filter((tool) => tool.command.stream !== undefined);
+  const subscriptions = new Map<
+    string,
+    { signal: AbortSignal; stream: ToolcraftStream<unknown> }
+  >();
+  let nextSubscriptionId = 0;
 
-  for (const tool of tools) {
+  server.method(MCP_STREAM_METHODS.list, () => ({
+    streams: streamTools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      eventSchema: applySchemaCasing(toJsonSchema(tool.command.stream!.event), casing),
+      bufferSize: tool.command.stream!.bufferSize
+    }))
+  }));
+
+  server.method(MCP_STREAM_METHODS.subscribe, async (request, session) => {
+    const name = typeof request?.name === "string" ? request.name : undefined;
+    const tool = streamTools.find((candidate) => candidate.name === name);
+    if (tool === undefined) {
+      throw new UserError(`Stream not found: ${name ?? ""}`);
+    }
+    const streamDefinition = tool.command.stream;
+    if (streamDefinition === undefined) {
+      throw new ToolcraftBugError(`Command "${tool.commandPath}" is not a stream.`);
+    }
+    const argumentsValue = isPlainObject(request?.arguments) ? request.arguments : {};
+    const secrets = resolveCommandSecrets(tool.command, options.env);
+    const baseContext = {
+      ...servicesWithBuiltIns,
+      secrets,
+      fetch: runtimeFetch,
+      fs: createFs(options.fs),
+      env: createEnv(options.env),
+      diagnostics,
+      progress(message: string): void {
+        diagnostics.emit({ level: "info", message, category: "progress" });
+      }
+    };
+    await assertCommandRequirements(
+      tool.command,
+      { ...baseContext, params: undefined },
+      { apiVersion: options.apiVersion, env: options.env }
+    );
+    const params = validateToolArguments(tool.command.params, argumentsValue, casing);
+    const subscriptionId = `stream-${++nextSubscriptionId}`;
+    let notificationQueue = Promise.resolve();
+    const notify = (params: Record<string, unknown>): Promise<void> => {
+      notificationQueue = notificationQueue.then(() =>
+        session.notify(MCP_STREAM_METHODS.notification, params)
+      );
+      return notificationQueue;
+    };
+    const stream = createManagedStream({
+      eventSchema: streamDefinition.event,
+      signal: session.signal,
+      onStatus(event) {
+        void notify({
+          subscriptionId,
+          type: "status",
+          status: event
+        });
+      },
+      async create(signal, status) {
+        return await tool.command.handler({
+          ...baseContext,
+          params,
+          signal,
+          status,
+          async refreshSecrets() {
+            return resolveCommandSecrets(tool.command, options.env);
+          }
+        } as never);
+      }
+    });
+    subscriptions.set(subscriptionId, { signal: session.signal, stream });
+    void (async () => {
+      try {
+        for await (const event of stream) {
+          await notify({
+            subscriptionId,
+            type: "data",
+            event
+          });
+        }
+        if (!session.signal.aborted) {
+          await notify({
+            subscriptionId,
+            type: "end"
+          });
+        }
+      } catch (error) {
+        if (!session.signal.aborted) {
+          await notify({
+            subscriptionId,
+            type: "error",
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      } finally {
+        subscriptions.delete(subscriptionId);
+        await stream.cancel();
+      }
+    })();
+    return {
+      subscriptionId,
+      eventSchema: applySchemaCasing(toJsonSchema(streamDefinition.event), casing)
+    };
+  });
+
+  server.method(MCP_STREAM_METHODS.unsubscribe, async (request, session) => {
+    const subscriptionId =
+      typeof request?.subscriptionId === "string" ? request.subscriptionId : undefined;
+    const subscription =
+      subscriptionId === undefined ? undefined : subscriptions.get(subscriptionId);
+    if (
+      subscriptionId === undefined ||
+      subscription === undefined ||
+      subscription.signal !== session.signal
+    ) {
+      return { unsubscribed: false };
+    }
+    await subscription.stream.cancel();
+    subscriptions.delete(subscriptionId);
+    return { unsubscribed: true };
+  });
+
+  for (const tool of tools.filter((candidate) => candidate.command.stream === undefined)) {
     const handler = async (argumentsValue: Record<string, unknown>) => {
       let params: unknown;
       let secrets: Record<string, string | undefined> | undefined;

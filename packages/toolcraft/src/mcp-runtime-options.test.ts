@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import { defineCommand, defineGroup, type HandlerFs } from "./index.js";
+import { defineCommand, defineGroup, defineStreamCommand, type HandlerFs } from "./index.js";
 
 const invokeWithHumanInLoopMock = vi.hoisted(() => vi.fn());
 
@@ -15,6 +15,78 @@ vi.mock("./human-in-loop/index.js", async (importOriginal) => {
 
 const { createMCPServer } = await import("./mcp.js");
 const { McpClient, createSdkTestPair } = await import("tiny-mcp-client");
+
+describe("createMCPServer stream lifecycle", () => {
+  it("lists typed streams, emits notifications, and cleans up on disconnect", async () => {
+    const cleanup = vi.fn();
+    const server = createMCPServer(
+      defineGroup({
+        name: "devices",
+        children: [
+          defineStreamCommand({
+            name: "watch",
+            scope: ["mcp"],
+            params: S.Object({ deviceId: S.String() }),
+            event: S.Object({ state: S.String() }),
+            async *handler({ params, signal, status }) {
+              try {
+                status({ type: "connected" });
+                yield { state: `${params.deviceId}:online` };
+                await new Promise<void>((resolve) =>
+                  signal.addEventListener("abort", () => resolve(), { once: true })
+                );
+              } finally {
+                cleanup();
+              }
+            }
+          })
+        ]
+      }),
+      { name: "toolcraft-test", version: "1.0.0" }
+    );
+    const notifications: Array<{ method: string; params?: Record<string, unknown> }> = [];
+    const session = server.createMessageSession((notification) => {
+      notifications.push(notification);
+    });
+    await session.handleMessage("initialize", {
+      protocolVersion: "2025-11-25",
+      capabilities: {},
+      clientInfo: { name: "test", version: "1.0.0" }
+    });
+    await session.handleMessage("notifications/initialized");
+
+    await expect(session.handleMessage("toolcraft/streams/list")).resolves.toMatchObject({
+      result: {
+        streams: [
+          {
+            name: "devices__watch",
+            eventSchema: {
+              type: "object",
+              properties: { state: { type: "string" } },
+              required: ["state"]
+            }
+          }
+        ]
+      }
+    });
+    const subscription = await session.handleMessage("toolcraft/streams/subscribe", {
+      name: "devices__watch",
+      arguments: { device_id: "lamp" }
+    });
+    expect(subscription).toMatchObject({ result: { subscriptionId: expect.any(String) } });
+    await vi.waitFor(() => {
+      expect(notifications).toContainEqual(
+        expect.objectContaining({
+          method: "notifications/toolcraft/stream",
+          params: expect.objectContaining({ type: "data", event: { state: "lamp:online" } })
+        })
+      );
+    });
+
+    session.close();
+    await vi.waitFor(() => expect(cleanup).toHaveBeenCalledOnce());
+  });
+});
 
 async function createClient(server: ReturnType<typeof createMCPServer>) {
   return createSdkTestPair(

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { configureTheme, resetTheme, withOutputFormat } from "toolcraft-design";
 import {
   ApprovalDeclinedError,
@@ -6,6 +6,7 @@ import {
   UserError,
   defineCommand,
   defineGroup,
+  defineStreamCommand,
   S
 } from "../index.js";
 import { fakeService } from "./fakes.js";
@@ -169,6 +170,38 @@ describe("createCommandTestHarness params stage", () => {
     expect(result.failedAt).toBe("params");
     expect(result.error).toBeInstanceOf(UserError);
     expectPreHandlerFailure(result, service.calls);
+  });
+});
+
+describe("createCommandTestHarness streams", () => {
+  it("captures a finite prefix and cancels the stream exactly once", async () => {
+    const cleanup = vi.fn();
+    const watch = defineStreamCommand({
+      name: "watch",
+      params: S.Object({}),
+      event: S.Object({ value: S.Number() }),
+      async *handler({ status }) {
+        try {
+          status({ type: "connected" });
+          let value = 0;
+          while (true) {
+            yield { value: value++ };
+          }
+        } finally {
+          cleanup();
+        }
+      }
+    });
+    const harness = createCommandTestHarness(
+      defineGroup({ name: "fixture", children: [watch] })
+    );
+
+    await expect(harness.stream(["watch"], {}, { limit: 3 })).resolves.toMatchObject({
+      ok: true,
+      events: [{ value: 0 }, { value: 1 }, { value: 2 }],
+      statuses: [{ type: "connected" }]
+    });
+    expect(cleanup).toHaveBeenCalledOnce();
   });
 });
 

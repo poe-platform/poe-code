@@ -18,6 +18,8 @@ import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 import { createRuntimeLogger } from "./runtime-logging.js";
 import { createEnv, createFs, validateServices } from "./runtime/io.js";
+import { createManagedStream } from "./stream.js";
+import type { StreamConsumerOptions, ToolcraftStream } from "./stream.js";
 
 type ScopeInput = readonly Scope[] | undefined;
 type HumanInLoopMode = "sync" | "async";
@@ -143,9 +145,13 @@ type SDKResult<
     : TResult
   : TResult;
 
-type SDKMethod<TParamsSchema extends ObjectSchema<any>, TResult> = (
-  params: Camelize<Static<TParamsSchema>>
-) => Promise<TResult>;
+type SDKMethod<TParamsSchema extends ObjectSchema<any>, TResult> =
+  TResult extends ToolcraftStream<infer TEvent>
+    ? (
+        params: Camelize<Static<TParamsSchema>>,
+        options?: StreamConsumerOptions
+      ) => ToolcraftStream<TEvent>
+    : (params: Camelize<Static<TParamsSchema>>) => Promise<TResult>;
 
 type UnionToIntersection<TValue> = (
   TValue extends unknown ? (value: TValue) => void : never
@@ -667,6 +673,71 @@ function createResolvedSDK(
       const sdkParamsSchema = filterSchemaForScope(node.params, "sdk");
       if (sdkParamsSchema?.kind === "object") {
         validateUniqueSDKParameterMembers(sdkParamsSchema);
+      }
+
+      if (node.stream !== undefined) {
+        return (
+          params: Record<string, unknown> | undefined,
+          streamOptions: StreamConsumerOptions = {}
+        ) =>
+          createManagedStream({
+            eventSchema: node.stream!.event,
+            ...streamOptions,
+            async create(signal, status) {
+              const commandPath = [...path, node.name].join(".");
+              let secrets: Record<string, string | undefined> | undefined;
+              let validatedParams: unknown;
+              try {
+                secrets = resolveCommandSecrets(node, options.env);
+                const baseContext = {
+                  ...services,
+                  runtimeOptions,
+                  root,
+                  secrets,
+                  fetch: runtimeFetch,
+                  fs: createFs(options.fs),
+                  env: createEnv(options.env),
+                  diagnostics,
+                  progress(message: string): void {
+                    diagnostics.emit({ level: "info", message, category: "progress" });
+                  }
+                };
+                await assertCommandRequirements(
+                  node,
+                  { ...baseContext, params: undefined },
+                  { apiVersion: options.apiVersion, env: options.env }
+                );
+                const paramsSchema = filterSchemaForScope(node.params, "sdk");
+                if (paramsSchema === undefined || paramsSchema.kind !== "object") {
+                  throw new ToolcraftBugError(
+                    `command "${node.name}" must define an object params schema for SDK.`
+                  );
+                }
+                validatedParams = validateSDKArguments(paramsSchema, params);
+                return await node.handler({
+                  ...baseContext,
+                  params: validatedParams,
+                  signal,
+                  status,
+                  async refreshSecrets() {
+                    return resolveCommandSecrets(node, options.env);
+                  }
+                } as never);
+              } catch (error) {
+                await writeErrorReport({
+                  command: node,
+                  commandPath,
+                  env: process.env,
+                  error,
+                  errorReports: options.errorReports,
+                  params: validatedParams,
+                  projectRoot: options.projectRoot,
+                  secrets
+                });
+                throw error;
+              }
+            }
+          });
       }
 
       return async (params: Record<string, unknown> | undefined) => {

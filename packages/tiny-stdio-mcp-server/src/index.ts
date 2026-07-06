@@ -1,6 +1,12 @@
 // Server
 export { createServer } from "./server.js";
-export type { MessageHandler, MessageSession, Server } from "./server.js";
+export type {
+  CustomMethodHandler,
+  MessageHandler,
+  MessageSession,
+  MessageSessionContext,
+  Server
+} from "./server.js";
 
 // Schema
 export { defineSchema } from "./schema.js";

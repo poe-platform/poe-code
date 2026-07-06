@@ -50,6 +50,7 @@ export interface Server {
   prompt(definition: Prompt, handler: PromptHandler): Server;
   resource(definition: Resource, handler: ResourceHandler): Server;
   resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server;
+  method(name: string, handler: CustomMethodHandler): Server;
   onNotification(listener: (notification: JSONRPCNotification) => void): () => void;
   removeTool(name: string): boolean;
   removePrompt(name: string): boolean;
@@ -68,6 +69,16 @@ export interface Server {
   connectSDK(transport: SDKTransport): Promise<void>;
 }
 
+export interface MessageSessionContext {
+  readonly signal: AbortSignal;
+  notify(method: string, params?: Record<string, unknown>): Promise<void>;
+}
+
+export type CustomMethodHandler = (
+  params: Record<string, unknown> | undefined,
+  session: MessageSessionContext
+) => unknown | Promise<unknown>;
+
 export type MessageHandler = (
   method: string,
   params?: Record<string, unknown>
@@ -83,6 +94,8 @@ interface LifecycleState {
   initializeAccepted: boolean;
   notificationReady: boolean;
   resourceSubscriptions: Set<string>;
+  abortController: AbortController;
+  listener?: (notification: JSONRPCNotification) => void | Promise<void>;
 }
 
 interface RegisteredToolDefinition extends ToolDefinition {
@@ -106,6 +119,7 @@ export function createServer(options: ServerOptions): Server {
   const prompts = new Map<string, PromptDefinition>();
   const resources = new Map<string, ResourceDefinition>();
   const resourceTemplates = new Map<string, ResourceTemplateDefinition>();
+  const methods = new Map<string, CustomMethodHandler>();
   const notificationListeners = new Set<(notification: JSONRPCNotification) => void>();
   const connectionNotificationListeners = new Map<
     (notification: JSONRPCNotification) => void | Promise<void>,
@@ -115,7 +129,8 @@ export function createServer(options: ServerOptions): Server {
     initialized: false,
     initializeAccepted: false,
     notificationReady: false,
-    resourceSubscriptions: new Set()
+    resourceSubscriptions: new Set(),
+    abortController: new AbortController()
   };
   const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
 
@@ -399,6 +414,28 @@ export function createServer(options: ServerOptions): Server {
       return { result: {} };
     }
 
+    const customMethod = methods.get(method);
+    if (customMethod !== undefined) {
+      try {
+        const result = await customMethod(params, {
+          signal: lifecycle.abortController.signal,
+          async notify(notificationMethod, notificationParams) {
+            if (!lifecycle.notificationReady || lifecycle.listener === undefined) {
+              return;
+            }
+            await lifecycle.listener({
+              jsonrpc: "2.0",
+              method: notificationMethod,
+              ...(notificationParams === undefined ? {} : { params: notificationParams })
+            });
+          }
+        });
+        return { result };
+      } catch (error) {
+        return internalError(toErrorMessage(error));
+      }
+    }
+
     return {
       error: {
         code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
@@ -414,7 +451,9 @@ export function createServer(options: ServerOptions): Server {
       initialized: false,
       initializeAccepted: false,
       notificationReady: false,
-      resourceSubscriptions: new Set()
+      resourceSubscriptions: new Set(),
+      abortController: new AbortController(),
+      listener
     };
     messageLifecycles.add(lifecycle);
     if (listener !== undefined) {
@@ -424,6 +463,7 @@ export function createServer(options: ServerOptions): Server {
     return {
       handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
       close: () => {
+        lifecycle.abortController.abort();
         if (listener !== undefined) {
           connectionNotificationListeners.delete(listener);
         }
@@ -584,6 +624,12 @@ export function createServer(options: ServerOptions): Server {
       assertReadableUriTemplate(definition.uriTemplate);
       new UriTemplate(definition.uriTemplate);
       resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
+      return server;
+    },
+
+    method(name: string, handler: CustomMethodHandler): Server {
+      assertNonEmptyName(name, "Method name required");
+      methods.set(name, handler);
       return server;
     },
 

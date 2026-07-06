@@ -13,6 +13,7 @@ import {
   type ParityResult,
   type PipelineStage,
   type RunResult,
+  type StreamRunResult,
   type ServiceCall
 } from "./index.js";
 
@@ -34,6 +35,7 @@ describe("toolcraft testing entrypoint", () => {
     expectTypeOf<ParityResult>().toBeObject();
     expectTypeOf<PipelineStage>().toBeString();
     expectTypeOf<RunResult<unknown>>().toBeObject();
+    expectTypeOf<StreamRunResult<unknown>>().toBeObject();
     expectTypeOf<ServiceCall>().toBeObject();
   });
 });

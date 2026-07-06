@@ -8,7 +8,8 @@ import {
   ToolcraftBugError,
   UserError,
   defineCommand,
-  defineGroup
+  defineGroup,
+  defineStreamCommand
 } from "./index.js";
 
 const loggerState = {
@@ -429,6 +430,67 @@ function createHttpErrorLike(
 }
 
 describe("runCLI", () => {
+  it("renders stream events as NDJSON and cleans up on completion", async () => {
+    const cleanup = vi.fn();
+    const output: string[] = [];
+    const watch = defineStreamCommand({
+      name: "watch",
+      params: S.Object({}),
+      event: S.Object({ state: S.String() }),
+      scope: ["cli"],
+      async *handler() {
+        try {
+          yield { state: "online" };
+          yield { state: "offline" };
+        } finally {
+          cleanup();
+        }
+      }
+    });
+
+    await runCLI(defineGroup({ name: "toolcraft", children: [watch] }), {
+      argv: ["node", "toolcraft", "watch", "--output", "json"],
+      outputEmitter: (entry) => output.push(entry)
+    });
+
+    expect(output).toEqual([
+      JSON.stringify({ state: "online" }),
+      JSON.stringify({ state: "offline" })
+    ]);
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
+  it("cancels a CLI stream on SIGINT and releases resources once", async () => {
+    const cleanup = vi.fn();
+    const output: string[] = [];
+    const watch = defineStreamCommand({
+      name: "watch",
+      params: S.Object({}),
+      event: S.String(),
+      scope: ["cli"],
+      async *handler({ signal }) {
+        try {
+          yield "online";
+          await new Promise<void>((resolve) =>
+            signal.addEventListener("abort", () => resolve(), { once: true })
+          );
+        } finally {
+          cleanup();
+        }
+      }
+    });
+    const run = runCLI(defineGroup({ name: "toolcraft", children: [watch] }), {
+      argv: ["node", "toolcraft", "watch", "--output", "json"],
+      outputEmitter: (entry) => output.push(entry)
+    });
+
+    await vi.waitFor(() => expect(output).toEqual([JSON.stringify("online")]));
+    process.emit("SIGINT");
+    await run;
+
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vol.reset();

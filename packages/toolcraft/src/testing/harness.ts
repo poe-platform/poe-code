@@ -25,6 +25,7 @@ import { fakeFetch, type FetchRoute } from "./fakes.js";
 import { createMemoryFs, type FsChange, type MemoryFs } from "./memory-fs.js";
 import { runParity, type ParityResult } from "./parity.js";
 import { createRenderCapture } from "./render-capture.js";
+import { createManagedStream, type StreamStatusEvent } from "../stream.js";
 
 export type PipelineStage =
   | "resolve"
@@ -88,9 +89,21 @@ export interface RunResult<T> {
 
 export interface CommandTestHarness {
   run<T>(path: string[], params?: Record<string, unknown>): Promise<RunResult<T>>;
+  stream<T>(
+    path: string[],
+    params?: Record<string, unknown>,
+    options?: { limit?: number; signal?: AbortSignal }
+  ): Promise<StreamRunResult<T>>;
   parity(path: string[], params?: Record<string, unknown>): Promise<ParityResult>;
   fs: MemoryFs;
   timeline: EffectEvent[];
+}
+
+export interface StreamRunResult<T> {
+  ok: boolean;
+  events: T[];
+  statuses: StreamStatusEvent[];
+  error?: unknown;
 }
 
 interface ResolvedCommand {
@@ -301,6 +314,79 @@ export function createCommandTestHarness<TServices extends object = EmptyHarness
   return {
     fs: memoryFs,
     timeline: cumulativeTimeline,
+    async stream<T>(
+      requestedPath: string[],
+      inputParams: Record<string, unknown> = {},
+      streamOptions: { limit?: number; signal?: AbortSignal } = {}
+    ): Promise<StreamRunResult<T>> {
+      const events: T[] = [];
+      const statuses: StreamStatusEvent[] = [];
+      try {
+        const resolved = resolveCommand(root, requestedPath);
+        const command = resolved.command;
+        if (command.stream === undefined) {
+          throw new UserError(`Command "${resolved.path.join(".")}" is not a stream.`);
+        }
+        const sealedEnv = createSealedEnv(command.secrets, options.env, options.secrets);
+        const commandSecrets = resolveCommandSecrets(command, sealedEnv);
+        const diagnostics = createRuntimeLogger({
+          level: options.logLevel ?? "debug",
+          logger: () => undefined
+        });
+        const baseContext = {
+          ...(options.services ?? ({} as TServices)),
+          secrets: commandSecrets,
+          fetch: runtimeFetch,
+          fs: memoryFs,
+          env: createEnv(sealedEnv),
+          diagnostics,
+          progress(): void {}
+        };
+        await assertCommandRequirements(command, { ...baseContext, params: undefined }, {
+          apiVersion: options.apiVersion,
+          env: sealedEnv
+        });
+        const schema = filterSchemaForScope(command.params, "sdk");
+        if (schema === undefined || schema.kind !== "object") {
+          throw new ToolcraftBugError(
+            `command "${command.name}" must define an object params schema for SDK.`
+          );
+        }
+        const errors: ValidationError[] = [];
+        const params = validateObjectSchema(schema as ObjectSchema<any>, inputParams, "", errors);
+        throwValidationErrors(errors);
+        const stream = createManagedStream({
+          eventSchema: command.stream.event,
+          signal: streamOptions.signal,
+          onStatus: (event) => statuses.push(event),
+          async create(signal, status) {
+            return await command.handler({
+              ...baseContext,
+              params,
+              signal,
+              status,
+              async refreshSecrets() {
+                return resolveCommandSecrets(command, sealedEnv);
+              }
+            } as never);
+          }
+        });
+        const limit = streamOptions.limit ?? Number.POSITIVE_INFINITY;
+        try {
+          for await (const event of stream) {
+            events.push(event as T);
+            if (events.length >= limit) {
+              break;
+            }
+          }
+        } finally {
+          await stream.cancel();
+        }
+        return { ok: true, events, statuses };
+      } catch (error) {
+        return { ok: false, events, statuses, error };
+      }
+    },
     async parity(
       requestedPath: string[],
       inputParams: Record<string, unknown> = {}

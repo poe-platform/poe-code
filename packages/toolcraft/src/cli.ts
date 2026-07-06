@@ -71,6 +71,7 @@ import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 import { RESERVED_SERVICE_NAMES, createEnv, createFs, validateServices } from "./runtime/io.js";
+import { createManagedStream } from "./stream.js";
 
 export { renderErrorReport } from "./error-report.js";
 export type { ErrorReportRenderContext, ErrorReportRenderResult } from "./error-report.js";
@@ -4841,6 +4842,62 @@ async function executeCommand<TServices extends object>(
         ...preflightContext,
         params
       } as HandlerContext<any, any, TServices>;
+
+      if (state.command.stream !== undefined) {
+        const stream = createManagedStream({
+          eventSchema: state.command.stream.event,
+          onStatus(event) {
+            diagnostics.emit({
+              level: "info",
+              message: event.message ?? event.type,
+              category: "runtime"
+            });
+            if (output === "rich" && event.message !== undefined) {
+              logger.info(event.message);
+            }
+          },
+          async create(signal, status) {
+            return await state.command.handler({
+              ...context,
+              signal,
+              status,
+              async refreshSecrets() {
+                return resolveCommandSecrets(state.command, runtimeEnv);
+              }
+            } as never);
+          }
+        });
+        const interrupt = (): void => {
+          void stream.cancel(new UserError("Operation cancelled."));
+        };
+        process.once("SIGINT", interrupt);
+        try {
+          for await (const event of stream) {
+            if (output === "json") {
+              const line = JSON.stringify(event);
+              if (outputEmitter === undefined) {
+                process.stdout.write(`${line}\n`);
+              } else {
+                outputEmitter(line);
+              }
+            } else {
+              renderResult(
+                state.command,
+                event,
+                output,
+                primitives,
+                outputEmitter === undefined
+                  ? undefined
+                  : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk)
+              );
+            }
+          }
+        } finally {
+          process.removeListener("SIGINT", interrupt);
+          await stream.cancel();
+        }
+        return;
+      }
 
       if (
         state.command.confirm &&

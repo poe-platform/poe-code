@@ -1,6 +1,0 @@
-tasks:
-  - id: echo-test
-    title: Echo test for TUI E2E
-    prompt: |
-      Run `echo "pipeline-dashboard-live"` and report the output. Do not change any files.
-    status: done

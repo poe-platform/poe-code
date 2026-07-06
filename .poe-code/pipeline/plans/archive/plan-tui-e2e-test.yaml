@@ -1,6 +1,0 @@
-tasks:
-  - id: echo-test
-    title: Simple echo for TUI dashboard test
-    prompt: |
-      Run `echo "dashboard-ok"` and report the output. Do not change any files.
-    status: done

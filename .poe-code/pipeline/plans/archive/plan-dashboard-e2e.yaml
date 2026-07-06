@@ -1,7 +1,0 @@
-tasks:
-  - id: dashboard-verify
-    title: Simple echo for dashboard E2E verification
-    prompt: |
-      Run `echo "dashboard-pipeline-ok"` and report the output. Do not change any files.
-    status:
-      implement: done

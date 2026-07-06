@@ -1,6 +1,0 @@
-tasks:
-  - id: echo-live
-    title: Echo test for live TUI E2E
-    prompt: |
-      Run `echo "dashboard-live-ok"` and report the output. Do not change any files.
-    status: done

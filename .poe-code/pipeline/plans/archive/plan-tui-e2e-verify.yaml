@@ -1,6 +1,0 @@
-tasks:
-  - id: echo-verify
-    title: Echo test for TUI dashboard verification
-    prompt: |
-      Run `echo "pipeline-tui-e2e-ok"` and report the output. Do not change any files.
-    status: done

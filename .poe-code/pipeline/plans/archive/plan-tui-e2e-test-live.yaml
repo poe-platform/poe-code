@@ -1,7 +1,0 @@
-tasks:
-  - id: echo-test
-    title: Simple echo test
-    prompt: |
-      Run `echo "dashboard-tui-ok"` and report the output. Do not change any files.
-    status:
-      implement: done

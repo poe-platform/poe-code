@@ -1,6 +1,0 @@
-tasks:
-  - id: tui-verify
-    title: Echo test for TUI dashboard verification
-    prompt: |
-      Run `echo "dashboard-tui-ok"` and report the output. Do not change any files.
-    status: done

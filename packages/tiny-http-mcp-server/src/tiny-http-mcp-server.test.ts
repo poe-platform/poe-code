@@ -1048,7 +1048,7 @@ describe("StreamableHttpTransport", () => {
     await reader.cancel();
   });
 
-  it("rejects follow-up requests without the negotiated protocol version", async () => {
+  it("accepts post-initialize requests without a protocol version header", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
       sessionIdGenerator: () => "session-1",
@@ -1061,19 +1061,87 @@ describe("StreamableHttpTransport", () => {
       params: { protocolVersion: "2025-03-26" },
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
-    const missing = await fixture.request(
-      "POST",
+    await fixture.post(
       { jsonrpc: "2.0", method: "notifications/initialized" },
-      { headers: { Accept: "application/json", "Content-Type": "application/json", "Mcp-Session-Id": sessionId ?? "" } }
-    );
-    const conflicting = await fixture.request(
-      "POST",
-      { jsonrpc: "2.0", method: "notifications/initialized" },
-      { headers: { Accept: "application/json", "Content-Type": "application/json", "Mcp-Session-Id": sessionId ?? "", "MCP-Protocol-Version": "2099-99-99" } }
+      { sessionId }
     );
 
-    expect(missing.status).toBe(400);
-    expect(conflicting.status).toBe(400);
+    const postResponse = await fixture.request(
+      "POST",
+      { jsonrpc: "2.0", id: 2, method: "tools/list" },
+      {
+        headers: {
+          Accept: "application/json, text/event-stream",
+          "Content-Type": "application/json",
+          "Mcp-Session-Id": sessionId ?? "",
+        },
+      }
+    );
+    expect(postResponse.status).toBe(200);
+
+    const getResponse = await fixture.request("GET", undefined, {
+      headers: {
+        Accept: "text/event-stream",
+        "Mcp-Session-Id": sessionId ?? "",
+      },
+    });
+    expect(getResponse.status).toBe(200);
+    await getResponse.body?.cancel();
+
+    const deleteResponse = await fixture.request("DELETE", undefined, {
+      headers: { "Mcp-Session-Id": sessionId ?? "" },
+    });
+    expect(deleteResponse.status).toBe(204);
+  });
+
+  it("rejects a conflicting protocol version on post-initialize requests", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-1",
+    });
+
+    const initializeResponse = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "2025-03-26" },
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
+    await fixture.post(
+      { jsonrpc: "2.0", method: "notifications/initialized" },
+      { sessionId }
+    );
+
+    const headers = {
+      "Mcp-Session-Id": sessionId ?? "",
+      "MCP-Protocol-Version": "2099-99-99",
+    };
+    const postResponse = await fixture.request(
+      "POST",
+      { jsonrpc: "2.0", id: 2, method: "tools/list" },
+      {
+        headers: {
+          Accept: "application/json, text/event-stream",
+          "Content-Type": "application/json",
+          ...headers,
+        },
+      }
+    );
+    const getResponse = await fixture.request("GET", undefined, {
+      headers: { Accept: "text/event-stream", ...headers },
+    });
+    const deleteResponse = await fixture.request("DELETE", undefined, {
+      headers,
+    });
+
+    expect(postResponse.status).toBe(400);
+    expect(getResponse.status).toBe(400);
+    expect(deleteResponse.status).toBe(400);
+
+    const validDeleteResponse = await fixture.request("DELETE", undefined, {
+      headers: { "Mcp-Session-Id": sessionId ?? "" },
+    });
+    expect(validDeleteResponse.status).toBe(204);
   });
 
   it("does not process ordinary methods before initialize in a new session batch", async () => {

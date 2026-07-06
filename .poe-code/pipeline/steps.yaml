@@ -23,6 +23,10 @@ steps:
     prompt: |
       Make sure tests run, and commit all changes
 
+  release:
+    prompt: |
+      Push and watch the release
+
 teardown:
   prompt: |
     Make sure tests run, and commit all changes

@@ -2,16 +2,20 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: extract-runtime-io
     title: Extract shared runtime io module
-    prompt: |
+    prompt: >
       In packages/toolcraft the context-building primitives are copy-pasted four
+
       times: createFs/createEnv in src/sdk.ts (~312/336), src/mcp.ts (~207/231),
+
       src/cli.ts (~3044/3068), src/human-in-loop/runner.ts (~251/275), and
+
       validateServices/RESERVED_SERVICE_NAMES in src/sdk.ts (~344/30) and
+
       src/mcp.ts (~239/44).
+
 
       Create packages/toolcraft/src/runtime/io.ts as the single home:
         export function createFs(fs?: HandlerFs): HandlerFs            // default: current real node:fs/promises-backed impl
@@ -20,20 +24,27 @@ tasks:
         export const RESERVED_SERVICE_NAMES
 
       HandlerFs/HandlerEnv are the interfaces in src/index.ts (~61/74). Switch
-      sdk.ts, mcp.ts, cli.ts, human-in-loop/runner.ts to import from runtime/io.ts
+
+      sdk.ts, mcp.ts, cli.ts, human-in-loop/runner.ts to import from
+      runtime/io.ts
+
       and delete their local copies. Behavior-preserving move: write
+
       src/runtime/io.test.ts (injection, defaults, reserved-name rejection) and
+
       keep the full toolcraft suite green (`npx vitest run packages/toolcraft`
+
       from the repo root).
     status:
       implement: done
       test: done
-
   - id: adapter-injection-options
     title: Add env/fs/outputEmitter injection options to adapters
-    prompt: |
+    prompt: >
       In packages/toolcraft, add hermetic injection options to all three
+
       adapters. CreateSDKOptions (src/sdk.ts), RunMCPOptions (src/mcp.ts), and
+
       RunCLIOptions (src/cli.ts) gain:
 
         env?: Record<string, string>  — passed to resolveCommandSecrets(command, env)
@@ -43,27 +54,38 @@ tasks:
         fs?: HandlerFs — passed to createFs(fs). Default stays the real fs.
 
       Also fix: mcp.ts drops apiVersion when calling assertCommandRequirements
+
       (~mcp.ts:1166) — thread options.apiVersion through like sdk.ts does.
 
+
       RunCLIOptions additionally gains outputEmitter?: (entry) => void, threaded
+
       into the CLI's createLogger(emitter) inside executeCommand (~cli.ts:4704),
+
       so callers capture rendered output without spying on process.stdout.
 
+
       All additive; defaults preserve current behavior; existing sdk/mcp/cli
+
       tests stay green. Add tests proving each option is honored (SDK, then MCP
+
       including the apiVersion fix, then CLI).
     status:
       implement: done
       test: done
-
   - id: testing-fakes
     title: Add memory fs and fake service/fetch helpers
-    prompt: |
+    prompt: >
       Create packages/toolcraft/src/testing/memory-fs.ts and
+
       packages/toolcraft/src/testing/fakes.ts with tests (memory-fs.test.ts,
+
       fakes.test.ts). No new dependencies — do NOT add memfs; HandlerFs
+
       (src/index.ts ~61) is six methods (readFile/writeFile/exists/lstat/
+
       rename/unlink), implement it in-memory directly.
+
 
       memory-fs.ts:
         export function createMemoryFs(files?: Record<string, string>): MemoryFs
@@ -73,12 +95,15 @@ tasks:
         }
         export type FsChange = { op: "writeFile" | "rename" | "unlink"; path: string; to?: string };
       Match real-fs semantics for readFile encoding, exists, lstat, and
+
       missing-file errors.
+
 
       fakes.ts:
         export function fakeService<T extends object>(stubs?: Partial<T>): T & { calls: ServiceCall[] }
         export interface ServiceCall { method: string; args: unknown[]; result?: unknown; error?: unknown }
       Proxy-based; records every call in order; invoking an unstubbed method
+
       throws an error naming the method.
 
         export function fakeFetch(routes: FetchRoute[]): typeof globalThis.fetch & { calls: Request[] }
@@ -91,17 +116,20 @@ tasks:
           error?: Error;
         }
       First matching route wins; unmatched request throws an error listing the
+
       configured routes; every call is recorded.
     status:
       implement: done
       test: done
-
   - id: harness-core
     title: Build createCommandTestHarness core pipeline
-    prompt: |
+    prompt: >
       Create packages/toolcraft/src/testing/harness.ts, fixtures.ts,
+
       harness.test.ts, harness-hermetic.test.ts implementing the in-process
+
       command test harness from GitHub issue #501 (design:
+
       docs/plans/toolcraft-test-harness.md).
 
         export function createCommandTestHarness<TServices extends object = {}>(
@@ -121,15 +149,25 @@ tasks:
           timeline: EffectEvent[]        // cumulative across runs
 
       run() executes the REAL pipeline in production order by reusing the
+
       existing pieces — resolveCommandSecrets and assertCommandRequirements
+
       (src/index.ts ~598/~651), filterSchemaForScope(schema, "sdk")
+
       (src/schema-scope.ts), the SDK validator validateObjectSchema
+
       (src/sdk.ts ~556, export it if needed), invokeWithHumanInLoop
+
       (src/human-in-loop/gate.ts ~31), and buildBaseContext primitives from
+
       src/runtime/io.ts. Do not re-implement validation or secret logic.
+
       Command resolution by path must honor aliases, group `default` commands,
+
       and hidden commands; resolving under an MCP-proxy (deferred) group throws
+
       a UserError saying those need a live server. Params are camelCase.
+
 
       run() never throws. RunResult:
         ok, value, error (raw, never stringified), failedAt (PipelineStage |
@@ -149,28 +187,41 @@ tasks:
         { seq, kind: "progress", message } |
         { seq, kind: "confirm", message, approved }
       Monotonic seq, no timestamps anywhere — two identical runs must
+
       JSON.stringify identically.
 
+
       fixtures.ts defines a fixture group covering: params with defaults,
+
       required + optional secrets, requires.auth + requires.check, a confirm
+
       command, a humanInLoop command, rich/markdown/json renderers, a
+
       service-calling handler, an fs-writing handler, an alias, a group
+
       default, and handlers throwing UserError, an http-errors NotFound, and a
+
       plain Error.
 
+
       harness.test.ts: one describe block per pipeline stage proving correct
+
       failedAt, correct error type, and — for every pre-handler failure —
+
       empty timeline and zero fakeService calls. Success block proves value,
+
       logs, progress, timeline ordering, fsChanges.
 
+
       harness-hermetic.test.ts: poison process.env with a matching secret var
+
       and prove the run still fails at "secrets" (nothing leaked); run one case
+
       twice and assert both serialized results are identical.
     status:
       implement: done
       refactor: done
       test: done
-
   - id: render-capture
     title: Capture rendered output on run results
     prompt: |
@@ -190,13 +241,15 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: surface-parity
     title: Add cross-surface parity runner
-    prompt: |
+    prompt: >
       Add packages/toolcraft/src/testing/parity.ts and a
+
       parity(path, params?): Promise<ParityResult> method on the harness in
+
       packages/toolcraft/src/testing/harness.ts. It runs the same case through
+
       the three REAL adapters in-process, no child processes:
 
         sdk: createSDK(root, { services, env, fs, fetch, apiVersion })
@@ -216,14 +269,17 @@ tasks:
         export interface SurfaceOutcome { ok: boolean; value: unknown; error: unknown }
 
       agree = same ok, deep-equal values, same error class + message; diff is a
+
       human-readable explanation when false. Respect per-surface scope: a
+
       command filtered out of a surface reports that in diff. parity.test.ts:
+
       a success case and a validation-failure case agree across all three; a
+
       scope-limited param yields agree === false with a readable diff.
     status:
       implement: done
       test: done
-
   - id: export-docs-migrate
     title: Export toolcraft/testing, document, migrate exemplar tests
     prompt: |
@@ -247,6 +303,8 @@ tasks:
     status:
       implement: done
       test: done
+name: toolcraft-test-harness
+state: archived
 ---
 
 # Toolcraft command test harness

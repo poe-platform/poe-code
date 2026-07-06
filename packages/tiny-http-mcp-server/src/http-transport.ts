@@ -369,7 +369,7 @@ export class StreamableHttpTransport {
 
         sessionId = headerSessionId;
         this.touchSession(sessionId);
-        if (session?.protocolVersion !== undefined && !this.hasProtocolVersion(req, session.protocolVersion)) {
+        if (session?.protocolVersion !== undefined && !this.acceptsProtocolVersion(req, session.protocolVersion)) {
           this.respondWithStatus(res, 400);
           return;
         }
@@ -553,7 +553,7 @@ export class StreamableHttpTransport {
     if (
       session.initialized
       && session.protocolVersion !== undefined
-      && !this.hasProtocolVersion(req, session.protocolVersion)
+      && !this.acceptsProtocolVersion(req, session.protocolVersion)
     ) {
       this.respondWithStatus(res, 400);
       return;
@@ -623,7 +623,7 @@ export class StreamableHttpTransport {
     }
 
     const session = this.getActiveSession(sessionId);
-    if (session?.protocolVersion !== undefined && !this.hasProtocolVersion(req, session.protocolVersion)) {
+    if (session?.protocolVersion !== undefined && !this.acceptsProtocolVersion(req, session.protocolVersion)) {
       this.respondWithStatus(res, 400);
       return;
     }
@@ -664,10 +664,10 @@ export class StreamableHttpTransport {
     return id !== undefined && id.length > 0 ? id : undefined;
   }
 
-  private hasProtocolVersion(req: IncomingMessage, protocolVersion: string): boolean {
+  private acceptsProtocolVersion(req: IncomingMessage, protocolVersion: string): boolean {
     const value = req.headers["mcp-protocol-version"];
     const header = Array.isArray(value) ? value[0] : value;
-    return header === protocolVersion;
+    return header === undefined || header === protocolVersion;
   }
 
   private readRequestId(req: IncomingMessage): string | undefined {

@@ -1,6 +1,6 @@
 # Error UX QA
 
-This is an ad-hoc QA walkthrough for terminal-pilot. It is not a test runner and must not be wired into CI.
+This is a manual QA walkthrough for Toolcraft error rendering. It is not a test runner and must not be wired into CI.
 
 Run from `packages/toolcraft`:
 
@@ -16,18 +16,18 @@ Fixture command shape:
 node QA-error-ux-fixture/bin.js <command> [args]
 ```
 
-Exercise every section at 60, 100, and 160 columns by repeating the listed terminal-pilot script with `cols=60`, `cols=100`, and `cols=160`. Use `rows=40` unless a section asks for more. Run each section under these ANSI regimes: TTY + colour, TTY + `NO_COLOR=1`, and isTTY=false by appending `2>&1 | cat` to the command in the same terminal-pilot session. For colour runs, leave `NO_COLOR` unset.
+Exercise every section at 60, 100, and 160 columns by repeating the listed terminal automation script with `cols=60`, `cols=100`, and `cols=160`. Use `rows=40` unless a section asks for more. Run each section under these ANSI regimes: TTY + colour, TTY + `NO_COLOR=1`, and isTTY=false by appending `2>&1 | cat` to the command in the same terminal session. For colour runs, leave `NO_COLOR` unset.
 
 ## 1. HttpError Default Render
 
 **What it tests** — `toolcraft-openapi-http-error-context`, `toolcraft-openapi-http-error-render`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`; `NO_COLOR` unset for the first pass.
+**Setup** — `cwd=$REPO/packages/toolcraft`; `NO_COLOR` unset for the first pass.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=40)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=40)
 type("node QA-error-ux-fixture/bin.js throw-http-500\n")
 wait_for(pattern="Re-run with --verbose", timeout=5000)
 read_screen()
@@ -54,12 +54,12 @@ read_screen()
 
 **What it tests** — `toolcraft-openapi-verbose-transcript`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=50)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=50)
 type("node QA-error-ux-fixture/bin.js throw-http-500 --verbose\n")
 wait_for(pattern="Response body:", timeout=5000)
 read_screen()
@@ -91,12 +91,12 @@ read_screen()
 
 **What it tests** — `toolcraft-openapi-http-error-render`, `toolcraft-stack-trim`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=60)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=60)
 type("node QA-error-ux-fixture/bin.js throw-http-500 --debug\n")
 wait_for(pattern="framework / runtime frame hidden", timeout=5000)
 read_screen()
@@ -124,12 +124,12 @@ read_screen()
 
 **What it tests** — visibility gate in `toolcraft-openapi-http-error-render`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=40)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=40)
 type("node QA-error-ux-fixture/bin.js throw-http-500 --help\n")
 wait_for(pattern="Usage:", timeout=5000)
 read_screen()
@@ -151,12 +151,12 @@ read_screen()
 
 **What it tests** — `toolcraft-openapi-spec-source-context`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=40)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=40)
 type("node QA-error-ux-fixture/bin.js throw-http-text-html-404\n")
 wait_for(pattern="No OpenAPI document exists here", timeout=5000)
 read_screen()
@@ -184,12 +184,12 @@ read_screen()
 
 **What it tests** — `toolcraft-openapi-bug-errors-to-user-errors`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=40)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=40)
 type("node QA-error-ux-fixture/bin.js throw-bug\n")
 wait_for(pattern="toolcraft hit an internal invariant", timeout=5000)
 read_screen()
@@ -214,12 +214,12 @@ read_screen()
 
 **What it tests** — `toolcraft-validation-shows-received`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=40)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=40)
 type("node QA-error-ux-fixture/bin.js validate-multi --slug Bad-Value --owner-email ok@example.com --mode safe --yes\n")
 wait_for(pattern="Bad-Value", timeout=5000)
 read_screen()
@@ -242,12 +242,12 @@ read_screen()
 
 **What it tests** — `toolcraft-validation-lists-options`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=50)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=50)
 type("node QA-error-ux-fixture/bin.js union-zero-match --contact-kind email --contact.phone 123 --yes\n")
 wait_for(pattern="Available: contact.email", timeout=5000)
 read_screen()
@@ -274,12 +274,12 @@ read_screen()
 
 **What it tests** — `toolcraft-internal-jargon-pass`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=60)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=60)
 type("node QA-error-ux-fixture/bin.js validate-multi --slug Bad-Value --owner-email nope --mode slow --yes\n")
 wait_for(pattern="3 parameter errors:", timeout=5000)
 read_screen()
@@ -305,12 +305,12 @@ read_screen()
 
 **What it tests** — `toolcraft-cause-chain-on-parse-and-io`, `toolcraft-source-snippet-on-parse`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`; fixture startup writes `QA-error-ux-fixture/bad-preset.json` and `QA-error-ux-fixture/bin.fixture.json`.
+**Setup** — `cwd=$REPO/packages/toolcraft`; fixture startup writes `QA-error-ux-fixture/bad-preset.json` and `QA-error-ux-fixture/bin.fixture.json`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=70)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=70)
 type("node QA-error-ux-fixture/bin.js bad-preset --preset QA-error-ux-fixture/bad-preset.json --yes\n")
 wait_for(pattern="bad-preset.json:2:1", timeout=5000)
 read_screen()
@@ -326,8 +326,8 @@ read_screen()
 - For preset, in order: `1 | {`
 - For preset, in order: `2 | ,`
 - For preset, in order: `| ^`
-- For fixture, in order: `Fixture file /Users/kjopek/Workspace/poe-code/packages/toolcraft/QA-error-ux-fixture/bin.fixture.json is not valid JSON`
-- For fixture, in order: `--> /Users/kjopek/Workspace/poe-code/packages/toolcraft/QA-error-ux-fixture/bin.fixture.json:2:1`
+- For fixture, in order: `Fixture file $REPO/packages/toolcraft/QA-error-ux-fixture/bin.fixture.json is not valid JSON`
+- For fixture, in order: `--> $REPO/packages/toolcraft/QA-error-ux-fixture/bin.fixture.json:2:1`
 - For fixture, in order: `2 | ,`
 
 **Negative checks**
@@ -341,12 +341,12 @@ read_screen()
 
 **What it tests** — `toolcraft-schema-union-context`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=50)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=50)
 type("node QA-error-ux-fixture/bin.js union-zero-match --contact-kind fax --yes\n")
 wait_for(pattern="Expected one of: email, phone", timeout=5000)
 read_screen()
@@ -372,12 +372,12 @@ read_screen()
 
 **What it tests** — `toolcraft-cli-did-you-mean`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`; `POE_KEY=near-miss-token`; `POE_API_KEY` unset.
+**Setup** — `cwd=$REPO/packages/toolcraft`; `POE_KEY=near-miss-token`; `POE_API_KEY` unset.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=70)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=70)
 type("node QA-error-ux-fixture/bin.js widgts\n")
 wait_for(pattern="Did you mean: widgets?", timeout=5000)
 read_screen()
@@ -413,12 +413,12 @@ read_screen()
 
 **What it tests** — `toolcraft-validation-batch`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=50)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=50)
 type("node QA-error-ux-fixture/bin.js validate-multi --slug Bad-Value --owner-email nope --mode slow --yes\n")
 wait_for(pattern="3 parameter errors:", timeout=5000)
 read_screen()
@@ -443,12 +443,12 @@ read_screen()
 
 **What it tests** — `toolcraft-network-error-classify`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=60)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=60)
 type("node QA-error-ux-fixture/bin.js throw-econnrefused\n")
 wait_for(pattern="ECONNREFUSED", timeout=5000)
 read_screen()
@@ -478,12 +478,12 @@ read_screen()
 
 **What it tests** — `toolcraft-help-pointer-on-error`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=60)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=60)
 type("node QA-error-ux-fixture/bin.js widgets create --yes\n")
 wait_for(pattern="widgets create --help", timeout=5000)
 read_screen()
@@ -515,12 +515,12 @@ read_screen()
 
 **What it tests** — `toolcraft-pretty-api-errors`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=70)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=70)
 type("node QA-error-ux-fixture/bin.js throw-http-problem-details --verbose\n")
 wait_for(pattern="Problem: Invalid widget request", timeout=5000)
 read_screen()
@@ -555,12 +555,12 @@ read_screen()
 
 **What it tests** — `toolcraft-error-report-capture`
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`; remove only this fixture's report directory before the run: `rm -rf QA-error-ux-fixture/.toolcraft/errors`.
+**Setup** — `cwd=$REPO/packages/toolcraft`; remove only this fixture's report directory before the run: `rm -rf QA-error-ux-fixture/.toolcraft/errors`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=60)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=60)
 type("rm -rf QA-error-ux-fixture/.toolcraft/errors\n")
 wait_for(pattern="$", timeout=5000)
 type("node QA-error-ux-fixture/bin.js throw-http-401 --verbose\n")
@@ -597,12 +597,12 @@ read_screen()
 
 **What it tests** — current progress rendering before an error; spinner-aware rendering is deferred, but stdout / stderr ordering is still user-visible.
 
-**Setup** — `cwd=/Users/kjopek/Workspace/poe-code/packages/toolcraft`.
+**Setup** — `cwd=$REPO/packages/toolcraft`.
 
 **Terminal-pilot script**
 
 ```text
-create_session(cwd="/Users/kjopek/Workspace/poe-code/packages/toolcraft", cols=100, rows=40)
+create_session(cwd="$REPO/packages/toolcraft", cols=100, rows=40)
 type("node QA-error-ux-fixture/bin.js long-running\n")
 wait_for(pattern="Long-running fixture failed after progress.", timeout=5000)
 read_screen()

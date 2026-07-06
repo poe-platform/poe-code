@@ -8,6 +8,7 @@ agent: claude-code
 #   security_advisory.{ghsa_id,summary,severity,description},
 #   security_vulnerability.first_patched_version.identifier (first safe version)
 ---
+
 Fix {{dependency.package.name}} ({{security_advisory.severity}}): {{security_advisory.summary}}
 
 {{skill_github_cli}}

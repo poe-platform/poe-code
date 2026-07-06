@@ -42,9 +42,7 @@ import * as cache from "@actions/cache";
 await cache.saveCache(["./my-data"], "my-cache-key");
 
 // Restore
-const hit = await cache.restoreCache(["./my-data"], "my-cache-key", [
-  "my-cache-",
-]);
+const hit = await cache.restoreCache(["./my-data"], "my-cache-key", ["my-cache-"]);
 ```
 
 ## Actions Artifacts
@@ -114,10 +112,10 @@ gh variable delete MY_KEY
 
 ## Comparison
 
-| Feature              | Actions Cache  | Actions Artifacts | Repository Variables |
-| -------------------- | -------------- | ----------------- | -------------------- |
-| Storage model        | Key -> files   | Run -> files      | Key -> string        |
-| TTL                  | 7 days (auto)  | 1-90 days         | Manual               |
-| Max size             | 10 GB / repo   | 500 MB / artifact | 48 KB / variable     |
-| API writable         | Yes            | Yes               | Yes                  |
-| Best for             | Build caches, ephemeral shared state | Build outputs, reports | Configuration, flags |
+| Feature       | Actions Cache                        | Actions Artifacts      | Repository Variables |
+| ------------- | ------------------------------------ | ---------------------- | -------------------- |
+| Storage model | Key -> files                         | Run -> files           | Key -> string        |
+| TTL           | 7 days (auto)                        | 1-90 days              | Manual               |
+| Max size      | 10 GB / repo                         | 500 MB / artifact      | 48 KB / variable     |
+| API writable  | Yes                                  | Yes                    | Yes                  |
+| Best for      | Build caches, ephemeral shared state | Build outputs, reports | Configuration, flags |

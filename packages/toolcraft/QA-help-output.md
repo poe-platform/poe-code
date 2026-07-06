@@ -1,6 +1,6 @@
 # Help Output QA
 
-This is an ad-hoc manual QA walkthrough. It is not a test runner and should be executed by a human.
+This is a manual QA walkthrough. It is not a test runner and should be executed by a human.
 
 ## Example Consumer
 

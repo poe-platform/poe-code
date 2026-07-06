@@ -6,6 +6,7 @@ allow:
   - COLLABORATOR
   - CONTRIBUTOR
 ---
+
 Read {{url}} and leave a visible GitHub response.
 
 - Treat every newly opened issue as something that deserves a response. Use the title, body, attachments, and comments when deciding what to do.

@@ -6,6 +6,7 @@ allow:
   - COLLABORATOR
   - CONTRIBUTOR
 ---
+
 Read {{url}} and re-review the updated pull request.
 
 - When posting any multiline GitHub review body, write it with a quoted heredoc and pass it to `gh` with `--body-file` instead of an inline `--body` string.

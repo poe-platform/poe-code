@@ -340,15 +340,24 @@ function renderCompactContextGauge(context: ContextUsage): string {
 function renderTurn(turn: NormalizedTraceTurn, theme: ThemePalette): string[] {
   const renderer = ROLE_RENDERING[turn.role];
   const role = renderer.color(theme)(`${turn.role} ${renderer.glyph}`);
-  const sanitizedText = sanitizeTraceText(turn.text);
+  const shouldCollapse = turn.role === "tool" || turn.role === "system";
+  let sourceText = turn.text;
+  let collapsedLines = 0;
+  if (shouldCollapse) {
+    const cut = lineEndIndex(sourceText, COLLAPSED_TURN_LINES);
+    if (cut !== -1) {
+      collapsedLines = countNewlines(sourceText, cut);
+      sourceText = sourceText.slice(0, cut);
+    }
+  }
+  const sanitizedText = sanitizeTraceText(sourceText);
   const text =
     turn.role === "assistant"
       ? stripAnsi(renderMarkdown(sanitizedText)).trimEnd()
       : sanitizedText.trimEnd();
   const rawLines = text.length === 0 ? [""] : text.split("\n");
-  const shouldCollapse = turn.role === "tool" || turn.role === "system";
   const visibleLines = shouldCollapse ? rawLines.slice(0, COLLAPSED_TURN_LINES) : rawLines;
-  const remaining = rawLines.length - visibleLines.length;
+  const remaining = collapsedLines + rawLines.length - visibleLines.length;
   const prefix = `  ${role} `;
   const continuationPrefix = " ".repeat(plainLength(`  ${turn.role} ${renderer.glyph} `));
   const lines: string[] = [];
@@ -461,7 +470,45 @@ function sanitizeInline(value: string): string {
   return sanitizeTraceText(value).split("\n").join(" ");
 }
 
+function lineEndIndex(value: string, lineCount: number): number {
+  let index = -1;
+  for (let line = 0; line < lineCount; line += 1) {
+    index = value.indexOf("\n", index + 1);
+    if (index === -1) {
+      return -1;
+    }
+  }
+  return index;
+}
+
+function countNewlines(value: string, from: number): number {
+  let count = 0;
+  for (let index = from; index < value.length; index += 1) {
+    if (value.charCodeAt(index) === 10) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function needsSanitize(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if ((code < 32 && code !== 10) || code === 127) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function sanitizeTraceText(value: string): string {
+  if (!needsSanitize(value)) {
+    return value;
+  }
+  return sanitizeTraceTextSlow(value);
+}
+
+function sanitizeTraceTextSlow(value: string): string {
   let result = "";
   let index = 0;
   while (index < value.length) {

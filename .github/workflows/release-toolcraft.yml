@@ -132,6 +132,17 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
+      - name: Wait for Toolcraft registry availability
+        run: |
+          for _ in {1..12}; do
+            if npm view "toolcraft@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
+              && npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 5
+          done
+          npm view "toolcraft@${{ steps.version.outputs.next }}" version
+          npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version
       - name: Verify installed Toolcraft signatures
         run: |
           AUDIT_DIR=$(mktemp -d)

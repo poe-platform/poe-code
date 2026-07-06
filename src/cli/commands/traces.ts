@@ -11,7 +11,6 @@ import { ValidationError } from "../errors.js";
 import { resolveCommandFlags } from "./shared.js";
 
 const TRACE_SOURCES = ["claude", "codex", "poe-code"] as const satisfies AgentTraceSource[];
-const DEFAULT_TRACE_LIMIT = 50;
 
 interface TracesCommandOptions {
   source?: string[];
@@ -50,9 +49,9 @@ function parseSince(value: string | undefined): Date | undefined {
   return new Date(Date.now() - duration);
 }
 
-function parseLimit(value: string | undefined): number {
+function parseLimit(value: string | undefined): number | undefined {
   if (value === undefined) {
-    return DEFAULT_TRACE_LIMIT;
+    return undefined;
   }
 
   const trimmed = value.trim();
@@ -79,7 +78,7 @@ export function registerTracesCommand(program: Command, container: CliContainer)
     .option("--source <sources...>", "Trace sources: claude, codex, poe-code")
     .option("--all-workspaces", "Read traces from every workspace, not just cwd")
     .option("--since <duration>", "Only include recently updated traces")
-    .option("--limit <n>", "Maximum traces listed", String(DEFAULT_TRACE_LIMIT))
+    .option("--limit <n>", "Maximum traces listed")
     .option("--json", "Machine-readable output")
     .action(async function (this: Command, pathArg: string | undefined) {
       const options = this.opts<TracesCommandOptions>();
@@ -97,7 +96,7 @@ export function registerTracesCommand(program: Command, container: CliContainer)
         assumeYes: flags.assumeYes,
         path: pathArg,
         sources: parseTraceSources(options.source),
-        allWorkspaces: options.allWorkspaces === true,
+        allWorkspaces: true,
         since: parseSince(options.since),
         limit: parseLimit(options.limit),
         json

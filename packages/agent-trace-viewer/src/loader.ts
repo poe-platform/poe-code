@@ -36,9 +36,10 @@ export async function listTraces(options: ListTracesOptions): Promise<TraceRefer
     }
   }
 
-  return discovered
-    .sort((left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt))
-    .slice(0, options.limit ?? 50);
+  const sorted = discovered.sort(
+    (left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt)
+  );
+  return options.limit === undefined ? sorted : sorted.slice(0, options.limit);
 }
 
 export async function loadTrace(

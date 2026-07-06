@@ -114,9 +114,24 @@ describe("traces command", () => {
     expect(runTraceViewerMock).toHaveBeenCalledWith(
       expect.objectContaining({
         assumeYes: false,
-        allWorkspaces: false,
-        limit: 50,
+        allWorkspaces: true,
+        sources: undefined,
+        limit: undefined,
         json: true
+      })
+    );
+  });
+
+  it("reads every source and workspace by default without adding a limit", async () => {
+    const { program } = createTracesProgram();
+
+    await program.parseAsync(["node", "cli", "traces", "--yes"]);
+
+    expect(runTraceViewerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allWorkspaces: true,
+        sources: undefined,
+        limit: undefined
       })
     );
   });

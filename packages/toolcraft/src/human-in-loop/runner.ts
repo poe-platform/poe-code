@@ -7,6 +7,12 @@ import { resolveProvider } from "./gate.js";
 import type { ApprovalPayload } from "./approval-tasks.js";
 import type { HumanInLoopRuntimeOptions } from "./types.js";
 import { createRuntimeLogger } from "../runtime-logging.js";
+import {
+  assertApprovalPlanHash,
+  createApprovalPlan,
+  formatApprovalMessage,
+  isApprovalPlanValue
+} from "./plan-hash.js";
 
 interface SerializedJsonResult {
   ok: true;
@@ -49,6 +55,7 @@ export async function runApproval(
   }
 
   try {
+    verifyStoredApprovalPlan(approval);
     const approvalResult = await provider.requestApproval({
       message: approval.message,
       declineInputPrompt: approval.declineInputPrompt ?? undefined
@@ -73,11 +80,35 @@ export async function runApproval(
     return;
   }
 
+  let command: Command<any, any, any, any>;
+  let ctx: HandlerContext<any, any, any>;
+  try {
+    command = findCommand(root, approval.commandPath);
+    ctx = createHandlerContext(command, approval.params);
+    if (approval.planHash !== undefined) {
+      if (command.humanInLoop?.plan === undefined) {
+        throw new UserError("Approval plan can no longer be verified by this command.");
+      }
+      const executionPlan = createApprovalPlan(
+        await command.humanInLoop.plan({
+          params: approval.params,
+          commandPath: approval.commandPath
+        })
+      );
+      assertApprovalPlanHash(approval.planHash, executionPlan.hash);
+    }
+  } catch (error) {
+    await tasks.fire(approvalId, "fail", {
+      metadataPatch: {
+        error: errorMetadataFromUnknown(error)
+      }
+    });
+    return;
+  }
+
   await tasks.fire(approvalId, "start");
 
   try {
-    const command = findCommand(root, approval.commandPath);
-    const ctx = createHandlerContext(command, approval.params);
     const result = await command.handler(ctx);
     const serializedResult = serializeJsonResult(result);
 
@@ -103,6 +134,23 @@ export async function runApproval(
         error: errorMetadataFromUnknown(error)
       }
     });
+  }
+}
+
+function verifyStoredApprovalPlan(approval: ApprovalPayload): void {
+  const hasPlan = approval.plan !== undefined;
+  const hasPlanHash = approval.planHash !== undefined;
+  if (!hasPlan && !hasPlanHash) {
+    return;
+  }
+  if (approval.plan === undefined || approval.planHash === undefined) {
+    throw new UserError("Malformed approval plan metadata.");
+  }
+
+  const storedPlan = createApprovalPlan(approval.plan);
+  assertApprovalPlanHash(approval.planHash, storedPlan.hash);
+  if (!approval.message.endsWith(formatApprovalMessage("", storedPlan))) {
+    throw new UserError("Approval prompt does not match its stored plan hash.");
   }
 }
 
@@ -137,6 +185,8 @@ function readApprovalPayload(task: Task): ApprovalPayload {
     params: metadata.params as Record<string, unknown>,
     message: metadata.message,
     declineInputPrompt,
+    plan: isApprovalPlanValue(metadata.plan) ? metadata.plan : undefined,
+    planHash: typeof metadata.planHash === "string" ? metadata.planHash : undefined,
     enqueuedAt: typeof metadata.enqueuedAt === "string" ? metadata.enqueuedAt : undefined,
     pid: typeof metadata.pid === "number" || metadata.pid === null ? metadata.pid : undefined,
     result: metadata.result,

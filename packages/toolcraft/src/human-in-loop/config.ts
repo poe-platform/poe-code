@@ -29,6 +29,10 @@ export function validateHumanInLoopOnDefine<TParamsSchema extends ObjectSchema<a
   if (typeof config.humanInLoop.message !== "function") {
     throw new Error(`${label} '${config.name}': humanInLoop.message must be a function`);
   }
+
+  if (config.humanInLoop.plan !== undefined && typeof config.humanInLoop.plan !== "function") {
+    throw new Error(`${label} '${config.name}': humanInLoop.plan must be a function`);
+  }
 }
 
 export function mergeHumanInLoopFromGroup<

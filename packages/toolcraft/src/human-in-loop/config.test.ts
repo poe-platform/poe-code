@@ -70,6 +70,21 @@ describe("human-in-loop config", () => {
     ).toThrowError("command 'deploy': humanInLoop.message must be a function");
   });
 
+  it("throws when humanInLoop.plan is not a function", () => {
+    expect(() =>
+      defineCommand({
+        name: "deploy",
+        params: S.Object({}),
+        humanInLoop: {
+          mode: "sync",
+          message: () => "Run deploy?",
+          plan: {} as never
+        },
+        handler: async () => null
+      })
+    ).toThrowError("command 'deploy': humanInLoop.plan must be a function");
+  });
+
   it("exports ApprovalDeclinedError from the package root", () => {
     const error = new ApprovalDeclinedError({
       commandPath: "deploy.production",

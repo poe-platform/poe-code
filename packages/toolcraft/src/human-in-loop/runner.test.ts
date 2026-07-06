@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "../index.js";
 import { enqueueApproval } from "./approval-tasks.js";
+import { createApprovalPlan, formatApprovalMessage } from "./plan-hash.js";
 import { runApproval } from "./runner.js";
 import { approvalStateMachine } from "./state-machine.js";
 import type { HumanInLoopRuntimeOptions } from "./types.js";
@@ -31,6 +32,8 @@ async function createApprovalTask(
     params: Record<string, unknown>;
     message: string;
     declineInputPrompt?: string;
+    plan?: Record<string, unknown>;
+    planHash?: string;
   }
 ): Promise<{ approvalId: string }> {
   const { approvalId } = await enqueueApproval({
@@ -270,6 +273,86 @@ describe("runApproval", () => {
         reason: "Need ticket",
       },
     });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("refuses approved async execution when the persisted plan has drifted", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    const provider: HumanInLoopProvider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" }))
+    };
+    const handler = vi.fn(async () => "done");
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "sync",
+          params: S.Object({}),
+          humanInLoop: {
+            mode: "async",
+            message: () => "Sync?",
+            plan: () => ({ revision: 2 })
+          },
+          handler
+        })
+      ]
+    });
+    const approvedPlan = createApprovalPlan({ revision: 1 });
+    const { approvalId } = await createApprovalTask(tasks, {
+      commandPath: "sync",
+      params: {},
+      message: formatApprovalMessage("Sync?", approvedPlan),
+      plan: approvedPlan.value as Record<string, unknown>,
+      planHash: approvedPlan.hash
+    });
+
+    await runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+
+    const task = await tasks.get(approvalId);
+    expect(task.state).toBe("approved-failed");
+    expect(provider.requestApproval).toHaveBeenCalledTimes(1);
+    expect(readTaskError(task)?.message).toMatch(/Approval plan changed after approval/);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("rejects a tampered queued plan before prompting", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    const provider: HumanInLoopProvider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" }))
+    };
+    const handler = vi.fn(async () => "done");
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "sync",
+          params: S.Object({}),
+          humanInLoop: {
+            mode: "async",
+            message: () => "Sync?",
+            plan: () => ({ revision: 1 })
+          },
+          handler
+        })
+      ]
+    });
+    const { approvalId } = await createApprovalTask(tasks, {
+      commandPath: "sync",
+      params: {},
+      message: "Sync?\n\nPlan:\n{\n  \"revision\": 1\n}\n\nPlan hash: sha256:tampered",
+      plan: { revision: 1 },
+      planHash: "sha256:tampered"
+    });
+
+    await runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+
+    const task = await tasks.get(approvalId);
+    expect(task.state).toBe("approved-failed");
+    expect(provider.requestApproval).not.toHaveBeenCalled();
     expect(handler).not.toHaveBeenCalled();
   });
 

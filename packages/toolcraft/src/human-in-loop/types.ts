@@ -6,6 +6,10 @@ import { UserError } from "../user-error.js";
 export interface HumanInLoopConfig<TParamsSchema extends ObjectSchema<any>> {
   mode: "sync" | "async";
   message: (ctx: { params: Static<TParamsSchema>; commandPath: string }) => string;
+  plan?: (ctx: {
+    params: Static<TParamsSchema>;
+    commandPath: string;
+  }) => unknown | Promise<unknown>;
   declineInputPrompt?: string;
 }
 
@@ -29,6 +33,7 @@ export interface HumanInLoopPending {
   approvalId: string;
   message: string;
   enqueuedAt: string;
+  planHash?: string;
 }
 
 export class ApprovalDeclinedError extends UserError {

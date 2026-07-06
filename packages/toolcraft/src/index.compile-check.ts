@@ -221,6 +221,9 @@ type ignoredHumanInLoopConfigExport = AssertAssignable<
   {
     mode: "sync" | "async";
     message: ({ params, commandPath }: { params: { name: string }; commandPath: string }) => string;
+    plan?: ({ params, commandPath }: { params: { name: string }; commandPath: string }) =>
+      | unknown
+      | Promise<unknown>;
     declineInputPrompt?: string;
   },
   HumanInLoopConfig<typeof ignoredObjectSchema>

@@ -123,6 +123,36 @@ describe("invokeWithHumanInLoop", () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
+  it("prints and re-verifies a deterministic sync approval plan hash", async () => {
+    let revision = 1;
+    const handler = vi.fn(async () => "done");
+    const command = defineCommand({
+      name: "sync",
+      params: S.Object({ name: S.String() }),
+      humanInLoop: {
+        mode: "sync",
+        message: () => "Apply file changes?",
+        plan: () => ({ revision, files: ["flows/morning.json"] })
+      },
+      handler
+    });
+    const provider = mockProvider({ outcome: "approved" });
+    const requestApprovalSpy = vi.spyOn(provider, "requestApproval").mockImplementation(async () => {
+      revision = 2;
+      return { outcome: "approved" };
+    });
+
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), { provider }, "sync")
+    ).rejects.toThrowError(/Approval plan changed after approval/);
+
+    expect(requestApprovalSpy).toHaveBeenCalledWith({
+      message: expect.stringMatching(/^Apply file changes\?\n\nPlan:\n\{\n[\s\S]+\n\}\n\nPlan hash: sha256:[0-9a-f]{64}$/),
+      declineInputPrompt: undefined
+    });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("throws ApprovalDeclinedError without a reason when sync approval is declined", async () => {
     const handler = vi.fn(async () => "done");
     const command = createSyncCommand(handler);
@@ -322,5 +352,57 @@ describe("invokeWithHumanInLoop", () => {
     expect(handler).not.toHaveBeenCalled();
 
     vi.useRealTimers();
+  });
+
+  it("includes the deterministic plan hash in async structured output and records", async () => {
+    const tasks = {
+      name: "approvals",
+      stateMachine: approvalStateMachine,
+      all: vi.fn(async () => []),
+      get: vi.fn(async () => { throw new Error("unused in test"); }),
+      create: vi.fn(async (input) => ({
+        list: "approvals",
+        qualifiedId: `approvals/${input.id}`,
+        id: input.id,
+        name: input.name,
+        description: input.description ?? "",
+        state: "pending" as const,
+        metadata: input.metadata ?? {}
+      })),
+      update: vi.fn(async () => { throw new Error("unused in test"); }),
+      fire: vi.fn(async () => { throw new Error("unused in test"); }),
+      canFire: vi.fn(async () => false),
+      events: vi.fn(async () => []),
+      delete: vi.fn(async () => undefined)
+    } satisfies Tasks;
+    const taskList: TaskList = {
+      list: vi.fn(() => tasks),
+      lists: vi.fn(async () => ["approvals"]),
+      allTasks: vi.fn(async () => []),
+      get: vi.fn(async () => { throw new Error("unused in test"); })
+    };
+    const command = defineCommand({
+      name: "sync",
+      params: S.Object({ name: S.String() }),
+      humanInLoop: {
+        mode: "async",
+        message: () => "Apply file changes?",
+        plan: () => ({ updated: ["flows/morning.json"] })
+      },
+      handler: async () => "done"
+    });
+
+    const result = await invokeWithHumanInLoop(command, createContext(), { taskList }, "sync");
+
+    expect(result).toMatchObject({
+      status: "pending-approval",
+      planHash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/)
+    });
+    expect(tasks.create).toHaveBeenCalledWith(expect.objectContaining({
+      metadata: expect.objectContaining({
+        plan: { updated: ["flows/morning.json"] },
+        planHash: result.planHash
+      })
+    }));
   });
 });

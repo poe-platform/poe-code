@@ -10,6 +10,7 @@ import { randomBytes } from "node:crypto";
 import { UserError } from "../user-error.js";
 import { approvalStateMachine } from "./state-machine.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./types.js";
+import { isApprovalPlanValue, type ApprovalPlanValue } from "./plan-hash.js";
 
 const DEFAULT_LIST_NAME = "approvals";
 
@@ -22,6 +23,8 @@ export interface ApprovalPayload {
   params: Record<string, unknown>;
   message: string;
   declineInputPrompt?: string | null;
+  plan?: ApprovalPlanValue;
+  planHash?: string;
   enqueuedAt?: string;
   pid?: number | null;
   result?: unknown;
@@ -157,28 +160,38 @@ function createApprovalRecord(
 } {
   const approvalId = `${enqueuedAt.slice(0, 19).replaceAll(":", "-")}-${randomBytes(3).toString("hex")}`;
 
-  return {
+  const metadata: Record<string, unknown> = {
+    schemaVersion: 1,
+    approvalId,
+    commandPath: payload.commandPath,
+    params: payload.params,
+    message: payload.message,
+    declineInputPrompt: payload.declineInputPrompt ?? null,
+    enqueuedAt,
+    pid: null,
+    result: null,
+    error: null
+  };
+  const pending: HumanInLoopPending = {
+    status: "pending-approval",
+    approvalId,
+    message: payload.message,
+    enqueuedAt
+  };
+  const approval = {
     approvalId,
     name: `${payload.commandPath} (${enqueuedAt})`,
-    metadata: {
-      schemaVersion: 1,
-      approvalId,
-      commandPath: payload.commandPath,
-      params: payload.params,
-      message: payload.message,
-      declineInputPrompt: payload.declineInputPrompt ?? null,
-      enqueuedAt,
-      pid: null,
-      result: null,
-      error: null
-    },
-    pending: {
-      status: "pending-approval",
-      approvalId,
-      message: payload.message,
-      enqueuedAt
-    }
+    metadata,
+    pending
   };
+
+  if (payload.plan !== undefined && payload.planHash !== undefined) {
+    approval.metadata.plan = payload.plan;
+    approval.metadata.planHash = payload.planHash;
+    approval.pending.planHash = payload.planHash;
+  }
+
+  return approval;
 }
 
 async function createApprovalTask(
@@ -306,6 +319,8 @@ function approvalPayloadFromTask(task: Task): ApprovalPayload | undefined {
       typeof metadata.declineInputPrompt === "string" || metadata.declineInputPrompt === null
         ? metadata.declineInputPrompt
         : undefined,
+    plan: isApprovalPlanValue(metadata.plan) ? metadata.plan : undefined,
+    planHash: typeof metadata.planHash === "string" ? metadata.planHash : undefined,
     enqueuedAt: metadata.enqueuedAt,
     pid: typeof metadata.pid === "number" || metadata.pid === null ? metadata.pid : undefined,
     result: metadata.result,

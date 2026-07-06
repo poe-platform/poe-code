@@ -8,6 +8,11 @@ import type {
   HumanInLoopProvider,
   HumanInLoopRuntimeOptions
 } from "./types.js";
+import {
+  assertApprovalPlanHash,
+  createApprovalPlan,
+  formatApprovalMessage
+} from "./plan-hash.js";
 
 const providersByRuntime = new WeakMap<HumanInLoopRuntimeOptions, HumanInLoopProvider>();
 let providerWithoutRuntime: HumanInLoopProvider | undefined;
@@ -48,10 +53,17 @@ export async function invokeWithHumanInLoop<T>(
     return node.handler(ctx);
   }
 
-  const message = node.humanInLoop.message({
+  const planContext = {
     params: ctx.params,
     commandPath
-  });
+  };
+  const baseMessage = node.humanInLoop.message(planContext);
+  const approvalPlan = node.humanInLoop.plan === undefined
+    ? undefined
+    : createApprovalPlan(await node.humanInLoop.plan(planContext));
+  const message = approvalPlan === undefined
+    ? baseMessage
+    : formatApprovalMessage(baseMessage, approvalPlan);
 
   if (node.humanInLoop.mode === "async") {
     const { tasks } = await ensureApprovalList(runtimeOptions);
@@ -61,6 +73,8 @@ export async function invokeWithHumanInLoop<T>(
         commandPath,
         params: ctx.params,
         message,
+        plan: approvalPlan?.value,
+        planHash: approvalPlan?.hash,
         declineInputPrompt: node.humanInLoop.declineInputPrompt
       }
     });
@@ -83,6 +97,11 @@ export async function invokeWithHumanInLoop<T>(
       reason: result.reason,
       commandPath
     });
+  }
+
+  if (approvalPlan !== undefined && node.humanInLoop.plan !== undefined) {
+    const executionPlan = createApprovalPlan(await node.humanInLoop.plan(planContext));
+    assertApprovalPlanHash(approvalPlan.hash, executionPlan.hash);
   }
 
   return node.handler(ctx);

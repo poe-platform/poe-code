@@ -137,7 +137,11 @@ type Camelize<TValue> = TValue extends Primitive
 type SDKResult<
   TResult,
   THumanInLoopMode extends HumanInLoopMode | undefined
-> = THumanInLoopMode extends "async" ? HumanInLoopPending : TResult;
+> = [THumanInLoopMode] extends ["async"]
+  ? ["async"] extends [THumanInLoopMode]
+    ? HumanInLoopPending
+    : TResult
+  : TResult;
 
 type SDKMethod<TParamsSchema extends ObjectSchema<any>, TResult> = (
   params: Camelize<Static<TParamsSchema>>
@@ -615,18 +619,21 @@ function defineMember(target: Record<string, unknown>, key: string, value: unkno
   });
 }
 
-export function createSDK<TRootInfo, TServices extends object = Record<string, unknown>>(
-  root: Group<any> & {
-    readonly __agentKitGroupTypeInfo: TRootInfo;
-  },
-  options?: CreateSDKOptions<TServices>
-): TRootInfo extends { children: infer TChildren extends readonly unknown[] }
+type SDKRootShape<TRoot> = TRoot extends {
+  readonly __agentKitGroupTypeInfo: {
+    children: infer TChildren extends readonly unknown[];
+  };
+}
   ? SDKChildrenShape<TChildren, undefined, undefined>
-  : EmptyRecord;
-export function createSDK<TServices extends object = Record<string, unknown>>(
-  root: Group<TServices>,
+  : Record<string, unknown>;
+
+export function createSDK<
+  TRoot extends Group<any>,
+  TServices extends object = Record<string, unknown>
+>(
+  root: TRoot,
   options?: CreateSDKOptions<TServices>
-): Record<string, unknown>;
+): SDKRootShape<TRoot>;
 export function createSDK(
   root: Group<any>,
   options: CreateSDKOptions<any> = {}

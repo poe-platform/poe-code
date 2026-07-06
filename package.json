@@ -87,6 +87,7 @@
     "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
     "codegen:harness-schemas": "tsx scripts/generate-harness-schemas.ts",
     "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
+    "smoke:toolcraft-sdk-types": "node scripts/verify-toolcraft-published-sdk-types.mjs",
     "sync-skills": "tsx scripts/sync-skills.ts",
     "postinstall": "node scripts/postinstall-sync-skills.mjs"
   },

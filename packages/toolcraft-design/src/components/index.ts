@@ -18,6 +18,14 @@ export { formatCommandNotFound } from "./command-errors.js";
 export { formatCommandNotFoundPanel } from "./command-errors.js";
 export { renderTable } from "./table.js";
 export type { TableColumn, RenderTableOptions } from "./table.js";
+export { renderFileChanges } from "./file-changes.js";
+export type {
+  FileChange,
+  FileChangeDisplayMode,
+  FileChangeKind,
+  FileChangeOutputFormat,
+  RenderFileChangesOptions
+} from "./file-changes.js";
 export { renderCatalog } from "./catalog.js";
 export type {
   CatalogGroup,

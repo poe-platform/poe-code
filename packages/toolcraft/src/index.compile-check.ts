@@ -1,5 +1,11 @@
 import { S } from "toolcraft-schema";
-import { ApprovalDeclinedError, UserError, defineCommand, defineGroup } from "./index.js";
+import {
+  ApprovalDeclinedError,
+  UserError,
+  defineCommand,
+  defineGroup
+} from "./index.js";
+import { createFileChangeRenderers } from "./file-change-renderer.js";
 import type {
   Command,
   Group,
@@ -60,6 +66,15 @@ const ignoredCommand = defineCommand({
   },
 });
 
+const ignoredFileChangeCommand = defineCommand({
+  name: "status",
+  params: S.Object({}),
+  render: createFileChangeRenderers({ mode: "status" }),
+  handler: async () => ({
+    changes: [{ kind: "added" as const, path: "flows/morning.json", newContent: "{}\n" }]
+  })
+});
+
 const ignoredGroup = defineGroup({
   name: "root",
   scope: ignoredScope,
@@ -99,6 +114,10 @@ const ignoredPlainGroup = defineGroup({
 });
 
 type ignoredCommandExport = AssertAssignable<Command<any, any, any, any>, typeof ignoredCommand>;
+type ignoredFileChangeCommandExport = AssertAssignable<
+  Command<any, any, any, any>,
+  typeof ignoredFileChangeCommand
+>;
 type ignoredGroupExport = AssertAssignable<Group<any>, typeof ignoredGroup>;
 type ignoredMcpGroupExport = AssertAssignable<Group<any>, typeof ignoredMcpGroup>;
 type ignoredToolsGroupExport = AssertAssignable<Group<any>, typeof ignoredToolsGroup>;

@@ -1,5 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -114,6 +121,8 @@ function runConsumerSmoke(projectDir, tarballs) {
         'const composition = await loadToolcraftComposition();',
         'if (composition.schemaVersion !== 1 || !composition.packages.some(({ name }) => name === "toolcraft")) throw new Error("Invalid Toolcraft composition manifest.");',
         'await import("toolcraft/design");',
+        'const fileChanges = await import("toolcraft/file-changes");',
+        'if (typeof fileChanges.createFileChangeRenderers !== "function") throw new Error("Missing createFileChangeRenderers export.");',
         'await import("toolcraft/agent-defs");',
         'await import("toolcraft/agent-human-in-loop");',
         'await import("toolcraft/agent-mcp-config");',
@@ -166,6 +175,17 @@ function runConsumerSmoke(projectDir, tarballs) {
     'Expected generated code to import "toolcraft-openapi".'
   );
 
+  mkdirSync(path.join(projectDir, "src"), { recursive: true });
+  writeFileSync(
+    path.join(projectDir, "src", "file-changes.ts"),
+    [
+      'import { createFileChangeRenderers } from "toolcraft/file-changes";',
+      'import type { FileChange } from "toolcraft";',
+      'const changes = [{ kind: "added", path: "flows/morning.json" }] satisfies FileChange[];',
+      'createFileChangeRenderers().json?.({ changes }, {} as never);'
+    ].join("\n") + "\n"
+  );
+
   execFileSync(process.execPath, [rootTscPath, "-p", "tsconfig.json"], {
     cwd: projectDir,
     stdio: "inherit"
@@ -209,6 +229,7 @@ try {
         "package/dist/index.js",
         "package/dist/cli.js",
         "package/dist/design.js",
+        "package/dist/file-change-renderer.js",
         "package/composition.json",
         "package/LICENSE",
         ...bundledRuntimeDependencies.map(

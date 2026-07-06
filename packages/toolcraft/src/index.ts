@@ -1074,6 +1074,11 @@ export { createRuntimeLogger, isLogLevel, shouldEmitDiagnostic } from "./runtime
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export type { PackageMetadata } from "./package-metadata.js";
 export type {
+  FileChangeRendererOptions,
+  FileChangeResult
+} from "./file-change-renderer.js";
+export type { FileChange, FileChangeDisplayMode, FileChangeKind } from "toolcraft-design";
+export type {
   DiagnosticLogEvent,
   LogLevel,
   RuntimeLogger,

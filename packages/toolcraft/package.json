@@ -70,6 +70,10 @@
       "types": "./dist/frontmatter.d.ts",
       "import": "./dist/frontmatter.js"
     },
+    "./file-changes": {
+      "types": "./dist/file-change-renderer.d.ts",
+      "import": "./dist/file-change-renderer.js"
+    },
     "./process-runner": {
       "types": "./dist/process-runner.d.ts",
       "import": "./dist/process-runner.js"

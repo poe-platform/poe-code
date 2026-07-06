@@ -30,6 +30,14 @@ export { formatCommandNotFound } from "./components/command-errors.js";
 export { formatCommandNotFoundPanel } from "./components/command-errors.js";
 export { renderTable } from "./components/table.js";
 export type { TableColumn, RenderTableOptions } from "./components/table.js";
+export { renderFileChanges } from "./components/file-changes.js";
+export type {
+  FileChange,
+  FileChangeDisplayMode,
+  FileChangeKind,
+  FileChangeOutputFormat,
+  RenderFileChangesOptions
+} from "./components/file-changes.js";
 export { renderCatalog } from "./components/catalog.js";
 export type {
   CatalogGroup,

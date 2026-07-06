@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { renderFileChanges } from "./design.js";
 
 const packageSourceDir = import.meta.dirname;
 
@@ -16,6 +17,14 @@ describe("toolcraft design flat subpath modules", () => {
     expect(readDesignBridge("create-dashboard")).toContain(
       'from "toolcraft-design/create-dashboard"'
     );
+  });
+
+  it("exports file-change rendering through toolcraft/design", () => {
+    expect(
+      renderFileChanges([{ kind: "added", path: "flows/morning.json" }], {
+        format: "markdown"
+      })
+    ).toContain("A  flows/morning.json");
   });
 });
 

@@ -59,4 +59,15 @@ describe("toolcraft package exports", () => {
       import: "./dist/testing/index.js"
     });
   });
+
+  it("exports the bundled file-change renderer", () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
+      exports?: Record<string, { import?: string; types?: string }>;
+    };
+
+    expect(packageJson.exports?.["./file-changes"]).toEqual({
+      types: "./dist/file-change-renderer.d.ts",
+      import: "./dist/file-change-renderer.js"
+    });
+  });
 });

@@ -197,7 +197,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
       release: open
 
   - id: http-session-auth-binding

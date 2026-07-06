@@ -47,6 +47,9 @@ jobs:
         run: npm clean-install
       - name: Build toolcraft and bundled dependencies
         run: npx turbo build --filter=toolcraft
+      - name: Verify published SDK declaration types
+        if: matrix.node-version == 22
+        run: npm run smoke:toolcraft-sdk-types
       - name: Build and start the standalone CLI bundle
         run: npm run smoke:toolcraft-bundle
   publish:
@@ -96,8 +99,6 @@ jobs:
         run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
         run: npm run smoke:toolcraft-standalone
-      - name: Verify published SDK declaration types
-        run: npm run smoke:toolcraft-sdk-types
       - name: Publish agent-defs
         working-directory: packages/agent-defs
         run: npm publish --provenance --access public

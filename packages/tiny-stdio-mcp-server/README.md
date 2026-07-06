@@ -58,7 +58,7 @@ server.tool("search", "Search for things", schema, async ({ query, limit }) => {
 });
 ```
 
-For structured-data tools, pass a root-object output schema. The server advertises it as MCP `Tool.outputSchema`, validates the handler result, returns it as `CallToolResult.structuredContent`, and also includes a JSON text backstop in `content[]` for older clients.
+For structured-data tools, pass a root-object output schema. The server advertises it as MCP `Tool.outputSchema`, validates successful handler results, and returns them as `CallToolResult.structuredContent`. Plain object returns receive a JSON text backstop in `content[]` for older clients. Explicit `CallToolResult` values keep their handler-supplied content blocks; the JSON text backstop is added only when `content` is empty.
 
 ```ts
 const input = defineSchema({
@@ -89,7 +89,11 @@ server.tool(
 );
 ```
 
-Output schemas must have `type: "object"` at the root. Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
+Output schemas must have `type: "object"` at the root because MCP structured content is an object. Otherwise, any schema accepted by Ajv is supported, including composition keywords, nullable type unions, and local `$defs`/`$ref` references. Input and output schemas compile synchronously during `.tool()` or `.registerTool()` registration, so malformed schemas throw immediately instead of failing on the first tool call.
+
+Successful structured results must satisfy `outputSchema`. Validation failures use JSON-RPC `-32602` for inputs and `-32603` for outputs, with Ajv's formatted error text in the message and the raw Ajv error array in `error.data`. Explicit handler results with `isError: true` are passed through unchanged and are exempt from structured-content and output-schema validation.
+
+Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
 
 ### `.listen()`
 

@@ -8,13 +8,19 @@ import { McpClient, StdioTransport } from "tiny-mcp-client";
 const tempDirs: string[] = [];
 const root = process.cwd();
 const tinyStdioEntry = pathToFileURL(
-  path.join(root, "packages/tiny-stdio-mcp-server/dist/index.js")
+  path.join(root, "packages/tiny-stdio-mcp-server/dist/index.js"),
 ).href;
-const toolcraftEntry = pathToFileURL(path.join(root, "packages/toolcraft/dist/index.js")).href;
-const toolcraftMcpEntry = pathToFileURL(path.join(root, "packages/toolcraft/dist/mcp.js")).href;
+const toolcraftEntry = pathToFileURL(
+  path.join(root, "packages/toolcraft/dist/index.js"),
+).href;
+const toolcraftMcpEntry = pathToFileURL(
+  path.join(root, "packages/toolcraft/dist/mcp.js"),
+).href;
 
 async function createServerScript(source: string): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "mcp-typed-output-workflow-"));
+  const dir = await mkdtemp(
+    path.join(os.tmpdir(), "mcp-typed-output-workflow-"),
+  );
   tempDirs.push(dir);
   const scriptPath = path.join(dir, "server.mjs");
   await writeFile(scriptPath, source);
@@ -48,7 +54,9 @@ async function connectToServerScript(scriptPath: string): Promise<{
 }
 
 afterEach(async () => {
-  await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { force: true, recursive: true })));
+  await Promise.all(
+    tempDirs.splice(0).map((dir) => rm(dir, { force: true, recursive: true })),
+  );
 });
 
 describe("MCP typed output real stdio workflows", () => {
@@ -108,16 +116,27 @@ describe("MCP typed output real stdio workflows", () => {
         name: "lookup",
         arguments: { id: "u1" },
       });
-      expect(result.structuredContent).toEqual({ id: "u1", displayName: "Alice" });
+      expect(result.structuredContent).toEqual({
+        id: "u1",
+        displayName: "Alice",
+      });
       expect(result.content).toEqual([
-        { type: "text", text: JSON.stringify({ id: "u1", displayName: "Alice" }) },
+        {
+          type: "text",
+          text: JSON.stringify({ id: "u1", displayName: "Alice" }),
+        },
       ]);
 
-      await expect(client.callTool({ name: "bad_output", arguments: {} })).rejects.toMatchObject({
+      await expect(
+        client.callTool({ name: "bad_output", arguments: {} }),
+      ).rejects.toMatchObject({
         code: -32603,
-        message: "Invalid structured tool result",
+        message: expect.stringContaining("Invalid structured tool result:"),
+        data: [expect.objectContaining({ keyword: "type" })],
       });
-      await expect(client.callTool({ name: "bad_envelope", arguments: {} })).resolves.toMatchObject({
+      await expect(
+        client.callTool({ name: "bad_envelope", arguments: {} }),
+      ).resolves.toMatchObject({
         isError: true,
         content: [{ type: "text", text: "Error: Invalid tool result" }],
       });
@@ -220,9 +239,15 @@ describe("MCP typed output real stdio workflows", () => {
         contact: { email_address: "ops@example.com" },
       };
       expect(result.structuredContent).toEqual(expected);
-      expect(JSON.parse(result.content[0]?.type === "text" ? result.content[0].text : "")).toEqual(expected);
+      expect(
+        JSON.parse(
+          result.content[0]?.type === "text" ? result.content[0].text : "",
+        ),
+      ).toEqual(expected);
 
-      await expect(client.callTool({ name: "broken_route", arguments: {} })).rejects.toMatchObject({
+      await expect(
+        client.callTool({ name: "broken_route", arguments: {} }),
+      ).rejects.toMatchObject({
         code: -32603,
       });
     } finally {

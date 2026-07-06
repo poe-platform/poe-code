@@ -1,5 +1,6 @@
 import * as readline from "readline";
 import AjvModule from "ajv";
+import type { ValidateFunction } from "ajv";
 import uriTemplateParser from "uri-template";
 import UriTemplate from "uri-template-lite";
 import type {
@@ -25,7 +26,6 @@ import type {
   JSONRPCRequest,
   JSONRPCResponse,
   JSONRPCNotification,
-  JSONSchemaProperty,
 } from "./types.js";
 import { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";
 import {
@@ -49,17 +49,20 @@ export interface Server {
     description: string,
     inputSchema: TypedSchema<TIn>,
     handler: ToolHandler<TIn, TOut>,
-    outputSchema?: TypedSchema<TOut>
+    outputSchema?: TypedSchema<TOut>,
   ): Server;
   registerTool<TIn, TOut = never>(
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
-    handler: ToolHandler<TIn, TOut>
+    handler: ToolHandler<TIn, TOut>,
   ): Server;
   prompt(definition: Prompt, handler: PromptHandler): Server;
   resource(definition: Resource, handler: ResourceHandler): Server;
-  resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server;
+  resourceTemplate(
+    definition: ResourceTemplate,
+    handler: ResourceHandler,
+  ): Server;
   onNotification(
-    listener: (notification: JSONRPCNotification) => void
+    listener: (notification: JSONRPCNotification) => void,
   ): () => void;
   removeTool(name: string): boolean;
   removePrompt(name: string): boolean;
@@ -70,11 +73,11 @@ export interface Server {
   notifyResourcesChanged(): Promise<void>;
   notifyResourceUpdated(uri: string): Promise<void>;
   createMessageSession(
-    listener?: (notification: JSONRPCNotification) => void | Promise<void>
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>,
   ): MessageSession;
   handleMessage(
     method: string,
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
   ): Promise<HandleResult>;
   listen(): Promise<void>;
   connect(transport: Transport): Promise<void>;
@@ -83,7 +86,7 @@ export interface Server {
 
 export type MessageHandler = (
   method: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
 ) => Promise<HandleResult>;
 
 export interface MessageSession {
@@ -98,12 +101,18 @@ interface LifecycleState {
   resourceSubscriptions: Set<string>;
 }
 
+interface RegisteredToolDefinition extends ToolDefinition {
+  inputValidator: ValidateFunction;
+  outputValidator?: ValidateFunction;
+}
+
 export function createServer(options: ServerOptions): Server {
   const Ajv = "default" in AjvModule ? AjvModule.default : AjvModule;
   const jsonSchemaValidator = new Ajv({ strict: false });
   const supportNotifications = options.supportNotifications !== false;
-  const supportResourceSubscriptions = options.supportResourceSubscriptions !== false;
-  const tools = new Map<string, ToolDefinition>();
+  const supportResourceSubscriptions =
+    options.supportResourceSubscriptions !== false;
+  const tools = new Map<string, RegisteredToolDefinition>();
   const prompts = new Map<string, PromptDefinition>();
   const resources = new Map<string, ResourceDefinition>();
   const resourceTemplates = new Map<string, ResourceTemplateDefinition>();
@@ -125,7 +134,7 @@ export function createServer(options: ServerOptions): Server {
   const handleMessageWithLifecycle = async (
     method: string,
     lifecycle: LifecycleState,
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
   ): Promise<HandleResult> => {
     // Allow ping and initialize before initialization
     if (method === "ping") {
@@ -147,7 +156,8 @@ export function createServer(options: ServerOptions): Server {
           : undefined;
       const result: InitializeResult = {
         protocolVersion:
-          requestedProtocol !== undefined && SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
+          requestedProtocol !== undefined &&
+          SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
             ? requestedProtocol
             : PROTOCOL_VERSION,
         capabilities: {
@@ -198,7 +208,10 @@ export function createServer(options: ServerOptions): Server {
       const toolList: Tool[] = [];
       for (const tool of tools.values()) {
         const descriptor = { ...tool };
-        delete (descriptor as Partial<ToolDefinition>).handler;
+        delete (descriptor as Partial<RegisteredToolDefinition>).handler;
+        delete (descriptor as Partial<RegisteredToolDefinition>).inputValidator;
+        delete (descriptor as Partial<RegisteredToolDefinition>)
+          .outputValidator;
         toolList.push({
           ...(descriptor as Tool),
         });
@@ -229,11 +242,16 @@ export function createServer(options: ServerOptions): Server {
       }
 
       const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
-      if (options.validateToolArguments !== false && !jsonSchemaValidator.validate(tool.inputSchema, toolArgs)) {
+      if (
+        options.validateToolArguments !== false &&
+        !tool.inputValidator(toolArgs)
+      ) {
+        const errors = tool.inputValidator.errors ?? [];
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            message: "Invalid tool arguments",
+            message: `Invalid tool arguments: ${jsonSchemaValidator.errorsText(errors)}`,
+            data: errors,
           },
         };
       }
@@ -241,10 +259,16 @@ export function createServer(options: ServerOptions): Server {
       try {
         const handlerResult = await tool.handler(toolArgs);
         const result = normalizeToolResult(handlerResult, tool.outputSchema);
-        if (tool.outputSchema !== undefined && !jsonSchemaValidator.validate(tool.outputSchema, result.structuredContent)) {
+        if (
+          result.isError !== true &&
+          tool.outputValidator !== undefined &&
+          !tool.outputValidator(result.structuredContent)
+        ) {
+          const errors = tool.outputValidator.errors ?? [];
           throw new ToolError(
             JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-            "Invalid structured tool result"
+            `Invalid structured tool result: ${jsonSchemaValidator.errorsText(errors)}`,
+            errors,
           );
         }
         return { result };
@@ -259,8 +283,7 @@ export function createServer(options: ServerOptions): Server {
           };
         }
 
-        const errorMessage =
-          err instanceof Error ? err.message : String(err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
         const result: CallToolResult = {
           content: [{ type: "text", text: `Error: ${errorMessage}` }],
           isError: true,
@@ -272,13 +295,16 @@ export function createServer(options: ServerOptions): Server {
     if (method === "prompts/list") {
       return {
         result: {
-          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => prompt),
+          prompts: [...prompts.values()].map(
+            ({ handler: _handler, ...prompt }) => prompt,
+          ),
         },
       };
     }
 
     if (method === "prompts/get") {
-      const promptName = typeof params?.name === "string" ? params.name : undefined;
+      const promptName =
+        typeof params?.name === "string" ? params.name : undefined;
       if (promptName === undefined) {
         return invalidParams("Prompt name required");
       }
@@ -307,7 +333,9 @@ export function createServer(options: ServerOptions): Server {
     if (method === "resources/list") {
       return {
         result: {
-          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => resource),
+          resources: [...resources.values()].map(
+            ({ handler: _handler, ...resource }) => resource,
+          ),
         },
       };
     }
@@ -316,7 +344,7 @@ export function createServer(options: ServerOptions): Server {
       return {
         result: {
           resourceTemplates: [...resourceTemplates.values()].map(
-            ({ handler: _handler, ...resourceTemplate }) => resourceTemplate
+            ({ handler: _handler, ...resourceTemplate }) => resourceTemplate,
           ),
         },
       };
@@ -344,7 +372,10 @@ export function createServer(options: ServerOptions): Server {
       }
     }
 
-    if (method === "resources/subscribe" || method === "resources/unsubscribe") {
+    if (
+      method === "resources/subscribe" ||
+      method === "resources/unsubscribe"
+    ) {
       if (!supportResourceSubscriptions) {
         return {
           error: {
@@ -358,8 +389,8 @@ export function createServer(options: ServerOptions): Server {
         return invalidParams("Resource URI required");
       }
       if (
-        method === "resources/subscribe"
-        && findReadableResource(uri, resources, resourceTemplates) === undefined
+        method === "resources/subscribe" &&
+        findReadableResource(uri, resources, resourceTemplates) === undefined
       ) {
         return resourceNotFound(uri);
       }
@@ -381,7 +412,7 @@ export function createServer(options: ServerOptions): Server {
   };
 
   const createMessageSession = (
-    listener?: (notification: JSONRPCNotification) => void | Promise<void>
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>,
   ): MessageSession => {
     const lifecycle: LifecycleState = {
       initialized: false,
@@ -395,7 +426,8 @@ export function createServer(options: ServerOptions): Server {
     }
 
     return {
-      handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
+      handleMessage: (method, params) =>
+        handleMessageWithLifecycle(method, lifecycle, params),
       close: () => {
         if (listener !== undefined) {
           connectionNotificationListeners.delete(listener);
@@ -411,7 +443,7 @@ export function createServer(options: ServerOptions): Server {
   const processLine = async (
     line: string,
     write: (data: string) => void,
-    messageHandler: MessageHandler
+    messageHandler: MessageHandler,
   ): Promise<void> => {
     const parsed = parseMessage(line);
 
@@ -428,10 +460,12 @@ export function createServer(options: ServerOptions): Server {
 
     if (!isNotification && request.method === "notifications/initialized") {
       const requestWithId = request as JSONRPCRequest;
-      write(formatErrorResponse(requestWithId.id, {
-        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
-      }) + "\n");
+      write(
+        formatErrorResponse(requestWithId.id, {
+          code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+          message: "Invalid Request",
+        }) + "\n",
+      );
       return;
     }
 
@@ -445,7 +479,7 @@ export function createServer(options: ServerOptions): Server {
           formatErrorResponse(requestWithId.id, {
             code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
             message: "Internal error",
-          }) + "\n"
+          }) + "\n",
         );
       }
       return;
@@ -469,7 +503,7 @@ export function createServer(options: ServerOptions): Server {
   const broadcastNotification = async (
     method: string,
     params?: Record<string, unknown>,
-    canSend: (lifecycle: LifecycleState) => boolean = () => true
+    canSend: (lifecycle: LifecycleState) => boolean = () => true,
   ): Promise<void> => {
     const notification: JSONRPCNotification = {
       jsonrpc: "2.0",
@@ -482,11 +516,13 @@ export function createServer(options: ServerOptions): Server {
     }
 
     await Promise.all(
-      [...connectionNotificationListeners].map(async ([listener, lifecycle]) => {
-        if (lifecycle.notificationReady && canSend(lifecycle)) {
-          await listener(notification);
-        }
-      })
+      [...connectionNotificationListeners].map(
+        async ([listener, lifecycle]) => {
+          if (lifecycle.notificationReady && canSend(lifecycle)) {
+            await listener(notification);
+          }
+        },
+      ),
     );
   };
 
@@ -496,33 +532,51 @@ export function createServer(options: ServerOptions): Server {
       description: string,
       inputSchema: TypedSchema<TIn>,
       handler: ToolHandler<TIn, TOut>,
-      outputSchema?: TypedSchema<TOut>
+      outputSchema?: TypedSchema<TOut>,
     ): Server {
       assertNonEmptyName(name, "Tool name required");
+      const inputValidator = jsonSchemaValidator.compile(
+        inputSchema as JSONSchema,
+      );
+      let outputValidator: ValidateFunction | undefined;
       if (outputSchema !== undefined) {
-        assertSupportedOutputSchema(outputSchema);
+        assertObjectRootSchema(outputSchema, "outputSchema");
+        outputValidator = jsonSchemaValidator.compile(
+          outputSchema as JSONSchema,
+        );
       }
       tools.set(name, {
         name,
         description,
         inputSchema: inputSchema as JSONSchema,
-        ...(outputSchema === undefined ? {} : { outputSchema: outputSchema as JSONSchema }),
+        ...(outputSchema === undefined
+          ? {}
+          : { outputSchema: outputSchema as JSONSchema }),
         handler: handler as ToolHandler,
+        inputValidator,
+        ...(outputValidator === undefined ? {} : { outputValidator }),
       });
       return server;
     },
 
     registerTool<TIn, TOut = never>(
       definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
-      handler: ToolHandler<TIn, TOut>
+      handler: ToolHandler<TIn, TOut>,
     ): Server {
       assertNonEmptyName(definition.name, "Tool name required");
+      const inputValidator = jsonSchemaValidator.compile(
+        definition.inputSchema,
+      );
+      let outputValidator: ValidateFunction | undefined;
       if (definition.outputSchema !== undefined) {
-        assertSupportedOutputSchema(definition.outputSchema);
+        assertObjectRootSchema(definition.outputSchema, "outputSchema");
+        outputValidator = jsonSchemaValidator.compile(definition.outputSchema);
       }
       tools.set(definition.name, {
         ...definition,
         handler: handler as ToolHandler,
+        inputValidator,
+        ...(outputValidator === undefined ? {} : { outputValidator }),
       });
       return server;
     },
@@ -541,7 +595,10 @@ export function createServer(options: ServerOptions): Server {
       return server;
     },
 
-    resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server {
+    resourceTemplate(
+      definition: ResourceTemplate,
+      handler: ResourceHandler,
+    ): Server {
       assertReadableUriTemplate(definition.uriTemplate);
       new UriTemplate(definition.uriTemplate);
       resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
@@ -549,7 +606,7 @@ export function createServer(options: ServerOptions): Server {
     },
 
     onNotification(
-      listener: (notification: JSONRPCNotification) => void
+      listener: (notification: JSONRPCNotification) => void,
     ): () => void {
       notificationListeners.add(listener);
       return () => {
@@ -574,19 +631,28 @@ export function createServer(options: ServerOptions): Server {
     },
 
     async notifyToolsChanged(): Promise<void> {
-      if (supportNotifications && [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)) {
+      if (
+        supportNotifications &&
+        [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)
+      ) {
         await broadcastNotification("notifications/tools/list_changed");
       }
     },
 
     async notifyPromptsChanged(): Promise<void> {
-      if (supportNotifications && [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)) {
+      if (
+        supportNotifications &&
+        [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)
+      ) {
         await broadcastNotification("notifications/prompts/list_changed");
       }
     },
 
     async notifyResourcesChanged(): Promise<void> {
-      if (supportNotifications && [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)) {
+      if (
+        supportNotifications &&
+        [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)
+      ) {
         await broadcastNotification("notifications/resources/list_changed");
       }
     },
@@ -598,7 +664,7 @@ export function createServer(options: ServerOptions): Server {
       await broadcastNotification(
         "notifications/resources/updated",
         { uri },
-        (lifecycle) => lifecycle.resourceSubscriptions.has(uri)
+        (lifecycle) => lifecycle.resourceSubscriptions.has(uri),
       );
     },
 
@@ -628,7 +694,7 @@ export function createServer(options: ServerOptions): Server {
           const message = processLine(
             line,
             (data) => transport.writable.write(data),
-            session.handleMessage
+            session.handleMessage,
           );
           pendingMessages.add(message);
           void message.finally(() => {
@@ -646,7 +712,8 @@ export function createServer(options: ServerOptions): Server {
 
     async connectSDK(transport: SDKTransport): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        const listener = (notification: JSONRPCNotification) => transport.send(notification);
+        const listener = (notification: JSONRPCNotification) =>
+          transport.send(notification);
         const session = server.createMessageSession(listener);
 
         transport.onmessage = async (message: JSONRPCMessage) => {
@@ -684,7 +751,10 @@ export function createServer(options: ServerOptions): Server {
           const request = message as JSONRPCRequest;
           let handled: HandleResult;
           try {
-            handled = await session.handleMessage(request.method, request.params);
+            handled = await session.handleMessage(
+              request.method,
+              request.params,
+            );
           } catch {
             await transport.send({
               jsonrpc: "2.0",
@@ -781,9 +851,13 @@ function assertNonEmptyName(name: string, message: string): void {
 function assertReadableUriTemplate(uriTemplate: string): void {
   const parsed = uriTemplateParser.parse(uriTemplate);
   const expanded = parsed.expand(
-    new Proxy({}, {
-      get: (_target, property) => typeof property === "string" ? "value" : undefined,
-    })
+    new Proxy(
+      {},
+      {
+        get: (_target, property) =>
+          typeof property === "string" ? "value" : undefined,
+      },
+    ),
   );
 
   if (typeof expanded !== "string" || !isValidUri(expanded)) {
@@ -811,17 +885,18 @@ function toStringArguments(value: unknown): Record<string, string> | undefined {
 
 function hasRequiredPromptArguments(
   prompt: PromptDefinition,
-  args: Record<string, string>
+  args: Record<string, string>,
 ): boolean {
   return (prompt.arguments ?? []).every(
-    (argument) => argument.required !== true || args[argument.name] !== undefined
+    (argument) =>
+      argument.required !== true || args[argument.name] !== undefined,
   );
 }
 
 function findReadableResource(
   uri: string,
   resources: Map<string, ResourceDefinition>,
-  resourceTemplates: Map<string, ResourceTemplateDefinition>
+  resourceTemplates: Map<string, ResourceTemplateDefinition>,
 ): ResourceDefinition | ResourceTemplateDefinition | undefined {
   const resource = resources.get(uri);
   if (resource !== undefined) {
@@ -829,7 +904,7 @@ function findReadableResource(
   }
 
   return [...resourceTemplates.values()].find((template) =>
-    matchesUriTemplate(template.uriTemplate, uri)
+    matchesUriTemplate(template.uriTemplate, uri),
   );
 }
 
@@ -847,23 +922,23 @@ function isCallToolResult(value: unknown): value is CallToolResult {
   }
 
   if (
-    hasOwnProperty(value, "structuredContent")
-    && value.structuredContent !== undefined
-    && !isJsonObject(value.structuredContent)
+    hasOwnProperty(value, "structuredContent") &&
+    value.structuredContent !== undefined &&
+    !isJsonObject(value.structuredContent)
   ) {
     return false;
   }
 
   return !(
-    hasOwnProperty(value, "isError")
-    && value.isError !== undefined
-    && typeof value.isError !== "boolean"
+    hasOwnProperty(value, "isError") &&
+    value.isError !== undefined &&
+    typeof value.isError !== "boolean"
   );
 }
 
 function normalizeToolResult(
   handlerResult: unknown,
-  outputSchema: JSONSchema | undefined
+  outputSchema: JSONSchema | undefined,
 ): CallToolResult {
   if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
     throw new Error("Invalid tool result");
@@ -880,29 +955,34 @@ function normalizeToolResult(
     return result;
   }
 
-  const structuredContent = isCallToolResult(handlerResult)
-    ? handlerResult.structuredContent
+  if (isCallToolResult(handlerResult) && handlerResult.isError === true) {
+    return handlerResult;
+  }
+
+  const callToolResult = isCallToolResult(handlerResult)
+    ? handlerResult
+    : undefined;
+  const structuredContent = callToolResult
+    ? callToolResult.structuredContent
     : handlerResult;
 
   if (!isJsonObject(structuredContent)) {
     throw new ToolError(
       JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-      "Structured tool result must be an object"
+      "Structured tool result must be an object",
     );
   }
 
   return {
-    content: [{ type: "text", text: JSON.stringify(structuredContent) }],
-    ...(isCallToolResult(handlerResult) && handlerResult.isError !== undefined
-      ? { isError: handlerResult.isError }
+    content:
+      callToolResult !== undefined && callToolResult.content.length > 0
+        ? callToolResult.content
+        : [{ type: "text", text: JSON.stringify(structuredContent) }],
+    ...(callToolResult?.isError !== undefined
+      ? { isError: callToolResult.isError }
       : {}),
     structuredContent,
   };
-}
-
-function assertSupportedOutputSchema(schema: JSONSchema): void {
-  assertObjectRootSchema(schema, "outputSchema");
-  assertSupportedJsonSchema(schema, "outputSchema");
 }
 
 function assertObjectRootSchema(schema: JSONSchema, path: string): void {
@@ -911,119 +991,65 @@ function assertObjectRootSchema(schema: JSONSchema, path: string): void {
   }
 }
 
-function assertSupportedJsonSchema(schema: JSONSchemaProperty, path: string): void {
-  for (const keyword of ["anyOf", "allOf", "not", "if", "then", "else", "contains", "prefixItems"]) {
-    if (schema[keyword] !== undefined) {
-      throw new Error(`${path} uses unsupported keyword "${keyword}"`);
-    }
-  }
-
-  const type = schema.type;
-  if (Array.isArray(type)) {
-    const supported = new Set(["string", "number", "integer", "boolean", "object", "array", "null"]);
-    for (const item of type) {
-      if (!supported.has(item)) {
-        throw new Error(`${path} uses unsupported type "${item}"`);
-      }
-    }
-  } else if (
-    type !== undefined &&
-    type !== "string" &&
-    type !== "number" &&
-    type !== "integer" &&
-    type !== "boolean" &&
-    type !== "object" &&
-    type !== "array"
-  ) {
-    throw new Error(`${path} uses unsupported type "${type}"`);
-  }
-
-  if (isJsonObject(schema.properties)) {
-    for (const [key, child] of Object.entries(schema.properties)) {
-      if (isJsonObject(child)) {
-        assertSupportedJsonSchema(child as JSONSchemaProperty, `${path}.properties.${key}`);
-      } else {
-        throw new Error(`${path}.properties.${key} must be an object schema`);
-      }
-    }
-  } else if (schema.properties !== undefined) {
-    throw new Error(`${path}.properties must be an object`);
-  }
-
-  const additionalProperties = schema.additionalProperties;
-  if (typeof additionalProperties === "object" && additionalProperties !== null) {
-    if (Array.isArray(additionalProperties)) {
-      throw new Error(`${path}.additionalProperties must be an object schema or boolean`);
-    }
-    assertSupportedJsonSchema(additionalProperties as JSONSchemaProperty, `${path}.additionalProperties`);
-  } else if (
-    additionalProperties !== undefined
-    && typeof additionalProperties !== "boolean"
-  ) {
-    throw new Error(`${path}.additionalProperties must be an object schema or boolean`);
-  }
-
-  const items = schema.items;
-  if (Array.isArray(items)) {
-    throw new Error(`${path}.items uses unsupported tuple array schemas`);
-  }
-  if (typeof items === "object" && items !== null && !Array.isArray(items)) {
-    assertSupportedJsonSchema(items as JSONSchemaProperty, `${path}.items`);
-  } else if (items !== undefined && typeof items !== "boolean") {
-    throw new Error(`${path}.items must be an object schema or boolean`);
-  }
-
-  const oneOf = schema.oneOf;
-  if (Array.isArray(oneOf)) {
-    for (const [index, child] of oneOf.entries()) {
-      if (typeof child === "object" && child !== null && !Array.isArray(child)) {
-        assertSupportedJsonSchema(child as JSONSchemaProperty, `${path}.oneOf[${index}]`);
-      } else {
-        throw new Error(`${path}.oneOf[${index}] must be an object schema`);
-      }
-    }
-  } else if (oneOf !== undefined) {
-    throw new Error(`${path}.oneOf must be an array`);
-  }
-}
-
 function isJsonObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isGetPromptResult(value: unknown): boolean {
-  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "messages")) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !hasOwnProperty(value, "messages")
+  ) {
     return false;
   }
 
-  return (!hasOwnProperty(value, "description") || value.description === undefined || typeof value.description === "string")
-    && Array.isArray(value.messages)
-    && value.messages.every((message) =>
-      typeof message === "object"
-      && message !== null
-      && hasOwnProperty(message, "role")
-      && (message.role === "user" || message.role === "assistant")
-      && hasOwnProperty(message, "content")
-      && isPromptContentItem(message.content)
-    );
+  return (
+    (!hasOwnProperty(value, "description") ||
+      value.description === undefined ||
+      typeof value.description === "string") &&
+    Array.isArray(value.messages) &&
+    value.messages.every(
+      (message) =>
+        typeof message === "object" &&
+        message !== null &&
+        hasOwnProperty(message, "role") &&
+        (message.role === "user" || message.role === "assistant") &&
+        hasOwnProperty(message, "content") &&
+        isPromptContentItem(message.content),
+    )
+  );
 }
 
 function isReadResourceResult(value: unknown): boolean {
-  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "contents")) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !hasOwnProperty(value, "contents")
+  ) {
     return false;
   }
 
-  return Array.isArray(value.contents)
-    && value.contents.every(isResourceContents);
+  return (
+    Array.isArray(value.contents) && value.contents.every(isResourceContents)
+  );
 }
 
 function hasContentArray(value: unknown): value is { content: unknown[] } {
-  return typeof value === "object" && value !== null && hasOwnProperty(value, "content")
-    && Array.isArray((value as { content: unknown }).content);
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "content") &&
+    Array.isArray((value as { content: unknown }).content)
+  );
 }
 
 function isContentItem(value: unknown): boolean {
-  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "type")) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !hasOwnProperty(value, "type")
+  ) {
     return false;
   }
 
@@ -1037,30 +1063,42 @@ function isContentItem(value: unknown): boolean {
   }
 
   if (block.type === "image" || block.type === "audio") {
-    return hasOwnProperty(block, "data")
-      && typeof block.data === "string"
-      && isBase64(block.data)
-      && hasOwnProperty(block, "mimeType")
-      && typeof block.mimeType === "string";
+    return (
+      hasOwnProperty(block, "data") &&
+      typeof block.data === "string" &&
+      isBase64(block.data) &&
+      hasOwnProperty(block, "mimeType") &&
+      typeof block.mimeType === "string"
+    );
   }
 
   if (block.type === "resource_link") {
-    return hasOwnProperty(block, "uri")
-      && typeof block.uri === "string"
-      && isValidUri(block.uri)
-      && hasOwnProperty(block, "name")
-      && typeof block.name === "string"
-      && (!hasOwnProperty(block, "title") || block.title === undefined || typeof block.title === "string")
-      && (!hasOwnProperty(block, "description") || block.description === undefined || typeof block.description === "string")
-      && (!hasOwnProperty(block, "mimeType") || block.mimeType === undefined || typeof block.mimeType === "string")
-      && (!hasOwnProperty(block, "size") || block.size === undefined || typeof block.size === "number");
+    return (
+      hasOwnProperty(block, "uri") &&
+      typeof block.uri === "string" &&
+      isValidUri(block.uri) &&
+      hasOwnProperty(block, "name") &&
+      typeof block.name === "string" &&
+      (!hasOwnProperty(block, "title") ||
+        block.title === undefined ||
+        typeof block.title === "string") &&
+      (!hasOwnProperty(block, "description") ||
+        block.description === undefined ||
+        typeof block.description === "string") &&
+      (!hasOwnProperty(block, "mimeType") ||
+        block.mimeType === undefined ||
+        typeof block.mimeType === "string") &&
+      (!hasOwnProperty(block, "size") ||
+        block.size === undefined ||
+        typeof block.size === "number")
+    );
   }
 
   if (
-    block.type !== "resource"
-    || !hasOwnProperty(block, "resource")
-    || typeof block.resource !== "object"
-    || block.resource === null
+    block.type !== "resource" ||
+    !hasOwnProperty(block, "resource") ||
+    typeof block.resource !== "object" ||
+    block.resource === null
   ) {
     return false;
   }
@@ -1070,25 +1108,36 @@ function isContentItem(value: unknown): boolean {
 
 function isResourceContents(value: unknown): boolean {
   if (
-    typeof value !== "object"
-    || value === null
-    || !hasOwnProperty(value, "uri")
-    || typeof value.uri !== "string"
-    || !isValidUri(value.uri)
+    typeof value !== "object" ||
+    value === null ||
+    !hasOwnProperty(value, "uri") ||
+    typeof value.uri !== "string" ||
+    !isValidUri(value.uri)
   ) {
     return false;
   }
 
-  if (hasOwnProperty(value, "mimeType") && value.mimeType !== undefined && typeof value.mimeType !== "string") {
+  if (
+    hasOwnProperty(value, "mimeType") &&
+    value.mimeType !== undefined &&
+    typeof value.mimeType !== "string"
+  ) {
     return false;
   }
 
-  return (hasOwnProperty(value, "text") && typeof value.text === "string")
-    || (hasOwnProperty(value, "blob") && typeof value.blob === "string" && isBase64(value.blob));
+  return (
+    (hasOwnProperty(value, "text") && typeof value.text === "string") ||
+    (hasOwnProperty(value, "blob") &&
+      typeof value.blob === "string" &&
+      isBase64(value.blob))
+  );
 }
 
 function hasValidContentAnnotations(value: Record<string, unknown>): boolean {
-  if (!hasOwnProperty(value, "annotations") || value.annotations === undefined) {
+  if (
+    !hasOwnProperty(value, "annotations") ||
+    value.annotations === undefined
+  ) {
     return true;
   }
 
@@ -1097,9 +1146,13 @@ function hasValidContentAnnotations(value: Record<string, unknown>): boolean {
   }
 
   const { audience, priority, lastModified } = value.annotations;
-  return (audience === undefined || (Array.isArray(audience) && audience.every((item) => item === "user" || item === "assistant")))
-    && (priority === undefined || typeof priority === "number")
-    && (lastModified === undefined || typeof lastModified === "string");
+  return (
+    (audience === undefined ||
+      (Array.isArray(audience) &&
+        audience.every((item) => item === "user" || item === "assistant"))) &&
+    (priority === undefined || typeof priority === "number") &&
+    (lastModified === undefined || typeof lastModified === "string")
+  );
 }
 
 function isBase64(value: string): boolean {
@@ -1111,11 +1164,15 @@ function isBase64(value: string): boolean {
     return false;
   }
 
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const paddingStart = value.indexOf("=");
   const encoded = paddingStart === -1 ? value : value.slice(0, paddingStart);
   const padding = paddingStart === -1 ? "" : value.slice(paddingStart);
-  if (padding.length > 2 || [...padding].some((character) => character !== "=")) {
+  if (
+    padding.length > 2 ||
+    [...padding].some((character) => character !== "=")
+  ) {
     return false;
   }
   if ([...encoded].some((character) => !alphabet.includes(character))) {
@@ -1130,12 +1187,17 @@ function isPromptContentItem(value: unknown): boolean {
     return false;
   }
 
-  return !(typeof value === "object" && value !== null && hasOwnProperty(value, "type") && value.type === "resource_link");
+  return !(
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "type") &&
+    value.type === "resource_link"
+  );
 }
 
 function hasOwnProperty<Name extends PropertyKey>(
   value: object,
-  name: Name
+  name: Name,
 ): value is Record<Name, unknown> {
   return Object.prototype.hasOwnProperty.call(value, name);
 }

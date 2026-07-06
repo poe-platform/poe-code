@@ -95,7 +95,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: output-schemas-first-class
     title: First-class spec-compliant tool output schemas
@@ -130,9 +130,9 @@ tasks:
       arrive intact; registering {type: "not-a-type"} throws synchronously
       with the Ajv message. Update the stdio README outputSchema section.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
       release: open
 

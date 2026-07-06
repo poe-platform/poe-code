@@ -214,6 +214,32 @@ describe("runTraceViewer", () => {
     ]);
   });
 
+  it("does not cap discovered references when no limit is provided", async () => {
+    mocks.traceReaders.push(
+      createReader({
+        id: "codex",
+        discover: vi.fn(async () =>
+          Array.from({ length: 51 }, (_, index) => ({
+            source: "codex" as const,
+            id: `trace-${index}`,
+            updatedAt: new Date(`2026-07-01T10:${String(index).padStart(2, "0")}:00.000Z`)
+          }))
+        )
+      })
+    );
+    const output = new MemoryOutput();
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs: {} as AgentTraceFileSystem,
+      json: true,
+      output
+    });
+
+    expect(JSON.parse(output.value)).toHaveLength(51);
+  });
+
   it("loads a trace file and prints detail with subagent summaries", async () => {
     const read = vi.fn(async (reference: TraceReference) =>
       reference.id === "child"
@@ -305,7 +331,7 @@ describe("runTraceViewer", () => {
     expect(json.subagents[0].reference.title).toBe("Child");
   });
 
-  it("wires Enter to print the selected trace detail from the interactive explorer", async () => {
+  it("wires Enter to open the selected trace detail in a modal", async () => {
     const originalIsTTY = process.stdin.isTTY;
     Object.defineProperty(process.stdin, "isTTY", {
       configurable: true,
@@ -349,24 +375,175 @@ describe("runTraceViewer", () => {
       expect(open?.primary).toBe(true);
       expect(open?.label).toBe("Open detail");
 
-      let afterExit: Promise<void> = Promise.resolve();
+      const openModal = vi.fn();
+      const exit = vi.fn();
       await open!.handler({
         row: rows[0]!,
         rows: [rows[0]!],
         filter: "",
         refresh: vi.fn(async () => undefined),
         suspendAnd: vi.fn(async (fn) => fn()),
+        openModal,
         toast: vi.fn(),
         confirm: vi.fn(async () => true),
-        exit: vi.fn((after?: () => void | Promise<void>) => {
-          afterExit = Promise.resolve(after?.());
-        })
+        exit
       } satisfies ActionContext<void>);
-      await afterExit;
 
-      const rendered = stripAnsi(output.value);
-      expect(rendered).toContain("Opened trace");
-      expect(rendered).toContain("assistant ✦ opened");
+      expect(exit).not.toHaveBeenCalled();
+      expect(openModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Trace one",
+          content: expect.stringContaining("Opened trace")
+        })
+      );
+      expect(stripAnsi(openModal.mock.calls[0]?.[0].content ?? "")).toContain("assistant ✦ opened");
+      expect(output.value).toBe("");
+    } finally {
+      Object.defineProperty(process.stdin, "isTTY", {
+        configurable: true,
+        value: originalIsTTY
+      });
+    }
+  });
+
+  it("reuses the preview detail cache when opening a trace modal", async () => {
+    const originalIsTTY = process.stdin.isTTY;
+    Object.defineProperty(process.stdin, "isTTY", {
+      configurable: true,
+      value: true
+    });
+    try {
+      const read = vi.fn(async (reference: TraceReference) =>
+        createTrace({
+          source: reference.source,
+          id: reference.id,
+          title: "Cached trace",
+          turns: [{ role: "assistant", text: "cached" }]
+        })
+      );
+      mocks.traceReaders.push(
+        createReader({
+          id: "codex",
+          discover: vi.fn(async () => [
+            {
+              source: "codex",
+              id: "trace-1",
+              title: "Trace one",
+              updatedAt: new Date("2026-07-01T10:00:00.000Z")
+            }
+          ]),
+          read
+        })
+      );
+
+      await runTraceViewer({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        fs: {} as AgentTraceFileSystem
+      });
+
+      const config = mocks.runExplorer.mock.calls[0]?.[0] as ExplorerConfig<void> | undefined;
+      expect(config).toBeDefined();
+      const rows = await config!.rows();
+      const detail = await config!.detail.items(rows[0]!, {
+        row: rows[0]!,
+        width: 80,
+        height: 20,
+        signal: new AbortController().signal
+      });
+      const previewContent = detail[0]?.renderedContent ?? detail[0]?.render({
+        row: rows[0]!,
+        width: 80,
+        height: 20,
+        signal: new AbortController().signal
+      });
+      expect(String(previewContent)).toContain("Cached trace");
+      read.mockClear();
+
+      const open = config!.actions.find((action) => action.id === "open");
+      const openModal = vi.fn();
+      await open!.handler({
+        row: rows[0]!,
+        rows: [rows[0]!],
+        filter: "",
+        refresh: vi.fn(async () => undefined),
+        suspendAnd: vi.fn(async (fn) => fn()),
+        openModal,
+        toast: vi.fn(),
+        confirm: vi.fn(async () => true),
+        exit: vi.fn()
+      } satisfies ActionContext<void>);
+
+      expect(read).not.toHaveBeenCalled();
+      expect(openModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining("Cached trace")
+        })
+      );
+    } finally {
+      Object.defineProperty(process.stdin, "isTTY", {
+        configurable: true,
+        value: originalIsTTY
+      });
+    }
+  });
+
+  it("groups interactive rows into source folders", async () => {
+    const originalIsTTY = process.stdin.isTTY;
+    Object.defineProperty(process.stdin, "isTTY", {
+      configurable: true,
+      value: true
+    });
+    try {
+      mocks.traceReaders.push(
+        createReader({
+          id: "codex",
+          discover: vi.fn(async () => [
+            {
+              source: "codex",
+              id: "codex-one",
+              title: "Newer Codex trace",
+              cwd: "/repo",
+              updatedAt: new Date("2026-07-01T10:00:00.000Z")
+            },
+            {
+              source: "codex",
+              id: "codex-two",
+              title: "Older Codex trace",
+              cwd: "/repo",
+              updatedAt: new Date("2026-07-01T08:00:00.000Z")
+            }
+          ])
+        }),
+        createReader({
+          id: "poe-code",
+          discover: vi.fn(async () => [
+            {
+              source: "poe-code",
+              id: "spawn-one",
+              title: "codex",
+              path: "/home/me/.poe-code/spawn-logs/trace.jsonl",
+              updatedAt: new Date("2026-07-01T11:00:00.000Z")
+            }
+          ])
+        })
+      );
+
+      await runTraceViewer({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        fs: {} as AgentTraceFileSystem
+      });
+
+      const config = mocks.runExplorer.mock.calls[0]?.[0] as ExplorerConfig<void> | undefined;
+      expect(config).toBeDefined();
+      const rows = await config!.rows();
+
+      expect(rows.map((row) => ({ title: row.title, group: row.group }))).toEqual([
+        { title: "codex", group: "poe-code / spawn-logs" },
+        { title: "Newer Codex trace", group: "codex / repo" },
+        { title: "Older Codex trace", group: "codex / repo" }
+      ]);
     } finally {
       Object.defineProperty(process.stdin, "isTTY", {
         configurable: true,
@@ -438,6 +615,7 @@ describe("runTraceViewer", () => {
         filter: "",
         refresh: vi.fn(async () => undefined),
         suspendAnd,
+        openModal: vi.fn(),
         toast: vi.fn(),
         confirm: vi.fn(async () => true),
         exit: vi.fn((after?: () => void | Promise<void>) => {

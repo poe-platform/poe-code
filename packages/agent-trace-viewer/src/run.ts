@@ -3,7 +3,6 @@ import {
   getTheme,
   renderTable,
   runExplorer,
-  spinner,
   type Action,
   type DetailItem,
   type ExplorerConfig,
@@ -42,6 +41,7 @@ interface TraceExplorerState {
   rows: Row[];
   referenceByRowId: Map<string, TraceReference>;
   childrenByRowId: Map<string, TraceReference[]>;
+  detailByRowId: Map<string, string>;
 }
 
 const TRACE_TABLE_WIDTH = 80;
@@ -164,6 +164,7 @@ function buildTraceExplorerConfig(options: {
     state.rows = next.rows;
     state.referenceByRowId = next.referenceByRowId;
     state.childrenByRowId = next.childrenByRowId;
+    state.detailByRowId = next.detailByRowId;
   }
 
   const actions: Action<void>[] = [
@@ -172,17 +173,22 @@ function buildTraceExplorerConfig(options: {
       label: "Open detail",
       primary: true,
       showInFooter: true,
-      handler: (ctx) => {
+      handler: async (ctx) => {
         const reference = getReference(state.referenceByRowId, ctx.row.id);
-        ctx.exit(async () => {
-          const loaded = await withDelayedSpinner(`Loading ${ctx.row.title}`, async () => {
-            const view = await loadTrace(reference, { fs: options.fs });
-            const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
-            return { view, subagents };
-          });
+        const cached = state.detailByRowId.get(ctx.row.id);
+        if (cached !== undefined) {
+          ctx.openModal({ title: ctx.row.title, content: cached });
+          return;
+        }
 
-          writeLine(options.output, renderTraceDetail(loaded.view, loaded.subagents));
-        });
+        const view = await loadTrace(reference, { fs: options.fs });
+        const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
+        const loaded = { view, subagents };
+        const content = renderTraceDetail(loaded.view, loaded.subagents);
+        state.detailByRowId.set(ctx.row.id, content);
+        state.childrenByRowId.set(ctx.row.id, loaded.view.children ?? []);
+
+        ctx.openModal({ title: ctx.row.title, content });
       }
     },
     {
@@ -240,23 +246,23 @@ function buildTraceExplorerConfig(options: {
     detail: {
       items: async (row, ctx) => {
         const reference = getReference(state.referenceByRowId, row.id);
-        const loaded = await loadUnlessAborted(ctx.signal, () =>
-          withDelayedSpinner(`Loading ${row.title}`, async () => {
-            const view = await loadTrace(reference, { fs: options.fs });
-            const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
-            return { view, subagents };
-          })
-        );
+        const loaded = await loadUnlessAborted(ctx.signal, async () => {
+          const view = await loadTrace(reference, { fs: options.fs });
+          const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
+          return { view, subagents };
+        });
 
         if (loaded === undefined || ctx.signal.aborted) {
           return [];
         }
 
         state.childrenByRowId.set(row.id, loaded.view.children ?? []);
+        const content = renderTraceDetail(loaded.view, loaded.subagents);
+        state.detailByRowId.set(row.id, content);
         return [
           {
             id: row.id,
-            render: () => renderTraceDetail(loaded.view, loaded.subagents)
+            render: () => content
           } satisfies DetailItem
         ];
       }
@@ -268,13 +274,52 @@ function buildTraceExplorerConfig(options: {
 }
 
 function createExplorerState(references: TraceReference[]): TraceExplorerState {
-  const rows = toRows(references);
+  const folderUpdatedAt = newestDateByFolder(references);
+  const orderedReferences = [...references].sort((left, right) =>
+    compareTraceFolders(left, right, folderUpdatedAt)
+  );
+  const rows = toRows(orderedReferences);
   return {
-    references,
+    references: orderedReferences,
     rows,
-    referenceByRowId: new Map(rows.map((row, index) => [row.id, references[index]!])),
-    childrenByRowId: new Map()
+    referenceByRowId: new Map(rows.map((row, index) => [row.id, orderedReferences[index]!])),
+    childrenByRowId: new Map(),
+    detailByRowId: new Map()
   };
+}
+
+function newestDateByFolder(references: TraceReference[]): Map<string, number> {
+  const newestByFolder = new Map<string, number>();
+  for (const reference of references) {
+    const folder = traceFolder(reference);
+    newestByFolder.set(folder, Math.max(newestByFolder.get(folder) ?? 0, dateValue(reference.updatedAt)));
+  }
+  return newestByFolder;
+}
+
+function compareTraceFolders(
+  left: TraceReference,
+  right: TraceReference,
+  folderUpdatedAt: ReadonlyMap<string, number>
+): number {
+  const leftFolder = traceFolder(left);
+  const rightFolder = traceFolder(right);
+  const folderDateOrder = (folderUpdatedAt.get(rightFolder) ?? 0) - (folderUpdatedAt.get(leftFolder) ?? 0);
+  if (folderDateOrder !== 0) {
+    return folderDateOrder;
+  }
+
+  const folderNameOrder = leftFolder.localeCompare(rightFolder);
+  if (folderNameOrder !== 0) {
+    return folderNameOrder;
+  }
+
+  const dateOrder = dateValue(right.updatedAt) - dateValue(left.updatedAt);
+  if (dateOrder !== 0) {
+    return dateOrder;
+  }
+
+  return (left.title ?? left.id).localeCompare(right.title ?? right.id);
 }
 
 function toRows(references: TraceReference[]): Row[] {
@@ -291,9 +336,24 @@ function toRows(references: TraceReference[]): Row[] {
       id: counts.get(baseId) === 1 ? baseId : `${baseId}\u0000${index}`,
       title: rendered.label,
       subtitle: rendered.meta,
-      badge: { text: reference.source }
+      badge: { text: reference.source },
+      group: traceFolder(reference)
     };
   });
+}
+
+function traceFolder(reference: TraceReference): string {
+  const folder =
+    reference.cwd !== undefined && reference.cwd.length > 0
+      ? path.basename(reference.cwd)
+      : reference.path === undefined
+        ? "unknown"
+        : path.basename(path.dirname(reference.path));
+  return `${reference.source} / ${folder || "unknown"}`;
+}
+
+function dateValue(date: Date | undefined): number {
+  return date?.getTime() ?? 0;
 }
 
 function rowBaseId(reference: TraceReference): string {
@@ -341,24 +401,6 @@ async function loadUnlessAborted<T>(
         signal.removeEventListener("abort", abort);
       });
   });
-}
-
-async function withDelayedSpinner<T>(message: string, load: () => Promise<T>): Promise<T> {
-  const s = spinner();
-  let started = false;
-  const timer = setTimeout(() => {
-    started = true;
-    s.start(message);
-  }, 700);
-
-  try {
-    return await load();
-  } finally {
-    clearTimeout(timer);
-    if (started) {
-      s.stop("Loaded trace");
-    }
-  }
 }
 
 function writeLine(output: WritableOutput, value: string): void {

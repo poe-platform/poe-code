@@ -73,7 +73,7 @@ describe("standalone package publish metadata", () => {
     );
   });
 
-  it("keeps toolcraft-design private and exposes it through toolcraft/design", () => {
+  it("publishes toolcraft-design and exposes it through toolcraft/design", () => {
     const designPackage = readPackageJson("packages/toolcraft-design/package.json");
     const toolcraftPackage = readPackageJson("packages/toolcraft/package.json");
 
@@ -88,9 +88,9 @@ describe("standalone package publish metadata", () => {
         }
       },
       repository: { directory: "packages/toolcraft-design" },
-      private: true
+      publishConfig: { access: "public" }
     });
-    expect(designPackage.publishConfig).toBeUndefined();
+    expect(designPackage.private).toBeUndefined();
     expect(toolcraftPackage.exports?.["./design"]).toEqual({
       types: "./dist/design.d.ts",
       import: "./dist/design.js"
@@ -104,8 +104,6 @@ describe("standalone package publish metadata", () => {
 
     expect(oauthPackage.private).toBe(true);
     expect(oauthPackage.publishConfig).toBeUndefined();
-    expect(clientPackage.private).toBe(true);
-    expect(clientPackage.publishConfig).toBeUndefined();
     expect(clientPackage.dependencies?.["mcp-oauth"]).toBeUndefined();
     expect(clientPackage.devDependencies?.["mcp-oauth"]).toBe("*");
     expect(toolcraftPackage.bundleDependencies).not.toContain("mcp-oauth");

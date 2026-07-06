@@ -85,19 +85,19 @@ Explicit non-goals:
 
 HTML callers use the existing renderer with one extra boolean:
 
-```ts
+````ts
 import { renderMarkdownHtml } from "toolcraft/design";
 
 const html = renderMarkdownHtml('```ts\nconst value = "hello";\n```', {
   syntaxHighlight: true
 });
-```
+````
 
 Default HTML output stays plain escaped code:
 
-```ts
+````ts
 renderMarkdownHtml('```js\nconst x = "hello";\n```');
-```
+````
 
 ```html
 <pre><code class="language-js">const x = &quot;hello&quot;;</code></pre>
@@ -105,9 +105,9 @@ renderMarkdownHtml('```js\nconst x = "hello";\n```');
 
 Highlighted HTML output keeps the same wrapper and adds neutral spans inside `<code>`:
 
-```ts
+````ts
 renderMarkdownHtml('```js\nconst x = "hello";\n```', { syntaxHighlight: true });
-```
+````
 
 ```html
 <pre><code class="language-js"><span class="tc-token-keyword">const</span> x = <span class="tc-token-string">&quot;hello&quot;</span>;</code></pre>
@@ -116,23 +116,31 @@ renderMarkdownHtml('```js\nconst x = "hello";\n```', { syntaxHighlight: true });
 Consumers that want colors can target stable Toolcraft classes:
 
 ```css
-.tc-token-keyword { color: var(--code-keyword); }
-.tc-token-string { color: var(--code-string); }
-.tc-token-comment { color: var(--code-comment); }
-.tc-token-at-rule { color: var(--code-at-rule); }
+.tc-token-keyword {
+  color: var(--code-keyword);
+}
+.tc-token-string {
+  color: var(--code-string);
+}
+.tc-token-comment {
+  color: var(--code-comment);
+}
+.tc-token-at-rule {
+  color: var(--code-at-rule);
+}
 ```
 
 Token classes use hyphenated CSS naming with a `tc-token-` namespace. CSS-style dashed names are preferred for multi-word kinds, for example `tc-token-at-rule`.
 
 Terminal callers use the existing renderer with the same boolean:
 
-```ts
+````ts
 import { renderMarkdown } from "toolcraft/design";
 
 const terminal = renderMarkdown('```js\nconst x = "hello";\n```', {
   syntaxHighlight: true
 });
-```
+````
 
 Terminal highlighting keeps the existing code-block shape:
 
@@ -155,9 +163,9 @@ Token styling is sensible and restrained:
 
 Unknown languages fall back even when highlighting is enabled:
 
-```ts
+````ts
 renderMarkdownHtml("```unknown-language\n<x>\n```", { syntaxHighlight: true });
-```
+````
 
 ```html
 <pre><code class="language-unknown-language">&lt;x&gt;</code></pre>
@@ -165,9 +173,9 @@ renderMarkdownHtml("```unknown-language\n<x>\n```", { syntaxHighlight: true });
 
 Known-but-not-tokenized Code languages also fall back:
 
-```ts
+````ts
 renderMarkdownHtml("```ruby\nputs '<x>'\n```", { syntaxHighlight: true });
-```
+````
 
 ```html
 <pre><code class="language-ruby">puts '&lt;x&gt;'</code></pre>
@@ -354,9 +362,19 @@ Initial registry examples:
 
 ```ts
 const codeLanguages = [
-  { id: "javascript", aliases: ["js", "javascript", "mjs", "cjs", "es6"], family: "lexical", spec: "javascript" },
+  {
+    id: "javascript",
+    aliases: ["js", "javascript", "mjs", "cjs", "es6"],
+    family: "lexical",
+    spec: "javascript"
+  },
   { id: "javascriptreact", aliases: ["jsx"], family: "lexical", spec: "jsx" },
-  { id: "typescript", aliases: ["ts", "typescript", "mts", "cts"], family: "lexical", spec: "typescript" },
+  {
+    id: "typescript",
+    aliases: ["ts", "typescript", "mts", "cts"],
+    family: "lexical",
+    spec: "typescript"
+  },
   { id: "typescriptreact", aliases: ["tsx"], family: "lexical", spec: "tsx" },
   { id: "json", aliases: ["json"], family: "data", spec: "json" },
   { id: "jsonc", aliases: ["jsonc"], family: "data", spec: "jsonc" },
@@ -484,7 +502,7 @@ Code rendering derives tokens from parsed `code` nodes:
 
 ```ts
 function renderCodeBlock(node: CodeNode, context: RenderContext): string {
-  const tokens = context.syntaxHighlight ? node.tokens ?? highlightCodeBlock(node) : undefined;
+  const tokens = context.syntaxHighlight ? (node.tokens ?? highlightCodeBlock(node)) : undefined;
   return renderCodeElement(node, tokens, context);
 }
 ```
@@ -827,14 +845,14 @@ npm run build -w toolcraft-design
 
 2. Run an HTML renderer invocation:
 
-```sh
+````sh
 node --input-type=module -e 'import { renderMarkdownHtml } from "./packages/toolcraft-design/dist/render-markdown-html.js"; console.log(renderMarkdownHtml("```js\nconst x = \"hello\";\n```", { syntaxHighlight: true }))'
-```
+````
 
 Expected output contains:
 
 ```html
-<pre><code class="language-js"><span class="tc-token-keyword">const</span>
+<pre>></pre>
 ```
 
 And:
@@ -845,25 +863,25 @@ And:
 
 3. Run a terminal renderer invocation:
 
-```sh
+````sh
 node --input-type=module -e 'import { renderMarkdown } from "./packages/toolcraft-design/dist/render-markdown.js"; console.log(renderMarkdown("```js\nconst x = \"hello\";\n```", { syntaxHighlight: true }))'
-```
+````
 
 Expected observation: output keeps the existing code block border and contains ANSI styling around at least `const` and `"hello"`.
 
 4. Run an escaping check:
 
-```sh
+````sh
 node --input-type=module -e 'import { renderMarkdownHtml } from "./packages/toolcraft-design/dist/render-markdown-html.js"; console.log(renderMarkdownHtml("```js\nconst x = \"<script>\";\n```", { syntaxHighlight: true }))'
-```
+````
 
 Expected observation: the output contains `&lt;script&gt;` and no literal `<script>`.
 
 5. Run an unknown-language fallback check:
 
-```sh
+````sh
 node --input-type=module -e 'import { renderMarkdownHtml } from "./packages/toolcraft-design/dist/render-markdown-html.js"; console.log(renderMarkdownHtml("```unknown\n<x>\n```", { syntaxHighlight: true }))'
-```
+````
 
 Expected output:
 
@@ -873,9 +891,9 @@ Expected output:
 
 6. Run a known-but-not-tokenized fallback check:
 
-```sh
+````sh
 node --input-type=module -e 'import { renderMarkdownHtml } from "./packages/toolcraft-design/dist/render-markdown-html.js"; console.log(renderMarkdownHtml("```ruby\nputs \"<x>\"\n```", { syntaxHighlight: true }))'
-```
+````
 
 Expected output contains no `tc-token-*` spans and still escapes `<x>`.
 

@@ -1,3 +1,15 @@
+---
+kind: archived-pipeline-plan
+version: 1
+source: plan-e2e-sandbox-runner.yaml
+task_count: 11
+---
+
+# E2e Sandbox Runner
+
+Archived pipeline plan. The original YAML is retained below for provenance.
+
+````yaml
 vars:
   plan_doc: "{{file 'docs/plans/e2e-sandbox-runner.md'}}"
 
@@ -420,3 +432,4 @@ tasks:
       Run `npm run build` for a final verification.
 
       Reference: {{plan_doc}} — Phase 8
+````

@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: scaffold-renderer-file
     title: Create plaintext-renderer.ts with options type and skeleton
@@ -43,7 +42,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: implement-inline-nodes
     title: Implement inline node rendering (text, emphasis, strong, strikethrough,
       inlineCode, break, link, image, html)
@@ -74,13 +72,14 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: implement-block-nodes
     title: Implement block node rendering (heading, paragraph, blockquote, alert,
       code, thematicBreak, root)
-    prompt: |
+    prompt: >
       In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.ts,
+
       add a function renderBlock(node: MdNode, ctx: PlaintextContext): string
+
       that handles block-level MdNode variants. It must return:
 
         root          → renderBlockChildren(node.children, ctx) trimmed
@@ -102,21 +101,28 @@ tasks:
                         join with " " and append "\n\n"
 
       Add a private helper renderBlockChildren(nodes: MdNode[], ctx): string
+
       that maps each node through renderBlock or renderInline (use node type to
+
       decide which) and joins results with "".
 
+
       Wire renderPlaintext() and renderMarkdownPlaintext() to call renderBlock
-      on the root node. Import parse from ./parser.js for renderMarkdownPlaintext.
+
+      on the root node. Import parse from ./parser.js for
+      renderMarkdownPlaintext.
+
       Do NOT touch any other file.
     status:
       implement: done
       commit: done
-
   - id: implement-list-nodes
     title: Implement list and listItem rendering
-    prompt: |
+    prompt: >
       In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.ts,
+
       extend renderBlock to handle list and listItem MdNode variants.
+
 
       listItem rules:
         - Render children with renderBlockChildren. Trim result.
@@ -139,19 +145,24 @@ tasks:
           Append "\n\n"
 
       Nested lists: a listItem may contain another list as a child.
+
       renderBlockChildren already recurses, so nested lists produce
+
       their own text inline — no special handling needed.
+
 
       Do NOT touch any other file.
     status:
       implement: done
       commit: done
-
   - id: implement-table-nodes
     title: Implement table rendering
-    prompt: |
+    prompt: >
       In packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.ts,
-      extend renderBlock to handle table, tableRow, and tableCell MdNode variants.
+
+      extend renderBlock to handle table, tableRow, and tableCell MdNode
+      variants.
+
 
       Table structure in the AST:
         table.children[0] is the header tableRow
@@ -172,13 +183,14 @@ tasks:
         → "Name is Alice. Age is 30.\n\n"
 
       tableRow and tableCell used outside a table context → return ""
+
       (they are always rendered via the table handler above).
+
 
       Do NOT touch any other file.
     status:
       implement: done
       commit: done
-
   - id: implement-footnote-nodes
     title: Implement footnote reference and definition rendering
     prompt: |
@@ -215,12 +227,13 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: wire-exports
     title: Wire exports through index.ts, toolcraft-design, and toolcraft
-    prompt: |
+    prompt: >
       Wire the new plaintext renderer through the export chain, following
+
       the exact same pattern used for html-renderer. Steps:
+
 
       1. packages/toolcraft-design/src/terminal-markdown/index.ts
          Add these exports (do not remove anything existing):
@@ -256,16 +269,20 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: tests-inline-and-text
     title: Tests — inline nodes (text, emphasis, strong, strikethrough, inlineCode,
       break, link, image, html)
-    prompt: |
-      Create packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts
+    prompt: >
+      Create
+      packages/toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts
+
       if it does not exist yet. Use vitest. Import parse from "./parser.js" and
+
       renderMarkdownPlaintext from "./plaintext-renderer.js". No mocks.
 
+
       Add a describe block "inline nodes" with these tests:
+
 
       PLAIN TEXT
         - "Hello world" → "Hello world"
@@ -323,12 +340,13 @@ tasks:
           (raw HTML is fully omitted)
 
       Each test uses expect(result).toBe(expected) or
+
       expect(result).not.toContain(forbidden). Name each it() with the
+
       markdown input so failures are self-describing.
     status:
       implement: done
       commit: done
-
   - id: tests-block-nodes
     title: Tests — block nodes (heading, paragraph, blockquote, alert, code,
       thematicBreak)
@@ -385,7 +403,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: tests-lists
     title: Tests — list rendering (ordered, unordered, task lists, nested)
     prompt: |
@@ -430,7 +447,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: tests-tables
     title: Tests — table rendering
     prompt: |
@@ -476,7 +492,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: tests-footnotes-frontmatter
     title: Tests — footnotes and frontmatter
     prompt: |
@@ -529,7 +544,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: tests-edge-cases
     title: Tests — unicode, edge inputs, and option combinations
     prompt: "In
@@ -641,6 +655,8 @@ tasks:
     status:
       implement: done
       commit: done
+name: toolcraft-markdown-to-plaintext
+state: archived
 ---
 
 # Context

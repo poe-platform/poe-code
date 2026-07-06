@@ -483,9 +483,7 @@ poe-code worktree remove <name> --delete-branch
 Add to [packages/worktree/src/index.ts](/Users/kjopek/Workspace/poe-code/packages/worktree/src/index.ts):
 
 ```ts
-export type WorktreeReconcilePhase =
-  | "reconcile"
-  | "cleanup-nudge";
+export type WorktreeReconcilePhase = "reconcile" | "cleanup-nudge";
 
 export type WorktreeReconciliationAgent = (input: {
   phase: WorktreeReconcilePhase;
@@ -632,11 +630,7 @@ export type {
   ManagedWorktreeRemoveOptions
 } from "./sdk/worktree.js";
 
-export type {
-  Worktree,
-  WorktreeStatus,
-  WorktreeReconciliationSummary
-} from "@poe-code/worktree";
+export type { Worktree, WorktreeStatus, WorktreeReconciliationSummary } from "@poe-code/worktree";
 ```
 
 CLI commands must use these SDK functions so CLI behavior and SDK behavior remain aligned.

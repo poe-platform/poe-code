@@ -1,3 +1,15 @@
+---
+kind: archived-pipeline-plan
+version: 1
+source: plan-session-replay.yaml
+task_count: 3
+---
+
+# Session Replay
+
+Archived pipeline plan. The original YAML is retained below for provenance.
+
+````yaml
 vars:
   plan_doc: "{{file 'docs/plans/session-replay.md'}}"
 
@@ -106,3 +118,4 @@ tasks:
       a helpful message.
 
       Reference: {{plan_doc}}
+````

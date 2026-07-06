@@ -462,7 +462,10 @@ function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOptions): Promi
 function exportArchive(ctx: AgentStashContext, options: ExportOptions): Promise<ExportResult>;
 function importArchive(ctx: AgentStashContext, options: ImportOptions): Promise<ImportResult>;
 function createBackup(ctx: AgentStashContext, options: CreateBackupOptions): Promise<BackupRecord>;
-function restoreBackup(ctx: AgentStashContext, options: RestoreBackupOptions): Promise<RestoreResult>;
+function restoreBackup(
+  ctx: AgentStashContext,
+  options: RestoreBackupOptions
+): Promise<RestoreResult>;
 ```
 
 `GistClient` is injected:

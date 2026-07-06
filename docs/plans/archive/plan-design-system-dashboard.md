@@ -1,3 +1,15 @@
+---
+kind: archived-pipeline-plan
+version: 1
+source: plan-design-system-dashboard.yaml
+task_count: 13
+---
+
+# Design System Dashboard
+
+Archived pipeline plan. The original YAML is retained below for provenance.
+
+````yaml
 vars:
   plan_doc: "{{file 'docs/plans/design-system-dashboard.md'}}"
 
@@ -673,3 +685,4 @@ tasks:
       Take a screenshot with `npm run screenshot-poe-code` if applicable.
 
       Reference: {{plan_doc}}
+````

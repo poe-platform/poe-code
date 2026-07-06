@@ -1,3 +1,15 @@
+---
+kind: archived-pipeline-plan
+version: 1
+source: plan-superintendent.yaml
+task_count: 28
+---
+
+# Superintendent
+
+Archived pipeline plan. The original YAML is retained below for provenance.
+
+````yaml
 vars:
   plan_doc: "{{file 'docs/plans/superintendent.md'}}"
 
@@ -1409,3 +1421,4 @@ tasks:
       Verify the build passes: `npm run build` in the superintendent package.
 
       Reference: {{plan_doc}}
+````

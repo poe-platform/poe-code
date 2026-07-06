@@ -1,3 +1,15 @@
+---
+kind: archived-pipeline-plan
+version: 1
+source: plan-agent-kit-single-doc-workflows.yaml
+task_count: 11
+---
+
+# Agent Kit Single Doc Workflows
+
+Archived pipeline plan. The original YAML is retained below for provenance.
+
+````yaml
 vars:
   design_doc: "{{file 'docs/plans/agent-kit-single-doc-workflows.md'}}"
 
@@ -672,3 +684,4 @@ tasks:
       refactor: done
       test: done
       commit: done
+````

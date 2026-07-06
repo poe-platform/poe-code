@@ -1,5 +1,17 @@
+---
+kind: archived-pipeline-plan
+version: 1
+source: plan-core-default-agent-config.yaml
+task_count: 8
+---
+
+# Core Default Agent Config
+
+Archived pipeline plan. The original YAML is retained below for provenance.
+
+````yaml
 vars:
-  plan_doc: "{{file \"docs/plans/core-default-agent-config.md\"}}"
+  plan_doc: '{{file "docs/plans/core-default-agent-config.md"}}'
 
 tasks:
   - id: schema
@@ -301,3 +313,4 @@ tasks:
       refactor: done
       test: done
       commit: done
+````

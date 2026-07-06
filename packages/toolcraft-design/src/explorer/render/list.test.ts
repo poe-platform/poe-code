@@ -67,6 +67,25 @@ describe("explorer list renderer", () => {
     expect(output).toContain(" Active ─");
     expect(output).toContain(" Saved for later ─");
   });
+
+  it("keeps the cursor row visible when the cursor is below the first page", () => {
+    const state = fixtureState({
+      rows: Array.from({ length: 30 }, (_, index) => ({
+        id: `row-${index}`,
+        title: `Row ${index}`
+      })),
+      filtered: Array.from({ length: 30 }, (_, index) => index),
+      cursor: 20,
+      selected: new Set()
+    });
+    const screen = new ScreenBuffer(36, 8);
+
+    renderList(state, screen, listLayout(36, 8));
+
+    const output = stripAnsi(dumpScreen(screen));
+    expect(output).toContain("● Row 20");
+    expect(output).not.toContain("● Row 0");
+  });
 });
 
 function listLayout(width: number, height = 1): ExplorerLayout {

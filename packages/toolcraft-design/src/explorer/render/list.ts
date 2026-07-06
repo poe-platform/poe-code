@@ -54,33 +54,38 @@ export function renderList(
     return;
   }
 
-  let lastGroup: string | undefined;
+  const lines = buildDisplayLines(state);
+  const start = visibleStart(lines, bodyRect.height);
   let y = 0;
 
-  for (const rowIndex of state.filtered) {
-    if (y >= bodyRect.height) {
-      break;
-    }
-
-    const row = state.rows[rowIndex];
-    if (!row) {
-      continue;
-    }
-
-    if (row.group && row.group !== lastGroup && y < bodyRect.height) {
-      const hash = `group:${row.group}`;
+  for (let lineIndex = start; lineIndex < lines.length && y < bodyRect.height; lineIndex += 1) {
+    const line = lines[lineIndex]!;
+    if (line.kind === "group") {
+      const hash = `group:${line.label}`;
       if (cache.get(y) !== hash) {
-        writeLine(screen, bodyRect, y, formatGroupHeader(row.group, bodyRect), styles.muted);
+        writeLine(screen, bodyRect, y, formatGroupHeader(line.label, bodyRect), styles.muted);
         cache.set(y, hash);
       }
       y += 1;
-      lastGroup = row.group;
+      continue;
     }
 
+    if (line.kind === "subtitle") {
+      const subtitleHash = `subtitle:${line.row.id}:${line.text}`;
+      if (cache.get(y) !== subtitleHash) {
+        writeLine(screen, bodyRect, y, `  ${line.text}`, styles.muted);
+        cache.set(y, subtitleHash);
+      }
+      y += 1;
+      continue;
+    }
+
+    const rowIndex = line.rowIndex;
     if (y >= bodyRect.height) {
       break;
     }
 
+    const row = line.row;
     const selected = state.multiSelect && state.selected.has(row.id);
     const cursor = rowIndex === state.filtered[state.cursor];
     const positions = state.matchPositions.get(rowIndex) ?? [];
@@ -96,16 +101,49 @@ export function renderList(
       cache.set(y, hash);
     }
     y += 1;
+  }
+}
 
-    if (row.subtitle && y < bodyRect.height) {
-      const subtitleHash = `${hash}:subtitle:${row.subtitle}`;
-      if (cache.get(y) !== subtitleHash) {
-        writeLine(screen, bodyRect, y, `  ${row.subtitle}`, styles.muted);
-        cache.set(y, subtitleHash);
-      }
-      y += 1;
+type DisplayLine =
+  | { kind: "group"; label: string }
+  | { kind: "row"; rowIndex: number; row: Row; cursor: boolean }
+  | { kind: "subtitle"; row: Row; text: string };
+
+function buildDisplayLines(state: ExplorerState): DisplayLine[] {
+  const lines: DisplayLine[] = [];
+  let lastGroup: string | undefined;
+
+  for (const rowIndex of state.filtered) {
+    const row = state.rows[rowIndex];
+    if (!row) {
+      continue;
+    }
+
+    if (row.group && row.group !== lastGroup) {
+      lines.push({ kind: "group", label: row.group });
+      lastGroup = row.group;
+    }
+
+    lines.push({ kind: "row", rowIndex, row, cursor: rowIndex === state.filtered[state.cursor] });
+    if (row.subtitle) {
+      lines.push({ kind: "subtitle", row, text: row.subtitle });
     }
   }
+
+  return lines;
+}
+
+function visibleStart(lines: DisplayLine[], height: number): number {
+  if (height <= 0) {
+    return 0;
+  }
+
+  const cursorLine = lines.findIndex((line) => line.kind === "row" && line.cursor);
+  if (cursorLine < 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(cursorLine, cursorLine - height + 1));
 }
 
 function formatGroupHeader(label: string, rect: Rect): string {

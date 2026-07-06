@@ -16,11 +16,11 @@ npm run screenshot-poe-code -- <command> [args...]
 
 ### Options
 
-| Option | Description |
-|--------|-------------|
+| Option                | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
 | `-o, --output <path>` | Custom output file path (default: `screenshots/<command>.png`) |
-| `--no-header` | Skip the `% command args` header line |
-| `--poe-code` | Run via `npm run dev` with TTY emulation |
+| `--no-header`         | Skip the `% command args` header line                          |
+| `--poe-code`          | Run via `npm run dev` with TTY emulation                       |
 
 ### How It Works
 
@@ -49,15 +49,15 @@ Supported key tokens include `up`, `down`, `left`, `right`, `shift-up`, `shift-d
 
 The tool kills the spawned process after a timeout and saves whatever output was captured up to that point.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POE_SCREENSHOT_TIMEOUT_MS` | `60000` (60s) | Maximum time to wait for the command to exit |
-| `POE_SCREENSHOT_PTY` | unset | Set to `1` to capture the visible PTY screen instead of piped transcript output |
-| `POE_SCREENSHOT_COLUMNS` | `120` in PTY mode, `80` for TTY emulation | Terminal width for PTY or forced-TTY captures |
-| `POE_SCREENSHOT_ROWS` | `40` in PTY mode, `24` for TTY emulation | Terminal height for PTY or forced-TTY captures |
-| `POE_SCREENSHOT_KEYS` | unset | Comma-separated key tokens to send before capture |
-| `POE_SCREENSHOT_KEY_DELAY_MS` | `250` | Delay before sending the first key |
-| `POE_SCREENSHOT_KEY_INTERVAL_MS` | `75` | Delay between sent keys |
+| Variable                         | Default                                   | Description                                                                     |
+| -------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------- |
+| `POE_SCREENSHOT_TIMEOUT_MS`      | `60000` (60s)                             | Maximum time to wait for the command to exit                                    |
+| `POE_SCREENSHOT_PTY`             | unset                                     | Set to `1` to capture the visible PTY screen instead of piped transcript output |
+| `POE_SCREENSHOT_COLUMNS`         | `120` in PTY mode, `80` for TTY emulation | Terminal width for PTY or forced-TTY captures                                   |
+| `POE_SCREENSHOT_ROWS`            | `40` in PTY mode, `24` for TTY emulation  | Terminal height for PTY or forced-TTY captures                                  |
+| `POE_SCREENSHOT_KEYS`            | unset                                     | Comma-separated key tokens to send before capture                               |
+| `POE_SCREENSHOT_KEY_DELAY_MS`    | `250`                                     | Delay before sending the first key                                              |
+| `POE_SCREENSHOT_KEY_INTERVAL_MS` | `75`                                      | Delay between sent keys                                                         |
 
 ```bash
 # Short timeout for fast commands

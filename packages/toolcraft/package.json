@@ -104,7 +104,6 @@
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client auth-store"
   },
   "dependencies": {
-    "toolcraft-schema": "^0.0.1",
     "commander": "^13.1.0",
     "fast-string-width": "^3.0.2",
     "fast-wrap-ansi": "^0.2.0",
@@ -144,6 +143,7 @@
     "auth-store"
   ],
   "optionalDependencies": {
+    "toolcraft-schema": "*",
     "toolcraft-design": "^0.0.2",
     "@poe-code/frontmatter": "*",
     "@poe-code/agent-mcp-config": "*",

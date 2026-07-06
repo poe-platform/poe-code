@@ -114,10 +114,19 @@ function runConsumerSmoke(projectDir, tarballs) {
         'const composition = await loadToolcraftComposition();',
         'if (composition.schemaVersion !== 1 || !composition.packages.some(({ name }) => name === "toolcraft")) throw new Error("Invalid Toolcraft composition manifest.");',
         'await import("toolcraft/design");',
+        'await import("toolcraft/agent-defs");',
+        'await import("toolcraft/agent-human-in-loop");',
+        'await import("toolcraft/agent-mcp-config");',
+        'await import("toolcraft/auth-store");',
+        'await import("toolcraft/config-mutations");',
+        'await import("toolcraft/frontmatter");',
         'await import("toolcraft/mcp");',
         'await import("toolcraft/mcp-proxy");',
+        'await import("toolcraft/process-runner");',
         'await import("toolcraft/sdk");',
-        'await import("toolcraft/human-in-loop");'
+        'await import("toolcraft/human-in-loop");',
+        'await import("toolcraft/task-list");',
+        'await import("toolcraft/tiny-mcp-client");'
       ].join("\n")
     ],
     { cwd: projectDir, stdio: "inherit" }

@@ -18,6 +18,26 @@
       "types": "./dist/composition.d.ts",
       "import": "./dist/composition.js"
     },
+    "./agent-defs": {
+      "types": "./dist/agent-defs.d.ts",
+      "import": "./dist/agent-defs.js"
+    },
+    "./agent-human-in-loop": {
+      "types": "./dist/agent-human-in-loop.d.ts",
+      "import": "./dist/agent-human-in-loop.js"
+    },
+    "./agent-mcp-config": {
+      "types": "./dist/agent-mcp-config.d.ts",
+      "import": "./dist/agent-mcp-config.js"
+    },
+    "./auth-store": {
+      "types": "./dist/auth-store.d.ts",
+      "import": "./dist/auth-store.js"
+    },
+    "./config-mutations": {
+      "types": "./dist/config-mutations.d.ts",
+      "import": "./dist/config-mutations.js"
+    },
     "./design": {
       "types": "./dist/design.d.ts",
       "import": "./dist/design.js"
@@ -46,6 +66,14 @@
       "types": "./dist/human-in-loop/index.d.ts",
       "import": "./dist/human-in-loop/index.js"
     },
+    "./frontmatter": {
+      "types": "./dist/frontmatter.d.ts",
+      "import": "./dist/frontmatter.js"
+    },
+    "./process-runner": {
+      "types": "./dist/process-runner.d.ts",
+      "import": "./dist/process-runner.js"
+    },
     "./source-snippet": {
       "types": "./dist/source-snippet.d.ts",
       "import": "./dist/source-snippet.js"
@@ -53,6 +81,14 @@
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js"
+    },
+    "./task-list": {
+      "types": "./dist/task-list.d.ts",
+      "import": "./dist/task-list.js"
+    },
+    "./tiny-mcp-client": {
+      "types": "./dist/tiny-mcp-client.d.ts",
+      "import": "./dist/tiny-mcp-client.js"
     }
   },
   "scripts": {

@@ -73,7 +73,7 @@ describe("standalone package publish metadata", () => {
     );
   });
 
-  it("publishes toolcraft-design and exposes it through toolcraft/design", () => {
+  it("bundles private workspace packages behind toolcraft exports", () => {
     const designPackage = readPackageJson("packages/toolcraft-design/package.json");
     const toolcraftPackage = readPackageJson("packages/toolcraft/package.json");
 
@@ -86,15 +86,28 @@ describe("standalone package publish metadata", () => {
           types: "./dist/index.d.ts",
           import: "./dist/index.js"
         }
-      },
-      repository: { directory: "packages/toolcraft-design" },
-      publishConfig: { access: "public" }
+      }
     });
-    expect(designPackage.private).toBeUndefined();
-    expect(toolcraftPackage.exports?.["./design"]).toEqual({
-      types: "./dist/design.d.ts",
-      import: "./dist/design.js"
-    });
+    const bundledExports = [
+      ["agent-defs", "agent-defs"],
+      ["agent-human-in-loop", "agent-human-in-loop"],
+      ["agent-mcp-config", "agent-mcp-config"],
+      ["auth-store", "auth-store"],
+      ["config-mutations", "config-mutations"],
+      ["toolcraft-design", "design"],
+      ["frontmatter", "frontmatter"],
+      ["process-runner", "process-runner"],
+      ["task-list", "task-list"],
+      ["tiny-mcp-client", "tiny-mcp-client"]
+    ] as const;
+
+    for (const [packageDir, exportName] of bundledExports) {
+      expect(readPackageJson(`packages/${packageDir}/package.json`).private).toBe(true);
+      expect(toolcraftPackage.exports?.[`./${exportName}`]).toEqual({
+        types: `./dist/${exportName}.d.ts`,
+        import: `./dist/${exportName}.js`
+      });
+    }
   });
 
   it("inlines private mcp-oauth into tiny-mcp-client", () => {

@@ -1,8 +1,8 @@
 {
   "name": "tiny-mcp-client",
   "version": "0.1.0",
+  "private": true,
   "license": "MIT",
-  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

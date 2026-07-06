@@ -1,7 +1,6 @@
 {
   "name": "toolcraft-design",
   "version": "0.0.2",
-  "private": true,
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
@@ -48,5 +47,8 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/toolcraft-design"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

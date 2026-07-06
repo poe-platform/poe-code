@@ -1,8 +1,8 @@
 {
   "name": "@poe-code/agent-mcp-config",
   "version": "0.0.1",
-  "private": true,
   "license": "MIT",
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

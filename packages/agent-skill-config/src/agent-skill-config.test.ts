@@ -126,7 +126,14 @@ function extractBodyAfterFrontmatter(markdown: string): string {
 
 describe("supportedAgents", () => {
   it("includes supported agent ids", () => {
-    expect(supportedAgents).toEqual(["claude-code", "codex", "cursor", "gemini-cli", "opencode", "goose"]);
+    expect(supportedAgents).toEqual([
+      "claude-code",
+      "codex",
+      "cursor",
+      "gemini-cli",
+      "opencode",
+      "goose"
+    ]);
   });
 
   it("does not expose mutable agent config state", () => {
@@ -268,7 +275,7 @@ describe("configure", () => {
       encoding: "utf8"
     });
     expect(content).toContain("name: poe-generate");
-    expect(content).toContain("# poe-code generate");
+    expect(content).toContain("# Poe Code Prompting");
   });
 
   it("creates local skill directory in cwd and writes bundled skills", async () => {
@@ -279,15 +286,21 @@ describe("configure", () => {
       encoding: "utf8"
     });
     expect(content).toContain("name: poe-generate");
-    expect(content).toContain("# poe-code generate");
+    expect(content).toContain("# Poe Code Prompting");
   });
 
   it("does not overwrite a user-authored bundled filename", async () => {
     vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
-    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", { encoding: "utf8" });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", {
+      encoding: "utf8"
+    });
 
-    await expect(configure("claude-code", { fs: memFs, homeDir, cwd })).rejects.toThrow("already exists");
-    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe("user skill");
+    await expect(configure("claude-code", { fs: memFs, homeDir, cwd })).rejects.toThrow(
+      "already exists"
+    );
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe(
+      "user skill"
+    );
   });
 
   it("does not treat inherited stat error codes as missing bundled skills", async () => {
@@ -306,8 +319,9 @@ describe("configure", () => {
     };
 
     await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
-      await expect(configure("claude-code", { fs: fsWithDeniedStat, homeDir, cwd }))
-        .rejects.toThrow("stat denied");
+      await expect(
+        configure("claude-code", { fs: fsWithDeniedStat, homeDir, cwd })
+      ).rejects.toThrow("stat denied");
     });
   });
 
@@ -389,11 +403,15 @@ describe("unconfigure", () => {
 
   it("preserves an unowned skill during ordinary unconfigure", async () => {
     vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
-    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", { encoding: "utf8" });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", {
+      encoding: "utf8"
+    });
 
     await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
 
-    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe("user skill");
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe(
+      "user skill"
+    );
   });
 
   it("removes local skill directory in cwd when force is set", async () => {
@@ -472,13 +490,21 @@ describe("installSkill", () => {
 
   it("rejects skill names that escape the configured skill directory", async () => {
     await expect(
-      installSkill("claude-code", { name: "../escaped", content: "outside" }, { fs: memFs, cwd, homeDir, scope: "local" })
+      installSkill(
+        "claude-code",
+        { name: "../escaped", content: "outside" },
+        { fs: memFs, cwd, homeDir, scope: "local" }
+      )
     ).rejects.toThrow("skill name");
   });
 
   it.each(["   ", "foo "])("rejects whitespace-padded skill name %j", async (name) => {
     await expect(
-      installSkill("claude-code", { name, content: "# invalid\n" }, { fs: memFs, cwd, homeDir, scope: "local" })
+      installSkill(
+        "claude-code",
+        { name, content: "# invalid\n" },
+        { fs: memFs, cwd, homeDir, scope: "local" }
+      )
     ).rejects.toThrow("skill name");
   });
 
@@ -487,9 +513,15 @@ describe("installSkill", () => {
     await memFs.writeFile(`${cwd}/.claude/skills/existing/SKILL.md`, "user", { encoding: "utf8" });
 
     await expect(
-      installSkill("claude-code", { name: "existing", content: "generated" }, { fs: memFs, cwd, homeDir, scope: "local" })
+      installSkill(
+        "claude-code",
+        { name: "existing", content: "generated" },
+        { fs: memFs, cwd, homeDir, scope: "local" }
+      )
     ).rejects.toThrow("already exists");
-    await expect(memFs.readFile(`${cwd}/.claude/skills/existing/SKILL.md`, "utf8")).resolves.toBe("user");
+    await expect(memFs.readFile(`${cwd}/.claude/skills/existing/SKILL.md`, "utf8")).resolves.toBe(
+      "user"
+    );
   });
 });
 
@@ -500,8 +532,9 @@ describe("createTemplateLoader", () => {
     const loader = createTemplateLoader();
     const template = await loader("poe-generate.md");
 
-    expect(template).toContain("# poe-code generate");
-    expect(template).toContain("poe-code generate");
+    expect(template).toContain("# Poe Code Prompting");
+    expect(template).toContain("poe-code spawn");
+    expect(template).not.toContain("poe-code generate");
   });
 
   it("loads the terminal-pilot bundled template by id", async () => {
@@ -529,12 +562,14 @@ describe("bundled skill template: poe-generate.md", () => {
     const frontmatter = parseYamlFrontmatter(template);
     expect(frontmatter).toMatchObject({
       name: "poe-generate",
-      description: "Poe code generation skill"
+      description: "Poe Code agent prompting guidance"
     });
 
     const body = extractBodyAfterFrontmatter(template);
     expect(body.trim().length).toBeGreaterThan(0);
-    expect(body).toContain("poe-code generate");
+    expect(body).toContain("poe-code agent");
+    expect(body).toContain("poe-code spawn");
+    expect(body).not.toContain("poe-code generate");
   });
 
   it("fails validation when frontmatter is malformed", () => {

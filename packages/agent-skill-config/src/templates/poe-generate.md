@@ -1,47 +1,41 @@
 ---
 name: poe-generate
-description: 'Poe code generation skill'
+description: "Poe Code agent prompting guidance"
 ---
 
-# poe-code generate
+# Poe Code Prompting
 
-Use `poe-code generate` to create text, images, audio, or video via the Poe API.
+Use Poe Code's supported agent surfaces for prompts. The current CLI has no standalone generation command.
 
-## Text generation
+## One-shot Poe Agent Prompt
 
 ```bash
-poe-code generate "Write a short function that parses a JSON string safely."
+poe-code agent "Summarize the current repository."
 ```
 
-Specify the model/bot:
+Specify a model when the command supports it:
 
 ```bash
-# CLI option
-poe-code generate --model "gpt-4.1" "Summarize this codebase change."
-
-# Some agent runtimes call the model selector `--bot`
-poe-code generate --bot "gpt-4.1" "Summarize this codebase change."
+poe-code agent "Summarize this codebase change." --model "<model-id>"
 ```
 
-## Media generation
+## Coding Agent Prompt
 
-The CLI supports media generation as subcommands:
+Use `spawn` when the prompt should run through a configured coding agent CLI:
 
 ```bash
-poe-code generate image "A 3D render of a rubber duck wearing sunglasses" --model "gpt-image-1" -o duck.png
-poe-code generate video "A cinematic timelapse of a city at night" --model "veo" -o city.mp4
-poe-code generate audio "A calm 10 second lo-fi beat" --model "audio-model" -o beat.wav
+poe-code spawn codex "Review the auth module"
+poe-code spawn claude-code "Fix the failing tests" --model "<model-id>"
 ```
 
-Some agent runtimes expose the same media types as flags. If available, these are equivalent:
+Run against a GitHub locator when the work should happen outside the current checkout:
 
 ```bash
-poe-code generate --image "A 3D render of a rubber duck wearing sunglasses" --bot "gpt-image-1" -o duck.png
-poe-code generate --video "A cinematic timelapse of a city at night" --bot "veo" -o city.mp4
-poe-code generate --audio "A calm 10 second lo-fi beat" --bot "audio-model" -o beat.wav
+poe-code spawn codex "Review this package" --cwd github://owner/repo#main:packages/auth
 ```
 
 ## Tips
 
-- Use `--param key=value` to pass provider/model parameters (repeatable).
-- Use `--output <path>` (or `-o`) for media outputs.
+- Run `poe-code models` to find model IDs and endpoint support.
+- Use `poe-code auth status` to verify credentials before running prompts.
+- Use `poe-code spawn --help` and `poe-code agent --help` for current flags.

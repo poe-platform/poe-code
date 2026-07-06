@@ -1505,16 +1505,65 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>  -v, --verbose
+      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
     `);
     expect(output).toContain("Options");
     expect(output).not.toContain("Global options");
     expect(output).not.toContain("--preset");
     expect(output).toContain("--yes");
-    expect(output).toContain("--output <format>");
+    expect(output).toContain("--output <rich|md|markdown|json>");
     expect(output).not.toContain("--version");
     expect(output).not.toContain("-h, --help");
+  });
+
+  it("registers custom output formats with exact output and renderer context", async () => {
+    const query = defineCommand({
+      name: "query",
+      params: S.Object({}),
+      handler: async () => [{ id: "a", value: 1 }]
+    });
+    const root = defineGroup({ name: "toolcraft", children: [query] });
+    const compact = vi.fn(
+      ({ result, primitives }: { result: unknown; primitives: { outputFormat: string } }) => {
+        expect(result).toEqual([{ id: "a", value: 1 }]);
+        expect(primitives.outputFormat).toBe("compact");
+        return "id\tvalue\na\t1\n";
+      }
+    );
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "query", "--output", "compact"];
+    await runCLI(root, {
+      controls: { output: { formats: { compact } } }
+    });
+
+    expect(compact).toHaveBeenCalledOnce();
+    expect(readStdout(stdoutWrite)).toBe("id\tvalue\na\t1\n");
+  });
+
+  it("includes custom output formats in help and invalid-value suggestions", async () => {
+    const query = defineCommand({
+      name: "query",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({ name: "toolcraft", children: [query] });
+    const controls = { output: { formats: { compact: () => "" } } } as const;
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "--help"];
+    await runCLI(root, { controls });
+    expect(readStdout(stdoutWrite)).toContain(
+      "--output <rich|md|markdown|json|compact>"
+    );
+
+    process.argv = ["node", "toolcraft", "query", "--output", "compcat"];
+    await runCLI(root, { controls });
+    expect(loggerState.error.join("\n")).toContain("Did you mean: compact?");
+    expect(loggerState.error.join("\n")).toContain(
+      "Expected one of: rich, md, markdown, json, compact"
+    );
   });
 
   it("keeps approvals and built-in CLI controls disabled by default", async () => {
@@ -1576,7 +1625,7 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options: --preset <path>  --yes  --output <format>  -v, --verbose  --version
+      Options: --preset <path>  --yes  --output <rich|md|markdown|json>  -v, --verbose  --version
       "
     `);
     expect(output).toContain("Options");
@@ -5563,7 +5612,7 @@ describe("runCLI", () => {
         deploy
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>  -v, --verbose
+      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
     `);
   });
@@ -5728,7 +5777,7 @@ describe("runCLI", () => {
         sibling     Sibling leaf
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>  -v, --verbose
+      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
     `);
   });
@@ -5800,7 +5849,7 @@ describe("runCLI", () => {
         approvals                       Inspect and execute queued
                                         approvals.
 
-      Options: --yes  --output <format>  -v, --verbose
+      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
     `);
   });
@@ -5836,7 +5885,7 @@ describe("runCLI", () => {
         deploy      Deploy a service
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>  -v, --verbose
+      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
     `);
     expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);

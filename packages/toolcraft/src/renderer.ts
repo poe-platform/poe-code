@@ -2,7 +2,7 @@ import YAML from "yaml";
 import { renderDetailCard } from "toolcraft-design";
 import type { Command, RenderPrimitives } from "./index.js";
 
-export type OutputMode = "rich" | "md" | "json";
+export type OutputMode = "rich" | "md" | "json" | (string & {});
 
 type WriteStream = "stdout" | "stderr";
 type WriteFn = (chunk: string, stream?: WriteStream) => void;

@@ -205,6 +205,31 @@ describe("createCommandTestHarness streams", () => {
   });
 });
 
+describe("createCommandTestHarness CLI output", () => {
+  it("captures exact stdout bytes from custom output formats", async () => {
+    const query = defineCommand({
+      name: "query",
+      params: S.Object({}),
+      handler: async () => [{ id: "a", value: 1 }]
+    });
+    const harness = createCommandTestHarness(
+      defineGroup({ name: "fixture", children: [query] })
+    );
+
+    await expect(
+      harness.cli(["query", "--output", "compact"], {
+        formats: {
+          compact: () => "id\tvalue\na\t1\n"
+        }
+      })
+    ).resolves.toEqual({
+      exitCode: 0,
+      stdout: "id\tvalue\na\t1\n",
+      stderr: ""
+    });
+  });
+});
+
 describe("createCommandTestHarness confirm stage", () => {
   it("captures command confirmation declines", async () => {
     const { harness, service } = createFixtureHarness({ confirmations: "decline" });

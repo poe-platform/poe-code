@@ -26,6 +26,7 @@ import { createMemoryFs, type FsChange, type MemoryFs } from "./memory-fs.js";
 import { runParity, type ParityResult } from "./parity.js";
 import { createRenderCapture } from "./render-capture.js";
 import { createManagedStream, type StreamStatusEvent } from "../stream.js";
+import { runCLI, type CLIOutputFormats } from "../cli.js";
 
 export type PipelineStage =
   | "resolve"
@@ -88,6 +89,7 @@ export interface RunResult<T> {
 }
 
 export interface CommandTestHarness {
+  cli(args: string[], options?: HarnessCLIOptions): Promise<HarnessCLIResult>;
   run<T>(path: string[], params?: Record<string, unknown>): Promise<RunResult<T>>;
   stream<T>(
     path: string[],
@@ -97,6 +99,16 @@ export interface CommandTestHarness {
   parity(path: string[], params?: Record<string, unknown>): Promise<ParityResult>;
   fs: MemoryFs;
   timeline: EffectEvent[];
+}
+
+export interface HarnessCLIOptions {
+  formats?: CLIOutputFormats;
+}
+
+export interface HarnessCLIResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
 }
 
 export interface StreamRunResult<T> {
@@ -293,7 +305,7 @@ function createTaskList(): TaskList {
 }
 
 export function createCommandTestHarness<TServices extends object = EmptyHarnessServices>(
-  root: Group,
+  root: Group<TServices>,
   options: HarnessOptions<TServices> = {}
 ): CommandTestHarness {
   const services = options.services ?? ({} as TServices);
@@ -314,6 +326,36 @@ export function createCommandTestHarness<TServices extends object = EmptyHarness
   return {
     fs: memoryFs,
     timeline: cumulativeTimeline,
+    async cli(args: string[], cliOptions: HarnessCLIOptions = {}): Promise<HarnessCLIResult> {
+      let stdout = "";
+      const previousExitCode = process.exitCode;
+      process.exitCode = undefined;
+      try {
+        await runCLI(root, {
+          argv: ["node", root.name, ...args],
+          controls: { output: { formats: cliOptions.formats } },
+          services,
+          env: Object.fromEntries(
+            Object.entries(options.env ?? {}).flatMap(([key, value]) =>
+              value === undefined ? [] : [[key, value]]
+            )
+          ),
+          fs: memoryFs,
+          fetch: runtimeFetch,
+          logLevel: options.logLevel,
+          outputEmitter(entry) {
+            stdout += entry;
+          }
+        });
+        return {
+          exitCode: process.exitCode ?? 0,
+          stdout,
+          stderr: ""
+        };
+      } finally {
+        process.exitCode = previousExitCode;
+      }
+    },
     async stream<T>(
       requestedPath: string[],
       inputParams: Record<string, unknown> = {},
@@ -617,11 +659,11 @@ export function createCommandTestHarness<TServices extends object = EmptyHarness
           rendered.rich = capture.output();
         }
         if (command.render?.markdown) {
-          const capture = createRenderCapture();
+          const capture = createRenderCapture("md");
           rendered.markdown = stripAnsi(command.render.markdown(invoked, capture.primitives));
         }
         if (command.render?.json) {
-          const capture = createRenderCapture();
+          const capture = createRenderCapture("json");
           rendered.json = command.render.json(invoked, capture.primitives);
         }
 

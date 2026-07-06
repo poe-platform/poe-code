@@ -28,6 +28,7 @@ function createPrimitives(): RenderPrimitives {
       badge: (value: string) => `[${value}]`,
     })),
     note: vi.fn(),
+    outputFormat: "rich",
   };
 }
 

@@ -43,6 +43,7 @@ import type {
   HandlerFs,
   DiagnosticLogEvent,
   LogLevel,
+  RenderPrimitives,
   RuntimeLoggerInput,
   SecretDeclarations,
   SecretDefinition,
@@ -50,6 +51,7 @@ import type {
 } from "./index.js";
 import {
   ApprovalDeclinedError,
+  ToolcraftBugError,
   UserError,
   assertCommandRequirements,
   getCommandSourcePath,
@@ -64,7 +66,7 @@ import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
 import { createRuntimeLogger, isLogLevel, LOG_LEVELS } from "./runtime-logging.js";
 import { summarizeHttpError } from "./api-error-summary.js";
-import { renderResult } from "./renderer.js";
+import { renderResult, type RenderResultStatus } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import { renderSourceSnippet } from "./source-snippet.js";
 import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack-trim.js";
@@ -239,9 +241,24 @@ interface JsonHelpOption {
 export interface CLIControls {
   debug?: boolean;
   logLevel?: boolean;
-  output?: boolean;
+  output?: boolean | CLIOutputControl;
   verbose?: boolean;
   yes?: boolean;
+}
+
+export interface CLIOutputFormatContext {
+  command: Command<any, any, any, any>;
+  commandPath: string;
+  primitives: RenderPrimitives;
+  result: unknown;
+}
+
+export type CLIOutputFormatRenderer = (context: CLIOutputFormatContext) => string | undefined;
+
+export type CLIOutputFormats = Readonly<Record<string, CLIOutputFormatRenderer>>;
+
+export interface CLIOutputControl {
+  formats?: CLIOutputFormats;
 }
 
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
@@ -279,6 +296,7 @@ export interface CLICommandTreeSnapshotOption {
   positional?: boolean;
   global?: boolean;
   dynamic?: boolean;
+  choices?: string[];
 }
 
 export interface CLICommandTreeSnapshotCommand {
@@ -1215,18 +1233,46 @@ interface ResolvedCLIControls {
   debug: boolean;
   logLevel: boolean;
   output: boolean;
+  outputFormats: CLIOutputFormats;
   verbose: boolean;
   yes: boolean;
 }
 
 function resolveCLIControls(controls: CLIControls | undefined): ResolvedCLIControls {
+  const outputFormats =
+    typeof controls?.output === "object" ? (controls.output.formats ?? {}) : {};
+  validateOutputFormats(outputFormats);
   return {
     debug: controls?.debug === true,
     logLevel: controls?.logLevel === true,
-    output: controls?.output === true,
+    output: controls?.output === true || typeof controls?.output === "object",
+    outputFormats,
     verbose: controls?.verbose === true,
     yes: controls?.yes === true
   };
+}
+
+const BUILT_IN_OUTPUT_FORMATS = ["rich", "md", "markdown", "json"] as const;
+
+function outputFormatNames(controls: ResolvedCLIControls): string[] {
+  return [...BUILT_IN_OUTPUT_FORMATS, ...Object.keys(controls.outputFormats)];
+}
+
+function validateOutputFormats(formats: CLIOutputFormats): void {
+  for (const [name, renderer] of Object.entries(formats)) {
+    const hasWhitespace = name.split("").some((character) => character.trim() === "");
+    if (name.length === 0 || name.trim() !== name || hasWhitespace) {
+      throw new ToolcraftBugError(
+        `Custom output format names must be non-empty and contain no whitespace: ${JSON.stringify(name)}.`
+      );
+    }
+    if (BUILT_IN_OUTPUT_FORMATS.includes(name as (typeof BUILT_IN_OUTPUT_FORMATS)[number])) {
+      throw new ToolcraftBugError(`Custom output format "${name}" conflicts with a built-in format.`);
+    }
+    if (typeof renderer !== "function") {
+      throw new ToolcraftBugError(`Custom output format "${name}" must define a renderer function.`);
+    }
+  }
 }
 
 function getGlobalLongOptionFlags(
@@ -1942,7 +1988,7 @@ function formatGlobalOptionsLine(ctx: {
     flags.push("--yes");
   }
   if (ctx.controls.output) {
-    flags.push("--output <format>");
+    flags.push(`--output <${outputFormatNames(ctx.controls).join("|")}>`);
   }
   if (ctx.controls.verbose) {
     flags.push("-v, --verbose");
@@ -2591,13 +2637,15 @@ function createGlobalSnapshotOptions(
     });
   }
   if (controls.output) {
+    const choices = outputFormatNames(controls);
     options.push({
       name: "output",
       flags: ["--output"],
       type: "enum",
       required: false,
       hidden: true,
-      description: "Output format."
+      description: "Output format.",
+      choices
     });
   }
   if (controls.debug) {
@@ -2753,8 +2801,9 @@ function addGlobalOptions(
     options.push(new Option("--yes", "Accept defaults and skip prompts."));
   }
   if (controls.output) {
+    const choices = outputFormatNames(controls);
     options.push(
-      new Option("--output <format>", "Output format.").argParser((value: string) => {
+      new Option("--output <format>", "Output format.").choices(choices).argParser((value: string) => {
         if (value === "rich" || value === "md" || value === "json") {
           return value;
         }
@@ -2763,9 +2812,13 @@ function addGlobalOptions(
           return "md";
         }
 
+        if (Object.hasOwn(controls.outputFormats, value)) {
+          return value;
+        }
+
         throw new InvalidArgumentError(
-          formatInvalidEnumMessage("--output", value, ["rich", "md", "markdown", "json"], {
-            candidates: ["rich", "markdown", "json"],
+          formatInvalidEnumMessage("--output", value, choices, {
+            candidates: ["rich", "markdown", "json", ...Object.keys(controls.outputFormats)],
             threshold: 3
           })
         );
@@ -3010,13 +3063,16 @@ function resolveOutput(resolvedFlags: ResolvedFlags): OutputMode {
   }
 
   if (resolvedFlags.output !== undefined) {
-    return resolvedFlags.output;
+    return resolvedFlags.output === "markdown" ? "md" : resolvedFlags.output;
   }
 
   return "rich";
 }
 
-function resolveOutputFromArgv(argv: readonly string[]): OutputMode {
+function resolveOutputFromArgv(
+  argv: readonly string[],
+  formats: CLIOutputFormats = {}
+): OutputMode {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index] ?? "";
 
@@ -3034,6 +3090,9 @@ function resolveOutputFromArgv(argv: readonly string[]): OutputMode {
       if (value === "markdown") {
         return "md";
       }
+      if (value !== undefined && Object.hasOwn(formats, value)) {
+        return value;
+      }
       continue;
     }
     if (token.startsWith("--output=")) {
@@ -3044,20 +3103,23 @@ function resolveOutputFromArgv(argv: readonly string[]): OutputMode {
       if (value === "markdown") {
         return "md";
       }
+      if (Object.hasOwn(formats, value)) {
+        return value;
+      }
     }
   }
 
   return "rich";
 }
 
-const DESIGN_SYSTEM_OUTPUT_BY_MODE = {
-  rich: "terminal",
-  md: "markdown",
-  json: "json"
-} as const satisfies Record<OutputMode, "terminal" | "markdown" | "json">;
-
 function toDesignSystemOutput(output: OutputMode): "terminal" | "markdown" | "json" {
-  return DESIGN_SYSTEM_OUTPUT_BY_MODE[output];
+  if (output === "md") {
+    return "markdown";
+  }
+  if (output === "json") {
+    return "json";
+  }
+  return "terminal";
 }
 
 async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Promise<T> {
@@ -4748,6 +4810,7 @@ async function executeCommand<TServices extends object>(
   runtimeEnv: Record<string, string> | undefined,
   runtimeFs: HandlerFs | undefined,
   outputEmitter: ((entry: string) => void) | undefined,
+  outputFormats: CLIOutputFormats,
   promptStreams: PromptStreams,
   diagnosticsOptions: {
     logLevel?: LogLevel;
@@ -4762,15 +4825,16 @@ async function executeCommand<TServices extends object>(
   }) => void
 ): Promise<void> {
   const logger = createLogger(outputEmitter);
-  const primitives = {
-    logger,
-    renderTable,
-    getTheme,
-    note
-  };
   const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
   const resolvedFlags = optionValues as ResolvedFlags;
   const output = resolveOutput(resolvedFlags);
+  const primitives: RenderPrimitives = {
+    logger,
+    renderTable,
+    getTheme,
+    note,
+    outputFormat: output
+  };
   const diagnostics = createRuntimeLogger({
     level:
       resolvedFlags.logLevel ??
@@ -4789,7 +4853,7 @@ async function executeCommand<TServices extends object>(
       ? {
           commandPath: state.commandPath,
           params: {},
-          output,
+          output: "rich",
           stdinTTY,
           stdoutTTY
         }
@@ -4881,14 +4945,17 @@ async function executeCommand<TServices extends object>(
                 outputEmitter(line);
               }
             } else {
-              renderResult(
+              renderCLIResult(
                 state.command,
+                state.commandPath,
                 event,
                 output,
                 primitives,
+                outputFormats,
                 outputEmitter === undefined
                   ? undefined
-                  : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk)
+                  : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk),
+                outputEmitter
               );
             }
           }
@@ -4951,14 +5018,17 @@ async function executeCommand<TServices extends object>(
         return;
       }
 
-      const renderStatus = renderResult(
+      const renderStatus = renderCLIResult(
         state.command,
+        state.commandPath,
         result,
         output,
         primitives,
+        outputFormats,
         outputEmitter === undefined
           ? undefined
-          : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk)
+          : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk),
+        outputEmitter
       );
       if (renderStatus.mcpError) {
         process.exitCode = 1;
@@ -4973,6 +5043,34 @@ async function executeCommand<TServices extends object>(
     });
     throw error;
   }
+}
+
+function renderCLIResult(
+  command: Command<any, any, any, any>,
+  commandPath: string,
+  result: unknown,
+  output: OutputMode,
+  primitives: RenderPrimitives,
+  outputFormats: CLIOutputFormats,
+  write?: (chunk: string, stream?: "stdout" | "stderr") => void,
+  emitExact?: (chunk: string) => void
+): RenderResultStatus {
+  const customRenderer = outputFormats[output];
+  if (customRenderer === undefined) {
+    return renderResult(command, result, output, primitives, write);
+  }
+
+  const payload = customRenderer({ command, commandPath, primitives, result });
+  if (payload !== undefined && payload.length > 0) {
+    if (emitExact !== undefined) {
+      emitExact(payload);
+    } else if (write === undefined) {
+      process.stdout.write(payload);
+    } else {
+      write(payload);
+    }
+  }
+  return { mcpError: false };
 }
 
 type HttpErrorLike = {
@@ -5870,6 +5968,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         options.env,
         options.fs,
         options.outputEmitter,
+        controls.outputFormats,
         {
           input: options.promptInput,
           output: options.promptOutput
@@ -5959,7 +6058,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
           ? resolveDebugStackMode(resolvedFlags.debug)
           : getDebugStackModeFromArgv(argv),
       output:
-        resolvedFlags !== undefined ? resolveOutput(resolvedFlags) : resolveOutputFromArgv(argv),
+        resolvedFlags !== undefined
+          ? resolveOutput(resolvedFlags)
+          : resolveOutputFromArgv(argv, controls.outputFormats),
       verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : argv.includes("--verbose"),
       program,
       argv,

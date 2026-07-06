@@ -37,13 +37,19 @@ describe("createCLICommandTreeSnapshot", () => {
       default: deploy
     });
 
+    const controls = {
+      debug: true,
+      output: { formats: { compact: () => "" } },
+      verbose: true,
+      yes: true
+    } as const;
     const first = await createCLICommandTreeSnapshot(root, {
-      controls: { debug: true, output: true, verbose: true, yes: true },
+      controls,
       presets: true,
       version: "1.2.3"
     });
     const second = await createCLICommandTreeSnapshot(root, {
-      controls: { debug: true, output: true, verbose: true, yes: true },
+      controls,
       presets: true,
       version: "1.2.3"
     });
@@ -55,7 +61,13 @@ describe("createCLICommandTreeSnapshot", () => {
         { name: "help", flags: ["-h", "--help"], type: "boolean", hidden: false },
         { name: "preset", flags: ["--preset"], type: "string", hidden: true },
         { name: "yes", flags: ["--yes"], type: "boolean", hidden: true },
-        { name: "output", flags: ["--output"], type: "enum", hidden: true },
+        {
+          name: "output",
+          flags: ["--output"],
+          type: "enum",
+          hidden: true,
+          choices: ["rich", "md", "markdown", "json", "compact"]
+        },
         { name: "debug", flags: ["--debug"], type: "enum", hidden: true },
         { name: "verbose", flags: ["-v", "--verbose"], type: "boolean", hidden: true },
         { name: "version", flags: ["--version"], type: "boolean", hidden: false }

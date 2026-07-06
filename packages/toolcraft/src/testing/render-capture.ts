@@ -49,7 +49,7 @@ export interface RenderCapture {
   output(): string;
 }
 
-export function createRenderCapture(): RenderCapture {
+export function createRenderCapture(outputFormat = "rich"): RenderCapture {
   const output: string[] = [];
   const captureTheme = createCaptureTheme();
   const emit = (message: string): void => {
@@ -70,7 +70,8 @@ export function createRenderCapture(): RenderCapture {
           )
         ),
       getTheme: () => captureTheme,
-      note: (message, title) => emit(title === undefined ? message : `${title}\n${message}`)
+      note: (message, title) => emit(title === undefined ? message : `${title}\n${message}`),
+      outputFormat
     },
     output: () => output.join("\n")
   };

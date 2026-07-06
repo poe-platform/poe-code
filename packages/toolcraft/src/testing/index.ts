@@ -3,6 +3,8 @@ export {
   type CommandTestHarness,
   type ConfirmationRequest,
   type EffectEvent,
+  type HarnessCLIOptions,
+  type HarnessCLIResult,
   type HarnessOptions,
   type PipelineStage,
   type RunResult,

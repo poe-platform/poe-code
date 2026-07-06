@@ -54,7 +54,8 @@ function createPrimitives(): {
         header: (value: string) => value,
         muted: (value: string) => value
       })),
-      note: vi.fn()
+      note: vi.fn(),
+      outputFormat: "rich"
     },
     renderTable
   };
@@ -2302,6 +2303,25 @@ describe("renderResult", () => {
     expect(rich).toHaveBeenCalledWith("value", primitives);
     expect(markdown).toHaveBeenCalledWith("value", primitives);
     expect(json).toHaveBeenCalledWith("value", primitives);
+  });
+
+  it("passes the selected output format to command renderers", () => {
+    const markdown = vi.fn((_result: string, primitives: RenderPrimitives) => {
+      expect(primitives.outputFormat).toBe("md");
+      return "formatted";
+    });
+    const { primitives } = createPrimitives();
+    primitives.outputFormat = "md";
+    const command = defineCommand({
+      name: "demo",
+      params: S.Object({}),
+      handler: async () => "ignored",
+      render: { markdown }
+    });
+
+    renderResult(command, "value", "md", primitives, () => undefined);
+
+    expect(markdown).toHaveBeenCalledOnce();
   });
 
   it("uses format overrides instead of the auto renderer", () => {

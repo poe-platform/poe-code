@@ -300,7 +300,7 @@ Returned `HttpServer` instances support:
 | `maxBatchSize`           | `number`                                     | unlimited                        | Maximum JSON-RPC batch member count.                                                          |
 | `maxSessions`            | `number`                                     | unlimited                        | Maximum active sessions.                                                                      |
 | `sessionTtlMs`           | `number`                                     | no idle expiry                   | Expire idle sessions after this duration.                                                     |
-| `maxStreamsPerSession`   | `number`                                     | unlimited                        | Maximum concurrent GET SSE streams per session.                                               |
+| `maxStreamsPerSession`   | `number`                                     | `1`                              | Maximum concurrent GET SSE streams per session.                                               |
 | `maxSseEventHistory`     | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                             |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited                        | Maximum concurrent tool calls across sessions.                                                |
 | `sessionStore`           | `SessionStore`                               | in-memory store                  | Pluggable session storage for long-running or multi-instance deployments.                     |
@@ -379,7 +379,7 @@ These are the same shape:
 | `maxBatchSize`           | `number`                                     | unlimited          | Maximum JSON-RPC batch member count.                                                      |
 | `maxSessions`            | `number`                                     | unlimited          | Maximum active sessions.                                                                  |
 | `sessionTtlMs`           | `number`                                     | no idle expiry     | Idle session expiration window.                                                           |
-| `maxStreamsPerSession`   | `number`                                     | unlimited          | Maximum concurrent GET SSE streams per session.                                           |
+| `maxStreamsPerSession`   | `number`                                     | `1`                | Maximum concurrent GET SSE streams per session.                                           |
 | `maxSseEventHistory`     | `number`                                     | `100`              | Number of SSE events retained for replay.                                                 |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited          | Maximum concurrent tool calls across sessions.                                            |
 | `sessionStore`           | `SessionStore`                               | in-memory store    | Pluggable session storage.                                                                |
@@ -429,7 +429,7 @@ tiny-http-mcp-server [options]
 | `--max-batch-size <count>`                   | unlimited    | Maximum JSON-RPC batch member count.                                                                                                 |
 | `--max-sessions <count>`                     | unlimited    | Maximum active sessions.                                                                                                             |
 | `--session-ttl-ms <ms>`                      | none         | Expire idle sessions after this duration.                                                                                            |
-| `--max-streams-per-session <count>`          | unlimited    | Maximum concurrent GET SSE streams per session.                                                                                      |
+| `--max-streams-per-session <count>`          | `1`          | Maximum concurrent GET SSE streams per session.                                                                                      |
 | `--max-sse-event-history <count>`            | `100`        | Number of SSE events retained for `Last-Event-ID` replay.                                                                            |
 | `--max-concurrent-tool-calls <count>`        | unlimited    | Maximum concurrent tool calls across sessions.                                                                                       |
 | `--trusted-proxy`                            | off          | Trust `X-Forwarded-Proto` and `X-Forwarded-Host` for metadata challenge URLs.                                                        |

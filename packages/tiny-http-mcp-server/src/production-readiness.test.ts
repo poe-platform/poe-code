@@ -534,7 +534,33 @@ describe("HTTP MCP production readiness", () => {
     expect(text).toContain("notifications/tools/list_changed");
   });
 
-  it("delivers notifications to multiple streams and enforces stream limits", async () => {
+  it("rejects a second stream by default", async () => {
+    const server = createHttpServer({
+      name: "single-stream-default",
+      version: "1.0.0",
+      sessionIdGenerator: () => "single-stream-default-session",
+    });
+    const sessionId = await initializeSession(server);
+    const streamHeaders = {
+      Accept: "text/event-stream",
+      "Mcp-Session-Id": sessionId,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
+    };
+
+    const first = await dispatchRaw(server, {
+      method: "GET",
+      headers: streamHeaders,
+    });
+    const second = await dispatch(server, {
+      method: "GET",
+      headers: streamHeaders,
+    });
+
+    expect(first.response.statusCode).toBe(200);
+    expect(second.status).toBe(409);
+  });
+
+  it("delivers notifications only to the most recently opened stream", async () => {
     const server = createHttpServer({
       name: "multi-stream",
       version: "1.0.0",
@@ -563,16 +589,36 @@ describe("HTTP MCP production readiness", () => {
 
     expect(first.response.statusCode).toBe(200);
     expect(second.response.statusCode).toBe(200);
-    expect(third.status).toBe(429);
+    expect(third.status).toBe(409);
 
     await server.notifyToolsChanged();
 
-    expect(Buffer.concat(first.response.chunks).toString("utf8")).toContain(
+    expect(Buffer.concat(first.response.chunks).toString("utf8")).not.toContain(
       "notifications/tools/list_changed"
     );
     expect(Buffer.concat(second.response.chunks).toString("utf8")).toContain(
       "notifications/tools/list_changed"
     );
+
+    second.response.end();
+    await server.notifyToolsChanged();
+
+    expect(first.response.chunks).toHaveLength(1);
+    expect(second.response.chunks).toHaveLength(1);
+
+    first.response.end();
+    const replay = await dispatchRaw(server, {
+      method: "GET",
+      headers: {
+        ...streamHeaders,
+        "Last-Event-ID": "0",
+      },
+    });
+    const replayText = Buffer.concat(replay.response.chunks).toString("utf8");
+
+    expect(replayText).toContain("id: 1");
+    expect(replayText).toContain("id: 2");
+    expect(replayText.match(/notifications\/tools\/list_changed/g)).toHaveLength(2);
   });
 
   it("uses trusted forwarded headers for OAuth metadata only when enabled", async () => {

@@ -120,7 +120,7 @@ export class StreamableHttpTransport {
   private readonly maxBatchSize: number | undefined;
   private readonly maxSessions: number | undefined;
   private readonly sessionTtlMs: number | undefined;
-  private readonly maxStreamsPerSession: number | undefined;
+  private readonly maxStreamsPerSession: number;
   private readonly maxSseEventHistory: number;
   private readonly maxConcurrentToolCalls: number | undefined;
   private readonly sessionStore: SessionStore;
@@ -180,7 +180,7 @@ export class StreamableHttpTransport {
       "maxStreamsPerSession",
       options.maxStreamsPerSession,
       1
-    );
+    ) ?? 1;
     this.maxSseEventHistory =
       validateOptionalIntegerOption(
         "maxSseEventHistory",
@@ -561,11 +561,8 @@ export class StreamableHttpTransport {
     await this.ensureLocalMessageSession(sessionId, session);
 
     const existingStreams = this.sseStreams.get(sessionId);
-    if (
-      this.maxStreamsPerSession !== undefined
-      && (existingStreams?.size ?? 0) >= this.maxStreamsPerSession
-    ) {
-      this.respondWithStatus(res, 429);
+    if ((existingStreams?.size ?? 0) >= this.maxStreamsPerSession) {
+      this.respondWithStatus(res, 409);
       return;
     }
 
@@ -833,11 +830,13 @@ export class StreamableHttpTransport {
       id: String(id),
       data,
     });
+    let latestResponse: ServerResponse | undefined;
     for (const response of streams) {
       if (!response.writableEnded) {
-        response.write(event);
+        latestResponse = response;
       }
     }
+    latestResponse?.write(event);
   }
 
   private recordSseEvent(sessionId: string, id: number, data: string): void {

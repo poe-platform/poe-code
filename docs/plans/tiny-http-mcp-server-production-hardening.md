@@ -23,8 +23,8 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
-      release: open
+      commit: done
+      release: done
 
   - id: http-single-stream-sse
     title: Single-stream SSE delivery and 409 for excess streams
@@ -43,9 +43,9 @@ tasks:
       notification arrives on exactly one stream. Update the README option
       table default.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
       release: open
 

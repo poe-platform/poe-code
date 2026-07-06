@@ -54,11 +54,7 @@ This is an SDK/API change in `@poe-code/poe-agent`.
 Callers can configure the provider, model, and Responses request params in one plugin call:
 
 ```ts
-import {
-  agent,
-  openaiResponsesPlugin,
-  systemPromptPlugin
-} from "@poe-code/poe-agent";
+import { agent, openaiResponsesPlugin, systemPromptPlugin } from "@poe-code/poe-agent";
 
 const result = await agent()
   .use(
@@ -138,8 +134,7 @@ This error is about ambiguous `poe-agent` composition, not validation of provide
 Built-in plugin config and config-file loading should not require every provider request param to be represented in `parse-options.ts` helpers or in `PluginSpec.parseOptions(...)` allowlists. The public contract is:
 
 ```ts
-type OpenaiResponsesPluginOptions = OpenaiResponsesClientOptions &
-  OpenaiResponsesRequestOptions;
+type OpenaiResponsesPluginOptions = OpenaiResponsesClientOptions & OpenaiResponsesRequestOptions;
 ```
 
 where `OpenaiResponsesRequestOptions` is provider-pass-through data. The exact request option fields should come from the installed provider SDK types where practical, not from a manually maintained repo enum.
@@ -165,7 +160,7 @@ await agent()
 - Network: unit tests do not use the network. The real-world QA command can use a fake `fetch` or mocked provider path for deterministic validation.
 - Running services: none required.
 - Sample data: none required.
-- README permission: [packages/poe-agent/README.md](/Users/kjopek/Workspace/poe-code/packages/poe-agent/README.md) documents plugin config today. Updating it is required by package rules once implementation starts, but repo instructions require explicit user permission before README edits. Treat README edits as a separate user-approved step if this plan is executed.
+- README: update [packages/poe-agent/README.md](../../packages/poe-agent/README.md) in the same change because the public plugin configuration changes.
 
 ### Runtime model source
 
@@ -209,8 +204,7 @@ type OpenaiResponsesClientOptions = {
   maxRetries?: number;
 };
 
-type OpenaiResponsesPluginOptions = OpenaiResponsesClientOptions &
-  OpenaiResponsesRequestOptions;
+type OpenaiResponsesPluginOptions = OpenaiResponsesClientOptions & OpenaiResponsesRequestOptions;
 ```
 
 `OpenaiResponsesRequestOptions` should be derived from the installed OpenAI SDK request type where practical. The important behavior is structural: keys that are not client/runtime keys remain request params and are forwarded into `openai.responses.stream(...)`.
@@ -246,7 +240,7 @@ Apply the same pattern to `openaiChatCompletionsPlugin(...)`:
 ```ts
 agent().use(
   openaiChatCompletionsPlugin({
-    model: "anthropic/claude-sonnet-4.6",
+    model: "<model-id>",
     temperature: 0.2
   })
 );
@@ -286,7 +280,7 @@ Keep strict `agent.plugins[*]` entry validation (`name`, `options`) because that
 
 ### Public types
 
-Update [packages/poe-agent/src/runtime/plugin-types.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/runtime/plugin-types.ts):
+Update [packages/poe-agent/src/runtime/plugin-types.ts](../../packages/poe-agent/src/runtime/plugin-types.ts):
 
 ```ts
 export type Provider = {
@@ -297,19 +291,18 @@ export type Provider = {
 };
 ```
 
-Update [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts):
+Update [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts):
 
 ```ts
-export type OpenaiResponsesPluginOptions =
-  OpenaiResponsesClientOptions &
+export type OpenaiResponsesPluginOptions = OpenaiResponsesClientOptions &
   OpenaiResponsesRequestOptions;
 ```
 
-Update [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts) with equivalent client/request option separation.
+Update [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts) with equivalent client/request option separation.
 
 ### Unit tests
 
-Add or update tests in [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts):
+Add or update tests in [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts):
 
 - `spec.parseOptions(...)` preserves unknown provider request params instead of throwing.
 - `openaiResponsesPlugin({ model })` sets provider `model`.
@@ -319,14 +312,14 @@ Add or update tests in [packages/poe-agent/src/plugins/poe-agent-plugin-openai-r
 - Provider-native `reasoning` is forwarded unchanged.
 - Runtime-owned `input` and `tools` in plugin options throw a clear configuration error.
 
-Add or update tests in [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts):
+Add or update tests in [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts):
 
 - `spec.parseOptions(...)` preserves unknown provider request params.
 - `openaiChatCompletionsPlugin({ model })` sets provider `model`.
 - Provider-native request params are forwarded to `openai.chat.completions.create(...)`.
 - Runtime-owned `messages`, `tools`, `stream`, and `stream_options` in plugin options throw a clear configuration error.
 
-Add or update tests in [packages/poe-agent/src/agent.test.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/agent.test.ts):
+Add or update tests in [packages/poe-agent/src/agent.test.ts](../../packages/poe-agent/src/agent.test.ts):
 
 - `agent().use(providerPluginWithModel).run(...)` runs without `.model(...)`.
 - `.model(...)` plus provider `model` throws before `createModel(...)`.
@@ -365,7 +358,7 @@ Expected observation: CLI output still renders correctly. This plan should not c
 - [ ] `agent().use(openaiResponsesPlugin({ model: "gpt-5.5" })).run("hello")` resolves a model without `.model(...)`; proved by `agent.test.ts`.
 - [ ] `reasoning: { effort: "high" }` is forwarded as provider-native request data; proved by OpenAI Responses plugin test inspecting `responses.stream` args.
 - [ ] Unknown provider request params are not rejected by `spec.parseOptions(...)`; proved by OpenAI plugin config tests.
-- [ ] Runtime-owned `input` / `tools` for Responses and `messages` / `tools` / `stream` / `stream_options` for Chat Completions fail clearly; proved by plugin tests.
+- [ ] Runtime-owned `input` / `tools` for Responses and `messages` / `tools` / `stream` / `stream_options` for Chat Completions return a config error; proved by plugin tests.
 - [ ] Existing `.model(...).use(openaiResponsesPlugin())` behavior remains green; proved by existing and updated `agent.test.ts`.
 - [ ] `.model(...)` plus plugin `model` fails before provider request; proved by `agent.test.ts`.
 - [ ] Two provider plugins with configured `model` fail before provider request; proved by `agent.test.ts`.
@@ -375,16 +368,16 @@ Expected observation: CLI output still renders correctly. This plan should not c
 
 ### Files to change
 
-- [packages/poe-agent/src/runtime/plugin-types.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/runtime/plugin-types.ts)
+- [packages/poe-agent/src/runtime/plugin-types.ts](../../packages/poe-agent/src/runtime/plugin-types.ts)
   - Add optional `model?: string` to `Provider`.
 
-- [packages/poe-agent/src/agent.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/agent.ts)
+- [packages/poe-agent/src/agent.ts](../../packages/poe-agent/src/agent.ts)
   - Collect providers before resolving `modelName`.
   - Add a helper that resolves model source from builder config, provider metadata, and injected `acpModel`.
   - Throw on duplicate model sources.
   - Keep provider selection through `resolveProvider(providers, modelName)`.
 
-- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts)
+- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.ts)
   - Split client options from provider request params.
   - Stop rejecting unknown provider request params.
   - Add provider `model` metadata from options.
@@ -392,28 +385,28 @@ Expected observation: CLI output still renders correctly. This plan should not c
   - Preserve default `include` only when omitted.
   - Reject runtime-owned request fields `input` and `tools` if supplied in plugin options.
 
-- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts)
+- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.ts)
   - Apply the same model metadata and pass-through request-param pattern.
   - Reject runtime-owned request fields `messages`, `tools`, `stream`, and `stream_options` if supplied in plugin options.
 
-- [packages/poe-agent/src/plugins/parse-options.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/parse-options.ts)
+- [packages/poe-agent/src/plugins/parse-options.ts](../../packages/poe-agent/src/plugins/parse-options.ts)
   - Add small object helpers only if they reduce duplication for splitting client options from request params. Do not add provider-specific validation here.
 
-- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts)
+- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts)
   - Add TDD coverage for pass-through options, provider model metadata, defaults, and reserved runtime-owned fields.
 
-- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts)
+- [packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts](../../packages/poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts)
   - Add TDD coverage for pass-through options, provider model metadata, and reserved runtime-owned fields.
 
-- [packages/poe-agent/src/agent.test.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/agent.test.ts)
+- [packages/poe-agent/src/agent.test.ts](../../packages/poe-agent/src/agent.test.ts)
   - Add TDD coverage for provider-owned model resolution and duplicate model-source errors.
 
-- [packages/poe-agent/README.md](/Users/kjopek/Workspace/poe-code/packages/poe-agent/README.md)
-  - Update only after explicit user permission. Document provider-owned model config and pass-through request params.
+- [packages/poe-agent/README.md](../../packages/poe-agent/README.md)
+  - Document provider-owned model config and pass-through request params.
 
 ### Signatures and helpers
 
-Add a generic model resolver in [agent.ts](/Users/kjopek/Workspace/poe-code/packages/poe-agent/src/agent.ts):
+Add a generic model resolver in [agent.ts](../../packages/poe-agent/src/agent.ts):
 
 ```ts
 type ModelSource =
@@ -431,9 +424,7 @@ function resolveModelSource(input: {
 Add option splitting helpers near the OpenAI plugins, not as core abstractions unless both plugins share enough code to justify it:
 
 ```ts
-function splitOpenaiResponsesOptions(
-  options: Record<string, unknown>
-): {
+function splitOpenaiResponsesOptions(options: Record<string, unknown>): {
   clientOptions: OpenaiResponsesClientOptions;
   requestParams: Record<string, unknown>;
   model?: string;
@@ -464,4 +455,4 @@ These constants represent repo-owned contract boundaries, not provider allowlist
 6. Refactor OpenAI Chat Completions option parsing and request construction.
 7. Run targeted tests.
 8. Run package build.
-9. If user explicitly approves README edits, update `packages/poe-agent/README.md` and re-run package build.
+9. Update `packages/poe-agent/README.md` and re-run package build.

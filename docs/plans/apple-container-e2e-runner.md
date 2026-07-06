@@ -158,14 +158,14 @@ The fallback is silent except for the normal environment line, because the user 
 No e2e test changes are required for normal tests:
 
 ```typescript
-import { describe, expect, it } from 'vitest';
-import { useContainer } from '@poe-code/e2e-test-runner';
+import { describe, expect, it } from "vitest";
+import { useContainer } from "@poe-code/e2e-test-runner";
 
-describe('codex', () => {
-  const container = useContainer({ testName: 'codex' });
+describe("codex", () => {
+  const container = useContainer({ testName: "codex" });
 
-  it('configures the agent', async () => {
-    const result = await container.exec('poe-code configure codex --yes');
+  it("configures the agent", async () => {
+    const result = await container.exec("poe-code configure codex --yes");
     expect(result).toHaveExitCode(0);
     await expect(container).toHaveFile(`${container.home}/.codex/config.toml`);
   });
@@ -179,21 +179,17 @@ The same test runs under `env`, `sandbox`, `podman`, or `apple-container`.
 Manual lifecycle code remains backend-aware:
 
 ```typescript
-import {
-  createBackendContainer,
-  resolveBackend,
-  setWorkspaceDir,
-} from '@poe-code/e2e-test-runner';
+import { createBackendContainer, resolveBackend, setWorkspaceDir } from "@poe-code/e2e-test-runner";
 
 setWorkspaceDir(process.cwd());
 
 const container = await createBackendContainer(resolveBackend(), {
-  testName: 'manual-apple-container',
+  testName: "manual-apple-container"
 });
 
 try {
   await container.login();
-  await container.execOrThrow('poe-code configure codex --yes');
+  await container.execOrThrow("poe-code configure codex --yes");
 } finally {
   await container.destroy();
 }
@@ -287,14 +283,20 @@ export interface CommandResult {
 }
 
 export interface CommandRunner {
-  run(command: string, args: string[], options?: {
-    env?: NodeJS.ProcessEnv;
-    input?: string;
-    cwd?: string;
-  }): CommandResult | Promise<CommandResult>;
+  run(
+    command: string,
+    args: string[],
+    options?: {
+      env?: NodeJS.ProcessEnv;
+      input?: string;
+      cwd?: string;
+    }
+  ): CommandResult | Promise<CommandResult>;
 }
 
-export function detectAppleContainerPlatform(runner?: CommandRunner): Promise<AppleContainerPlatform>;
+export function detectAppleContainerPlatform(
+  runner?: CommandRunner
+): Promise<AppleContainerPlatform>;
 export function buildAppleContainerCreateArgs(input: AppleContainerCreateArgs): string[];
 export function buildAppleContainerExecArgs(containerId: string, command: string): string[];
 export function buildAppleContainerWriteFileArgs(containerId: string, path: string): string[];
@@ -339,17 +341,21 @@ New files:
 Backend type:
 
 ```typescript
-export type Backend = 'env' | 'sandbox' | 'podman' | 'apple-container';
+export type Backend = "env" | "sandbox" | "podman" | "apple-container";
 ```
 
 Persistent engine boundary:
 
 ```typescript
 interface PersistentContainerEngine {
-  readonly kind: 'podman' | 'apple-container';
+  readonly kind: "podman" | "apple-container";
   create(args: string[], env: NodeJS.ProcessEnv): ExecResult;
   start(containerId: string): ExecResult;
-  exec(containerId: string, command: string, options?: ExecOptions): ExecResult | Promise<ExecResult>;
+  exec(
+    containerId: string,
+    command: string,
+    options?: ExecOptions
+  ): ExecResult | Promise<ExecResult>;
   writeFile(containerId: string, path: string, content: string): ExecResult;
   copyToContainer(source: string, containerId: string, destination: string): ExecResult;
   remove(containerId: string): ExecResult;
@@ -430,9 +436,9 @@ export function resolveBackend(): Backend {
   const explicit = process.env.E2E_BACKEND;
   if (isBackend(explicit)) return explicit;
   if (explicit) throw new Error(`Unsupported E2E_BACKEND: ${explicit}`);
-  if (process.env.CI) return 'env';
-  if (isAppleContainerUsableSync()) return 'apple-container';
-  return hasSandboxRuntime() ? 'sandbox' : 'env';
+  if (process.env.CI) return "env";
+  if (isAppleContainerUsableSync()) return "apple-container";
+  return hasSandboxRuntime() ? "sandbox" : "env";
 }
 ```
 
@@ -507,7 +513,7 @@ Add Apple `container` as a runtime backend for jobs, spawn, experiment, ralph, a
 Runtime type:
 
 ```typescript
-export type Runtime = 'host' | 'docker' | 'e2b' | 'apple-container';
+export type Runtime = "host" | "docker" | "e2b" | "apple-container";
 ```
 
 Config shape:
@@ -575,7 +581,7 @@ The Apple runtime factory mirrors Docker runtime behavior:
 Template cache:
 
 ```typescript
-export type TemplateBackend = 'docker' | 'e2b' | 'apple-container';
+export type TemplateBackend = "docker" | "e2b" | "apple-container";
 ```
 
 Apple built images use a backend-specific cache key so Docker/Podman and Apple builds do not collide.

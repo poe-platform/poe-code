@@ -3,14 +3,16 @@
 ## Smoke test
 
 1. Ensure the shell has a real Poe API key available to `poe-agent`.
-2. Run `npx poe-agent run --model gpt-5-mini --prompt "Say hi"`.
-3. Assert the command completes without error and prints assistant text output.
+2. Pick an available text model from `poe-code models --endpoint /v1/responses`.
+3. Run `npx poe-agent run --model <model-id> --prompt "Say hi"`.
+4. Assert the command completes without error and prints assistant text output.
 
 ## `--model` override beats config
 
-1. Set `agent.model: Claude-Sonnet-4.6` in the active Poe config.
-2. Run `npx poe-agent run --model gpt-5-mini --prompt "Say hi"`.
-3. Assert the request log or usage event shows `gpt-5-mini`, not `Claude-Sonnet-4.6`.
+1. Set `agent.model` in the active Poe config to one available model.
+2. Pick a different available text model for the CLI override.
+3. Run `npx poe-agent run --model <override-model-id> --prompt "Say hi"`.
+4. Assert the request log or usage event shows `<override-model-id>`, not the configured model.
 
 ## Missing provider match
 
@@ -22,7 +24,7 @@
 ## OpenAI Responses reasoning round-trip
 
 1. Start an o-series run with a prompt that forces two back-to-back tool calls before the final answer.
-2. Run `npx poe-agent run --model o4-mini --prompt "Use tools twice in a row before answering. After the second tool result, explain how it changed your answer and keep referring to the same reasoning chain."`.
+2. Run `npx poe-agent run --model <reasoning-model-id> --prompt "Use tools twice in a row before answering. After the second tool result, explain how it changed your answer and keep referring to the same reasoning chain."`.
 3. Assert the first tool-use turn emits `reasoning_details` refs.
 4. Assert the second tool-use turn preserves those refs and adds any new refs without dropping the earlier ones.
 5. Assert the final response still references the prior reasoning correctly after both tool-use turns.

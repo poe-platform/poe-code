@@ -4,41 +4,102 @@ kind: plan
 version: 1
 ---
 
-# Toolcraft YAML output
+# Toolcraft YAML Output
 
-YAML as the default rendering for parsed JSON values in toolcraft, on top of the typed-MCP work already in flight.
+Add a first-class YAML output mode to Toolcraft CLI rendering.
 
-## 1. What we're building
+## 1. What We're Building
 
-Three coupled changes:
+Toolcraft already supports structured command results:
 
-1. **MCP return values** — every toolcraft-fronted MCP tool declares `outputSchema` and returns `structuredContent`. This extends [`docs/plans/09-mcp-typed-outputs.md`](09-mcp-typed-outputs.md) (owner review); this plan does **not** re-spec that work, it consumes it.
+- `defineCommand({ result: ... })` feeds MCP `outputSchema`.
+- MCP calls with `result:` return validated `structuredContent`.
+- CLI output modes are currently `rich`, `md`, and `json`.
+- `packages/toolcraft` already depends on `yaml`.
 
-2. **Toolcraft respects typed results end to end** — `defineCommand` gains a `result:` schema (per the typed-outputs plan), and toolcraft's MCP runner propagates it to `Tool.outputSchema` + `CallToolResult.structuredContent`. The `result:` value also becomes the source of truth for CLI rendering.
+This plan adds `yaml` as an explicit CLI output mode:
 
-3. **YAML for parsed JSON, by default** — toolcraft's CLI auto-renderer and the MCP text content backstop emit YAML for object/array results instead of single-line `JSON.stringify`. YAML is added as a first-class `--output yaml` mode alongside `rich | md | json`. `rich` keeps tables for flat objects and arrays-of-objects; YAML replaces the `JSON.stringify` fallback for non-tabular structured data.
+```sh
+toolcraft-command --output yaml
+toolcraft-command --yaml
+```
 
-### Non-goals
+YAML mode is for human-readable structured data in terminals, docs, and agent
+transcripts. It is not a replacement for `--json`.
 
-- Re-specifying typed MCP outputs (owned by `09-mcp-typed-outputs.md`).
-- Changing or removing `rich` tables for flat objects / arrays-of-objects.
-- Touching `design-system`, including its existing YAML frontmatter parser.
-- Migrating third-party MCP clients beyond keeping the text backstop populated.
-- Adding a new YAML library — uses the `yaml@^2.8.2` already installed at the repo root; adds it to `packages/toolcraft/package.json` as a direct dep.
-- Streaming or partial outputs.
+## 2. User-Facing Shape
 
-## 2. User-facing shape
+Supported output selectors:
 
-_To be drafted next._
+| Selector                                                 | Mode   |
+| -------------------------------------------------------- | ------ |
+| default                                                  | `rich` |
+| `--json`                                                 | `json` |
+| `--md`, `--markdown`, `--output md`, `--output markdown` | `md`   |
+| `--yaml`, `--output yaml`                                | `yaml` |
 
-## 3. Implementation details and technical decisions
+Rendering rules:
 
-_To be drafted._
+- objects and arrays render as YAML in `yaml` mode;
+- strings render as plain strings;
+- `null` and `undefined` render as `ok: true`, matching the current JSON-mode success shape;
+- BigInt values render as strings, matching existing JSON behavior;
+- custom command renderers may add `render.yaml` later, but v1 can use the automatic renderer only.
 
-## 4. Interfaces and test plan
+MCP text content stays JSON for typed results. Existing MCP clients and tests
+already rely on the JSON text backstop next to `structuredContent`.
 
-_To be drafted._
+## 3. Implementation Details
 
-## 5. Code plan
+Touch only `packages/toolcraft`.
 
-_To be drafted._
+Required changes:
+
+- Extend `OutputMode` in `packages/toolcraft/src/renderer.ts` to include `yaml`.
+- Add a `stringifyYaml` helper that uses the existing `yaml` dependency and keeps the BigInt string conversion behavior.
+- Update `autoRender` so `output === "yaml"` renders structured values with YAML.
+- Add `--yaml` as a root output flag.
+- Update `resolveOutput`, `resolveOutputFromArgv`, and `resolveHelpOutput` to accept `yaml`.
+- Map `yaml` to a design-system output format. Use `markdown` unless the design system grows a dedicated YAML mode.
+- Update `packages/toolcraft/README.md` output rendering docs.
+
+Do not change MCP structured output behavior in this plan.
+
+## 4. Interfaces And Tests
+
+TDD targets:
+
+- `packages/toolcraft/src/renderer.test.ts`
+  - renders plain objects as YAML;
+  - renders arrays as YAML;
+  - renders BigInt values as strings;
+  - renders `null`/`undefined` as `ok: true`;
+  - preserves current `rich`, `md`, and `json` output.
+- `packages/toolcraft/src/cli.test.ts`
+  - `--yaml` selects YAML mode;
+  - `--output yaml` selects YAML mode;
+  - `--output=YAML` is rejected or ignored consistently with other invalid values;
+  - help output recognizes `--output yaml`.
+- Existing MCP runtime tests must stay green and continue expecting JSON text next to `structuredContent`.
+
+Validation:
+
+```sh
+npx vitest run packages/toolcraft/src/renderer.test.ts packages/toolcraft/src/cli.test.ts packages/toolcraft/src/mcp-runtime-options.test.ts
+npm run lint:packages
+```
+
+Manual spot check after implementation:
+
+```sh
+npm run dev -- <toolcraft-backed-command> --output yaml
+```
+
+## 5. Code Plan
+
+1. Add failing renderer tests for YAML mode.
+2. Add failing CLI flag tests for `--yaml` and `--output yaml`.
+3. Extend `OutputMode`, CLI parsing, and design-system output mapping.
+4. Implement YAML rendering in `autoRender`.
+5. Update Toolcraft README.
+6. Run the targeted tests and package lint.

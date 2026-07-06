@@ -6,7 +6,7 @@ version: 1
 
 # Agent goal — autonomous objective with budget & continuation
 
-Port the `/goal` concept from codex (`/Users/kjopek/Workspace/codex/codex-rs/core/src/goals.rs`) into poe-code as a thin layer on top of `agent-spawn`: a named, budgeted objective that the agent pursues across multiple turns until it marks itself `complete` or `blocked`, with hidden steering prompts injected each turn.
+Port the `/goal` concept from Codex (`codex-rs/core/src/goals.rs`) into poe-code as a thin layer on top of `agent-spawn`: a named, budgeted objective that the agent pursues across multiple turns until it marks itself `complete` or `blocked`, with hidden steering prompts injected each turn.
 
 ## 1. What we're building
 
@@ -15,6 +15,7 @@ A new package `@poe-code/agent-goal` plus CLI/interactive surface area for manag
 Three tools are exposed to the spawned agent over MCP — `create_goal`, `get_goal`, `update_goal` — wired by the same `agent-mcp-config` plumbing used by other in-repo MCP servers.
 
 Non-goals:
+
 - No parallel goals. One goal per project, matching codex's one-goal-per-thread invariant and the [[project_sequential_only]] working assumption.
 - No wall-clock budget enforcement in v1. Time is tracked and surfaced, not enforced.
 - No mid-turn steering injection. poe-code spawns one-shot agents; we only inject at turn boundaries via the spawn `prompt` field.
@@ -64,15 +65,15 @@ Same descriptions as codex (`codex-rs/core/src/tools/handlers/goal_spec.rs`): `c
 
 ```ts
 type Goal = {
-  goalId: string;            // UUID
-  cwd: string;               // absolute project path; matches the file hash
-  objective: string;         // 1..4000 chars
+  goalId: string; // UUID
+  cwd: string; // absolute project path; matches the file hash
+  objective: string; // 1..4000 chars
   status: "active" | "paused" | "blocked" | "usage_limited" | "budget_limited" | "complete";
   tokenBudget: number | null;
   tokensUsed: number;
   secondsUsed: number;
-  blockedTurnCount: number;  // resets on resume, on objective edit, and on create_goal
-  createdAt: string;         // ISO8601
+  blockedTurnCount: number; // resets on resume, on objective edit, and on create_goal
+  createdAt: string; // ISO8601
   updatedAt: string;
 };
 ```
@@ -120,20 +121,22 @@ async function runGoal(opts: GoalRunOptions): Promise<void> {
     if (isTerminal(goal.status)) return;
     if (goal.status === "paused" || goal.status === "blocked") return;
 
-    const kind: SteeringKind =
-      firstTurn                          ? "initial" :
-      goal.objective !== lastObjective   ? "objective_updated" :
-      goal.status === "budget_limited"   ? "budget_limit" :
-                                           "continuation";
+    const kind: SteeringKind = firstTurn
+      ? "initial"
+      : goal.objective !== lastObjective
+        ? "objective_updated"
+        : goal.status === "budget_limited"
+          ? "budget_limit"
+          : "continuation";
 
     const steering = buildSteeringMessage(goal, kind);
     const result = await spawnAutonomous(streamingSpawn, {
       ...opts.spawnOptions,
-      prompt: kind === "initial" ? goal.objective : steering,
+      prompt: kind === "initial" ? goal.objective : steering
       // mcp goal-server is wired in via opts.spawnOptions.mcpServers
     });
 
-    await store.update(g => accountUsage(g, result.usage));
+    await store.update((g) => accountUsage(g, result.usage));
     firstTurn = false;
     lastObjective = goal.objective;
   }
@@ -153,6 +156,7 @@ Copied directly from `codex-rs/core/templates/goals/`, with `{{ var }}` syntax f
 The `mcp/server.ts` is a `stdio` MCP server using the existing in-repo MCP utilities (`@poe-code/agent-mcp-config` for config wiring). It reads/writes the same goal file as the CLI through `store.ts`, so CLI and tool calls share a single source of truth.
 
 `update_goal` enforcement:
+
 - `status="complete"`: always allowed, status → `complete`, returns goal with a `completionBudgetReport` string when a budget exists.
 - `status="blocked"`: increments `blockedTurnCount`. If it reaches 3, status → `blocked` and the count resets. If under 3, status stays `active`, tool returns an error response that quotes the current count and the 3-turn rule. (This mirrors codex's behavior but is enforced server-side instead of relying on the model.)
 
@@ -176,7 +180,7 @@ openGoalStore(cwd: string): {
 }
 ```
 
-All writes go through `@poe-code/file-lock`'s `withLock(path, fn)`. Reads are unlocked but tolerant of partial writes (parse fail → retry once after 50ms; second fail → throw).
+All writes use `@poe-code/file-lock`'s `withLock(path, fn)`. Reads do not take the lock but tolerate partial writes (parse fail → retry once after 50ms; second fail → throw).
 
 ### Events
 
@@ -200,16 +204,10 @@ export { runGoal } from "./runner.js";
 export { openGoalStore } from "./store.js";
 export { buildSteeringMessage } from "./steering.js";
 export { renderTemplate } from "./template.js";
-export type {
-  Goal,
-  GoalStatus,
-  GoalRunOptions,
-  CreateGoalInput,
-  SteeringKind
-} from "./types.js";
+export type { Goal, GoalStatus, GoalRunOptions, CreateGoalInput, SteeringKind } from "./types.js";
 ```
 
-### Tests (TDD; all written before code per CLAUDE.md core principles)
+### Tests (TDD; all written before code per AGENTS.md/project instructions)
 
 **Unit, memfs-backed:**
 
@@ -254,7 +252,7 @@ export type {
 
 **CLI snapshot tests:** `goal create`, `goal get`, `goal pause`, `goal resume`, `goal clear` — render via design-system, snapshot the output. Follows `docs/SNAPSHOT_TESTING.md`.
 
-**Visual:** `npm run screenshot-poe-code -- goal create "improve test coverage" --token-budget 50000`, `npm run screenshot-poe-code -- goal get`. No screenshot tests committed (per CLAUDE.md), only used during implementation review.
+**Visual:** `npm run screenshot-poe-code -- goal create "improve test coverage" --token-budget 50000`, `npm run screenshot-poe-code -- goal get`. No screenshot tests committed; screenshots are only used during implementation review.
 
 **E2E (one):** `goal run` against the bundled poe-agent with a trivial objective ("create file foo.txt with text bar") and a tokenBudget high enough to allow completion. Asserts: file appears in cwd; final status is `complete`; event log contains turn_started/turn_finished/status_changed=complete.
 

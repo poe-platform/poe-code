@@ -1,3 +1,9 @@
+---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json
+kind: plan
+version: 1
+---
+
 # Spawn Hooks — Read-Only Plugin Model
 
 ## Context
@@ -21,11 +27,11 @@ The `poe-agent` runtime already has a full plugin/hook system (`AgentPlugin`, `H
 ```ts
 import { spawn } from "poe-code";
 
-const { events, result } = spawn("codex")
-  .use(logging())
-  .run("Fix the failing tests");
+const { events, result } = spawn("codex").use(logging()).run("Fix the failing tests");
 
-for await (const e of events) { /* ... */ }
+for await (const e of events) {
+  /* ... */
+}
 const final = await result;
 ```
 
@@ -45,9 +51,7 @@ This only works because the builder is immutable — reusing `base` does not lea
 ### Pretty convenience
 
 ```ts
-const result = await spawn("codex")
-  .use(logging())
-  .pretty("Fix the failing tests");
+const result = await spawn("codex").use(logging()).pretty("Fix the failing tests");
 ```
 
 ### Direct call still works
@@ -61,38 +65,41 @@ const { events, result } = spawn("codex", "Fix the tests");
 
 ```ts
 type SpawnHookEvent =
-  | "PreSpawn"       // before the agent process starts
-  | "PostSpawn"      // after result is available
-  | "PreEvent"       // before each AcpEvent is yielded to the caller
-  | "PostEvent";     // after each AcpEvent is yielded to the caller
+  | "PreSpawn" // before the agent process starts
+  | "PostSpawn" // after result is available
+  | "PreEvent" // before each AcpEvent is yielded to the caller
+  | "PostEvent"; // after each AcpEvent is yielded to the caller
 
-type SpawnHookContext<E extends SpawnHookEvent> =
-  E extends "PreSpawn" ? {
-    event: "PreSpawn";
-    service: string;
-    prompt: string;
-    options: Readonly<SpawnOptions>;
-    signal: AbortSignal;
-  } :
-  E extends "PostSpawn" ? {
-    event: "PostSpawn";
-    service: string;
-    prompt: string;
-    result: Readonly<SpawnResult>;
-  } :
-  E extends "PreEvent" ? {
-    event: "PreEvent";
-    service: string;
-    acpEvent: Readonly<AcpEvent>;
-    signal: AbortSignal;
-  } :
-  E extends "PostEvent" ? {
-    event: "PostEvent";
-    service: string;
-    acpEvent: Readonly<AcpEvent>;
-    signal: AbortSignal;
-  } :
-  never;
+type SpawnHookContext<E extends SpawnHookEvent> = E extends "PreSpawn"
+  ? {
+      event: "PreSpawn";
+      service: string;
+      prompt: string;
+      options: Readonly<SpawnOptions>;
+      signal: AbortSignal;
+    }
+  : E extends "PostSpawn"
+    ? {
+        event: "PostSpawn";
+        service: string;
+        prompt: string;
+        result: Readonly<SpawnResult>;
+      }
+    : E extends "PreEvent"
+      ? {
+          event: "PreEvent";
+          service: string;
+          acpEvent: Readonly<AcpEvent>;
+          signal: AbortSignal;
+        }
+      : E extends "PostEvent"
+        ? {
+            event: "PostEvent";
+            service: string;
+            acpEvent: Readonly<AcpEvent>;
+            signal: AbortSignal;
+          }
+        : never;
 
 type SpawnHookDecision = "continue" | "abort";
 
@@ -110,16 +117,16 @@ type SpawnPlugin = {
 
 ### Why this subset
 
-| poe-agent hook feature | spawn equivalent | reason |
-|---|---|---|
+| poe-agent hook feature         | spawn equivalent                                      | reason                                                 |
+| ------------------------------ | ----------------------------------------------------- | ------------------------------------------------------ |
 | `PreToolCall` / `PostToolCall` | `PreEvent` / `PostEvent` (tool_start / tool_complete) | spawn observes ACP events, not internal tool execution |
-| `{ modify }` decision | not supported | spawn cannot reach into the agent process |
-| `{ reject }` decision | not supported | same — agent is a separate process |
-| `"skip"` decision | not supported | same |
-| `"abort"` decision | supported | spawn owns the AbortController, can kill the process |
-| `PluginApi.addTool()` | not supported | spawn is not the runtime |
-| `PluginApi.addHook()` | supported via `hooks` array | declarative only, no imperative registration |
-| `PluginApi.onDispose()` | supported via `teardown` on plugin | cleanup after run completes |
+| `{ modify }` decision          | not supported                                         | spawn cannot reach into the agent process              |
+| `{ reject }` decision          | not supported                                         | same — agent is a separate process                     |
+| `"skip"` decision              | not supported                                         | same                                                   |
+| `"abort"` decision             | supported                                             | spawn owns the AbortController, can kill the process   |
+| `PluginApi.addTool()`          | not supported                                         | spawn is not the runtime                               |
+| `PluginApi.addHook()`          | supported via `hooks` array                           | declarative only, no imperative registration           |
+| `PluginApi.onDispose()`        | supported via `teardown` on plugin                    | cleanup after run completes                            |
 
 ## SpawnBuilder
 
@@ -132,7 +139,10 @@ type SpawnFn = (
 
 type SpawnBuilder = {
   use(plugin: SpawnPlugin): SpawnBuilder;
-  run(prompt: string, options?: Omit<SpawnOptions, "prompt">): {
+  run(
+    prompt: string,
+    options?: Omit<SpawnOptions, "prompt">
+  ): {
     events: AsyncIterable<AcpEvent>;
     result: Promise<SpawnResult>;
   };
@@ -175,7 +185,7 @@ Multiple `PreEvent` hooks run in registration order per event. An `"abort"` from
 
 ### PostEvent
 
-Runs **after** each ACP event has been yielded to the caller. Same context as `PreEvent`. Useful for accounting, metrics, and logging that should reflect what the caller actually received. `"abort"` still fires the AbortController.
+Runs **after** each ACP event has been yielded to the caller. Same context as `PreEvent`. Useful for accounting, metrics, and logging that should reflect what the caller received. `"abort"` still fires the AbortController.
 
 ### PostSpawn
 
@@ -204,7 +214,7 @@ async function* interceptEvents(
         event: "PreEvent",
         service: ctx.service,
         acpEvent: event,
-        signal: ctx.signal,
+        signal: ctx.signal
       });
       if (decision === "abort") ctx.abort();
     }
@@ -216,7 +226,7 @@ async function* interceptEvents(
         event: "PostEvent",
         service: ctx.service,
         acpEvent: event,
-        signal: ctx.signal,
+        signal: ctx.signal
       });
       if (decision === "abort") ctx.abort();
     }
@@ -265,15 +275,15 @@ const logging = (): SpawnPlugin => ({
         if (ctx.acpEvent.event === "tool_start") {
           console.log(`[tool] ${ctx.acpEvent.title}`);
         }
-      },
+      }
     },
     {
       event: "PostSpawn",
       handler(ctx) {
         console.log(`[done] exit=${ctx.result.exitCode}`);
-      },
-    },
-  ],
+      }
+    }
+  ]
 });
 ```
 
@@ -292,9 +302,9 @@ const costBudget = (maxUsd: number): SpawnPlugin => {
           const usage = ctx.acpEvent as UsageEvent;
           if (usage.costUsd) totalCost += usage.costUsd;
           if (totalCost > maxUsd) return "abort";
-        },
-      },
-    ],
+        }
+      }
+    ]
   };
 };
 ```
@@ -314,12 +324,12 @@ const timeout = (ms: number): SpawnPlugin => {
             // AbortController is wired by the builder
             ctx.signal.dispatchEvent(new Event("abort"));
           }, ms);
-        },
-      },
+        }
+      }
     ],
     teardown() {
       if (timer) clearTimeout(timer);
-    },
+    }
   };
 };
 ```
@@ -328,19 +338,19 @@ const timeout = (ms: number): SpawnPlugin => {
 
 ### `@poe-code/agent-spawn` — all real logic lives here
 
-| File | Action |
-|------|--------|
-| `packages/agent-spawn/src/plugin-types.ts` | **New** — `SpawnPlugin`, `SpawnHook`, `SpawnHookEvent`, `SpawnHookContext`, `SpawnHookDecision`, `SpawnFn` |
-| `packages/agent-spawn/src/spawn-builder.ts` | **New** — `createSpawnBuilder`, `interceptEvents`, hook runner |
-| `packages/agent-spawn/src/spawn-builder.test.ts` | **New** — builder immutability, hook execution order, abort behavior |
-| `packages/agent-spawn/src/index.ts` | Export new types, `createSpawnBuilder` |
+| File                                             | Action                                                                                                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `packages/agent-spawn/src/plugin-types.ts`       | **New** — `SpawnPlugin`, `SpawnHook`, `SpawnHookEvent`, `SpawnHookContext`, `SpawnHookDecision`, `SpawnFn` |
+| `packages/agent-spawn/src/spawn-builder.ts`      | **New** — `createSpawnBuilder`, `interceptEvents`, hook runner                                             |
+| `packages/agent-spawn/src/spawn-builder.test.ts` | **New** — builder immutability, hook execution order, abort behavior                                       |
+| `packages/agent-spawn/src/index.ts`              | Export new types, `createSpawnBuilder`                                                                     |
 
 ### `src/sdk/` — wiring only, no logic
 
-| File | Action |
-|------|--------|
+| File               | Action                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------- |
 | `src/sdk/spawn.ts` | Add builder overload: `spawn(service)` calls `createSpawnBuilder(service, sdkSpawnFn)` |
-| `src/sdk/types.ts` | Re-export `SpawnPlugin`, `SpawnBuilder`, `SpawnFn` from `@poe-code/agent-spawn` |
+| `src/sdk/types.ts` | Re-export `SpawnPlugin`, `SpawnBuilder`, `SpawnFn` from `@poe-code/agent-spawn`        |
 
 ## What NOT to Add
 

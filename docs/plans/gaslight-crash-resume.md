@@ -28,7 +28,6 @@ Explicit non-goals:
 - Do not replace the lower-level `SafeJS` snapshot system.
 - Do not add provider-specific branching to Gaslight; provider behavior stays behind `agent-spawn` config.
 - Do not attempt exact recovery for a process killed while an agent spawn is still in flight unless the completed spawn result was already returned to Gaslight and checkpointed.
-- Do not edit README files without explicit user permission.
 - Do not add unit tests for GitHub workflows.
 
 ## 2. User-facing shape
@@ -160,7 +159,7 @@ Checkpoint rules:
 - After every successful spawn result, append the completed round and atomically write state before starting the next round.
 - After each successful plan archive, record `archivedPath` and atomically write state.
 - After all selected plans finish, mark the current attempt `completed`, emit final run metadata, then delete the active state file. Successful runs must not leave stale resumable state behind.
-- Write via temporary sibling file plus rename. If rename is unavailable in an injected filesystem, fail clearly because resumability depends on durable writes.
+- Write via temporary sibling file plus rename. If rename is unavailable in an injected filesystem, throw because resumability depends on durable writes.
 
 Resume rules:
 
@@ -265,7 +264,7 @@ Files to change:
 - `src/cli/commands/gaslight.ts`: add `--resume`, `--reset`, `--state-path`, `--state-dir`, forward SDK options, and print state events.
 - `src/cli/commands/gaslight.test.ts`: cover CLI flag forwarding and stale-state behavior.
 - `packages/agent-spawn/src/spawn.test.ts`: lock the generated Codex resume command shape when `resumeThreadId` and mode flags coexist.
-- `packages/agent-gaslight/README.md`: update only after explicit user permission.
+- `packages/agent-gaslight/README.md`: document resume/reset flags, state location, and SDK options.
 
 Build order:
 

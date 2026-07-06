@@ -135,6 +135,8 @@ export class StreamableHttpTransport {
   private nextNotificationEventId = 1;
   private nextRequestId = 1;
   private activeToolCalls = 0;
+  private closed = false;
+  private sessionExpiryInterval: ReturnType<typeof setInterval> | undefined;
   private sseKeepAliveInterval: ReturnType<typeof setInterval> | undefined;
 
   constructor(
@@ -177,6 +179,20 @@ export class StreamableHttpTransport {
     this.requestIdGenerator = options.requestIdGenerator ?? (() => `req-${this.nextRequestId++}`);
     this.observability = options.observability ?? {};
     this.trustedProxy = options.trustedProxy ?? false;
+
+    if (this.sessionTtlMs !== undefined) {
+      this.sessionExpiryInterval = setInterval(
+        () => {
+          try {
+            this.purgeExpiredSessions();
+          } catch {
+            return;
+          }
+        },
+        Math.min(this.sessionTtlMs, 60_000)
+      );
+      this.sessionExpiryInterval.unref();
+    }
   }
 
   async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -196,12 +212,11 @@ export class StreamableHttpTransport {
     });
 
     try {
-      this.purgeExpiredSessions();
-    } catch {
-      // Expiry cleanup must not make otherwise valid requests fail.
-    }
+      if (this.closed) {
+        this.respondWithStatus(res, 503);
+        return;
+      }
 
-    try {
       if (!this.acceptsHost(req) || !this.acceptsOrigin(req)) {
         this.respondWithStatus(res, 403);
         return;
@@ -253,6 +268,11 @@ export class StreamableHttpTransport {
   }
 
   async close(): Promise<void> {
+    this.closed = true;
+    if (this.sessionExpiryInterval !== undefined) {
+      clearInterval(this.sessionExpiryInterval);
+      this.sessionExpiryInterval = undefined;
+    }
     this.stopSseKeepAlive();
     for (const sessionId of [...this.sseStreams.keys()]) {
       this.closeStreamsForSession(sessionId);
@@ -981,7 +1001,7 @@ export class StreamableHttpTransport {
       return true;
     }
 
-    return this.allowedHosts.has(this.normalizeHost(host));
+    return this.allowedHosts.has(this.normalizeHost(this.readRequestHost(req)));
   }
 
   private normalizeHost(host: string): string {

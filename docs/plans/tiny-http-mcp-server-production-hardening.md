@@ -220,7 +220,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: http-transport-robustness
     title: Forwarded-host validation, TTL sweep timer, post-close 503
@@ -244,10 +244,10 @@ tasks:
       keep-alive connections cannot recreate sessions mid-shutdown. Test:
       after transport.close(), POST -> 503 and no session.created event.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: oauth-transport-fixes

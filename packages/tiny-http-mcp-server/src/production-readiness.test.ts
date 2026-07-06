@@ -7,15 +7,21 @@ import {
   createExpressOAuthHandlers,
   createHttpServer,
   createJwksTokenVerifier,
+  createServer,
   type HttpObservabilityEvent,
   type Session,
-  type SessionStore
+  type SessionStore,
+  StreamableHttpTransport
 } from "./index.js";
 import { createBearerChallenge } from "./auth.js";
 
 const TEST_PROTOCOL_VERSION = "2025-03-26";
 
-async function initializeSession(server: ReturnType<typeof createHttpServer>): Promise<string> {
+interface HttpRequestHandler {
+  handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>;
+}
+
+async function initializeSession(server: HttpRequestHandler): Promise<string> {
   const response = await postJsonRpc(server, {
     jsonrpc: "2.0",
     id: 1,
@@ -33,11 +39,12 @@ async function initializeSession(server: ReturnType<typeof createHttpServer>): P
 }
 
 async function postJsonRpc(
-  server: ReturnType<typeof createHttpServer>,
+  server: HttpRequestHandler,
   message: unknown,
   options: {
     sessionId?: string;
     headers?: HeadersInit;
+    omitDefaultHost?: boolean;
   } = {}
 ): Promise<Response> {
   const headers = new Headers({
@@ -54,18 +61,20 @@ async function postJsonRpc(
   return dispatch(server, {
     method: "POST",
     headers,
-    body: typeof message === "string" ? message : JSON.stringify(message)
+    body: typeof message === "string" ? message : JSON.stringify(message),
+    omitDefaultHost: options.omitDefaultHost
   });
 }
 
 async function dispatch(
-  server: ReturnType<typeof createHttpServer>,
+  server: HttpRequestHandler,
   options: {
     method: string;
     headers?: HeadersInit;
     body?: string;
     url?: string;
     writableLength?: number;
+    omitDefaultHost?: boolean;
   }
 ): Promise<Response> {
   const { response } = await dispatchRaw(server, options);
@@ -77,13 +86,14 @@ async function dispatch(
 }
 
 async function dispatchRaw(
-  server: ReturnType<typeof createHttpServer>,
+  server: HttpRequestHandler,
   options: {
     method: string;
     headers?: HeadersInit;
     body?: string;
     url?: string;
     writableLength?: number;
+    omitDefaultHost?: boolean;
   }
 ): Promise<{
   response: ServerResponse & {
@@ -94,7 +104,7 @@ async function dispatchRaw(
   };
 }> {
   const headers = new Headers(options.headers);
-  if (!headers.has("host")) {
+  if (!options.omitDefaultHost && !headers.has("host")) {
     headers.set("host", "127.0.0.1");
   }
 
@@ -209,10 +219,11 @@ describe("HTTP MCP production readiness", () => {
     });
   });
 
-  it("uses the configured session store and expires inactive sessions", async () => {
+  it("expires inactive sessions without another request", async () => {
     vi.useFakeTimers();
     const created: string[] = [];
     const deleted: string[] = [];
+    const events: HttpObservabilityEvent[] = [];
     const backing = new Map<string, Session>();
     const sessionStore: SessionStore = {
       create(id) {
@@ -246,29 +257,35 @@ describe("HTTP MCP production readiness", () => {
         return backing.values();
       }
     };
-    const server = createHttpServer({
-      name: "session-store",
-      version: "1.0.0",
-      sessionIdGenerator: () => "session-a",
-      sessionStore,
-      sessionTtlMs: 1_000
-    });
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "session-store", version: "1.0.0" }),
+      {
+        sessionIdGenerator: () => "session-a",
+        sessionStore,
+        sessionTtlMs: 500,
+        observability: {
+          onEvent: (event) => {
+            events.push(event);
+          }
+        }
+      }
+    );
     try {
-      const sessionId = await initializeSession(server);
+      const sessionId = await initializeSession(transport);
       expect(sessionId).toBe("session-a");
       expect(created).toEqual(["session-a"]);
 
       vi.advanceTimersByTime(1_001);
 
-      const response = await postJsonRpc(
-        server,
-        { jsonrpc: "2.0", id: 2, method: "ping" },
-        { sessionId }
-      );
-
-      expect(response.status).toBe(404);
       expect(deleted).toContain("session-a");
+      expect(events).toContainEqual({
+        type: "session.deleted",
+        sessionId: "session-a",
+        reason: "expired"
+      });
     } finally {
+      await transport.close();
+      expect(vi.getTimerCount()).toBe(0);
       vi.useRealTimers();
     }
   });
@@ -417,6 +434,93 @@ describe("HTTP MCP production readiness", () => {
     );
     expect(rejectedHost.status).toBe(403);
     expect(rejectedHost.headers.get("vary")).toContain("Origin");
+  });
+
+  it("validates the forwarded request host when the proxy is trusted", async () => {
+    const server = createHttpServer({
+      name: "trusted-proxy-host",
+      version: "1.0.0",
+      allowedHosts: ["mcp.example.com"],
+      trustedProxy: true
+    });
+    const message = {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
+    };
+
+    const accepted = await postJsonRpc(server, message, {
+      headers: {
+        Host: "internal.service.local",
+        Origin: "https://mcp.example.com",
+        "X-Forwarded-Host": "mcp.example.com",
+        "X-Forwarded-Proto": "https"
+      }
+    });
+    const rejected = await postJsonRpc(server, message, {
+      headers: {
+        Host: "internal.service.local",
+        "X-Forwarded-Host": "attacker.example.com"
+      }
+    });
+
+    expect(accepted.status).toBe(200);
+    expect(rejected.status).toBe(403);
+  });
+
+  it("preserves requests without a Host header", async () => {
+    const server = createHttpServer({
+      name: "missing-host",
+      version: "1.0.0",
+      allowedHosts: ["mcp.example.com"],
+      trustedProxy: true
+    });
+    const response = await postJsonRpc(
+      server,
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
+      },
+      {
+        headers: { "X-Forwarded-Host": "attacker.example.com" },
+        omitDefaultHost: true
+      }
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects requests after the transport closes", async () => {
+    const events: HttpObservabilityEvent[] = [];
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "closed-transport", version: "1.0.0" }),
+      {
+        sessionIdGenerator: () => "unexpected-session",
+        observability: {
+          onEvent: (event) => {
+            events.push(event);
+          }
+        }
+      }
+    );
+
+    await transport.close();
+    const response = await postJsonRpc(transport, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
+    });
+
+    expect(response.status).toBe(503);
+    expect(events).not.toContainEqual(
+      expect.objectContaining({
+        type: "session.created"
+      })
+    );
   });
 
   it("emits observability events for requests, sessions, and tool latency", async () => {

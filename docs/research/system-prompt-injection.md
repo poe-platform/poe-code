@@ -1,19 +1,23 @@
 # System Prompt Injection for Coding Agents
 
+Historical note: this investigation predates the current e2e snapshot/proxy
+docs. Use [Snapshot testing](../development/SNAPSHOT_TESTING.md) for current
+record/playback commands.
+
 ## Goal
 
 Provide a static system prompt to all coding agents for the `test` command so we can record API usage (fixtures) and avoid breaking CI/CD.
 
 ## Agent Inventory
 
-| Agent | ID | Binary | System Prompt via CLI Flag | System Prompt via Config File | E2E Fixtures | Test Prompt | Expected Output |
-|---|---|---|---|---|---|---|---|
-| Claude Code | `claude-code` | `claude` | No | No (uses `~/.claude/settings.json`) | None | `Output exactly: CLAUDE_CODE_OK` | `CLAUDE_CODE_OK` |
-| Codex | `codex` | `codex` | No | No (uses `~/.codex/config.toml`) | None | `Output exactly: CODEX_OK` | `CODEX_OK` |
-| Kimi | `kimi` | `kimi` | No | No (uses `~/.kimi/config.toml`) | None | `Output exactly: KIMI_OK` | `KIMI_OK` |
-| OpenCode | `opencode` | `opencode` | No | No (uses `~/.config/opencode/config.json`) | None | `Output exactly: OPEN_CODE_OK` | `OPEN_CODE_OK` |
-| Poe Agent | `poe-agent` | N/A (in-process) | N/A | N/A (loads `SYSTEM_PROMPT.md` internally) | `e2e/fixtures/poe-agent-mcp/`, `e2e/fixtures/poe-agent-file-ops/` | varies | varies |
-| Claude Desktop | `claude-desktop` | N/A (GUI) | N/A | N/A | N/A | N/A | N/A |
+| Agent          | ID               | Binary           | System Prompt via CLI Flag | System Prompt via Config File              | E2E Fixtures                                                      | Test Prompt                      | Expected Output  |
+| -------------- | ---------------- | ---------------- | -------------------------- | ------------------------------------------ | ----------------------------------------------------------------- | -------------------------------- | ---------------- |
+| Claude Code    | `claude-code`    | `claude`         | No                         | No (uses `~/.claude/settings.json`)        | None                                                              | `Output exactly: CLAUDE_CODE_OK` | `CLAUDE_CODE_OK` |
+| Codex          | `codex`          | `codex`          | No                         | No (uses `~/.codex/config.toml`)           | None                                                              | `Output exactly: CODEX_OK`       | `CODEX_OK`       |
+| Kimi           | `kimi`           | `kimi`           | No                         | No (uses `~/.kimi/config.toml`)            | None                                                              | `Output exactly: KIMI_OK`        | `KIMI_OK`        |
+| OpenCode       | `opencode`       | `opencode`       | No                         | No (uses `~/.config/opencode/config.json`) | None                                                              | `Output exactly: OPEN_CODE_OK`   | `OPEN_CODE_OK`   |
+| Poe Agent      | `poe-agent`      | N/A (in-process) | N/A                        | N/A (loads `SYSTEM_PROMPT.md` internally)  | `e2e/fixtures/poe-agent-mcp/`, `e2e/fixtures/poe-agent-file-ops/` | varies                           | varies           |
+| Claude Desktop | `claude-desktop` | N/A (GUI)        | N/A                        | N/A                                        | N/A                                                               | N/A                              | N/A              |
 
 ## Current Architecture
 
@@ -53,11 +57,13 @@ poe-code test <agent>
 Create `e2e/fixtures/<agent>/` directories with pre-recorded responses for every external agent. The proxy server (already built) matches requests by `sha256(model + messages)` hash.
 
 **Pros:**
+
 - Already proven pattern (poe-agent-mcp uses this)
 - Fully deterministic — no API calls in CI
 - Does not require agent cooperation — records the full exchange as-is
 
 **Cons:**
+
 - Must re-record fixtures whenever the test prompt changes
 - Each agent's internal system prompt is opaque — if the agent vendor updates it, fixtures go stale
 - Docker proxy infra needed for each agent
@@ -66,21 +72,23 @@ Create `e2e/fixtures/<agent>/` directories with pre-recorded responses for every
 
 Each agent has its own way to receive instructions:
 
-| Agent | Mechanism |
-|---|---|
-| Claude Code | `CLAUDE.md` file in working directory |
-| Codex | `AGENTS.md` or `codex.md` in working directory |
-| Kimi | Unknown — needs investigation |
-| OpenCode | Unknown — needs investigation |
+| Agent       | Mechanism                                      |
+| ----------- | ---------------------------------------------- |
+| Claude Code | `CLAUDE.md` file in working directory          |
+| Codex       | `AGENTS.md` or `codex.md` in working directory |
+| Kimi        | Unknown — needs investigation                  |
+| OpenCode    | Unknown — needs investigation                  |
 
 Write a temp file in the test working directory with static instructions before spawning.
 
 **Pros:**
+
 - Works with each agent's native instruction system
 - No proxy infra needed
 - More realistic test (agent actually processes the instruction)
 
 **Cons:**
+
 - Agent-specific — each needs different mechanism
 - Not all agents support this (Kimi, OpenCode unknown)
 - Still non-deterministic — different models may behave differently
@@ -91,10 +99,12 @@ Write a temp file in the test working directory with static instructions before 
 Extend `CliSpawnConfig` with an optional `systemPromptFlag` and pass a static prompt during test.
 
 **Pros:**
+
 - Clean, declarative approach
 - Integrates with existing spawn config pattern
 
 **Cons:**
+
 - Most agents don't support such flags today
 - Claude Code does support `--append-system-prompt` but others don't
 - Doesn't help agents that lack the flag
@@ -108,11 +118,13 @@ Modify `createSpawnHealthCheck` to embed deterministic instructions directly in 
 ```
 
 **Pros:**
+
 - Works for all agents immediately
 - No agent-specific mechanisms needed
 - Simple implementation
 
 **Cons:**
+
 - Does not solve the CI determinism problem (still hits real API)
 - LLMs may still hallucinate extra content
 

@@ -1,6 +1,6 @@
 # Goose Agent Investigation
 
-> Note: this investigation was the earlier research pass. The current implementation direction is captured in `docs/plans/goose-agent-acp.md`, which supersedes the earlier CLI/`stream-json` framing and treats Goose as an ACP-first integration.
+> Note: this investigation was the earlier research pass. The implementation direction moved through the archived [Goose ACP plan](../plans/archive/goose-agent-acp.md), which superseded the earlier CLI/`stream-json` framing and treated Goose as an ACP-first integration.
 
 ## Scope
 
@@ -290,24 +290,24 @@ goose session --resume
 
 ## 5. Capability Mapping Against `poe-code`
 
-| Feature from `docs/ADDING_AGENT.md` | Goose capability | Fit for `poe-code` | Notes |
-| --- | --- | --- | --- |
-| Configure | Yes | Medium | Needs YAML + possibly custom-provider JSON + secret handling. |
-| Unconfigure | Partially | Medium/Hard | Must decide whether to remove YAML only, custom provider JSON, and/or secrets. |
-| Models | Yes | Good | Goose supports provider/model selection directly. |
-| Install | Yes | Good | Release script, Homebrew, source build. |
-| Test | Yes | Good | `goose run --text ...` is suitable for a health check. |
-| Spawn (CLI) | Yes | Good | `goose run` looks viable for `agent-spawn`. |
-| Spawn (ACP) | Different | Poor fit | Goose is an ACP **server**, not an ACP adapter to another agent. |
-| Adapter | Probably | Unknown | `stream-json` may need a Goose-specific parser. |
-| Stdin prompt | Yes | Good | `--instructions -` works. |
-| Interactive mode | Yes | Good | `goose session` or `goose run -s`. |
-| Resume | Yes | Good | `--resume` supported. |
-| MCP (config) | Yes | Medium/Hard | Stored under YAML `extensions`. |
-| MCP (spawn) | Yes | Good | `--with-extension`, `--with-streamable-http-extension`, `--with-builtin`. |
-| Skills | Yes | Medium | Goose discovers multiple skill directories, not a single fixed pair. |
-| Isolated env | Yes | Excellent | `GOOSE_PATH_ROOT` already exists. |
-| Templates | No clear need | N/A | Likely not needed. |
+| Feature from `docs/ADDING_AGENT.md` | Goose capability | Fit for `poe-code` | Notes                                                                          |
+| ----------------------------------- | ---------------- | ------------------ | ------------------------------------------------------------------------------ |
+| Configure                           | Yes              | Medium             | Needs YAML + possibly custom-provider JSON + secret handling.                  |
+| Unconfigure                         | Partially        | Medium/Hard        | Must decide whether to remove YAML only, custom provider JSON, and/or secrets. |
+| Models                              | Yes              | Good               | Goose supports provider/model selection directly.                              |
+| Install                             | Yes              | Good               | Release script, Homebrew, source build.                                        |
+| Test                                | Yes              | Good               | `goose run --text ...` is suitable for a health check.                         |
+| Spawn (CLI)                         | Yes              | Good               | `goose run` looks viable for `agent-spawn`.                                    |
+| Spawn (ACP)                         | Different        | Poor fit           | Goose is an ACP **server**, not an ACP adapter to another agent.               |
+| Adapter                             | Probably         | Unknown            | `stream-json` may need a Goose-specific parser.                                |
+| Stdin prompt                        | Yes              | Good               | `--instructions -` works.                                                      |
+| Interactive mode                    | Yes              | Good               | `goose session` or `goose run -s`.                                             |
+| Resume                              | Yes              | Good               | `--resume` supported.                                                          |
+| MCP (config)                        | Yes              | Medium/Hard        | Stored under YAML `extensions`.                                                |
+| MCP (spawn)                         | Yes              | Good               | `--with-extension`, `--with-streamable-http-extension`, `--with-builtin`.      |
+| Skills                              | Yes              | Medium             | Goose discovers multiple skill directories, not a single fixed pair.           |
+| Isolated env                        | Yes              | Excellent          | `GOOSE_PATH_ROOT` already exists.                                              |
+| Templates                           | No clear need    | N/A                | Likely not needed.                                                             |
 
 ---
 

@@ -1,21 +1,34 @@
 # Agent Capabilities
 
-| **Package** | `agent-spawn` | `agent-spawn` | `src/providers` | `src/providers` | `src/providers` | `agent-mcp-config` | `agent-skill-config` |
-|-------|-----------|-----------|-----------|----------|------|-----|-------|
-| **Agent** | **Spawn** | **Spawn MCP** | **Configure** | **Isolated** | **Wrap** | **MCP** | **Skill** |
-| Claude Code | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| Codex | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| OpenCode | Yes | No | Yes | Yes | Yes | Yes | Yes |
-| Kimi | Yes | Yes | Yes | Yes | No | Yes | No |
-| Claude Desktop | No | No | File-only | No | No | Yes | No |
-| Cursor | [Planned](cursor-agent-research.md) | [Planned](cursor-agent-research.md) | No | [Planned](cursor-agent-research.md) | [Planned](cursor-agent-research.md) | [Planned](cursor-agent-research.md) | [Planned](cursor-agent-research.md) |
+Current snapshot of first-party agent support.
 
-## Capability Definitions
+Authoritative sources:
 
-- **Spawn**: Spawn agent execution with real-time ACP streaming support
-- **Spawn MCP**: Spawn-time MCP server injection via CLI/SDK options
-- **Configure**: Ability to configure agent to route through Poe API
-- **Isolated**: Isolated environment execution support
-- **Wrap**: Command wrapping via `poe-code wrap`
-- **MCP**: Model Context Protocol server configuration
-- **Skill**: Skill configuration support
+- Spawn and spawn-time MCP: `packages/agent-spawn/src/configs/`
+- Configure/test/isolation/wrap: `src/providers/`
+- Persistent MCP config: `packages/agent-mcp-config/src/configs.ts`
+- Skills: `packages/agent-skill-config/src/configs.ts`
+
+| Agent          | Spawn | Spawn-time MCP | Configure | Isolated test/run | Wrap | Persistent MCP config | Skills |
+| -------------- | ----- | -------------- | --------- | ----------------- | ---- | --------------------- | ------ |
+| Claude Code    | Yes   | Yes            | Yes       | Yes               | Yes  | Yes                   | Yes    |
+| Codex          | Yes   | Yes            | Yes       | Yes               | Yes  | Yes                   | Yes    |
+| OpenCode       | Yes   | Yes            | Yes       | Yes               | Yes  | Yes                   | Yes    |
+| Kimi           | Yes   | Yes            | Yes       | Yes               | No   | Yes                   | No     |
+| Goose          | Yes   | Yes            | Yes       | Yes               | No   | Yes                   | Yes    |
+| Cursor         | Yes   | Yes            | Yes       | No                | No   | Yes                   | Yes    |
+| Gemini CLI     | Yes   | Yes            | Yes       | Yes               | No   | No                    | Yes    |
+| Claude Desktop | No    | No             | File-only | No                | No   | Yes                   | No     |
+| Poe Agent      | Yes   | No             | Yes       | No                | No   | No                    | No     |
+
+## Definitions
+
+- **Spawn**: Poe Code can start the agent for a prompt and stream ACP-style events.
+- **Spawn-time MCP**: `poe-code spawn --mcp-servers` can inject MCP servers for that run.
+- **Configure**: `poe-code configure <agent>` can write the agent's Poe/provider config.
+- **Isolated test/run**: the provider declares an isolated environment for `poe-code test --isolated` or equivalent isolated execution.
+- **Wrap**: `poe-code wrap <agent>` is used as the agent's runtime path.
+- **Persistent MCP config**: `poe-code mcp` can write the agent's normal MCP config file.
+- **Skills**: `poe-code skill` can install or bridge skills for the agent.
+
+Research-only agents and unsupported clients belong in [MCP agent config locations](mcp-agents.md) or their dedicated research notes.

@@ -1,14 +1,19 @@
 # E2E Network Interception Investigation
 
+Historical note: this investigation predates the current backend-aware
+`@poe-code/e2e-test-runner` and its proxy snapshot support. Current e2e guidance
+lives in [E2E development](../development/e2e.md) and
+[Snapshot testing](../development/SNAPSHOT_TESTING.md).
+
 ## Context
 
 US-008 investigates whether we can intercept and mock HTTP traffic inside e2e
 containers for tests that need to verify API calls without hitting real services.
 
-The current e2e test library (`@poe-code/e2e-test-runner`) uses persistent
-Docker containers via `docker create` + `docker exec`. Tests execute CLI commands
-and assert on stdout, stderr, exit codes, and filesystem state. There is no
-mechanism to observe or mock outbound HTTP requests.
+At the time of this investigation, `@poe-code/e2e-test-runner` used persistent
+Docker containers via `docker create` + `docker exec`. Tests executed CLI
+commands and asserted on stdout, stderr, exit codes, and filesystem state. There
+was no mechanism to observe or mock outbound HTTP requests.
 
 ## Approaches Evaluated
 
@@ -18,6 +23,7 @@ Run mitmproxy as a separate container on the same Docker network. Route test
 container traffic through it via `http_proxy`/`https_proxy` environment variables.
 
 **Setup:**
+
 ```
 docker network create e2e-net
 docker run -d --name proxy --network e2e-net mitmproxy/mitmproxy mitmdump -s /tmp/addon.py
@@ -28,6 +34,7 @@ docker create --network e2e-net -e http_proxy=http://proxy:8080 -e https_proxy=h
 container and setting `NODE_EXTRA_CA_CERTS` for Node.js processes.
 
 **Spike results (validated):**
+
 - HTTP interception: works immediately via proxy env vars
 - HTTPS interception: works with CA cert installation + `NODE_EXTRA_CA_CERTS`
 - Request capture: Python addon writes JSONL to file, readable via `docker exec`
@@ -35,20 +42,21 @@ container and setting `NODE_EXTRA_CA_CERTS` for Node.js processes.
 - Overhead: negligible (~0-10ms per request, within noise)
 
 **Assertion flow:**
+
 ```
 test makes CLI call → CLI makes HTTP request → mitmproxy captures to JSONL →
 test reads JSONL via docker exec → asserts on captured requests
 ```
 
-| Criteria | Rating | Notes |
-|----------|--------|-------|
-| Setup complexity | Medium | Requires Docker network, sidecar container, CA cert |
-| Reliability | High | mitmproxy is battle-tested, deterministic capture |
-| Overhead | Negligible | <10ms per request |
-| Assertion API | Medium | Parse JSONL from file, needs helper functions |
-| HTTPS support | Yes | Requires CA cert in container + `NODE_EXTRA_CA_CERTS` |
-| Mock responses | Yes | Python addon can intercept and respond |
-| Maintenance | Medium | Python addon scripts, mitmproxy image updates |
+| Criteria         | Rating     | Notes                                                 |
+| ---------------- | ---------- | ----------------------------------------------------- |
+| Setup complexity | Medium     | Requires Docker network, sidecar container, CA cert   |
+| Reliability      | High       | mitmproxy is battle-tested, deterministic capture     |
+| Overhead         | Negligible | <10ms per request                                     |
+| Assertion API    | Medium     | Parse JSONL from file, needs helper functions         |
+| HTTPS support    | Yes        | Requires CA cert in container + `NODE_EXTRA_CA_CERTS` |
+| Mock responses   | Yes        | Python addon can intercept and respond                |
+| Maintenance      | Medium     | Python addon scripts, mitmproxy image updates         |
 
 ### 2. In-Container Proxy
 
@@ -56,6 +64,7 @@ Install mitmproxy (or a lighter proxy like tinyproxy) directly inside the e2e
 Docker image. All traffic routes through localhost proxy.
 
 **Setup:**
+
 ```dockerfile
 # In e2e.Dockerfile
 RUN pip install mitmproxy
@@ -63,23 +72,24 @@ RUN pip install mitmproxy
 
 ```typescript
 // In test setup
-await container.exec('mitmdump -p 8080 -s /tmp/addon.py &');
+await container.exec("mitmdump -p 8080 -s /tmp/addon.py &");
 // Set proxy env vars for subsequent commands
 ```
 
 **Trade-offs:**
 
-| Criteria | Rating | Notes |
-|----------|--------|-------|
-| Setup complexity | Low | Single container, no network config |
-| Reliability | Medium | Background process management inside container |
-| Overhead | Negligible | localhost proxy, no network hop |
-| Assertion API | Medium | Same JSONL approach, simpler file access |
-| HTTPS support | Yes | Same CA cert approach |
-| Mock responses | Yes | Same Python addon |
-| Maintenance | High | Pollutes base image, mitmproxy is 100MB+ |
+| Criteria         | Rating     | Notes                                          |
+| ---------------- | ---------- | ---------------------------------------------- |
+| Setup complexity | Low        | Single container, no network config            |
+| Reliability      | Medium     | Background process management inside container |
+| Overhead         | Negligible | localhost proxy, no network hop                |
+| Assertion API    | Medium     | Same JSONL approach, simpler file access       |
+| HTTPS support    | Yes        | Same CA cert approach                          |
+| Mock responses   | Yes        | Same Python addon                              |
+| Maintenance      | High       | Pollutes base image, mitmproxy is 100MB+       |
 
 **Key concerns:**
+
 - mitmproxy adds ~100MB to the Docker image (Python + dependencies)
 - Background process management (`mitmdump &`) is fragile in containers
 - Every test pays the image size cost even when proxy isn't needed
@@ -92,6 +102,7 @@ canned responses. The CLI under test must connect to this server instead of the
 real API.
 
 **Setup:**
+
 ```typescript
 // In test setup
 const mockServer = await startMockServer(network);
@@ -100,19 +111,20 @@ await container.exec(`poe-code configure --api-url http://mock-server:3000`);
 ```
 
 **Spike results (validated):**
+
 - HTTP mock server works on the Docker network
 - Test container can reach it by container name
 - Easy to program responses in Node.js/TypeScript
 
-| Criteria | Rating | Notes |
-|----------|--------|-------|
-| Setup complexity | Low | Node.js server, same language as tests |
-| Reliability | High | Direct HTTP, no TLS complexity |
-| Overhead | Negligible | Direct network call |
-| Assertion API | Easy | In-process, native Jest/Vitest assertions |
-| HTTPS support | Partial | Needs self-signed cert or HTTP-only |
-| Mock responses | Yes | Full control, same language |
-| Maintenance | Low | No external dependencies |
+| Criteria         | Rating     | Notes                                     |
+| ---------------- | ---------- | ----------------------------------------- |
+| Setup complexity | Low        | Node.js server, same language as tests    |
+| Reliability      | High       | Direct HTTP, no TLS complexity            |
+| Overhead         | Negligible | Direct network call                       |
+| Assertion API    | Easy       | In-process, native Jest/Vitest assertions |
+| HTTPS support    | Partial    | Needs self-signed cert or HTTP-only       |
+| Mock responses   | Yes        | Full control, same language               |
+| Maintenance      | Low        | No external dependencies                  |
 
 **Key concern:** Requires the CLI to support configurable API endpoints (e.g.
 `--api-url` flag). If the CLI hardcodes API URLs, this approach doesn't work
@@ -130,16 +142,16 @@ proxy env var approach without meaningful benefits for our use case.
 
 ## Comparison Matrix
 
-| | mitmproxy sidecar | In-container proxy | Node.js mock server | iptables redirect |
-|---|---|---|---|---|
-| **Setup** | Docker network + sidecar | Dockerfile change | Node.js server | CAP_NET_ADMIN + iptables |
-| **Image impact** | None | +100MB | None | +iptables pkg |
-| **HTTPS** | CA cert + NODE_EXTRA_CA_CERTS | Same | Self-signed or HTTP | Same as sidecar |
-| **Transparency** | Via env vars | Via env vars | Requires `--api-url` | Fully transparent |
-| **Assertion ease** | Parse JSONL | Parse JSONL | In-process | Parse JSONL |
-| **Response mocking** | Python addon | Python addon | Native Node.js | Python addon |
-| **Dependencies** | mitmproxy Docker image | mitmproxy in image | None | iptables |
-| **Overhead** | ~0-10ms | ~0ms | ~0ms | ~0ms |
+|                      | mitmproxy sidecar             | In-container proxy | Node.js mock server  | iptables redirect        |
+| -------------------- | ----------------------------- | ------------------ | -------------------- | ------------------------ |
+| **Setup**            | Docker network + sidecar      | Dockerfile change  | Node.js server       | CAP_NET_ADMIN + iptables |
+| **Image impact**     | None                          | +100MB             | None                 | +iptables pkg            |
+| **HTTPS**            | CA cert + NODE_EXTRA_CA_CERTS | Same               | Self-signed or HTTP  | Same as sidecar          |
+| **Transparency**     | Via env vars                  | Via env vars       | Requires `--api-url` | Fully transparent        |
+| **Assertion ease**   | Parse JSONL                   | Parse JSONL        | In-process           | Parse JSONL              |
+| **Response mocking** | Python addon                  | Python addon       | Native Node.js       | Python addon             |
+| **Dependencies**     | mitmproxy Docker image        | mitmproxy in image | None                 | iptables                 |
+| **Overhead**         | ~0-10ms                       | ~0ms               | ~0ms                 | ~0ms                     |
 
 ## Assertion API Design (If Implemented)
 
@@ -154,19 +166,20 @@ const container = await createContainer({ proxy: true });
 const requests = await container.getCapturedRequests();
 
 expect(requests).toContainRequest({
-  method: 'POST',
+  method: "POST",
   url: /api\.openai\.com\/v1\/chat/,
-  headers: { 'Authorization': expect.stringContaining('Bearer') },
+  headers: { Authorization: expect.stringContaining("Bearer") }
 });
 
 // Mock responses
 await container.mockResponse({
   match: { url: /api\.openai\.com/ },
-  respond: { status: 200, body: { choices: [{ message: { content: 'hello' } }] } },
+  respond: { status: 200, body: { choices: [{ message: { content: "hello" } }] } }
 });
 ```
 
 **Implementation complexity:**
+
 - `createContainer({ proxy: true })` → creates Docker network, starts mitmproxy
   sidecar, installs CA cert, sets env vars
 - `getCapturedRequests()` → reads JSONL file from mitmproxy container via
@@ -204,6 +217,7 @@ API, mock API, matchers, documentation).
    even more complexity.
 
 **When to revisit:**
+
 - When we need to test API interactions without real API keys (cost reduction)
 - When we need to verify specific request payloads (e.g., model parameters)
 - When we need to simulate API error responses (rate limits, auth failures)

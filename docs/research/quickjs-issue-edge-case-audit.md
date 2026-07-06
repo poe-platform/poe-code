@@ -2,7 +2,7 @@
 
 Generated 2026-06-11 from the complete GitHub issues API result for `quickjs-ng/quickjs`: 423 issues (65 open, 358 closed). Pull requests returned by the issues endpoint were excluded.
 
-This ledger is research input for `docs/plans/quickjs-issue-edge-cases.md`. “Applies” means the failure mode transfers to `packages/safejs`; it does not imply the QuickJS implementation or fix should be copied.
+This ledger is research input for the archived [QuickJS issue edge-cases plan](../plans/archive/quickjs-issue-edge-cases.md). “Applies” means the failure mode transfers to `packages/safejs`; it does not imply the QuickJS implementation or fix should be copied.
 
 ## Disposition Counts
 

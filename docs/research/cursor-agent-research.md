@@ -1,30 +1,38 @@
-# Cursor Agent Configuration Options - Research Document
+# Cursor Agent Configuration Options
+
+Historical note: this is a dated Cursor CLI research snapshot. Poe Code now has
+first-party Cursor agent definitions and spawn config; use the package docs and
+current source for implementation decisions.
 
 ## Overview
 
 **CLI Version**: 2026.01.28-fd13201
 **Command**: `cursor agent`
 
-This document provides a comprehensive overview of all configuration options, modes, and features available in the Cursor Agent CLI.
+This snapshot records the Cursor Agent CLI options, modes, and behaviors observed during research.
 
 ---
 
 ## Interactive vs Non-Interactive Modes
 
 ### Interactive Mode (Default)
+
 ```bash
 cursor agent
 cursor agent "Initial prompt"
 ```
+
 - Opens an interactive TUI (Text User Interface)
 - Requires raw mode support on stdin
 - Cannot be used in scripts or pipelines without a TTY
 
 ### Non-Interactive Mode (`--print`)
+
 ```bash
 echo "What is 2+2?" | cursor agent --print
 cursor agent --print "What is 2+2?"
 ```
+
 - **Flag**: `--print` or `-p`
 - Prints responses to console
 - Designed for scripts and programmatic use
@@ -39,18 +47,23 @@ cursor agent --print "What is 2+2?"
 ## Output Formats (Non-Interactive Only)
 
 ### Text Format (Default)
+
 ```bash
 cursor agent --print --output-format text "What is 2+2?"
 # Output: 2+2 = 4
 ```
+
 - Simple text output
 - Best for basic CLI usage
 
 ### JSON Format
+
 ```bash
 cursor agent --print --output-format json "What is 10 + 5?"
 ```
+
 **Output Structure**:
+
 ```json
 {
   "type": "result",
@@ -63,14 +76,18 @@ cursor agent --print --output-format json "What is 10 + 5?"
   "request_id": "021b26c0-0371-4464-8556-d8c04c959418"
 }
 ```
+
 - Single JSON object at the end
 - Contains full result with metadata
 
 ### Stream JSON Format (ACP-style)
+
 ```bash
 cursor agent --print --output-format stream-json "List three colors"
 ```
+
 **Event Types**:
+
 - `system` - initialization events
 - `user` - user message events
 - `thinking` - model thinking process (with thinking models)
@@ -79,6 +96,7 @@ cursor agent --print --output-format stream-json "List three colors"
 - `result` - final result
 
 **Example Events**:
+
 ```json
 {"type":"system","subtype":"init","apiKeySource":"login","cwd":"/path","session_id":"...","model":"Claude 4.6 Opus (Thinking)","permissionMode":"default"}
 {"type":"user","message":{"role":"user","content":[{"type":"text","text":"List three colors"}]},"session_id":"..."}
@@ -88,16 +106,20 @@ cursor agent --print --output-format stream-json "List three colors"
 ```
 
 ### Stream JSON with Partial Output
+
 ```bash
 cursor agent --print --output-format stream-json --stream-partial-output "Count from 1 to 10"
 ```
+
 **Features**:
+
 - Streams individual text deltas as separate events
 - Real-time output as the model generates text
 - Each thinking/assistant text chunk is a separate JSON event
 - Useful for progressive UI updates
 
 **Example Partial Events**:
+
 ```json
 {"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"1"}]},"session_id":"...","timestamp_ms":...}
 {"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":","}]},"session_id":"...","timestamp_ms":...}
@@ -105,7 +127,9 @@ cursor agent --print --output-format stream-json --stream-partial-output "Count 
 ```
 
 ### Tool Events in Stream JSON
+
 When tools are used, you'll see tool_call events:
+
 ```json
 {"type":"tool_call","subtype":"started","call_id":"toolu_bdrk_...","tool_call":{"editToolCall":{"args":{"path":"...","streamContent":"test"}}},"model_call_id":"...","session_id":"...","timestamp_ms":...}
 {"type":"tool_call","subtype":"completed","call_id":"toolu_bdrk_...","tool_call":{"editToolCall":{"args":{"path":"...","streamContent":"test"},"result":{"success":{"path":"...","linesAdded":1,"linesRemoved":1,"diffString":"...","afterFullFileContent":"test","message":"..."}}}},"model_call_id":"...","session_id":"...","timestamp_ms":...}
@@ -116,26 +140,32 @@ When tools are used, you'll see tool_call events:
 ## Execution Modes
 
 ### Default Mode
+
 ```bash
 cursor agent
 ```
+
 - Full access to all tools (read, write, bash, etc.)
 - Interactive or non-interactive
 
 ### Plan Mode
+
 ```bash
 cursor agent --plan
 cursor agent --mode plan
 ```
+
 - **Purpose**: Read-only/planning mode
 - Agent analyzes, proposes plans, but makes no edits
 - Useful for understanding codebases or getting implementation proposals
 - Still has read access to files and can use analysis tools
 
 ### Ask Mode
+
 ```bash
 cursor agent --mode ask
 ```
+
 - **Purpose**: Q&A style for explanations and questions
 - Read-only mode
 - Optimized for answering questions about code
@@ -146,29 +176,36 @@ cursor agent --mode ask
 ## Sandbox Modes
 
 ### Default Sandbox Behavior
+
 - Controlled by user configuration
 - Prompts for permission before executing potentially dangerous operations
 
 ### Explicitly Enable Sandbox
+
 ```bash
 cursor agent --sandbox enabled
 ```
+
 - Enforces sandbox mode regardless of configuration
 - Still executes operations but with safety guardrails
 
 ### Disable Sandbox (YOLO Mode)
+
 ```bash
 cursor agent --sandbox disabled
 ```
+
 - Explicitly disables sandbox mode
 - Bypasses configuration settings
 - Use with caution
 
 ### Force Flag
+
 ```bash
 cursor agent --force
 cursor agent -f
 ```
+
 - Force allows commands unless explicitly denied
 - Reduces permission prompts
 - Can be combined with sandbox modes
@@ -179,18 +216,22 @@ cursor agent -f
 ## Authentication & API Configuration
 
 ### API Key
+
 **Via Environment Variable**:
+
 ```bash
 export CURSOR_API_KEY="your-key"
 cursor agent
 ```
 
 **Via Command Line**:
+
 ```bash
 cursor agent --api-key "your-key"
 ```
 
 ### Authentication Commands
+
 ```bash
 # Login (opens browser for auth)
 cursor agent login
@@ -204,6 +245,7 @@ cursor agent logout
 ```
 
 **Skip Browser Opening**:
+
 ```bash
 NO_OPEN_BROWSER=1 cursor agent login
 ```
@@ -215,6 +257,7 @@ NO_OPEN_BROWSER=1 cursor agent login
 ```bash
 cursor agent --print -H "X-Custom-Header: value1" -H "X-Another: value2" "prompt"
 ```
+
 - **Flag**: `-H` or `--header`
 - Format: `'Name: Value'`
 - Can be used multiple times for multiple headers
@@ -225,12 +268,14 @@ cursor agent --print -H "X-Custom-Header: value1" -H "X-Another: value2" "prompt
 ## Model Selection
 
 ### List Available Models
+
 ```bash
 cursor agent --list-models
 cursor agent models
 ```
 
 **Available Models** (as of 2026.01.28):
+
 - auto - Auto
 - composer-1 - Composer 1
 - gpt-5.2-codex (+ variants: high, low, xhigh, fast versions)
@@ -244,9 +289,11 @@ cursor agent models
 - grok
 
 ### Select a Model
+
 ```bash
 cursor agent --model sonnet-4.5 "Your prompt"
 ```
+
 - Can also switch in interactive mode: `/model <id>`
 
 ---
@@ -254,9 +301,11 @@ cursor agent --model sonnet-4.5 "Your prompt"
 ## Workspace Configuration
 
 ### Specify Workspace Directory
+
 ```bash
 cursor agent --workspace /path/to/directory "prompt"
 ```
+
 - Changes the working directory for the agent
 - Defaults to current working directory
 - Affects file operations and context
@@ -266,32 +315,40 @@ cursor agent --workspace /path/to/directory "prompt"
 ## Session Management
 
 ### Create New Chat
+
 ```bash
 cursor agent create-chat
 # Returns: chat-id (e.g., 499e02de-0a11-490d-b811-d3cefb4b034d)
 ```
 
 ### Resume a Specific Chat
+
 ```bash
 cursor agent --resume <chat-id> "Follow-up prompt"
 ```
+
 - Continues previous conversation with full context
 
 ### Resume Last Chat
+
 ```bash
 cursor agent --continue
 cursor agent resume
 ```
+
 - Automatically resumes the most recent chat session
 
 ### List Chats
+
 ```bash
 cursor agent ls
 ```
+
 - **Note**: Requires interactive terminal (TTY)
 - Lists all available chat sessions
 
 ### Chat Storage
+
 - Chats stored in: `~/.cursor/chats/<hash>/`
 - Organized by workspace hash
 
@@ -300,17 +357,21 @@ cursor agent ls
 ## MCP (Model Context Protocol) Configuration
 
 ### Configuration Files
+
 **Global Configuration**:
+
 ```
 ~/.cursor/mcp.json
 ```
 
 **Local/Workspace Configuration**:
+
 ```
 .cursor/mcp.json
 ```
 
 **Example mcp.json**:
+
 ```json
 {
   "mcpServers": {
@@ -328,12 +389,14 @@ cursor agent ls
 ### MCP Commands
 
 #### List Configured MCPs
+
 ```bash
 cursor agent mcp list
 # Shows status of each configured MCP server
 ```
 
 #### Enable/Disable MCPs
+
 ```bash
 # Enable an MCP
 cursor agent mcp enable <identifier>
@@ -343,21 +406,27 @@ cursor agent mcp disable <identifier>
 ```
 
 #### List MCP Tools
+
 ```bash
 cursor agent mcp list-tools <identifier>
 ```
+
 - Shows available tools and their argument names for a specific MCP
 
 #### MCP Authentication
+
 ```bash
 cursor agent mcp login <identifier>
 ```
+
 - Authenticate with an MCP server
 
 ### Auto-Approve MCPs (Non-Interactive)
+
 ```bash
 cursor agent --approve-mcps --print "prompt"
 ```
+
 - **Flag**: `--approve-mcps`
 - Automatically approves all MCP servers
 - Only works with `--print` (headless/non-interactive mode)
@@ -368,6 +437,7 @@ cursor agent --approve-mcps --print "prompt"
 ## Configuration Files
 
 ### Global Configuration Directory
+
 ```
 ~/.cursor/
 ├── agent-cli-state.json         # CLI state
@@ -383,6 +453,7 @@ cursor agent --approve-mcps --print "prompt"
 ```
 
 ### Local/Workspace Configuration
+
 ```
 .cursor/
 ├── commands/                    # Custom commands (*.md files)
@@ -390,6 +461,7 @@ cursor agent --approve-mcps --print "prompt"
 ```
 
 **Example Custom Commands**:
+
 - opsx-apply.md
 - opsx-archive.md
 - opsx-explore.md
@@ -400,16 +472,20 @@ cursor agent --approve-mcps --print "prompt"
 ## Shell Integration
 
 ### Install Shell Integration
+
 ```bash
 cursor agent install-shell-integration
 ```
+
 - Installs integration to `~/.zshrc`
 - Enables shell completions and hooks
 
 ### Uninstall Shell Integration
+
 ```bash
 cursor agent uninstall-shell-integration
 ```
+
 - Removes integration from `~/.zshrc`
 
 ---
@@ -417,22 +493,27 @@ cursor agent uninstall-shell-integration
 ## Other Features
 
 ### Generate Rules
+
 ```bash
 cursor agent generate-rule
 cursor agent rule
 ```
+
 - Interactive prompt to create new Cursor rules
 - Generates custom behavior rules for the agent
 
 ### Cloud Mode
+
 ```bash
 cursor agent --cloud
 cursor agent -c
 ```
+
 - Starts in cloud mode
 - Opens composer picker on launch
 
 ### Version and Info
+
 ```bash
 # Show version
 cursor agent --version
@@ -443,10 +524,12 @@ cursor agent about
 ```
 
 ### Update
+
 ```bash
 cursor agent update
 cursor agent upgrade
 ```
+
 - Updates Cursor Agent to the latest version
 
 ---
@@ -454,15 +537,19 @@ cursor agent upgrade
 ## Environment Variables
 
 ### CURSOR_API_KEY
+
 ```bash
 export CURSOR_API_KEY="your-api-key"
 ```
+
 - Alternative to `--api-key` flag
 
 ### NO_OPEN_BROWSER
+
 ```bash
 NO_OPEN_BROWSER=1 cursor agent login
 ```
+
 - Prevents browser from opening during login
 
 ---
@@ -470,6 +557,7 @@ NO_OPEN_BROWSER=1 cursor agent login
 ## Complete Usage Examples
 
 ### Example 1: Non-Interactive with JSON Streaming
+
 ```bash
 echo "Write a hello world function in Python" | \
   cursor agent --print \
@@ -480,6 +568,7 @@ echo "Write a hello world function in Python" | \
 ```
 
 ### Example 2: Automated with Force and Sandbox Disabled
+
 ```bash
 cursor agent --print \
   --force \
@@ -489,6 +578,7 @@ cursor agent --print \
 ```
 
 ### Example 3: Plan Mode with Custom Headers
+
 ```bash
 cursor agent --print \
   --mode plan \
@@ -498,6 +588,7 @@ cursor agent --print \
 ```
 
 ### Example 4: Resume Chat with MCP Auto-Approval
+
 ```bash
 cursor agent --print \
   --resume <chat-id> \
@@ -506,6 +597,7 @@ cursor agent --print \
 ```
 
 ### Example 5: File-Based Prompt Input
+
 ```bash
 # Store prompt in file
 cat > prompt.txt << 'EOF'
@@ -526,6 +618,7 @@ cursor agent --print --mode plan "$(cat prompt.txt)"
 The stream-json format follows an event-streaming protocol similar to ACP (Agent Communication Protocol):
 
 ### Event Stream Structure
+
 1. **System Initialization**: Session details, model, permissions
 2. **User Input**: Echo of user's message
 3. **Thinking Events**: Model's internal reasoning (for thinking models)
@@ -534,6 +627,7 @@ The stream-json format follows an event-streaming protocol similar to ACP (Agent
 6. **Result Summary**: Final status and metrics
 
 ### Integration Tips
+
 - Parse newline-delimited JSON (NDJSON)
 - Handle events sequentially
 - `timestamp_ms` can be used for latency tracking
@@ -545,22 +639,26 @@ The stream-json format follows an event-streaming protocol similar to ACP (Agent
 ## Stdin, File Input, and Prompt Sources
 
 ### Standard Input (Pipe)
+
 ```bash
 echo "prompt" | cursor agent --print
 cat prompt.txt | cursor agent --print
 ```
 
 ### Command Line Argument
+
 ```bash
 cursor agent --print "prompt text"
 ```
 
 ### File Content via Command Substitution
+
 ```bash
 cursor agent --print "$(cat prompt.txt)"
 ```
 
 ### Heredoc (Multi-line Prompts)
+
 ```bash
 cursor agent --print << 'EOF'
 Multi-line prompt
@@ -572,36 +670,36 @@ EOF
 
 ## Summary Table
 
-| Feature | Flag/Option | Notes |
-|---------|-------------|-------|
-| **Non-interactive** | `--print`, `-p` | Required for scripts |
-| **Output Format** | `--output-format <format>` | text, json, stream-json |
-| **Partial Streaming** | `--stream-partial-output` | Only with stream-json |
-| **Execution Mode** | `--mode <mode>`, `--plan` | plan, ask |
-| **Sandbox** | `--sandbox <mode>` | enabled, disabled |
-| **Force** | `--force`, `-f` | Allow unless denied |
-| **API Key** | `--api-key <key>` | Or CURSOR_API_KEY env |
-| **Custom Headers** | `-H <header>` | Multiple allowed |
-| **Model** | `--model <model>` | See --list-models |
-| **Workspace** | `--workspace <path>` | Working directory |
-| **Resume Chat** | `--resume [chatId]` | Continue session |
-| **Auto-continue** | `--continue` | Resume last chat |
-| **Cloud Mode** | `--cloud`, `-c` | Composer picker |
-| **MCP Auto-approve** | `--approve-mcps` | Only with --print |
+| Feature               | Flag/Option                | Notes                   |
+| --------------------- | -------------------------- | ----------------------- |
+| **Non-interactive**   | `--print`, `-p`            | Required for scripts    |
+| **Output Format**     | `--output-format <format>` | text, json, stream-json |
+| **Partial Streaming** | `--stream-partial-output`  | Only with stream-json   |
+| **Execution Mode**    | `--mode <mode>`, `--plan`  | plan, ask               |
+| **Sandbox**           | `--sandbox <mode>`         | enabled, disabled       |
+| **Force**             | `--force`, `-f`            | Allow unless denied     |
+| **API Key**           | `--api-key <key>`          | Or CURSOR_API_KEY env   |
+| **Custom Headers**    | `-H <header>`              | Multiple allowed        |
+| **Model**             | `--model <model>`          | See --list-models       |
+| **Workspace**         | `--workspace <path>`       | Working directory       |
+| **Resume Chat**       | `--resume [chatId]`        | Continue session        |
+| **Auto-continue**     | `--continue`               | Resume last chat        |
+| **Cloud Mode**        | `--cloud`, `-c`            | Composer picker         |
+| **MCP Auto-approve**  | `--approve-mcps`           | Only with --print       |
 
 ---
 
 ## Configuration File Locations
 
-| Purpose | Location |
-|---------|----------|
-| Global MCP config | `~/.cursor/mcp.json` |
-| Local MCP config | `.cursor/mcp.json` |
-| CLI settings | `~/.cursor/cli-config.json` |
-| Chat history | `~/.cursor/chats/` |
-| Project settings | `~/.cursor/projects/<hash>/` |
-| Custom commands | `.cursor/commands/` |
-| Custom skills | `.cursor/skills/` |
+| Purpose           | Location                     |
+| ----------------- | ---------------------------- |
+| Global MCP config | `~/.cursor/mcp.json`         |
+| Local MCP config  | `.cursor/mcp.json`           |
+| CLI settings      | `~/.cursor/cli-config.json`  |
+| Chat history      | `~/.cursor/chats/`           |
+| Project settings  | `~/.cursor/projects/<hash>/` |
+| Custom commands   | `.cursor/commands/`          |
+| Custom skills     | `.cursor/skills/`            |
 
 ---
 

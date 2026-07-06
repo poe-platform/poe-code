@@ -198,7 +198,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: http-session-auth-binding
     title: Bind sessions to the authenticated identity
@@ -216,10 +216,10 @@ tasks:
       session; a request with subject "b" -> 404; subject "a" still works;
       no-oauth behavior unchanged. Document the binding in the README.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: http-transport-robustness

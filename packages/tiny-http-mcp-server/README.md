@@ -191,6 +191,8 @@ WWW-Authenticate: Bearer realm="mcp", resource_metadata="http://127.0.0.1:3000/.
 
 Standalone `listenHttp()` serves both the MCP endpoint and the protected-resource metadata route. For Express, mount `metadataMiddleware` at the app root and mount `mcpMiddleware` on your MCP path.
 
+OAuth sessions are bound to the verified token `subject`, falling back to `clientId` when the subject is absent. Requests with a different identity receive `404`, just like an unknown session. Tokens with neither a non-empty subject nor client id create unbound sessions.
+
 For non-HTTP integrations, `createProtectedResourceMetadataDocument(oauth)` returns the metadata JSON document without creating middleware.
 
 `createExpressOAuthHandlers()` also accepts:

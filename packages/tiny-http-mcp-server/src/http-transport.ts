@@ -2,6 +2,7 @@ import { validateHeaderValue, type IncomingMessage, type ServerResponse } from "
 import type { JSONRPCMessage, JSONRPCRequest, MessageSession, Server } from "tiny-stdio-mcp-server";
 import { JSON_RPC_ERROR_CODES } from "tiny-stdio-mcp-server";
 import { formatErrorResponse, formatSuccessResponse } from "tiny-stdio-mcp-server/jsonrpc";
+import type { AuthenticatedIncomingMessage } from "./auth.js";
 import { JsonRpcMessageError, readAndClassifyBody } from "./parse-body.js";
 import {
   createSessionStore,
@@ -307,6 +308,7 @@ export class StreamableHttpTransport {
       (message) => this.isRequest(message) && message.method === "initialize"
     );
     let sessionId: string | undefined;
+    let activeSession: Session | undefined;
 
     if (this.sessionIdGenerator !== undefined) {
       const headerSessionId = this.readSessionId(req);
@@ -329,12 +331,16 @@ export class StreamableHttpTransport {
         }
 
         sessionId = newSessionId;
-        this.sessionStore.create(newSessionId);
+        activeSession = this.sessionStore.create(newSessionId);
+        const authSubject = this.readAuthSubject(req);
+        if (authSubject !== undefined) {
+          activeSession.authSubject = authSubject;
+        }
         this.emit({ type: "session.created", sessionId: newSessionId });
         this.createLocalMessageSession(newSessionId);
       } else {
-        const session = this.getActiveSession(headerSessionId);
-        if (session === undefined) {
+        activeSession = this.getActiveSession(headerSessionId, req);
+        if (activeSession === undefined) {
           this.respondWithStatus(res, 404);
           return;
         }
@@ -342,13 +348,13 @@ export class StreamableHttpTransport {
         sessionId = headerSessionId;
         this.touchSession(sessionId);
         if (
-          session?.protocolVersion !== undefined &&
-          !this.acceptsProtocolVersion(req, session.protocolVersion)
+          activeSession.protocolVersion !== undefined &&
+          !this.acceptsProtocolVersion(req, activeSession.protocolVersion)
         ) {
           this.respondWithStatus(res, 400);
           return;
         }
-        await this.ensureLocalMessageSession(sessionId, session);
+        await this.ensureLocalMessageSession(sessionId, activeSession);
       }
     }
 
@@ -370,7 +376,7 @@ export class StreamableHttpTransport {
           continue;
         }
 
-        const session = sessionId === undefined ? undefined : this.sessionStore.get(sessionId);
+        const session = activeSession;
         if (
           session !== undefined &&
           message.method !== "initialize" &&
@@ -514,7 +520,7 @@ export class StreamableHttpTransport {
       return;
     }
 
-    const session = this.getActiveSession(sessionId);
+    const session = this.getActiveSession(sessionId, req);
     if (session === undefined) {
       this.respondWithStatus(res, 404);
       return;
@@ -592,9 +598,14 @@ export class StreamableHttpTransport {
       return;
     }
 
-    const session = this.getActiveSession(sessionId);
+    const session = this.getActiveSession(sessionId, req);
+    if (session === undefined) {
+      this.respondWithStatus(res, 404);
+      return;
+    }
+
     if (
-      session?.protocolVersion !== undefined &&
+      session.protocolVersion !== undefined &&
       !this.acceptsProtocolVersion(req, session.protocolVersion)
     ) {
       this.respondWithStatus(res, 400);
@@ -668,7 +679,7 @@ export class StreamableHttpTransport {
     return typeof name === "string" ? name : undefined;
   }
 
-  private getActiveSession(sessionId: string): Session | undefined {
+  private getActiveSession(sessionId: string, req: IncomingMessage): Session | undefined {
     const session = this.sessionStore.get(sessionId);
     if (session === undefined) {
       return undefined;
@@ -679,7 +690,17 @@ export class StreamableHttpTransport {
       return undefined;
     }
 
+    if (session.authSubject !== undefined && session.authSubject !== this.readAuthSubject(req)) {
+      return undefined;
+    }
+
     return session;
+  }
+
+  private readAuthSubject(req: IncomingMessage): string | undefined {
+    const auth = (req as AuthenticatedIncomingMessage).auth;
+    const authSubject = auth?.subject ?? auth?.clientId;
+    return authSubject !== undefined && authSubject.length > 0 ? authSubject : undefined;
   }
 
   private touchSession(sessionId: string): void {

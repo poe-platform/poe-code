@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 export interface Session {
   id: string;
   initialized: boolean;
+  authSubject?: string;
   protocolVersion?: string;
   createdAt: Date;
   lastSeenAt: Date;

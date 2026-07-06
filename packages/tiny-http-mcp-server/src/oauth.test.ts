@@ -885,4 +885,259 @@ describe("OAuth protected resource", () => {
       },
     });
   });
+  it("binds OAuth sessions to the verified token subject", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const issueToken = (subject: string) =>
+      verifier.issueToken({
+        issuer: AUTHORIZATION_SERVER,
+        audience: [PROTECTED_RESOURCE],
+        scopes: [REQUIRED_SCOPE],
+        expiresAt: TEST_NOW + 300,
+        subject
+      });
+    const ownerToken = issueToken("a");
+    const otherToken = issueToken("b");
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const initializeResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${ownerToken}`,
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+
+    expect(initializeResponse.status).toBe(200);
+    expect(sessionId).toBeTruthy();
+
+    const sessionHeaders = {
+      Authorization: `Bearer ${otherToken}`,
+      "Mcp-Session-Id": String(sessionId),
+      "MCP-Protocol-Version": "2025-03-26"
+    };
+    const otherPostResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        ...sessionHeaders,
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+    const otherGetResponse = await nodeFetch(handle.url, {
+      method: "GET",
+      headers: {
+        ...sessionHeaders,
+        Accept: "text/event-stream"
+      }
+    });
+    const otherDeleteResponse = await nodeFetch(handle.url, {
+      method: "DELETE",
+      headers: sessionHeaders
+    });
+
+    expect(otherPostResponse.status).toBe(404);
+    expect(otherGetResponse.status).toBe(404);
+    expect(otherDeleteResponse.status).toBe(404);
+
+    const ownerResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${ownerToken}`,
+        "Content-Type": "application/json",
+        "Mcp-Session-Id": String(sessionId),
+        "MCP-Protocol-Version": "2025-03-26"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+
+    expect(ownerResponse.status).toBe(202);
+  });
+
+  it("uses the verified client id when the token has no subject", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const issueToken = (clientId: string) =>
+      verifier.issueToken({
+        issuer: AUTHORIZATION_SERVER,
+        audience: [PROTECTED_RESOURCE],
+        scopes: [REQUIRED_SCOPE],
+        expiresAt: TEST_NOW + 300,
+        clientId
+      });
+    const ownerToken = issueToken("client-a");
+    const replacementOwnerToken = issueToken("client-a");
+    const otherToken = issueToken("client-b");
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const initializeResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${ownerToken}`,
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+
+    expect(initializeResponse.status).toBe(200);
+    expect(sessionId).toBeTruthy();
+
+    const otherResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${otherToken}`,
+        "Content-Type": "application/json",
+        "Mcp-Session-Id": String(sessionId),
+        "MCP-Protocol-Version": "2025-03-26"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+    const ownerResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${replacementOwnerToken}`,
+        "Content-Type": "application/json",
+        "Mcp-Session-Id": String(sessionId),
+        "MCP-Protocol-Version": "2025-03-26"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+
+    expect(otherResponse.status).toBe(404);
+    expect(ownerResponse.status).toBe(202);
+  });
+
+  it("prefers subject over client id when binding OAuth sessions", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const issueToken = (subject: string, clientId: string) =>
+      verifier.issueToken({
+        issuer: AUTHORIZATION_SERVER,
+        audience: [PROTECTED_RESOURCE],
+        scopes: [REQUIRED_SCOPE],
+        expiresAt: TEST_NOW + 300,
+        subject,
+        clientId
+      });
+    const ownerToken = issueToken("subject-a", "client-a");
+    const sameSubjectToken = issueToken("subject-a", "client-b");
+    const sameClientToken = issueToken("subject-b", "client-a");
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const initializeResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${ownerToken}`,
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+
+    expect(initializeResponse.status).toBe(200);
+    expect(sessionId).toBeTruthy();
+
+    const sameClientResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${sameClientToken}`,
+        "Content-Type": "application/json",
+        "Mcp-Session-Id": String(sessionId),
+        "MCP-Protocol-Version": "2025-03-26"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+    const sameSubjectResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${sameSubjectToken}`,
+        "Content-Type": "application/json",
+        "Mcp-Session-Id": String(sessionId),
+        "MCP-Protocol-Version": "2025-03-26"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+
+    expect(sameClientResponse.status).toBe(404);
+    expect(sameSubjectResponse.status).toBe(202);
+  });
+
+  it("leaves OAuth sessions unbound when the verified token has no identity", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const unboundToken = verifier.issueToken({
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 300
+    });
+    const identifiedToken = verifier.issueToken({
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 300,
+      subject: "other-subject"
+    });
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const initializeResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${unboundToken}`,
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+
+    expect(initializeResponse.status).toBe(200);
+    expect(sessionId).toBeTruthy();
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${identifiedToken}`,
+        "Content-Type": "application/json",
+        "Mcp-Session-Id": String(sessionId),
+        "MCP-Protocol-Version": "2025-03-26"
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })
+    });
+
+    expect(response.status).toBe(202);
+  });
 });

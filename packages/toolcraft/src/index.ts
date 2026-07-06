@@ -1138,7 +1138,7 @@ export function hasMcpProxyConfig(group: Group<any>): boolean {
   );
 }
 
-export { S, toJsonSchema } from "toolcraft-schema";
+export { S, toJsonSchema } from "./schema.js";
 export {
   AuthenticationError,
   BadRequestError,
@@ -1174,12 +1174,27 @@ export type {
   AnySchema,
   ArraySchema,
   BooleanSchema,
+  CliMissingParameterChoice,
+  CliMissingParameterContext,
+  CliMissingParameterResolution,
+  CliOutputMode,
+  CliSchemaOptions,
   EnumSchema,
   JsonSchema,
+  JsonSchemaDocument,
+  JsonSchemaDocumentOptions,
+  JsonValue,
+  JsonValueSchema,
   NumberSchema,
   ObjectSchema,
+  OneOfSchema,
   OptionalSchema,
+  RecordSchema,
+  SchemaBase,
   Static,
-  StringSchema
-} from "toolcraft-schema";
+  StringSchema,
+  UnionSchema,
+  ValidationIssue,
+  ValidationResult
+} from "./schema.js";
 export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions };

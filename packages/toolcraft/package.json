@@ -62,6 +62,10 @@
       "types": "./dist/sdk.d.ts",
       "import": "./dist/sdk.js"
     },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
     "./human-in-loop": {
       "types": "./dist/human-in-loop/index.d.ts",
       "import": "./dist/human-in-loop/index.js"

@@ -60,6 +60,17 @@ describe("toolcraft package exports", () => {
     });
   });
 
+  it("exports the bundled schema entrypoint", () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
+      exports?: Record<string, { import?: string; types?: string }>;
+    };
+
+    expect(packageJson.exports?.["./schema"]).toEqual({
+      types: "./dist/schema.d.ts",
+      import: "./dist/schema.js"
+    });
+  });
+
   it("exports the bundled file-change renderer", () => {
     const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
       exports?: Record<string, { import?: string; types?: string }>;

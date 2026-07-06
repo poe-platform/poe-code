@@ -73,22 +73,39 @@ const lint = defineCommand({
   handler: async () => ({ files: 1 }),
 });
 
+const inspect = defineCommand({
+  name: "inspect",
+  scope: ["mcp"],
+  params: S.Object({
+    metadata: S.Record(S.String()),
+    payload: S.Json(),
+  }),
+  handler: async () => ({ ok: true }),
+});
+
 export const root = defineGroup({
   name: "example",
   scope: ["cli", "mcp", "sdk"],
-  children: [lint] as const,
+  children: [lint, inspect] as const,
 });
 `,
     "utf8"
   );
 
-  run("npm", ["install", "--ignore-scripts"], { cwd: producerDir });
+  run("npm", ["install", "--ignore-scripts", "--install-strategy=nested"], {
+    cwd: producerDir
+  });
   run(path.join(repoRoot, "node_modules", ".bin", "tsc"), ["-p", "tsconfig.json"], {
     cwd: producerDir
   });
   const producerDeclaration = readFileSync(path.join(producerDir, "dist", "index.d.ts"), "utf8");
   if (!producerDeclaration.includes("files: number")) {
     throw new Error("Expected producer declaration to preserve the command result type.");
+  }
+  if (producerDeclaration.includes("toolcraft-schema")) {
+    throw new Error(
+      `Expected producer declaration to reference schema types through Toolcraft.\n${producerDeclaration}`
+    );
   }
   const producerTarball = pack(producerDir);
 
@@ -127,10 +144,16 @@ void files;
     "utf8"
   );
 
-  run("npm", ["install", "--ignore-scripts"], { cwd: consumerDir });
-  run(path.join(repoRoot, "node_modules", ".bin", "tsc"), ["-p", "tsconfig.json"], {
+  run("npm", ["install", "--ignore-scripts", "--install-strategy=nested"], {
     cwd: consumerDir
   });
+  for (const exactOptionalPropertyTypes of ["false", "true"]) {
+    run(
+      path.join(repoRoot, "node_modules", ".bin", "tsc"),
+      ["-p", "tsconfig.json", "--exactOptionalPropertyTypes", exactOptionalPropertyTypes],
+      { cwd: consumerDir }
+    );
+  }
 
   writeJson(path.join(consumerDir, "tsconfig.declaration.json"), {
     compilerOptions: {

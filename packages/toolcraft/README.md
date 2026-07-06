@@ -354,7 +354,16 @@ Toolcraft exports a fixed HTTP error hierarchy for transports and generated API 
 Each error carries `status`, optional `code`, optional `requestId`, and serializable `request` and
 `response` context.
 
-CLI picks `rich` by default, `--json` switches to `json`. SDK calls return the raw handler value. MCP calls with `result:` return the handler value as `structuredContent` using the configured MCP casing; MCP calls without `result:` keep content-block behavior.
+CLI picks `rich` by default. Enable the generated output selector when starting the CLI:
+
+```ts
+await runCLI(root, { controls: { output: true } });
+```
+
+Then choose structured output with `mytool command --output json`. The selector also accepts `rich`,
+`md`, and `markdown`. SDK calls return the raw handler value. MCP calls with `result:` return the
+handler value as `structuredContent` using the configured MCP casing; MCP calls without `result:`
+keep content-block behavior.
 
 ## MCP proxy: adopt an existing MCP server
 
@@ -578,6 +587,7 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `services?: TServices` — merged into every handler context.
 - `version?: string` — surfaced via `--version`.
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
+- `controls?: { debug?, logLevel?, output?, verbose?, yes? }` — enables generated global CLI controls. Set `output: true` to expose `--output <rich|md|markdown|json>`.
 - `apiVersion?: string` — for `requires.apiVersion`.
 - `humanInLoop?: HumanInLoopRuntimeOptions`
 - `errorReports?: boolean | { dir?: string }`

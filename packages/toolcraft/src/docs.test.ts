@@ -12,4 +12,12 @@ describe("toolcraft docs", () => {
     expect(readme).not.toContain('"agent-kit"');
     expect(readme).not.toContain('"agent-kit-schema"');
   });
+
+  it("documents the generated CLI output control", () => {
+    const readme = fs.readFileSync(README_PATH, "utf8");
+
+    expect(readme).not.toContain("`--json` switches to `json`");
+    expect(readme).toContain("controls: { output: true }");
+    expect(readme).toContain("--output json");
+  });
 });

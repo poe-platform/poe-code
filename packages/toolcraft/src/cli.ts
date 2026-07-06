@@ -725,7 +725,7 @@ function collectFields(
       ),
       shortFlag: childSchema.short,
       schema: childSchema as FieldSchema,
-      description: childSchema.description,
+      description: childSchema.cliDescription ?? childSchema.description,
       optional: runtimeOptional,
       hasDefault: childSchema.default !== undefined,
       defaultValue: childSchema.default,

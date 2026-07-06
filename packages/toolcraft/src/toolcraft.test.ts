@@ -1047,6 +1047,47 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("keeps positive schema descriptions in MCP metadata when CLI wording differs", async () => {
+    const inspect = defineCommand({
+      name: "inspect",
+      scope: ["mcp"],
+      params: S.Object({
+        open: S.Optional(
+          S.Boolean({
+            default: true,
+            description: "Open the login URL in the default browser",
+            cliDescription: "Do not open the login URL in the default browser"
+          })
+        )
+      }),
+      handler: async () => null
+    });
+    const server = createMCPServer(defineGroup({ name: "root", children: [inspect] }), {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+      expect(result.tools[0]?.inputSchema).toEqual({
+        type: "object",
+        properties: {
+          open: {
+            type: "boolean",
+            description: "Open the login URL in the default browser",
+            default: true
+          }
+        },
+        required: [],
+        additionalProperties: false
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("preserves required array params for MCP when CLI-only helper flags make the direct param optional", async () => {
     const generate = defineCommand({
       name: "generate",

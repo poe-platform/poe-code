@@ -66,6 +66,7 @@ type InferObject<TShape extends ObjectShape> = {
 
 type SchemaOptions<TDefault> = {
   description?: string;
+  cliDescription?: string;
   cliAliases?: readonly string[];
   default?: TDefault;
   nullable?: boolean;
@@ -83,6 +84,7 @@ type WithNullable<
 export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
   readonly description?: string;
+  readonly cliDescription?: string;
   readonly cliAliases?: readonly string[];
   readonly default?: TStatic;
   readonly nullable?: boolean;

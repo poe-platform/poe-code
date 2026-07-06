@@ -5038,6 +5038,7 @@ describe("runCLI", () => {
         }),
         enabled: S.Boolean({
           description: "Enabled by default",
+          cliDescription: "Disable the enabled behavior",
           default: true
         }),
         date: S.String({
@@ -5089,7 +5090,7 @@ describe("runCLI", () => {
     expect(output).toContain("--implied-flag  Implied false flag (required)");
     expect(output).toContain("--flag  Enable flag (default: false)");
     expect(output).not.toContain("--flag [value]");
-    expect(output).toContain("--no-enabled  Enabled by default (default: true)");
+    expect(output).toContain("--no-enabled  Disable the enabled behavior (default: true)");
     expect(output).toContain("--date <YYYY-MM-DD>  Run date (required)");
     expect(output).toContain("--timestamp <YYYY-MM-DDTHH:MM:SS>  Run timestamp (required)");
     expect(output).toContain("--callback-url <url>  Callback URL (required)");

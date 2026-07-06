@@ -366,6 +366,23 @@ export async function authorizeBearerRequest(
       authorizationServers: options.authorizationServers.map(toUrlString),
       requiredScopes,
     });
+    const verifiedScopes = new Set(verifiedToken.scopes);
+    if (requiredScopes.some((scope) => !verifiedScopes.has(scope))) {
+      return {
+        ok: false,
+        statusCode: 403,
+        challenge: createBearerChallenge(
+          req,
+          {
+            error: "insufficient_scope",
+            errorDescription: "insufficient scope",
+            scope: requiredScopes,
+          },
+          options.protectedResourcePath,
+          options.trustedProxy
+        ),
+      };
+    }
     const auth = toRequestAuthInfo(verifiedToken, toUrlString(options.resource));
 
     req.auth = auth;

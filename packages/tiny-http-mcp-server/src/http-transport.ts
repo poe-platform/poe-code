@@ -129,6 +129,7 @@ export class StreamableHttpTransport {
   private readonly trustedProxy: boolean;
   private readonly sessionMessages = new Map<string, MessageSession>();
   private readonly sseStreams = new Map<string, Set<ServerResponse>>();
+  private readonly sseExpiryTimers = new Map<ServerResponse, ReturnType<typeof setTimeout>>();
   private readonly sseEventHistory = new Map<string, Array<{ id: number; data: string }>>();
   private readonly responseRequestIds = new WeakMap<ServerResponse, string>();
   private readonly responseOrigins = new WeakMap<ServerResponse, string>();
@@ -274,6 +275,10 @@ export class StreamableHttpTransport {
       this.sessionExpiryInterval = undefined;
     }
     this.stopSseKeepAlive();
+    for (const timer of this.sseExpiryTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.sseExpiryTimers.clear();
     for (const sessionId of [...this.sseStreams.keys()]) {
       this.closeStreamsForSession(sessionId);
     }
@@ -577,6 +582,7 @@ export class StreamableHttpTransport {
       streamCount: streams.size
     });
     const cleanup = () => {
+      this.clearSseExpiryTimer(res);
       const activeStreams = this.sseStreams.get(sessionId);
       if (activeStreams === undefined) {
         return;
@@ -599,6 +605,10 @@ export class StreamableHttpTransport {
     req.on("close", cleanup);
     res.on("close", cleanup);
     res.on("finish", cleanup);
+    const expiresAt = (req as AuthenticatedIncomingMessage).auth?.expiresAt;
+    if (expiresAt !== undefined) {
+      this.scheduleSseExpiry(res, expiresAt);
+    }
     res.writeHead(200, this.withSessionHeader(SSE_HEADERS, sessionId, res));
     this.replaySseEvents(req, res, sessionId);
     res.flushHeaders();
@@ -816,6 +826,7 @@ export class StreamableHttpTransport {
     }
 
     for (const response of streams) {
+      this.clearSseExpiryTimer(response);
       if (!response.writableEnded) {
         response.end();
       }
@@ -823,6 +834,28 @@ export class StreamableHttpTransport {
 
     this.sseStreams.delete(sessionId);
     this.stopSseKeepAliveIfIdle();
+  }
+
+  private scheduleSseExpiry(response: ServerResponse, expiresAt: number): void {
+    const remainingMs = Math.max(0, expiresAt * 1_000 - Date.now());
+    const timer = setTimeout(() => {
+      this.sseExpiryTimers.delete(response);
+      if (!response.writableEnded) {
+        response.end();
+      }
+    }, remainingMs);
+    timer.unref();
+    this.sseExpiryTimers.set(response, timer);
+  }
+
+  private clearSseExpiryTimer(response: ServerResponse): void {
+    const timer = this.sseExpiryTimers.get(response);
+    if (timer === undefined) {
+      return;
+    }
+
+    clearTimeout(timer);
+    this.sseExpiryTimers.delete(response);
   }
 
   private startSseKeepAlive(): void {

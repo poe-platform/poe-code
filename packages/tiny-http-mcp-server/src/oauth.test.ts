@@ -2,7 +2,7 @@ import http, { type IncomingMessage } from "node:http";
 import { Readable } from "node:stream";
 import type { AddressInfo } from "node:net";
 import express, { type Express } from "express";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createExpressOAuthHandlers,
   createHttpServer,
@@ -275,6 +275,45 @@ describe("OAuth protected resource", () => {
     expect(response.headers.get("content-type")).toContain("application/json");
   });
 
+  it("allows standalone CORS preflight without a bearer token", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      allowedOrigins: ["https://client.example.com"],
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const preflight = await nodeFetch(handle.url, {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://client.example.com",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "authorization,content-type",
+      },
+    });
+    const post = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe(
+      "https://client.example.com"
+    );
+    expect(preflight.headers.get("access-control-allow-methods")).toContain("POST");
+    expect(preflight.headers.get("access-control-allow-headers")).toBe(
+      "authorization,content-type"
+    );
+    expect(post.status).toBe(401);
+  });
+
   it("serves protected-resource metadata through the Express OAuth handlers", async () => {
     const { oauth } = createProtectedResourceMetadata();
     const handlers = createExpressOAuthHandlers({
@@ -301,6 +340,47 @@ describe("OAuth protected resource", () => {
       bearer_methods_supported: ["header"],
       scopes_supported: [REQUIRED_SCOPE, "mcp.write"],
     });
+  });
+
+  it("allows Express CORS preflight without a bearer token", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const server = createHttpServer({
+      name: "oauth-express-server",
+      version: "1.0.0",
+      allowedOrigins: ["https://client.example.com"],
+      enableJsonResponse: true,
+    });
+    const handlers = createExpressOAuthHandlers({
+      path: "/mcp",
+      server,
+      oauth,
+    });
+    const handle = await listenExpressApp((app) => {
+      app.use("/mcp", handlers.mcpMiddleware);
+    });
+    trackCleanup(handle.close);
+
+    const preflight = await nodeFetch(`${handle.baseUrl}/mcp`, {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://client.example.com",
+        "Access-Control-Request-Method": "POST",
+      },
+    });
+    const post = await nodeFetch(`${handle.baseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe(
+      "https://client.example.com"
+    );
+    expect(post.status).toBe(401);
   });
 
   it("serves Express protected-resource metadata only from the RFC 9728 path-based location for non-root paths", async () => {
@@ -698,6 +778,115 @@ describe("OAuth protected resource", () => {
     expect(response.headers.get("www-authenticate")).toBe(
       `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
     );
+  });
+
+  it("centrally rejects verified tokens missing required scopes", async () => {
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth: {
+        resource: PROTECTED_RESOURCE,
+        authorizationServers: [AUTHORIZATION_SERVER],
+        bearerMethodsSupported: ["header"],
+        scopesSupported: [REQUIRED_SCOPE, "mcp.write"],
+        requiredScopes: [REQUIRED_SCOPE],
+        verifier: {
+          async verify({ token }) {
+            return {
+              token,
+              issuer: AUTHORIZATION_SERVER,
+              audience: [PROTECTED_RESOURCE],
+              scopes: ["mcp.write"],
+              expiresAt: TEST_NOW + 300,
+              claims: {},
+            };
+          },
+        },
+      },
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: "Bearer verifier-ignored-scopes",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.headers.get("www-authenticate")).toContain(
+      'error="insufficient_scope"'
+    );
+    expect(response.headers.get("www-authenticate")).toContain(
+      `scope="${REQUIRED_SCOPE}"`
+    );
+  });
+
+  it("closes an OAuth SSE stream when its bearer token expires", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      issuer: AUTHORIZATION_SERVER,
+      audience: [PROTECTED_RESOURCE],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 60,
+      subject: "alice",
+    });
+    const events: Array<{ type: string }> = [];
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+      sseKeepAliveMs: 0,
+      observability: {
+        onEvent(event) {
+          events.push(event);
+        },
+      },
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const initializeResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+    expect(sessionId).toBeTruthy();
+
+    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+    vi.setSystemTime(TEST_NOW * 1_000);
+    try {
+      const streamResponse = await nodeFetch(handle.url, {
+        method: "GET",
+        headers: {
+          Accept: "text/event-stream",
+          Authorization: `Bearer ${token}`,
+          "Mcp-Session-Id": String(sessionId),
+          "MCP-Protocol-Version": "2025-03-26",
+        },
+      });
+      const reader = streamResponse.body!.getReader();
+      const closed = reader.read();
+
+      expect(streamResponse.status).toBe(200);
+      expect(events.some((event) => event.type === "stream.closed")).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(60_000);
+
+      await expect(closed).resolves.toMatchObject({ done: true });
+      expect(events.some((event) => event.type === "stream.closed")).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("accepts verifier errors from external packages when they expose the Bearer challenge fields", async () => {

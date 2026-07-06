@@ -936,11 +936,12 @@ describe("HTTP MCP production readiness", () => {
     );
   });
 
-  it("enforces OAuth when callers use the public handleRequest entrypoint", async () => {
+  it("allows OAuth preflight but protects POST through public handleRequest", async () => {
     const server = createHttpServer({
       name: "handle-request-oauth",
       version: "1.0.0",
       enableJsonResponse: true,
+      allowedOrigins: ["https://client.example.com"],
       oauth: {
         resource: "https://resource.example.com/mcp",
         authorizationServers: ["https://auth.example.com"],
@@ -952,6 +953,13 @@ describe("HTTP MCP production readiness", () => {
       }
     });
 
+    const preflight = await dispatch(server, {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://client.example.com",
+        "Access-Control-Request-Method": "POST"
+      }
+    });
     const response = await postJsonRpc(server, {
       jsonrpc: "2.0",
       id: 1,
@@ -959,6 +967,10 @@ describe("HTTP MCP production readiness", () => {
       params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
 
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe(
+      "https://client.example.com"
+    );
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toContain("resource_metadata=");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");

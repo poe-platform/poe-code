@@ -221,7 +221,7 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
     res: ServerResponse,
     protectedResourcePath: string
   ): Promise<boolean> => {
-    if (options.oauth === undefined) {
+    if (options.oauth === undefined || req.method === "OPTIONS") {
       return true;
     }
 

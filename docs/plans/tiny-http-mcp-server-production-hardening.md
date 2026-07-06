@@ -248,7 +248,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: oauth-transport-fixes
     title: OPTIONS preflight exemption, central scopes, stream expiry
@@ -277,10 +277,10 @@ tasks:
       close and transport close. Test with fake timers: stream opened with a
       token expiring in 60s is ended at expiry with stream.closed emitted.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: jwks-verifier-hardening

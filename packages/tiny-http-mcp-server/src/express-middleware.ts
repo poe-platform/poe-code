@@ -101,6 +101,11 @@ export function createExpressOAuthHandlers(
       path,
     }),
     mcpMiddleware: async (req, res, next) => {
+      if (req.method === "OPTIONS") {
+        await mcpMiddleware(req, res, next);
+        return;
+      }
+
       const authorization = await authorizeBearerRequest(
         req as AuthenticatedIncomingMessage,
         {

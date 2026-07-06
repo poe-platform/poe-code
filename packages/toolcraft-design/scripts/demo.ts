@@ -124,8 +124,8 @@ function runDiffDemo(): void {
     color.gray("+++ config.json"),
     color.gray("@@ -1,3 +1,5 @@"),
     " {",
-    color.red('-  "model": "gpt-4",'),
-    color.green('+  "model": "claude-sonnet-4",'),
+    color.red('-  "model": "old-model",'),
+    color.green('+  "model": "new-model",'),
     '   "temperature": 0.7',
     color.green('+  "maxTokens": 4096'),
     " }"
@@ -207,9 +207,9 @@ function runTableDemo(): void {
       { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 }
     ],
     rows: [
-      { Model: "anthropic/claude-sonnet-4", Context: "200K", Price: "$3.00/$15.00" },
-      { Model: "openai/gpt-4o", Context: "128K", Price: "$2.50/$10.00" },
-      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" }
+      { Model: "<model-id>", Context: "<context>", Price: "<input>/<output>" },
+      { Model: "<model-id>", Context: "<context>", Price: "<input>/<output>" },
+      { Model: "<model-id>", Context: "<context>", Price: "<input>/<output>" }
     ]
   });
   process.stdout.write(output + "\n");
@@ -231,9 +231,9 @@ function runTableMarkdownDemo(): void {
       { name: "Price", title: "$/MTok In/Out", alignment: "right", maxLen: 15 }
     ],
     rows: [
-      { Model: "anthropic/claude-sonnet-4", Context: "200K", Price: "$3.00/$15.00" },
-      { Model: "openai/gpt-4o", Context: "128K", Price: "$2.50/$10.00" },
-      { Model: "google/gemini-2.0-flash", Context: "1M", Price: "$0.10/$0.40" }
+      { Model: "<model-id>", Context: "<context>", Price: "<input>/<output>" },
+      { Model: "<model-id>", Context: "<context>", Price: "<input>/<output>" },
+      { Model: "<model-id>", Context: "<context>", Price: "<input>/<output>" }
     ]
   });
   process.stdout.write(md + "\n");
@@ -241,7 +241,7 @@ function runTableMarkdownDemo(): void {
 
 function runLayoutExpandedDemo(): void {
   intro("configure claude-code");
-  log.message("Claude Code default model\n   Claude-Opus-4.6", {
+  log.message("Claude Code default model\n   <model-id>", {
     symbol: symbols.resolved
   });
   log.success("Configured Claude Code.");

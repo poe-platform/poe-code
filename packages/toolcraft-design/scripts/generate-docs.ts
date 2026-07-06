@@ -100,7 +100,7 @@ outro("Configuration complete.");`,
         codeSnippet: `import { intro, outro, note, log, symbols } from "toolcraft-design";
 
 intro("configure claude-code");
-log.message("Claude Code default model\\n   Claude-Opus-4.6", { symbol: symbols.resolved });
+log.message("Claude Code default model\\n   <model-id>", { symbol: symbols.resolved });
 log.message("Configured Claude Code.", { symbol: symbols.success });
 note("If using VSCode...\\nvscode://settings/...", "Next steps.");
 outro("Problems? https://...");`,
@@ -345,7 +345,7 @@ const output = renderTable({
     { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
   ],
   rows: [
-    { Model: "anthropic/claude-sonnet-4", Context: "200K" },
+    { Model: "<model-id>", Context: "<context>" },
   ],
 });`,
         demoArgs: `table`
@@ -356,8 +356,8 @@ const output = renderTable({
         codeSnippet: `import { color, log } from "toolcraft-design";
 const diffLines = [
   color.gray("--- config.json"),
-  color.red('-  "model": "gpt-4",'),
-  color.green('+  "model": "claude-sonnet-4",')
+  color.red('-  "model": "old-model",'),
+  color.green('+  "model": "new-model",')
 ];
 log.message(diffLines.join("\\n"), { symbol: color.yellow("~") });`,
         demoArgs: `diff`

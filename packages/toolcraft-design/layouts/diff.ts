@@ -10,8 +10,8 @@ function renderSimpleDiff(): string {
     color.gray("+++ config.json"),
     color.gray("@@ -1,3 +1,5 @@"),
     " {",
-    color.red('-  "model": "gpt-4",'),
-    color.green('+  "model": "claude-sonnet-4",'),
+    color.red('-  "model": "old-model",'),
+    color.green('+  "model": "new-model",'),
     '   "temperature": 0.7',
     color.green('+  "maxTokens": 4096'),
     " }"

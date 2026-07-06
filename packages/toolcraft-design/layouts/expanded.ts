@@ -6,7 +6,7 @@ import { color, intro, note, outro, log, symbols } from "../src/index.js";
 
 export function render(): void {
   intro("configure claude-code");
-  log.message("Claude Code default model\n   Claude-Opus-4.6", {
+  log.message("Claude Code default model\n   <model-id>", {
     symbol: symbols.resolved
   });
   log.success("Configured Claude Code.");

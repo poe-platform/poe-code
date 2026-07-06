@@ -4153,12 +4153,14 @@ describe("runCLI", () => {
     expect(output).toContain("details --task-gid <value>");
   });
 
-  it("keeps enum placeholders in leaf option help", async () => {
+  it("lists static enum values in leaf option help", async () => {
     const init = defineCommand({
       name: "init",
       description: "Initialize workspace",
       params: S.Object({
-        backend: S.Optional(S.Enum(["sqlite", "files"] as const))
+        backend: S.Optional(
+          S.Enum(["sqlite", "files"] as const, { description: "Storage backend" })
+        )
       }),
       handler: async () => null
     });
@@ -4176,6 +4178,7 @@ describe("runCLI", () => {
     const output = readStdout(stdoutWrite);
     expect(output).toContain("--backend <value>");
     expect(output).not.toContain("--backend sqlite|files");
+    expect(output).toContain("Storage backend (values: sqlite, files)");
   });
 
   it("renders nested command groups in root help", async () => {

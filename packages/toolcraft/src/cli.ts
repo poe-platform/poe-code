@@ -1483,6 +1483,13 @@ function formatHelpFieldDescription(field: FieldDefinition): string {
   const description = field.description ?? field.displayPath;
   const metadata: string[] = [];
 
+  if (field.schema.kind === "enum" && field.schema.values.length <= 8) {
+    const values = field.schema.values.map((value) => String(value)).join(", ");
+    if (values.length <= 120) {
+      metadata.push(`values: ${values}`);
+    }
+  }
+
   if (!field.optional && !field.hasDefault) {
     metadata.push("required");
   }

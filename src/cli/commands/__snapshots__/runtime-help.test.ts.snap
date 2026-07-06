@@ -122,11 +122,13 @@ OPTIONS
   [doc]                        Path to the superintendent markdown document
   --agent <value>              Override the builder agent for this run. Precedence: --agent > plan
                                frontmatter builder.agent.
-  --runtime <value>            Override runtime backend: host, docker, or e2b
+  --runtime <value>            Override runtime backend: host, docker, or e2b (values: host, docker,
+                               e2b)
   --runtime-image <value>      Override Docker runtime image
   --runtime-template <value>   Override E2B runtime template id
   --detach                     Run as a detached runtime job
-  --runner-sync <value>        Override runner workspace sync: both, upload, or none
+  --runner-sync <value>        Override runner workspace sync: both, upload, or none (values: both,
+                               upload, none)
   --tui                        Show a live dashboard while Superintendent is running
   --worktree                   Run in a managed git worktree and reconcile successful output
 

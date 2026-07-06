@@ -113,8 +113,13 @@ describe("parseKeypress", () => {
     });
   });
 
-  it("returns undefined for an incomplete escape sequence", () => {
-    expect(parseKeypress(Buffer.from("\u001b"))).toBeUndefined();
+  it("parses a bare escape key", () => {
+    expect(parseKeypress(Buffer.from("\u001b"))).toEqual({
+      name: "escape",
+      ctrl: false,
+      meta: false,
+      shift: false
+    });
   });
 
   it("parses non-printable named keys", () => {
@@ -234,13 +239,16 @@ describe("createTerminalDriver", () => {
     stdin.emit("data", Buffer.from("a"));
     expect(received).toEqual(["a", "a"]);
 
+    stdin.emit("data", Buffer.from("\u001b[B\u001b[Bq"));
+    expect(received).toEqual(["a", "a", "down", "down", "q", "down", "down", "q"]);
+
     offFirst();
     stdin.emit("data", Buffer.from("b"));
-    expect(received).toEqual(["a", "a", "b"]);
+    expect(received).toEqual(["a", "a", "down", "down", "q", "down", "down", "q", "b"]);
 
     offSecond();
     stdin.emit("data", Buffer.from("c"));
-    expect(received).toEqual(["a", "a", "b"]);
+    expect(received).toEqual(["a", "a", "down", "down", "q", "down", "down", "q", "b"]);
 
     driver.destroy();
   });

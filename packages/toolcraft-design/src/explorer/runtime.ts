@@ -63,6 +63,9 @@ class ExplorerRuntime<R> {
         await this.refreshRowsFromSource();
       },
       suspendAnd: async (fn) => this.suspendAnd(fn),
+      openModal: (content) => {
+        this.dispatch({ type: "modalOpened", title: content.title, content: content.content });
+      },
       toast: (msg, tone) => {
         this.showToast(msg, tone);
       },

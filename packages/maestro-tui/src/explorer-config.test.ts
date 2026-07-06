@@ -140,6 +140,7 @@ function actionCtx(row: Row, overrides: Partial<ActionContext<void>> = {}): Acti
     filter: "",
     refresh: vi.fn(async () => undefined),
     suspendAnd: vi.fn(async (fn) => fn()),
+    openModal: vi.fn(),
     toast: vi.fn(),
     confirm: vi.fn(async () => true),
     exit: vi.fn(),

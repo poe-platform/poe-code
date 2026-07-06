@@ -18,6 +18,7 @@ export type ExplorerEvent =
   | { type: "actionResolved"; actionId: string }
   | { type: "toastExpired" }
   | { type: "suspendResumed"; value: unknown; emit: ExplorerEvent }
+  | { type: "modalOpened"; title: string; content: string }
   | { type: "modalDismissed"; result: unknown };
 
 export type ConfirmModal = {

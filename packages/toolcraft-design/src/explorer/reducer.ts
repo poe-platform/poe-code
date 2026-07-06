@@ -29,6 +29,7 @@ const NO_EFFECTS: Effect[] = [];
 const DEFAULT_ACTION_HANDLES: ActionRuntimeHandles = {
   refresh: async () => undefined,
   suspendAnd: async (fn) => fn(),
+  openModal: () => undefined,
   toast: () => undefined,
   confirm: async () => false,
   exit: () => undefined
@@ -60,6 +61,13 @@ export function step(
       return expireToast(state);
     case "suspendResumed":
       return suspendResumed(state, event.emit, runtimeHandles);
+    case "modalOpened":
+      return setModal(state, {
+        kind: "content",
+        title: event.title,
+        content: event.content,
+        scroll: 0
+      });
     case "modalDismissed":
       return modalDismissed(state, event.result, runtimeHandles);
   }
@@ -231,6 +239,28 @@ function stepModalKey(
     return paletteInput(state, key);
   }
 
+  if (state.modal?.kind === "content") {
+    if (target?.type === "builtin") {
+      switch (target.id) {
+        case "escape":
+        case "confirm":
+          return modalDismissed(state, false, runtimeHandles);
+        case "cursorDown":
+        case "detailScrollDown":
+          return scrollContentModal(state, 1);
+        case "cursorUp":
+        case "detailScrollUp":
+          return scrollContentModal(state, -1);
+        case "pageDown":
+          return scrollContentModal(state, modalBodyHeight(state));
+        case "pageUp":
+          return scrollContentModal(state, -modalBodyHeight(state));
+      }
+    }
+
+    return mark(state, 0);
+  }
+
   return mark(state, 0);
 }
 
@@ -399,7 +429,7 @@ function modalDismissed(
   runtimeHandles: ActionRuntimeHandles
 ): StepResult {
   const modal = state.modal;
-  const closed = { ...state, modal: null, dirty: REGION_MODAL | REGION_FOOTER };
+  const closed = { ...state, modal: null, dirty: REGION_ALL };
 
   if (modal?.kind === "confirm") {
     modal.resolver(result === true);
@@ -612,10 +642,6 @@ function selectionChanged(state: ExplorerState, selected: Set<string>): StepResu
 }
 
 function detailScroll(state: ExplorerState, delta: number): StepResult {
-  if (state.focused !== "detail") {
-    return mark(state, 0);
-  }
-
   const scroll = clamp(state.detail.scroll + delta, 0, maxDetailScroll(state));
   if (scroll === state.detail.scroll) {
     return mark(state, 0);
@@ -625,6 +651,36 @@ function detailScroll(state: ExplorerState, delta: number): StepResult {
     state: { ...state, detail: { ...state.detail, scroll }, dirty: REGION_DETAIL },
     effects: NO_EFFECTS
   };
+}
+
+function scrollContentModal(state: ExplorerState, delta: number): StepResult {
+  if (state.modal?.kind !== "content") {
+    return mark(state, 0);
+  }
+
+  const scroll = clamp(state.modal.scroll + delta, 0, maxContentModalScroll(state));
+  if (scroll === state.modal.scroll) {
+    return mark(state, 0);
+  }
+
+  return setModal(state, { ...state.modal, scroll });
+}
+
+function maxContentModalScroll(state: ExplorerState): number {
+  if (state.modal?.kind !== "content") {
+    return 0;
+  }
+
+  return Math.max(0, state.modal.content.split("\n").length - modalBodyHeight(state));
+}
+
+function modalBodyHeight(state: ExplorerState): number {
+  const screenHeight = normalizeSize(state.size.rows);
+  if (screenHeight <= 2) {
+    return 0;
+  }
+
+  return Math.max(0, screenHeight - 4);
 }
 
 function clampDetailScroll(state: ExplorerState): ExplorerState {

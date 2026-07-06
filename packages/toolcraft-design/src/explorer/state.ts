@@ -45,6 +45,7 @@ export interface ActionContext<R> {
   filter: string;
   refresh: () => Promise<void>;
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
+  openModal: (content: { title: string; content: string }) => void;
   toast: (msg: string, tone?: Tone) => void;
   confirm: (prompt: string) => Promise<boolean>;
   exit: (after?: () => void | Promise<void>) => void;
@@ -120,7 +121,8 @@ export interface ExplorerState {
     | null
     | { kind: "help" }
     | { kind: "confirm"; action: Action<unknown>; rows: Row[]; resolver: (ok: boolean) => void }
-    | { kind: "palette"; query: string; cursor: number };
+    | { kind: "palette"; query: string; cursor: number }
+    | { kind: "content"; title: string; content: string; scroll: number };
   toast: { message: string; tone: Tone; expiresAt: number } | null;
   dirty: Dirty;
   size: ExplorerSize;

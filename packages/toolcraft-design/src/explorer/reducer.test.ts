@@ -193,7 +193,7 @@ describe("step", () => {
   it("clamps detail blob scrolling to rendered content", () => {
     let current: ExplorerState = {
       ...loadedState(),
-      focused: "detail" as const,
+      focused: "list" as const,
       size: { cols: 120, rows: 8 },
       layout: "wide" as const,
       detail: {
@@ -378,6 +378,53 @@ describe("step", () => {
 
     expect(next.state.modal).toEqual(state.modal);
     expect(next.effects).toEqual([]);
+  });
+
+  it("scrolls and dismisses content modals without exiting the explorer", () => {
+    const state = {
+      ...loadedState(),
+      modal: {
+        kind: "content" as const,
+        title: "Trace detail",
+        content: ["one", "two", "three", "four", "five"].join("\n"),
+        scroll: 0
+      },
+      size: { cols: 80, rows: 6 }
+    };
+
+    const down = step(state, {
+      type: "key",
+      key: { ch: "f", ctrl: true, meta: false, shift: false }
+    });
+    const dismissed = step(down.state, { type: "key", key: key("\u001b") });
+    const quit = step(dismissed.state, { type: "key", key: key("\u001b") });
+
+    expect(down.state.modal).toMatchObject({ kind: "content", scroll: 1 });
+    expect(down.effects).toEqual([]);
+    expect(dismissed.state.modal).toBeNull();
+    expect(dismissed.effects).toEqual([]);
+    expect(quit.effects).toEqual([{ type: "exit", result: null }]);
+  });
+
+  it("opens content modals from action handlers without an exit effect", async () => {
+    const action: Action<unknown> = {
+      id: "open",
+      label: "Open",
+      key: "o",
+      handler: (ctx) => {
+        ctx.openModal({ title: "Trace detail", content: "hello" });
+      }
+    };
+    const state = loadedState({ actions: [action] });
+    state.actionState.set("open", actionEntry(action));
+
+    const next = step(state, { type: "key", key: key("o") });
+
+    expect(next.effects).toHaveLength(1);
+    expect(next.effects[0]?.type).toBe("suspend");
+    if (next.effects[0]?.type === "suspend") {
+      await next.effects[0].fn();
+    }
   });
 
   it("keeps the modal-captured rows when confirming a destructive action", async () => {

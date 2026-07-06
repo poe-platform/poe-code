@@ -10,7 +10,7 @@ export function renderModal(state: ExplorerState, screen: ScreenBuffer): void {
     return;
   }
 
-  const width = Math.min(screen.width - 2, Math.max(34, Math.floor(screen.width * 0.62)));
+  const width = Math.min(screen.width - 2, Math.max(34, Math.floor(screen.width * modalWidthRatio(state))));
   const height = Math.min(screen.height - 2, modalHeight(state));
   const x = Math.max(0, Math.floor((screen.width - width) / 2));
   const y = Math.max(0, Math.floor((screen.height - height) / 2));
@@ -50,6 +50,10 @@ function modalLines(state: ExplorerState): string[] {
     ];
   }
 
+  if (state.modal?.kind === "content") {
+    return state.modal.content.split("\n").slice(state.modal.scroll);
+  }
+
   return [];
 }
 
@@ -60,11 +64,22 @@ function title(state: ExplorerState): string {
   if (state.modal?.kind === "confirm") {
     return "Confirm";
   }
+  if (state.modal?.kind === "content") {
+    return state.modal.title;
+  }
   return "Command Palette";
 }
 
 function modalHeight(state: ExplorerState): number {
+  if (state.modal?.kind === "content") {
+    return Math.max(5, state.modal.content.split("\n").length + 2);
+  }
+
   return Math.max(5, modalLines(state).length + 2);
+}
+
+function modalWidthRatio(state: ExplorerState): number {
+  return state.modal?.kind === "content" ? 0.86 : 0.62;
 }
 
 function drawBox(

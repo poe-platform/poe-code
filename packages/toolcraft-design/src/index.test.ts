@@ -145,6 +145,7 @@ describe("design-system root exports", () => {
       filter: string;
       refresh: () => Promise<void>;
       suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
+      openModal: (content: { title: string; content: string }) => void;
       toast: (msg: string, tone?: Tone) => void;
       confirm: (prompt: string) => Promise<boolean>;
       exit: (after?: () => void | Promise<void>) => void;

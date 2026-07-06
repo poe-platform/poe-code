@@ -85,6 +85,20 @@ describe("runExplorer", () => {
     expect(selected).toEqual(["two"]);
   });
 
+  it("repaints cursor movement before the next full redraw", async () => {
+    const driver = currentDriver();
+    const result = runExplorer(config());
+
+    await waitFor(() => currentScreen(driver).some((line) => line.includes("● One")));
+    driver.press(namedKey("down"));
+
+    await waitFor(() => currentScreen(driver).some((line) => line.includes("● Two")));
+    expect(currentScreen(driver).some((line) => line.includes("● One"))).toBe(false);
+
+    driver.press(key("q"));
+    await expect(result).resolves.toBeNull();
+  });
+
   it("runs a confirmed multi-select bulk action", async () => {
     const driver = currentDriver();
     const handledRows: string[][] = [];

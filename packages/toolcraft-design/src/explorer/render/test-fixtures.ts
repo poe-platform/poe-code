@@ -7,7 +7,7 @@ import { renderExplorer } from "./index.js";
 export function renderStateSnapshot(state: ExplorerState): string {
   const screen = new ScreenBuffer(state.size.cols, state.size.rows);
   renderExplorer(state, screen);
-  return dumpScreen(screen);
+  return dumpScreen(screen).split("\n").map((line) => line.trimEnd()).join("\n");
 }
 
 export function dumpScreen(screen: ScreenBuffer): string {

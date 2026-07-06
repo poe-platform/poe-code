@@ -293,7 +293,7 @@ export class StreamableHttpTransport {
     if (!this.isJsonRequest(req)) {
       this.respondWithJsonRpcError(
         res,
-        400,
+        415,
         JSON_RPC_ERROR_CODES.INVALID_REQUEST,
         "Invalid Request"
       );
@@ -1056,12 +1056,13 @@ export class StreamableHttpTransport {
     const baseHeaders = {
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "no-referrer",
+      Vary: "Origin",
       ...(requestId === undefined ? {} : { "X-Request-Id": requestId }),
       ...(origin === undefined
         ? {}
         : {
             "Access-Control-Allow-Origin": origin,
-            Vary: "Origin",
+            "Access-Control-Expose-Headers": "Mcp-Session-Id, X-Request-Id",
           }),
     };
 

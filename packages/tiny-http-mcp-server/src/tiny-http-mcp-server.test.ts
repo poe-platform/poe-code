@@ -1508,15 +1508,22 @@ describe("StreamableHttpTransport", () => {
     });
   });
 
-  it("T20 non-JSON content-type returns 400", async () => {
+  it("T20 non-JSON content-type returns 415", async () => {
     const fixture = await createFixture({ enableJsonResponse: true });
 
     const response = await fixture.post(
       { jsonrpc: "2.0", id: 1, method: "initialize" },
       { headers: { "Content-Type": "text/plain" } }
     );
+    const body = await readJsonRpcBody(response);
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(415);
+    expect(response.headers.get("content-type")).toBe("application/json");
+    expect(body).toEqual({
+      jsonrpc: "2.0",
+      id: null,
+      error: { code: -32600, message: "Invalid Request" },
+    });
   });
 
   it("rejects POST requests without a JSON content type", async () => {
@@ -1536,7 +1543,7 @@ describe("StreamableHttpTransport", () => {
       { headers: { Accept: "application/json" } }
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(415);
   });
 
   it("T21 unknown method returns JSON-RPC METHOD_NOT_FOUND", async () => {
@@ -1868,6 +1875,21 @@ describe("StreamableHttpTransport", () => {
     const response = await fixture.request("OPTIONS");
 
     expect(response.status).toBe(204);
+  });
+
+  it.each([
+    ["POST", { jsonrpc: "2.0", id: 1, method: "initialize" }, 415],
+    ["GET", undefined, 400],
+    ["DELETE", undefined, 400],
+    ["OPTIONS", undefined, 204],
+    ["PUT", undefined, 405],
+  ] as const)("adds Vary: Origin to %s responses", async (method, body, status) => {
+    const fixture = await createFixture();
+
+    const response = await fixture.request(method, body);
+
+    expect(response.status).toBe(status);
+    expect(response.headers.get("vary")).toBe("Origin");
   });
 
   it("rejects negative transport limits at construction time", () => {

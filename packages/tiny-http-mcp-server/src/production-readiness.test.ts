@@ -351,6 +351,9 @@ describe("HTTP MCP production readiness", () => {
     expect(preflight.headers.get("access-control-allow-origin")).toBe(
       "https://client.example.com"
     );
+    expect(preflight.headers.get("access-control-expose-headers")).toBe(
+      "Mcp-Session-Id, X-Request-Id"
+    );
     expect(preflight.headers.get("vary")).toContain("Origin");
 
     const response = await postJsonRpc(server, {
@@ -363,8 +366,11 @@ describe("HTTP MCP production readiness", () => {
     expect(response.headers.get("x-request-id")).toBe("req-1");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(response.headers.get("vary")).toContain("Origin");
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
+    expect(response.headers.get("access-control-expose-headers")).toBeNull();
 
-    const rejectedHost = await postJsonRpc(
+    const crossOriginInitialize = await postJsonRpc(
       server,
       {
         jsonrpc: "2.0",
@@ -372,9 +378,45 @@ describe("HTTP MCP production readiness", () => {
         method: "initialize",
         params: { protocolVersion: TEST_PROTOCOL_VERSION },
       },
+      { headers: { Origin: "https://client.example.com" } }
+    );
+
+    expect(crossOriginInitialize.headers.get("access-control-allow-origin")).toBe(
+      "https://client.example.com"
+    );
+    expect(crossOriginInitialize.headers.get("access-control-expose-headers")).toBe(
+      "Mcp-Session-Id, X-Request-Id"
+    );
+    expect(crossOriginInitialize.headers.get("mcp-session-id")).toBeTruthy();
+
+    const rejectedOrigin = await postJsonRpc(
+      server,
+      {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      },
+      { headers: { Origin: "https://attacker.example.com" } }
+    );
+
+    expect(rejectedOrigin.status).toBe(403);
+    expect(rejectedOrigin.headers.get("vary")).toContain("Origin");
+    expect(rejectedOrigin.headers.get("access-control-allow-origin")).toBeNull();
+    expect(rejectedOrigin.headers.get("access-control-expose-headers")).toBeNull();
+
+    const rejectedHost = await postJsonRpc(
+      server,
+      {
+        jsonrpc: "2.0",
+        id: 4,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      },
       { headers: { Host: "attacker.example.com" } }
     );
     expect(rejectedHost.status).toBe(403);
+    expect(rejectedHost.headers.get("vary")).toContain("Origin");
   });
 
   it("emits observability events for requests, sessions, and tool latency", async () => {

@@ -46,8 +46,8 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
-      release: open
+      commit: done
+      release: done
 
   - id: http-cors-and-status-hygiene
     title: CORS expose headers, Vary Origin, 415 for wrong content type
@@ -65,10 +65,10 @@ tasks:
       return 415 Unsupported Media Type instead (SDK parity) — update existing
       tests asserting 400 for that case.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: stdio-crash-proof-dispatch

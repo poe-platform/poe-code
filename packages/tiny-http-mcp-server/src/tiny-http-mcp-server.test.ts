@@ -1994,6 +1994,12 @@ describe("StreamableHttpTransport", () => {
     expect(() => new StreamableHttpTransport(server, { maxSessions: -1 })).toThrow(
       "maxSessions must be an integer greater than or equal to 1."
     );
+    expect(() => new StreamableHttpTransport(server, { maxStreamBufferBytes: -1 })).toThrow(
+      "maxStreamBufferBytes must be an integer greater than or equal to 0."
+    );
+    expect(() => new StreamableHttpTransport(server, { maxStreamBufferBytes: 1.5 })).toThrow(
+      "maxStreamBufferBytes must be an integer greater than or equal to 0."
+    );
     expect(() => new StreamableHttpTransport(server, { sseKeepAliveMs: -1 })).toThrow(
       "sseKeepAliveMs must be an integer greater than or equal to 0."
     );
@@ -3599,6 +3605,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const cases = [
       ["--port", "0x50"],
       ["--max-batch-size", "1e3"],
+      ["--max-stream-buffer-bytes", "1e3"],
       ["--sse-keep-alive-ms", "1e3"],
       ["--request-timeout-ms", "0x100"]
     ];
@@ -3723,6 +3730,8 @@ describe("tiny-http-mcp-server CLI", () => {
         "60000",
         "--max-streams-per-session",
         "2",
+        "--max-stream-buffer-bytes",
+        "2048",
         "--max-sse-event-history",
         "10",
         "--sse-keep-alive-ms",
@@ -3755,6 +3764,7 @@ describe("tiny-http-mcp-server CLI", () => {
         maxSessions: 100,
         sessionTtlMs: 60_000,
         maxStreamsPerSession: 2,
+        maxStreamBufferBytes: 2048,
         maxSseEventHistory: 10,
         sseKeepAliveMs: 15_000,
         maxConcurrentToolCalls: 4,
@@ -3793,6 +3803,7 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(shortOutput.stdout).toContain("--json-response");
     expect(shortOutput.stdout).toContain("--allowed-host");
     expect(shortOutput.stdout).toContain("--max-request-bytes");
+    expect(shortOutput.stdout).toContain("--max-stream-buffer-bytes");
     expect(shortOutput.stdout).toContain("--sse-keep-alive-ms");
     expect(shortOutput.stdout).toContain("--trusted-proxy");
     expect(shortOutput.stdout).toContain("--request-timeout-ms");

@@ -13,7 +13,6 @@ const testingDirectory = path.dirname(fileURLToPath(import.meta.url));
 const testCliPath = path.join(testingDirectory, "test-cli.js");
 const terminalPilotCliPath = path.join(testingDirectory, "..", "cli.ts");
 const terminalPilotDistCliPath = path.join(testingDirectory, "..", "..", "dist", "cli.js");
-const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
 
 function normalizeOutput(output: string): string {
   return stripAnsi(output).replaceAll("\r", "").replaceAll("\b", "");
@@ -56,8 +55,8 @@ function resolveTerminalPilotCliCommand(env: NodeJS.ProcessEnv): { command: stri
   }
 
   return {
-    command: tsxPath,
-    args: [terminalPilotCliPath]
+    command: process.execPath,
+    args: ["--import", "tsx", terminalPilotCliPath]
   };
 }
 

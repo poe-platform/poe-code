@@ -1,4 +1,5 @@
 import { ScreenBuffer } from "../../dashboard/buffer.js";
+import { stripAnsi } from "../../internal/strip-ansi.js";
 import type { ExplorerState } from "../state.js";
 import { getExplorerStyles, type ExplorerStyles } from "../theme.js";
 import { fitToWidth, padEndCells } from "./text.js";
@@ -19,7 +20,12 @@ export function renderModal(state: ExplorerState, screen: ScreenBuffer): void {
   drawBox(screen, x, y, width, height, title(state), styles.borderFocused);
   const lines = modalLines(state);
   for (let row = 0; row < Math.min(lines.length, height - 2); row += 1) {
-    screen.put(x + 2, y + 1 + row, fitToWidth(lines[row]!, width - 4, x + 2), row === 1 ? styles.accent : {});
+    screen.put(
+      x + 2,
+      y + 1 + row,
+      fitToWidth(stripAnsi(lines[row]!), width - 4, x + 2),
+      row === 1 ? styles.accent : {}
+    );
   }
 }
 

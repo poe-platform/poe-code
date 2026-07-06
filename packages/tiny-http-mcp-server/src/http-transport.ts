@@ -74,6 +74,7 @@ export interface StreamableHttpTransportOptions {
   maxSessions?: number;
   sessionTtlMs?: number;
   maxStreamsPerSession?: number;
+  maxStreamBufferBytes?: number;
   maxSseEventHistory?: number;
   sseKeepAliveMs?: number;
   maxConcurrentToolCalls?: number;
@@ -117,6 +118,7 @@ export class StreamableHttpTransport {
   private readonly maxSessions: number | undefined;
   private readonly sessionTtlMs: number | undefined;
   private readonly maxStreamsPerSession: number;
+  private readonly maxStreamBufferBytes: number;
   private readonly maxSseEventHistory: number;
   private readonly sseKeepAliveMs: number;
   private readonly maxConcurrentToolCalls: number | undefined;
@@ -158,6 +160,9 @@ export class StreamableHttpTransport {
     this.sessionTtlMs = validateOptionalIntegerOption("sessionTtlMs", options.sessionTtlMs, 1);
     this.maxStreamsPerSession =
       validateOptionalIntegerOption("maxStreamsPerSession", options.maxStreamsPerSession, 1) ?? 1;
+    this.maxStreamBufferBytes =
+      validateOptionalIntegerOption("maxStreamBufferBytes", options.maxStreamBufferBytes, 0) ??
+      1024 * 1024;
     this.maxSseEventHistory =
       validateOptionalIntegerOption("maxSseEventHistory", options.maxSseEventHistory, 0) ?? 100;
     this.sseKeepAliveMs =
@@ -788,7 +793,7 @@ export class StreamableHttpTransport {
       for (const streams of this.sseStreams.values()) {
         for (const response of streams) {
           if (!response.writableEnded) {
-            response.write(": keepalive\n\n");
+            this.writeToLiveGetStream(response, ": keepalive\n\n");
           }
         }
       }
@@ -836,7 +841,18 @@ export class StreamableHttpTransport {
         latestResponse = response;
       }
     }
-    latestResponse?.write(event);
+    if (latestResponse !== undefined) {
+      this.writeToLiveGetStream(latestResponse, event);
+    }
+  }
+
+  private writeToLiveGetStream(response: ServerResponse, data: string): void {
+    if ((response.writableLength ?? 0) > this.maxStreamBufferBytes) {
+      response.end();
+      return;
+    }
+
+    response.write(data);
   }
 
   private recordSseEvent(sessionId: string, id: number, data: string): void {

@@ -72,6 +72,7 @@ export async function loadTrace(
 }
 
 const exactBreakdownsInFlight = new Map<string, Promise<void>>();
+const EXACT_BREAKDOWN_START_DELAY_MS = 1_000;
 
 async function loadBreakdown(
   trace: NormalizedTrace,
@@ -114,6 +115,7 @@ function scheduleExactBreakdown(
   }
 
   const task = (async () => {
+    await new Promise((resolve) => setTimeout(resolve, EXACT_BREAKDOWN_START_DELAY_MS));
     const breakdown = await computeContextBreakdown(trace);
     await writeCachedBreakdown(options.fs, cacheDir, filePath, identity, breakdown);
     options.onExactBreakdown?.(breakdown);

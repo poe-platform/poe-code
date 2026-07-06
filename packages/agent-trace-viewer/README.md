@@ -50,9 +50,16 @@ Returns `TraceView`, which is a `NormalizedTrace` plus:
 - `context: ContextUsage`
 - `breakdown: ContextBreakdown`
 
-Context usage uses reported trace usage when available. Otherwise it estimates tokens from logged turn text with `tokenfill`.
+Context usage uses reported trace usage when available. Otherwise it uses the breakdown's measured token total.
 
-### `computeContextBreakdown(trace)`
+Options beyond `fs`:
+
+- `signal?: AbortSignal` — abandons token counting mid-way; partial results are never cached.
+- `cacheDir?: string` — token cache directory. Defaults to `~/.cache/poe-code/trace-tokens` (or `$XDG_CACHE_HOME/poe-code/trace-tokens`). Exact breakdowns are cached per trace file, keyed by mtime and size.
+- `deferExactTokens?: boolean` — on a cache miss, return a fast calibrated estimate (`breakdown.source === "estimated"`) and compute the exact count in the background, writing it to the cache when done. The interactive explorer uses this so browsing never waits on tokenization.
+- `onExactBreakdown?: (breakdown) => void` — invoked when a deferred exact breakdown finishes.
+
+### `computeContextBreakdown(trace, options?)`
 
 Computes an estimated attribution of logged context into ordered categories:
 
@@ -67,7 +74,7 @@ Computes an estimated attribution of logged context into ordered categories:
 
 Skills are grouped by `skillName`, MCP turns by `mcpServer`, and tool turns by `toolName`.
 
-The breakdown is an estimate from logged content using `tokenfill` with `cl100k`. Tool definitions are not present in any trace format, so it measures skill payloads, MCP/tool call inputs and outputs, reminders, and messages, not the schema block. For poe-code traces content is redacted, so its breakdown shows call counts with near-zero tokens; that is expected, not a bug.
+By default (`mode: "exact"`) every turn is tokenized with `tokenfill` (`cl100k`), yielding to the event loop between batches so a large trace never blocks input. With `mode: "estimated"` a single 16KB sample calibrates a chars-per-token ratio applied to all turns; the result is marked `source: "estimated"` and rendered with a "counting exact tokens…" hint. Tool definitions are not present in any trace format, so the breakdown measures skill payloads, MCP/tool call inputs and outputs, reminders, and messages, not the schema block. For poe-code traces content is redacted, so its breakdown shows call counts with near-zero tokens; that is expected, not a bug.
 
 ### `loadSubagentSummaries(view, options)`
 

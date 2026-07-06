@@ -302,6 +302,7 @@ Returned `HttpServer` instances support:
 | `maxSessions`            | `number`                                     | unlimited                        | Maximum active sessions.                                                                      |
 | `sessionTtlMs`           | `number`                                     | no idle expiry                   | Expire idle sessions after this duration.                                                     |
 | `maxStreamsPerSession`   | `number`                                     | `1`                              | Maximum concurrent GET SSE streams per session.                                               |
+| `maxStreamBufferBytes`   | `number`                                     | `1048576`                        | End a GET SSE stream before a live write when its buffered bytes exceed this limit.           |
 | `maxSseEventHistory`     | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                             |
 | `sseKeepAliveMs`         | `number`                                     | `30000`                          | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.         |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited                        | Maximum concurrent tool calls across sessions.                                                |
@@ -382,6 +383,7 @@ These are the same shape:
 | `maxSessions`            | `number`                                     | unlimited          | Maximum active sessions.                                                                  |
 | `sessionTtlMs`           | `number`                                     | no idle expiry     | Idle session expiration window.                                                           |
 | `maxStreamsPerSession`   | `number`                                     | `1`                | Maximum concurrent GET SSE streams per session.                                           |
+| `maxStreamBufferBytes`   | `number`                                     | `1048576`          | End a GET SSE stream before a live write when its buffered bytes exceed this limit.       |
 | `maxSseEventHistory`     | `number`                                     | `100`              | Number of SSE events retained for replay.                                                 |
 | `sseKeepAliveMs`         | `number`                                     | `30000`            | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.     |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited          | Maximum concurrent tool calls across sessions.                                            |
@@ -433,6 +435,7 @@ tiny-http-mcp-server [options]
 | `--max-sessions <count>`                     | unlimited    | Maximum active sessions.                                                                                                             |
 | `--session-ttl-ms <ms>`                      | none         | Expire idle sessions after this duration.                                                                                            |
 | `--max-streams-per-session <count>`          | `1`          | Maximum concurrent GET SSE streams per session.                                                                                      |
+| `--max-stream-buffer-bytes <bytes>`          | `1048576`    | End a GET SSE stream before a live notification or keepalive write when buffered bytes exceed this limit.                            |
 | `--max-sse-event-history <count>`            | `100`        | Number of SSE events retained for `Last-Event-ID` replay.                                                                            |
 | `--sse-keep-alive-ms <ms>`                   | `30000`      | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.                                                |
 | `--max-concurrent-tool-calls <count>`        | unlimited    | Maximum concurrent tool calls across sessions.                                                                                       |

@@ -65,6 +65,7 @@ async function dispatch(
     headers?: HeadersInit;
     body?: string;
     url?: string;
+    writableLength?: number;
   }
 ): Promise<Response> {
   const { response } = await dispatchRaw(server, options);
@@ -82,6 +83,7 @@ async function dispatchRaw(
     headers?: HeadersInit;
     body?: string;
     url?: string;
+    writableLength?: number;
   }
 ): Promise<{
   response: ServerResponse & {
@@ -116,6 +118,12 @@ async function dispatchRaw(
   response.headerValues = new Headers();
   response.headersSent = false;
   response.writableEnded = false;
+  if (options.writableLength !== undefined) {
+    Object.defineProperty(response, "writableLength", {
+      configurable: true,
+      value: options.writableLength
+    });
+  }
   response.writeHead = ((statusCode: number, responseHeaders?: Record<string, string>) => {
     response.statusCode = statusCode;
     response.headersSent = true;
@@ -624,6 +632,99 @@ describe("HTTP MCP production readiness", () => {
     expect(response.statusCode).toBe(200);
     expect(text).toContain("id: 1");
     expect(text).toContain("notifications/tools/list_changed");
+  });
+
+  it("ends stalled GET streams while retaining notifications for replay", async () => {
+    const server = createHttpServer({
+      name: "stream-backpressure",
+      version: "1.0.0",
+      sessionIdGenerator: () => "stream-backpressure-session"
+    });
+    const sessionId = await initializeSession(server);
+    const streamHeaders = {
+      Accept: "text/event-stream",
+      "Mcp-Session-Id": sessionId,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+    };
+    const stalled = await dispatchRaw(server, {
+      method: "GET",
+      headers: streamHeaders,
+      writableLength: 1024 * 1024 + 1
+    });
+
+    await server.notifyToolsChanged();
+
+    expect(stalled.response.writableEnded).toBe(true);
+    expect(stalled.response.chunks).toHaveLength(0);
+
+    const replay = await dispatchRaw(server, {
+      method: "GET",
+      headers: {
+        ...streamHeaders,
+        "Last-Event-ID": "0"
+      }
+    });
+    const replayText = Buffer.concat(replay.response.chunks).toString("utf8");
+
+    expect(replayText).toContain("id: 1");
+    expect(replayText).toContain("notifications/tools/list_changed");
+  });
+
+  it("writes to GET streams whose buffered bytes equal the configured limit", async () => {
+    const server = createHttpServer({
+      name: "stream-backpressure-boundary",
+      version: "1.0.0",
+      sessionIdGenerator: () => "stream-backpressure-boundary-session",
+      maxStreamBufferBytes: 4
+    });
+    const sessionId = await initializeSession(server);
+    const stream = await dispatchRaw(server, {
+      method: "GET",
+      headers: {
+        Accept: "text/event-stream",
+        "Mcp-Session-Id": sessionId,
+        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+      },
+      writableLength: 4
+    });
+
+    await server.notifyToolsChanged();
+
+    expect(stream.response.writableEnded).toBe(false);
+    expect(Buffer.concat(stream.response.chunks).toString("utf8")).toContain(
+      "notifications/tools/list_changed"
+    );
+  });
+
+  it("ends stalled GET streams instead of writing keepalives", async () => {
+    const server = createHttpServer({
+      name: "keepalive-backpressure",
+      version: "1.0.0",
+      sessionIdGenerator: () => "keepalive-backpressure-session",
+      maxStreamBufferBytes: 4,
+      sseKeepAliveMs: 10
+    });
+    const sessionId = await initializeSession(server);
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+
+    try {
+      const stalled = await dispatchRaw(server, {
+        method: "GET",
+        headers: {
+          Accept: "text/event-stream",
+          "Mcp-Session-Id": sessionId,
+          "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+        },
+        writableLength: 5
+      });
+
+      vi.advanceTimersByTime(10);
+
+      expect(stalled.response.writableEnded).toBe(true);
+      expect(stalled.response.chunks).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("rejects a second stream by default", async () => {

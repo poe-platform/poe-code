@@ -27,6 +27,7 @@ interface ParsedCliArgs {
   maxSessions?: number;
   sessionTtlMs?: number;
   maxStreamsPerSession?: number;
+  maxStreamBufferBytes?: number;
   maxSseEventHistory?: number;
   sseKeepAliveMs?: number;
   maxConcurrentToolCalls?: number;
@@ -100,6 +101,8 @@ const HELP_TEXT = [
   "  --session-ttl-ms <ms>  Expire sessions after this idle duration",
   "  --max-streams-per-session <count>",
   "                        Maximum concurrent GET SSE streams per session",
+  "  --max-stream-buffer-bytes <bytes>",
+  "                        Maximum buffered bytes per GET SSE stream (default: 1048576)",
   "  --max-sse-event-history <count>",
   "                        Number of SSE events retained for Last-Event-ID replay",
   "  --sse-keep-alive-ms <ms>",
@@ -293,6 +296,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "max-sessions": { type: "string" },
       "session-ttl-ms": { type: "string" },
       "max-streams-per-session": { type: "string" },
+      "max-stream-buffer-bytes": { type: "string" },
       "max-sse-event-history": { type: "string" },
       "sse-keep-alive-ms": { type: "string" },
       "max-concurrent-tool-calls": { type: "string" },
@@ -323,6 +327,11 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     values["max-streams-per-session"],
     "--max-streams-per-session",
     1
+  );
+  const maxStreamBufferBytes = parseOptionalInteger(
+    values["max-stream-buffer-bytes"],
+    "--max-stream-buffer-bytes",
+    0
   );
   const maxSseEventHistory = parseOptionalInteger(
     values["max-sse-event-history"],
@@ -377,6 +386,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     ...(maxSessions === undefined ? {} : { maxSessions }),
     ...(sessionTtlMs === undefined ? {} : { sessionTtlMs }),
     ...(maxStreamsPerSession === undefined ? {} : { maxStreamsPerSession }),
+    ...(maxStreamBufferBytes === undefined ? {} : { maxStreamBufferBytes }),
     ...(maxSseEventHistory === undefined ? {} : { maxSseEventHistory }),
     ...(sseKeepAliveMs === undefined ? {} : { sseKeepAliveMs }),
     ...(maxConcurrentToolCalls === undefined ? {} : { maxConcurrentToolCalls }),
@@ -477,6 +487,9 @@ export async function runCli(
       ...(options.maxStreamsPerSession === undefined
         ? {}
         : { maxStreamsPerSession: options.maxStreamsPerSession }),
+      ...(options.maxStreamBufferBytes === undefined
+        ? {}
+        : { maxStreamBufferBytes: options.maxStreamBufferBytes }),
       ...(options.maxSseEventHistory === undefined
         ? {}
         : { maxSseEventHistory: options.maxSseEventHistory }),

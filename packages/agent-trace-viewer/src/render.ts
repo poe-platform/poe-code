@@ -20,6 +20,8 @@ const MAX_TRACE_META_CWD_WIDTH = 18;
 const MAX_SUBAGENT_AGENT_WIDTH = 13;
 const MAX_SUBAGENT_DESCRIPTION_WIDTH = 26;
 const COLLAPSED_TURN_LINES = 3;
+const COLLAPSED_TURN_MAX_CHARS = (MAX_RENDER_WIDTH + 1) * COLLAPSED_TURN_LINES;
+const MAX_MARKDOWN_TURN_CHARS = 65_536;
 const TURNS_PER_RENDER_YIELD = 256;
 
 const CATEGORY_ORDER = [
@@ -343,16 +345,21 @@ function renderTurn(turn: NormalizedTraceTurn, theme: ThemePalette): string[] {
   const shouldCollapse = turn.role === "tool" || turn.role === "system";
   let sourceText = turn.text;
   let collapsedLines = 0;
+  let truncatedWithinLine = false;
   if (shouldCollapse) {
     const cut = lineEndIndex(sourceText, COLLAPSED_TURN_LINES);
     if (cut !== -1) {
       collapsedLines = countNewlines(sourceText, cut);
       sourceText = sourceText.slice(0, cut);
     }
+    if (sourceText.length > COLLAPSED_TURN_MAX_CHARS) {
+      sourceText = sourceText.slice(0, COLLAPSED_TURN_MAX_CHARS);
+      truncatedWithinLine = true;
+    }
   }
   const sanitizedText = sanitizeTraceText(sourceText);
   const text =
-    turn.role === "assistant"
+    turn.role === "assistant" && sanitizedText.length <= MAX_MARKDOWN_TURN_CHARS
       ? stripAnsi(renderMarkdown(sanitizedText)).trimEnd()
       : sanitizedText.trimEnd();
   const rawLines = text.length === 0 ? [""] : text.split("\n");
@@ -371,8 +378,15 @@ function renderTurn(turn: NormalizedTraceTurn, theme: ThemePalette): string[] {
     });
   });
 
+  if (shouldCollapse && lines.length > COLLAPSED_TURN_LINES) {
+    lines.length = COLLAPSED_TURN_LINES;
+    truncatedWithinLine = true;
+  }
+
   if (remaining > 0) {
     lines[lines.length - 1] = `${lines[lines.length - 1]} ${theme.muted(`… +${remaining} lines`)}`;
+  } else if (truncatedWithinLine) {
+    lines[lines.length - 1] = `${lines[lines.length - 1]} ${theme.muted("…")}`;
   }
 
   return lines;

@@ -177,7 +177,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: http-sse-backpressure
     title: SSE backpressure cap
@@ -194,9 +194,9 @@ tasks:
       inflated writableLength -> stream ended, no write, event still in
       history. Update README option and CLI tables.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
       release: open
 

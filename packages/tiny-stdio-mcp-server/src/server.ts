@@ -435,7 +435,23 @@ export function createServer(options: ServerOptions): Server {
       return;
     }
 
-    const { result, error } = await messageHandler(request.method, request.params);
+    let handled: HandleResult;
+    try {
+      handled = await messageHandler(request.method, request.params);
+    } catch {
+      if (!isNotification) {
+        const requestWithId = request as JSONRPCRequest;
+        write(
+          formatErrorResponse(requestWithId.id, {
+            code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+            message: "Internal error",
+          }) + "\n"
+        );
+      }
+      return;
+    }
+
+    const { result, error } = handled;
 
     if (isNotification) {
       return;
@@ -598,14 +614,10 @@ export function createServer(options: ServerOptions): Server {
 
     async connect(transport: Transport): Promise<void> {
       return new Promise((resolve) => {
-        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false, notificationReady: false, resourceSubscriptions: new Set() };
-        const messageHandler: MessageHandler = (method, params) =>
-          handleMessageWithLifecycle(method, lifecycle, params);
-        messageLifecycles.add(lifecycle);
         const listener = (notification: JSONRPCNotification) => {
           transport.writable.write(`${JSON.stringify(notification)}\n`);
         };
-        connectionNotificationListeners.set(listener, lifecycle);
+        const session = server.createMessageSession(listener);
         const rl = readline.createInterface({
           input: transport.readable,
           crlfDelay: Infinity,
@@ -613,7 +625,11 @@ export function createServer(options: ServerOptions): Server {
         const pendingMessages = new Set<Promise<void>>();
 
         rl.on("line", (line) => {
-          const message = processLine(line, (data) => transport.writable.write(data), messageHandler);
+          const message = processLine(
+            line,
+            (data) => transport.writable.write(data),
+            session.handleMessage
+          );
           pendingMessages.add(message);
           void message.finally(() => {
             pendingMessages.delete(message);
@@ -622,8 +638,7 @@ export function createServer(options: ServerOptions): Server {
 
         rl.on("close", async () => {
           await Promise.all([...pendingMessages]);
-          connectionNotificationListeners.delete(listener);
-          messageLifecycles.delete(lifecycle);
+          session.close();
           resolve();
         });
       });
@@ -631,12 +646,8 @@ export function createServer(options: ServerOptions): Server {
 
     async connectSDK(transport: SDKTransport): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false, notificationReady: false, resourceSubscriptions: new Set() };
-        const messageHandler: MessageHandler = (method, params) =>
-          handleMessageWithLifecycle(method, lifecycle, params);
-        messageLifecycles.add(lifecycle);
         const listener = (notification: JSONRPCNotification) => transport.send(notification);
-        connectionNotificationListeners.set(listener, lifecycle);
+        const session = server.createMessageSession(listener);
 
         transport.onmessage = async (message: JSONRPCMessage) => {
           // Ignore responses (we only handle requests/notifications)
@@ -650,7 +661,11 @@ export function createServer(options: ServerOptions): Server {
               return;
             }
 
-            await messageHandler(message.method, message.params);
+            try {
+              await session.handleMessage(message.method, message.params);
+            } catch {
+              return;
+            }
             return;
           }
 
@@ -667,7 +682,22 @@ export function createServer(options: ServerOptions): Server {
           }
 
           const request = message as JSONRPCRequest;
-          const { result, error } = await messageHandler(request.method, request.params);
+          let handled: HandleResult;
+          try {
+            handled = await session.handleMessage(request.method, request.params);
+          } catch {
+            await transport.send({
+              jsonrpc: "2.0",
+              id: request.id,
+              error: {
+                code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+                message: "Internal error",
+              },
+            });
+            return;
+          }
+
+          const { result, error } = handled;
 
           if (error) {
             const response: JSONRPCResponse = {
@@ -687,14 +717,12 @@ export function createServer(options: ServerOptions): Server {
         };
 
         transport.onclose = () => {
-          connectionNotificationListeners.delete(listener);
-          messageLifecycles.delete(lifecycle);
+          session.close();
           resolve();
         };
 
         void transport.start().catch((error: unknown) => {
-          connectionNotificationListeners.delete(listener);
-          messageLifecycles.delete(lifecycle);
+          session.close();
           reject(error);
         });
       });

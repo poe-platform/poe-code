@@ -23,6 +23,16 @@ export interface BodyReadOptions {
   maxBatchSize?: number;
 }
 
+export class JsonRpcMessageError extends Error {
+  constructor(
+    readonly id: string | number | null,
+    readonly code: number,
+    message: string
+  ) {
+    super(message);
+  }
+}
+
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -177,7 +187,11 @@ export async function readAndClassifyBody(
 
     if (!parsed.success) {
       if (!isBatch) {
-        throw new Error(parsed.error.message);
+        throw new JsonRpcMessageError(
+          parsed.id,
+          parsed.error.code,
+          parsed.error.message
+        );
       }
 
       entries.push(null);

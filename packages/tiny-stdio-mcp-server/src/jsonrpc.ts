@@ -64,6 +64,7 @@ export function parseMessage(line: string): ParseResult | ParseError {
     && (
       typeof obj.params !== "object"
       || obj.params === null
+      || Array.isArray(obj.params)
     )
   ) {
     return {

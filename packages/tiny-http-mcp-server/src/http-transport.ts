@@ -5,7 +5,10 @@ import {
   formatErrorResponse,
   formatSuccessResponse,
 } from "tiny-stdio-mcp-server/jsonrpc";
-import { readAndClassifyBody } from "./parse-body.js";
+import {
+  JsonRpcMessageError,
+  readAndClassifyBody,
+} from "./parse-body.js";
 import {
   createSessionStore,
   defaultSessionIdGenerator,
@@ -323,11 +326,14 @@ export class StreamableHttpTransport {
         return;
       }
       const code =
-        message === "Parse error"
+        error instanceof JsonRpcMessageError
+          ? error.code
+          : message === "Parse error"
           ? JSON_RPC_ERROR_CODES.PARSE_ERROR
           : JSON_RPC_ERROR_CODES.INVALID_REQUEST;
+      const id = error instanceof JsonRpcMessageError ? error.id : null;
 
-      this.respondWithJsonRpcError(res, 400, code, message);
+      this.respondWithJsonRpcError(res, 400, code, message, id);
       return;
     }
 
@@ -1024,14 +1030,15 @@ export class StreamableHttpTransport {
     res: ServerResponse,
     statusCode: number,
     errorCode: number,
-    message: string
+    message: string,
+    id: string | number | null = null
   ): void {
     this.respondWithStatus(
       res,
       statusCode,
       undefined,
       { "Content-Type": "application/json" },
-      formatErrorResponse(null, { code: errorCode, message })
+      formatErrorResponse(id, { code: errorCode, message })
     );
   }
 

@@ -315,6 +315,16 @@ describe("parseMessage", () => {
   });
 
   describe("invalid request errors", () => {
+    it("returns invalid request for array params and preserves the request id", () => {
+      expect(
+        parseMessage('{"jsonrpc":"2.0","id":"array-params","method":"test","params":[]}')
+      ).toEqual({
+        success: false,
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+        id: "array-params",
+      });
+    });
+
     it("returns invalid request for primitive params", () => {
       expect(parseMessage('{"jsonrpc":"2.0","id":1,"method":"test","params":"bad"}')).toEqual({
         success: false,
@@ -3082,6 +3092,73 @@ describe("transport connection", () => {
     expect(responses).toHaveLength(3);
   });
 
+  it("returns internal errors for rejected handlers and keeps serving requests", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const handleMessage = vi.fn()
+      .mockRejectedValueOnce(new Error("handler failed"))
+      .mockResolvedValueOnce({ result: { ok: true } });
+    const close = vi.fn();
+    vi.spyOn(server, "createMessageSession").mockReturnValue({ handleMessage, close });
+
+    const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"first"}');
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"second"}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(getResponsesWithId(transport.getAllResponses())).toEqual([
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        error: { code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR, message: "Internal error" },
+      },
+      { jsonrpc: "2.0", id: 2, result: { ok: true } },
+    ]);
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("silently drops rejected notifications and keeps serving requests", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const handleMessage = vi.fn()
+      .mockRejectedValueOnce(new Error("notification failed"))
+      .mockResolvedValueOnce({ result: { ok: true } });
+    vi.spyOn(server, "createMessageSession").mockReturnValue({
+      handleMessage,
+      close: vi.fn(),
+    });
+
+    const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","method":"first"}');
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"second"}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(getResponsesWithId(transport.getAllResponses())).toEqual([
+      { jsonrpc: "2.0", id: 2, result: { ok: true } },
+    ]);
+  });
+
+  it("rejects array params over stdio with the original request id", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+
+    const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":"stdio-array","method":"ping","params":[]}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(transport.getLastResponse()).toEqual({
+      jsonrpc: "2.0",
+      id: "stdio-array",
+      error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+    });
+  });
+
   it("waits for accepted tool responses before resolving connect", async () => {
     const transport = createTestTransport();
     let finishTool: ((value: string) => void) | undefined;
@@ -3199,6 +3276,34 @@ describe("SDK connection lifecycle", () => {
     });
 
     await expect(server.connectSDK(transport)).rejects.toThrow("start failed");
+  });
+
+  it("guards rejected SDK handlers and keeps serving requests", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const sdk = createSdkTransport();
+    const handleMessage = vi.fn()
+      .mockRejectedValueOnce(new Error("notification failed"))
+      .mockRejectedValueOnce(new Error("request failed"))
+      .mockResolvedValueOnce({ result: { ok: true } });
+    const close = vi.fn();
+    vi.spyOn(server, "createMessageSession").mockReturnValue({ handleMessage, close });
+
+    void server.connectSDK(sdk.transport);
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", method: "first" });
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", id: 1, method: "second" });
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", id: 2, method: "third" });
+
+    expect(sdk.sent).toEqual([
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        error: { code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR, message: "Internal error" },
+      },
+      { jsonrpc: "2.0", id: 2, result: { ok: true } },
+    ]);
+
+    sdk.transport.onclose?.();
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it("rejects notifyToolsChanged when SDK notification delivery fails", async () => {

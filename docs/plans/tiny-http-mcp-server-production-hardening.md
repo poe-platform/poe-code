@@ -69,7 +69,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: stdio-crash-proof-dispatch
     title: Crash-proof stdio dispatch and strict params
@@ -91,10 +91,10 @@ tasks:
       flows through packages/tiny-http-mcp-server/src/parse-body.ts
       automatically).
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: output-schemas-first-class

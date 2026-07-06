@@ -945,6 +945,24 @@ describe("StreamableHttpTransport", () => {
     });
   });
 
+  it("rejects array params as an invalid HTTP request", async () => {
+    const fixture = await createFixture({ enableJsonResponse: true });
+
+    const response = await fixture.post({
+      jsonrpc: "2.0",
+      id: "http-array",
+      method: "ping",
+      params: [],
+    });
+
+    expect(response.status).toBe(400);
+    expect(await readJsonRpcBody(response)).toEqual({
+      jsonrpc: "2.0",
+      id: "http-array",
+      error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+    });
+  });
+
   it("negotiates the supported protocol version for unsupported requests", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,

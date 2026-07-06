@@ -1,34 +1,59 @@
-# High Level CLI
+# Poe Code At A Glance
 
-<provider> is this context is an agent e.g. claude code, codex
+Poe Code configures coding agents to use Poe-compatible providers, then gives the repo a shared SDK for running agents, workflows, tools, memory, and review loops.
 
-## Global
+## User Commands
 
-poe-code --help
+Core setup:
+
+```sh
 poe-code login
+poe-code configure [agent]
+poe-code unconfigure <agent>
+poe-code wrap <agent>
+poe-code test <agent>
+poe-code install <agent>
+```
 
-## Query
+Agent execution:
 
-poe-code query [--text]
-poe-code query --image
-poe-code query --audio
-poe-code query --video --params { resolution: "4k" }
+```sh
+poe-code spawn <agent> "Fix the failing tests"
+poe-code spawn <agent> --cwd github://owner/repo#main:packages/app
+poe-code gaslight docs/plans/feature.md --agent codex
+poe-code pipeline run docs/plans/feature.md --agent codex
+```
 
-## Agent - default
+Project tools:
 
-[agent] is the default and can be omitted
+```sh
+poe-code models
+poe-code usage
+poe-code traces
+```
 
-poe-code agent
-poe-code [agent] configure <provider>
-poe-code [agent] unconfigure <provider>
-poe-code [agent] spawn <provider>
-poe-code [agent] wrap <provider>
-poe-code [agent] install <provider>
-poe-code [agent] test <provider>
+Advanced groups are routable but hidden from root help:
 
-## Skill
+```sh
+poe-code provider --help
+poe-code memory --help
+poe-code code-review --help
+```
 
-poe-code skill configure # prompt for provider
-poe-code skill configure <provider>
-poe-code skill unconfigure <provider>
-poe-code skill --help # explain that it will install skill
+## Main Packages
+
+- `poe-code`: public CLI and SDK surface.
+- `@poe-code/providers`: declarative auth-provider manifests and credential resolution.
+- `@poe-code/agent-defs`: agent metadata, aliases, branding, and config paths.
+- `@poe-code/agent-spawn`: low-level agent launch, streaming, ACP adapters, MCP-at-spawn, and resume plumbing.
+- `@poe-code/poe-agent`: plugin-based in-process agent runtime.
+- `toolcraft`: command, rendering, MCP, and human-in-loop runtime used by several packages.
+- `@poe-code/worktree`: managed git worktree execution and reconciliation.
+
+## Design Rules
+
+- Adding a provider should mean adding one provider file. Registries and exports are generated from provider config.
+- Core packages wire public APIs; feature logic belongs in focused packages.
+- CLI and SDK options should stay in parity.
+- Config mutations parse and merge structured files. Do not use regexes for config edits.
+- Package READMEs must list exposed environment variables and config options, including "none" when none are exposed.

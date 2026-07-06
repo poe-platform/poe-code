@@ -20,15 +20,15 @@ import { brand, dark, light, spacing, typography, widths } from "toolcraft-desig
 
 Foundational values that ensure consistency:
 
-| Token | Value | Description |
-|-------|-------|-------------|
-| `brand` | `#a200ff` | Primary brand color (Poe purple) |
-| `spacing.sm` | `1` | Small spacing unit |
-| `spacing.md` | `2` | Medium spacing unit |
-| `spacing.lg` | `4` | Large spacing unit |
-| `widths.header` | `60` | Header line width |
-| `widths.helpColumn` | `24` | Help text column width |
-| `widths.maxLine` | `80` | Maximum line width |
+| Token               | Value     | Description                      |
+| ------------------- | --------- | -------------------------------- |
+| `brand`             | `#a200ff` | Primary brand color (Poe purple) |
+| `spacing.sm`        | `1`       | Small spacing unit               |
+| `spacing.md`        | `2`       | Medium spacing unit              |
+| `spacing.lg`        | `4`       | Large spacing unit               |
+| `widths.header`     | `60`      | Header line width                |
+| `widths.helpColumn` | `24`      | Help text column width           |
+| `widths.maxLine`    | `80`      | Maximum line width               |
 
 ## Theme Palettes
 
@@ -39,10 +39,11 @@ import { getTheme, resolveThemeName } from "toolcraft-design";
 
 const themeName = resolveThemeName(); // 'dark' or 'light'
 const palette = getTheme();
-console.log(palette.header('Title'));
+console.log(palette.header("Title"));
 ```
 
 **Environment variables checked (in order):**
+
 - `POE_CODE_THEME` - explicit override ('dark' or 'light')
 - `APPLE_INTERFACE_STYLE` - macOS appearance
 - `VSCODE_COLOR_THEME_KIND` - VS Code theme
@@ -72,9 +73,11 @@ outro("Configuration complete.");
 # Configure
 
 - **info:** Configuring claude-code...
-- Provider    claude
-- API Key    poe-abc...xyz
+- Provider claude
+- API Key poe-abc...xyz
+
 ---
+
 Configuration complete.
 ```
 
@@ -86,7 +89,7 @@ Full layout with note and outro: intro, resolved prompts, success, note box, out
 import { intro, outro, note, log, symbols } from "toolcraft-design";
 
 intro("configure claude-code");
-log.message("Claude Code default model\n   Claude-Opus-4.6", { symbol: symbols.resolved });
+log.message("Claude Code default model\n   <model-id>", { symbol: symbols.resolved });
 log.message("Configured Claude Code.", { symbol: symbols.success });
 note("If using VSCode...\nvscode://settings/...", "Next steps.");
 outro("Problems? https://...");
@@ -95,12 +98,14 @@ outro("Problems? https://...");
 ```markdown
 # configure claude-code
 
-- Claude Code default model    Claude-Opus-4.6
+- Claude Code default model <model-id>
 - **success:** Configured Claude Code.
-> **Next steps.**
-> If using VSCode - Open the Disable Login Prompt setting and check the box.
-> vscode://settings/claudeCode.disableLoginPrompt
+  > **Next steps.**
+  > If using VSCode - Open the Disable Login Prompt setting and check the box.
+  > vscode://settings/claudeCode.disableLoginPrompt
+
 ---
+
 Problems? https://github.com/poe-platform/poe-code/issues
 ```
 
@@ -114,7 +119,7 @@ Prominent introductory banners with brand background
 
 ```typescript
 import { text } from "toolcraft-design";
-text.intro("Configure")
+text.intro("Configure");
 ```
 
 ```markdown
@@ -127,7 +132,7 @@ Section headings with brand accent color
 
 ```typescript
 import { text } from "toolcraft-design";
-text.heading("Available Commands")
+text.heading("Available Commands");
 ```
 
 ```markdown
@@ -140,7 +145,7 @@ Bold text for subsection labels
 
 ```typescript
 import { text } from "toolcraft-design";
-text.section("Options:")
+text.section("Options:");
 ```
 
 ```markdown
@@ -153,7 +158,7 @@ CLI command names in accent color
 
 ```typescript
 import { text } from "toolcraft-design";
-text.command("poe-code configure")
+text.command("poe-code configure");
 ```
 
 ```markdown
@@ -166,7 +171,7 @@ Command arguments (dimmed)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.argument("<provider>")
+text.argument("<provider>");
 ```
 
 ```markdown
@@ -179,7 +184,7 @@ CLI flags and options in yellow
 
 ```typescript
 import { text } from "toolcraft-design";
-text.option("--dry-run")
+text.option("--dry-run");
 ```
 
 ```markdown
@@ -192,7 +197,7 @@ Example text (dimmed)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.example("$ poe-code configure claude")
+text.example("$ poe-code configure claude");
 ```
 
 ```markdown
@@ -205,7 +210,7 @@ Commands in usage examples (green)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.usageCommand("npm install -g poe-code")
+text.usageCommand("npm install -g poe-code");
 ```
 
 ```markdown
@@ -218,7 +223,7 @@ Hyperlinks and references
 
 ```typescript
 import { text } from "toolcraft-design";
-text.link("https://poe.com")
+text.link("https://poe.com");
 ```
 
 ```markdown
@@ -231,11 +236,11 @@ De-emphasized text
 
 ```typescript
 import { text } from "toolcraft-design";
-text.muted("(optional)")
+text.muted("(optional)");
 ```
 
 ```markdown
-*(optional)*
+_(optional)_
 ```
 
 ## Symbols
@@ -379,7 +384,7 @@ note("Run poe-code test", "Next steps.");
 ```markdown
 > **Next steps.**
 > Run the following command to test:
->   poe-code test claude-code
+> poe-code test claude-code
 ```
 
 ### prompt-outro
@@ -393,6 +398,7 @@ outro("Problems? https://...");
 
 ```markdown
 ---
+
 Problems? https://github.com/poe-platform/poe-code/issues
 ```
 
@@ -406,7 +412,7 @@ log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ```markdown
-- API Key    poe-abc...xyz    Expires: 2026-12-31
+- API Key poe-abc...xyz Expires: 2026-12-31
 ```
 
 ### prompt-errorResolved
@@ -419,7 +425,7 @@ log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved
 ```
 
 ```markdown
-- Configuration Failed    Missing API key    Check your .env file or run poe-code login
+- Configuration Failed Missing API key Check your .env file or run poe-code login
 ```
 
 ### menu
@@ -439,6 +445,7 @@ const choice = await select({
 
 ```markdown
 **Pick an agent:**
+
 - [x] Claude Code
 - [ ] Codex CLI
 - [ ] Aider
@@ -493,20 +500,18 @@ const output = renderTable({
   theme: getTheme(),
   columns: [
     { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
-    { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
+    { name: "Context", title: "Context", alignment: "right", maxLen: 9 }
   ],
-  rows: [
-    { Model: "anthropic/claude-sonnet-4", Context: "200K" },
-  ],
+  rows: [{ Model: "<model-id>", Context: "<context>" }]
 });
 ```
 
 ```markdown
-| Model | Context | $/MTok In/Out |
-| :--- | ---: | ---: |
-| anthropic/claude-sonnet-4 | 200K | $3.00/$15.00 |
-| openai/gpt-4o | 128K | $2.50/$10.00 |
-| google/gemini-2.0-flash | 1M | $0.10/$0.40 |
+| Model      |   Context |    $/MTok In/Out |
+| :--------- | --------: | ---------------: |
+| <model-id> | <context> | <input>/<output> |
+| <model-id> | <context> | <input>/<output> |
+| <model-id> | <context> | <input>/<output> |
 ```
 
 ### diff
@@ -517,14 +522,14 @@ Unified diff display for file changes (used in --dry-run)
 import { color, log } from "toolcraft-design";
 const diffLines = [
   color.gray("--- config.json"),
-  color.red('-  "model": "gpt-4",'),
-  color.green('+  "model": "claude-sonnet-4",')
+  color.red('-  "model": "old-model",'),
+  color.green('+  "model": "new-model",')
 ];
 log.message(diffLines.join("\n"), { symbol: color.yellow("~") });
 ```
 
 ```markdown
-- --- config.json +++ config.json @@ -1,3 +1,5 @@  { -  "model": "gpt-4", +  "model": "claude-sonnet-4",    "temperature": 0.7 +  "maxTokens": 4096  }
+- --- config.json +++ config.json @@ -1,3 +1,5 @@ { - "model": "old-model", + "model": "new-model", "temperature": 0.7 + "maxTokens": 4096 }
 ```
 
 ## Dashboard
@@ -545,29 +550,35 @@ const dashboard = createDashboard({
 
 dashboard.start();
 dashboard.appendOutput({ kind: "info", text: "Analyzing repository state", ts: Date.now() });
-dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensOut: 445, elapsedMs: 5000 });
+dashboard.updateStats({
+  status: "running",
+  iterations: 5,
+  tokensIn: 685,
+  tokensOut: 445,
+  elapsedMs: 5000
+});
 ```
 
 ```markdown
 ┌─ Agent Output ─────────────────────────────────────┬─ Stats ─────────────────┐
-│◇  Analyzing repository state                       │Status            Running│
-││  Running npm test -- --runInBand                  │Iteration               5│
-│◆  Generated provider config                        │Elapsed          00:00:05│
-│●  Streaming model response                         │                         │
-│◇  Inspecting agent configuration                   │Tokens In             685│
-││  Executing npm run lint:types                     │Tokens Out            445│
-│■  Retrying transient network request               │Total               1,130│
-│◆  Updated dashboard layout                         │                         │
-│◇  Collecting recent command output                 │Current:                 │
-│●  Waiting for follow-up task                       │  Executing tool call    │
-│                                                    │                         │
-│                                                    │                         │
-│                                                    │                         │
-│                                                    │                         │
-│                                                    │                         │
-│                                                    │                         │
+│◇ Analyzing repository state │Status Running│
+││ Running npm test -- --runInBand │Iteration 5│
+│◆ Generated provider config │Elapsed 00:00:05│
+│● Streaming model response │ │
+│◇ Inspecting agent configuration │Tokens In 685│
+││ Executing npm run lint:types │Tokens Out 445│
+│■ Retrying transient network request │Total 1,130│
+│◆ Updated dashboard layout │ │
+│◇ Collecting recent command output │Current: │
+│● Waiting for follow-up task │ Executing tool call │
+│ │ │
+│ │ │
+│ │ │
+│ │ │
+│ │ │
+│ │ │
 ├────────────────────────────────────────────────────┴─────────────────────────┤
-│                   q Quit  e Edit  l Log  p Pause  r Retry                    │
+│ q Quit e Edit l Log p Pause r Retry │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -606,42 +617,42 @@ Paragraph with bold, italic, strikethrough, code span, a docs link
 (https://example.com/docs), an image [image: System diagram], and a footnote
 reference[1].
 
- ─────────────────────────
- const agent = "poe-code";
- console.log(agent);
- ─────────────────────────
+─────────────────────────
+const agent = "poe-code";
+console.log(agent);
+─────────────────────────
 
 | Outer quote
 |
 | | Nested quote
 
- • unordered item
- • another unordered item
+• unordered item
+• another unordered item
 
- 1. ordered item
- 2. another ordered item
+1.  ordered item
+2.  another ordered item
 
- [x] completed task
- [ ] pending task
+[x] completed task
+[ ] pending task
 
-| Feature  | Alignment | Status |
+| Feature | Alignment | Status |
 ├──────────┼───────────┼────────┤
-| Headings |  center   |  Ready |
-| Tables   |  aligned  |   100% |
+| Headings | center | Ready |
+| Tables | aligned | 100% |
 
 | Note
 | Alerts are rendered as styled notes.
 
 ────────────────────────────────────────────────────────────────────────────────
 
- [1] Footnote definition for the markdown demo.
+[1] Footnote definition for the markdown demo.
 ```
 
 ### terminal-markdown-minimal
 
 Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
 
-```typescript
+````typescript
 import { renderMarkdown } from "toolcraft-design";
 
 const markdown = [
@@ -655,7 +666,7 @@ const markdown = [
 ].join("\n");
 
 process.stdout.write(renderMarkdown(markdown));
-```
+````
 
 ```markdown
 Markdown Minimal
@@ -663,7 +674,7 @@ Markdown Minimal
 
 Quick validation paragraph.
 
- ────────────────────
- console.log("demo");
- ────────────────────
+────────────────────
+console.log("demo");
+────────────────────
 ```

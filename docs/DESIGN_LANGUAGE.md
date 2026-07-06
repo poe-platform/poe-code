@@ -20,15 +20,15 @@ import { brand, dark, light, spacing, typography, widths } from "toolcraft-desig
 
 Foundational values that ensure consistency:
 
-| Token | Value | Description |
-|-------|-------|-------------|
-| `brand` | `#a200ff` | Primary brand color (Poe purple) |
-| `spacing.sm` | `1` | Small spacing unit |
-| `spacing.md` | `2` | Medium spacing unit |
-| `spacing.lg` | `4` | Large spacing unit |
-| `widths.header` | `60` | Header line width |
-| `widths.helpColumn` | `24` | Help text column width |
-| `widths.maxLine` | `80` | Maximum line width |
+| Token               | Value     | Description                      |
+| ------------------- | --------- | -------------------------------- |
+| `brand`             | `#a200ff` | Primary brand color (Poe purple) |
+| `spacing.sm`        | `1`       | Small spacing unit               |
+| `spacing.md`        | `2`       | Medium spacing unit              |
+| `spacing.lg`        | `4`       | Large spacing unit               |
+| `widths.header`     | `60`      | Header line width                |
+| `widths.helpColumn` | `24`      | Help text column width           |
+| `widths.maxLine`    | `80`      | Maximum line width               |
 
 ## Theme Palettes
 
@@ -39,10 +39,11 @@ import { getTheme, resolveThemeName } from "toolcraft-design";
 
 const themeName = resolveThemeName(); // 'dark' or 'light'
 const palette = getTheme();
-console.log(palette.header('Title'));
+console.log(palette.header("Title"));
 ```
 
 **Environment variables checked (in order):**
+
 - `POE_CODE_THEME` - explicit override ('dark' or 'light')
 - `APPLE_INTERFACE_STYLE` - macOS appearance
 - `VSCODE_COLOR_THEME_KIND` - VS Code theme
@@ -76,7 +77,7 @@ Full layout with note and outro: intro, resolved prompts, success, note box, out
 import { intro, outro, note, log, symbols } from "toolcraft-design";
 
 intro("configure claude-code");
-log.message("Claude Code default model\n   Claude-Opus-4.6", { symbol: symbols.resolved });
+log.message("Claude Code default model\n   <model-id>", { symbol: symbols.resolved });
 log.message("Configured Claude Code.", { symbol: symbols.success });
 note("If using VSCode...\nvscode://settings/...", "Next steps.");
 outro("Problems? https://...");
@@ -94,7 +95,7 @@ Prominent introductory banners with brand background
 
 ```typescript
 import { text } from "toolcraft-design";
-text.intro("Configure")
+text.intro("Configure");
 ```
 
 ![intro](design-language/intro.png)
@@ -105,7 +106,7 @@ Section headings with brand accent color
 
 ```typescript
 import { text } from "toolcraft-design";
-text.heading("Available Commands")
+text.heading("Available Commands");
 ```
 
 ![heading](design-language/heading.png)
@@ -116,7 +117,7 @@ Bold text for subsection labels
 
 ```typescript
 import { text } from "toolcraft-design";
-text.section("Options:")
+text.section("Options:");
 ```
 
 ![section](design-language/section.png)
@@ -127,7 +128,7 @@ CLI command names in accent color
 
 ```typescript
 import { text } from "toolcraft-design";
-text.command("poe-code configure")
+text.command("poe-code configure");
 ```
 
 ![command](design-language/command.png)
@@ -138,7 +139,7 @@ Command arguments (dimmed)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.argument("<provider>")
+text.argument("<provider>");
 ```
 
 ![argument](design-language/argument.png)
@@ -149,7 +150,7 @@ CLI flags and options in yellow
 
 ```typescript
 import { text } from "toolcraft-design";
-text.option("--dry-run")
+text.option("--dry-run");
 ```
 
 ![option](design-language/option.png)
@@ -160,7 +161,7 @@ Example text (dimmed)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.example("$ poe-code configure claude")
+text.example("$ poe-code configure claude");
 ```
 
 ![example](design-language/example.png)
@@ -171,7 +172,7 @@ Commands in usage examples (green)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.usageCommand("npm install -g poe-code")
+text.usageCommand("npm install -g poe-code");
 ```
 
 ![usageCommand](design-language/usageCommand.png)
@@ -182,7 +183,7 @@ Hyperlinks and references
 
 ```typescript
 import { text } from "toolcraft-design";
-text.link("https://poe.com")
+text.link("https://poe.com");
 ```
 
 ![link](design-language/link.png)
@@ -193,7 +194,7 @@ De-emphasized text
 
 ```typescript
 import { text } from "toolcraft-design";
-text.muted("(optional)")
+text.muted("(optional)");
 ```
 
 ![muted](design-language/muted.png)
@@ -411,11 +412,9 @@ const output = renderTable({
   theme: getTheme(),
   columns: [
     { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
-    { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
+    { name: "Context", title: "Context", alignment: "right", maxLen: 9 }
   ],
-  rows: [
-    { Model: "anthropic/claude-sonnet-4", Context: "200K" },
-  ],
+  rows: [{ Model: "<model-id>", Context: "<context>" }]
 });
 ```
 
@@ -429,8 +428,8 @@ Unified diff display for file changes (used in --dry-run)
 import { color, log } from "toolcraft-design";
 const diffLines = [
   color.gray("--- config.json"),
-  color.red('-  "model": "gpt-4",'),
-  color.green('+  "model": "claude-sonnet-4",')
+  color.red('-  "model": "old-model",'),
+  color.green('+  "model": "new-model",')
 ];
 log.message(diffLines.join("\n"), { symbol: color.yellow("~") });
 ```
@@ -455,7 +454,13 @@ const dashboard = createDashboard({
 
 dashboard.start();
 dashboard.appendOutput({ kind: "info", text: "Analyzing repository state", ts: Date.now() });
-dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensOut: 445, elapsedMs: 5000 });
+dashboard.updateStats({
+  status: "running",
+  iterations: 5,
+  tokensIn: 685,
+  tokensOut: 445,
+  elapsedMs: 5000
+});
 ```
 
 ![dashboard](design-language/dashboard.png)
@@ -489,7 +494,7 @@ process.stdout.write(renderMarkdown(markdown));
 
 Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
 
-```typescript
+````typescript
 import { renderMarkdown } from "toolcraft-design";
 
 const markdown = [
@@ -503,6 +508,6 @@ const markdown = [
 ].join("\n");
 
 process.stdout.write(renderMarkdown(markdown));
-```
+````
 
 ![terminal-markdown-minimal](design-language/terminal-markdown-minimal.png)

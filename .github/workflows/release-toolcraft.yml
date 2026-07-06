@@ -102,33 +102,53 @@ jobs:
       - name: Publish agent-defs
         working-directory: packages/agent-defs
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish agent-human-in-loop
         working-directory: packages/agent-human-in-loop
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish auth-store
         working-directory: packages/auth-store
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish frontmatter
         working-directory: packages/frontmatter
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish process-runner
         working-directory: packages/process-runner
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish toolcraft-design
         working-directory: packages/toolcraft-design
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish config-mutations
         working-directory: packages/config-mutations
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish agent-mcp-config
         working-directory: packages/agent-mcp-config
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish task-list
         working-directory: packages/task-list
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish tiny-mcp-client
         working-directory: packages/tiny-mcp-client
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public

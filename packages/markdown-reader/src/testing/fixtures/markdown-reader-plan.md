@@ -28,7 +28,7 @@ Resolved decisions:
 
 - **Section addressing** accepts two forms, both resolving to the same section: numeric path (`1.2`) and full heading text (`"2. User-facing shape"`). Numbers cover programmatic use; heading text covers human/copy-paste use. No slugs.
 - **Command surface:** three sibling subcommands under the existing `plan` group — `plan markdown-read`, `plan markdown-read-section`, and `plan markdown-reader-mcp`. The first two are one-shot CLI commands. `markdown-reader-mcp` starts a standalone stdio MCP server exposing the two tools, mirroring the `terminal-pilot-mcp` shape. **Not** wired into the central `poe-code mcp serve`; this is a standalone server per user requirement.
-- **Package layout:** core parsing / walking / orchestrator logic lives in a new `packages/markdown-reader`. The CLI and MCP entry points live in [src/cli/commands/plan.ts](src/cli/commands/plan.ts) (commander subcommands) and import from the package. This keeps the `plan` group's commander style intact while isolating the testable guts.
+- **Package layout:** core parsing / walking / orchestrator logic lives in a new `packages/markdown-reader`. The CLI and MCP entry points live in [src/cli/commands/plan.ts](../../../../../src/cli/commands/plan.ts) (commander subcommands) and import from the package. This keeps the `plan` group's commander style intact while isolating the testable guts.
 - **AST parser:** extend `toolcraft-design`'s `terminal-markdown/parser` with source positions (details in §3), rather than duplicating a scanner. One parser in the monorepo.
 
 ## 2. User-facing shape
@@ -69,7 +69,7 @@ Flags:
 
 - `<file>` (required, positional) — path to the markdown file.
 - `--depth <n>` — limit TOC to headings at depth `<= n`. Default: all depths.
-- `--output <terminal|markdown|json>` — matches the rest of the `plan` group's `--output` flag ([src/cli/commands/plan.ts:368](src/cli/commands/plan.ts#L368)). Default: `terminal`.
+- `--output <terminal|markdown|json>` — matches the rest of the `plan` group's `--output` flag ([src/cli/commands/plan.ts:368](../../../../../src/cli/commands/plan.ts#L368)). Default: `terminal`.
 
 JSON output shape:
 
@@ -128,7 +128,7 @@ JSON output shape:
 
 ### Command: `plan markdown-reader-mcp`
 
-Starts a stdio MCP server exposing the two tools above. Follows the [packages/terminal-pilot-mcp](packages/terminal-pilot-mcp) pattern: `runMCP(group, { name, version })` from `toolcraft/mcp`.
+Starts a stdio MCP server exposing the two tools above. Follows the [packages/terminal-pilot-mcp](../../../../../packages/terminal-pilot-mcp) pattern: `runMCP(group, { name, version })` from `toolcraft/mcp`.
 
 CLI:
 
@@ -184,23 +184,23 @@ const { markdown, section } = await readSection({ file, section: "2.1" });
   - `src/core/read-markdown.ts`, `src/core/read-section.ts` — orchestrators used by both the SDK and MCP tool handlers. File I/O goes through an injectable `fs` so tests use `memfs`.
   - `src/mcp/tools.ts` — two `defineCommand` entries (`scope: ["mcp"]`) that wrap the orchestrators as MCP tools.
   - `src/mcp/group.ts` — `markdownGroup = defineGroup({ name: "markdown-reader", scope: ["mcp"], children: [readTool, readSectionTool] })`.
-  - `src/mcp/run.ts` — `runMarkdownReaderMcp()` → `runMCP(markdownGroup, { name: "markdown-reader", version, omitRootToolNamePrefix: true })` from `toolcraft/mcp`. Mirrors [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts).
+  - `src/mcp/run.ts` — `runMarkdownReaderMcp()` → `runMCP(markdownGroup, { name: "markdown-reader", version, omitRootToolNamePrefix: true })` from `toolcraft/mcp`. Mirrors [packages/terminal-pilot-mcp/src/index.ts](../../../../../packages/terminal-pilot-mcp/src/index.ts).
   - `src/testing/fixtures/*.md` — static sample docs used by unit tests.
-- CLI wiring lives in [src/cli/commands/plan.ts](src/cli/commands/plan.ts). Three new commander subcommands under the existing `plan` group:
+- CLI wiring lives in [src/cli/commands/plan.ts](../../../../../src/cli/commands/plan.ts). Three new commander subcommands under the existing `plan` group:
   - `plan markdown-read` — imports `readMarkdown` from `@poe-code/markdown-reader`, prints via the existing `writeOutput` + `resolveOutputOption` helpers in that file (`terminal` / `md` / `json`).
   - `plan markdown-read-section` — imports `readSection`, same output treatment; default format is `markdown`.
   - `plan markdown-reader-mcp` — imports `runMarkdownReaderMcp` and awaits it. No flags.
-- [src/cli/program.ts](src/cli/program.ts) `ROOT_HELP_COMMAND_SPECS` gets three new rows under the `plan` prefix.
-- `@poe-code/markdown-reader` is **not** registered in [src/cli/mcp-server.ts](src/cli/mcp-server.ts). The tools live inside the standalone `markdown-reader-mcp` server only — per user requirement that this be a standalone server, not part of `poe-code mcp serve`.
+- [src/cli/program.ts](../../../../../src/cli/program.ts) `ROOT_HELP_COMMAND_SPECS` gets three new rows under the `plan` prefix.
+- `@poe-code/markdown-reader` is **not** registered in `src/cli/mcp-server.ts`. The tools live inside the standalone `markdown-reader-mcp` server only — per user requirement that this be a standalone server, not part of `poe-code mcp serve`.
 
 ### Parsing strategy — extend the shared AST with source positions
 
-Section 1's direction stands: reuse `toolcraft-design`'s parser. The only thing missing is **source positions on AST nodes** ([packages/toolcraft-design/src/terminal-markdown/ast.ts](packages/toolcraft-design/src/terminal-markdown/ast.ts)). Rather than duplicate a scanner here, the plan extends the shared parser so every node carries a byte range. This benefits any future caller that needs round-trip source slicing (doc-lint, superintendent tooling, alternate renderers) and keeps exactly one markdown parser in the monorepo.
+Section 1's direction stands: reuse `toolcraft-design`'s parser. The only thing missing is **source positions on AST nodes** ([packages/toolcraft-design/src/terminal-markdown/ast.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/ast.ts)). Rather than duplicate a scanner here, the plan extends the shared parser so every node carries a byte range. This benefits any future caller that needs round-trip source slicing (doc-lint, superintendent tooling, alternate renderers) and keeps exactly one markdown parser in the monorepo.
 
 Changes to `toolcraft-design` (in the same PR as `packages/markdown-reader`, since this is the motivating consumer):
 
 1. Add an optional `range: { start: number; end: number }` field to `MdNode`. Offsets are byte indices into the input passed to `parse()`. `end` is exclusive. BOM is preserved in the input so offsets line up with the file buffer.
-2. Capture offsets in `parser/block.ts`. The parser already threads a `state.position` cursor and a `readLine` helper that returns `{ start, nextPosition }` ([packages/toolcraft-design/src/terminal-markdown/parser/block.ts](packages/toolcraft-design/src/terminal-markdown/parser/block.ts)). Every block rule:
+2. Capture offsets in `parser/block.ts`. The parser already threads a `state.position` cursor and a `readLine` helper that returns `{ start, nextPosition }` ([packages/toolcraft-design/src/terminal-markdown/parser/block.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/parser/block.ts)). Every block rule:
    - Records `rangeStart = state.position` **before** consuming input.
    - Sets `node.range = { start: rangeStart, end: state.position }` **after** advancing.
 3. `parser/frontmatter.ts` — the frontmatter node gets a `range` covering the opening `---` through the closing fence (inclusive of its trailing newline).
@@ -217,7 +217,7 @@ In `packages/markdown-reader`, `src/core/scan.ts` is then a ~30-line AST walker:
 - `headingStart` = `heading.range.start`. `bodyStart` = `heading.range.end` (first char after the heading line — the parser consumes the trailing newline).
 - `bodyEnd` (with children) = start of the next heading with `depth <= this.depth`, or `source.length`.
 - `bodyEndNoChildren` = start of the next heading at any depth, or `source.length`.
-- Setext headings are supported automatically — [parser/block.ts:347 parseSetextHeading](packages/toolcraft-design/src/terminal-markdown/parser/block.ts#L347) already emits a `heading` node for them.
+- Setext headings are supported automatically — [parser/block.ts:347 parseSetextHeading](../../../../../packages/toolcraft-design/src/terminal-markdown/parser/block.ts#L347) already emits a `heading` node for them.
 
 ### Numbering rule
 
@@ -268,23 +268,30 @@ No fuzzy matching, no slugs. If nothing hits, throw `UserError("no section match
 ```ts
 // src/core/scan.ts
 export interface Section {
-  depth: number;               // 1..6
-  title: string;               // raw heading text, trimmed
-  number: string | null;       // "2.1" — null when heading is shallower than numbering baseline
-  headingStart: number;        // byte offset in the original buffer
-  bodyStart: number;           // byte offset right after the heading line's newline
-  bodyEnd: number;             // exclusive; next heading with depth <= this.depth, or EOF
-  bodyEndNoChildren: number;   // exclusive; next heading at any depth, or EOF
+  depth: number; // 1..6
+  title: string; // raw heading text, trimmed
+  number: string | null; // "2.1" — null when heading is shallower than numbering baseline
+  headingStart: number; // byte offset in the original buffer
+  bodyStart: number; // byte offset right after the heading line's newline
+  bodyEnd: number; // exclusive; next heading with depth <= this.depth, or EOF
+  bodyEndNoChildren: number; // exclusive; next heading at any depth, or EOF
 }
 
 export function scanMarkdown(source: string): Section[];
 
 // src/core/resolve.ts
-export function resolveSection(sections: Section[], id: string): Section;  // throws UserError
+export function resolveSection(sections: Section[], id: string): Section; // throws UserError
 
 // src/index.ts — SDK
-export interface ReadMarkdownParams { file: string; depth?: number; }
-export interface TocEntry { depth: number; number: string | null; title: string; }
+export interface ReadMarkdownParams {
+  file: string;
+  depth?: number;
+}
+export interface TocEntry {
+  depth: number;
+  number: string | null;
+  title: string;
+}
 export interface ReadMarkdownResult {
   file: string;
   frontmatter: Record<string, unknown>;
@@ -295,7 +302,7 @@ export function readMarkdown(params: ReadMarkdownParams): Promise<ReadMarkdownRe
 export interface ReadSectionParams {
   file: string;
   section: string;
-  includeChildren?: boolean;   // default true
+  includeChildren?: boolean; // default true
 }
 export interface ReadSectionResult {
   file: string;
@@ -309,7 +316,7 @@ export { markdownGroup } from "./group.js";
 
 ### MCP tool and group shape
 
-toolcraft `defineCommand` with `scope: ["mcp"]` only — the CLI surface is delivered through commander subcommands in `plan.ts`, not through toolcraft's CLI renderer. Pattern follows [packages/superintendent/src/commands/superintendent-group.ts:25-65](packages/superintendent/src/commands/superintendent-group.ts#L25-L65) for the `defineCommand` block and [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts) for the `runMCP` entry:
+toolcraft `defineCommand` with `scope: ["mcp"]` only — the CLI surface is delivered through commander subcommands in `plan.ts`, not through toolcraft's CLI renderer. Pattern follows [packages/superintendent/src/commands/superintendent-group.ts:25-65](../../../../../packages/superintendent/src/commands/superintendent-group.ts#L25-L65) for the `defineCommand` block and [packages/terminal-pilot-mcp/src/index.ts](../../../../../packages/terminal-pilot-mcp/src/index.ts) for the `runMCP` entry:
 
 ```ts
 // src/mcp/tools.ts
@@ -318,10 +325,10 @@ export const readTool = defineCommand({
   description: "Read the table of contents and frontmatter of a markdown file.",
   params: S.Object({
     file: S.String({ description: "Path to the markdown file" }),
-    depth: S.Optional(S.Number({ description: "Limit TOC to headings at depth <= n" })),
+    depth: S.Optional(S.Number({ description: "Limit TOC to headings at depth <= n" }))
   }),
   scope: ["mcp"],
-  handler: async ({ params }) => readMarkdown(params),
+  handler: async ({ params }) => readMarkdown(params)
 });
 
 // src/mcp/group.ts
@@ -329,12 +336,16 @@ export const markdownGroup = defineGroup({
   name: "markdown-reader",
   description: "Read markdown files section-by-section.",
   scope: ["mcp"],
-  children: [readTool, readSectionTool],
+  children: [readTool, readSectionTool]
 });
 
 // src/mcp/run.ts
 export async function runMarkdownReaderMcp(): Promise<void> {
-  await runMCP(markdownGroup, { name: "markdown-reader", version: packageJson.version, omitRootToolNamePrefix: true });
+  await runMCP(markdownGroup, {
+    name: "markdown-reader",
+    version: packageJson.version,
+    omitRootToolNamePrefix: true
+  });
 }
 ```
 
@@ -342,7 +353,7 @@ The commander subcommands in `plan.ts` do **not** go through toolcraft; they cal
 
 ### Test plan
 
-All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json)). File I/O in tests uses `memfs` per CLAUDE.md.
+All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/toolcraft-openapi/package.json](../../../../../packages/toolcraft-openapi/package.json)). File I/O in tests uses `memfs` per project instructions.
 
 - `toolcraft-design` — new tests in `packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts` (or a new `parser-range.test.ts` if the existing file is large): assert `range.start` / `range.end` on heading, paragraph, code block, list, and frontmatter nodes across representative fixtures. These lock the new position invariant so future parser changes do not silently break consumers.
 - `scan.test.ts` (covers the walker + numbering only — fence / CRLF / BOM / ATX-vs-Setext are the shared parser's responsibility):
@@ -369,7 +380,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### Rollout / migration
 
-- New package; no callers to migrate. No `plan markdown-*` subcommands exist today (grep of [src/cli/commands/plan.ts](src/cli/commands/plan.ts) confirms).
+- New package; no callers to migrate. No `plan markdown-*` subcommands exist today (grep of [src/cli/commands/plan.ts](../../../../../src/cli/commands/plan.ts) confirms).
 - After wiring, `poe-code plan --help` must list the three new subcommands alongside the existing `browse`, `view`, `edit`, `archive`, `delete`, `install`, `list`.
 - `poe-code plan markdown-reader-mcp` must pass an MCP handshake smoke test (see acceptance checklist).
 
@@ -384,7 +395,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
   - `npm run dev -- plan markdown-read-section docs/plans/markdown-reader.md "Command: plan markdown-read"` returns the same body.
   - `npm run dev -- plan markdown-read missing.md` exits non-zero with a `UserError`-style message, not a stack trace.
   - `npm run dev -- plan --help` shows the three new subcommands.
-  - `npm run dev -- plan markdown-reader-mcp` passes an MCP handshake smoke test: an `initialize` request over stdio returns a capabilities payload, a `tools/list` request returns exactly `read` and `read_section`, and a `tools/call` on `read` with `{ file: "docs/plans/markdown-reader.md" }` returns a TOC. Pattern to copy: [packages/terminal-pilot-mcp/scripts/smoke-test.ts](packages/terminal-pilot-mcp/scripts/smoke-test.ts).
+  - `npm run dev -- plan markdown-reader-mcp` passes an MCP handshake smoke test: an `initialize` request over stdio returns a capabilities payload, a `tools/list` request returns exactly `read` and `read_section`, and a `tools/call` on `read` with `{ file: "docs/plans/markdown-reader.md" }` returns a TOC. Pattern to copy: [packages/terminal-pilot-mcp/scripts/smoke-test.ts](../../../../../packages/terminal-pilot-mcp/scripts/smoke-test.ts).
   - `npm run screenshot-poe-code -- plan markdown-read docs/plans/markdown-reader.md` — visually validate the terminal renderer once, attach to PR.
 - **Verification commands** (exact): `npm run build`, `npm test`, `npm run lint`, `npm run dev -- plan markdown-read docs/plans/markdown-reader.md`, `npm run dev -- plan markdown-read-section docs/plans/markdown-reader.md 2.1`, `npm run dev -- plan markdown-read-section docs/plans/markdown-reader.md 2.1 --no-include-children`, MCP smoke script against `npm run dev -- plan markdown-reader-mcp`.
 - **Fixtures / setup**: none external. All fixtures are in-repo markdown strings under `src/testing/fixtures/`.
@@ -400,9 +411,9 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### New files
 
-- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `toolcraft-design`. Scripts mirror [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json) (`build`, `test`, `test:unit`).
+- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `toolcraft-design`. Scripts mirror [packages/toolcraft-openapi/package.json](../../../../../packages/toolcraft-openapi/package.json) (`build`, `test`, `test:unit`).
 - `packages/markdown-reader/tsconfig.json` — extends workspace base, `outDir: dist`.
-- `packages/markdown-reader/README.md` — per CLAUDE.md package rule ("Package must have own readme"). Sections: overview, SDK usage, MCP tool names, standalone server invocation (`poe-code plan markdown-reader-mcp`), example agent config. No env vars, no config.
+- `packages/markdown-reader/README.md` — per the package README rule. Sections: overview, SDK usage, MCP tool names, standalone server invocation (`poe-code plan markdown-reader-mcp`), example agent config. No env vars, no config.
 - `packages/markdown-reader/src/index.ts` — exports `readMarkdown`, `readSection`, `markdownGroup`, `runMarkdownReaderMcp`.
 - `packages/markdown-reader/src/core/scan.ts` — `scanMarkdown(source)` (AST walker).
 - `packages/markdown-reader/src/core/resolve.ts` — `resolveSection(sections, id)`.
@@ -417,20 +428,20 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### Files to change
 
-- [packages/toolcraft-design/src/terminal-markdown/ast.ts](packages/toolcraft-design/src/terminal-markdown/ast.ts): add optional `range?: { start: number; end: number }` to the `MdNode` union. Export the range type so consumers can narrow.
-- [packages/toolcraft-design/src/terminal-markdown/parser/block.ts](packages/toolcraft-design/src/terminal-markdown/parser/block.ts): capture `state.position` before each block rule runs and attach `range` to every node it returns. One touch per `parseAtxHeading`, `parseSetextHeading`, `parseParagraph`, `parseCodeBlock`, `parseList`, `parseBlockquote`, `parseTable`, `parseHtmlBlock`, `parseThematicBreak`, `parseAlert`, `parseFootnoteDefinition`.
-- [packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts](packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts): return the byte range of the frontmatter block alongside the existing payload; `parser.ts` attaches it to the synthesized frontmatter node.
-- [packages/toolcraft-design/src/terminal-markdown/parser/inline.ts](packages/toolcraft-design/src/terminal-markdown/parser/inline.ts): same treatment for inline nodes. Lowest priority; include in this PR because the plumbing is already there.
-- [packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts](packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts): add positional assertions across a representative fixture.
-- [src/cli/commands/plan.ts](src/cli/commands/plan.ts):
+- [packages/toolcraft-design/src/terminal-markdown/ast.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/ast.ts): add optional `range?: { start: number; end: number }` to the `MdNode` union. Export the range type so consumers can narrow.
+- [packages/toolcraft-design/src/terminal-markdown/parser/block.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/parser/block.ts): capture `state.position` before each block rule runs and attach `range` to every node it returns. One touch per `parseAtxHeading`, `parseSetextHeading`, `parseParagraph`, `parseCodeBlock`, `parseList`, `parseBlockquote`, `parseTable`, `parseHtmlBlock`, `parseThematicBreak`, `parseAlert`, `parseFootnoteDefinition`.
+- [packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts): return the byte range of the frontmatter block alongside the existing payload; `parser.ts` attaches it to the synthesized frontmatter node.
+- [packages/toolcraft-design/src/terminal-markdown/parser/inline.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/parser/inline.ts): same treatment for inline nodes. Lowest priority; include in this PR because the plumbing is already there.
+- [packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts](../../../../../packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts): add positional assertions across a representative fixture.
+- [src/cli/commands/plan.ts](../../../../../src/cli/commands/plan.ts):
   - Add `import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";` at the top.
   - Inside `registerPlanCommand`, add three `plan.command(...)` blocks alongside the existing `browse` / `view` / `edit` / `archive` / `delete` / `install` / `list` subcommands:
     - `plan.command("markdown-read").argument("<file>").option("--depth <n>").option("--output <format>")` — action calls `readMarkdown` and prints via the existing `writeOutput` / `resolveOutputOption` helpers.
     - `plan.command("markdown-read-section").argument("<file>").argument("<section>").option("--no-include-children").option("--output <format>")` — action calls `readSection`, default output `markdown`.
     - `plan.command("markdown-reader-mcp")` — action awaits `runMarkdownReaderMcp()`. No flags.
-- [src/cli/program.ts](src/cli/program.ts) `ROOT_HELP_COMMAND_SPECS` (lines 61-95): add three rows: `{ path: ["plan", "markdown-read"], args: "<file>" }`, `{ path: ["plan", "markdown-read-section"], args: "<file> <section>" }`, `{ path: ["plan", "markdown-reader-mcp"] }`.
-- Root `package.json` / workspace glob: the existing `packages/*` glob covers the new folder; no edit needed. Verify with `npm install` after scaffolding.
-- [src/cli/mcp-server.ts](src/cli/mcp-server.ts): **no change**. The markdown-reader MCP tools are intentionally excluded from the central `poe-code mcp serve` — they only surface through the standalone `plan markdown-reader-mcp` server.
+- [src/cli/program.ts](../../../../../src/cli/program.ts) `ROOT_HELP_COMMAND_SPECS` (lines 61-95): add three rows: `{ path: ["plan", "markdown-read"], args: "<file>" }`, `{ path: ["plan", "markdown-read-section"], args: "<file> <section>" }`, `{ path: ["plan", "markdown-reader-mcp"] }`.
+- Root `package.json` / workspace glob: the existing `packages/*` glob covers the new folder; no edit needed. Verify with `npm install` after creating the package.
+- `src/cli/mcp-server.ts`: **no change**. The markdown-reader MCP tools are intentionally excluded from the central `poe-code mcp serve` — they only surface through the standalone `plan markdown-reader-mcp` server.
 
 ### Function signatures (new or noteworthy)
 
@@ -454,12 +465,12 @@ export function runMarkdownReaderMcp(): Promise<void>;
 ### Build order (keeps the branch green at every step)
 
 1. **Extend the shared AST first.** In `toolcraft-design`: add `range` to `MdNode`, thread offset capture through `parser/block.ts` + `parser/frontmatter.ts` + `parser/inline.ts`, add positional assertions to `terminal-markdown.test.ts`. Run `npm run build` + `npm test --workspace=toolcraft-design` — green, terminal-markdown renderer snapshots unchanged.
-2. Scaffold `packages/markdown-reader`: `package.json` + `tsconfig.json` + empty `src/index.ts`. Run `npm install` and `npm run build` — green.
+2. Create `packages/markdown-reader`: `package.json` + `tsconfig.json` + empty `src/index.ts`. Run `npm install` and `npm run build` — green.
 3. `src/core/scan.ts` + `scan.test.ts` with fixtures. Green. The walker is small; complexity now lives in the shared parser.
 4. `src/core/resolve.ts` + `resolve.test.ts`. Green.
 5. `src/core/read-markdown.ts` + `read-section.ts` + their tests (memfs). Green. SDK surface is now usable.
 6. `src/mcp/tools.ts` + `src/mcp/group.ts` + `src/mcp/run.ts` + unit tests (mock stdio transport, assert tool list + one `tools/call` succeeds). Green.
 7. `src/index.ts` barrel exports. Green.
-8. Wire the three commander subcommands into [src/cli/commands/plan.ts](src/cli/commands/plan.ts). Add three `ROOT_HELP_COMMAND_SPECS` rows in [src/cli/program.ts](src/cli/program.ts). Root `npm run build` + `npm run dev -- plan --help` shows the new subcommands.
+8. Wire the three commander subcommands into [src/cli/commands/plan.ts](../../../../../src/cli/commands/plan.ts). Add three `ROOT_HELP_COMMAND_SPECS` rows in [src/cli/program.ts](../../../../../src/cli/program.ts). Root `npm run build` + `npm run dev -- plan --help` shows the new subcommands.
 9. Write `README.md` (SDK + MCP usage, agent config example).
 10. Run the full acceptance checklist (§4), including the MCP handshake smoke test. Take a screenshot of `plan markdown-read` for visual validation. Done.

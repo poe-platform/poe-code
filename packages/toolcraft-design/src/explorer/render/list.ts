@@ -28,7 +28,7 @@ export function renderList(
   drawPaneFrame(
     screen,
     rect,
-    "Plans",
+    state.title,
     state.focused === "list" ? styles.borderFocused : styles.border
   );
   const bodyRect = paneBodyRect(rect);

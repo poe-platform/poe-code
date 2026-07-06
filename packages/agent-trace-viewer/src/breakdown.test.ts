@@ -2,19 +2,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { NormalizedTrace } from "@poe-code/agent-traces";
 
 const mocks = vi.hoisted(() => ({
-  countTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
+  estimateTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
 }));
 
 vi.mock("tokenfill", () => ({
-  countTokens: mocks.countTokens
+  estimateTokens: mocks.estimateTokens
 }));
 
 import { computeContextBreakdown } from "./breakdown.js";
 
 describe("computeContextBreakdown", () => {
   beforeEach(() => {
-    mocks.countTokens.mockReset();
-    mocks.countTokens.mockImplementation((text: string) => text.length);
+    mocks.estimateTokens.mockReset();
+    mocks.estimateTokens.mockImplementation((text: string) => text.length);
   });
 
   it("attributes turns to ordered categories with grouped items", () => {

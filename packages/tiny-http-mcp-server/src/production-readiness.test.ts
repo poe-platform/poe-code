@@ -9,7 +9,7 @@ import {
   createJwksTokenVerifier,
   type HttpObservabilityEvent,
   type Session,
-  type SessionStore,
+  type SessionStore
 } from "./index.js";
 import { createBearerChallenge } from "./auth.js";
 
@@ -20,7 +20,7 @@ async function initializeSession(server: ReturnType<typeof createHttpServer>): P
     jsonrpc: "2.0",
     id: 1,
     method: "initialize",
-    params: { protocolVersion: TEST_PROTOCOL_VERSION },
+    params: { protocolVersion: TEST_PROTOCOL_VERSION }
   });
   const sessionId = response.headers.get("mcp-session-id");
   expect(sessionId).toBeTruthy();
@@ -43,7 +43,7 @@ async function postJsonRpc(
   const headers = new Headers({
     Accept: "application/json, text/event-stream",
     "Content-Type": "application/json",
-    ...options.headers,
+    ...options.headers
   });
 
   if (options.sessionId !== undefined) {
@@ -54,7 +54,7 @@ async function postJsonRpc(
   return dispatch(server, {
     method: "POST",
     headers,
-    body: typeof message === "string" ? message : JSON.stringify(message),
+    body: typeof message === "string" ? message : JSON.stringify(message)
   });
 }
 
@@ -69,13 +69,10 @@ async function dispatch(
 ): Promise<Response> {
   const { response } = await dispatchRaw(server, options);
 
-  return new Response(
-    response.statusCode === 204 ? null : Buffer.concat(response.chunks),
-    {
-      status: response.statusCode,
-      headers: response.headerValues,
-    }
-  );
+  return new Response(response.statusCode === 204 ? null : Buffer.concat(response.chunks), {
+    status: response.statusCode,
+    headers: response.headerValues
+  });
 }
 
 async function dispatchRaw(
@@ -99,17 +96,14 @@ async function dispatchRaw(
     headers.set("host", "127.0.0.1");
   }
 
-  const request = Object.assign(
-    Readable.from(options.body === undefined ? [] : [options.body]),
-    {
-      method: options.method,
-      url: options.url ?? "/mcp",
-      headers: Object.fromEntries(
-        [...headers.entries()].map(([key, value]) => [key.toLowerCase(), value])
-      ),
-      socket: {},
-    }
-  ) as IncomingMessage;
+  const request = Object.assign(Readable.from(options.body === undefined ? [] : [options.body]), {
+    method: options.method,
+    url: options.url ?? "/mcp",
+    headers: Object.fromEntries(
+      [...headers.entries()].map(([key, value]) => [key.toLowerCase(), value])
+    ),
+    socket: {}
+  }) as IncomingMessage;
 
   const response = new EventEmitter() as ServerResponse & {
     chunks: Uint8Array[];
@@ -167,7 +161,7 @@ describe("HTTP MCP production readiness", () => {
     const bodyLimitedServer = createHttpServer({
       name: "limits",
       version: "1.0.0",
-      maxRequestBytes: 80,
+      maxRequestBytes: 80
     });
     const oversized = await postJsonRpc(bodyLimitedServer, {
       jsonrpc: "2.0",
@@ -175,15 +169,15 @@ describe("HTTP MCP production readiness", () => {
       method: "initialize",
       params: {
         protocolVersion: TEST_PROTOCOL_VERSION,
-        padding: "x".repeat(80),
-      },
+        padding: "x".repeat(80)
+      }
     });
     expect(oversized.status).toBe(413);
 
     const batchLimitedServer = createHttpServer({
       name: "limits",
       version: "1.0.0",
-      maxBatchSize: 1,
+      maxBatchSize: 1
     });
     const batchLimited = await postJsonRpc(
       batchLimitedServer,
@@ -192,9 +186,9 @@ describe("HTTP MCP production readiness", () => {
           jsonrpc: "2.0",
           id: 1,
           method: "initialize",
-          params: { protocolVersion: TEST_PROTOCOL_VERSION },
+          params: { protocolVersion: TEST_PROTOCOL_VERSION }
         },
-        { jsonrpc: "2.0", id: 2, method: "ping" },
+        { jsonrpc: "2.0", id: 2, method: "ping" }
       ],
       { headers: { "Content-Length": "1" } }
     );
@@ -202,8 +196,8 @@ describe("HTTP MCP production readiness", () => {
     const payload = await batchLimited.json();
     expect(payload).toMatchObject({
       error: {
-        message: "Batch size exceeds configured limit",
-      },
+        message: "Batch size exceeds configured limit"
+      }
     });
   });
 
@@ -218,7 +212,7 @@ describe("HTTP MCP production readiness", () => {
           id,
           initialized: false,
           createdAt: new Date(),
-          lastSeenAt: new Date(),
+          lastSeenAt: new Date()
         };
         created.push(id);
         backing.set(id, session);
@@ -242,14 +236,14 @@ describe("HTTP MCP production readiness", () => {
       },
       entries() {
         return backing.values();
-      },
+      }
     };
     const server = createHttpServer({
       name: "session-store",
       version: "1.0.0",
       sessionIdGenerator: () => "session-a",
       sessionStore,
-      sessionTtlMs: 1_000,
+      sessionTtlMs: 1_000
     });
     try {
       const sessionId = await initializeSession(server);
@@ -280,9 +274,9 @@ describe("HTTP MCP production readiness", () => {
           initialized: true,
           protocolVersion: TEST_PROTOCOL_VERSION,
           createdAt: new Date(),
-          lastSeenAt: new Date(),
-        },
-      ],
+          lastSeenAt: new Date()
+        }
+      ]
     ]);
     const sessionStore: SessionStore = {
       create(id) {
@@ -290,7 +284,7 @@ describe("HTTP MCP production readiness", () => {
           id,
           initialized: false,
           createdAt: new Date(),
-          lastSeenAt: new Date(),
+          lastSeenAt: new Date()
         };
         backing.set(id, session);
         return session;
@@ -306,13 +300,13 @@ describe("HTTP MCP production readiness", () => {
       },
       entries() {
         return backing.values();
-      },
+      }
     };
     const server = createHttpServer({
       name: "external-store",
       version: "1.0.0",
       enableJsonResponse: true,
-      sessionStore,
+      sessionStore
     }).tool("echo", "Echo", defineSchema({}), () => "ok");
 
     const response = await postJsonRpc(
@@ -325,8 +319,8 @@ describe("HTTP MCP production readiness", () => {
     expect(response.status).toBe(200);
     expect(payload).toMatchObject({
       result: {
-        tools: [expect.objectContaining({ name: "echo" })],
-      },
+        tools: [expect.objectContaining({ name: "echo" })]
+      }
     });
   });
 
@@ -336,21 +330,19 @@ describe("HTTP MCP production readiness", () => {
       version: "1.0.0",
       allowedOrigins: ["https://client.example.com"],
       allowedHosts: ["127.0.0.1"],
-      requestIdGenerator: () => "req-1",
+      requestIdGenerator: () => "req-1"
     });
     const preflight = await dispatch(server, {
       method: "OPTIONS",
       headers: {
         Origin: "https://client.example.com",
         "Access-Control-Request-Method": "POST",
-        "Access-Control-Request-Headers": "content-type,mcp-session-id",
-      },
+        "Access-Control-Request-Headers": "content-type,mcp-session-id"
+      }
     });
 
     expect(preflight.status).toBe(204);
-    expect(preflight.headers.get("access-control-allow-origin")).toBe(
-      "https://client.example.com"
-    );
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("https://client.example.com");
     expect(preflight.headers.get("access-control-expose-headers")).toBe(
       "Mcp-Session-Id, X-Request-Id"
     );
@@ -360,7 +352,7 @@ describe("HTTP MCP production readiness", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
 
     expect(response.headers.get("x-request-id")).toBe("req-1");
@@ -376,7 +368,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       },
       { headers: { Origin: "https://client.example.com" } }
     );
@@ -395,7 +387,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 3,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       },
       { headers: { Origin: "https://attacker.example.com" } }
     );
@@ -411,7 +403,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 4,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       },
       { headers: { Host: "attacker.example.com" } }
     );
@@ -429,14 +421,9 @@ describe("HTTP MCP production readiness", () => {
       observability: {
         onEvent: (event) => {
           events.push(event);
-        },
-      },
-    }).tool(
-      "echo",
-      "Echo",
-      defineSchema({ text: { type: "string" } }),
-      ({ text }) => String(text)
-    );
+        }
+      }
+    }).tool("echo", "Echo", defineSchema({ text: { type: "string" } }), ({ text }) => String(text));
     const sessionId = await initializeSession(server);
     const response = await postJsonRpc(
       server,
@@ -444,7 +431,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "echo", arguments: { text: "hello" } },
+        params: { name: "echo", arguments: { text: "hello" } }
       },
       { sessionId }
     );
@@ -456,7 +443,7 @@ describe("HTTP MCP production readiness", () => {
         "request.end",
         "session.created",
         "tool.start",
-        "tool.end",
+        "tool.end"
       ])
     );
     expect(events).toContainEqual(
@@ -465,7 +452,7 @@ describe("HTTP MCP production readiness", () => {
         sessionId: "observed-session",
         toolName: "echo",
         ok: true,
-        durationMs: expect.any(Number),
+        durationMs: expect.any(Number)
       })
     );
   });
@@ -479,8 +466,8 @@ describe("HTTP MCP production readiness", () => {
       observability: {
         onEvent: (event) => {
           events.push(event);
-        },
-      },
+        }
+      }
     }).tool("fail", "Fail", defineSchema({}), () => {
       throw new Error("boom");
     });
@@ -492,7 +479,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "fail", arguments: {} },
+        params: { name: "fail", arguments: {} }
       },
       { sessionId }
     );
@@ -502,7 +489,7 @@ describe("HTTP MCP production readiness", () => {
       expect.objectContaining({
         type: "tool.end",
         toolName: "fail",
-        ok: false,
+        ok: false
       })
     );
   });
@@ -511,7 +498,7 @@ describe("HTTP MCP production readiness", () => {
     const server = createHttpServer({
       name: "tool-limit",
       version: "1.0.0",
-      maxConcurrentToolCalls: 1,
+      maxConcurrentToolCalls: 1
     }).tool("slow", "Slow", defineSchema({}), async () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
       return "done";
@@ -523,7 +510,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "slow", arguments: {} },
+        params: { name: "slow", arguments: {} }
       },
       { sessionId }
     );
@@ -534,7 +521,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 3,
         method: "tools/call",
-        params: { name: "slow", arguments: {} },
+        params: { name: "slow", arguments: {} }
       },
       { sessionId }
     );
@@ -544,17 +531,80 @@ describe("HTTP MCP production readiness", () => {
       id: 3,
       error: {
         code: -32000,
-        message: "Too many concurrent tool calls",
-      },
+        message: "Too many concurrent tool calls"
+      }
     });
     await first;
+  });
+
+  it("releases the concurrency slot and emits a failed tool end after timeout", async () => {
+    const events: HttpObservabilityEvent[] = [];
+    let callCount = 0;
+    const server = createHttpServer({
+      name: "tool-timeout",
+      version: "1.0.0",
+      enableJsonResponse: true,
+      maxConcurrentToolCalls: 1,
+      toolCallTimeoutMs: 5,
+      observability: {
+        onEvent: (event) => {
+          events.push(event);
+        }
+      }
+    }).tool("sometimes-hangs", "Sometimes hangs", defineSchema({}), () => {
+      callCount += 1;
+      return callCount === 1 ? new Promise(() => {}) : "done";
+    });
+    const sessionId = await initializeSession(server);
+
+    const timedOut = await postJsonRpc(
+      server,
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: { name: "sometimes-hangs", arguments: {} }
+      },
+      { sessionId }
+    );
+    const succeeded = await postJsonRpc(
+      server,
+      {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: { name: "sometimes-hangs", arguments: {} }
+      },
+      { sessionId }
+    );
+
+    await expect(timedOut.json()).resolves.toMatchObject({
+      id: 2,
+      error: {
+        code: -32603,
+        message: "Tool call timed out: sometimes-hangs"
+      }
+    });
+    await expect(succeeded.json()).resolves.toMatchObject({
+      id: 3,
+      result: {
+        content: [{ type: "text", text: "done" }]
+      }
+    });
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "tool.end",
+        toolName: "sometimes-hangs",
+        ok: false
+      })
+    );
   });
 
   it("replays stored SSE notifications after Last-Event-ID reconnects", async () => {
     const server = createHttpServer({
       name: "resume",
       version: "1.0.0",
-      sessionIdGenerator: () => "resume-session",
+      sessionIdGenerator: () => "resume-session"
     });
     const sessionId = await initializeSession(server);
 
@@ -566,8 +616,8 @@ describe("HTTP MCP production readiness", () => {
         Accept: "text/event-stream",
         "Mcp-Session-Id": sessionId,
         "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
-        "Last-Event-ID": "0",
-      },
+        "Last-Event-ID": "0"
+      }
     });
     const text = Buffer.concat(response.chunks).toString("utf8");
 
@@ -580,22 +630,22 @@ describe("HTTP MCP production readiness", () => {
     const server = createHttpServer({
       name: "single-stream-default",
       version: "1.0.0",
-      sessionIdGenerator: () => "single-stream-default-session",
+      sessionIdGenerator: () => "single-stream-default-session"
     });
     const sessionId = await initializeSession(server);
     const streamHeaders = {
       Accept: "text/event-stream",
       "Mcp-Session-Id": sessionId,
-      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
     };
 
     const first = await dispatchRaw(server, {
       method: "GET",
-      headers: streamHeaders,
+      headers: streamHeaders
     });
     const second = await dispatch(server, {
       method: "GET",
-      headers: streamHeaders,
+      headers: streamHeaders
     });
 
     expect(first.response.statusCode).toBe(200);
@@ -607,26 +657,26 @@ describe("HTTP MCP production readiness", () => {
       name: "multi-stream",
       version: "1.0.0",
       sessionIdGenerator: () => "multi-stream-session",
-      maxStreamsPerSession: 2,
+      maxStreamsPerSession: 2
     });
     const sessionId = await initializeSession(server);
     const streamHeaders = {
       Accept: "text/event-stream",
       "Mcp-Session-Id": sessionId,
-      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
     };
 
     const first = await dispatchRaw(server, {
       method: "GET",
-      headers: streamHeaders,
+      headers: streamHeaders
     });
     const second = await dispatchRaw(server, {
       method: "GET",
-      headers: streamHeaders,
+      headers: streamHeaders
     });
     const third = await dispatch(server, {
       method: "GET",
-      headers: streamHeaders,
+      headers: streamHeaders
     });
 
     expect(first.response.statusCode).toBe(200);
@@ -653,8 +703,8 @@ describe("HTTP MCP production readiness", () => {
       method: "GET",
       headers: {
         ...streamHeaders,
-        "Last-Event-ID": "0",
-      },
+        "Last-Event-ID": "0"
+      }
     });
     const replayText = Buffer.concat(replay.response.chunks).toString("utf8");
 
@@ -668,9 +718,9 @@ describe("HTTP MCP production readiness", () => {
       headers: {
         host: "127.0.0.1:3000",
         "x-forwarded-host": "public.example.com",
-        "x-forwarded-proto": "https",
+        "x-forwarded-proto": "https"
       },
-      socket: {},
+      socket: {}
     } as IncomingMessage;
 
     expect(createBearerChallenge(req, {}, "/mcp", false)).toContain(
@@ -692,16 +742,16 @@ describe("HTTP MCP production readiness", () => {
         verifier: {
           async verify() {
             throw new Error("not reached");
-          },
-        },
-      },
+          }
+        }
+      }
     });
 
     const response = await postJsonRpc(server, {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
 
     expect(response.status).toBe(401);
@@ -713,7 +763,7 @@ describe("HTTP MCP production readiness", () => {
     const server = createHttpServer({
       name: "ipv6-host",
       version: "1.0.0",
-      allowedHosts: ["::1"],
+      allowedHosts: ["::1"]
     });
 
     const response = await postJsonRpc(
@@ -722,7 +772,7 @@ describe("HTTP MCP production readiness", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       },
       { headers: { Host: "[::1]" } }
     );
@@ -741,18 +791,18 @@ describe("HTTP MCP production readiness", () => {
         verifier: {
           async verify() {
             throw new Error("not reached");
-          },
-        },
+          }
+        }
       },
       observability: {
         onEvent: (event) => {
           events.push(event);
-        },
-      },
+        }
+      }
     });
     const req = {
       headers: { host: "127.0.0.1" },
-      socket: {},
+      socket: {}
     } as IncomingMessage;
     const res = {
       set: vi.fn(),
@@ -760,7 +810,7 @@ describe("HTTP MCP production readiness", () => {
         this.statusCode = code;
         return this;
       }),
-      end: vi.fn(),
+      end: vi.fn()
     };
 
     await mcpMiddleware(req as never, res as never, vi.fn());
@@ -771,7 +821,7 @@ describe("HTTP MCP production readiness", () => {
     expect(events).toContainEqual(
       expect.objectContaining({
         type: "auth.failure",
-        statusCode: 401,
+        statusCode: 401
       })
     );
   });

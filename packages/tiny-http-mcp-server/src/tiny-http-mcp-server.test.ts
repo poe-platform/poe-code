@@ -2,11 +2,7 @@ import http, { type IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createRequire } from "node:module";
 import { Readable } from "node:stream";
-import express, {
-  type ErrorRequestHandler,
-  type Express,
-  type RequestHandler,
-} from "express";
+import express, { type ErrorRequestHandler, type Express, type RequestHandler } from "express";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -19,7 +15,7 @@ import {
   Image,
   JSON_RPC_ERROR_CODES,
   toContentBlocks,
-  fileTypeFromBuffer,
+  fileTypeFromBuffer
 } from "tiny-stdio-mcp-server";
 import type {
   AudioContent,
@@ -49,13 +45,18 @@ import type {
   ToolHandler,
   ToolReturn,
   Transport,
-  TypedSchema,
+  TypedSchema
 } from "tiny-stdio-mcp-server";
 import { HttpTransport, McpClient } from "tiny-mcp-client";
 import { StreamableHttpTransport } from "./http-transport.js";
 import { createExpressMiddleware } from "./express-middleware.js";
 import { createHttpServer, createProtectedResourceMetadataDocument } from "./http-server.js";
-import type { HttpListenOptions, HttpServer, HttpServerHandle, HttpTransportOptions } from "./http-server.js";
+import type {
+  HttpListenOptions,
+  HttpServer,
+  HttpServerHandle,
+  HttpTransportOptions
+} from "./http-server.js";
 import { runCli } from "./cli.js";
 import { createSessionStore, defaultSessionIdGenerator } from "./session.js";
 import { formatSseEvent, SSE_HEADERS } from "./sse.js";
@@ -64,7 +65,7 @@ import {
   createHttpTestPair,
   createHttpTestPairWithTinyClient,
   createTestMcpServer,
-  nodeFetch,
+  nodeFetch
 } from "./testing.js";
 
 function hasOwnErrorCode(error: unknown, code: string): boolean {
@@ -94,7 +95,7 @@ async function readSseEvent(
       reader.read(),
       new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error("Timed out waiting for SSE")), timeoutMs);
-      }),
+      })
     ]);
 
     if (chunk.done) {
@@ -161,20 +162,18 @@ describe("sse", () => {
   });
 
   it("S2: formats event with id field", () => {
-    expect(formatSseEvent({ id: "42", data: "hello" })).toBe(
-      "id: 42\ndata: hello\n\n",
-    );
+    expect(formatSseEvent({ id: "42", data: "hello" })).toBe("id: 42\ndata: hello\n\n");
   });
 
   it("S3: formats event with event type", () => {
     expect(formatSseEvent({ event: "message", data: "hello" })).toBe(
-      "event: message\ndata: hello\n\n",
+      "event: message\ndata: hello\n\n"
     );
   });
 
   it("S4: formats event with all fields in correct order", () => {
     expect(formatSseEvent({ id: "42", event: "message", data: "hello" })).toBe(
-      "id: 42\nevent: message\ndata: hello\n\n",
+      "id: 42\nevent: message\ndata: hello\n\n"
     );
   });
 
@@ -184,7 +183,7 @@ describe("sse", () => {
 
   it("S6: handles data with special characters", () => {
     expect(formatSseEvent({ data: '{"message":"hello","text":"zażółć 😀"}' })).toBe(
-      'data: {"message":"hello","text":"zażółć 😀"}\n\n',
+      'data: {"message":"hello","text":"zażółć 😀"}\n\n'
     );
   });
 
@@ -202,7 +201,7 @@ describe("sse", () => {
 
   it("formats multiline data as multiple data lines", () => {
     expect(formatSseEvent({ data: "first\r\nsecond\nthird\rfourth" })).toBe(
-      "data: first\ndata: second\ndata: third\ndata: fourth\n\n",
+      "data: first\ndata: second\ndata: third\ndata: fourth\n\n"
     );
   });
 });
@@ -218,9 +217,7 @@ describe("session", () => {
   });
 
   it("SS2: session IDs are unique", () => {
-    const ids = new Set(
-      Array.from({ length: 100 }, () => defaultSessionIdGenerator())
-    );
+    const ids = new Set(Array.from({ length: 100 }, () => defaultSessionIdGenerator()));
 
     expect(ids).toHaveLength(100);
   });
@@ -253,7 +250,7 @@ describe("session", () => {
       id: "session-1",
       initialized: false,
       createdAt: expect.any(Date),
-      lastSeenAt: expect.any(Date),
+      lastSeenAt: expect.any(Date)
     });
   });
 
@@ -296,9 +293,7 @@ describe("readAndClassifyBody", () => {
       createRequest('{"jsonrpc":"2.0","id":1,"method":"tools/list"}')
     );
 
-    expect(parsed.messages).toEqual([
-      { jsonrpc: "2.0", id: 1, method: "tools/list" },
-    ]);
+    expect(parsed.messages).toEqual([{ jsonrpc: "2.0", id: 1, method: "tools/list" }]);
     expect(parsed.requests).toEqual(parsed.messages);
     expect(parsed.notifications).toEqual([]);
     expect(parsed.responses).toEqual([]);
@@ -309,9 +304,7 @@ describe("readAndClassifyBody", () => {
       createRequest('{"jsonrpc":"2.0","method":"notifications/initialized"}')
     );
 
-    expect(parsed.messages).toEqual([
-      { jsonrpc: "2.0", method: "notifications/initialized" },
-    ]);
+    expect(parsed.messages).toEqual([{ jsonrpc: "2.0", method: "notifications/initialized" }]);
     expect(parsed.requests).toEqual([]);
     expect(parsed.notifications).toEqual(parsed.messages);
     expect(parsed.responses).toEqual([]);
@@ -322,9 +315,7 @@ describe("readAndClassifyBody", () => {
       createRequest('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}')
     );
 
-    expect(parsed.messages).toEqual([
-      { jsonrpc: "2.0", id: 1, result: { ok: true } },
-    ]);
+    expect(parsed.messages).toEqual([{ jsonrpc: "2.0", id: 1, result: { ok: true } }]);
     expect(parsed.requests).toEqual([]);
     expect(parsed.notifications).toEqual([]);
     expect(parsed.responses).toEqual(parsed.messages);
@@ -339,21 +330,19 @@ describe("readAndClassifyBody", () => {
 
     expect(parsed.requests).toEqual([
       { jsonrpc: "2.0", id: 1, method: "ping" },
-      { jsonrpc: "2.0", id: 2, method: "pong" },
+      { jsonrpc: "2.0", id: 2, method: "pong" }
     ]);
     expect(parsed.messages).toEqual(parsed.requests);
   });
 
   it("P5 parses batch of notifications", async () => {
     const parsed = await readAndClassifyBody(
-      createRequest(
-        '[{"jsonrpc":"2.0","method":"note/one"},{"jsonrpc":"2.0","method":"note/two"}]'
-      )
+      createRequest('[{"jsonrpc":"2.0","method":"note/one"},{"jsonrpc":"2.0","method":"note/two"}]')
     );
 
     expect(parsed.notifications).toEqual([
       { jsonrpc: "2.0", method: "note/one" },
-      { jsonrpc: "2.0", method: "note/two" },
+      { jsonrpc: "2.0", method: "note/two" }
     ]);
     expect(parsed.messages).toEqual(parsed.notifications);
   });
@@ -370,8 +359,8 @@ describe("readAndClassifyBody", () => {
       {
         jsonrpc: "2.0",
         id: 2,
-        error: { code: -32603, message: "boom" },
-      },
+        error: { code: -32603, message: "boom" }
+      }
     ]);
     expect(parsed.messages).toEqual(parsed.responses);
   });
@@ -383,20 +372,14 @@ describe("readAndClassifyBody", () => {
       )
     );
 
-    expect(parsed.requests).toEqual([
-      { jsonrpc: "2.0", id: "r1", method: "tools/list" },
-    ]);
-    expect(parsed.notifications).toEqual([
-      { jsonrpc: "2.0", method: "notifications/initialized" },
-    ]);
+    expect(parsed.requests).toEqual([{ jsonrpc: "2.0", id: "r1", method: "tools/list" }]);
+    expect(parsed.notifications).toEqual([{ jsonrpc: "2.0", method: "notifications/initialized" }]);
     expect(parsed.responses).toEqual([]);
   });
 
   it("P8 classifies requests-only payload", async () => {
     const parsed = await readAndClassifyBody(
-      createRequest(
-        '[{"jsonrpc":"2.0","id":1,"method":"a"},{"jsonrpc":"2.0","id":2,"method":"b"}]'
-      )
+      createRequest('[{"jsonrpc":"2.0","id":1,"method":"a"},{"jsonrpc":"2.0","id":2,"method":"b"}]')
     );
 
     expect(parsed.hasRequests).toBe(true);
@@ -406,9 +389,7 @@ describe("readAndClassifyBody", () => {
 
   it("P9 classifies notifications-only payload", async () => {
     const parsed = await readAndClassifyBody(
-      createRequest(
-        '[{"jsonrpc":"2.0","method":"a"},{"jsonrpc":"2.0","method":"b"}]'
-      )
+      createRequest('[{"jsonrpc":"2.0","method":"a"},{"jsonrpc":"2.0","method":"b"}]')
     );
 
     expect(parsed.hasRequests).toBe(false);
@@ -418,9 +399,7 @@ describe("readAndClassifyBody", () => {
 
   it("P10 classifies responses-only payload", async () => {
     const parsed = await readAndClassifyBody(
-      createRequest(
-        '[{"jsonrpc":"2.0","id":1,"result":"a"},{"jsonrpc":"2.0","id":2,"result":"b"}]'
-      )
+      createRequest('[{"jsonrpc":"2.0","id":1,"result":"a"},{"jsonrpc":"2.0","id":2,"result":"b"}]')
     );
 
     expect(parsed.hasRequests).toBe(false);
@@ -429,78 +408,62 @@ describe("readAndClassifyBody", () => {
   });
 
   it("P11 rejects invalid JSON", async () => {
-    await expect(
-      readAndClassifyBody(createRequest('{"jsonrpc":"2.0"'))
-    ).rejects.toThrow("Parse error");
+    await expect(readAndClassifyBody(createRequest('{"jsonrpc":"2.0"'))).rejects.toThrow(
+      "Parse error"
+    );
   });
 
   it("P12 rejects non-object number body", async () => {
-    await expect(readAndClassifyBody(createRequest("123"))).rejects.toThrow(
-      "Invalid Request"
-    );
+    await expect(readAndClassifyBody(createRequest("123"))).rejects.toThrow("Invalid Request");
   });
 
   it("P13 rejects non-object string body", async () => {
-    await expect(
-      readAndClassifyBody(createRequest('"hello"'))
-    ).rejects.toThrow("Invalid Request");
+    await expect(readAndClassifyBody(createRequest('"hello"'))).rejects.toThrow("Invalid Request");
   });
 
   it("P14 rejects non-object null body", async () => {
-    await expect(readAndClassifyBody(createRequest("null"))).rejects.toThrow(
-      "Invalid Request"
-    );
+    await expect(readAndClassifyBody(createRequest("null"))).rejects.toThrow("Invalid Request");
   });
 
   it("P15 rejects message missing jsonrpc field", async () => {
-    await expect(
-      readAndClassifyBody(createRequest('{"id":1,"method":"ping"}'))
-    ).rejects.toThrow("Invalid Request");
+    await expect(readAndClassifyBody(createRequest('{"id":1,"method":"ping"}'))).rejects.toThrow(
+      "Invalid Request"
+    );
   });
 
   it("P16 rejects empty array", async () => {
-    await expect(readAndClassifyBody(createRequest("[]"))).rejects.toThrow(
-      "Invalid Request"
-    );
+    await expect(readAndClassifyBody(createRequest("[]"))).rejects.toThrow("Invalid Request");
   });
 
   it("P17 accepts pre-parsed body object", async () => {
     const parsed = await readAndClassifyBody(createRequest("ignored"), {
       jsonrpc: "2.0",
       id: 7,
-      method: "ping",
+      method: "ping"
     });
 
-    expect(parsed.messages).toEqual([
-      { jsonrpc: "2.0", id: 7, method: "ping" },
-    ]);
+    expect(parsed.messages).toEqual([{ jsonrpc: "2.0", id: 7, method: "ping" }]);
     expect(parsed.requests).toEqual(parsed.messages);
   });
 
   it("P18 accepts pre-parsed body array", async () => {
     const parsed = await readAndClassifyBody(createRequest("ignored"), [
       { jsonrpc: "2.0", method: "note/one" },
-      { jsonrpc: "2.0", id: "res-1", result: { ok: true } },
+      { jsonrpc: "2.0", id: "res-1", result: { ok: true } }
     ]);
 
-    expect(parsed.notifications).toEqual([
-      { jsonrpc: "2.0", method: "note/one" },
-    ]);
-    expect(parsed.responses).toEqual([
-      { jsonrpc: "2.0", id: "res-1", result: { ok: true } },
-    ]);
+    expect(parsed.notifications).toEqual([{ jsonrpc: "2.0", method: "note/one" }]);
+    expect(parsed.responses).toEqual([{ jsonrpc: "2.0", id: "res-1", result: { ok: true } }]);
   });
 
   it("P19 identifies request by method and id", async () => {
     const parsed = await readAndClassifyBody(
       createRequest("ignored", {
-        body: { jsonrpc: "2.0", id: "req-1", method: "tools/call" },
+        body: { jsonrpc: "2.0", id: "req-1", method: "tools/call" }
       })
     );
 
-    expect(parsed.requests).toEqual([
-      { jsonrpc: "2.0", id: "req-1", method: "tools/call" },
-    ]);
+    expect(parsed.requests).toEqual([{ jsonrpc: "2.0", id: "req-1", method: "tools/call" }]);
     expect(parsed.notifications).toEqual([]);
     expect(parsed.responses).toEqual([]);
   });
@@ -508,37 +471,31 @@ describe("readAndClassifyBody", () => {
   it("P20 identifies notification by method and no id", async () => {
     const parsed = await readAndClassifyBody(
       createRequest("ignored", {
-        body: { jsonrpc: "2.0", method: "notifications/progress" },
+        body: { jsonrpc: "2.0", method: "notifications/progress" }
       })
     );
 
     expect(parsed.requests).toEqual([]);
-    expect(parsed.notifications).toEqual([
-      { jsonrpc: "2.0", method: "notifications/progress" },
-    ]);
+    expect(parsed.notifications).toEqual([{ jsonrpc: "2.0", method: "notifications/progress" }]);
     expect(parsed.responses).toEqual([]);
   });
 
   it("P21 identifies response by result or error, id, and no method", async () => {
     const parsed = await readAndClassifyBody(
       createRequest("ignored", {
-        body: { jsonrpc: "2.0", id: "req-1", result: { ok: true } },
+        body: { jsonrpc: "2.0", id: "req-1", result: { ok: true } }
       })
     );
 
     expect(parsed.requests).toEqual([]);
     expect(parsed.notifications).toEqual([]);
-    expect(parsed.responses).toEqual([
-      { jsonrpc: "2.0", id: "req-1", result: { ok: true } },
-    ]);
+    expect(parsed.responses).toEqual([{ jsonrpc: "2.0", id: "req-1", result: { ok: true } }]);
   });
 
   it("rejects a message that mixes request and response fields", async () => {
     await expect(
       readAndClassifyBody(
-        createRequest(
-          '{"jsonrpc":"2.0","id":1,"method":"ping","result":{"ok":true}}'
-        )
+        createRequest('{"jsonrpc":"2.0","id":1,"method":"ping","result":{"ok":true}}')
       )
     ).rejects.toThrow("Invalid Request");
   });
@@ -546,13 +503,11 @@ describe("readAndClassifyBody", () => {
   it("prefers req.body over the stream body when both exist", async () => {
     const parsed = await readAndClassifyBody(
       createRequest("not-json", {
-        body: { jsonrpc: "2.0", id: "req-1", method: "tools/list" },
+        body: { jsonrpc: "2.0", id: "req-1", method: "tools/list" }
       })
     );
 
-    expect(parsed.requests).toEqual([
-      { jsonrpc: "2.0", id: "req-1", method: "tools/list" },
-    ]);
+    expect(parsed.requests).toEqual([{ jsonrpc: "2.0", id: "req-1", method: "tools/list" }]);
   });
 });
 
@@ -615,6 +570,7 @@ describe("tiny-http-mcp-server", () => {
     }>();
     expectTypeOf<ToolReturn>().toMatchTypeOf<unknown>();
     expectTypeOf<ServerOptions>().toMatchTypeOf<{ name: string; version: string }>();
+    expectTypeOf<ServerOptions["toolCallTimeoutMs"]>().toEqualTypeOf<number | undefined>();
     expectTypeOf<ToolHandler<{ text: string }>>().toMatchTypeOf<
       (args: { text: string }) => ToolReturn | Promise<ToolReturn>
     >();
@@ -677,7 +633,7 @@ describe("tiny-http-mcp-server", () => {
       capabilities: { tools?: { listChanged?: boolean } };
       serverInfo: { name: string; version: string };
     }>();
-    expectTypeOf<HttpTransportOptions>().toMatchTypeOf<object>();
+    expectTypeOf<HttpTransportOptions>().toMatchTypeOf<ServerOptions>();
     expectTypeOf<HttpListenOptions>().toMatchTypeOf<{
       port?: number;
       hostname?: string;
@@ -711,11 +667,7 @@ describe("StreamableHttpTransport", () => {
     transport: StreamableHttpTransport;
     url: string;
     close(): Promise<void>;
-    request(
-      method: string,
-      body?: unknown,
-      options?: RequestOptions
-    ): Promise<TestResponse>;
+    request(method: string, body?: unknown, options?: RequestOptions): Promise<TestResponse>;
     post(body: unknown, options?: RequestOptions): Promise<TestResponse>;
     get(options?: RequestOptions): Promise<TestResponse>;
     delete(options?: RequestOptions): Promise<TestResponse>;
@@ -745,11 +697,8 @@ describe("StreamableHttpTransport", () => {
 
   async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     const server = createServer({ name: "http-test", version: "1.0.0" })
-      .tool(
-        "echo",
-        "Echo text",
-        defineSchema({ text: { type: "string" } }),
-        ({ text }) => String(text)
+      .tool("echo", "Echo text", defineSchema({ text: { type: "string" } }), ({ text }) =>
+        String(text)
       )
       .tool("explode", "Throw", defineSchema({}), () => {
         throw new Error("boom");
@@ -773,7 +722,7 @@ describe("StreamableHttpTransport", () => {
       requestOptions: RequestOptions = {}
     ): Promise<TestResponse> => {
       const headers: Record<string, string> = {
-        ...requestOptions.headers,
+        ...requestOptions.headers
       };
 
       if (requestOptions.sessionId !== undefined) {
@@ -789,7 +738,7 @@ describe("StreamableHttpTransport", () => {
       return nodeFetch(url, {
         method,
         headers,
-        ...(payload === undefined ? {} : { body: payload }),
+        ...(payload === undefined ? {} : { body: payload })
       });
     };
 
@@ -812,8 +761,8 @@ describe("StreamableHttpTransport", () => {
           headers: {
             Accept: "application/json, text/event-stream",
             "Content-Type": "application/json",
-            ...requestOptions.headers,
-          },
+            ...requestOptions.headers
+          }
         });
       },
       async get(requestOptions = {}) {
@@ -821,8 +770,8 @@ describe("StreamableHttpTransport", () => {
           ...requestOptions,
           headers: {
             Accept: "text/event-stream",
-            ...requestOptions.headers,
-          },
+            ...requestOptions.headers
+          }
         });
       },
       async delete(requestOptions = {}) {
@@ -833,22 +782,19 @@ describe("StreamableHttpTransport", () => {
           jsonrpc: "2.0",
           id: 1,
           method: "initialize",
-          params: { protocolVersion: "2025-03-26" },
+          params: { protocolVersion: "2025-03-26" }
         });
 
         const sessionId = response.headers.get("mcp-session-id");
         if (sessionId !== null) {
-          await this.post(
-            { jsonrpc: "2.0", method: "notifications/initialized" },
-            { sessionId }
-          );
+          await this.post({ jsonrpc: "2.0", method: "notifications/initialized" }, { sessionId });
         }
 
         return {
           response,
-          sessionId,
+          sessionId
         };
-      },
+      }
     };
 
     fixtures.add(fixture);
@@ -913,7 +859,7 @@ describe("StreamableHttpTransport", () => {
       reader.read().then(() => "resolved"),
       new Promise<"pending">((resolve) => {
         setTimeout(() => resolve("pending"), timeoutMs);
-      }),
+      })
     ]);
 
     expect(state).toBe("pending");
@@ -922,7 +868,7 @@ describe("StreamableHttpTransport", () => {
   it("T1 POST initialize returns InitializeResult and Mcp-Session-Id", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { response, sessionId } = await fixture.initialize();
@@ -938,10 +884,10 @@ describe("StreamableHttpTransport", () => {
         capabilities: {
           tools: { listChanged: true },
           prompts: { listChanged: true },
-          resources: { listChanged: true, subscribe: true },
+          resources: { listChanged: true, subscribe: true }
         },
-        serverInfo: { name: "http-test", version: "1.0.0" },
-      },
+        serverInfo: { name: "http-test", version: "1.0.0" }
+      }
     });
   });
 
@@ -952,46 +898,46 @@ describe("StreamableHttpTransport", () => {
       jsonrpc: "2.0",
       id: "http-array",
       method: "ping",
-      params: [],
+      params: []
     });
 
     expect(response.status).toBe(400);
     expect(await readJsonRpcBody(response)).toEqual({
       jsonrpc: "2.0",
       id: "http-array",
-      error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+      error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" }
     });
   });
 
   it("negotiates the supported protocol version for unsupported requests", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: undefined,
+      sessionIdGenerator: undefined
     });
 
     const response = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "not-a-supported-version" },
+      params: { protocolVersion: "not-a-supported-version" }
     });
 
     expect(await readJsonRpcBody(response)).toMatchObject({
-      result: { protocolVersion: "2025-11-25" },
+      result: { protocolVersion: "2025-11-25" }
     });
   });
 
   it("T2 POST initialized notification returns 202", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const initialized = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-03-26" },
+      params: { protocolVersion: "2025-03-26" }
     });
     const sessionId = initialized.headers.get("mcp-session-id");
     const response = await fixture.post(
@@ -1006,13 +952,13 @@ describe("StreamableHttpTransport", () => {
   it("does not create sessions from notification-form initialize messages", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-notify",
+      sessionIdGenerator: () => "session-notify"
     });
 
     const response = await fixture.post({
       jsonrpc: "2.0",
       method: "initialize",
-      params: { protocolVersion: "2025-03-26" },
+      params: { protocolVersion: "2025-03-26" }
     });
 
     expect(response.status).toBe(400);
@@ -1022,14 +968,14 @@ describe("StreamableHttpTransport", () => {
   it("does not process ordinary session requests before initialized acknowledgement", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const initializeResponse = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-03-26" },
+      params: { protocolVersion: "2025-03-26" }
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id");
     const response = await fixture.post(
@@ -1040,21 +986,21 @@ describe("StreamableHttpTransport", () => {
     expect(await readJsonRpcBody(response)).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      error: { code: -32600, message: "Session not initialized" },
+      error: { code: -32600, message: "Session not initialized" }
     });
   });
 
   it("does not emit notifications before initialized acknowledgement", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const initializeResponse = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-03-26" },
+      params: { protocolVersion: "2025-03-26" }
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
     const response = await fixture.get({ sessionId });
@@ -1069,20 +1015,17 @@ describe("StreamableHttpTransport", () => {
   it("accepts post-initialize requests without a protocol version header", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const initializeResponse = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-03-26" },
+      params: { protocolVersion: "2025-03-26" }
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
-    await fixture.post(
-      { jsonrpc: "2.0", method: "notifications/initialized" },
-      { sessionId }
-    );
+    await fixture.post({ jsonrpc: "2.0", method: "notifications/initialized" }, { sessionId });
 
     const postResponse = await fixture.request(
       "POST",
@@ -1091,8 +1034,8 @@ describe("StreamableHttpTransport", () => {
         headers: {
           Accept: "application/json, text/event-stream",
           "Content-Type": "application/json",
-          "Mcp-Session-Id": sessionId ?? "",
-        },
+          "Mcp-Session-Id": sessionId ?? ""
+        }
       }
     );
     expect(postResponse.status).toBe(200);
@@ -1100,14 +1043,14 @@ describe("StreamableHttpTransport", () => {
     const getResponse = await fixture.request("GET", undefined, {
       headers: {
         Accept: "text/event-stream",
-        "Mcp-Session-Id": sessionId ?? "",
-      },
+        "Mcp-Session-Id": sessionId ?? ""
+      }
     });
     expect(getResponse.status).toBe(200);
     await getResponse.body?.cancel();
 
     const deleteResponse = await fixture.request("DELETE", undefined, {
-      headers: { "Mcp-Session-Id": sessionId ?? "" },
+      headers: { "Mcp-Session-Id": sessionId ?? "" }
     });
     expect(deleteResponse.status).toBe(204);
   });
@@ -1115,24 +1058,21 @@ describe("StreamableHttpTransport", () => {
   it("rejects a conflicting protocol version on post-initialize requests", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const initializeResponse = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-03-26" },
+      params: { protocolVersion: "2025-03-26" }
     });
     const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
-    await fixture.post(
-      { jsonrpc: "2.0", method: "notifications/initialized" },
-      { sessionId }
-    );
+    await fixture.post({ jsonrpc: "2.0", method: "notifications/initialized" }, { sessionId });
 
     const headers = {
       "Mcp-Session-Id": sessionId ?? "",
-      "MCP-Protocol-Version": "2099-99-99",
+      "MCP-Protocol-Version": "2099-99-99"
     };
     const postResponse = await fixture.request(
       "POST",
@@ -1141,15 +1081,15 @@ describe("StreamableHttpTransport", () => {
         headers: {
           Accept: "application/json, text/event-stream",
           "Content-Type": "application/json",
-          ...headers,
-        },
+          ...headers
+        }
       }
     );
     const getResponse = await fixture.request("GET", undefined, {
-      headers: { Accept: "text/event-stream", ...headers },
+      headers: { Accept: "text/event-stream", ...headers }
     });
     const deleteResponse = await fixture.request("DELETE", undefined, {
-      headers,
+      headers
     });
 
     expect(postResponse.status).toBe(400);
@@ -1157,7 +1097,7 @@ describe("StreamableHttpTransport", () => {
     expect(deleteResponse.status).toBe(400);
 
     const validDeleteResponse = await fixture.request("DELETE", undefined, {
-      headers: { "Mcp-Session-Id": sessionId ?? "" },
+      headers: { "Mcp-Session-Id": sessionId ?? "" }
     });
     expect(validDeleteResponse.status).toBe(204);
   });
@@ -1166,25 +1106,25 @@ describe("StreamableHttpTransport", () => {
     let nextId = 0;
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => `session-${++nextId}`,
+      sessionIdGenerator: () => `session-${++nextId}`
     });
 
     await fixture.initialize();
     const response = await fixture.post([
       { jsonrpc: "2.0", id: 2, method: "tools/list" },
-      { jsonrpc: "2.0", id: 3, method: "initialize", params: { protocolVersion: "2025-03-26" } },
+      { jsonrpc: "2.0", id: 3, method: "initialize", params: { protocolVersion: "2025-03-26" } }
     ]);
 
     expect(await readJsonRpcBody(response)).toMatchObject([
       { id: 2, error: { code: -32600, message: "Session not initialized" } },
-      { id: 3, result: { protocolVersion: "2025-03-26" } },
+      { id: 3, result: { protocolVersion: "2025-03-26" } }
     ]);
   });
 
   it("T3 POST tools/list returns the tool list", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1197,16 +1137,13 @@ describe("StreamableHttpTransport", () => {
     };
 
     expect(response.status).toBe(200);
-    expect(body.result.tools.map((tool) => tool.name)).toEqual([
-      "echo",
-      "explode",
-    ]);
+    expect(body.result.tools.map((tool) => tool.name)).toEqual(["echo", "explode"]);
   });
 
   it("T4 POST tools/call returns the tool result", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1215,7 +1152,7 @@ describe("StreamableHttpTransport", () => {
         jsonrpc: "2.0",
         id: 3,
         method: "tools/call",
-        params: { name: "echo", arguments: { text: "hello" } },
+        params: { name: "echo", arguments: { text: "hello" } }
       },
       { sessionId: sessionId ?? undefined }
     );
@@ -1226,15 +1163,15 @@ describe("StreamableHttpTransport", () => {
       jsonrpc: "2.0",
       id: 3,
       result: {
-        content: [{ type: "text", text: "hello" }],
-      },
+        content: [{ type: "text", text: "hello" }]
+      }
     });
   });
 
   it("T5 POST JSON-RPC response returns 202", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1250,7 +1187,7 @@ describe("StreamableHttpTransport", () => {
   it("T6 enableJsonResponse true returns application/json", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1265,7 +1202,7 @@ describe("StreamableHttpTransport", () => {
   it("T7 enableJsonResponse false returns text/event-stream", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1280,7 +1217,7 @@ describe("StreamableHttpTransport", () => {
   it("rejects SSE POST responses when the client accepts only JSON", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
-      sessionIdGenerator: undefined,
+      sessionIdGenerator: undefined
     });
 
     const response = await fixture.post(
@@ -1288,7 +1225,7 @@ describe("StreamableHttpTransport", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: "2025-03-26" },
+        params: { protocolVersion: "2025-03-26" }
       },
       { headers: { Accept: "application/json" } }
     );
@@ -1299,7 +1236,7 @@ describe("StreamableHttpTransport", () => {
   it("T8 SSE POST body contains data lines", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1316,7 +1253,7 @@ describe("StreamableHttpTransport", () => {
   it("T9 SSE POST stream ends after the response is sent", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1338,7 +1275,7 @@ describe("StreamableHttpTransport", () => {
   it("T10 batch of 3 requests returns 3 responses", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1350,8 +1287,8 @@ describe("StreamableHttpTransport", () => {
           jsonrpc: "2.0",
           id: 4,
           method: "tools/call",
-          params: { name: "echo", arguments: { text: "batch" } },
-        },
+          params: { name: "echo", arguments: { text: "batch" } }
+        }
       ],
       { sessionId: sessionId ?? undefined }
     );
@@ -1364,13 +1301,13 @@ describe("StreamableHttpTransport", () => {
   it("returns valid batch results alongside invalid member errors", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: undefined,
+      sessionIdGenerator: undefined
     });
 
     const response = await fixture.post([
       { jsonrpc: "2.0", id: 1, method: "ping" },
       17,
-      { jsonrpc: "2.0", id: 2, method: "ping" },
+      { jsonrpc: "2.0", id: 2, method: "ping" }
     ]);
     const body = await readJsonRpcBody(response);
 
@@ -1378,21 +1315,21 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual([
       { jsonrpc: "2.0", id: 1, result: {} },
       { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } },
-      { jsonrpc: "2.0", id: 2, result: {} },
+      { jsonrpc: "2.0", id: 2, result: {} }
     ]);
   });
 
   it("T11 batch of notifications returns 202", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
     const response = await fixture.post(
       [
         { jsonrpc: "2.0", method: "notifications/initialized" },
-        { jsonrpc: "2.0", method: "notifications/initialized" },
+        { jsonrpc: "2.0", method: "notifications/initialized" }
       ],
       { sessionId: sessionId ?? undefined }
     );
@@ -1404,7 +1341,7 @@ describe("StreamableHttpTransport", () => {
   it("T12 mixed batch returns responses only for requests", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1412,7 +1349,7 @@ describe("StreamableHttpTransport", () => {
       [
         { jsonrpc: "2.0", id: 2, method: "ping" },
         { jsonrpc: "2.0", method: "notifications/initialized" },
-        { jsonrpc: "2.0", id: 3, method: "tools/list" },
+        { jsonrpc: "2.0", id: 3, method: "tools/list" }
       ],
       { sessionId: sessionId ?? undefined }
     );
@@ -1425,14 +1362,14 @@ describe("StreamableHttpTransport", () => {
   it("T13 batch SSE contains all responses", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
     const response = await fixture.post(
       [
         { jsonrpc: "2.0", id: 2, method: "ping" },
-        { jsonrpc: "2.0", id: 3, method: "tools/list" },
+        { jsonrpc: "2.0", id: 3, method: "tools/list" }
       ],
       { sessionId: sessionId ?? undefined }
     );
@@ -1450,7 +1387,7 @@ describe("StreamableHttpTransport", () => {
     const response = await fixture.post({
       jsonrpc: "2.0",
       id: 2,
-      method: "tools/list",
+      method: "tools/list"
     });
 
     expect(response.status).toBe(400);
@@ -1459,7 +1396,7 @@ describe("StreamableHttpTransport", () => {
   it("T15 POST with a valid session is accepted", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1485,7 +1422,7 @@ describe("StreamableHttpTransport", () => {
   it("T17 initialize does not require a session", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { response, sessionId } = await fixture.initialize();
@@ -1498,7 +1435,7 @@ describe("StreamableHttpTransport", () => {
     const fixture = await createFixture({ enableJsonResponse: true });
 
     const response = await fixture.post('{"jsonrpc":"2.0"', {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     const body = await readJsonRpcBody(response);
 
@@ -1506,7 +1443,7 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: null,
-      error: { code: -32700, message: "Parse error" },
+      error: { code: -32700, message: "Parse error" }
     });
   });
 
@@ -1514,7 +1451,7 @@ describe("StreamableHttpTransport", () => {
     const fixture = await createFixture({ enableJsonResponse: true });
 
     const response = await fixture.post("", {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     const body = await readJsonRpcBody(response);
 
@@ -1522,7 +1459,7 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: null,
-      error: { code: -32700, message: "Parse error" },
+      error: { code: -32700, message: "Parse error" }
     });
   });
 
@@ -1540,14 +1477,14 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: null,
-      error: { code: -32600, message: "Invalid Request" },
+      error: { code: -32600, message: "Invalid Request" }
     });
   });
 
   it("rejects POST requests without a JSON content type", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: undefined,
+      sessionIdGenerator: undefined
     });
 
     const response = await fixture.request(
@@ -1556,7 +1493,7 @@ describe("StreamableHttpTransport", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: "2025-03-26" },
+        params: { protocolVersion: "2025-03-26" }
       },
       { headers: { Accept: "application/json" } }
     );
@@ -1567,7 +1504,7 @@ describe("StreamableHttpTransport", () => {
   it("T21 unknown method returns JSON-RPC METHOD_NOT_FOUND", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1580,14 +1517,14 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      error: { code: -32601, message: "Method not found" },
+      error: { code: -32601, message: "Method not found" }
     });
   });
 
   it("T22 throwing tool returns an isError result", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1596,7 +1533,7 @@ describe("StreamableHttpTransport", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "explode", arguments: {} },
+        params: { name: "explode", arguments: {} }
       },
       { sessionId: sessionId ?? undefined }
     );
@@ -1607,15 +1544,15 @@ describe("StreamableHttpTransport", () => {
       id: 2,
       result: {
         content: [{ type: "text", text: "Error: boom" }],
-        isError: true,
-      },
+        isError: true
+      }
     });
   });
 
   it("T23 missing tool returns JSON-RPC INVALID_PARAMS", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1624,7 +1561,7 @@ describe("StreamableHttpTransport", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "missing", arguments: {} },
+        params: { name: "missing", arguments: {} }
       },
       { sessionId: sessionId ?? undefined }
     );
@@ -1633,35 +1570,35 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      error: { code: -32602, message: "Tool not found: missing" },
+      error: { code: -32602, message: "Tool not found: missing" }
     });
   });
 
   it("T24 tools/call before initialize returns server not initialized", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: undefined,
+      sessionIdGenerator: undefined
     });
 
     const response = await fixture.post({
       jsonrpc: "2.0",
       id: 2,
       method: "tools/call",
-      params: { name: "echo", arguments: { text: "hello" } },
+      params: { name: "echo", arguments: { text: "hello" } }
     });
     const body = await readJsonRpcBody(response);
 
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      error: { code: -32600, message: "Server not initialized" },
+      error: { code: -32600, message: "Server not initialized" }
     });
   });
 
   it("T25 initialize response includes Mcp-Session-Id", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { response } = await fixture.initialize();
@@ -1672,7 +1609,7 @@ describe("StreamableHttpTransport", () => {
   it("rejects generated session identifiers that cannot be emitted in headers", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "bad\nheader",
+      sessionIdGenerator: () => "bad\nheader"
     });
 
     const { response, sessionId } = await fixture.initialize();
@@ -1684,7 +1621,7 @@ describe("StreamableHttpTransport", () => {
   it("rejects generated session identifier collisions", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "shared-session",
+      sessionIdGenerator: () => "shared-session"
     });
 
     const first = await fixture.initialize();
@@ -1698,7 +1635,7 @@ describe("StreamableHttpTransport", () => {
   it("T26 subsequent responses include the same Mcp-Session-Id", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1713,13 +1650,13 @@ describe("StreamableHttpTransport", () => {
   it("T27 stateless mode omits Mcp-Session-Id", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: undefined,
+      sessionIdGenerator: undefined
     });
 
     const response = await fixture.post({
       jsonrpc: "2.0",
       id: 1,
-      method: "initialize",
+      method: "initialize"
     });
 
     expect(response.headers.get("mcp-session-id")).toBeNull();
@@ -1728,7 +1665,7 @@ describe("StreamableHttpTransport", () => {
   it("T28 GET returns text/event-stream", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1741,13 +1678,13 @@ describe("StreamableHttpTransport", () => {
   it("rejects GET streams when Accept does not include text/event-stream", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
     const response = await fixture.get({
       sessionId: sessionId ?? undefined,
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json" }
     });
 
     expect(response.status).toBe(406);
@@ -1764,7 +1701,7 @@ describe("StreamableHttpTransport", () => {
   it("T30 GET with valid session keeps the stream open", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1778,7 +1715,7 @@ describe("StreamableHttpTransport", () => {
   it("T31 notifyToolsChanged sends an event on the GET stream", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1797,7 +1734,7 @@ describe("StreamableHttpTransport", () => {
   it("T32 GET stream closes when the transport closes", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1820,7 +1757,7 @@ describe("StreamableHttpTransport", () => {
   it("T34 DELETE with a valid session returns 204", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1832,7 +1769,7 @@ describe("StreamableHttpTransport", () => {
   it("T35 DELETE invalidates the session", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
-      sessionIdGenerator: () => "session-1",
+      sessionIdGenerator: () => "session-1"
     });
 
     const { sessionId } = await fixture.initialize();
@@ -1900,7 +1837,7 @@ describe("StreamableHttpTransport", () => {
     ["GET", undefined, 400],
     ["DELETE", undefined, 400],
     ["OPTIONS", undefined, 204],
-    ["PUT", undefined, 405],
+    ["PUT", undefined, 405]
   ] as const)("adds Vary: Origin to %s responses", async (method, body, status) => {
     const fixture = await createFixture();
 
@@ -1913,12 +1850,15 @@ describe("StreamableHttpTransport", () => {
   it("rejects negative transport limits at construction time", () => {
     const server = createServer({ name: "http-test", version: "1.0.0" });
 
-    expect(() => new StreamableHttpTransport(server, { maxRequestBytes: -1 }))
-      .toThrow("maxRequestBytes must be an integer greater than or equal to 1.");
-    expect(() => new StreamableHttpTransport(server, { maxBatchSize: -1 }))
-      .toThrow("maxBatchSize must be an integer greater than or equal to 1.");
-    expect(() => new StreamableHttpTransport(server, { maxSessions: -1 }))
-      .toThrow("maxSessions must be an integer greater than or equal to 1.");
+    expect(() => new StreamableHttpTransport(server, { maxRequestBytes: -1 })).toThrow(
+      "maxRequestBytes must be an integer greater than or equal to 1."
+    );
+    expect(() => new StreamableHttpTransport(server, { maxBatchSize: -1 })).toThrow(
+      "maxBatchSize must be an integer greater than or equal to 1."
+    );
+    expect(() => new StreamableHttpTransport(server, { maxSessions: -1 })).toThrow(
+      "maxSessions must be an integer greater than or equal to 1."
+    );
   });
 });
 
@@ -1981,7 +1921,7 @@ describe("createExpressMiddleware", () => {
           server.closeIdleConnections?.();
           server.closeAllConnections?.();
         });
-      },
+      }
     };
   }
 
@@ -1992,7 +1932,7 @@ describe("createExpressMiddleware", () => {
   }> {
     const client = new Client({ name: "sdk-express-test-client", version: "1.0.0" });
     const transport = new StreamableHTTPClientTransport(new URL(url), {
-      fetch: nodeFetch,
+      fetch: nodeFetch
     });
 
     await client.connect(transport);
@@ -2002,7 +1942,7 @@ describe("createExpressMiddleware", () => {
       transport,
       cleanup: async () => {
         await client.close();
-      },
+      }
     };
   }
 
@@ -2017,7 +1957,7 @@ describe("createExpressMiddleware", () => {
     const headers = new Headers({
       Accept: "application/json, text/event-stream",
       "Content-Type": "application/json",
-      ...options.headers,
+      ...options.headers
     });
 
     if (options.sessionId !== undefined) {
@@ -2028,7 +1968,7 @@ describe("createExpressMiddleware", () => {
     return nodeFetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify(message),
+      body: JSON.stringify(message)
     });
   }
 
@@ -2045,7 +1985,7 @@ describe("createExpressMiddleware", () => {
 
     return nodeFetch(url, {
       method: "DELETE",
-      headers,
+      headers
     });
   }
 
@@ -2059,7 +1999,7 @@ describe("createExpressMiddleware", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       },
       { headers }
     );
@@ -2074,7 +2014,7 @@ describe("createExpressMiddleware", () => {
 
     return {
       response,
-      sessionId,
+      sessionId
     };
   }
 
@@ -2102,7 +2042,7 @@ describe("createExpressMiddleware", () => {
 
     expect(client.client.getServerVersion()).toEqual({
       name: "conformance-test-server",
-      version: "1.0.0",
+      version: "1.0.0"
     });
 
     const tools = await client.client.listTools();
@@ -2122,11 +2062,11 @@ describe("createExpressMiddleware", () => {
 
     const result = await client.client.callTool({
       name: "echo",
-      arguments: { text: "hello from express" },
+      arguments: { text: "hello from express" }
     });
 
     expect(result).toEqual({
-      content: [{ type: "text", text: "hello from express" }],
+      content: [{ type: "text", text: "hello from express" }]
     });
   });
 
@@ -2140,7 +2080,7 @@ describe("createExpressMiddleware", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
 
     expect(response.status).toBe(200);
@@ -2152,10 +2092,10 @@ describe("createExpressMiddleware", () => {
         capabilities: {
           tools: { listChanged: true },
           prompts: { listChanged: true },
-          resources: { listChanged: true, subscribe: true },
+          resources: { listChanged: true, subscribe: true }
         },
-        serverInfo: { name: "conformance-test-server", version: "1.0.0" },
-      },
+        serverInfo: { name: "conformance-test-server", version: "1.0.0" }
+      }
     });
   });
 
@@ -2189,8 +2129,8 @@ describe("createExpressMiddleware", () => {
       headers: {
         Accept: "text/event-stream",
         "Mcp-Session-Id": sessionId ?? "",
-        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
-      },
+        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+      }
     });
     const reader = response.body?.getReader();
 
@@ -2216,7 +2156,7 @@ describe("createExpressMiddleware", () => {
     expect(sessionId).toBeTruthy();
 
     const deleteResponse = await deleteSession(`${handle.baseUrl}/mcp`, {
-      sessionId: sessionId ?? undefined,
+      sessionId: sessionId ?? undefined
     });
     const postDeleteResponse = await postJsonRpc(
       `${handle.baseUrl}/mcp`,
@@ -2247,7 +2187,7 @@ describe("createExpressMiddleware", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
     const authorized = await postJsonRpc(
       `${handle.baseUrl}/mcp`,
@@ -2255,12 +2195,12 @@ describe("createExpressMiddleware", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       },
       {
         headers: {
-          Authorization: "Bearer secret-token",
-        },
+          Authorization: "Bearer secret-token"
+        }
       }
     );
 
@@ -2274,7 +2214,7 @@ describe("createExpressMiddleware", () => {
 
     const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
       res.status(500).json({
-        message: error instanceof Error ? error.message : String(error),
+        message: error instanceof Error ? error.message : String(error)
       });
     };
 
@@ -2288,7 +2228,7 @@ describe("createExpressMiddleware", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
 
     expect(response.status).toBe(500);
@@ -2311,8 +2251,8 @@ describe("createExpressMiddleware", () => {
         method: "tools/call",
         params: {
           name: "echo",
-          arguments: { text: "parsed by express" },
-        },
+          arguments: { text: "parsed by express" }
+        }
       },
       { sessionId: sessionId ?? undefined }
     );
@@ -2322,8 +2262,8 @@ describe("createExpressMiddleware", () => {
       jsonrpc: "2.0",
       id: 2,
       result: {
-        content: [{ type: "text", text: "parsed by express" }],
-      },
+        content: [{ type: "text", text: "parsed by express" }]
+      }
     });
   });
 
@@ -2342,12 +2282,8 @@ describe("createExpressMiddleware", () => {
   });
 
   it("E11 supports multiple MCP servers on different paths", async () => {
-    const alphaServer = createNamedServer("alpha-server", "alpha_echo", (text) =>
-      `alpha:${text}`
-    );
-    const betaServer = createNamedServer("beta-server", "beta_echo", (text) =>
-      `beta:${text}`
-    );
+    const alphaServer = createNamedServer("alpha-server", "alpha_echo", (text) => `alpha:${text}`);
+    const betaServer = createNamedServer("beta-server", "beta_echo", (text) => `beta:${text}`);
     const handle = await listenExpressApp((app) => {
       app.use("/mcp-alpha", createExpressMiddleware(alphaServer));
       app.use("/mcp-beta", createExpressMiddleware(betaServer));
@@ -2364,12 +2300,12 @@ describe("createExpressMiddleware", () => {
       betaClient.client.listTools(),
       alphaClient.client.callTool({
         name: "alpha_echo",
-        arguments: { text: "one" },
+        arguments: { text: "one" }
       }),
       betaClient.client.callTool({
         name: "beta_echo",
-        arguments: { text: "two" },
-      }),
+        arguments: { text: "two" }
+      })
     ]);
 
     expect(alphaTools.tools.map((tool) => tool.name)).toEqual(["alpha_echo"]);
@@ -2384,7 +2320,7 @@ describe("createExpressMiddleware", () => {
         "/mcp",
         createExpressMiddleware(
           createTestMcpServer({
-            sessionIdGenerator: undefined,
+            sessionIdGenerator: undefined
           })
         )
       );
@@ -2395,13 +2331,13 @@ describe("createExpressMiddleware", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
     const callResponse = await postJsonRpc(`${handle.baseUrl}/mcp`, {
       jsonrpc: "2.0",
       id: 2,
       method: "tools/call",
-      params: { name: "echo", arguments: { text: "stateless express" } },
+      params: { name: "echo", arguments: { text: "stateless express" } }
     });
 
     expect(initializeResponse.headers.get("mcp-session-id")).toBeNull();
@@ -2410,8 +2346,8 @@ describe("createExpressMiddleware", () => {
       jsonrpc: "2.0",
       id: 2,
       result: {
-        content: [{ type: "text", text: "stateless express" }],
-      },
+        content: [{ type: "text", text: "stateless express" }]
+      }
     });
   });
 });
@@ -2477,7 +2413,7 @@ describe("HttpServer integration", () => {
 
             resolve();
           });
-        }),
+        })
     };
   }
 
@@ -2516,7 +2452,7 @@ describe("HttpServer integration", () => {
   }> {
     const client = new Client({ name: "sdk-http-test-client", version: "1.0.0" });
     const transport = new StreamableHTTPClientTransport(new URL(url), {
-      fetch: nodeFetch,
+      fetch: nodeFetch
     });
 
     await client.connect(transport);
@@ -2526,7 +2462,7 @@ describe("HttpServer integration", () => {
       transport,
       cleanup: async () => {
         await client.close();
-      },
+      }
     };
   }
 
@@ -2537,7 +2473,7 @@ describe("HttpServer integration", () => {
   ): Promise<Response> {
     const headers = new Headers({
       Accept: "application/json, text/event-stream",
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     });
 
     if (options.sessionId !== undefined) {
@@ -2548,7 +2484,7 @@ describe("HttpServer integration", () => {
     return nodeFetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify(message),
+      body: JSON.stringify(message)
     });
   }
 
@@ -2559,7 +2495,7 @@ describe("HttpServer integration", () => {
 
       expect(pair.client.getServerVersion()).toEqual({
         name: "conformance-test-server",
-        version: "1.0.0",
+        version: "1.0.0"
       });
 
       const tools = await pair.client.listTools();
@@ -2578,7 +2514,7 @@ describe("HttpServer integration", () => {
         "throw_async",
         "empty_result",
         "slow",
-        "large_output",
+        "large_output"
       ]);
     });
 
@@ -2588,11 +2524,11 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "echo",
-        arguments: { text: "hello over HTTP" },
+        arguments: { text: "hello over HTTP" }
       });
 
       expect(result).toEqual({
-        content: [{ type: "text", text: "hello over HTTP" }],
+        content: [{ type: "text", text: "hello over HTTP" }]
       });
     });
 
@@ -2602,14 +2538,14 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "get_user",
-        arguments: { id: "user-7" },
+        arguments: { id: "user-7" }
       });
 
       expect(result.content).toEqual([
         {
           type: "text",
-          text: '{"id":"user-7","name":"Alice","role":"admin"}',
-        },
+          text: '{"id":"user-7","name":"Alice","role":"admin"}'
+        }
       ]);
     });
 
@@ -2619,13 +2555,11 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "throw_async",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content).toEqual([
-        { type: "text", text: "Error: async boom" },
-      ]);
+      expect(result.content).toEqual([{ type: "text", text: "Error: async boom" }]);
     });
 
     it("I5 receives tool list change notifications over GET SSE", async () => {
@@ -2676,8 +2610,8 @@ describe("HttpServer integration", () => {
         method: "DELETE",
         headers: {
           "Mcp-Session-Id": expiredSessionId,
-          "MCP-Protocol-Version": pair.transport.protocolVersion ?? TEST_PROTOCOL_VERSION,
-        },
+          "MCP-Protocol-Version": pair.transport.protocolVersion ?? TEST_PROTOCOL_VERSION
+        }
       });
       expect(deleteResponse.status).toBe(204);
 
@@ -2699,11 +2633,11 @@ describe("HttpServer integration", () => {
       const tools = await pair.client.listTools();
       const reverseResult = await pair.client.callTool({
         name: "reverse",
-        arguments: { text: "desserts" },
+        arguments: { text: "desserts" }
       });
       const uppercaseResult = await pair.client.callTool({
         name: "uppercase",
-        arguments: { text: "mcp" },
+        arguments: { text: "mcp" }
       });
 
       expect(tools.tools.some((tool) => tool.name === "reverse")).toBe(true);
@@ -2734,9 +2668,7 @@ describe("HttpServer integration", () => {
 
       await vi.waitFor(() => {
         expect(
-          pair.requests.some(
-            (request) => request.method === "GET" && request.sessionId !== null
-          )
+          pair.requests.some((request) => request.method === "GET" && request.sessionId !== null)
         ).toBe(true);
       });
     });
@@ -2765,7 +2697,7 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "reverse",
-        arguments: { text: "drawer" },
+        arguments: { text: "drawer" }
       });
 
       expect(result.content).toEqual([{ type: "text", text: "reward" }]);
@@ -2781,7 +2713,7 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "slow",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "done" }]);
@@ -2820,7 +2752,7 @@ describe("HttpServer integration", () => {
           await reservation.release();
 
           const handle = await createTestMcpServer().listenHttp({
-            port: reservation.port,
+            port: reservation.port
           });
           trackCleanup(handle.close);
 
@@ -2828,7 +2760,7 @@ describe("HttpServer integration", () => {
             jsonrpc: "2.0",
             id: 1,
             method: "initialize",
-            params: { protocolVersion: TEST_PROTOCOL_VERSION },
+            params: { protocolVersion: TEST_PROTOCOL_VERSION }
           });
 
           expect(handle.port).toBe(reservation.port);
@@ -2865,7 +2797,7 @@ describe("HttpServer integration", () => {
         postJsonRpc(handle.url, {
           jsonrpc: "2.0",
           id: 1,
-          method: "ping",
+          method: "ping"
         })
       ).rejects.toThrow();
     });
@@ -2873,7 +2805,7 @@ describe("HttpServer integration", () => {
     it("I18 respects AbortSignal shutdown", async () => {
       const controller = new AbortController();
       const handle = await createTestMcpServer().listenHttp({
-        signal: controller.signal,
+        signal: controller.signal
       });
 
       controller.abort();
@@ -2883,7 +2815,7 @@ describe("HttpServer integration", () => {
           postJsonRpc(handle.url, {
             jsonrpc: "2.0",
             id: 1,
-            method: "ping",
+            method: "ping"
           })
         ).rejects.toThrow();
       });
@@ -2891,7 +2823,7 @@ describe("HttpServer integration", () => {
 
     it("I19 supports a custom endpoint path", async () => {
       const handle = await createTestMcpServer().listenHttp({
-        path: "/api/v1/mcp",
+        path: "/api/v1/mcp"
       });
       trackCleanup(handle.close);
 
@@ -2899,7 +2831,7 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       });
 
       expect(handle.url).toBe(`http://127.0.0.1:${handle.port}/api/v1/mcp`);
@@ -2919,7 +2851,7 @@ describe("HttpServer integration", () => {
       }
 
       const handle = await createTestMcpServer().listenHttp({
-        hostname: "::1",
+        hostname: "::1"
       });
       trackCleanup(handle.close);
 
@@ -2929,7 +2861,7 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       });
 
       expect(response.status).toBe(200);
@@ -2948,7 +2880,7 @@ describe("HttpServer integration", () => {
   describe("Stateless mode", () => {
     it("I23 omits Mcp-Session-Id headers in stateless mode", async () => {
       const handle = await createTestMcpServer({
-        sessionIdGenerator: undefined,
+        sessionIdGenerator: undefined
       }).listenHttp();
       trackCleanup(handle.close);
 
@@ -2956,12 +2888,12 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       });
       const toolsResponse = await postJsonRpc(handle.url, {
         jsonrpc: "2.0",
         id: 2,
-        method: "tools/list",
+        method: "tools/list"
       });
 
       expect(initializeResponse.headers.get("mcp-session-id")).toBeNull();
@@ -2970,7 +2902,7 @@ describe("HttpServer integration", () => {
 
     it("I24 accepts requests without session headers in stateless mode", async () => {
       const handle = await createTestMcpServer({
-        sessionIdGenerator: undefined,
+        sessionIdGenerator: undefined
       }).listenHttp();
       trackCleanup(handle.close);
 
@@ -2978,14 +2910,14 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       });
 
       const response = await postJsonRpc(handle.url, {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "echo", arguments: { text: "stateless" } },
+        params: { name: "echo", arguments: { text: "stateless" } }
       });
 
       expect(response.status).toBe(200);
@@ -2993,14 +2925,14 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 2,
         result: {
-          content: [{ type: "text", text: "stateless" }],
-        },
+          content: [{ type: "text", text: "stateless" }]
+        }
       });
     });
 
     it("I25 rejects DELETE in stateless mode", async () => {
       const handle = await createTestMcpServer({
-        sessionIdGenerator: undefined,
+        sessionIdGenerator: undefined
       }).listenHttp();
       trackCleanup(handle.close);
 
@@ -3011,13 +2943,13 @@ describe("HttpServer integration", () => {
 
     it("I26 rejects GET in stateless mode", async () => {
       const handle = await createTestMcpServer({
-        sessionIdGenerator: undefined,
+        sessionIdGenerator: undefined
       }).listenHttp();
       trackCleanup(handle.close);
 
       const response = await nodeFetch(handle.url, {
         method: "GET",
-        headers: { Accept: "text/event-stream" },
+        headers: { Accept: "text/event-stream" }
       });
 
       expect(response.status).toBe(405);
@@ -3036,7 +2968,7 @@ describe("HttpServer integration", () => {
 
       const [firstTools, secondTools] = await Promise.all([
         first.client.listTools(),
-        second.client.listTools(),
+        second.client.listTools()
       ]);
 
       expect(first.transport.sessionId).toBeDefined();
@@ -3052,12 +2984,12 @@ describe("HttpServer integration", () => {
       const [echoResult, upperResult] = await Promise.all([
         pair.client.callTool({
           name: "echo",
-          arguments: { text: "parallel-a" },
+          arguments: { text: "parallel-a" }
         }),
         pair.client.callTool({
           name: "uppercase",
-          arguments: { text: "parallel-b" },
-        }),
+          arguments: { text: "parallel-b" }
+        })
       ]);
 
       expect(echoResult.content).toEqual([{ type: "text", text: "parallel-a" }]);
@@ -3095,7 +3027,7 @@ describe("HttpServer integration", () => {
   describe("Edge cases", () => {
     it("I30 handles a 100KB+ JSON-RPC request body", async () => {
       const handle = await createTestMcpServer({
-        sessionIdGenerator: undefined,
+        sessionIdGenerator: undefined
       }).listenHttp();
       trackCleanup(handle.close);
 
@@ -3103,7 +3035,7 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       });
 
       const largeText = "x".repeat(120_000);
@@ -3111,7 +3043,7 @@ describe("HttpServer integration", () => {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "echo", arguments: { text: largeText } },
+        params: { name: "echo", arguments: { text: largeText } }
       });
       const payload = (await readJsonRpcPayload(response)) as {
         result: { content: Array<{ text: string }> };
@@ -3141,21 +3073,21 @@ describe("HttpServer integration", () => {
 
     it("I32 closes cleanly while a request is in flight", async () => {
       const handle = await createTestMcpServer({
-        sessionIdGenerator: undefined,
+        sessionIdGenerator: undefined
       }).listenHttp();
 
       await postJsonRpc(handle.url, {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: TEST_PROTOCOL_VERSION },
+        params: { protocolVersion: TEST_PROTOCOL_VERSION }
       });
 
       const requestPromise = postJsonRpc(handle.url, {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/call",
-        params: { name: "slow", arguments: {} },
+        params: { name: "slow", arguments: {} }
       });
 
       await handle.close();
@@ -3172,15 +3104,15 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "get_image",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([
         {
           type: "image",
           data: "iVBORw0KGgo=",
-          mimeType: "image/png",
-        },
+          mimeType: "image/png"
+        }
       ]);
     });
 
@@ -3190,27 +3122,27 @@ describe("HttpServer integration", () => {
 
       const result = await pair.client.callTool({
         name: "get_mixed",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([
         {
           type: "image",
           data: "iVBORw0KGgo=",
-          mimeType: "image/png",
+          mimeType: "image/png"
         },
         {
           type: "text",
-          text: "Caption for the image",
+          text: "Caption for the image"
         },
         {
           type: "resource",
           resource: {
             uri: "file:///data",
             mimeType: "text/plain",
-            text: "notes",
-          },
-        },
+            text: "notes"
+          }
+        }
       ]);
     });
   });
@@ -3230,9 +3162,9 @@ describe("tiny-http-mcp-server CLI", () => {
       capabilities: {},
       clientInfo: {
         name: "tiny-http-cli-test",
-        version: "1.0.0",
-      },
-    },
+        version: "1.0.0"
+      }
+    }
   };
 
   interface CapturedOutput {
@@ -3263,15 +3195,15 @@ describe("tiny-http-mcp-server CLI", () => {
           write: (chunk) => {
             stdout += append(chunk);
             return true;
-          },
+          }
         },
         stderr: {
           write: (chunk) => {
             stderr += append(chunk);
             return true;
-          },
-        },
-      },
+          }
+        }
+      }
     };
   }
 
@@ -3291,11 +3223,13 @@ describe("tiny-http-mcp-server CLI", () => {
         } finally {
           await shutdown();
         }
-      },
+      }
     });
 
     if (exitCode !== 0) {
-      throw new Error(output.stderr.trim().length > 0 ? output.stderr.trim() : output.stdout.trim());
+      throw new Error(
+        output.stderr.trim().length > 0 ? output.stderr.trim() : output.stdout.trim()
+      );
     }
 
     return { exitCode, output };
@@ -3307,9 +3241,9 @@ describe("tiny-http-mcp-server CLI", () => {
       signal: AbortSignal.timeout(1_000),
       headers: {
         Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(initializeRequest),
+      body: JSON.stringify(initializeRequest)
     });
   }
 
@@ -3318,7 +3252,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const listenHttp = vi.fn().mockResolvedValue({
       url: "http://127.0.0.1:3000/mcp",
       port: 3000,
-      close,
+      close
     });
     const createServer = vi.fn(() => ({ listenHttp }));
     const output = createCapturedOutput();
@@ -3329,14 +3263,14 @@ describe("tiny-http-mcp-server CLI", () => {
       stderr: output.io.stderr,
       waitForShutdown: async (shutdown) => {
         await shutdown();
-      },
+      }
     });
 
     expect(exitCode).toBe(0);
     expect(listenHttp).toHaveBeenCalledWith({
       port: 3000,
       hostname: "127.0.0.1",
-      path: "/mcp",
+      path: "/mcp"
     });
     expect(output.stdout).toBe("http://127.0.0.1:3000/mcp\n");
   });
@@ -3390,31 +3324,25 @@ describe("tiny-http-mcp-server CLI", () => {
   });
 
   it("C5 --stateless disables sessions", async () => {
-    const { exitCode } = await withStartedCli(
-      ["--port", "0", "--stateless"],
-      async (url) => {
-        const response = await postInitialize(url);
+    const { exitCode } = await withStartedCli(["--port", "0", "--stateless"], async (url) => {
+      const response = await postInitialize(url);
 
-        expect(response.status).toBe(200);
-        expect(response.headers.get("mcp-session-id")).toBeNull();
-        await response.text();
-      }
-    );
+      expect(response.status).toBe(200);
+      expect(response.headers.get("mcp-session-id")).toBeNull();
+      await response.text();
+    });
 
     expect(exitCode).toBe(0);
   });
 
   it("C6 --json-response returns JSON content-type", async () => {
-    const { exitCode } = await withStartedCli(
-      ["--port", "0", "--json-response"],
-      async (url) => {
-        const response = await postInitialize(url);
+    const { exitCode } = await withStartedCli(["--port", "0", "--json-response"], async (url) => {
+      const response = await postInitialize(url);
 
-        expect(response.status).toBe(200);
-        expect(response.headers.get("content-type")).toBe("application/json");
-        await response.text();
-      }
-    );
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe("application/json");
+      await response.text();
+    });
 
     expect(exitCode).toBe(0);
   });
@@ -3423,14 +3351,14 @@ describe("tiny-http-mcp-server CLI", () => {
     const verifier = {
       verify: vi.fn(async () => {
         throw new Error("not used in this test");
-      }),
+      })
     };
     const createServer = vi.fn(() => ({
       listenHttp: vi.fn().mockResolvedValue({
         url: "http://127.0.0.1:3000/mcp",
         port: 3000,
-        close: vi.fn().mockResolvedValue(undefined),
-      }),
+        close: vi.fn().mockResolvedValue(undefined)
+      })
     }));
     const loadOAuthVerifier = vi.fn(async () => verifier);
 
@@ -3441,29 +3369,29 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-authorization-server",
         "https://auth.example.com",
         "--oauth-verifier-module",
-        "./verify-token.mjs",
+        "./verify-token.mjs"
       ],
       {
         createServer,
         loadOAuthVerifier,
         waitForShutdown: async (shutdown) => {
           await shutdown();
-        },
+        }
       }
     );
 
     expect(exitCode).toBe(0);
     expect(loadOAuthVerifier).toHaveBeenCalledWith({
       modulePath: "./verify-token.mjs",
-      exportName: "default",
+      exportName: "default"
     });
     expect(createServer).toHaveBeenCalledWith(
       expect.objectContaining({
         oauth: {
           resource: "https://resource.example.com/mcp",
           authorizationServers: ["https://auth.example.com/"],
-          verifier,
-        },
+          verifier
+        }
       })
     );
   });
@@ -3473,8 +3401,8 @@ describe("tiny-http-mcp-server CLI", () => {
       listenHttp: vi.fn().mockResolvedValue({
         url: "http://127.0.0.1:3000/mcp",
         port: 3000,
-        close: vi.fn().mockResolvedValue(undefined),
-      }),
+        close: vi.fn().mockResolvedValue(undefined)
+      })
     }));
 
     const exitCode = await runCli(
@@ -3498,18 +3426,18 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-bearer-method",
         "body",
         "--oauth-verifier-module",
-        "./verify-token.mjs",
+        "./verify-token.mjs"
       ],
       {
         createServer,
         loadOAuthVerifier: async () => ({
           verify: vi.fn(async () => {
             throw new Error("not used in this test");
-          }),
+          })
         }),
         waitForShutdown: async (shutdown) => {
           await shutdown();
-        },
+        }
       }
     );
 
@@ -3517,14 +3445,11 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(createServer).toHaveBeenCalledWith(
       expect.objectContaining({
         oauth: expect.objectContaining({
-          authorizationServers: [
-            "https://auth-a.example.com/",
-            "https://auth-b.example.com/",
-          ],
+          authorizationServers: ["https://auth-a.example.com/", "https://auth-b.example.com/"],
           scopesSupported: ["mcp.read", "mcp.write"],
           requiredScopes: ["mcp.read", "mcp.admin"],
-          bearerMethodsSupported: ["header", "body"],
-        }),
+          bearerMethodsSupported: ["header", "body"]
+        })
       })
     );
   });
@@ -3533,7 +3458,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const cases = [
       ["--port", "0x50"],
       ["--max-batch-size", "1e3"],
-      ["--request-timeout-ms", "0x100"],
+      ["--request-timeout-ms", "0x100"]
     ];
 
     for (const args of cases) {
@@ -3543,7 +3468,7 @@ describe("tiny-http-mcp-server CLI", () => {
       const exitCode = await runCli(args, {
         createServer,
         stdout: output.io.stdout,
-        stderr: output.io.stderr,
+        stderr: output.io.stderr
       });
 
       expect(exitCode).toBe(1);
@@ -3556,7 +3481,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const cases = [
       ["--oauth-supported-scope", "   "],
       ["--oauth-required-scope", ""],
-      ["--oauth-bearer-method", "  "],
+      ["--oauth-bearer-method", "  "]
     ];
 
     for (const repeatedFlag of cases) {
@@ -3571,17 +3496,17 @@ describe("tiny-http-mcp-server CLI", () => {
           "https://auth.example.com",
           ...repeatedFlag,
           "--oauth-verifier-module",
-          "./verify-token.mjs",
+          "./verify-token.mjs"
         ],
         {
           createServer,
           loadOAuthVerifier: async () => ({
             verify: vi.fn(async () => {
               throw new Error("not used in this test");
-            }),
+            })
           }),
           stdout: output.io.stdout,
-          stderr: output.io.stderr,
+          stderr: output.io.stderr
         }
       );
 
@@ -3596,13 +3521,13 @@ describe("tiny-http-mcp-server CLI", () => {
       listenHttp: vi.fn().mockResolvedValue({
         url: "http://127.0.0.1:3000/mcp",
         port: 3000,
-        close: vi.fn().mockResolvedValue(undefined),
-      }),
+        close: vi.fn().mockResolvedValue(undefined)
+      })
     }));
     const loadOAuthVerifier = vi.fn(async () => ({
       verify: vi.fn(async () => {
         throw new Error("not used in this test");
-      }),
+      })
     }));
 
     const exitCode = await runCli(
@@ -3614,21 +3539,21 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-verifier-module",
         "./verify-token.mjs",
         "--oauth-verifier-export",
-        "customVerifier",
+        "customVerifier"
       ],
       {
         createServer,
         loadOAuthVerifier,
         waitForShutdown: async (shutdown) => {
           await shutdown();
-        },
+        }
       }
     );
 
     expect(exitCode).toBe(0);
     expect(loadOAuthVerifier).toHaveBeenCalledWith({
       modulePath: "./verify-token.mjs",
-      exportName: "customVerifier",
+      exportName: "customVerifier"
     });
   });
 
@@ -3636,7 +3561,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const listenHttp = vi.fn().mockResolvedValue({
       url: "http://127.0.0.1:3000/mcp",
       port: 3000,
-      close: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined)
     });
     const createServer = vi.fn(() => ({ listenHttp }));
 
@@ -3666,13 +3591,13 @@ describe("tiny-http-mcp-server CLI", () => {
         "--headers-timeout-ms",
         "5000",
         "--keep-alive-timeout-ms",
-        "1000",
+        "1000"
       ],
       {
         createServer,
         waitForShutdown: async (shutdown) => {
           await shutdown();
-        },
+        }
       }
     );
 
@@ -3688,14 +3613,14 @@ describe("tiny-http-mcp-server CLI", () => {
         maxStreamsPerSession: 2,
         maxSseEventHistory: 10,
         maxConcurrentToolCalls: 4,
-        trustedProxy: true,
+        trustedProxy: true
       })
     );
     expect(listenHttp).toHaveBeenCalledWith(
       expect.objectContaining({
         requestTimeoutMs: 30_000,
         headersTimeoutMs: 5_000,
-        keepAliveTimeoutMs: 1_000,
+        keepAliveTimeoutMs: 1_000
       })
     );
   });
@@ -3708,12 +3633,12 @@ describe("tiny-http-mcp-server CLI", () => {
     const shortExitCode = await runCli(["-h"], {
       createServer,
       stdout: shortOutput.io.stdout,
-      stderr: shortOutput.io.stderr,
+      stderr: shortOutput.io.stderr
     });
     const longExitCode = await runCli(["--help"], {
       createServer,
       stdout: longOutput.io.stdout,
-      stderr: longOutput.io.stderr,
+      stderr: longOutput.io.stderr
     });
 
     expect(shortExitCode).toBe(0);
@@ -3740,14 +3665,14 @@ describe("tiny-http-mcp-server CLI", () => {
     const listenHttp = vi.fn().mockResolvedValue({
       url: "http://127.0.0.1:41000/mcp",
       port: 41000,
-      close,
+      close
     });
     const createServer = vi.fn(() => ({ listenHttp }));
     const output = createCapturedOutput();
     const runPromise = runCli(["--port", "0"], {
       createServer,
       stdout: output.io.stdout,
-      stderr: output.io.stderr,
+      stderr: output.io.stderr
     });
 
     await vi.waitFor(() => {
@@ -3767,7 +3692,7 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-resource",
         "https://resource.example.com/mcp",
         "--oauth-verifier-module",
-        "./verify-token.mjs",
+        "./verify-token.mjs"
       ],
       { stdout: output.io.stdout, stderr: output.io.stderr }
     );
@@ -3782,7 +3707,7 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-resource",
         "https://resource.example.com/mcp",
         "--oauth-authorization-server",
-        "https://auth.example.com",
+        "https://auth.example.com"
       ],
       { stdout: output.io.stdout, stderr: output.io.stderr }
     );
@@ -3792,10 +3717,10 @@ describe("tiny-http-mcp-server CLI", () => {
 
   it("C14 exits with code 1 when an OAuth flag is set without --oauth-resource", async () => {
     const output = createCapturedOutput();
-    const exitCode = await runCli(
-      ["--oauth-authorization-server", "https://auth.example.com"],
-      { stdout: output.io.stdout, stderr: output.io.stderr }
-    );
+    const exitCode = await runCli(["--oauth-authorization-server", "https://auth.example.com"], {
+      stdout: output.io.stdout,
+      stderr: output.io.stderr
+    });
     expect(exitCode).toBe(1);
     expect(output.stderr).toContain("--oauth-resource");
   });
@@ -3809,7 +3734,7 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-authorization-server",
         "https://auth.example.com",
         "--oauth-verifier-module",
-        "./verify-token.mjs",
+        "./verify-token.mjs"
       ],
       { stdout: output.io.stdout, stderr: output.io.stderr }
     );
@@ -3826,7 +3751,7 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-authorization-server",
         "not-a-url",
         "--oauth-verifier-module",
-        "./verify-token.mjs",
+        "./verify-token.mjs"
       ],
       { stdout: output.io.stdout, stderr: output.io.stderr }
     );
@@ -3916,7 +3841,7 @@ describe("Spec conformance", () => {
         await new Promise<void>((resolve) => {
           waiters.push(resolve);
         });
-      },
+      }
     };
   }
 
@@ -3951,7 +3876,7 @@ describe("Spec conformance", () => {
         bodyJson,
         responseStatus: response.status,
         responseContentType: response.headers.get("content-type"),
-        responseSessionId: response.headers.get("mcp-session-id"),
+        responseSessionId: response.headers.get("mcp-session-id")
       });
 
       onResponse?.(response);
@@ -3971,7 +3896,7 @@ describe("Spec conformance", () => {
     const headers = new Headers({
       Accept: "application/json, text/event-stream",
       "Content-Type": "application/json",
-      ...options.headers,
+      ...options.headers
     });
 
     if (options.sessionId !== undefined) {
@@ -3982,7 +3907,7 @@ describe("Spec conformance", () => {
     return nodeFetch(url, {
       method: "POST",
       headers,
-      body: typeof message === "string" ? message : JSON.stringify(message),
+      body: typeof message === "string" ? message : JSON.stringify(message)
     });
   }
 
@@ -3992,8 +3917,8 @@ describe("Spec conformance", () => {
       headers: {
         Accept: "text/event-stream",
         "Mcp-Session-Id": sessionId,
-        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
-      },
+        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION
+      }
     });
   }
 
@@ -4011,7 +3936,7 @@ describe("Spec conformance", () => {
 
     return nodeFetch(url, {
       method: "DELETE",
-      headers,
+      headers
     });
   }
 
@@ -4023,7 +3948,7 @@ describe("Spec conformance", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: TEST_PROTOCOL_VERSION },
+      params: { protocolVersion: TEST_PROTOCOL_VERSION }
     });
     const sessionId = response.headers.get("mcp-session-id");
     if (sessionId !== null) {
@@ -4036,7 +3961,7 @@ describe("Spec conformance", () => {
 
     return {
       response,
-      sessionId,
+      sessionId
     };
   }
 
@@ -4048,7 +3973,7 @@ describe("Spec conformance", () => {
       reader.read().then(() => "resolved"),
       new Promise<"timeout">((resolve) => {
         setTimeout(() => resolve("timeout"), timeoutMs);
-      }),
+      })
     ]);
 
     expect(state).toBe("timeout");
@@ -4068,7 +3993,11 @@ describe("Spec conformance", () => {
         return true;
       }
 
-      if (typeof request.bodyJson !== "object" || request.bodyJson === null || Array.isArray(request.bodyJson)) {
+      if (
+        typeof request.bodyJson !== "object" ||
+        request.bodyJson === null ||
+        Array.isArray(request.bodyJson)
+      ) {
         return false;
       }
 
@@ -4076,14 +4005,15 @@ describe("Spec conformance", () => {
     });
   }
 
-  function getTextBlock(result: {
-    content: Array<Record<string, unknown>>;
-  }): { type: string; text: string } {
+  function getTextBlock(result: { content: Array<Record<string, unknown>> }): {
+    type: string;
+    text: string;
+  } {
     const first = result.content[0] as { type?: unknown; text?: unknown };
 
     return {
       type: String(first.type),
-      text: String(first.text),
+      text: String(first.text)
     };
   }
 
@@ -4106,7 +4036,7 @@ describe("Spec conformance", () => {
     const tracker = createToolChangeTracker();
     const client = new Client({ name: "sdk-conformance-client", version: "1.0.0" });
     const transport = new StreamableHTTPClientTransport(new URL(url), {
-      fetch: createLoggedFetch(requests),
+      fetch: createLoggedFetch(requests)
     });
     let cleanedUp = false;
 
@@ -4123,7 +4053,7 @@ describe("Spec conformance", () => {
             content: Array<Record<string, unknown>>;
             isError?: boolean;
           },
-        close: () => client.close(),
+        close: () => client.close()
       },
       url,
       requests,
@@ -4140,7 +4070,7 @@ describe("Spec conformance", () => {
         cleanedUp = true;
         await client.close();
         await handle?.close();
-      },
+      }
     };
   }
 
@@ -4154,7 +4084,7 @@ describe("Spec conformance", () => {
       clientInfo: { name: "tiny-conformance-client", version: "1.0.0" },
       onToolsChanged: () => {
         tracker.record();
-      },
+      }
     });
     let currentSessionId: string | undefined;
     let cleanedUp = false;
@@ -4166,7 +4096,7 @@ describe("Spec conformance", () => {
         if (sessionId !== null && sessionId.length > 0) {
           currentSessionId = sessionId;
         }
-      }),
+      })
     });
 
     await client.connect(transport);
@@ -4179,7 +4109,7 @@ describe("Spec conformance", () => {
             content: Array<Record<string, unknown>>;
             isError?: boolean;
           },
-        close: () => client.close(),
+        close: () => client.close()
       },
       url,
       requests,
@@ -4198,7 +4128,7 @@ describe("Spec conformance", () => {
         cleanedUp = true;
         await client.close();
         await handle?.close();
-      },
+      }
     };
   }
 
@@ -4239,16 +4169,16 @@ describe("Spec conformance", () => {
           defineSchema({ id: { type: "string" } }),
           ({ id }) => ({
             id,
-            displayName: "Alice",
+            displayName: "Alice"
           }),
           {
             type: "object",
             properties: {
               id: { type: "string" },
-              displayName: { type: "string" },
+              displayName: { type: "string" }
             },
             required: ["id", "displayName"],
-            additionalProperties: false,
+            additionalProperties: false
           }
         );
         server.tool(
@@ -4260,7 +4190,7 @@ describe("Spec conformance", () => {
             type: "object",
             properties: { id: { type: "string" } },
             required: ["id"],
-            additionalProperties: false,
+            additionalProperties: false
           }
         );
         pair = await createPair(server);
@@ -4309,7 +4239,7 @@ describe("Spec conformance", () => {
             pair.url,
             [
               { jsonrpc: "2.0", id: 2, method: "ping" },
-              { jsonrpc: "2.0", id: 3, method: "tools/list" },
+              { jsonrpc: "2.0", id: 3, method: "tools/list" }
             ],
             { sessionId: sessionId ?? undefined }
           );
@@ -4325,7 +4255,7 @@ describe("Spec conformance", () => {
             pair.url,
             [
               { jsonrpc: "2.0", method: "notifications/initialized" },
-              { jsonrpc: "2.0", method: "notifications/initialized" },
+              { jsonrpc: "2.0", method: "notifications/initialized" }
             ],
             { sessionId: sessionId ?? undefined }
           );
@@ -4340,7 +4270,7 @@ describe("Spec conformance", () => {
             pair.url,
             [
               { jsonrpc: "2.0", id: 2, result: { ok: true } },
-              { jsonrpc: "2.0", id: 3, error: { code: -32601, message: "Method not found" } },
+              { jsonrpc: "2.0", id: 3, error: { code: -32601, message: "Method not found" } }
             ],
             { sessionId: sessionId ?? undefined }
           );
@@ -4386,7 +4316,7 @@ describe("Spec conformance", () => {
 
         it("SC10: request POST returns JSON when JSON responses are enabled", async () => {
           const handle = await createTestMcpServer({
-            enableJsonResponse: true,
+            enableJsonResponse: true
           }).listenHttp({ port: 0 });
           trackCleanup(handle.close);
 
@@ -4432,10 +4362,10 @@ describe("Spec conformance", () => {
                   jsonrpc: "2.0",
                   id: 2,
                   method: "tools/call",
-                  params: { name: "notify_during_call", arguments: {} },
+                  params: { name: "notify_during_call", arguments: {} }
                 },
                 { sessionId: sessionId ?? undefined }
-              ),
+              )
             ]);
             const payload = (await readJsonRpcPayload(callResponse)) as {
               result: { content: Array<{ text: string }> };
@@ -4500,13 +4430,13 @@ describe("Spec conformance", () => {
 
         it("SC17: GET returns 405 when the server is stateless", async () => {
           const handle = await createTestMcpServer({
-            sessionIdGenerator: undefined,
+            sessionIdGenerator: undefined
           }).listenHttp({ port: 0 });
           trackCleanup(handle.close);
 
           const response = await nodeFetch(handle.url, {
             method: "GET",
-            headers: { Accept: "text/event-stream" },
+            headers: { Accept: "text/event-stream" }
           });
 
           expect(response.status).toBe(405);
@@ -4589,7 +4519,7 @@ describe("Spec conformance", () => {
           const response = await postJsonRpc(pair.url, {
             jsonrpc: "2.0",
             id: 2,
-            method: "tools/list",
+            method: "tools/list"
           });
 
           expect(response.status).toBe(400);
@@ -4652,7 +4582,7 @@ describe("Spec conformance", () => {
 
         it("SC27: DELETE returns 405 when sessions are unsupported", async () => {
           const handle = await createTestMcpServer({
-            sessionIdGenerator: undefined,
+            sessionIdGenerator: undefined
           }).listenHttp({ port: 0 });
           trackCleanup(handle.close);
 
@@ -4680,7 +4610,7 @@ describe("Spec conformance", () => {
         it("SC30: text tool results round-trip", async () => {
           const result = await pair.client.callTool({
             name: "echo",
-            arguments: { text: "hello" },
+            arguments: { text: "hello" }
           });
 
           expect(result.content).toEqual([{ type: "text", text: "hello" }]);
@@ -4689,7 +4619,7 @@ describe("Spec conformance", () => {
         it("SC31: structured JSON results round-trip", async () => {
           const result = await pair.client.callTool({
             name: "get_user",
-            arguments: { id: "user-7" },
+            arguments: { id: "user-7" }
           });
           const textBlock = getTextBlock(result);
 
@@ -4697,7 +4627,7 @@ describe("Spec conformance", () => {
           expect(JSON.parse(textBlock.text)).toEqual({
             id: "user-7",
             name: "Alice",
-            role: "admin",
+            role: "admin"
           });
         });
 
@@ -4709,23 +4639,23 @@ describe("Spec conformance", () => {
               outputSchema: expect.objectContaining({
                 type: "object",
                 properties: expect.objectContaining({
-                  displayName: { type: "string" },
-                }),
-              }),
+                  displayName: { type: "string" }
+                })
+              })
             })
           );
 
-          const result = await pair.client.callTool({
+          const result = (await pair.client.callTool({
             name: "typed_profile",
-            arguments: { id: "user-7" },
-          }) as {
+            arguments: { id: "user-7" }
+          })) as {
             content: Array<{ type: string; text: string }>;
             structuredContent?: Record<string, unknown>;
           };
 
           expect(result.structuredContent).toEqual({
             id: "user-7",
-            displayName: "Alice",
+            displayName: "Alice"
           });
           expect(JSON.parse(result.content[0]!.text)).toEqual(result.structuredContent);
         });
@@ -4734,7 +4664,7 @@ describe("Spec conformance", () => {
           await expect(
             pair.client.callTool({
               name: "invalid_typed_profile",
-              arguments: {},
+              arguments: {}
             })
           ).rejects.toMatchObject({ code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR });
         });
@@ -4742,37 +4672,37 @@ describe("Spec conformance", () => {
         it("SC32: image content round-trips", async () => {
           const result = await pair.client.callTool({
             name: "get_image",
-            arguments: {},
+            arguments: {}
           });
 
           expect(result.content).toEqual([
             {
               type: "image",
               data: TEST_PNG_BASE64,
-              mimeType: "image/png",
-            },
+              mimeType: "image/png"
+            }
           ]);
         });
 
         it("SC33: audio content round-trips", async () => {
           const result = await pair.client.callTool({
             name: "get_audio",
-            arguments: {},
+            arguments: {}
           });
 
           expect(result.content).toEqual([
             {
               type: "audio",
               data: TEST_MP3_BASE64,
-              mimeType: "audio/mpeg",
-            },
+              mimeType: "audio/mpeg"
+            }
           ]);
         });
 
         it("SC34: file content round-trips", async () => {
           const result = await pair.client.callTool({
             name: "get_file",
-            arguments: {},
+            arguments: {}
           });
 
           expect(result.content).toEqual([
@@ -4781,43 +4711,43 @@ describe("Spec conformance", () => {
               resource: {
                 uri: "file:///data",
                 mimeType: "text/csv",
-                text: "hello,world",
-              },
-            },
+                text: "hello,world"
+              }
+            }
           ]);
         });
 
         it("SC35: mixed content round-trips", async () => {
           const result = await pair.client.callTool({
             name: "get_mixed",
-            arguments: {},
+            arguments: {}
           });
 
           expect(result.content).toEqual([
             {
               type: "image",
               data: TEST_PNG_BASE64,
-              mimeType: "image/png",
+              mimeType: "image/png"
             },
             {
               type: "text",
-              text: "Caption for the image",
+              text: "Caption for the image"
             },
             {
               type: "resource",
               resource: {
                 uri: "file:///data",
                 mimeType: "text/plain",
-                text: "notes",
-              },
-            },
+                text: "notes"
+              }
+            }
           ]);
         });
 
         it("SC36: undefined results round-trip as an empty content array", async () => {
           const result = await pair.client.callTool({
             name: "empty_result",
-            arguments: {},
+            arguments: {}
           });
 
           expect(result.content).toEqual([]);
@@ -4826,7 +4756,7 @@ describe("Spec conformance", () => {
         it("SC37: large outputs round-trip without truncation", async () => {
           const result = await pair.client.callTool({
             name: "large_output",
-            arguments: {},
+            arguments: {}
           });
           const textBlock = getTextBlock(result);
 
@@ -4838,7 +4768,7 @@ describe("Spec conformance", () => {
         it("SC38: synchronous tool throws become isError results", async () => {
           const result = await pair.client.callTool({
             name: "throw_sync",
-            arguments: {},
+            arguments: {}
           });
           const textBlock = getTextBlock(result);
 
@@ -4849,7 +4779,7 @@ describe("Spec conformance", () => {
         it("SC39: asynchronous tool throws become isError results", async () => {
           const result = await pair.client.callTool({
             name: "throw_async",
-            arguments: {},
+            arguments: {}
           });
           const textBlock = getTextBlock(result);
 
@@ -4865,7 +4795,7 @@ describe("Spec conformance", () => {
               jsonrpc: "2.0",
               id: 2,
               method: "tools/call",
-              params: { name: "missing", arguments: {} },
+              params: { name: "missing", arguments: {} }
             },
             { sessionId: sessionId ?? undefined }
           );
@@ -4873,7 +4803,7 @@ describe("Spec conformance", () => {
           expect(await readJsonRpcPayload(response)).toEqual({
             jsonrpc: "2.0",
             id: 2,
-            error: { code: -32602, message: "Tool not found: missing" },
+            error: { code: -32602, message: "Tool not found: missing" }
           });
         });
 
@@ -4888,20 +4818,20 @@ describe("Spec conformance", () => {
           expect(await readJsonRpcPayload(response)).toEqual({
             jsonrpc: "2.0",
             id: 2,
-            error: { code: -32601, message: "Method not found" },
+            error: { code: -32601, message: "Method not found" }
           });
         });
 
         it("SC42: invalid JSON bodies return 400", async () => {
           const response = await postJsonRpc(pair.url, '{"jsonrpc":"2.0"', {
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" }
           });
 
           expect(response.status).toBe(400);
           expect(await readJsonRpcPayload(response)).toEqual({
             jsonrpc: "2.0",
             id: null,
-            error: { code: -32700, message: "Parse error" },
+            error: { code: -32700, message: "Parse error" }
           });
         });
       });
@@ -4926,7 +4856,9 @@ describe("Spec conformance", () => {
         it("SC45: notifyToolsChanged is delivered to the client", async () => {
           await vi.waitFor(() => {
             expect(pair.requests.some((request) => request.method === "GET")).toBe(true);
-            expect(findRequestByMethod(pair.requests, "POST", "notifications/initialized")).toBeDefined();
+            expect(
+              findRequestByMethod(pair.requests, "POST", "notifications/initialized")
+            ).toBeDefined();
           });
 
           const notification = pair.nextToolChange();
@@ -4948,8 +4880,8 @@ describe("Spec conformance", () => {
                 jsonrpc: "2.0",
                 id: 4,
                 method: "tools/call",
-                params: { name: "echo", arguments: { text: "batch" } },
-              },
+                params: { name: "echo", arguments: { text: "batch" } }
+              }
             ],
             { sessionId: sessionId ?? undefined }
           );
@@ -4965,7 +4897,7 @@ describe("Spec conformance", () => {
             [
               { jsonrpc: "2.0", id: 2, method: "ping" },
               { jsonrpc: "2.0", method: "notifications/initialized" },
-              { jsonrpc: "2.0", id: 3, method: "tools/list" },
+              { jsonrpc: "2.0", id: 3, method: "tools/list" }
             ],
             { sessionId: sessionId ?? undefined }
           );
@@ -4982,7 +4914,7 @@ describe("Spec conformance", () => {
 
           const [firstTools, secondTools] = await Promise.all([
             pair.client.listTools(),
-            sibling.client.listTools(),
+            sibling.client.listTools()
           ]);
 
           expect(pair.currentSessionId()).toBeDefined();
@@ -4995,12 +4927,12 @@ describe("Spec conformance", () => {
           const [echoResult, uppercaseResult] = await Promise.all([
             pair.client.callTool({
               name: "echo",
-              arguments: { text: "parallel-a" },
+              arguments: { text: "parallel-a" }
             }),
             pair.client.callTool({
               name: "uppercase",
-              arguments: { text: "parallel-b" },
-            }),
+              arguments: { text: "parallel-b" }
+            })
           ]);
 
           expect(echoResult.content).toEqual([{ type: "text", text: "parallel-a" }]);

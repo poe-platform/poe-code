@@ -1,7 +1,7 @@
 import http, {
   type IncomingMessage,
   type ServerResponse,
-  type Server as NodeHttpServer,
+  type Server as NodeHttpServer
 } from "node:http";
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { AddressInfo } from "node:net";
@@ -12,7 +12,7 @@ import {
   type ToolDefinition,
   type CallToolResult,
   type ToolReturn,
-  type TypedSchema,
+  type TypedSchema
 } from "tiny-stdio-mcp-server";
 import {
   PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
@@ -21,12 +21,12 @@ import {
   type AuthenticatedIncomingMessage,
   type TokenVerifier,
   type VerifiedAccessToken,
-  type RequestAuthInfo,
+  type RequestAuthInfo
 } from "./auth.js";
 import {
   StreamableHttpTransport,
   type HttpObservabilityEvent,
-  type StreamableHttpTransportOptions,
+  type StreamableHttpTransportOptions
 } from "./http-transport.js";
 
 export interface ProtectedResourceMetadataOptions {
@@ -36,15 +36,15 @@ export interface ProtectedResourceMetadataOptions {
   scopesSupported?: readonly string[];
 }
 
-export interface TinyHttpMcpServerOAuthOptions
-  extends ProtectedResourceMetadataOptions {
+export interface TinyHttpMcpServerOAuthOptions extends ProtectedResourceMetadataOptions {
   requiredScopes?: readonly string[];
   verifier: TokenVerifier;
 }
 
-export type HttpTransportOptions = StreamableHttpTransportOptions & {
-  oauth?: TinyHttpMcpServerOAuthOptions;
-};
+export type HttpTransportOptions = ServerOptions &
+  StreamableHttpTransportOptions & {
+    oauth?: TinyHttpMcpServerOAuthOptions;
+  };
 
 export interface HttpListenOptions {
   port?: number;
@@ -177,32 +177,30 @@ export function createProtectedResourceMetadataDocument(
     authorization_servers: options.authorizationServers.map(toUrlString),
     ...(options.bearerMethodsSupported !== undefined
       ? {
-          bearer_methods_supported: [...options.bearerMethodsSupported],
+          bearer_methods_supported: [...options.bearerMethodsSupported]
         }
       : {}),
     ...(options.scopesSupported !== undefined
       ? {
-          scopes_supported: [...options.scopesSupported],
+          scopes_supported: [...options.scopesSupported]
         }
-      : {}),
+      : {})
   };
 }
 
-export function createHttpServer(
-  options: ServerOptions & HttpTransportOptions
-): HttpServer {
+export function createHttpServer(options: HttpTransportOptions): HttpServer {
   const requestContextStorage = new AsyncLocalStorage<HttpToolContext>();
   const supportsSessions =
     !hasOwnProperty(options, "sessionIdGenerator") || options.sessionIdGenerator !== undefined;
   const server = createServer({
     ...options,
     supportNotifications: supportsSessions,
-    supportResourceSubscriptions: supportsSessions,
+    supportResourceSubscriptions: supportsSessions
   });
   const transport = new StreamableHttpTransport(server, options, async (req, callback) =>
     requestContextStorage.run(
       {
-        request: req as AuthenticatedIncomingMessage,
+        request: req as AuthenticatedIncomingMessage
       },
       callback
     )
@@ -215,7 +213,7 @@ export function createHttpServer(
   const registerTool = server.tool.bind(server);
   const registerRichTool = server.registerTool.bind(server);
   const defaultContext = {
-    request: {} as AuthenticatedIncomingMessage,
+    request: {} as AuthenticatedIncomingMessage
   } satisfies HttpToolContext;
 
   const authorizeHttpRequest = async (
@@ -235,7 +233,7 @@ export function createHttpServer(
     const authorization = await authorizeBearerRequest(authenticatedRequest, {
       ...options.oauth,
       protectedResourcePath,
-      trustedProxy: options.trustedProxy,
+      trustedProxy: options.trustedProxy
     });
     if (!authorization.ok) {
       options.observability?.onEvent?.({
@@ -244,12 +242,12 @@ export function createHttpServer(
         challenge: authorization.challenge,
         sessionId: Array.isArray(req.headers["mcp-session-id"])
           ? req.headers["mcp-session-id"][0]
-          : req.headers["mcp-session-id"],
+          : req.headers["mcp-session-id"]
       });
       res.writeHead(authorization.statusCode, {
         "WWW-Authenticate": authorization.challenge,
         "X-Content-Type-Options": "nosniff",
-        "Referrer-Policy": "no-referrer",
+        "Referrer-Policy": "no-referrer"
       });
       res.end();
       return false;
@@ -297,7 +295,7 @@ export function createHttpServer(
       signal,
       requestTimeoutMs,
       headersTimeoutMs,
-      keepAliveTimeoutMs,
+      keepAliveTimeoutMs
     } = listenOptions;
     const path = normalizePath(requestedPath);
 
@@ -314,7 +312,7 @@ export function createHttpServer(
             "Cache-Control": PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
             "Content-Type": "application/json; charset=utf-8",
             "X-Content-Type-Options": "nosniff",
-            "Referrer-Policy": "no-referrer",
+            "Referrer-Policy": "no-referrer"
           });
           res.end(protectedResourceMetadataBody);
           return;
@@ -323,7 +321,7 @@ export function createHttpServer(
         if (requestUrl.pathname !== path) {
           res.writeHead(404, {
             "X-Content-Type-Options": "nosniff",
-            "Referrer-Policy": "no-referrer",
+            "Referrer-Policy": "no-referrer"
           });
           res.end();
           return;
@@ -338,7 +336,7 @@ export function createHttpServer(
         if (!res.headersSent) {
           res.writeHead(500, {
             "X-Content-Type-Options": "nosniff",
-            "Referrer-Policy": "no-referrer",
+            "Referrer-Policy": "no-referrer"
           });
         }
         if (!res.writableEnded) {
@@ -402,7 +400,7 @@ export function createHttpServer(
     return {
       url: buildUrl(hostname, resolvedPort, path),
       port: resolvedPort,
-      close,
+      close
     };
   };
 

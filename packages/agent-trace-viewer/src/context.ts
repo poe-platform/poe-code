@@ -1,4 +1,4 @@
-import { countTokens } from "tokenfill";
+import { estimateTokens } from "tokenfill";
 import type { NormalizedTrace } from "@poe-code/agent-traces";
 import type { ContextUsage } from "./types.js";
 
@@ -11,7 +11,7 @@ export function computeContextUsage(trace: NormalizedTrace): ContextUsage {
   const tokens =
     trace.usage !== undefined
       ? trace.usage.contextTokens
-      : countTokens(trace.turns.map((turn) => turn.text).join("\n"));
+      : trace.turns.reduce((sum, turn) => sum + estimateTokens(turn.text), 0);
 
   return {
     tokens,

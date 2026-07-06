@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { step } from "./reducer.js";
-import { createDetailJobs, LOADING_INDICATOR_MS } from "./jobs.js";
-import { createInitialState, type DetailCtx, type DetailItem, type ExplorerConfig } from "./state.js";
+import { createDetailJobs, DETAIL_DEBOUNCE_MS, LOADING_INDICATOR_MS } from "./jobs.js";
+import {
+  createInitialState,
+  type DetailCtx,
+  type DetailItem,
+  type ExplorerConfig
+} from "./state.js";
 import type { ExplorerEvent } from "./events.js";
 
 function config(overrides: Partial<ExplorerConfig<unknown>> = {}): ExplorerConfig<unknown> {
@@ -57,12 +62,15 @@ describe("createDetailJobs", () => {
     const secondJob = jobs.schedule("two", () => second.promise, detailCtx("two"));
     first.resolve([detailItem("first")]);
     second.resolve([detailItem("second")]);
+    await vi.advanceTimersByTimeAsync(DETAIL_DEBOUNCE_MS);
     await Promise.all([firstJob, secondJob]);
 
-    expect(events.map((event) => ({
-      ...event,
-      items: event.type === "detailLoaded" ? event.items.map((item) => item.id) : undefined
-    }))).toEqual([
+    expect(
+      events.map((event) => ({
+        ...event,
+        items: event.type === "detailLoaded" ? event.items.map((item) => item.id) : undefined
+      }))
+    ).toEqual([
       { type: "detailLoaded", rowId: "one", token: 1, items: ["first"] },
       { type: "detailLoaded", rowId: "two", token: 2, items: ["second"] }
     ]);
@@ -84,15 +92,39 @@ describe("createDetailJobs", () => {
     const first = deferred<DetailItem[]>();
     let firstSignal: AbortSignal | undefined;
 
-    const firstJob = jobs.schedule("one", (ctx) => {
-      firstSignal = ctx.signal;
-      return first.promise;
-    }, detailCtx("one"));
+    const firstJob = jobs.schedule(
+      "one",
+      (ctx) => {
+        firstSignal = ctx.signal;
+        return first.promise;
+      },
+      detailCtx("one")
+    );
     const secondJob = jobs.schedule("two", () => Promise.resolve([]), detailCtx("two"));
 
     expect(firstSignal?.aborted).toBe(true);
     first.resolve([]);
+    await vi.advanceTimersByTimeAsync(DETAIL_DEBOUNCE_MS);
     await Promise.all([firstJob, secondJob]);
+  });
+
+  it("debounces rapid successive schedules so intermediate rows never load", async () => {
+    const jobs = createDetailJobs(() => undefined);
+    const ran: string[] = [];
+    const load = (id: string) => () => {
+      ran.push(id);
+      return Promise.resolve([detailItem(id)]);
+    };
+
+    const jobsInFlight = [
+      jobs.schedule("one", load("one"), detailCtx("one")),
+      jobs.schedule("two", load("two"), detailCtx("two")),
+      jobs.schedule("three", load("three"), detailCtx("three"))
+    ];
+    await vi.advanceTimersByTimeAsync(DETAIL_DEBOUNCE_MS);
+    await Promise.all(jobsInFlight);
+
+    expect(ran).toEqual(["one", "three"]);
   });
 
   it("emits a loading event only after the 150ms loading delay", async () => {
@@ -110,10 +142,12 @@ describe("createDetailJobs", () => {
     pending.resolve([detailItem("done")]);
     await job;
 
-    expect(events.map((event) => ({
-      ...event,
-      items: event.type === "detailLoaded" ? event.items.map((item) => item.id) : undefined
-    }))).toEqual([
+    expect(
+      events.map((event) => ({
+        ...event,
+        items: event.type === "detailLoaded" ? event.items.map((item) => item.id) : undefined
+      }))
+    ).toEqual([
       { type: "detailLoading", rowId: "one", token: 1, items: undefined },
       { type: "detailLoaded", rowId: "one", token: 1, items: ["done"] }
     ]);
@@ -126,12 +160,12 @@ describe("createDetailJobs", () => {
     await jobs.schedule("one", () => Promise.resolve([detailItem("done")]), detailCtx("one"));
     await vi.advanceTimersByTimeAsync(LOADING_INDICATOR_MS);
 
-    expect(events.map((event) => ({
-      ...event,
-      items: event.type === "detailLoaded" ? event.items.map((item) => item.id) : undefined
-    }))).toEqual([
-      { type: "detailLoaded", rowId: "one", token: 1, items: ["done"] }
-    ]);
+    expect(
+      events.map((event) => ({
+        ...event,
+        items: event.type === "detailLoaded" ? event.items.map((item) => item.id) : undefined
+      }))
+    ).toEqual([{ type: "detailLoaded", rowId: "one", token: 1, items: ["done"] }]);
   });
 
   it("clears pending loading work when aborted", async () => {

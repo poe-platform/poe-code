@@ -86,6 +86,16 @@ const truncated = tokenizer.truncate(text, 1);
 tokenizer.free();
 ```
 
+## Token Estimation
+
+```ts
+import { estimateTokens } from "tokenfill";
+
+const tokens = estimateTokens(largeText);
+```
+
+`estimateTokens` counts exactly (default encoding) for texts up to 8 192 characters and extrapolates from head/middle/tail samples above that, so it stays fast on multi-megabyte inputs.
+
 ## Notes
 
 - Output is deterministic for the same token count and encoding.

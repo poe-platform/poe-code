@@ -1,5 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { collectHumanPrompts } from "../collect.js";
 import { claudeTraceReader } from "./claude.js";
 
@@ -111,6 +111,112 @@ describe("claudeTraceReader", () => {
     });
 
     expect(references.map((reference) => reference.id).sort()).toEqual(["one", "two"]);
+  });
+
+  it("discovers session titles from ai-title records", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/home/me/.claude/projects/-repo/one.jsonl": [
+          JSON.stringify({
+            type: "user",
+            sessionId: "one",
+            cwd: "/repo",
+            message: { role: "user", content: "first prompt" }
+          }),
+          JSON.stringify({ type: "ai-title", sessionId: "one", aiTitle: "Fix the parser" })
+        ].join("\n")
+      })
+    ).promises;
+
+    const references = await claudeTraceReader.discover({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs
+    });
+
+    expect(references[0]?.title).toBe("Fix the parser");
+  });
+
+  it("falls back to the first human message as the session title", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/home/me/.claude/projects/-repo/one.jsonl": [
+          JSON.stringify({
+            type: "user",
+            sessionId: "one",
+            cwd: "/repo",
+            message: {
+              role: "user",
+              content: "<system-reminder>ignore this reminder</system-reminder>"
+            }
+          }),
+          JSON.stringify({
+            type: "user",
+            sessionId: "one",
+            cwd: "/repo",
+            message: { role: "user", content: "Please fix the flaky test" }
+          })
+        ].join("\n")
+      })
+    ).promises;
+
+    const references = await claudeTraceReader.discover({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs
+    });
+
+    expect(references[0]?.title).toBe("Please fix the flaky test");
+  });
+
+  it("discovers references without parsing records beyond the head scan window", async () => {
+    const lines = [
+      JSON.stringify({
+        type: "user",
+        sessionId: "one",
+        cwd: "/repo",
+        message: { role: "user", content: "first prompt" }
+      }),
+      ...Array.from({ length: 5_000 }, (_, index) =>
+        JSON.stringify({
+          type: "assistant",
+          message: { role: "assistant", content: `turn ${index}` }
+        })
+      )
+    ];
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/home/me/.claude/projects/-repo/one.jsonl": lines.join("\n") })
+    ).promises;
+    const parse = vi.spyOn(JSON, "parse");
+
+    try {
+      await claudeTraceReader.discover({ cwd: "/repo", homeDir: "/home/me", fs });
+      expect(parse.mock.calls.length).toBeLessThan(200);
+    } finally {
+      parse.mockRestore();
+    }
+  });
+
+  it("skips reading trace files older than the since filter", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/home/me/.claude/projects/-repo/old.jsonl": JSON.stringify({
+          type: "user",
+          sessionId: "old",
+          cwd: "/repo",
+          message: { role: "user", content: "old prompt" }
+        })
+      })
+    ).promises;
+
+    const references = await claudeTraceReader.discover({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      since: new Date(Date.now() + 60_000),
+      fs
+    });
+
+    expect(references).toEqual([]);
   });
 
   it("does not discover subagent transcripts as top-level Claude sessions", async () => {
@@ -279,15 +385,15 @@ describe("claudeTraceReader", () => {
       })
     ).promises;
 
-    const secondUpdatedAt = (await fs.stat(
-      "/home/me/.claude/projects/-repo/parent-session/subagents/agent-second.jsonl"
-    )).mtime;
-    const firstUpdatedAt = (await fs.stat(
-      "/home/me/.claude/projects/-repo/parent-session/subagents/agent-first.jsonl"
-    )).mtime;
-    const nestedUpdatedAt = (await fs.stat(
-      "/home/me/.claude/projects/-repo/parent-session/subagents/agent-nested.jsonl"
-    )).mtime;
+    const secondUpdatedAt = (
+      await fs.stat("/home/me/.claude/projects/-repo/parent-session/subagents/agent-second.jsonl")
+    ).mtime;
+    const firstUpdatedAt = (
+      await fs.stat("/home/me/.claude/projects/-repo/parent-session/subagents/agent-first.jsonl")
+    ).mtime;
+    const nestedUpdatedAt = (
+      await fs.stat("/home/me/.claude/projects/-repo/parent-session/subagents/agent-nested.jsonl")
+    ).mtime;
 
     const parent = await claudeTraceReader.read(
       {
@@ -363,7 +469,9 @@ describe("claudeTraceReader", () => {
     });
     const trace = await claudeTraceReader.read(references[0]!, { fs });
 
-    expect(references[0]).not.toHaveProperty("updatedAt");
+    expect(
+      references[0]?.updatedAt === undefined || !Number.isNaN(references[0].updatedAt.getTime())
+    ).toBe(true);
     expect(trace.turns[0]).toEqual({
       role: "human",
       text: "collect this prompt",

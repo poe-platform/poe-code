@@ -247,9 +247,7 @@ function skillListingEntries(attachment: Record<string, unknown>): SkillListingE
   return stringArray(attachment.names).map((name) => ({ name, text: name }));
 }
 
-function turnsFromSkillListingAttachment(
-  record: Record<string, unknown>
-): NormalizedTraceTurn[] {
+function turnsFromSkillListingAttachment(record: Record<string, unknown>): NormalizedTraceTurn[] {
   if (record.type !== "attachment") {
     return [];
   }
@@ -607,6 +605,67 @@ async function readTrace(filePath: string, fs: AgentTraceFileSystem): Promise<No
   };
 }
 
+const HEAD_SCAN_MAX_LINES = 100;
+
+interface TraceHeadMetadata {
+  sessionId?: string;
+  cwd?: string;
+  title?: string;
+}
+
+function traceHeadMetadata(contents: string): TraceHeadMetadata {
+  const state: ClaudeReadState = { toolUses: new Map(), spawnToolUseIds: [] };
+  let sessionId: string | undefined;
+  let cwd: string | undefined;
+  let title: string | undefined;
+  let firstHumanText: string | undefined;
+  let lineStart = 0;
+
+  for (let line = 0; line < HEAD_SCAN_MAX_LINES && lineStart < contents.length; line += 1) {
+    const lineEnd = contents.indexOf("\n", lineStart);
+    const rawLine = lineEnd === -1 ? contents.slice(lineStart) : contents.slice(lineStart, lineEnd);
+    lineStart = lineEnd === -1 ? contents.length : lineEnd + 1;
+
+    const record = parseRecordLine(rawLine);
+    if (!record) {
+      continue;
+    }
+    if (cwd === undefined && typeof record.cwd === "string") {
+      cwd = record.cwd;
+    }
+    if (sessionId === undefined && typeof record.sessionId === "string") {
+      sessionId = record.sessionId;
+    }
+    if (title === undefined && typeof record.aiTitle === "string") {
+      title = record.aiTitle;
+    }
+    if (title === undefined && firstHumanText === undefined) {
+      firstHumanText = turnsFromRecord(record, state).find((turn) => turn.role === "human")?.text;
+    }
+    if (sessionId !== undefined && cwd !== undefined && title !== undefined) {
+      break;
+    }
+  }
+
+  return {
+    ...(sessionId !== undefined ? { sessionId } : {}),
+    ...(cwd !== undefined ? { cwd } : {}),
+    ...((title ?? firstHumanText) ? { title: title ?? firstHumanText } : {})
+  };
+}
+
+function parseRecordLine(rawLine: string): Record<string, unknown> | undefined {
+  const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+  if (line.trim().length === 0) {
+    return undefined;
+  }
+  try {
+    return asRecord(JSON.parse(line));
+  } catch {
+    return undefined;
+  }
+}
+
 export const claudeTraceReader: TraceReader = {
   id: "claude",
   defaultRoots(homeDir: string): string[] {
@@ -622,17 +681,18 @@ export const claudeTraceReader: TraceReader = {
 
     for (const directory of directories) {
       for (const filePath of await listJsonlFiles(options.fs, directory)) {
-        const trace = await readTrace(filePath, options.fs);
-        if (options.since && trace.updatedAt && trace.updatedAt < options.since) {
+        const updatedAt = await fileUpdatedAt(options.fs, filePath);
+        if (options.since && updatedAt && updatedAt < options.since) {
           continue;
         }
+        const metadata = traceHeadMetadata(await options.fs.readFile(filePath, "utf8"));
         references.push({
           source: "claude",
-          id: trace.id,
+          id: metadata.sessionId ?? fileId(filePath),
           path: filePath,
-          ...(trace.cwd ? { cwd: trace.cwd } : {}),
-          ...(trace.updatedAt ? { updatedAt: trace.updatedAt } : {}),
-          ...(trace.title ? { title: trace.title } : {})
+          ...(metadata.cwd ? { cwd: metadata.cwd } : {}),
+          ...(updatedAt ? { updatedAt } : {}),
+          ...(metadata.title ? { title: metadata.title } : {})
         });
       }
     }

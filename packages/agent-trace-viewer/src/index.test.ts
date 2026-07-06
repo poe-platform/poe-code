@@ -9,7 +9,7 @@ import type {
 
 const mocks = vi.hoisted(() => ({
   traceReaders: [] as TraceReader[],
-  countTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
+  estimateTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
 }));
 
 vi.mock("@poe-code/agent-traces", async (importOriginal) => {
@@ -21,7 +21,7 @@ vi.mock("@poe-code/agent-traces", async (importOriginal) => {
 });
 
 vi.mock("tokenfill", () => ({
-  countTokens: mocks.countTokens
+  estimateTokens: mocks.estimateTokens
 }));
 
 import {
@@ -57,7 +57,7 @@ const fs = {} as AgentTraceFileSystem;
 describe("listTraces", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.countTokens.mockClear();
+    mocks.estimateTokens.mockClear();
   });
 
   it("merges reader results, sorts newest first, and applies the default and explicit limits", async () => {
@@ -126,8 +126,8 @@ describe("listTraces", () => {
 describe("loadTrace", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.countTokens.mockReset();
-    mocks.countTokens.mockImplementation((text: string) => text.length);
+    mocks.estimateTokens.mockReset();
+    mocks.estimateTokens.mockImplementation((text: string) => text.length);
   });
 
   it("uses reported context when trace usage exists", async () => {
@@ -154,7 +154,7 @@ describe("loadTrace", () => {
     const view = await loadTrace({ source: "codex", id: "reported" }, { fs });
 
     expect(view.context).toEqual({ tokens: 25, window: 100, percent: 25, source: "reported" });
-    expect(mocks.countTokens).toHaveBeenCalledWith("ignored");
+    expect(mocks.estimateTokens).toHaveBeenCalledWith("ignored");
   });
 
   it("estimates context and uses model window mapping", async () => {
@@ -178,12 +178,13 @@ describe("loadTrace", () => {
     const view = await loadTrace({ source: "claude", id: "estimated" }, { fs });
 
     expect(view.context).toEqual({
-      tokens: 12,
+      tokens: 11,
       window: 200000,
       percent: 0,
       source: "estimated"
     });
-    expect(mocks.countTokens).toHaveBeenCalledWith("hello\nworld!");
+    expect(mocks.estimateTokens).toHaveBeenCalledWith("hello");
+    expect(mocks.estimateTokens).toHaveBeenCalledWith("world!");
   });
 
   it("falls back to the default context window", async () => {
@@ -229,8 +230,8 @@ describe("detectTraceFile", () => {
 describe("loadTraceFromFile", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.countTokens.mockReset();
-    mocks.countTokens.mockImplementation((text: string) => text.length);
+    mocks.estimateTokens.mockReset();
+    mocks.estimateTokens.mockImplementation((text: string) => text.length);
   });
 
   it("detects the source from the first line and delegates to loadTrace", async () => {
@@ -253,7 +254,10 @@ describe("loadTraceFromFile", () => {
 
     const view = await loadTraceFromFile("/tmp/trace.jsonl", { fs: memFs });
 
-    expect(read).toHaveBeenCalledWith({ source: "codex", id: "/tmp/trace.jsonl", path: "/tmp/trace.jsonl" }, { fs: memFs });
+    expect(read).toHaveBeenCalledWith(
+      { source: "codex", id: "/tmp/trace.jsonl", path: "/tmp/trace.jsonl" },
+      { fs: memFs }
+    );
     expect(view.source).toBe("codex");
   });
 });
@@ -261,8 +265,8 @@ describe("loadTraceFromFile", () => {
 describe("loadSubagentSummaries", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.countTokens.mockReset();
-    mocks.countTokens.mockImplementation((text: string) => text.length);
+    mocks.estimateTokens.mockReset();
+    mocks.estimateTokens.mockImplementation((text: string) => text.length);
   });
 
   it("loads children lazily, skips failures, and leaves the parent context unaffected", async () => {
@@ -323,7 +327,7 @@ describe("loadSubagentSummaries", () => {
       },
       {
         reference: { source: "claude", id: "child-two", path: "/child-two.jsonl" },
-        context: { tokens: 6, window: 200000, percent: 0, source: "estimated" },
+        context: { tokens: 5, window: 200000, percent: 0, source: "estimated" },
         turnCount: 2
       }
     ]);

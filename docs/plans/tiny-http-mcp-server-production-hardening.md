@@ -133,8 +133,8 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
-      release: open
+      commit: done
+      release: done
 
   - id: stdio-tool-call-timeout
     title: toolCallTimeoutMs core option
@@ -152,9 +152,9 @@ tasks:
       slot (a second call succeeds) and tool.end is emitted with ok: false.
       Document the option in both package READMEs.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
       release: open
 

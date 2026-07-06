@@ -1,10 +1,6 @@
-import { countTokens } from "tokenfill";
+import { estimateTokens } from "tokenfill";
 import type { NormalizedTrace, NormalizedTraceTurn } from "@poe-code/agent-traces";
-import type {
-  ContextBreakdown,
-  ContextBreakdownCategory,
-  ContextBreakdownItem
-} from "./types.js";
+import type { ContextBreakdown, ContextBreakdownCategory, ContextBreakdownItem } from "./types.js";
 
 interface Matcher {
   id: string;
@@ -68,7 +64,7 @@ export function computeContextBreakdown(trace: NormalizedTrace): ContextBreakdow
   }));
 
   for (const turn of trace.turns) {
-    const tokens = countTokens(turn.text);
+    const tokens = estimateTokens(turn.text);
     const matcherIndex = MATCHERS.findIndex((matcher) => matcher.matches(turn));
     const matcher = MATCHERS[matcherIndex]!;
     const category = categories[matcherIndex]!;

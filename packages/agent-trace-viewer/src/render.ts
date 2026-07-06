@@ -1,10 +1,5 @@
 import path from "node:path";
-import {
-  getTheme,
-  renderMarkdown,
-  stripAnsi,
-  type ThemePalette
-} from "toolcraft-design";
+import { getTheme, renderMarkdown, stripAnsi, type ThemePalette } from "toolcraft-design";
 import type { AgentTraceSource, NormalizedTraceTurn, TraceReference } from "@poe-code/agent-traces";
 import type {
   ContextBreakdown,
@@ -60,7 +55,10 @@ const ROLE_RENDERING = {
   assistant: { glyph: "✦", color: (theme: ThemePalette) => theme.success },
   tool: { glyph: "⚙", color: (theme: ThemePalette) => theme.info },
   system: { glyph: "⚠", color: (theme: ThemePalette) => theme.warning }
-} satisfies Record<NormalizedTraceTurn["role"], { glyph: string; color: (theme: ThemePalette) => Styler }>;
+} satisfies Record<
+  NormalizedTraceTurn["role"],
+  { glyph: string; color: (theme: ThemePalette) => Styler }
+>;
 
 const UNKNOWN_CATEGORY_COLOR = (theme: ThemePalette) => theme.muted;
 
@@ -70,14 +68,10 @@ export function renderContextGauge(context: ContextUsage, width = DEFAULT_GAUGE_
   const clampedPercent = clamp(context.percent, 0, 100);
   const filled = Math.round((clampedPercent / 100) * gaugeWidth);
   const empty = gaugeWidth - filled;
-  const tone = context.percent >= 85
-    ? theme.error
-    : context.percent >= 60
-      ? theme.warning
-      : theme.success;
+  const tone =
+    context.percent >= 85 ? theme.error : context.percent >= 60 ? theme.warning : theme.success;
   const bar = `${theme.muted("▐")}${tone("█".repeat(filled))}${theme.muted("░".repeat(empty))}${theme.muted("▌")}`;
-  const source =
-    context.source === "estimated" ? theme.muted("(estimated)") : context.source;
+  const source = context.source === "estimated" ? theme.muted("(estimated)") : context.source;
 
   return `${bar} ${formatCount(context.tokens)} / ${formatCount(context.window)} · ${context.percent}% · ${source}`;
 }
@@ -91,7 +85,10 @@ export function renderBreakdown(breakdown: ContextBreakdown, width = 32): string
   const theme = getTheme();
   const bar = renderSegmentedBar(categories, normalizeGaugeWidth(width), theme);
   const labelWidth = Math.max(10, ...categories.map((category) => category.label.length));
-  const tokenWidth = Math.max(1, ...categories.map((category) => formatCount(category.tokens).length));
+  const tokenWidth = Math.max(
+    1,
+    ...categories.map((category) => formatCount(category.tokens).length)
+  );
   const percentWidth = Math.max(3, ...categories.map((category) => `${category.percent}%`.length));
   const lines = ["Context breakdown", `  ${bar}`];
 
@@ -167,7 +164,9 @@ export function renderSubagents(summaries: SubagentSummary[]): string {
         baseIndent,
         theme.muted(entry.connector),
         " ",
-        SOURCE_COLORS[entry.summary.reference.source](theme)(entry.agentType.padEnd(MAX_SUBAGENT_AGENT_WIDTH)),
+        SOURCE_COLORS[entry.summary.reference.source](theme)(
+          entry.agentType.padEnd(MAX_SUBAGENT_AGENT_WIDTH)
+        ),
         "  ",
         entry.description.padEnd(MAX_SUBAGENT_DESCRIPTION_WIDTH),
         "  ",
@@ -186,7 +185,9 @@ export function renderTraceDetail(view: TraceView, subagents: SubagentSummary[] 
   const lines = [
     theme.header(truncate(sanitizeInline(view.title?.trim() || view.id), MAX_RENDER_WIDTH)),
     `Source: ${sourceBadge(view.source, theme)}`,
-    ...(view.model ? [`Model: ${truncate(sanitizeInline(view.model), MAX_RENDER_WIDTH - "Model: ".length)}`] : []),
+    ...(view.model
+      ? [`Model: ${truncate(sanitizeInline(view.model), MAX_RENDER_WIDTH - "Model: ".length)}`]
+      : []),
     `Turns: ${view.turns.length}`,
     `Started: ${formatDate(view.createdAt)}`,
     `Updated: ${formatDate(view.updatedAt)}`,
@@ -203,15 +204,20 @@ export function renderTraceDetail(view: TraceView, subagents: SubagentSummary[] 
   if (view.turns.length === 0) {
     lines.push(`  ${theme.muted("No turns")}`);
   } else {
-    const conversationLines = view.turns.flatMap((turn) => renderTurn(turn, theme));
-    if (conversationLines.length <= MAX_CONVERSATION_LINES) {
-      lines.push(...conversationLines);
-    } else {
-      const remaining = conversationLines.length - MAX_CONVERSATION_LINES;
-      lines.push(
-        ...conversationLines.slice(0, MAX_CONVERSATION_LINES),
-        `  ${theme.muted(`… ${remaining} more conversation lines`)}`
-      );
+    const conversationLines: string[] = [];
+    let renderedTurns = 0;
+    for (const turn of view.turns) {
+      if (conversationLines.length >= MAX_CONVERSATION_LINES) {
+        break;
+      }
+      conversationLines.push(...renderTurn(turn, theme));
+      renderedTurns += 1;
+    }
+    lines.push(...conversationLines.slice(0, MAX_CONVERSATION_LINES));
+    const truncatedLastTurn = conversationLines.length > MAX_CONVERSATION_LINES;
+    const remaining = view.turns.length - renderedTurns + (truncatedLastTurn ? 1 : 0);
+    if (remaining > 0) {
+      lines.push(`  ${theme.muted(`… ${remaining} more turns`)}`);
     }
   }
 
@@ -226,7 +232,10 @@ function renderBreakdownItems(
   const shown = items.slice(0, 5);
   const labels = shown.map((item) => truncate(item.name, 32));
   const nameWidth = Math.max(1, ...labels.map((label) => label.length));
-  const tokenWidth = Math.max(minimumTokenWidth, ...shown.map((item) => formatCount(item.tokens).length));
+  const tokenWidth = Math.max(
+    minimumTokenWidth,
+    ...shown.map((item) => formatCount(item.tokens).length)
+  );
   const lines = shown.map((item, index) =>
     [
       "      ",
@@ -258,8 +267,8 @@ function renderSegmentedBar(
   let remaining = width;
   const segments = categories.map((category, index) => {
     if (index === categories.length - 1) {
-      const cells = remaining;
-      remaining = 0;
+      const cells = Math.max(0, remaining);
+      remaining -= cells;
       return { category, cells };
     }
     const exact = (Math.max(0, category.tokens) / total) * width;
@@ -270,7 +279,7 @@ function renderSegmentedBar(
 
   while (remaining < 0) {
     const largest = segments
-      .filter((segment) => segment.cells > 1)
+      .filter((segment) => segment.cells > 0)
       .sort((left, right) => right.cells - left.cells)[0];
     if (largest === undefined) {
       break;
@@ -286,7 +295,9 @@ function renderSegmentedBar(
 
   return [
     theme.muted("▐"),
-    ...segments.map((segment) => categoryColor(segment.category.id, theme)("█".repeat(segment.cells))),
+    ...segments.map((segment) =>
+      categoryColor(segment.category.id, theme)("█".repeat(segment.cells))
+    ),
     theme.muted("▌")
   ].join("");
 }
@@ -294,16 +305,13 @@ function renderSegmentedBar(
 function renderCompactContextGauge(context: ContextUsage): string {
   const theme = getTheme();
   const clampedPercent = clamp(context.percent, 0, 100);
-  const filled = Math.min(COMPACT_GAUGE_WIDTH, Math.max(
-    context.tokens > 0 ? 1 : 0,
-    Math.round((clampedPercent / 100) * COMPACT_GAUGE_WIDTH)
-  ));
+  const filled = Math.min(
+    COMPACT_GAUGE_WIDTH,
+    Math.max(context.tokens > 0 ? 1 : 0, Math.round((clampedPercent / 100) * COMPACT_GAUGE_WIDTH))
+  );
   const empty = COMPACT_GAUGE_WIDTH - filled;
-  const tone = context.percent >= 85
-    ? theme.error
-    : context.percent >= 60
-      ? theme.warning
-      : theme.success;
+  const tone =
+    context.percent >= 85 ? theme.error : context.percent >= 60 ? theme.warning : theme.success;
   return [
     theme.muted("▐"),
     tone("█".repeat(filled)),
@@ -320,9 +328,10 @@ function renderTurn(turn: NormalizedTraceTurn, theme: ThemePalette): string[] {
   const renderer = ROLE_RENDERING[turn.role];
   const role = renderer.color(theme)(`${turn.role} ${renderer.glyph}`);
   const sanitizedText = sanitizeTraceText(turn.text);
-  const text = turn.role === "assistant"
-    ? stripAnsi(renderMarkdown(sanitizedText)).trimEnd()
-    : sanitizedText.trimEnd();
+  const text =
+    turn.role === "assistant"
+      ? stripAnsi(renderMarkdown(sanitizedText)).trimEnd()
+      : sanitizedText.trimEnd();
   const rawLines = text.length === 0 ? [""] : text.split("\n");
   const shouldCollapse = turn.role === "tool" || turn.role === "system";
   const visibleLines = shouldCollapse ? rawLines.slice(0, COLLAPSED_TURN_LINES) : rawLines;
@@ -352,13 +361,17 @@ function sortCategories(categories: ContextBreakdownCategory[]): ContextBreakdow
   return [...categories].sort((left, right) => {
     const leftIndex = order.get(left.id) ?? Number.MAX_SAFE_INTEGER;
     const rightIndex = order.get(right.id) ?? Number.MAX_SAFE_INTEGER;
-    return leftIndex === rightIndex ? left.label.localeCompare(right.label) : leftIndex - rightIndex;
+    return leftIndex === rightIndex
+      ? left.label.localeCompare(right.label)
+      : leftIndex - rightIndex;
   });
 }
 
 function categoryColor(id: string, theme: ThemePalette): Styler {
-  return (CATEGORY_COLORS as Record<string, (theme: ThemePalette) => Styler>)[id]?.(theme) ??
-    UNKNOWN_CATEGORY_COLOR(theme);
+  return (
+    (CATEGORY_COLORS as Record<string, (theme: ThemePalette) => Styler>)[id]?.(theme) ??
+    UNKNOWN_CATEGORY_COLOR(theme)
+  );
 }
 
 function sourceBadge(source: AgentTraceSource, theme: ThemePalette): string {

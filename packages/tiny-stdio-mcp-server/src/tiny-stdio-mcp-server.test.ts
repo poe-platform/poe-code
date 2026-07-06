@@ -2,18 +2,10 @@ import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { Readable, Writable } from "stream";
 import * as api from "./index.js";
 import type { HandleResult } from "./index.js";
-import {
-  parseMessage,
-  formatSuccessResponse,
-  formatErrorResponse,
-} from "./jsonrpc.js";
+import { parseMessage, formatSuccessResponse, formatErrorResponse } from "./jsonrpc.js";
 import { ToolError } from "./index.js";
 import { JSON_RPC_ERROR_CODES } from "./types.js";
-import type {
-  JSONRPCMessage,
-  JSONRPCNotification,
-  SDKTransport,
-} from "./types.js";
+import type { JSONRPCMessage, JSONRPCNotification, SDKTransport } from "./types.js";
 import { defineSchema } from "./schema.js";
 import { createServer } from "./server.js";
 import { createTestPair, type TestPair } from "./testing.js";
@@ -74,9 +66,7 @@ describe("parseMessage", () => {
     });
 
     it("parses valid JSON-RPC request with string id", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":"abc-123","method":"test"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":"abc-123","method":"test"}');
 
       expect(result.success).toBe(true);
       if (result.success && !result.isNotification) {
@@ -86,7 +76,7 @@ describe("parseMessage", () => {
 
     it("parses request with params object", () => {
       const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"key":"value","num":42}}',
+        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"key":"value","num":42}}'
       );
 
       expect(result.success).toBe(true);
@@ -96,9 +86,7 @@ describe("parseMessage", () => {
     });
 
     it("parses request with empty params", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","params":{}}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"test","params":{}}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -134,9 +122,7 @@ describe("parseMessage", () => {
     });
 
     it("parses request with large id", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":9007199254740991,"method":"test"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":9007199254740991,"method":"test"}');
 
       expect(result.success).toBe(true);
       if (result.success && !result.isNotification) {
@@ -154,9 +140,7 @@ describe("parseMessage", () => {
     });
 
     it("parses a request with an explicit null id", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":null,"method":"ping"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":null,"method":"ping"}');
 
       expect(result.success).toBe(true);
       if (result.success && !result.isNotification) {
@@ -166,20 +150,20 @@ describe("parseMessage", () => {
 
     it("parses request with nested params", () => {
       const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"nested":{"deep":{"value":true}}}}',
+        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"nested":{"deep":{"value":true}}}}'
       );
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.request.params).toEqual({
-          nested: { deep: { value: true } },
+          nested: { deep: { value: true } }
         });
       }
     });
 
     it("parses request with array in params", () => {
       const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"items":[1,2,3]}}',
+        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"items":[1,2,3]}}'
       );
 
       expect(result.success).toBe(true);
@@ -200,9 +184,7 @@ describe("parseMessage", () => {
     });
 
     it("parses namespaced method name", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"tools/list"}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -211,9 +193,7 @@ describe("parseMessage", () => {
     });
 
     it("parses deeply namespaced method", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"a/b/c/d"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"a/b/c/d"}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -222,9 +202,7 @@ describe("parseMessage", () => {
     });
 
     it("parses method with dots", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"rpc.discover"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"rpc.discover"}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -233,9 +211,7 @@ describe("parseMessage", () => {
     });
 
     it("parses method with underscores", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"get_user_data"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"get_user_data"}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -244,9 +220,7 @@ describe("parseMessage", () => {
     });
 
     it("parses method with hyphens", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"get-user-data"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"get-user-data"}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -325,42 +299,36 @@ describe("parseMessage", () => {
   describe("invalid request errors", () => {
     it("returns invalid request for array params and preserves the request id", () => {
       expect(
-        parseMessage(
-          '{"jsonrpc":"2.0","id":"array-params","method":"test","params":[]}',
-        ),
+        parseMessage('{"jsonrpc":"2.0","id":"array-params","method":"test","params":[]}')
       ).toEqual({
         success: false,
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-          message: "Invalid Request",
+          message: "Invalid Request"
         },
-        id: "array-params",
+        id: "array-params"
       });
     });
 
     it("returns invalid request for primitive params", () => {
-      expect(
-        parseMessage('{"jsonrpc":"2.0","id":1,"method":"test","params":"bad"}'),
-      ).toEqual({
+      expect(parseMessage('{"jsonrpc":"2.0","id":1,"method":"test","params":"bad"}')).toEqual({
         success: false,
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-          message: "Invalid Request",
+          message: "Invalid Request"
         },
-        id: 1,
+        id: 1
       });
     });
 
     it("returns invalid request for non-finite numeric ids", () => {
-      expect(
-        parseMessage('{"jsonrpc":"2.0","id":1e999,"method":"test"}'),
-      ).toEqual({
+      expect(parseMessage('{"jsonrpc":"2.0","id":1e999,"method":"test"}')).toEqual({
         success: false,
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-          message: "Invalid Request",
+          message: "Invalid Request"
         },
-        id: null,
+        id: null
       });
     });
 
@@ -514,7 +482,7 @@ describe("parseMessage", () => {
   describe("edge cases", () => {
     it("handles extra fields in request", () => {
       const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","extra":"field","another":123}',
+        '{"jsonrpc":"2.0","id":1,"method":"test","extra":"field","another":123}'
       );
 
       expect(result.success).toBe(true);
@@ -524,9 +492,7 @@ describe("parseMessage", () => {
     });
 
     it("handles unicode in method name", () => {
-      const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"测试方法"}',
-      );
+      const result = parseMessage('{"jsonrpc":"2.0","id":1,"method":"测试方法"}');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -536,7 +502,7 @@ describe("parseMessage", () => {
 
     it("handles unicode in params", () => {
       const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"name":"日本語"}}',
+        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"name":"日本語"}}'
       );
 
       expect(result.success).toBe(true);
@@ -547,7 +513,7 @@ describe("parseMessage", () => {
 
     it("handles escaped characters in strings", () => {
       const result = parseMessage(
-        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"text":"line1\\nline2\\ttab"}}',
+        '{"jsonrpc":"2.0","id":1,"method":"test","params":{"text":"line1\\nline2\\ttab"}}'
       );
 
       expect(result.success).toBe(true);
@@ -558,9 +524,7 @@ describe("parseMessage", () => {
 
     it("handles very long method name", () => {
       const longMethod = "a".repeat(1000);
-      const result = parseMessage(
-        `{"jsonrpc":"2.0","id":1,"method":"${longMethod}"}`,
-      );
+      const result = parseMessage(`{"jsonrpc":"2.0","id":1,"method":"${longMethod}"}`);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -571,7 +535,7 @@ describe("parseMessage", () => {
     it("handles deeply nested params", () => {
       const deep = { a: { b: { c: { d: { e: { f: "deep" } } } } } };
       const result = parseMessage(
-        `{"jsonrpc":"2.0","id":1,"method":"test","params":${JSON.stringify(deep)}}`,
+        `{"jsonrpc":"2.0","id":1,"method":"test","params":${JSON.stringify(deep)}}`
       );
 
       expect(result.success).toBe(true);
@@ -591,7 +555,7 @@ describe("formatSuccessResponse", () => {
       expect(parsed).toEqual({
         jsonrpc: "2.0",
         id: 1,
-        result: { data: "test" },
+        result: { data: "test" }
       });
     });
 
@@ -678,7 +642,7 @@ describe("formatSuccessResponse", () => {
   describe("complex results", () => {
     it("formats response with nested result", () => {
       const response = formatSuccessResponse(1, {
-        tools: [{ name: "test", description: "desc" }],
+        tools: [{ name: "test", description: "desc" }]
       });
       const parsed = JSON.parse(response);
 
@@ -687,7 +651,7 @@ describe("formatSuccessResponse", () => {
 
     it("formats response with special characters", () => {
       const response = formatSuccessResponse(1, {
-        text: 'Contains "quotes" and\nnewlines',
+        text: 'Contains "quotes" and\nnewlines'
       });
       const parsed = JSON.parse(response);
 
@@ -727,7 +691,7 @@ describe("formatErrorResponse", () => {
     it("formats parse error", () => {
       const response = formatErrorResponse(null, {
         code: JSON_RPC_ERROR_CODES.PARSE_ERROR,
-        message: "Parse error",
+        message: "Parse error"
       });
       const parsed = JSON.parse(response);
 
@@ -738,7 +702,7 @@ describe("formatErrorResponse", () => {
     it("formats invalid request error", () => {
       const response = formatErrorResponse(1, {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
+        message: "Invalid Request"
       });
       const parsed = JSON.parse(response);
 
@@ -748,7 +712,7 @@ describe("formatErrorResponse", () => {
     it("formats method not found error", () => {
       const response = formatErrorResponse(1, {
         code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
-        message: "Method not found",
+        message: "Method not found"
       });
       const parsed = JSON.parse(response);
 
@@ -758,7 +722,7 @@ describe("formatErrorResponse", () => {
     it("formats invalid params error", () => {
       const response = formatErrorResponse(1, {
         code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-        message: "Invalid params",
+        message: "Invalid params"
       });
       const parsed = JSON.parse(response);
 
@@ -768,7 +732,7 @@ describe("formatErrorResponse", () => {
     it("formats internal error", () => {
       const response = formatErrorResponse(1, {
         code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-        message: "Internal error",
+        message: "Internal error"
       });
       const parsed = JSON.parse(response);
 
@@ -781,7 +745,7 @@ describe("formatErrorResponse", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
         message: "Server error",
-        data: "Additional info",
+        data: "Additional info"
       });
       const parsed = JSON.parse(response);
 
@@ -792,20 +756,20 @@ describe("formatErrorResponse", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
         message: "Server error",
-        data: { details: "something went wrong", code: "ERR_001" },
+        data: { details: "something went wrong", code: "ERR_001" }
       });
       const parsed = JSON.parse(response);
 
       expect(parsed.error.data).toEqual({
         details: "something went wrong",
-        code: "ERR_001",
+        code: "ERR_001"
       });
     });
 
     it("formats error without data", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
-        message: "Server error",
+        message: "Server error"
       });
       const parsed = JSON.parse(response);
 
@@ -816,7 +780,7 @@ describe("formatErrorResponse", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
         message: "Server error",
-        data: ["error1", "error2"],
+        data: ["error1", "error2"]
       });
       const parsed = JSON.parse(response);
 
@@ -828,7 +792,7 @@ describe("formatErrorResponse", () => {
     it("formats error with null id for parse errors", () => {
       const response = formatErrorResponse(null, {
         code: JSON_RPC_ERROR_CODES.PARSE_ERROR,
-        message: "Parse error",
+        message: "Parse error"
       });
       const parsed = JSON.parse(response);
 
@@ -838,7 +802,7 @@ describe("formatErrorResponse", () => {
     it("preserves original id in error response", () => {
       const response = formatErrorResponse(42, {
         code: -32600,
-        message: "Invalid Request",
+        message: "Invalid Request"
       });
       const parsed = JSON.parse(response);
 
@@ -848,7 +812,7 @@ describe("formatErrorResponse", () => {
     it("preserves string id in error response", () => {
       const response = formatErrorResponse("request-123", {
         code: -32600,
-        message: "Invalid Request",
+        message: "Invalid Request"
       });
       const parsed = JSON.parse(response);
 
@@ -860,7 +824,7 @@ describe("formatErrorResponse", () => {
     it("produces valid JSON string", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
-        message: "Error",
+        message: "Error"
       });
       expect(() => JSON.parse(response)).not.toThrow();
     });
@@ -868,7 +832,7 @@ describe("formatErrorResponse", () => {
     it("always includes jsonrpc 2.0", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
-        message: "Error",
+        message: "Error"
       });
       const parsed = JSON.parse(response);
       expect(parsed.jsonrpc).toBe("2.0");
@@ -877,7 +841,7 @@ describe("formatErrorResponse", () => {
     it("never includes result field in error response", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
-        message: "Error",
+        message: "Error"
       });
       const parsed = JSON.parse(response);
       expect("result" in parsed).toBe(false);
@@ -888,7 +852,7 @@ describe("formatErrorResponse", () => {
     it("allows application-defined error codes", () => {
       const response = formatErrorResponse(1, {
         code: -32000,
-        message: "Application error",
+        message: "Application error"
       });
       const parsed = JSON.parse(response);
 
@@ -898,7 +862,7 @@ describe("formatErrorResponse", () => {
     it("allows positive error codes", () => {
       const response = formatErrorResponse(1, {
         code: 1001,
-        message: "Custom error",
+        message: "Custom error"
       });
       const parsed = JSON.parse(response);
 
@@ -908,7 +872,7 @@ describe("formatErrorResponse", () => {
     it("allows zero error code", () => {
       const response = formatErrorResponse(1, {
         code: 0,
-        message: "Zero error",
+        message: "Zero error"
       });
       const parsed = JSON.parse(response);
 
@@ -947,45 +911,45 @@ describe("defineSchema", () => {
   describe("basic schema creation", () => {
     it("creates schema with required string field", () => {
       const schema = defineSchema({
-        name: { type: "string", description: "User name" },
+        name: { type: "string", description: "User name" }
       });
 
       expect(schema).toEqual({
         type: "object",
         properties: {
-          name: { type: "string", description: "User name" },
+          name: { type: "string", description: "User name" }
         },
-        required: ["name"],
+        required: ["name"]
       });
     });
 
     it("creates schema with optional field", () => {
       const schema = defineSchema({
-        count: { type: "number", optional: true },
+        count: { type: "number", optional: true }
       });
 
       expect(schema).toEqual({
         type: "object",
         properties: {
-          count: { type: "number" },
+          count: { type: "number" }
         },
-        required: [],
+        required: []
       });
     });
 
     it("creates schema with mixed required and optional fields", () => {
       const schema = defineSchema({
         a: { type: "string" },
-        b: { type: "number", optional: true },
+        b: { type: "number", optional: true }
       });
 
       expect(schema).toEqual({
         type: "object",
         properties: {
           a: { type: "string" },
-          b: { type: "number" },
+          b: { type: "number" }
         },
-        required: ["a"],
+        required: ["a"]
       });
     });
 
@@ -995,14 +959,12 @@ describe("defineSchema", () => {
       expect(schema).toEqual({
         type: "object",
         properties: {},
-        required: [],
+        required: []
       });
     });
 
     it("preserves a declared __proto__ property", () => {
-      const schema = defineSchema(
-        Object.fromEntries([["__proto__", { type: "string" as const }]]),
-      );
+      const schema = defineSchema(Object.fromEntries([["__proto__", { type: "string" as const }]]));
 
       expect(Object.hasOwn(schema.properties, "__proto__")).toBe(true);
       expect(schema.properties.__proto__).toEqual({ type: "string" });
@@ -1016,11 +978,11 @@ describe("defineSchema", () => {
             type: "object",
             properties: {
               title: { type: "string" },
-              score: { type: "number" },
+              score: { type: "number" }
             },
-            required: ["title", "score"],
-          },
-        },
+            required: ["title", "score"]
+          }
+        }
       });
 
       expect(schema).toEqual({
@@ -1032,13 +994,13 @@ describe("defineSchema", () => {
               type: "object",
               properties: {
                 title: { type: "string" },
-                score: { type: "number" },
+                score: { type: "number" }
               },
-              required: ["title", "score"],
-            },
-          },
+              required: ["title", "score"]
+            }
+          }
         },
-        required: ["items"],
+        required: ["items"]
       });
     });
   });
@@ -1046,35 +1008,35 @@ describe("defineSchema", () => {
   describe("property types", () => {
     it("creates schema with string type", () => {
       const schema = defineSchema({
-        field: { type: "string" },
+        field: { type: "string" }
       });
       expect(schema.properties.field.type).toBe("string");
     });
 
     it("creates schema with number type", () => {
       const schema = defineSchema({
-        field: { type: "number" },
+        field: { type: "number" }
       });
       expect(schema.properties.field.type).toBe("number");
     });
 
     it("creates schema with boolean type", () => {
       const schema = defineSchema({
-        field: { type: "boolean" },
+        field: { type: "boolean" }
       });
       expect(schema.properties.field.type).toBe("boolean");
     });
 
     it("creates schema with object type", () => {
       const schema = defineSchema({
-        field: { type: "object" },
+        field: { type: "object" }
       });
       expect(schema.properties.field.type).toBe("object");
     });
 
     it("creates schema with array type", () => {
       const schema = defineSchema({
-        field: { type: "array" },
+        field: { type: "array" }
       });
       expect(schema.properties.field.type).toBe("array");
     });
@@ -1085,7 +1047,7 @@ describe("defineSchema", () => {
         num: { type: "number" },
         bool: { type: "boolean" },
         obj: { type: "object" },
-        arr: { type: "array" },
+        arr: { type: "array" }
       });
 
       expect(schema.properties).toEqual({
@@ -1093,7 +1055,7 @@ describe("defineSchema", () => {
         num: { type: "number" },
         bool: { type: "boolean" },
         obj: { type: "object" },
-        arr: { type: "array" },
+        arr: { type: "array" }
       });
       expect(schema.required).toEqual(["str", "num", "bool", "obj", "arr"]);
     });
@@ -1103,18 +1065,16 @@ describe("defineSchema", () => {
     it("preserves descriptions on properties", () => {
       const schema = defineSchema({
         message: { type: "string", description: "The prompt" },
-        temperature: { type: "number", description: "Sampling temperature" },
+        temperature: { type: "number", description: "Sampling temperature" }
       });
 
       expect(schema.properties.message.description).toBe("The prompt");
-      expect(schema.properties.temperature.description).toBe(
-        "Sampling temperature",
-      );
+      expect(schema.properties.temperature.description).toBe("Sampling temperature");
     });
 
     it("omits description when not provided", () => {
       const schema = defineSchema({
-        field: { type: "string" },
+        field: { type: "string" }
       });
 
       expect(schema.properties.field).toEqual({ type: "string" });
@@ -1123,7 +1083,7 @@ describe("defineSchema", () => {
 
     it("handles empty string description", () => {
       const schema = defineSchema({
-        field: { type: "string", description: "" },
+        field: { type: "string", description: "" }
       });
 
       expect(schema.properties.field.description).toBe("");
@@ -1132,7 +1092,7 @@ describe("defineSchema", () => {
     it("handles long descriptions", () => {
       const longDesc = "A".repeat(1000);
       const schema = defineSchema({
-        field: { type: "string", description: longDesc },
+        field: { type: "string", description: longDesc }
       });
 
       expect(schema.properties.field.description).toBe(longDesc);
@@ -1142,13 +1102,11 @@ describe("defineSchema", () => {
       const schema = defineSchema({
         field: {
           type: "string",
-          description: 'Contains "quotes", newlines\nand\ttabs',
-        },
+          description: 'Contains "quotes", newlines\nand\ttabs'
+        }
       });
 
-      expect(schema.properties.field.description).toBe(
-        'Contains "quotes", newlines\nand\ttabs',
-      );
+      expect(schema.properties.field.description).toBe('Contains "quotes", newlines\nand\ttabs');
     });
   });
 
@@ -1157,7 +1115,7 @@ describe("defineSchema", () => {
       const schema = defineSchema({
         a: { type: "string" },
         b: { type: "number" },
-        c: { type: "boolean" },
+        c: { type: "boolean" }
       });
 
       expect(schema.required).toContain("a");
@@ -1170,7 +1128,7 @@ describe("defineSchema", () => {
       const schema = defineSchema({
         a: { type: "string", optional: true },
         b: { type: "number", optional: true },
-        c: { type: "boolean", optional: true },
+        c: { type: "boolean", optional: true }
       });
 
       expect(schema.required).toEqual([]);
@@ -1182,7 +1140,7 @@ describe("defineSchema", () => {
         optional1: { type: "number", optional: true },
         required2: { type: "boolean" },
         optional2: { type: "object", optional: true },
-        required3: { type: "array" },
+        required3: { type: "array" }
       });
 
       expect(schema.required).toContain("required1");
@@ -1195,7 +1153,7 @@ describe("defineSchema", () => {
 
     it("optional: false is treated as required", () => {
       const schema = defineSchema({
-        field: { type: "string", optional: false },
+        field: { type: "string", optional: false }
       });
 
       expect(schema.required).toContain("field");
@@ -1206,7 +1164,7 @@ describe("defineSchema", () => {
     it("handles single character field names", () => {
       const schema = defineSchema({
         a: { type: "string" },
-        b: { type: "number" },
+        b: { type: "number" }
       });
 
       expect(schema.properties.a).toBeDefined();
@@ -1216,7 +1174,7 @@ describe("defineSchema", () => {
     it("handles long field names", () => {
       const longName = "a".repeat(100);
       const schema = defineSchema({
-        [longName]: { type: "string" },
+        [longName]: { type: "string" }
       });
 
       expect(schema.properties[longName]).toBeDefined();
@@ -1226,7 +1184,7 @@ describe("defineSchema", () => {
     it("handles camelCase field names", () => {
       const schema = defineSchema({
         firstName: { type: "string" },
-        lastName: { type: "string" },
+        lastName: { type: "string" }
       });
 
       expect(schema.properties.firstName).toBeDefined();
@@ -1236,7 +1194,7 @@ describe("defineSchema", () => {
     it("handles snake_case field names", () => {
       const schema = defineSchema({
         first_name: { type: "string" },
-        last_name: { type: "string" },
+        last_name: { type: "string" }
       });
 
       expect(schema.properties.first_name).toBeDefined();
@@ -1247,7 +1205,7 @@ describe("defineSchema", () => {
       const schema = defineSchema({
         field1: { type: "string" },
         field2: { type: "number" },
-        "2field": { type: "boolean" },
+        "2field": { type: "boolean" }
       });
 
       expect(schema.properties.field1).toBeDefined();
@@ -1258,7 +1216,7 @@ describe("defineSchema", () => {
     it("handles field names with special characters", () => {
       const schema = defineSchema({
         "field-name": { type: "string" },
-        "field.name": { type: "number" },
+        "field.name": { type: "number" }
       });
 
       expect(schema.properties["field-name"]).toBeDefined();
@@ -1269,7 +1227,7 @@ describe("defineSchema", () => {
   describe("schema structure", () => {
     it("always has type: object at root", () => {
       const schema = defineSchema({
-        field: { type: "string" },
+        field: { type: "string" }
       });
 
       expect(schema.type).toBe("object");
@@ -1291,7 +1249,7 @@ describe("defineSchema", () => {
 
     it("does not include optional flag in output properties", () => {
       const schema = defineSchema({
-        field: { type: "string", optional: true },
+        field: { type: "string", optional: true }
       });
 
       expect("optional" in schema.properties.field).toBe(false);
@@ -1310,7 +1268,7 @@ describe("defineSchema", () => {
         f7: { type: "number", optional: true },
         f8: { type: "boolean", optional: true },
         f9: { type: "object", optional: true },
-        f10: { type: "array", optional: true },
+        f10: { type: "array", optional: true }
       });
 
       expect(Object.keys(schema.properties)).toHaveLength(10);
@@ -1333,7 +1291,7 @@ describe("defineSchema", () => {
     it("produces valid JSON Schema structure", () => {
       const schema = defineSchema({
         name: { type: "string", description: "User name" },
-        age: { type: "number", optional: true },
+        age: { type: "number", optional: true }
       });
 
       // Verify it can be JSON stringified and parsed
@@ -1347,7 +1305,7 @@ describe("defineSchema", () => {
 
     it("produces schema that matches JSON Schema spec", () => {
       const schema = defineSchema({
-        name: { type: "string" },
+        name: { type: "string" }
       });
 
       // JSON Schema requires these fields for object type
@@ -1367,13 +1325,13 @@ describe("defineSchema", () => {
 function createTestTransport() {
   const output: string[] = [];
   const readable = new Readable({
-    read() {},
+    read() {}
   });
   const writable = new Writable({
     write(chunk, _encoding, callback) {
       output.push(chunk.toString());
       callback();
-    },
+    }
   });
 
   return {
@@ -1397,7 +1355,7 @@ function createTestTransport() {
     },
     getAllResponses() {
       return output.map((line) => JSON.parse(line.trim()));
-    },
+    }
   };
 }
 
@@ -1414,7 +1372,7 @@ function createSdkTransport() {
     close: vi.fn(async () => undefined),
     send: vi.fn(async (message: JSONRPCMessage) => {
       sent.push(message);
-    }),
+    })
   } as unknown as SDKTransport;
 
   return { sent, transport };
@@ -1439,10 +1397,23 @@ describe("createServer", () => {
     it("creates server with long name and version", () => {
       const server = createServer({
         name: "my-very-long-server-name-for-testing",
-        version: "1.0.0-beta.1+build.123",
+        version: "1.0.0-beta.1+build.123"
       });
       expect(server).toBeDefined();
     });
+
+    it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+      "rejects invalid tool call timeout %s",
+      (toolCallTimeoutMs) => {
+        expect(() =>
+          createServer({
+            name: "test",
+            version: "1.0.0",
+            toolCallTimeoutMs
+          })
+        ).toThrow("toolCallTimeoutMs must be a positive integer.");
+      }
+    );
   });
 
   describe("fluent API", () => {
@@ -1460,7 +1431,7 @@ describe("createServer", () => {
       const schema = defineSchema({});
       const server = createServer({ name: "test", version: "1.0.0" });
       const returned = server.tool("test", "Test", schema, async () => ({
-        text: "",
+        text: ""
       }));
 
       expect(returned).toBe(server);
@@ -1472,7 +1443,7 @@ describe("createServer", () => {
 
       for (let i = 0; i < 50; i++) {
         server = server.tool(`tool${i}`, `Tool ${i}`, schema, async () => ({
-          text: String(i),
+          text: String(i)
         }));
       }
 
@@ -1489,9 +1460,7 @@ describe("createServer", () => {
         .tool("tool2", "Second", schema, async () => "2");
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
 
@@ -1524,7 +1493,7 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => "",
+        async () => ""
       );
 
       const removed = server.removeTool("test");
@@ -1538,13 +1507,11 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
 
       // Wait for initialization
@@ -1553,7 +1520,7 @@ describe("createServer", () => {
       server.removeTool("test");
 
       transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"test","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"test","arguments":{}}}'
       );
       transport.close();
 
@@ -1573,13 +1540,11 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
 
       // Wait for initialization
@@ -1628,13 +1593,11 @@ describe("createServer", () => {
         "test",
         "Test",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
 
       // Wait for initialization
@@ -1676,8 +1639,8 @@ describe("createServer", () => {
       expect(notifications).toEqual([
         {
           jsonrpc: "2.0",
-          method: "notifications/tools/list_changed",
-        },
+          method: "notifications/tools/list_changed"
+        }
       ]);
     });
 
@@ -1746,8 +1709,8 @@ describe("createServer", () => {
       expect(notifications).toEqual([
         {
           jsonrpc: "2.0",
-          method: "notifications/tools/list_changed",
-        },
+          method: "notifications/tools/list_changed"
+        }
       ]);
     });
 
@@ -1765,7 +1728,7 @@ describe("createServer", () => {
 
       expect(notifications[0]).toEqual({
         jsonrpc: "2.0",
-        method: "notifications/tools/list_changed",
+        method: "notifications/tools/list_changed"
       });
     });
 
@@ -1786,7 +1749,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       await expect(server.handleMessage("ping")).resolves.toEqual({
-        result: {},
+        result: {}
       });
     });
 
@@ -1800,20 +1763,20 @@ describe("server protocol handlers", () => {
         protocolVersion: expect.any(String),
         capabilities: {
           tools: {
-            listChanged: true,
+            listChanged: true
           },
           prompts: {
-            listChanged: true,
+            listChanged: true
           },
           resources: {
             listChanged: true,
-            subscribe: true,
-          },
+            subscribe: true
+          }
         },
         serverInfo: {
           name: "test-server",
-          version: "2.0.0",
-        },
+          version: "2.0.0"
+        }
       });
     });
 
@@ -1823,7 +1786,7 @@ describe("server protocol handlers", () => {
         "greet",
         "Greets",
         schema,
-        async () => "hello",
+        async () => "hello"
       );
 
       await server.handleMessage("initialize", {});
@@ -1834,10 +1797,10 @@ describe("server protocol handlers", () => {
             {
               name: "greet",
               description: "Greets",
-              inputSchema: schema,
-            },
-          ],
-        },
+              inputSchema: schema
+            }
+          ]
+        }
       });
     });
 
@@ -1847,8 +1810,8 @@ describe("server protocol handlers", () => {
       await expect(server.handleMessage("tools/list")).resolves.toEqual({
         error: {
           code: -32600,
-          message: "Server not initialized",
-        },
+          message: "Server not initialized"
+        }
       });
     });
 
@@ -1859,7 +1822,7 @@ describe("server protocol handlers", () => {
         "greet",
         "Greets",
         schema,
-        handler,
+        handler
       );
 
       await server.handleMessage("initialize", {});
@@ -1867,12 +1830,12 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "greet",
-          arguments: { name: "World" },
-        }),
+          arguments: { name: "World" }
+        })
       ).resolves.toEqual({
         result: {
-          content: [{ type: "text", text: "Hello, World!" }],
-        },
+          content: [{ type: "text", text: "Hello, World!" }]
+        }
       });
     });
 
@@ -1884,8 +1847,8 @@ describe("server protocol handlers", () => {
         schema,
         async ({ name }: { name: string }) => ({
           content: [{ type: "text", text: `Queued ${name}` }],
-          isError: true,
-        }),
+          isError: true
+        })
       );
 
       await server.handleMessage("initialize", {});
@@ -1893,13 +1856,13 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "greet",
-          arguments: { name: "World" },
-        }),
+          arguments: { name: "World" }
+        })
       ).resolves.toEqual({
         result: {
           content: [{ type: "text", text: "Queued World" }],
-          isError: true,
-        },
+          isError: true
+        }
       });
     });
 
@@ -1908,13 +1871,11 @@ describe("server protocol handlers", () => {
 
       await server.handleMessage("initialize", {});
 
-      await expect(
-        server.handleMessage("tools/call", { name: "missing" }),
-      ).resolves.toEqual({
+      await expect(server.handleMessage("tools/call", { name: "missing" })).resolves.toEqual({
         error: {
           code: -32602,
-          message: "Tool not found: missing",
-        },
+          message: "Tool not found: missing"
+        }
       });
     });
 
@@ -1926,8 +1887,8 @@ describe("server protocol handlers", () => {
       await expect(server.handleMessage("tools/call", {})).resolves.toEqual({
         error: {
           code: -32602,
-          message: "Tool name required",
-        },
+          message: "Tool name required"
+        }
       });
     });
 
@@ -1939,8 +1900,8 @@ describe("server protocol handlers", () => {
       await expect(server.handleMessage("unknown/method")).resolves.toEqual({
         error: {
           code: -32601,
-          message: "Method not found",
-        },
+          message: "Method not found"
+        }
       });
     });
 
@@ -1949,23 +1910,19 @@ describe("server protocol handlers", () => {
 
       await server.handleMessage("initialize", {});
 
-      await expect(
-        server.handleMessage("notifications/initialized"),
-      ).resolves.toEqual({
-        result: undefined,
+      await expect(server.handleMessage("notifications/initialized")).resolves.toEqual({
+        result: undefined
       });
     });
 
     it('rejects handleMessage("notifications/initialized") before initialize', async () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
-      await expect(
-        server.handleMessage("notifications/initialized"),
-      ).resolves.toEqual({
+      await expect(server.handleMessage("notifications/initialized")).resolves.toEqual({
         error: {
           code: -32600,
-          message: "Server not initialized",
-        },
+          message: "Server not initialized"
+        }
       });
     });
 
@@ -1986,9 +1943,9 @@ describe("server protocol handlers", () => {
         capabilities: {
           tools: { listChanged: true },
           prompts: { listChanged: true },
-          resources: { listChanged: true, subscribe: true },
+          resources: { listChanged: true, subscribe: true }
         },
-        serverInfo: { name: "test", version: "1.0.0" },
+        serverInfo: { name: "test", version: "1.0.0" }
       });
     });
 
@@ -2000,7 +1957,7 @@ describe("server protocol handlers", () => {
         schema,
         async () => {
           throw new Error("boom");
-        },
+        }
       );
 
       await server.handleMessage("initialize", {});
@@ -2008,13 +1965,13 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "fail",
-          arguments: {},
-        }),
+          arguments: {}
+        })
       ).resolves.toEqual({
         result: {
           content: [{ type: "text", text: "Error: boom" }],
-          isError: true,
-        },
+          isError: true
+        }
       });
     });
 
@@ -2025,11 +1982,8 @@ describe("server protocol handlers", () => {
         "Fails with invalid params",
         schema,
         async () => {
-          throw new ToolError(
-            JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            "Missing required parameter",
-          );
-        },
+          throw new ToolError(JSON_RPC_ERROR_CODES.INVALID_PARAMS, "Missing required parameter");
+        }
       );
 
       await server.handleMessage("initialize", {});
@@ -2037,13 +1991,13 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "invalid",
-          arguments: {},
-        }),
+          arguments: {}
+        })
       ).resolves.toEqual({
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-          message: "Missing required parameter",
-        },
+          message: "Missing required parameter"
+        }
       });
     });
 
@@ -2053,7 +2007,7 @@ describe("server protocol handlers", () => {
         "validated",
         "Validated",
         defineSchema({ name: { type: "string" }, count: { type: "number" } }),
-        handler,
+        handler
       );
 
       await server.handleMessage("initialize", {});
@@ -2061,16 +2015,14 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "validated",
-          arguments: { count: "many" },
-        }),
+          arguments: { count: "many" }
+        })
       ).resolves.toMatchObject({
         error: {
           code: -32602,
-          message: expect.stringContaining(
-            "must have required property 'name'",
-          ),
-          data: [expect.objectContaining({ keyword: "required" })],
-        },
+          message: expect.stringContaining("must have required property 'name'"),
+          data: [expect.objectContaining({ keyword: "required" })]
+        }
       });
       expect(handler).not.toHaveBeenCalled();
     });
@@ -2079,31 +2031,26 @@ describe("server protocol handlers", () => {
       const server = createServer({
         name: "test",
         version: "1.0.0",
-        validateToolArguments: false,
-      }).tool(
-        "validated",
-        "Validated",
-        defineSchema({ name: { type: "string" } }),
-        async () => {
-          throw new ToolError(
-            JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            'Missing required parameter "name".',
-          );
-        },
-      );
+        validateToolArguments: false
+      }).tool("validated", "Validated", defineSchema({ name: { type: "string" } }), async () => {
+        throw new ToolError(
+          JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+          'Missing required parameter "name".'
+        );
+      });
 
       await server.handleMessage("initialize", {});
 
       await expect(
         server.handleMessage("tools/call", {
           name: "validated",
-          arguments: {},
-        }),
+          arguments: {}
+        })
       ).resolves.toEqual({
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-          message: 'Missing required parameter "name".',
-        },
+          message: 'Missing required parameter "name".'
+        }
       });
     });
 
@@ -2116,11 +2063,11 @@ describe("server protocol handlers", () => {
           type: "object",
           properties: {
             count: { type: "integer" },
-            optionalCount: { type: "integer", nullable: true },
+            optionalCount: { type: "integer", nullable: true }
           },
-          required: ["count"],
+          required: ["count"]
         },
-        handler,
+        handler
       );
 
       await server.handleMessage("initialize", {});
@@ -2128,24 +2075,24 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "validated",
-          arguments: { count: 2, optionalCount: null },
-        }),
+          arguments: { count: 2, optionalCount: null }
+        })
       ).resolves.toEqual({
-        result: { content: [{ type: "text", text: "validated" }] },
+        result: { content: [{ type: "text", text: "validated" }] }
       });
       expect(handler).toHaveBeenCalledWith({ count: 2, optionalCount: null });
 
       await expect(
         server.handleMessage("tools/call", {
           name: "validated",
-          arguments: { count: 2.5 },
-        }),
+          arguments: { count: 2.5 }
+        })
       ).resolves.toMatchObject({
         error: {
           code: -32602,
           message: expect.stringContaining("must be integer"),
-          data: [expect.objectContaining({ keyword: "type" })],
-        },
+          data: [expect.objectContaining({ keyword: "type" })]
+        }
       });
     });
 
@@ -2154,7 +2101,7 @@ describe("server protocol handlers", () => {
         "malformed",
         "Malformed",
         defineSchema({}),
-        async () => ({ content: [{ type: "text" }] }) as never,
+        async () => ({ content: [{ type: "text" }] }) as never
       );
 
       await server.handleMessage("initialize", {});
@@ -2162,19 +2109,19 @@ describe("server protocol handlers", () => {
       await expect(
         server.handleMessage("tools/call", {
           name: "malformed",
-          arguments: {},
-        }),
+          arguments: {}
+        })
       ).resolves.toEqual({
         result: {
           content: [{ type: "text", text: "Error: Invalid tool result" }],
-          isError: true,
-        },
+          isError: true
+        }
       });
     });
 
     it("rejects non-finite ToolError codes", () => {
       expect(() => new ToolError(Number.POSITIVE_INFINITY, "overflow")).toThrow(
-        "ToolError code must be a finite number",
+        "ToolError code must be a finite number"
       );
     });
   });
@@ -2236,9 +2183,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "my-server", version: "2.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.close();
 
       await connectPromise;
@@ -2255,9 +2200,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.close();
 
       await connectPromise;
@@ -2270,13 +2213,11 @@ describe("server protocol handlers", () => {
       const transport = createTestTransport();
       const server = createServer({
         name: "special-server",
-        version: "3.1.4-alpha",
+        version: "3.1.4-alpha"
       });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.close();
 
       await connectPromise;
@@ -2284,7 +2225,7 @@ describe("server protocol handlers", () => {
       const response = transport.getLastResponse();
       expect(response.result.serverInfo).toEqual({
         name: "special-server",
-        version: "3.1.4-alpha",
+        version: "3.1.4-alpha"
       });
     });
 
@@ -2293,9 +2234,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.close();
 
       await connectPromise;
@@ -2310,7 +2249,7 @@ describe("server protocol handlers", () => {
 
       const connectPromise = server.connect(transport);
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"clientInfo":{"name":"test-client","version":"1.0.0"}}}',
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"clientInfo":{"name":"test-client","version":"1.0.0"}}}'
       );
       transport.close();
 
@@ -2327,7 +2266,7 @@ describe("server protocol handlers", () => {
 
       const connectPromise = server.connect(transport);
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}',
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}'
       );
       transport.close();
 
@@ -2343,7 +2282,7 @@ describe("server protocol handlers", () => {
 
       const connectPromise = server.connect(transport);
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"not-a-supported-version"}}',
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"not-a-supported-version"}}'
       );
       transport.close();
 
@@ -2360,9 +2299,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"ping"}');
       transport.close();
@@ -2429,9 +2366,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"test"}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"test"}}');
       transport.close();
 
       await connectPromise;
@@ -2446,9 +2381,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
       transport.close();
 
@@ -2468,13 +2401,11 @@ describe("server protocol handlers", () => {
         "greet",
         "Say hello",
         schema,
-        async () => "hello",
+        async () => "hello"
       );
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
       transport.close();
 
@@ -2492,9 +2423,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
       transport.close();
 
@@ -2513,9 +2442,7 @@ describe("server protocol handlers", () => {
         .tool("tool3", "Third tool", schema, async () => "3");
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
       transport.close();
 
@@ -2529,19 +2456,17 @@ describe("server protocol handlers", () => {
       const transport = createTestTransport();
       const schema = defineSchema({
         name: { type: "string", description: "The name" },
-        count: { type: "number", optional: true },
+        count: { type: "number", optional: true }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "test",
         "Test tool",
         schema,
-        async () => "",
+        async () => ""
       );
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
       transport.close();
 
@@ -2556,6 +2481,108 @@ describe("server protocol handlers", () => {
   });
 
   describe("tools/call", () => {
+    it("returns a timeout error and clears the timer for a never-resolving handler", async () => {
+      vi.useFakeTimers();
+
+      try {
+        const server = createServer({
+          name: "test",
+          version: "1.0.0",
+          toolCallTimeoutMs: 100
+        }).tool("hang", "Never resolves", defineSchema({}), () => new Promise(() => {}));
+        await server.handleMessage("initialize", {});
+
+        const responsePromise = server.handleMessage("tools/call", {
+          name: "hang",
+          arguments: {}
+        });
+
+        expect(vi.getTimerCount()).toBe(1);
+        await vi.advanceTimersByTimeAsync(100);
+
+        await expect(responsePromise).resolves.toEqual({
+          error: {
+            code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+            message: "Tool call timed out: hang"
+          }
+        });
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("leaves fast handlers unaffected and clears their timeout timer", async () => {
+      vi.useFakeTimers();
+
+      try {
+        const server = createServer({
+          name: "test",
+          version: "1.0.0",
+          toolCallTimeoutMs: 100
+        }).tool("fast", "Returns immediately", defineSchema({}), async () => "done");
+        await server.handleMessage("initialize", {});
+
+        await expect(
+          server.handleMessage("tools/call", {
+            name: "fast",
+            arguments: {}
+          })
+        ).resolves.toEqual({
+          result: {
+            content: [{ type: "text", text: "done" }]
+          }
+        });
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("does not cancel a handler after releasing its timed-out response", async () => {
+      vi.useFakeTimers();
+
+      try {
+        let finishHandler: (() => void) | undefined;
+        let handlerFinished = false;
+        const server = createServer({
+          name: "test",
+          version: "1.0.0",
+          toolCallTimeoutMs: 100
+        }).tool("slow", "Finishes late", defineSchema({}), async () => {
+          await new Promise<void>((resolve) => {
+            finishHandler = resolve;
+          });
+          handlerFinished = true;
+          return "late";
+        });
+        await server.handleMessage("initialize", {});
+
+        const responsePromise = server.handleMessage("tools/call", {
+          name: "slow",
+          arguments: {}
+        });
+        await vi.advanceTimersByTimeAsync(100);
+
+        await expect(responsePromise).resolves.toEqual({
+          error: {
+            code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+            message: "Tool call timed out: slow"
+          }
+        });
+        expect(handlerFinished).toBe(false);
+        expect(vi.getTimerCount()).toBe(0);
+
+        finishHandler?.();
+        await Promise.resolve();
+
+        expect(handlerFinished).toBe(true);
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it("responds to tools/call", async () => {
       const transport = createTestTransport();
       const schema = defineSchema({ name: { type: "string" } });
@@ -2563,15 +2590,13 @@ describe("server protocol handlers", () => {
         "greet",
         "Say hello",
         schema,
-        async (args) => `Hello, ${args.name}!`,
+        async (args) => `Hello, ${args.name}!`
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"greet","arguments":{"name":"World"}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"greet","arguments":{"name":"World"}}}'
       );
       transport.close();
 
@@ -2579,9 +2604,7 @@ describe("server protocol handlers", () => {
 
       const responses = getResponsesWithId(transport.getAllResponses());
       const callResponse = responses[1];
-      expect(callResponse.result.content).toEqual([
-        { type: "text", text: "Hello, World!" },
-      ]);
+      expect(callResponse.result.content).toEqual([{ type: "text", text: "Hello, World!" }]);
     });
 
     it("calls correct tool handler", async () => {
@@ -2593,11 +2616,9 @@ describe("server protocol handlers", () => {
         .tool("tool3", "Third", schema, async () => "third");
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"tool2","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"tool2","arguments":{}}}'
       );
       transport.close();
 
@@ -2611,21 +2632,19 @@ describe("server protocol handlers", () => {
       const transport = createTestTransport();
       const schema = defineSchema({
         a: { type: "number" },
-        b: { type: "number" },
+        b: { type: "number" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "add",
         "Add numbers",
         schema,
-        async (args) => String(args.a + args.b),
+        async (args) => String(args.a + args.b)
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add","arguments":{"a":5,"b":3}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add","arguments":{"a":5,"b":3}}}'
       );
       transport.close();
 
@@ -2642,15 +2661,13 @@ describe("server protocol handlers", () => {
         "noop",
         "No-op",
         schema,
-        async () => "done",
+        async () => "done"
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"noop","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"noop","arguments":{}}}'
       );
       transport.close();
 
@@ -2667,16 +2684,12 @@ describe("server protocol handlers", () => {
         "noop",
         "No-op",
         schema,
-        async () => "done",
+        async () => "done"
       );
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"noop"}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"noop"}}');
       transport.close();
 
       await connectPromise;
@@ -2696,15 +2709,13 @@ describe("server protocol handlers", () => {
         schema,
         async () => {
           throw new Error("Something went wrong");
-        },
+        }
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}'
       );
       transport.close();
 
@@ -2713,9 +2724,7 @@ describe("server protocol handlers", () => {
       const responses = getResponsesWithId(transport.getAllResponses());
       const callResponse = responses[1];
       expect(callResponse.result.isError).toBe(true);
-      expect(callResponse.result.content[0].text).toContain(
-        "Something went wrong",
-      );
+      expect(callResponse.result.content[0].text).toContain("Something went wrong");
     });
 
     it("handles sync throw", async () => {
@@ -2727,15 +2736,13 @@ describe("server protocol handlers", () => {
         schema,
         () => {
           throw new Error("Sync error");
-        },
+        }
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}'
       );
       transport.close();
 
@@ -2756,15 +2763,13 @@ describe("server protocol handlers", () => {
         async () => {
           await Promise.resolve(); // ensure async
           throw new Error("Rejected");
-        },
+        }
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}'
       );
       // Wait for async processing before closing
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -2786,15 +2791,13 @@ describe("server protocol handlers", () => {
         schema,
         () => {
           throw "string error";
-        },
+        }
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fail","arguments":{}}}'
       );
       transport.close();
 
@@ -2810,11 +2813,9 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"unknown","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"unknown","arguments":{}}}'
       );
       transport.close();
 
@@ -2831,12 +2832,8 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"arguments":{}}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+      transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"arguments":{}}}');
       transport.close();
 
       await connectPromise;
@@ -2852,9 +2849,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"unknown/method"}');
       transport.close();
 
@@ -2871,9 +2866,7 @@ describe("server protocol handlers", () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
       const connectPromise = server.connect(transport);
-      transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"unknown/resources"}');
       transport.send('{"jsonrpc":"2.0","id":3,"method":"unknown/prompts"}');
       transport.send('{"jsonrpc":"2.0","id":4,"method":"sampling/complete"}');
@@ -2959,18 +2952,13 @@ describe("server with multiple content items", () => {
       "multi",
       "Multiple items",
       schema,
-      async () => [
-        { type: "text", text: "A" } as const,
-        { type: "text", text: "B" } as const,
-      ],
+      async () => [{ type: "text", text: "A" } as const, { type: "text", text: "B" } as const]
     );
 
     const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
     transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"multi","arguments":{}}}',
+      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"multi","arguments":{}}}'
     );
     transport.close();
 
@@ -2980,7 +2968,7 @@ describe("server with multiple content items", () => {
     const callResponse = responses[1];
     expect(callResponse.result.content).toEqual([
       { type: "text", text: "A" },
-      { type: "text", text: "B" },
+      { type: "text", text: "B" }
     ]);
   });
 
@@ -2989,21 +2977,19 @@ describe("server with multiple content items", () => {
     const schema = defineSchema({});
     const items = Array.from({ length: 10 }, (_, i) => ({
       type: "text" as const,
-      text: `Item ${i}`,
+      text: `Item ${i}`
     }));
     const server = createServer({ name: "test", version: "1.0.0" }).tool(
       "many",
       "Many items",
       schema,
-      async () => items,
+      async () => items
     );
 
     const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
     transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"many","arguments":{}}}',
+      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"many","arguments":{}}}'
     );
     transport.close();
 
@@ -3020,15 +3006,13 @@ describe("server with multiple content items", () => {
       "empty",
       "Empty result",
       schema,
-      async () => "",
+      async () => ""
     );
 
     const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
     transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"empty","arguments":{}}}',
+      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"empty","arguments":{}}}'
     );
     transport.close();
 
@@ -3050,23 +3034,17 @@ describe("async handlers", () => {
       async () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
         return "delayed";
-      },
+      }
     );
 
     const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
     transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"delay","arguments":{}}}',
+      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"delay","arguments":{}}}'
     );
 
     let responses = getResponsesWithId(transport.getAllResponses());
-    for (
-      let attempts = 0;
-      responses.length < 2 && attempts < 100;
-      attempts += 1
-    ) {
+    for (let attempts = 0; responses.length < 2 && attempts < 100; attempts += 1) {
       await new Promise((resolve) => setTimeout(resolve, 10));
       responses = getResponsesWithId(transport.getAllResponses());
     }
@@ -3087,15 +3065,13 @@ describe("async handlers", () => {
       "sync",
       "Sync response",
       schema,
-      () => "sync",
+      () => "sync"
     );
 
     const connectPromise = server.connect(transport);
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
     transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"sync","arguments":{}}}',
+      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"sync","arguments":{}}}'
     );
     transport.close();
 
@@ -3124,15 +3100,13 @@ describe("transport connection", () => {
       "test",
       "Test",
       schema,
-      async () => "ok",
+      async () => "ok"
     );
 
     const connectPromise = server.connect(transport);
 
     transport.send('{"jsonrpc":"2.0","id":1,"method":"ping"}');
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"initialize","params":{}}',
-    );
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"initialize","params":{}}');
     transport.send('{"jsonrpc":"2.0","id":3,"method":"tools/list"}');
     transport.close();
 
@@ -3152,7 +3126,7 @@ describe("transport connection", () => {
     const close = vi.fn();
     vi.spyOn(server, "createMessageSession").mockReturnValue({
       handleMessage,
-      close,
+      close
     });
 
     const connectPromise = server.connect(transport);
@@ -3168,10 +3142,10 @@ describe("transport connection", () => {
         id: 1,
         error: {
           code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-          message: "Internal error",
-        },
+          message: "Internal error"
+        }
       },
-      { jsonrpc: "2.0", id: 2, result: { ok: true } },
+      { jsonrpc: "2.0", id: 2, result: { ok: true } }
     ]);
     expect(close).toHaveBeenCalledOnce();
   });
@@ -3185,7 +3159,7 @@ describe("transport connection", () => {
       .mockResolvedValueOnce({ result: { ok: true } });
     vi.spyOn(server, "createMessageSession").mockReturnValue({
       handleMessage,
-      close: vi.fn(),
+      close: vi.fn()
     });
 
     const connectPromise = server.connect(transport);
@@ -3196,7 +3170,7 @@ describe("transport connection", () => {
     await connectPromise;
 
     expect(getResponsesWithId(transport.getAllResponses())).toEqual([
-      { jsonrpc: "2.0", id: 2, result: { ok: true } },
+      { jsonrpc: "2.0", id: 2, result: { ok: true } }
     ]);
   });
 
@@ -3205,9 +3179,7 @@ describe("transport connection", () => {
     const server = createServer({ name: "test", version: "1.0.0" });
 
     const connectPromise = server.connect(transport);
-    transport.send(
-      '{"jsonrpc":"2.0","id":"stdio-array","method":"ping","params":[]}',
-    );
+    transport.send('{"jsonrpc":"2.0","id":"stdio-array","method":"ping","params":[]}');
     transport.close();
 
     await connectPromise;
@@ -3217,8 +3189,8 @@ describe("transport connection", () => {
       id: "stdio-array",
       error: {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
-      },
+        message: "Invalid Request"
+      }
     });
   });
 
@@ -3237,22 +3209,18 @@ describe("transport connection", () => {
         new Promise<string>((resolve) => {
           markToolStarted?.();
           finishTool = resolve;
-        }),
+        })
     );
     const connectPromise = server.connect(transport);
 
-    transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
     await vi.waitFor(() => {
       expect(
-        getResponsesWithId(transport.getAllResponses()).some(
-          (response) => response.id === 1,
-        ),
+        getResponsesWithId(transport.getAllResponses()).some((response) => response.id === 1)
       ).toBe(true);
     });
     transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"slow","arguments":{}}}',
+      '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"slow","arguments":{}}}'
     );
     await toolStarted;
     transport.close();
@@ -3268,13 +3236,11 @@ describe("transport connection", () => {
     finishTool?.("finished");
     await connectPromise;
     expect(
-      getResponsesWithId(transport.getAllResponses()).find(
-        (response) => response.id === 2,
-      ),
+      getResponsesWithId(transport.getAllResponses()).find((response) => response.id === 2)
     ).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      result: { content: [{ type: "text", text: "finished" }] },
+      result: { content: [{ type: "text", text: "finished" }] }
     });
   });
 
@@ -3293,8 +3259,8 @@ describe("transport connection", () => {
       {
         jsonrpc: "2.0",
         id: 1,
-        error: { code: -32600, message: "Server not initialized" },
-      },
+        error: { code: -32600, message: "Server not initialized" }
+      }
     ]);
   });
 
@@ -3303,24 +3269,18 @@ describe("transport connection", () => {
     const server = createServer({ name: "test", version: "1.0.0" });
     const connectPromise = server.connect(transport);
 
-    transport.send(
-      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-    );
-    transport.send(
-      '{"jsonrpc":"2.0","id":2,"method":"notifications/initialized"}',
-    );
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"notifications/initialized"}');
     transport.close();
 
     await connectPromise;
 
     expect(
-      getResponsesWithId(transport.getAllResponses()).find(
-        (response) => response.id === 2,
-      ),
+      getResponsesWithId(transport.getAllResponses()).find((response) => response.id === 2)
     ).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      error: { code: -32600, message: "Invalid Request" },
+      error: { code: -32600, message: "Invalid Request" }
     });
   });
 });
@@ -3338,25 +3298,25 @@ describe("SDK connection lifecycle", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: {},
+      params: {}
     });
     await first.transport.onmessage?.({
       jsonrpc: "2.0",
-      method: "notifications/initialized",
+      method: "notifications/initialized"
     });
     await second.transport.onmessage?.({
       jsonrpc: "2.0",
       id: 2,
       method: "tools/list",
-      params: {},
+      params: {}
     });
 
     expect(second.sent).toEqual([
       {
         jsonrpc: "2.0",
         id: 2,
-        error: { code: -32600, message: "Server not initialized" },
-      },
+        error: { code: -32600, message: "Server not initialized" }
+      }
     ]);
 
     first.transport.onclose?.();
@@ -3384,7 +3344,7 @@ describe("SDK connection lifecycle", () => {
     const close = vi.fn();
     vi.spyOn(server, "createMessageSession").mockReturnValue({
       handleMessage,
-      close,
+      close
     });
 
     void server.connectSDK(sdk.transport);
@@ -3392,7 +3352,7 @@ describe("SDK connection lifecycle", () => {
     await sdk.transport.onmessage?.({
       jsonrpc: "2.0",
       id: 1,
-      method: "second",
+      method: "second"
     });
     await sdk.transport.onmessage?.({ jsonrpc: "2.0", id: 2, method: "third" });
 
@@ -3402,10 +3362,10 @@ describe("SDK connection lifecycle", () => {
         id: 1,
         error: {
           code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-          message: "Internal error",
-        },
+          message: "Internal error"
+        }
       },
-      { jsonrpc: "2.0", id: 2, result: { ok: true } },
+      { jsonrpc: "2.0", id: 2, result: { ok: true } }
     ]);
 
     sdk.transport.onclose?.();
@@ -3416,10 +3376,7 @@ describe("SDK connection lifecycle", () => {
     const server = createServer({ name: "test", version: "1.0.0" });
     const sdk = createSdkTransport();
     sdk.transport.send = vi.fn(async (message: JSONRPCMessage) => {
-      if (
-        "method" in message &&
-        message.method === "notifications/tools/list_changed"
-      ) {
+      if ("method" in message && message.method === "notifications/tools/list_changed") {
         throw new Error("transport closed");
       }
       sdk.sent.push(message);
@@ -3430,16 +3387,14 @@ describe("SDK connection lifecycle", () => {
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: {},
+      params: {}
     });
     await sdk.transport.onmessage?.({
       jsonrpc: "2.0",
-      method: "notifications/initialized",
+      method: "notifications/initialized"
     });
 
-    await expect(server.notifyToolsChanged()).rejects.toThrow(
-      "transport closed",
-    );
+    await expect(server.notifyToolsChanged()).rejects.toThrow("transport closed");
     sdk.transport.onclose?.();
   });
 });
@@ -3494,24 +3449,20 @@ describe("content helpers integration", () => {
         "greet",
         "Say hello",
         schema,
-        async () => "Hello, World!",
+        async () => "Hello, World!"
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"greet","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"greet","arguments":{}}}'
       );
       transport.close();
 
       await connectPromise;
 
       const responses = getResponsesWithId(transport.getAllResponses());
-      expect(responses[1].result.content).toEqual([
-        { type: "text", text: "Hello, World!" },
-      ]);
+      expect(responses[1].result.content).toEqual([{ type: "text", text: "Hello, World!" }]);
     });
   });
 
@@ -3524,15 +3475,13 @@ describe("content helpers integration", () => {
         "get-image",
         "Get image",
         schema,
-        async () => Image.fromBase64(base64Data, "image/png"),
+        async () => Image.fromBase64(base64Data, "image/png")
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-image","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-image","arguments":{}}}'
       );
       transport.close();
 
@@ -3540,7 +3489,7 @@ describe("content helpers integration", () => {
 
       const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
-        { type: "image", data: base64Data, mimeType: "image/png" },
+        { type: "image", data: base64Data, mimeType: "image/png" }
       ]);
     });
 
@@ -3548,21 +3497,19 @@ describe("content helpers integration", () => {
       const transport = createTestTransport();
       const schema = defineSchema({});
       const pngData = new Uint8Array([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00,
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00
       ]);
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "get-image",
         "Get image",
         schema,
-        async () => Image.fromBytes(pngData),
+        async () => Image.fromBytes(pngData)
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-image","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-image","arguments":{}}}'
       );
       transport.close();
 
@@ -3583,15 +3530,13 @@ describe("content helpers integration", () => {
         "get-audio",
         "Get audio",
         schema,
-        async () => Audio.fromBase64(base64Data, "audio/mpeg"),
+        async () => Audio.fromBase64(base64Data, "audio/mpeg")
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-audio","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-audio","arguments":{}}}'
       );
       transport.close();
 
@@ -3599,7 +3544,7 @@ describe("content helpers integration", () => {
 
       const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content).toEqual([
-        { type: "audio", data: base64Data, mimeType: "audio/mpeg" },
+        { type: "audio", data: base64Data, mimeType: "audio/mpeg" }
       ]);
     });
   });
@@ -3613,15 +3558,13 @@ describe("content helpers integration", () => {
         "get-file",
         "Get file",
         schema,
-        async () => File.fromBytes(data, "video/mp4"),
+        async () => File.fromBytes(data, "video/mp4")
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-file","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-file","arguments":{}}}'
       );
       transport.close();
 
@@ -3629,11 +3572,9 @@ describe("content helpers integration", () => {
 
       const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].type).toBe("resource");
-      expect(responses[1].result.content[0].resource.mimeType).toBe(
-        "video/mp4",
-      );
+      expect(responses[1].result.content[0].resource.mimeType).toBe("video/mp4");
       expect(responses[1].result.content[0].resource.blob).toBe(
-        Buffer.from(data).toString("base64"),
+        Buffer.from(data).toString("base64")
       );
     });
 
@@ -3644,15 +3585,13 @@ describe("content helpers integration", () => {
         "get-file",
         "Get file",
         schema,
-        async () => File.fromText("Hello, world!", "text/plain"),
+        async () => File.fromText("Hello, world!", "text/plain")
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-file","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-file","arguments":{}}}'
       );
       transport.close();
 
@@ -3660,12 +3599,8 @@ describe("content helpers integration", () => {
 
       const responses = getResponsesWithId(transport.getAllResponses());
       expect(responses[1].result.content[0].type).toBe("resource");
-      expect(responses[1].result.content[0].resource.mimeType).toBe(
-        "text/plain",
-      );
-      expect(responses[1].result.content[0].resource.text).toBe(
-        "Hello, world!",
-      );
+      expect(responses[1].result.content[0].resource.mimeType).toBe("text/plain");
+      expect(responses[1].result.content[0].resource.text).toBe("Hello, world!");
     });
   });
 
@@ -3677,15 +3612,13 @@ describe("content helpers integration", () => {
         "multi",
         "Multiple strings",
         schema,
-        async () => ["First", "Second", "Third"],
+        async () => ["First", "Second", "Third"]
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"multi","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"multi","arguments":{}}}'
       );
       transport.close();
 
@@ -3695,7 +3628,7 @@ describe("content helpers integration", () => {
       expect(responses[1].result.content).toEqual([
         { type: "text", text: "First" },
         { type: "text", text: "Second" },
-        { type: "text", text: "Third" },
+        { type: "text", text: "Third" }
       ]);
     });
 
@@ -3706,18 +3639,13 @@ describe("content helpers integration", () => {
         "mixed",
         "Mixed content",
         schema,
-        async () => [
-          "Here is an image:",
-          Image.fromBase64("iVBORw0KGgo=", "image/png"),
-        ],
+        async () => ["Here is an image:", Image.fromBase64("iVBORw0KGgo=", "image/png")]
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"mixed","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"mixed","arguments":{}}}'
       );
       transport.close();
 
@@ -3727,12 +3655,12 @@ describe("content helpers integration", () => {
       expect(responses[1].result.content).toHaveLength(2);
       expect(responses[1].result.content[0]).toEqual({
         type: "text",
-        text: "Here is an image:",
+        text: "Here is an image:"
       });
       expect(responses[1].result.content[1]).toEqual({
         type: "image",
         data: "iVBORw0KGgo=",
-        mimeType: "image/png",
+        mimeType: "image/png"
       });
     });
 
@@ -3747,16 +3675,14 @@ describe("content helpers integration", () => {
           "Content:",
           Image.fromBase64("iVBORw0KGgo=", "image/png"),
           Audio.fromBase64("SUQzBAAAAAA=", "audio/mpeg"),
-          File.fromText("data", "text/plain"),
-        ],
+          File.fromText("data", "text/plain")
+        ]
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"all","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"all","arguments":{}}}'
       );
       transport.close();
 
@@ -3779,24 +3705,20 @@ describe("content helpers integration", () => {
         "raw",
         "Raw content",
         schema,
-        async () => ({ type: "text", text: "raw block" }),
+        async () => ({ type: "text", text: "raw block" })
       );
 
       const connectPromise = server.connect(transport);
+      transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
       transport.send(
-        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}',
-      );
-      transport.send(
-        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"raw","arguments":{}}}',
+        '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"raw","arguments":{}}}'
       );
       transport.close();
 
       await connectPromise;
 
       const responses = getResponsesWithId(transport.getAllResponses());
-      expect(responses[1].result.content).toEqual([
-        { type: "text", text: "raw block" },
-      ]);
+      expect(responses[1].result.content).toEqual([{ type: "text", text: "raw block" }]);
     });
   });
 });
@@ -3828,7 +3750,7 @@ describe("SDK Client integration", () => {
     it("returns correct server info with special characters", async () => {
       const server = createServer({
         name: "test-server-with-dashes",
-        version: "1.0.0-beta.1+build.123",
+        version: "1.0.0-beta.1+build.123"
       });
       testPair = await createTestPair(server);
 
@@ -3849,13 +3771,13 @@ describe("SDK Client integration", () => {
   describe("tools/list", () => {
     it("lists tools via SDK Client", async () => {
       const schema = defineSchema({
-        name: { type: "string", description: "Name to greet" },
+        name: { type: "string", description: "Name to greet" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "greet",
         "Say hello",
         schema,
-        async (args) => `Hello, ${args.name}!`,
+        async (args) => `Hello, ${args.name}!`
       );
 
       testPair = await createTestPair(server);
@@ -3880,9 +3802,7 @@ describe("SDK Client integration", () => {
       let server = createServer({ name: "test", version: "1.0.0" });
 
       for (let i = 0; i < 20; i++) {
-        server = server.tool(`tool${i}`, `Tool number ${i}`, schema, async () =>
-          String(i),
-        );
+        server = server.tool(`tool${i}`, `Tool number ${i}`, schema, async () => String(i));
       }
 
       testPair = await createTestPair(server);
@@ -3893,11 +3813,11 @@ describe("SDK Client integration", () => {
 
     it("returns correct schema for each tool", async () => {
       const schema1 = defineSchema({
-        name: { type: "string", description: "User name" },
+        name: { type: "string", description: "User name" }
       });
       const schema2 = defineSchema({
         count: { type: "number" },
-        enabled: { type: "boolean", optional: true },
+        enabled: { type: "boolean", optional: true }
       });
 
       const server = createServer({ name: "test", version: "1.0.0" })
@@ -3923,19 +3843,19 @@ describe("SDK Client integration", () => {
   describe("tools/call", () => {
     it("calls tools via SDK Client", async () => {
       const schema = defineSchema({
-        name: { type: "string" },
+        name: { type: "string" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "greet",
         "Say hello",
         schema,
-        async (args) => `Hello, ${args.name}!`,
+        async (args) => `Hello, ${args.name}!`
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "greet",
-        arguments: { name: "World" },
+        arguments: { name: "World" }
       });
 
       expect(result.content).toEqual([{ type: "text", text: "Hello, World!" }]);
@@ -3947,13 +3867,13 @@ describe("SDK Client integration", () => {
         "noop",
         "No-op tool",
         schema,
-        async () => "done",
+        async () => "done"
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "noop",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "done" }]);
@@ -3965,17 +3885,17 @@ describe("SDK Client integration", () => {
         "structured",
         "Structured result",
         schema,
-        async () => ({ sessionId: "session-1", pid: 1234 }),
+        async () => ({ sessionId: "session-1", pid: 1234 })
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "structured",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([
-        { type: "text", text: '{"sessionId":"session-1","pid":1234}' },
+        { type: "text", text: '{"sessionId":"session-1","pid":1234}' }
       ]);
     });
 
@@ -3985,13 +3905,13 @@ describe("SDK Client integration", () => {
         "empty",
         "Empty result",
         schema,
-        async () => undefined,
+        async () => undefined
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "empty",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([]);
@@ -4001,59 +3921,55 @@ describe("SDK Client integration", () => {
       const schema = defineSchema({
         str: { type: "string" },
         num: { type: "number" },
-        bool: { type: "boolean" },
+        bool: { type: "boolean" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "complex",
         "Complex args",
         schema,
-        async (args) => `str=${args.str}, num=${args.num}, bool=${args.bool}`,
+        async (args) => `str=${args.str}, num=${args.num}, bool=${args.bool}`
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "complex",
-        arguments: { str: "test", num: 42, bool: true },
+        arguments: { str: "test", num: 42, bool: true }
       });
 
-      expect(result.content).toEqual([
-        { type: "text", text: "str=test, num=42, bool=true" },
-      ]);
+      expect(result.content).toEqual([{ type: "text", text: "str=test, num=42, bool=true" }]);
     });
 
     it("handles numeric calculations", async () => {
       const schema = defineSchema({
         a: { type: "number" },
-        b: { type: "number" },
+        b: { type: "number" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "add",
         "Add numbers",
         schema,
-        async (args) => String(args.a + args.b),
+        async (args) => String(args.a + args.b)
       );
 
       testPair = await createTestPair(server);
 
       const result1 = await testPair.client.callTool({
         name: "add",
-        arguments: { a: 2, b: 3 },
+        arguments: { a: 2, b: 3 }
       });
       expect(result1.content).toEqual([{ type: "text", text: "5" }]);
 
       const result2 = await testPair.client.callTool({
         name: "add",
-        arguments: { a: -10, b: 5 },
+        arguments: { a: -10, b: 5 }
       });
       expect(result2.content).toEqual([{ type: "text", text: "-5" }]);
 
       const result3 = await testPair.client.callTool({
         name: "add",
-        arguments: { a: 0.1, b: 0.2 },
+        arguments: { a: 0.1, b: 0.2 }
       });
-      expect(
-        parseFloat((result3.content[0] as { text: string }).text),
-      ).toBeCloseTo(0.3);
+      expect(parseFloat((result3.content[0] as { text: string }).text)).toBeCloseTo(0.3);
     });
 
     it("handles string with special characters", async () => {
@@ -4062,7 +3978,7 @@ describe("SDK Client integration", () => {
         "echo",
         "Echo text",
         schema,
-        async (args) => args.text,
+        async (args) => args.text
       );
 
       testPair = await createTestPair(server);
@@ -4074,13 +3990,13 @@ describe("SDK Client integration", () => {
         "Unicode: 日本語",
         "Emoji: 🎉",
         "Backslash: \\",
-        'Mixed: "hello"\n\tworld\\end',
+        'Mixed: "hello"\n\tworld\\end'
       ];
 
       for (const str of specialStrings) {
         const result = await testPair.client.callTool({
           name: "echo",
-          arguments: { text: str },
+          arguments: { text: str }
         });
         expect(result.content).toEqual([{ type: "text", text: str }]);
       }
@@ -4092,13 +4008,13 @@ describe("SDK Client integration", () => {
       const schema = defineSchema({
         strField: { type: "string", description: "A string" },
         numField: { type: "number", optional: true },
-        boolField: { type: "boolean", optional: true },
+        boolField: { type: "boolean", optional: true }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "typed",
         "Typed tool",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -4116,13 +4032,13 @@ describe("SDK Client integration", () => {
         num: { type: "number" },
         bool: { type: "boolean" },
         obj: { type: "object" },
-        arr: { type: "array" },
+        arr: { type: "array" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "allTypes",
         "All types",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -4139,25 +4055,21 @@ describe("SDK Client integration", () => {
     it("schema includes descriptions", async () => {
       const schema = defineSchema({
         name: { type: "string", description: "The user's name" },
-        age: { type: "number", description: "Age in years" },
+        age: { type: "number", description: "Age in years" }
       });
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "user",
         "User tool",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.listTools();
 
       const tool = result.tools[0];
-      expect(tool.inputSchema.properties?.name?.description).toBe(
-        "The user's name",
-      );
-      expect(tool.inputSchema.properties?.age?.description).toBe(
-        "Age in years",
-      );
+      expect(tool.inputSchema.properties?.name?.description).toBe("The user's name");
+      expect(tool.inputSchema.properties?.age?.description).toBe("Age in years");
     });
   });
 
@@ -4170,19 +4082,17 @@ describe("SDK Client integration", () => {
         schema,
         async () => {
           throw new Error("Intentional failure");
-        },
+        }
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "fail",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content).toEqual([
-        { type: "text", text: "Error: Intentional failure" },
-      ]);
+      expect(result.content).toEqual([{ type: "text", text: "Error: Intentional failure" }]);
     });
 
     it("handles async rejection", async () => {
@@ -4194,19 +4104,17 @@ describe("SDK Client integration", () => {
         async () => {
           await Promise.resolve();
           throw new Error("Async rejection");
-        },
+        }
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "reject",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
-      expect((result.content[0] as { text: string }).text).toContain(
-        "Async rejection",
-      );
+      expect((result.content[0] as { text: string }).text).toContain("Async rejection");
     });
 
     it("handles sync throw", async () => {
@@ -4217,19 +4125,17 @@ describe("SDK Client integration", () => {
         schema,
         () => {
           throw new Error("Sync throw");
-        },
+        }
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "syncFail",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.isError).toBe(true);
-      expect((result.content[0] as { text: string }).text).toContain(
-        "Sync throw",
-      );
+      expect((result.content[0] as { text: string }).text).toContain("Sync throw");
     });
   });
 
@@ -4242,14 +4148,14 @@ describe("SDK Client integration", () => {
         schema,
         async () => [
           { type: "text", text: "First" } as const,
-          { type: "text", text: "Second" } as const,
-        ],
+          { type: "text", text: "Second" } as const
+        ]
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "multi",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toHaveLength(2);
@@ -4261,19 +4167,19 @@ describe("SDK Client integration", () => {
       const schema = defineSchema({});
       const items = Array.from({ length: 10 }, (_, i) => ({
         type: "text" as const,
-        text: `Item ${i}`,
+        text: `Item ${i}`
       }));
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "many",
         "Many items",
         schema,
-        async () => items,
+        async () => items
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "many",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toHaveLength(10);
@@ -4288,13 +4194,13 @@ describe("SDK Client integration", () => {
         "single",
         "Single text",
         schema,
-        async () => "Just one",
+        async () => "Just one"
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "single",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toHaveLength(1);
@@ -4306,27 +4212,25 @@ describe("SDK Client integration", () => {
     it("supports multiple tools", async () => {
       const schema1 = defineSchema({
         a: { type: "number" },
-        b: { type: "number" },
+        b: { type: "number" }
       });
       const schema2 = defineSchema({ name: { type: "string" } });
 
       const server = createServer({ name: "test", version: "1.0.0" })
-        .tool("add", "Add numbers", schema1, async (args) =>
-          String(args.a + args.b),
-        )
+        .tool("add", "Add numbers", schema1, async (args) => String(args.a + args.b))
         .tool("greet", "Say hello", schema2, async (args) => `Hi ${args.name}`);
 
       testPair = await createTestPair(server);
 
       const addResult = await testPair.client.callTool({
         name: "add",
-        arguments: { a: 2, b: 3 },
+        arguments: { a: 2, b: 3 }
       });
       expect(addResult.content).toEqual([{ type: "text", text: "5" }]);
 
       const greetResult = await testPair.client.callTool({
         name: "greet",
-        arguments: { name: "Alice" },
+        arguments: { name: "Alice" }
       });
       expect(greetResult.content).toEqual([{ type: "text", text: "Hi Alice" }]);
     });
@@ -4341,26 +4245,26 @@ describe("SDK Client integration", () => {
         async () => {
           callCount++;
           return String(callCount);
-        },
+        }
       );
 
       testPair = await createTestPair(server);
 
       const result1 = await testPair.client.callTool({
         name: "counter",
-        arguments: {},
+        arguments: {}
       });
       expect(result1.content).toEqual([{ type: "text", text: "1" }]);
 
       const result2 = await testPair.client.callTool({
         name: "counter",
-        arguments: {},
+        arguments: {}
       });
       expect(result2.content).toEqual([{ type: "text", text: "2" }]);
 
       const result3 = await testPair.client.callTool({
         name: "counter",
-        arguments: {},
+        arguments: {}
       });
       expect(result3.content).toEqual([{ type: "text", text: "3" }]);
     });
@@ -4400,13 +4304,13 @@ describe("SDK Client integration", () => {
         async () => {
           await new Promise((resolve) => setTimeout(resolve, 10));
           return "delayed";
-        },
+        }
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "delay",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "delayed" }]);
@@ -4418,13 +4322,13 @@ describe("SDK Client integration", () => {
         "sync",
         "Sync",
         schema,
-        () => "sync",
+        () => "sync"
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "sync",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "sync" }]);
@@ -4438,13 +4342,13 @@ describe("SDK Client integration", () => {
         "empty",
         "Empty",
         schema,
-        async () => "",
+        async () => ""
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "empty",
-        arguments: {},
+        arguments: {}
       });
 
       expect(result.content).toEqual([{ type: "text", text: "" }]);
@@ -4457,13 +4361,13 @@ describe("SDK Client integration", () => {
         "long",
         "Long response",
         schema,
-        async () => longText,
+        async () => longText
       );
 
       testPair = await createTestPair(server);
       const result = await testPair.client.callTool({
         name: "long",
-        arguments: {},
+        arguments: {}
       });
 
       expect((result.content[0] as { text: string }).text).toBe(longText);
@@ -4476,7 +4380,7 @@ describe("SDK Client integration", () => {
         longName,
         "Long name tool",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -4485,7 +4389,7 @@ describe("SDK Client integration", () => {
 
       const callResult = await testPair.client.callTool({
         name: longName,
-        arguments: {},
+        arguments: {}
       });
       expect(callResult.content).toEqual([{ type: "text", text: "ok" }]);
     });
@@ -4496,7 +4400,7 @@ describe("SDK Client integration", () => {
         "工具",
         "Unicode tool",
         schema,
-        async () => "ok",
+        async () => "ok"
       );
 
       testPair = await createTestPair(server);
@@ -4563,7 +4467,7 @@ describe("removeTool via SDK", () => {
       "test",
       "Test",
       schema,
-      async () => "ok",
+      async () => "ok"
     );
 
     testPair = await createTestPair(server);
@@ -4571,7 +4475,7 @@ describe("removeTool via SDK", () => {
     // Call tool successfully first
     const before = await testPair.client.callTool({
       name: "test",
-      arguments: {},
+      arguments: {}
     });
     expect(before.content).toEqual([{ type: "text", text: "ok" }]);
 
@@ -4579,9 +4483,7 @@ describe("removeTool via SDK", () => {
     server.removeTool("test");
 
     // Calling again should fail
-    await expect(
-      testPair.client.callTool({ name: "test", arguments: {} }),
-    ).rejects.toThrow();
+    await expect(testPair.client.callTool({ name: "test", arguments: {} })).rejects.toThrow();
   });
 });
 
@@ -4626,7 +4528,7 @@ describe("dynamic tool management via SDK", () => {
     // Call the dynamically added tool
     const result = await testPair.client.callTool({
       name: "echo",
-      arguments: { msg: "hello" },
+      arguments: { msg: "hello" }
     });
 
     expect(result.content).toEqual([{ type: "text", text: "hello" }]);
@@ -4638,7 +4540,7 @@ describe("dynamic tool management via SDK", () => {
       "test",
       "Test",
       schema,
-      async () => "ok",
+      async () => "ok"
     );
 
     testPair = await createTestPair(server);

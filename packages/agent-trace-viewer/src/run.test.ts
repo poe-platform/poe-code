@@ -11,7 +11,7 @@ import type {
 
 const mocks = vi.hoisted(() => ({
   traceReaders: [] as TraceReader[],
-  countTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length)),
+  estimateTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length)),
   runExplorer: vi.fn(async () => null)
 }));
 
@@ -24,7 +24,7 @@ vi.mock("@poe-code/agent-traces", async (importOriginal) => {
 });
 
 vi.mock("tokenfill", () => ({
-  countTokens: mocks.countTokens
+  estimateTokens: mocks.estimateTokens
 }));
 
 vi.mock("toolcraft-design", async (importOriginal) => {
@@ -69,8 +69,8 @@ function createReader(overrides: Partial<TraceReader> & Pick<TraceReader, "id">)
 describe("runTraceViewer", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.countTokens.mockReset();
-    mocks.countTokens.mockImplementation((text: string) => text.length);
+    mocks.estimateTokens.mockReset();
+    mocks.estimateTokens.mockImplementation((text: string) => text.length);
     mocks.runExplorer.mockClear();
   });
 
@@ -158,7 +158,8 @@ describe("runTraceViewer", () => {
           {
             source: "claude",
             id: "trace-1",
-            title: "Investigate an extremely long trace title that should not spill past the table edge",
+            title:
+              "Investigate an extremely long trace title that should not spill past the table edge",
             updatedAt: new Date("2026-07-01T10:00:00.000Z"),
             cwd: "/Users/kjopek/Workspace/poe-code-with-a-very-long-directory-name"
           }
@@ -176,8 +177,12 @@ describe("runTraceViewer", () => {
     });
 
     const rendered = stripAnsi(output.value);
-    expect(rendered.split("\n").filter((line) => line.length > 0).every((line) => line.length <= 80))
-      .toBe(true);
+    expect(
+      rendered
+        .split("\n")
+        .filter((line) => line.length > 0)
+        .every((line) => line.length <= 80)
+    ).toBe(true);
     expect(rendered).toContain("Investigate an extremely long…");
     expect(rendered).toContain("poe-code-w…");
   });
@@ -260,7 +265,9 @@ describe("runTraceViewer", () => {
             id: reference.id,
             path: reference.path,
             title: "Parent trace",
-            children: [{ source: "codex", id: "child", title: "Child trace", agentType: "Explore" }],
+            children: [
+              { source: "codex", id: "child", title: "Child trace", agentType: "Explore" }
+            ],
             turns: [{ role: "human", text: "hello" }]
           })
     );
@@ -451,12 +458,14 @@ describe("runTraceViewer", () => {
         height: 20,
         signal: new AbortController().signal
       });
-      const previewContent = detail[0]?.renderedContent ?? detail[0]?.render({
-        row: rows[0]!,
-        width: 80,
-        height: 20,
-        signal: new AbortController().signal
-      });
+      const previewContent =
+        detail[0]?.renderedContent ??
+        detail[0]?.render({
+          row: rows[0]!,
+          width: 80,
+          height: 20,
+          signal: new AbortController().signal
+        });
       expect(String(previewContent)).toContain("Cached trace");
       read.mockClear();
 

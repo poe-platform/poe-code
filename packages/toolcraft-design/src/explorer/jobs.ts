@@ -2,6 +2,7 @@ import type { ExplorerEvent } from "./events.js";
 import type { DetailCtx, DetailItem } from "./state.js";
 
 export const LOADING_INDICATOR_MS = 150;
+export const DETAIL_DEBOUNCE_MS = 100;
 
 export function createDetailJobs(emit: (event: ExplorerEvent) => void): {
   schedule: (
@@ -12,6 +13,7 @@ export function createDetailJobs(emit: (event: ExplorerEvent) => void): {
   abort: () => void;
 } {
   let token = 0;
+  let lastScheduleAt = 0;
   let current: {
     controller: AbortController;
     loadingTimer: ReturnType<typeof setTimeout>;
@@ -26,6 +28,9 @@ export function createDetailJobs(emit: (event: ExplorerEvent) => void): {
         clearTimeout(current.loadingTimer);
       }
 
+      const scheduledAt = Date.now();
+      const debounce = scheduledAt - lastScheduleAt < DETAIL_DEBOUNCE_MS;
+      lastScheduleAt = scheduledAt;
       const nextToken = ++token;
       const controller = new AbortController();
       let finished = false;
@@ -37,6 +42,12 @@ export function createDetailJobs(emit: (event: ExplorerEvent) => void): {
       current = { controller, loadingTimer, token: nextToken };
 
       try {
+        if (debounce) {
+          await waitUnlessAborted(DETAIL_DEBOUNCE_MS, controller.signal);
+          if (controller.signal.aborted || nextToken !== token) {
+            return;
+          }
+        }
         const loadedItems = await items({ ...ctx, signal: controller.signal });
         finished = true;
         if (!abortedTokens.has(nextToken)) {
@@ -67,6 +78,24 @@ export function createDetailJobs(emit: (event: ExplorerEvent) => void): {
       current = null;
     }
   };
+}
+
+function waitUnlessAborted(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal.aborted) {
+      resolve();
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 function toError(error: unknown): Error {

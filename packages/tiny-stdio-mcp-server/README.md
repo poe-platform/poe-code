@@ -125,7 +125,7 @@ Dynamically add/remove tools at runtime and notify connected clients.
 
 ## Configuration Options
 
-- `createServer({ name, version })`: server identity sent during MCP initialization.
+- `createServer({ name, version, toolCallTimeoutMs? })`: server identity plus an optional positive-integer tool timeout in milliseconds. Timed-out calls return JSON-RPC error `-32603`; handlers continue running in the background.
 - `.tool(name, description, schema, handler, outputSchema?)`: tool metadata, input schema, handler, and optional structured output schema.
 - `.connect({ readable, writable })`: custom stream transport for tests or embedded hosts.
 

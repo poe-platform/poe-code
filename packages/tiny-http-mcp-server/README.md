@@ -292,6 +292,7 @@ Returned `HttpServer` instances support:
 | ------------------------ | -------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
 | `name`                   | `string`                                     | none                             | MCP server name exposed during initialization.                                                |
 | `version`                | `string`                                     | none                             | MCP server version exposed during initialization.                                             |
+| `toolCallTimeoutMs`      | `number`                                     | unlimited                        | Positive integer timeout in milliseconds. Returns `-32603` without cancelling the handler.    |
 | `sessionIdGenerator`     | `(() => string) \| undefined`                | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely.                     |
 | `enableJsonResponse`     | `boolean`                                    | `false`                          | Return `application/json` bodies for `POST` responses instead of `text/event-stream`.         |
 | `allowedHosts`           | `readonly string[]`                          | loopback hosts                   | Allowed `Host` header values for DNS rebinding protection.                                    |

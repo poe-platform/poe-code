@@ -15,18 +15,23 @@ function plain(value: string): string {
 
 describe("renderContextGauge", () => {
   it("renders zero tokens", () => {
-    expect(plain(renderContextGauge({ tokens: 0, window: 200000, percent: 0, source: "reported" }, 8)))
-      .toBe("▐░░░░░░░░▌ 0 / 200.0k · 0% · reported");
+    expect(
+      plain(renderContextGauge({ tokens: 0, window: 200000, percent: 0, source: "reported" }, 8))
+    ).toBe("▐░░░░░░░░▌ 0 / 200.0k · 0% · reported");
   });
 
   it("clamps the fill but prints the real percent", () => {
-    expect(plain(renderContextGauge({ tokens: 150, window: 100, percent: 150, source: "reported" }, 4)))
-      .toBe("▐████▌ 150 / 100 · 150% · reported");
+    expect(
+      plain(renderContextGauge({ tokens: 150, window: 100, percent: 150, source: "reported" }, 4))
+    ).toBe("▐████▌ 150 / 100 · 150% · reported");
   });
 
   it("handles tiny widths and estimated sources", () => {
-    expect(plain(renderContextGauge({ tokens: 4200, window: 1000000, percent: 1, source: "estimated" }, 0)))
-      .toBe("▐░▌ 4.2k / 1.0M · 1% · (estimated)");
+    expect(
+      plain(
+        renderContextGauge({ tokens: 4200, window: 1000000, percent: 1, source: "estimated" }, 0)
+      )
+    ).toBe("▐░▌ 4.2k / 1.0M · 1% · (estimated)");
   });
 });
 
@@ -38,15 +43,46 @@ describe("renderBreakdown", () => {
   });
 
   it("renders a single category", () => {
-    const output = plain(renderBreakdown({
-      measuredTokens: 1200,
-      categories: [
-        { id: "messages", label: "Messages", tokens: 1200, percent: 100, items: [] }
-      ]
-    }, 10));
+    const output = plain(
+      renderBreakdown(
+        {
+          measuredTokens: 1200,
+          categories: [{ id: "messages", label: "Messages", tokens: 1200, percent: 100, items: [] }]
+        },
+        10
+      )
+    );
 
     expect(output).toContain("▐██████████▌");
     expect(output).toContain("■ Messages    1.2k  100%");
+  });
+
+  it("keeps the segmented bar within width when rounding overshoots", () => {
+    const categories = [
+      "system-prompt",
+      "skills",
+      "mcp",
+      "system-reminders",
+      "tools",
+      "reasoning",
+      "messages",
+      "other"
+    ];
+    const breakdown: ContextBreakdown = {
+      measuredTokens: categories.length,
+      categories: categories.map((id) => ({
+        id,
+        label: id,
+        tokens: 1,
+        percent: Math.round(100 / categories.length),
+        items: []
+      }))
+    };
+
+    const output = plain(renderBreakdown(breakdown, 4));
+
+    expect(output).toContain("▐");
+    expect(output.split("\n")[1]).toContain("▌");
   });
 
   it("sorts categories by fixed order and limits item rows", () => {
@@ -86,39 +122,43 @@ describe("renderBreakdown", () => {
   });
 
   it("keeps redacted zero-token category counts visible", () => {
-    const output = plain(renderBreakdown({
-      measuredTokens: 0,
-      categories: [
-        {
-          id: "tools",
-          label: "Tools",
-          tokens: 0,
-          percent: 0,
-          items: [{ name: "redacted", tokens: 0, count: 2 }]
-        }
-      ]
-    }));
+    const output = plain(
+      renderBreakdown({
+        measuredTokens: 0,
+        categories: [
+          {
+            id: "tools",
+            label: "Tools",
+            tokens: 0,
+            percent: 0,
+            items: [{ name: "redacted", tokens: 0, count: 2 }]
+          }
+        ]
+      })
+    );
 
     expect(output).toContain("■ Tools       0   0%");
     expect(output).toContain("      redacted  0  ×2");
   });
 
   it("pads item rows from the truncated item name", () => {
-    const output = plain(renderBreakdown({
-      measuredTokens: 10,
-      categories: [
-        {
-          id: "skills",
-          label: "Skills",
-          tokens: 10,
-          percent: 100,
-          items: [
-            { name: "a".repeat(80), tokens: 9, count: 1 },
-            { name: "short", tokens: 1, count: 1 }
-          ]
-        }
-      ]
-    }));
+    const output = plain(
+      renderBreakdown({
+        measuredTokens: 10,
+        categories: [
+          {
+            id: "skills",
+            label: "Skills",
+            tokens: 10,
+            percent: 100,
+            items: [
+              { name: "a".repeat(80), tokens: 9, count: 1 },
+              { name: "short", tokens: 1, count: 1 }
+            ]
+          }
+        ]
+      })
+    );
 
     expect(output).toContain(`      ${"a".repeat(31)}…   9  ×1`);
     expect(output).toMatch(/^ {6}short +1 {2}×1$/m);
@@ -231,13 +271,15 @@ describe("renderTraceDetail", () => {
       ]
     };
 
-    const output = plain(renderTraceDetail(view, [
-      {
-        reference: { source: "codex", id: "child", title: "Child", agentType: "Explore" },
-        context: { tokens: 1000, window: 200000, percent: 1, source: "reported" },
-        turnCount: 2
-      }
-    ]));
+    const output = plain(
+      renderTraceDetail(view, [
+        {
+          reference: { source: "codex", id: "child", title: "Child", agentType: "Explore" },
+          context: { tokens: 1000, window: 200000, percent: 1, source: "reported" },
+          turnCount: 2
+        }
+      ])
+    );
 
     expect(output).toContain("Trace detail");
     expect(output).toContain("Source: codex");
@@ -256,7 +298,8 @@ describe("renderTraceDetail", () => {
     const view: TraceView = {
       source: "claude",
       id: "trace-1",
-      title: "A very long trace title that should be shortened before it stretches the terminal capture",
+      title:
+        "A very long trace title that should be shortened before it stretches the terminal capture",
       model: "claude-sonnet-4-6",
       context: { tokens: 10, window: 200000, percent: 0, source: "estimated" },
       breakdown: {
@@ -275,8 +318,12 @@ describe("renderTraceDetail", () => {
 
     expect(output).not.toContain("[31m");
     expect(output).toContain("before red after");
-    expect(output.split("\n").filter((line) => line.length > 0).every((line) => line.length <= 80))
-      .toBe(true);
+    expect(
+      output
+        .split("\n")
+        .filter((line) => line.length > 0)
+        .every((line) => line.length <= 80)
+    ).toBe(true);
   });
 
   it("caps long conversation previews", () => {
@@ -294,7 +341,7 @@ describe("renderTraceDetail", () => {
     const output = plain(renderTraceDetail(view));
 
     expect(output).toContain("Conversation");
-    expect(output).toContain("… 32 more conversation lines");
+    expect(output).toContain("… 32 more turns");
     expect(output).not.toContain("message 79");
   });
 });

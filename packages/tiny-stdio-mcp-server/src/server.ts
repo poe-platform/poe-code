@@ -25,23 +25,15 @@ import type {
   JSONRPCMessage,
   JSONRPCRequest,
   JSONRPCResponse,
-  JSONRPCNotification,
+  JSONRPCNotification
 } from "./types.js";
 import { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";
-import {
-  parseMessage,
-  formatSuccessResponse,
-  formatErrorResponse,
-} from "./jsonrpc.js";
+import { parseMessage, formatSuccessResponse, formatErrorResponse } from "./jsonrpc.js";
 import type { TypedSchema } from "./schema.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
-const SUPPORTED_PROTOCOL_VERSIONS = new Set([
-  "2025-03-26",
-  "2025-06-18",
-  PROTOCOL_VERSION,
-]);
+const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION]);
 
 export interface Server {
   tool<TIn, TOut = never>(
@@ -49,21 +41,16 @@ export interface Server {
     description: string,
     inputSchema: TypedSchema<TIn>,
     handler: ToolHandler<TIn, TOut>,
-    outputSchema?: TypedSchema<TOut>,
+    outputSchema?: TypedSchema<TOut>
   ): Server;
   registerTool<TIn, TOut = never>(
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
-    handler: ToolHandler<TIn, TOut>,
+    handler: ToolHandler<TIn, TOut>
   ): Server;
   prompt(definition: Prompt, handler: PromptHandler): Server;
   resource(definition: Resource, handler: ResourceHandler): Server;
-  resourceTemplate(
-    definition: ResourceTemplate,
-    handler: ResourceHandler,
-  ): Server;
-  onNotification(
-    listener: (notification: JSONRPCNotification) => void,
-  ): () => void;
+  resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server;
+  onNotification(listener: (notification: JSONRPCNotification) => void): () => void;
   removeTool(name: string): boolean;
   removePrompt(name: string): boolean;
   removeResource(uri: string): boolean;
@@ -73,12 +60,9 @@ export interface Server {
   notifyResourcesChanged(): Promise<void>;
   notifyResourceUpdated(uri: string): Promise<void>;
   createMessageSession(
-    listener?: (notification: JSONRPCNotification) => void | Promise<void>,
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>
   ): MessageSession;
-  handleMessage(
-    method: string,
-    params?: Record<string, unknown>,
-  ): Promise<HandleResult>;
+  handleMessage(method: string, params?: Record<string, unknown>): Promise<HandleResult>;
   listen(): Promise<void>;
   connect(transport: Transport): Promise<void>;
   connectSDK(transport: SDKTransport): Promise<void>;
@@ -86,7 +70,7 @@ export interface Server {
 
 export type MessageHandler = (
   method: string,
-  params?: Record<string, unknown>,
+  params?: Record<string, unknown>
 ) => Promise<HandleResult>;
 
 export interface MessageSession {
@@ -107,18 +91,22 @@ interface RegisteredToolDefinition extends ToolDefinition {
 }
 
 export function createServer(options: ServerOptions): Server {
+  if (
+    options.toolCallTimeoutMs !== undefined &&
+    (!Number.isInteger(options.toolCallTimeoutMs) || options.toolCallTimeoutMs <= 0)
+  ) {
+    throw new Error("toolCallTimeoutMs must be a positive integer.");
+  }
+
   const Ajv = "default" in AjvModule ? AjvModule.default : AjvModule;
   const jsonSchemaValidator = new Ajv({ strict: false });
   const supportNotifications = options.supportNotifications !== false;
-  const supportResourceSubscriptions =
-    options.supportResourceSubscriptions !== false;
+  const supportResourceSubscriptions = options.supportResourceSubscriptions !== false;
   const tools = new Map<string, RegisteredToolDefinition>();
   const prompts = new Map<string, PromptDefinition>();
   const resources = new Map<string, ResourceDefinition>();
   const resourceTemplates = new Map<string, ResourceTemplateDefinition>();
-  const notificationListeners = new Set<
-    (notification: JSONRPCNotification) => void
-  >();
+  const notificationListeners = new Set<(notification: JSONRPCNotification) => void>();
   const connectionNotificationListeners = new Map<
     (notification: JSONRPCNotification) => void | Promise<void>,
     LifecycleState
@@ -127,14 +115,14 @@ export function createServer(options: ServerOptions): Server {
     initialized: false,
     initializeAccepted: false,
     notificationReady: false,
-    resourceSubscriptions: new Set(),
+    resourceSubscriptions: new Set()
   };
   const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
 
   const handleMessageWithLifecycle = async (
     method: string,
     lifecycle: LifecycleState,
-    params?: Record<string, unknown>,
+    params?: Record<string, unknown>
   ): Promise<HandleResult> => {
     // Allow ping and initialize before initialization
     if (method === "ping") {
@@ -151,31 +139,28 @@ export function createServer(options: ServerOptions): Server {
       lifecycle.initialized = true;
       lifecycle.notificationReady = false;
       const requestedProtocol =
-        typeof params?.protocolVersion === "string"
-          ? params.protocolVersion
-          : undefined;
+        typeof params?.protocolVersion === "string" ? params.protocolVersion : undefined;
       const result: InitializeResult = {
         protocolVersion:
-          requestedProtocol !== undefined &&
-          SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
+          requestedProtocol !== undefined && SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
             ? requestedProtocol
             : PROTOCOL_VERSION,
         capabilities: {
           tools: {
-            ...(supportNotifications ? { listChanged: true } : {}),
+            ...(supportNotifications ? { listChanged: true } : {})
           },
           prompts: {
-            ...(supportNotifications ? { listChanged: true } : {}),
+            ...(supportNotifications ? { listChanged: true } : {})
           },
           resources: {
             ...(supportNotifications ? { listChanged: true } : {}),
-            ...(supportResourceSubscriptions ? { subscribe: true } : {}),
-          },
+            ...(supportResourceSubscriptions ? { subscribe: true } : {})
+          }
         },
         serverInfo: {
           name: options.name,
-          version: options.version,
-        },
+          version: options.version
+        }
       };
       return { result };
     }
@@ -185,8 +170,8 @@ export function createServer(options: ServerOptions): Server {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-            message: "Server not initialized",
-          },
+            message: "Server not initialized"
+          }
         };
       }
 
@@ -199,8 +184,8 @@ export function createServer(options: ServerOptions): Server {
       return {
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-          message: "Server not initialized",
-        },
+          message: "Server not initialized"
+        }
       };
     }
 
@@ -210,10 +195,9 @@ export function createServer(options: ServerOptions): Server {
         const descriptor = { ...tool };
         delete (descriptor as Partial<RegisteredToolDefinition>).handler;
         delete (descriptor as Partial<RegisteredToolDefinition>).inputValidator;
-        delete (descriptor as Partial<RegisteredToolDefinition>)
-          .outputValidator;
+        delete (descriptor as Partial<RegisteredToolDefinition>).outputValidator;
         toolList.push({
-          ...(descriptor as Tool),
+          ...(descriptor as Tool)
         });
       }
       return { result: { tools: toolList } };
@@ -226,8 +210,8 @@ export function createServer(options: ServerOptions): Server {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            message: "Tool name required",
-          },
+            message: "Tool name required"
+          }
         };
       }
 
@@ -236,28 +220,48 @@ export function createServer(options: ServerOptions): Server {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            message: `Tool not found: ${toolName}`,
-          },
+            message: `Tool not found: ${toolName}`
+          }
         };
       }
 
       const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
-      if (
-        options.validateToolArguments !== false &&
-        !tool.inputValidator(toolArgs)
-      ) {
+      if (options.validateToolArguments !== false && !tool.inputValidator(toolArgs)) {
         const errors = tool.inputValidator.errors ?? [];
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
             message: `Invalid tool arguments: ${jsonSchemaValidator.errorsText(errors)}`,
-            data: errors,
-          },
+            data: errors
+          }
         };
       }
 
       try {
-        const handlerResult = await tool.handler(toolArgs);
+        let handlerResult: ToolReturn | CallToolResult;
+        if (options.toolCallTimeoutMs === undefined) {
+          handlerResult = await tool.handler(toolArgs);
+        } else {
+          let timeout: ReturnType<typeof setTimeout> | undefined;
+          const handlerPromise = Promise.resolve().then(() => tool.handler(toolArgs));
+          handlerResult = await Promise.race([
+            handlerPromise,
+            new Promise<never>((_resolve, reject) => {
+              timeout = setTimeout(() => {
+                reject(
+                  new ToolError(
+                    JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+                    `Tool call timed out: ${toolName}`
+                  )
+                );
+              }, options.toolCallTimeoutMs);
+            })
+          ]).finally(() => {
+            if (timeout !== undefined) {
+              clearTimeout(timeout);
+            }
+          });
+        }
         const result = normalizeToolResult(handlerResult, tool.outputSchema);
         if (
           result.isError !== true &&
@@ -268,7 +272,7 @@ export function createServer(options: ServerOptions): Server {
           throw new ToolError(
             JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
             `Invalid structured tool result: ${jsonSchemaValidator.errorsText(errors)}`,
-            errors,
+            errors
           );
         }
         return { result };
@@ -278,15 +282,15 @@ export function createServer(options: ServerOptions): Server {
             error: {
               code: err.code,
               message: err.message,
-              ...(err.data === undefined ? {} : { data: err.data }),
-            },
+              ...(err.data === undefined ? {} : { data: err.data })
+            }
           };
         }
 
         const errorMessage = err instanceof Error ? err.message : String(err);
         const result: CallToolResult = {
           content: [{ type: "text", text: `Error: ${errorMessage}` }],
-          isError: true,
+          isError: true
         };
         return { result };
       }
@@ -295,16 +299,13 @@ export function createServer(options: ServerOptions): Server {
     if (method === "prompts/list") {
       return {
         result: {
-          prompts: [...prompts.values()].map(
-            ({ handler: _handler, ...prompt }) => prompt,
-          ),
-        },
+          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => prompt)
+        }
       };
     }
 
     if (method === "prompts/get") {
-      const promptName =
-        typeof params?.name === "string" ? params.name : undefined;
+      const promptName = typeof params?.name === "string" ? params.name : undefined;
       if (promptName === undefined) {
         return invalidParams("Prompt name required");
       }
@@ -333,10 +334,8 @@ export function createServer(options: ServerOptions): Server {
     if (method === "resources/list") {
       return {
         result: {
-          resources: [...resources.values()].map(
-            ({ handler: _handler, ...resource }) => resource,
-          ),
-        },
+          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => resource)
+        }
       };
     }
 
@@ -344,9 +343,9 @@ export function createServer(options: ServerOptions): Server {
       return {
         result: {
           resourceTemplates: [...resourceTemplates.values()].map(
-            ({ handler: _handler, ...resourceTemplate }) => resourceTemplate,
-          ),
-        },
+            ({ handler: _handler, ...resourceTemplate }) => resourceTemplate
+          )
+        }
       };
     }
 
@@ -372,16 +371,13 @@ export function createServer(options: ServerOptions): Server {
       }
     }
 
-    if (
-      method === "resources/subscribe" ||
-      method === "resources/unsubscribe"
-    ) {
+    if (method === "resources/subscribe" || method === "resources/unsubscribe") {
       if (!supportResourceSubscriptions) {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
-            message: "Method not found",
-          },
+            message: "Method not found"
+          }
         };
       }
       const uri = typeof params?.uri === "string" ? params.uri : undefined;
@@ -406,19 +402,19 @@ export function createServer(options: ServerOptions): Server {
     return {
       error: {
         code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
-        message: "Method not found",
-      },
+        message: "Method not found"
+      }
     };
   };
 
   const createMessageSession = (
-    listener?: (notification: JSONRPCNotification) => void | Promise<void>,
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>
   ): MessageSession => {
     const lifecycle: LifecycleState = {
       initialized: false,
       initializeAccepted: false,
       notificationReady: false,
-      resourceSubscriptions: new Set(),
+      resourceSubscriptions: new Set()
     };
     messageLifecycles.add(lifecycle);
     if (listener !== undefined) {
@@ -426,14 +422,13 @@ export function createServer(options: ServerOptions): Server {
     }
 
     return {
-      handleMessage: (method, params) =>
-        handleMessageWithLifecycle(method, lifecycle, params),
+      handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
       close: () => {
         if (listener !== undefined) {
           connectionNotificationListeners.delete(listener);
         }
         messageLifecycles.delete(lifecycle);
-      },
+      }
     };
   };
 
@@ -443,7 +438,7 @@ export function createServer(options: ServerOptions): Server {
   const processLine = async (
     line: string,
     write: (data: string) => void,
-    messageHandler: MessageHandler,
+    messageHandler: MessageHandler
   ): Promise<void> => {
     const parsed = parseMessage(line);
 
@@ -463,8 +458,8 @@ export function createServer(options: ServerOptions): Server {
       write(
         formatErrorResponse(requestWithId.id, {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-          message: "Invalid Request",
-        }) + "\n",
+          message: "Invalid Request"
+        }) + "\n"
       );
       return;
     }
@@ -478,8 +473,8 @@ export function createServer(options: ServerOptions): Server {
         write(
           formatErrorResponse(requestWithId.id, {
             code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-            message: "Internal error",
-          }) + "\n",
+            message: "Internal error"
+          }) + "\n"
         );
       }
       return;
@@ -503,12 +498,12 @@ export function createServer(options: ServerOptions): Server {
   const broadcastNotification = async (
     method: string,
     params?: Record<string, unknown>,
-    canSend: (lifecycle: LifecycleState) => boolean = () => true,
+    canSend: (lifecycle: LifecycleState) => boolean = () => true
   ): Promise<void> => {
     const notification: JSONRPCNotification = {
       jsonrpc: "2.0",
       method,
-      ...(params === undefined ? {} : { params }),
+      ...(params === undefined ? {} : { params })
     };
 
     for (const listener of notificationListeners) {
@@ -516,13 +511,11 @@ export function createServer(options: ServerOptions): Server {
     }
 
     await Promise.all(
-      [...connectionNotificationListeners].map(
-        async ([listener, lifecycle]) => {
-          if (lifecycle.notificationReady && canSend(lifecycle)) {
-            await listener(notification);
-          }
-        },
-      ),
+      [...connectionNotificationListeners].map(async ([listener, lifecycle]) => {
+        if (lifecycle.notificationReady && canSend(lifecycle)) {
+          await listener(notification);
+        }
+      })
     );
   };
 
@@ -532,41 +525,33 @@ export function createServer(options: ServerOptions): Server {
       description: string,
       inputSchema: TypedSchema<TIn>,
       handler: ToolHandler<TIn, TOut>,
-      outputSchema?: TypedSchema<TOut>,
+      outputSchema?: TypedSchema<TOut>
     ): Server {
       assertNonEmptyName(name, "Tool name required");
-      const inputValidator = jsonSchemaValidator.compile(
-        inputSchema as JSONSchema,
-      );
+      const inputValidator = jsonSchemaValidator.compile(inputSchema as JSONSchema);
       let outputValidator: ValidateFunction | undefined;
       if (outputSchema !== undefined) {
         assertObjectRootSchema(outputSchema, "outputSchema");
-        outputValidator = jsonSchemaValidator.compile(
-          outputSchema as JSONSchema,
-        );
+        outputValidator = jsonSchemaValidator.compile(outputSchema as JSONSchema);
       }
       tools.set(name, {
         name,
         description,
         inputSchema: inputSchema as JSONSchema,
-        ...(outputSchema === undefined
-          ? {}
-          : { outputSchema: outputSchema as JSONSchema }),
+        ...(outputSchema === undefined ? {} : { outputSchema: outputSchema as JSONSchema }),
         handler: handler as ToolHandler,
         inputValidator,
-        ...(outputValidator === undefined ? {} : { outputValidator }),
+        ...(outputValidator === undefined ? {} : { outputValidator })
       });
       return server;
     },
 
     registerTool<TIn, TOut = never>(
       definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
-      handler: ToolHandler<TIn, TOut>,
+      handler: ToolHandler<TIn, TOut>
     ): Server {
       assertNonEmptyName(definition.name, "Tool name required");
-      const inputValidator = jsonSchemaValidator.compile(
-        definition.inputSchema,
-      );
+      const inputValidator = jsonSchemaValidator.compile(definition.inputSchema);
       let outputValidator: ValidateFunction | undefined;
       if (definition.outputSchema !== undefined) {
         assertObjectRootSchema(definition.outputSchema, "outputSchema");
@@ -576,7 +561,7 @@ export function createServer(options: ServerOptions): Server {
         ...definition,
         handler: handler as ToolHandler,
         inputValidator,
-        ...(outputValidator === undefined ? {} : { outputValidator }),
+        ...(outputValidator === undefined ? {} : { outputValidator })
       });
       return server;
     },
@@ -595,19 +580,14 @@ export function createServer(options: ServerOptions): Server {
       return server;
     },
 
-    resourceTemplate(
-      definition: ResourceTemplate,
-      handler: ResourceHandler,
-    ): Server {
+    resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server {
       assertReadableUriTemplate(definition.uriTemplate);
       new UriTemplate(definition.uriTemplate);
       resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
       return server;
     },
 
-    onNotification(
-      listener: (notification: JSONRPCNotification) => void,
-    ): () => void {
+    onNotification(listener: (notification: JSONRPCNotification) => void): () => void {
       notificationListeners.add(listener);
       return () => {
         notificationListeners.delete(listener);
@@ -661,10 +641,8 @@ export function createServer(options: ServerOptions): Server {
       if (!supportResourceSubscriptions) {
         return;
       }
-      await broadcastNotification(
-        "notifications/resources/updated",
-        { uri },
-        (lifecycle) => lifecycle.resourceSubscriptions.has(uri),
+      await broadcastNotification("notifications/resources/updated", { uri }, (lifecycle) =>
+        lifecycle.resourceSubscriptions.has(uri)
       );
     },
 
@@ -674,7 +652,7 @@ export function createServer(options: ServerOptions): Server {
     async listen(): Promise<void> {
       return server.connect({
         readable: process.stdin,
-        writable: process.stdout,
+        writable: process.stdout
       });
     },
 
@@ -686,7 +664,7 @@ export function createServer(options: ServerOptions): Server {
         const session = server.createMessageSession(listener);
         const rl = readline.createInterface({
           input: transport.readable,
-          crlfDelay: Infinity,
+          crlfDelay: Infinity
         });
         const pendingMessages = new Set<Promise<void>>();
 
@@ -694,7 +672,7 @@ export function createServer(options: ServerOptions): Server {
           const message = processLine(
             line,
             (data) => transport.writable.write(data),
-            session.handleMessage,
+            session.handleMessage
           );
           pendingMessages.add(message);
           void message.finally(() => {
@@ -712,8 +690,7 @@ export function createServer(options: ServerOptions): Server {
 
     async connectSDK(transport: SDKTransport): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        const listener = (notification: JSONRPCNotification) =>
-          transport.send(notification);
+        const listener = (notification: JSONRPCNotification) => transport.send(notification);
         const session = server.createMessageSession(listener);
 
         transport.onmessage = async (message: JSONRPCMessage) => {
@@ -742,8 +719,8 @@ export function createServer(options: ServerOptions): Server {
               id: message.id,
               error: {
                 code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-                message: "Invalid Request",
-              },
+                message: "Invalid Request"
+              }
             });
             return;
           }
@@ -751,18 +728,15 @@ export function createServer(options: ServerOptions): Server {
           const request = message as JSONRPCRequest;
           let handled: HandleResult;
           try {
-            handled = await session.handleMessage(
-              request.method,
-              request.params,
-            );
+            handled = await session.handleMessage(request.method, request.params);
           } catch {
             await transport.send({
               jsonrpc: "2.0",
               id: request.id,
               error: {
                 code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-                message: "Internal error",
-              },
+                message: "Internal error"
+              }
             });
             return;
           }
@@ -773,14 +747,14 @@ export function createServer(options: ServerOptions): Server {
             const response: JSONRPCResponse = {
               jsonrpc: "2.0",
               id: request.id,
-              error,
+              error
             };
             await transport.send(response);
           } else if (result !== undefined) {
             const response: JSONRPCResponse = {
               jsonrpc: "2.0",
               id: request.id,
-              result,
+              result
             };
             await transport.send(response);
           }
@@ -796,7 +770,7 @@ export function createServer(options: ServerOptions): Server {
           reject(error);
         });
       });
-    },
+    }
   };
 
   return server;
@@ -806,8 +780,8 @@ function invalidParams(message: string): HandleResult {
   return {
     error: {
       code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-      message,
-    },
+      message
+    }
   };
 }
 
@@ -815,8 +789,8 @@ function internalError(message: string): HandleResult {
   return {
     error: {
       code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-      message,
-    },
+      message
+    }
   };
 }
 
@@ -824,8 +798,8 @@ function resourceNotFound(uri: string): HandleResult {
   return {
     error: {
       code: JSON_RPC_ERROR_CODES.RESOURCE_NOT_FOUND,
-      message: `Resource not found: ${uri}`,
-    },
+      message: `Resource not found: ${uri}`
+    }
   };
 }
 
@@ -854,10 +828,9 @@ function assertReadableUriTemplate(uriTemplate: string): void {
     new Proxy(
       {},
       {
-        get: (_target, property) =>
-          typeof property === "string" ? "value" : undefined,
-      },
-    ),
+        get: (_target, property) => (typeof property === "string" ? "value" : undefined)
+      }
+    )
   );
 
   if (typeof expanded !== "string" || !isValidUri(expanded)) {
@@ -885,18 +858,17 @@ function toStringArguments(value: unknown): Record<string, string> | undefined {
 
 function hasRequiredPromptArguments(
   prompt: PromptDefinition,
-  args: Record<string, string>,
+  args: Record<string, string>
 ): boolean {
   return (prompt.arguments ?? []).every(
-    (argument) =>
-      argument.required !== true || args[argument.name] !== undefined,
+    (argument) => argument.required !== true || args[argument.name] !== undefined
   );
 }
 
 function findReadableResource(
   uri: string,
   resources: Map<string, ResourceDefinition>,
-  resourceTemplates: Map<string, ResourceTemplateDefinition>,
+  resourceTemplates: Map<string, ResourceTemplateDefinition>
 ): ResourceDefinition | ResourceTemplateDefinition | undefined {
   const resource = resources.get(uri);
   if (resource !== undefined) {
@@ -904,7 +876,7 @@ function findReadableResource(
   }
 
   return [...resourceTemplates.values()].find((template) =>
-    matchesUriTemplate(template.uriTemplate, uri),
+    matchesUriTemplate(template.uriTemplate, uri)
   );
 }
 
@@ -938,7 +910,7 @@ function isCallToolResult(value: unknown): value is CallToolResult {
 
 function normalizeToolResult(
   handlerResult: unknown,
-  outputSchema: JSONSchema | undefined,
+  outputSchema: JSONSchema | undefined
 ): CallToolResult {
   if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
     throw new Error("Invalid tool result");
@@ -959,17 +931,13 @@ function normalizeToolResult(
     return handlerResult;
   }
 
-  const callToolResult = isCallToolResult(handlerResult)
-    ? handlerResult
-    : undefined;
-  const structuredContent = callToolResult
-    ? callToolResult.structuredContent
-    : handlerResult;
+  const callToolResult = isCallToolResult(handlerResult) ? handlerResult : undefined;
+  const structuredContent = callToolResult ? callToolResult.structuredContent : handlerResult;
 
   if (!isJsonObject(structuredContent)) {
     throw new ToolError(
       JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-      "Structured tool result must be an object",
+      "Structured tool result must be an object"
     );
   }
 
@@ -978,10 +946,8 @@ function normalizeToolResult(
       callToolResult !== undefined && callToolResult.content.length > 0
         ? callToolResult.content
         : [{ type: "text", text: JSON.stringify(structuredContent) }],
-    ...(callToolResult?.isError !== undefined
-      ? { isError: callToolResult.isError }
-      : {}),
-    structuredContent,
+    ...(callToolResult?.isError !== undefined ? { isError: callToolResult.isError } : {}),
+    structuredContent
   };
 }
 
@@ -996,11 +962,7 @@ function isJsonObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isGetPromptResult(value: unknown): boolean {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    !hasOwnProperty(value, "messages")
-  ) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "messages")) {
     return false;
   }
 
@@ -1016,23 +978,17 @@ function isGetPromptResult(value: unknown): boolean {
         hasOwnProperty(message, "role") &&
         (message.role === "user" || message.role === "assistant") &&
         hasOwnProperty(message, "content") &&
-        isPromptContentItem(message.content),
+        isPromptContentItem(message.content)
     )
   );
 }
 
 function isReadResourceResult(value: unknown): boolean {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    !hasOwnProperty(value, "contents")
-  ) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "contents")) {
     return false;
   }
 
-  return (
-    Array.isArray(value.contents) && value.contents.every(isResourceContents)
-  );
+  return Array.isArray(value.contents) && value.contents.every(isResourceContents);
 }
 
 function hasContentArray(value: unknown): value is { content: unknown[] } {
@@ -1045,11 +1001,7 @@ function hasContentArray(value: unknown): value is { content: unknown[] } {
 }
 
 function isContentItem(value: unknown): boolean {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    !hasOwnProperty(value, "type")
-  ) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "type")) {
     return false;
   }
 
@@ -1088,9 +1040,7 @@ function isContentItem(value: unknown): boolean {
       (!hasOwnProperty(block, "mimeType") ||
         block.mimeType === undefined ||
         typeof block.mimeType === "string") &&
-      (!hasOwnProperty(block, "size") ||
-        block.size === undefined ||
-        typeof block.size === "number")
+      (!hasOwnProperty(block, "size") || block.size === undefined || typeof block.size === "number")
     );
   }
 
@@ -1127,17 +1077,12 @@ function isResourceContents(value: unknown): boolean {
 
   return (
     (hasOwnProperty(value, "text") && typeof value.text === "string") ||
-    (hasOwnProperty(value, "blob") &&
-      typeof value.blob === "string" &&
-      isBase64(value.blob))
+    (hasOwnProperty(value, "blob") && typeof value.blob === "string" && isBase64(value.blob))
   );
 }
 
 function hasValidContentAnnotations(value: Record<string, unknown>): boolean {
-  if (
-    !hasOwnProperty(value, "annotations") ||
-    value.annotations === undefined
-  ) {
+  if (!hasOwnProperty(value, "annotations") || value.annotations === undefined) {
     return true;
   }
 
@@ -1164,15 +1109,11 @@ function isBase64(value: string): boolean {
     return false;
   }
 
-  const alphabet =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const paddingStart = value.indexOf("=");
   const encoded = paddingStart === -1 ? value : value.slice(0, paddingStart);
   const padding = paddingStart === -1 ? "" : value.slice(paddingStart);
-  if (
-    padding.length > 2 ||
-    [...padding].some((character) => character !== "=")
-  ) {
+  if (padding.length > 2 || [...padding].some((character) => character !== "=")) {
     return false;
   }
   if ([...encoded].some((character) => !alphabet.includes(character))) {
@@ -1197,7 +1138,7 @@ function isPromptContentItem(value: unknown): boolean {
 
 function hasOwnProperty<Name extends PropertyKey>(
   value: object,
-  name: Name,
+  name: Name
 ): value is Record<Name, unknown> {
   return Object.prototype.hasOwnProperty.call(value, name);
 }

@@ -56,13 +56,7 @@ function renderDetailBody(
   }
 
   if (items === null) {
-    writeLine(
-      screen,
-      rect,
-      0,
-      state.detail.loading ? "Loading detail..." : state.emptyHint,
-      styles.muted
-    );
+    writeLine(screen, rect, 0, row === null ? state.emptyHint : "Loading detail...", styles.muted);
     return;
   }
 

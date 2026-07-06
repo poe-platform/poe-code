@@ -26,14 +26,14 @@ export const JSON_RPC_ERROR_CODES = Object.freeze({
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
   INTERNAL_ERROR: -32603,
-  RESOURCE_NOT_FOUND: -32002,
+  RESOURCE_NOT_FOUND: -32002
 } as const);
 
 export class ToolError extends Error {
   constructor(
     public readonly code: number,
     message: string,
-    public readonly data?: unknown,
+    public readonly data?: unknown
   ) {
     if (!Number.isFinite(code)) {
       throw new Error("ToolError code must be a finite number");
@@ -151,7 +151,7 @@ export interface GetPromptResult {
 }
 
 export type PromptHandler = (
-  args: Record<string, string>,
+  args: Record<string, string>
 ) => Promise<GetPromptResult> | GetPromptResult;
 
 export interface PromptDefinition extends Prompt {
@@ -189,9 +189,7 @@ export interface ReadResourceResult {
   contents: ResourceContents[];
 }
 
-export type ResourceHandler = (
-  uri: string,
-) => Promise<ReadResourceResult> | ReadResourceResult;
+export type ResourceHandler = (uri: string) => Promise<ReadResourceResult> | ReadResourceResult;
 
 export interface ResourceDefinition extends Resource {
   handler: ResourceHandler;
@@ -248,6 +246,7 @@ export interface JSONSchemaProperty extends Record<string, unknown> {
 export interface ServerOptions {
   name: string;
   version: string;
+  toolCallTimeoutMs?: number;
   validateToolArguments?: boolean;
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;
@@ -256,13 +255,10 @@ export interface ServerOptions {
 import type { ToolReturn } from "./content/index.js";
 
 export type ToolHandler<T = Record<string, unknown>, TOut = ToolReturn> = (
-  args: T,
+  args: T
 ) => Promise<TOut | CallToolResult> | TOut | CallToolResult;
 
-export interface ToolDefinition<
-  T = Record<string, unknown>,
-  TOut = ToolReturn,
-> {
+export interface ToolDefinition<T = Record<string, unknown>, TOut = ToolReturn> {
   name: string;
   title?: string;
   description?: string;
@@ -291,10 +287,7 @@ export interface SDKTransport {
   send: (message: JSONRPCMessage) => Promise<void>;
 }
 
-export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCResponse
-  | JSONRPCNotification;
+export type JSONRPCMessage = JSONRPCRequest | JSONRPCResponse | JSONRPCNotification;
 
 export interface JSONRPCNotification {
   jsonrpc: "2.0";

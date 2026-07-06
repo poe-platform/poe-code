@@ -1,7 +1,24 @@
-import { traceReaders, type AgentTraceSource, type TraceReference } from "@poe-code/agent-traces";
+import {
+  traceReaders,
+  type AgentTraceSource,
+  type NormalizedTrace,
+  type TraceReference
+} from "@poe-code/agent-traces";
 import { computeContextBreakdown } from "./breakdown.js";
 import { computeContextUsage } from "./context.js";
-import type { ListTracesOptions, LoadTraceOptions, SubagentSummary, TraceView } from "./types.js";
+import {
+  defaultTraceTokenCacheDir,
+  readCachedBreakdown,
+  traceFileIdentity,
+  writeCachedBreakdown
+} from "./token-cache.js";
+import type {
+  ContextBreakdown,
+  ListTracesOptions,
+  LoadTraceOptions,
+  SubagentSummary,
+  TraceView
+} from "./types.js";
 
 export async function listTraces(options: ListTracesOptions): Promise<TraceReference[]> {
   const readers =
@@ -42,12 +59,72 @@ export async function loadTrace(
     throw new Error(`No trace reader registered for source: ${reference.source}`);
   }
 
+  const filePath = reference.path;
+  const identity =
+    filePath === undefined ? undefined : await traceFileIdentity(options.fs, filePath);
   const trace = await reader.read(reference, { fs: options.fs });
+  const breakdown = await loadBreakdown(trace, filePath, identity, options);
   return {
     ...trace,
-    context: computeContextUsage(trace),
-    breakdown: computeContextBreakdown(trace)
+    context: computeContextUsage(trace, breakdown.measuredTokens),
+    breakdown
   };
+}
+
+const exactBreakdownsInFlight = new Map<string, Promise<void>>();
+
+async function loadBreakdown(
+  trace: NormalizedTrace,
+  filePath: string | undefined,
+  identity: Awaited<ReturnType<typeof traceFileIdentity>>,
+  options: LoadTraceOptions
+): Promise<ContextBreakdown> {
+  const cacheDir = options.cacheDir ?? defaultTraceTokenCacheDir();
+  if (filePath !== undefined && identity !== undefined) {
+    const cached = await readCachedBreakdown(options.fs, cacheDir, filePath, identity);
+    if (cached !== undefined) {
+      return cached;
+    }
+  }
+
+  if (options.deferExactTokens === true) {
+    const estimated = await computeContextBreakdown(trace, { mode: "estimated" });
+    if (filePath !== undefined && identity !== undefined && options.signal?.aborted !== true) {
+      scheduleExactBreakdown(trace, filePath, identity, cacheDir, options);
+    }
+    return estimated;
+  }
+
+  const breakdown = await computeContextBreakdown(trace, { signal: options.signal });
+  if (filePath !== undefined && identity !== undefined && options.signal?.aborted !== true) {
+    await writeCachedBreakdown(options.fs, cacheDir, filePath, identity, breakdown);
+  }
+  return breakdown;
+}
+
+function scheduleExactBreakdown(
+  trace: NormalizedTrace,
+  filePath: string,
+  identity: NonNullable<Awaited<ReturnType<typeof traceFileIdentity>>>,
+  cacheDir: string,
+  options: LoadTraceOptions
+): void {
+  if (exactBreakdownsInFlight.has(filePath)) {
+    return;
+  }
+
+  const task = (async () => {
+    const breakdown = await computeContextBreakdown(trace);
+    await writeCachedBreakdown(options.fs, cacheDir, filePath, identity, breakdown);
+    options.onExactBreakdown?.(breakdown);
+  })()
+    .catch(() => {
+      // Exact counting is best-effort in the background; the estimate stays visible.
+    })
+    .finally(() => {
+      exactBreakdownsInFlight.delete(filePath);
+    });
+  exactBreakdownsInFlight.set(filePath, task);
 }
 
 export async function loadSubagentSummaries(

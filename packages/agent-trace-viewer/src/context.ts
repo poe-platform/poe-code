@@ -1,4 +1,3 @@
-import { estimateTokens } from "tokenfill";
 import type { NormalizedTrace } from "@poe-code/agent-traces";
 import type { ContextUsage } from "./types.js";
 
@@ -6,12 +5,9 @@ export const DEFAULT_CONTEXT_WINDOW = 200000;
 
 export const CONTEXT_WINDOWS = [{ match: "claude", window: 200000 }];
 
-export function computeContextUsage(trace: NormalizedTrace): ContextUsage {
+export function computeContextUsage(trace: NormalizedTrace, measuredTokens: number): ContextUsage {
   const window = resolveContextWindow(trace);
-  const tokens =
-    trace.usage !== undefined
-      ? trace.usage.contextTokens
-      : trace.turns.reduce((sum, turn) => sum + estimateTokens(turn.text), 0);
+  const tokens = trace.usage !== undefined ? trace.usage.contextTokens : measuredTokens;
 
   return {
     tokens,

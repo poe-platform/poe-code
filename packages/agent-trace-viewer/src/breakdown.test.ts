@@ -2,22 +2,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { NormalizedTrace } from "@poe-code/agent-traces";
 
 const mocks = vi.hoisted(() => ({
-  estimateTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
+  countTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
 }));
 
 vi.mock("tokenfill", () => ({
-  estimateTokens: mocks.estimateTokens
+  countTokens: mocks.countTokens
 }));
 
 import { computeContextBreakdown } from "./breakdown.js";
 
 describe("computeContextBreakdown", () => {
   beforeEach(() => {
-    mocks.estimateTokens.mockReset();
-    mocks.estimateTokens.mockImplementation((text: string) => text.length);
+    mocks.countTokens.mockReset();
+    mocks.countTokens.mockImplementation((text: string) => text.length);
   });
 
-  it("attributes turns to ordered categories with grouped items", () => {
+  it("attributes turns to ordered categories with grouped items", async () => {
     const trace: NormalizedTrace = {
       source: "codex",
       id: "trace",
@@ -36,7 +36,7 @@ describe("computeContextBreakdown", () => {
       ]
     };
 
-    const breakdown = computeContextBreakdown(trace);
+    const breakdown = await computeContextBreakdown(trace);
 
     expect(breakdown.measuredTokens).toBe(33);
     expect(breakdown.categories.map((category) => category.label)).toEqual([
@@ -79,14 +79,14 @@ describe("computeContextBreakdown", () => {
     ]);
   });
 
-  it("uses first-match-wins precedence for MCP tool turns", () => {
+  it("uses first-match-wins precedence for MCP tool turns", async () => {
     const trace: NormalizedTrace = {
       source: "codex",
       id: "trace",
       turns: [{ role: "tool", mcpServer: "server-a", toolName: "exec", text: "abc" }]
     };
 
-    expect(computeContextBreakdown(trace).categories).toEqual([
+    expect((await computeContextBreakdown(trace)).categories).toEqual([
       {
         id: "mcp",
         label: "MCP",
@@ -97,7 +97,7 @@ describe("computeContextBreakdown", () => {
     ]);
   });
 
-  it("omits zero-token categories with no counted items", () => {
+  it("omits zero-token categories with no counted items", async () => {
     const trace: NormalizedTrace = {
       source: "codex",
       id: "trace",
@@ -107,7 +107,7 @@ describe("computeContextBreakdown", () => {
       ]
     };
 
-    expect(computeContextBreakdown(trace).categories).toEqual([
+    expect((await computeContextBreakdown(trace)).categories).toEqual([
       {
         id: "messages",
         label: "Messages",
@@ -118,7 +118,7 @@ describe("computeContextBreakdown", () => {
     ]);
   });
 
-  it("keeps zero-token categories when redacted items still have counts", () => {
+  it("keeps zero-token categories when redacted items still have counts", async () => {
     const trace: NormalizedTrace = {
       source: "poe-code",
       id: "redacted",
@@ -128,7 +128,7 @@ describe("computeContextBreakdown", () => {
       ]
     };
 
-    expect(computeContextBreakdown(trace).categories).toEqual([
+    expect((await computeContextBreakdown(trace)).categories).toEqual([
       {
         id: "tools",
         label: "Tools",
@@ -139,10 +139,28 @@ describe("computeContextBreakdown", () => {
     ]);
   });
 
-  it("handles an empty trace", () => {
-    expect(computeContextBreakdown({ source: "codex", id: "empty", turns: [] })).toEqual({
+  it("estimates from a calibrated sample without tokenizing every turn", async () => {
+    const turns = Array.from({ length: 100 }, (_, index) => ({
+      role: "assistant" as const,
+      text: `message ${index}`
+    }));
+    mocks.countTokens.mockClear();
+
+    const breakdown = await computeContextBreakdown(
+      { source: "codex", id: "estimated", turns },
+      { mode: "estimated" }
+    );
+
+    expect(breakdown.source).toBe("estimated");
+    expect(breakdown.measuredTokens).toBeGreaterThan(0);
+    expect(mocks.countTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles an empty trace", async () => {
+    expect(await computeContextBreakdown({ source: "codex", id: "empty", turns: [] })).toEqual({
       measuredTokens: 0,
-      categories: []
+      categories: [],
+      source: "exact"
     });
   });
 });

@@ -21,6 +21,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-traces": "*",
+    "@poe-code/cached-resource": "*",
     "tokenfill": "*",
     "toolcraft-design": "*"
   }

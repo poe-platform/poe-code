@@ -303,6 +303,7 @@ Returned `HttpServer` instances support:
 | `sessionTtlMs`           | `number`                                     | no idle expiry                   | Expire idle sessions after this duration.                                                     |
 | `maxStreamsPerSession`   | `number`                                     | `1`                              | Maximum concurrent GET SSE streams per session.                                               |
 | `maxSseEventHistory`     | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                             |
+| `sseKeepAliveMs`         | `number`                                     | `30000`                          | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.         |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited                        | Maximum concurrent tool calls across sessions.                                                |
 | `sessionStore`           | `SessionStore`                               | in-memory store                  | Pluggable session storage for long-running or multi-instance deployments.                     |
 | `requestIdGenerator`     | `() => string`                               | incrementing ids                 | Generates request ids when `X-Request-Id` is absent.                                          |
@@ -382,6 +383,7 @@ These are the same shape:
 | `sessionTtlMs`           | `number`                                     | no idle expiry     | Idle session expiration window.                                                           |
 | `maxStreamsPerSession`   | `number`                                     | `1`                | Maximum concurrent GET SSE streams per session.                                           |
 | `maxSseEventHistory`     | `number`                                     | `100`              | Number of SSE events retained for replay.                                                 |
+| `sseKeepAliveMs`         | `number`                                     | `30000`            | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.     |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited          | Maximum concurrent tool calls across sessions.                                            |
 | `sessionStore`           | `SessionStore`                               | in-memory store    | Pluggable session storage.                                                                |
 | `requestIdGenerator`     | `() => string`                               | incrementing ids   | Request id generator used when the request lacks `X-Request-Id`.                          |
@@ -432,6 +434,7 @@ tiny-http-mcp-server [options]
 | `--session-ttl-ms <ms>`                      | none         | Expire idle sessions after this duration.                                                                                            |
 | `--max-streams-per-session <count>`          | `1`          | Maximum concurrent GET SSE streams per session.                                                                                      |
 | `--max-sse-event-history <count>`            | `100`        | Number of SSE events retained for `Last-Event-ID` replay.                                                                            |
+| `--sse-keep-alive-ms <ms>`                   | `30000`      | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.                                                |
 | `--max-concurrent-tool-calls <count>`        | unlimited    | Maximum concurrent tool calls across sessions.                                                                                       |
 | `--trusted-proxy`                            | off          | Trust `X-Forwarded-Proto` and `X-Forwarded-Host` for metadata challenge URLs.                                                        |
 | `--request-timeout-ms <ms>`                  | Node default | Node HTTP request timeout.                                                                                                           |

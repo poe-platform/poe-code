@@ -9,7 +9,7 @@ import type {
 
 const mocks = vi.hoisted(() => ({
   traceReaders: [] as TraceReader[],
-  estimateTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
+  countTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length))
 }));
 
 vi.mock("@poe-code/agent-traces", async (importOriginal) => {
@@ -21,7 +21,7 @@ vi.mock("@poe-code/agent-traces", async (importOriginal) => {
 });
 
 vi.mock("tokenfill", () => ({
-  estimateTokens: mocks.estimateTokens
+  countTokens: mocks.countTokens
 }));
 
 import {
@@ -57,7 +57,7 @@ const fs = {} as AgentTraceFileSystem;
 describe("listTraces", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.estimateTokens.mockClear();
+    mocks.countTokens.mockClear();
   });
 
   it("merges reader results, sorts newest first, and applies the default and explicit limits", async () => {
@@ -126,8 +126,8 @@ describe("listTraces", () => {
 describe("loadTrace", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.estimateTokens.mockReset();
-    mocks.estimateTokens.mockImplementation((text: string) => text.length);
+    mocks.countTokens.mockReset();
+    mocks.countTokens.mockImplementation((text: string) => text.length);
   });
 
   it("uses reported context when trace usage exists", async () => {
@@ -154,7 +154,7 @@ describe("loadTrace", () => {
     const view = await loadTrace({ source: "codex", id: "reported" }, { fs });
 
     expect(view.context).toEqual({ tokens: 25, window: 100, percent: 25, source: "reported" });
-    expect(mocks.estimateTokens).toHaveBeenCalledWith("ignored");
+    expect(mocks.countTokens).toHaveBeenCalledWith("ignored");
   });
 
   it("estimates context and uses model window mapping", async () => {
@@ -183,8 +183,8 @@ describe("loadTrace", () => {
       percent: 0,
       source: "estimated"
     });
-    expect(mocks.estimateTokens).toHaveBeenCalledWith("hello");
-    expect(mocks.estimateTokens).toHaveBeenCalledWith("world!");
+    expect(mocks.countTokens).toHaveBeenCalledWith("hello");
+    expect(mocks.countTokens).toHaveBeenCalledWith("world!");
   });
 
   it("falls back to the default context window", async () => {
@@ -206,6 +206,125 @@ describe("loadTrace", () => {
 
     expect(view.context.window).toBe(200000);
     expect(view.context.source).toBe("estimated");
+  });
+
+  it("caches token breakdowns per file and reuses them while the file is unchanged", async () => {
+    const volumeFs = createFsFromVolume(Volume.fromJSON({ "/traces/one.jsonl": "contents" }))
+      .promises as unknown as AgentTraceFileSystem;
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async () =>
+          createTrace({
+            source: "claude",
+            id: "one",
+            path: "/traces/one.jsonl",
+            turns: [{ role: "human", text: "count me" }]
+          })
+        )
+      })
+    );
+    const options = { fs: volumeFs, cacheDir: "/cache" };
+    const reference = { source: "claude" as const, id: "one", path: "/traces/one.jsonl" };
+
+    const first = await loadTrace(reference, options);
+    const callsAfterFirst = mocks.countTokens.mock.calls.length;
+    const second = await loadTrace(reference, options);
+
+    expect(first.breakdown).toEqual(second.breakdown);
+    expect(mocks.countTokens.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it("recomputes the breakdown when the trace file changes", async () => {
+    const volume = Volume.fromJSON({ "/traces/one.jsonl": "contents" });
+    const volumeFs = createFsFromVolume(volume).promises as unknown as AgentTraceFileSystem;
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async () =>
+          createTrace({
+            source: "claude",
+            id: "one",
+            path: "/traces/one.jsonl",
+            turns: [{ role: "human", text: "count me" }]
+          })
+        )
+      })
+    );
+    const options = { fs: volumeFs, cacheDir: "/cache" };
+    const reference = { source: "claude" as const, id: "one", path: "/traces/one.jsonl" };
+
+    await loadTrace(reference, options);
+    const callsAfterFirst = mocks.countTokens.mock.calls.length;
+    volume.writeFileSync("/traces/one.jsonl", "contents grew longer");
+    await loadTrace(reference, options);
+
+    expect(mocks.countTokens.mock.calls.length).toBeGreaterThan(callsAfterFirst);
+  });
+
+  it("defers exact counting: returns an estimate, then caches exact counts in the background", async () => {
+    const volumeFs = createFsFromVolume(Volume.fromJSON({ "/traces/one.jsonl": "contents" }))
+      .promises as unknown as AgentTraceFileSystem;
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async () =>
+          createTrace({
+            source: "claude",
+            id: "one",
+            path: "/traces/one.jsonl",
+            turns: [{ role: "human", text: "count me" }]
+          })
+        )
+      })
+    );
+    const reference = { source: "claude" as const, id: "one", path: "/traces/one.jsonl" };
+    let resolveExact!: (value: unknown) => void;
+    const exactDone = new Promise((resolve) => {
+      resolveExact = resolve;
+    });
+
+    const deferred = await loadTrace(reference, {
+      fs: volumeFs,
+      cacheDir: "/cache",
+      deferExactTokens: true,
+      onExactBreakdown: resolveExact
+    });
+    expect(deferred.breakdown.source).toBe("estimated");
+
+    await exactDone;
+    const second = await loadTrace(reference, { fs: volumeFs, cacheDir: "/cache" });
+    const callsBeforeSecond = mocks.countTokens.mock.calls.length;
+
+    expect(second.breakdown.source).toBe("exact");
+    expect(mocks.countTokens.mock.calls.length).toBe(callsBeforeSecond);
+  });
+
+  it("does not cache a breakdown computed from an aborted load", async () => {
+    const volumeFs = createFsFromVolume(Volume.fromJSON({ "/traces/one.jsonl": "contents" }))
+      .promises as unknown as AgentTraceFileSystem;
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async () =>
+          createTrace({
+            source: "claude",
+            id: "one",
+            path: "/traces/one.jsonl",
+            turns: [{ role: "human", text: "count me" }]
+          })
+        )
+      })
+    );
+    const controller = new AbortController();
+    controller.abort();
+    const reference = { source: "claude" as const, id: "one", path: "/traces/one.jsonl" };
+
+    await loadTrace(reference, { fs: volumeFs, cacheDir: "/cache", signal: controller.signal });
+    const callsAfterAborted = mocks.countTokens.mock.calls.length;
+    await loadTrace(reference, { fs: volumeFs, cacheDir: "/cache" });
+
+    expect(mocks.countTokens.mock.calls.length).toBeGreaterThan(callsAfterAborted);
   });
 });
 
@@ -230,8 +349,8 @@ describe("detectTraceFile", () => {
 describe("loadTraceFromFile", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.estimateTokens.mockReset();
-    mocks.estimateTokens.mockImplementation((text: string) => text.length);
+    mocks.countTokens.mockReset();
+    mocks.countTokens.mockImplementation((text: string) => text.length);
   });
 
   it("detects the source from the first line and delegates to loadTrace", async () => {
@@ -265,8 +384,8 @@ describe("loadTraceFromFile", () => {
 describe("loadSubagentSummaries", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.estimateTokens.mockReset();
-    mocks.estimateTokens.mockImplementation((text: string) => text.length);
+    mocks.countTokens.mockReset();
+    mocks.countTokens.mockImplementation((text: string) => text.length);
   });
 
   it("loads children lazily, skips failures, and leaves the parent context unaffected", async () => {

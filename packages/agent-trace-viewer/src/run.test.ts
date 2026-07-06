@@ -11,7 +11,7 @@ import type {
 
 const mocks = vi.hoisted(() => ({
   traceReaders: [] as TraceReader[],
-  estimateTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length)),
+  countTokens: vi.fn((text: string) => (text.length === 0 ? 0 : text.length)),
   runExplorer: vi.fn(async () => null)
 }));
 
@@ -24,7 +24,7 @@ vi.mock("@poe-code/agent-traces", async (importOriginal) => {
 });
 
 vi.mock("tokenfill", () => ({
-  estimateTokens: mocks.estimateTokens
+  countTokens: mocks.countTokens
 }));
 
 vi.mock("toolcraft-design", async (importOriginal) => {
@@ -69,8 +69,8 @@ function createReader(overrides: Partial<TraceReader> & Pick<TraceReader, "id">)
 describe("runTraceViewer", () => {
   beforeEach(() => {
     mocks.traceReaders.length = 0;
-    mocks.estimateTokens.mockReset();
-    mocks.estimateTokens.mockImplementation((text: string) => text.length);
+    mocks.countTokens.mockReset();
+    mocks.countTokens.mockImplementation((text: string) => text.length);
     mocks.runExplorer.mockClear();
   });
 

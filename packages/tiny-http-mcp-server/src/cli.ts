@@ -28,6 +28,7 @@ interface ParsedCliArgs {
   sessionTtlMs?: number;
   maxStreamsPerSession?: number;
   maxSseEventHistory?: number;
+  sseKeepAliveMs?: number;
   maxConcurrentToolCalls?: number;
   trustedProxy: boolean;
   requestTimeoutMs?: number;
@@ -50,10 +51,7 @@ type CliServerFactory = (
 
 interface RunCliDependencies {
   createServer?: CliServerFactory;
-  loadOAuthVerifier?: (input: {
-    modulePath: string;
-    exportName: string;
-  }) => Promise<TokenVerifier>;
+  loadOAuthVerifier?: (input: { modulePath: string; exportName: string }) => Promise<TokenVerifier>;
   stdout?: Pick<NodeJS.WriteStream, "write">;
   stderr?: Pick<NodeJS.WriteStream, "write">;
   waitForShutdown?: (shutdown: () => Promise<void>) => Promise<void>;
@@ -65,13 +63,10 @@ function readPackageInfo(): PackageInfo {
       readFileSync(new URL("../package.json", import.meta.url), "utf8")
     ) as { name?: unknown; version?: unknown };
 
-    if (
-      typeof packageJson.name === "string" &&
-      typeof packageJson.version === "string"
-    ) {
+    if (typeof packageJson.name === "string" && typeof packageJson.version === "string") {
       return {
         name: packageJson.name,
-        version: packageJson.version,
+        version: packageJson.version
       };
     }
   } catch {
@@ -80,7 +75,7 @@ function readPackageInfo(): PackageInfo {
 
   return {
     name: "tiny-http-mcp-server",
-    version: "0.0.0",
+    version: "0.0.0"
   };
 }
 
@@ -107,6 +102,8 @@ const HELP_TEXT = [
   "                        Maximum concurrent GET SSE streams per session",
   "  --max-sse-event-history <count>",
   "                        Number of SSE events retained for Last-Event-ID replay",
+  "  --sse-keep-alive-ms <ms>",
+  "                        GET SSE keepalive interval (default: 30000; 0 disables)",
   "  --max-concurrent-tool-calls <count>",
   "                        Maximum concurrent tool calls across sessions",
   "  --trusted-proxy        Trust X-Forwarded-Proto and X-Forwarded-Host",
@@ -129,7 +126,7 @@ const HELP_TEXT = [
   "                        Module that exports the TokenVerifier implementation",
   "  --oauth-verifier-export <name>",
   "                        Export name to load from the verifier module (default: default)",
-  "  -h, --help             Show this help message",
+  "  -h, --help             Show this help message"
 ].join("\n");
 
 function parsePort(value: string | undefined): number {
@@ -145,10 +142,7 @@ function parsePort(value: string | undefined): number {
   return port;
 }
 
-function parseAbsoluteUrl(
-  value: string,
-  flagName: string
-): string {
+function parseAbsoluteUrl(value: string, flagName: string): string {
   try {
     return new URL(value).toString();
   } catch {
@@ -205,14 +199,11 @@ function hasConfiguredOAuthFlag(values: Record<string, unknown>): boolean {
     values["oauth-required-scope"],
     values["oauth-bearer-method"],
     values["oauth-verifier-module"],
-    values["oauth-verifier-export"],
+    values["oauth-verifier-export"]
   ].some((value) => value !== undefined);
 }
 
-function parseRepeatableStrings(
-  value: unknown,
-  flagName: string
-): string[] | undefined {
+function parseRepeatableStrings(value: unknown, flagName: string): string[] | undefined {
   if (!Array.isArray(value) || value.length === 0) {
     return undefined;
   }
@@ -233,9 +224,7 @@ function parseRepeatableStrings(
   return normalized;
 }
 
-function parseCliOAuthOptions(
-  values: Record<string, unknown>
-): ParsedCliArgs["oauth"] {
+function parseCliOAuthOptions(values: Record<string, unknown>): ParsedCliArgs["oauth"] {
   const resource = values["oauth-resource"];
   const authorizationServers = values["oauth-authorization-server"];
   const verifierModule = values["oauth-verifier-module"];
@@ -256,9 +245,7 @@ function parseCliOAuthOptions(
   }
 
   if (typeof verifierModule !== "string" || verifierModule.length === 0) {
-    throw new Error(
-      "--oauth-verifier-module is required when --oauth-resource is set."
-    );
+    throw new Error("--oauth-verifier-module is required when --oauth-resource is set.");
   }
 
   const supportedScopes = parseRepeatableStrings(
@@ -284,9 +271,7 @@ function parseCliOAuthOptions(
     ...(bearerMethods === undefined ? {} : { bearerMethodsSupported: bearerMethods }),
     verifierModule,
     verifierExport:
-      typeof verifierExport === "string" && verifierExport.length > 0
-        ? verifierExport
-        : "default",
+      typeof verifierExport === "string" && verifierExport.length > 0 ? verifierExport : "default"
   };
 }
 
@@ -309,6 +294,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "session-ttl-ms": { type: "string" },
       "max-streams-per-session": { type: "string" },
       "max-sse-event-history": { type: "string" },
+      "sse-keep-alive-ms": { type: "string" },
       "max-concurrent-tool-calls": { type: "string" },
       "trusted-proxy": { type: "boolean" },
       "request-timeout-ms": { type: "string" },
@@ -321,8 +307,8 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "oauth-bearer-method": { type: "string", multiple: true },
       "oauth-verifier-module": { type: "string" },
       "oauth-verifier-export": { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
+      help: { type: "boolean", short: "h" }
+    }
   });
 
   const maxRequestBytes = parseOptionalInteger(
@@ -330,21 +316,9 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     "--max-request-bytes",
     1
   );
-  const maxBatchSize = parseOptionalInteger(
-    values["max-batch-size"],
-    "--max-batch-size",
-    1
-  );
-  const maxSessions = parseOptionalInteger(
-    values["max-sessions"],
-    "--max-sessions",
-    1
-  );
-  const sessionTtlMs = parseOptionalInteger(
-    values["session-ttl-ms"],
-    "--session-ttl-ms",
-    1
-  );
+  const maxBatchSize = parseOptionalInteger(values["max-batch-size"], "--max-batch-size", 1);
+  const maxSessions = parseOptionalInteger(values["max-sessions"], "--max-sessions", 1);
+  const sessionTtlMs = parseOptionalInteger(values["session-ttl-ms"], "--session-ttl-ms", 1);
   const maxStreamsPerSession = parseOptionalInteger(
     values["max-streams-per-session"],
     "--max-streams-per-session",
@@ -353,6 +327,11 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
   const maxSseEventHistory = parseOptionalInteger(
     values["max-sse-event-history"],
     "--max-sse-event-history",
+    0
+  );
+  const sseKeepAliveMs = parseOptionalInteger(
+    values["sse-keep-alive-ms"],
+    "--sse-keep-alive-ms",
     0
   );
   const maxConcurrentToolCalls = parseOptionalInteger(
@@ -390,7 +369,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       ? {
           allowedOrigins: values["allowed-origin"].map((value) =>
             parseOrigin(value, "--allowed-origin")
-          ),
+          )
         }
       : {}),
     ...(maxRequestBytes === undefined ? {} : { maxRequestBytes }),
@@ -399,12 +378,13 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     ...(sessionTtlMs === undefined ? {} : { sessionTtlMs }),
     ...(maxStreamsPerSession === undefined ? {} : { maxStreamsPerSession }),
     ...(maxSseEventHistory === undefined ? {} : { maxSseEventHistory }),
+    ...(sseKeepAliveMs === undefined ? {} : { sseKeepAliveMs }),
     ...(maxConcurrentToolCalls === undefined ? {} : { maxConcurrentToolCalls }),
     trustedProxy: values["trusted-proxy"] ?? false,
     ...(requestTimeoutMs === undefined ? {} : { requestTimeoutMs }),
     ...(headersTimeoutMs === undefined ? {} : { headersTimeoutMs }),
     ...(keepAliveTimeoutMs === undefined ? {} : { keepAliveTimeoutMs }),
-    oauth: parseCliOAuthOptions(values),
+    oauth: parseCliOAuthOptions(values)
   };
 }
 
@@ -477,8 +457,8 @@ export async function runCli(
               : {}),
             verifier: await loadVerifier({
               modulePath: options.oauth.verifierModule,
-              exportName: options.oauth.verifierExport,
-            }),
+              exportName: options.oauth.verifierExport
+            })
           };
 
     const server = createServer({
@@ -488,7 +468,9 @@ export async function runCli(
       ...(options.jsonResponse ? { enableJsonResponse: true } : {}),
       ...(options.allowedHosts === undefined ? {} : { allowedHosts: options.allowedHosts }),
       ...(options.allowedOrigins === undefined ? {} : { allowedOrigins: options.allowedOrigins }),
-      ...(options.maxRequestBytes === undefined ? {} : { maxRequestBytes: options.maxRequestBytes }),
+      ...(options.maxRequestBytes === undefined
+        ? {}
+        : { maxRequestBytes: options.maxRequestBytes }),
       ...(options.maxBatchSize === undefined ? {} : { maxBatchSize: options.maxBatchSize }),
       ...(options.maxSessions === undefined ? {} : { maxSessions: options.maxSessions }),
       ...(options.sessionTtlMs === undefined ? {} : { sessionTtlMs: options.sessionTtlMs }),
@@ -498,11 +480,12 @@ export async function runCli(
       ...(options.maxSseEventHistory === undefined
         ? {}
         : { maxSseEventHistory: options.maxSseEventHistory }),
+      ...(options.sseKeepAliveMs === undefined ? {} : { sseKeepAliveMs: options.sseKeepAliveMs }),
       ...(options.maxConcurrentToolCalls === undefined
         ? {}
         : { maxConcurrentToolCalls: options.maxConcurrentToolCalls }),
       ...(options.trustedProxy ? { trustedProxy: true } : {}),
-      ...(oauth === undefined ? {} : { oauth }),
+      ...(oauth === undefined ? {} : { oauth })
     });
 
     handle = await server.listenHttp({
@@ -517,7 +500,7 @@ export async function runCli(
         : { headersTimeoutMs: options.headersTimeoutMs }),
       ...(options.keepAliveTimeoutMs === undefined
         ? {}
-        : { keepAliveTimeoutMs: options.keepAliveTimeoutMs }),
+        : { keepAliveTimeoutMs: options.keepAliveTimeoutMs })
     });
 
     const shutdown = async () => {

@@ -1,4 +1,4 @@
-import { estimateTokens } from "tokenfill";
+import { countTokens } from "tokenfill";
 import type { NormalizedTrace, NormalizedTraceTurn } from "@poe-code/agent-traces";
 import type { ContextBreakdown, ContextBreakdownCategory, ContextBreakdownItem } from "./types.js";
 
@@ -55,7 +55,22 @@ const MATCHERS: Matcher[] = [
   }
 ];
 
-export function computeContextBreakdown(trace: NormalizedTrace): ContextBreakdown {
+const TURNS_PER_YIELD = 256;
+const ESTIMATOR_SAMPLE_TARGET_CHARS = 16_384;
+const ESTIMATOR_SAMPLE_CHARS_PER_TURN = 1_024;
+const ESTIMATOR_DEFAULT_CHARS_PER_TOKEN = 4;
+
+export interface ComputeContextBreakdownOptions {
+  signal?: AbortSignal;
+  mode?: "exact" | "estimated";
+}
+
+export async function computeContextBreakdown(
+  trace: NormalizedTrace,
+  options: ComputeContextBreakdownOptions = {}
+): Promise<ContextBreakdown> {
+  const mode = options.mode ?? "exact";
+  const estimate = mode === "exact" ? undefined : createTraceTokenEstimator(trace.turns);
   const categories = MATCHERS.map((matcher) => ({
     id: matcher.id,
     label: matcher.label,
@@ -63,8 +78,16 @@ export function computeContextBreakdown(trace: NormalizedTrace): ContextBreakdow
     items: new Map<string, ContextBreakdownItem>()
   }));
 
-  for (const turn of trace.turns) {
-    const tokens = estimateTokens(turn.text);
+  for (let index = 0; index < trace.turns.length; index += 1) {
+    if (mode === "exact" && index > 0 && index % TURNS_PER_YIELD === 0) {
+      await yieldToEventLoop();
+      if (options.signal?.aborted) {
+        break;
+      }
+    }
+
+    const turn = trace.turns[index]!;
+    const tokens = estimate === undefined ? await countTokensYielding(turn.text) : estimate(turn.text);
     const matcherIndex = MATCHERS.findIndex((matcher) => matcher.matches(turn));
     const matcher = MATCHERS[matcherIndex]!;
     const category = categories[matcherIndex]!;
@@ -99,6 +122,55 @@ export function computeContextBreakdown(trace: NormalizedTrace): ContextBreakdow
 
   return {
     measuredTokens,
-    categories: outputCategories
+    categories: outputCategories,
+    source: mode
   };
+}
+
+function createTraceTokenEstimator(
+  turns: Pick<NormalizedTraceTurn, "text">[]
+): (text: string) => number {
+  const sampleParts: string[] = [];
+  let sampleLength = 0;
+  for (const turn of turns) {
+    if (sampleLength >= ESTIMATOR_SAMPLE_TARGET_CHARS) {
+      break;
+    }
+    const part = turn.text.slice(
+      0,
+      Math.min(ESTIMATOR_SAMPLE_CHARS_PER_TURN, ESTIMATOR_SAMPLE_TARGET_CHARS - sampleLength)
+    );
+    sampleParts.push(part);
+    sampleLength += part.length;
+  }
+
+  const sample = sampleParts.join("");
+  const sampleTokens = sample.length === 0 ? 0 : countTokens(sample);
+  const charsPerToken =
+    sampleTokens === 0 ? ESTIMATOR_DEFAULT_CHARS_PER_TOKEN : sample.length / sampleTokens;
+
+  return (text) => Math.round(text.length / charsPerToken);
+}
+
+const COUNT_CHUNK_CHARS = 512 * 1024;
+
+async function countTokensYielding(text: string): Promise<number> {
+  if (text.length <= COUNT_CHUNK_CHARS) {
+    return countTokens(text);
+  }
+
+  let total = 0;
+  for (let index = 0; index < text.length; index += COUNT_CHUNK_CHARS) {
+    if (index > 0) {
+      await yieldToEventLoop();
+    }
+    total += countTokens(text.slice(index, index + COUNT_CHUNK_CHARS));
+  }
+  return total;
+}
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => {
+    setImmediate(resolve);
+  });
 }

@@ -229,6 +229,48 @@ describe("step", () => {
     expect(up.state.detail.scroll).toBe(3);
   });
 
+  it("scrolls a focused detail blob with arrow and page keys", () => {
+    const blobState = (): ExplorerState => ({
+      ...loadedState(),
+      focused: "detail" as const,
+      size: { cols: 120, rows: 8 },
+      layout: "wide" as const,
+      detail: {
+        rowId: "one",
+        items: [
+          {
+            id: "body",
+            renderedContent: Array.from({ length: 40 }, (_, index) => `line ${index}`).join("\n"),
+            render: () => ""
+          }
+        ],
+        cursor: 0,
+        scroll: 0,
+        token: 1,
+        loading: false
+      }
+    });
+
+    const down = step(blobState(), {
+      type: "key",
+      key: { name: "down", ctrl: false, meta: false, shift: false }
+    });
+    expect(down.state.detail.scroll).toBe(1);
+    expect(down.state.cursor).toBe(0);
+
+    const paged = step(blobState(), {
+      type: "key",
+      key: { ch: "d", ctrl: true, meta: false, shift: false }
+    });
+    expect(paged.state.detail.scroll).toBeGreaterThan(1);
+
+    const pagedBack = step(paged.state, {
+      type: "key",
+      key: { ch: "u", ctrl: true, meta: false, shift: false }
+    });
+    expect(pagedBack.state.detail.scroll).toBe(0);
+  });
+
   it("clamps detail list scrolling to the final item", () => {
     let current: ExplorerState = {
       ...loadedState(),

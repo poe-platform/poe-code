@@ -1,19 +1,13 @@
 import { validateHeaderValue, type IncomingMessage, type ServerResponse } from "node:http";
 import type { JSONRPCMessage, JSONRPCRequest, MessageSession, Server } from "tiny-stdio-mcp-server";
 import { JSON_RPC_ERROR_CODES } from "tiny-stdio-mcp-server";
-import {
-  formatErrorResponse,
-  formatSuccessResponse,
-} from "tiny-stdio-mcp-server/jsonrpc";
-import {
-  JsonRpcMessageError,
-  readAndClassifyBody,
-} from "./parse-body.js";
+import { formatErrorResponse, formatSuccessResponse } from "tiny-stdio-mcp-server/jsonrpc";
+import { JsonRpcMessageError, readAndClassifyBody } from "./parse-body.js";
 import {
   createSessionStore,
   defaultSessionIdGenerator,
   type Session,
-  type SessionStore,
+  type SessionStore
 } from "./session.js";
 import { formatSseEvent, SSE_HEADERS } from "./sse.js";
 
@@ -81,6 +75,7 @@ export interface StreamableHttpTransportOptions {
   sessionTtlMs?: number;
   maxStreamsPerSession?: number;
   maxSseEventHistory?: number;
+  sseKeepAliveMs?: number;
   maxConcurrentToolCalls?: number;
   sessionStore?: SessionStore;
   requestIdGenerator?: () => string;
@@ -88,15 +83,13 @@ export interface StreamableHttpTransportOptions {
   trustedProxy?: boolean;
 }
 
-type RequestContextRunner = <T>(
-  req: IncomingMessage,
-  callback: () => Promise<T>
-) => Promise<T>;
+type RequestContextRunner = <T>(req: IncomingMessage, callback: () => Promise<T>) => Promise<T>;
 
 const ALLOWED_METHODS = "POST, GET, DELETE, OPTIONS";
 const MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "::1"] as const;
-const DEFAULT_ALLOWED_HEADERS = "Accept, Authorization, Content-Type, Mcp-Session-Id, MCP-Protocol-Version";
+const DEFAULT_ALLOWED_HEADERS =
+  "Accept, Authorization, Content-Type, Mcp-Session-Id, MCP-Protocol-Version";
 
 function validateOptionalIntegerOption(
   name: string,
@@ -125,6 +118,7 @@ export class StreamableHttpTransport {
   private readonly sessionTtlMs: number | undefined;
   private readonly maxStreamsPerSession: number;
   private readonly maxSseEventHistory: number;
+  private readonly sseKeepAliveMs: number;
   private readonly maxConcurrentToolCalls: number | undefined;
   private readonly sessionStore: SessionStore;
   private readonly requestIdGenerator: () => string;
@@ -132,28 +126,23 @@ export class StreamableHttpTransport {
   private readonly trustedProxy: boolean;
   private readonly sessionMessages = new Map<string, MessageSession>();
   private readonly sseStreams = new Map<string, Set<ServerResponse>>();
-  private readonly sseEventHistory = new Map<
-    string,
-    Array<{ id: number; data: string }>
-  >();
+  private readonly sseEventHistory = new Map<string, Array<{ id: number; data: string }>>();
   private readonly responseRequestIds = new WeakMap<ServerResponse, string>();
   private readonly responseOrigins = new WeakMap<ServerResponse, string>();
   private nextNotificationEventId = 1;
   private nextRequestId = 1;
   private activeToolCalls = 0;
+  private sseKeepAliveInterval: ReturnType<typeof setInterval> | undefined;
 
   constructor(
     private readonly server: Server,
     options: StreamableHttpTransportOptions = {},
-    private readonly runWithRequestContext: RequestContextRunner = async (
-      _req,
-      callback
-    ) => callback()
+    private readonly runWithRequestContext: RequestContextRunner = async (_req, callback) =>
+      callback()
   ) {
-    this.sessionIdGenerator =
-      hasOwnProperty(options, "sessionIdGenerator")
-        ? options.sessionIdGenerator
-        : defaultSessionIdGenerator;
+    this.sessionIdGenerator = hasOwnProperty(options, "sessionIdGenerator")
+      ? options.sessionIdGenerator
+      : defaultSessionIdGenerator;
     this.enableJsonResponse = options.enableJsonResponse ?? false;
     this.allowedOrigins = new Set(options.allowedOrigins ?? []);
     this.allowedHosts = new Set(
@@ -164,48 +153,27 @@ export class StreamableHttpTransport {
       options.maxRequestBytes,
       1
     );
-    this.maxBatchSize = validateOptionalIntegerOption(
-      "maxBatchSize",
-      options.maxBatchSize,
-      1
-    );
-    this.maxSessions = validateOptionalIntegerOption(
-      "maxSessions",
-      options.maxSessions,
-      1
-    );
-    this.sessionTtlMs = validateOptionalIntegerOption(
-      "sessionTtlMs",
-      options.sessionTtlMs,
-      1
-    );
-    this.maxStreamsPerSession = validateOptionalIntegerOption(
-      "maxStreamsPerSession",
-      options.maxStreamsPerSession,
-      1
-    ) ?? 1;
+    this.maxBatchSize = validateOptionalIntegerOption("maxBatchSize", options.maxBatchSize, 1);
+    this.maxSessions = validateOptionalIntegerOption("maxSessions", options.maxSessions, 1);
+    this.sessionTtlMs = validateOptionalIntegerOption("sessionTtlMs", options.sessionTtlMs, 1);
+    this.maxStreamsPerSession =
+      validateOptionalIntegerOption("maxStreamsPerSession", options.maxStreamsPerSession, 1) ?? 1;
     this.maxSseEventHistory =
-      validateOptionalIntegerOption(
-        "maxSseEventHistory",
-        options.maxSseEventHistory,
-        0
-      ) ?? 100;
+      validateOptionalIntegerOption("maxSseEventHistory", options.maxSseEventHistory, 0) ?? 100;
+    this.sseKeepAliveMs =
+      validateOptionalIntegerOption("sseKeepAliveMs", options.sseKeepAliveMs, 0) ?? 30_000;
     this.maxConcurrentToolCalls = validateOptionalIntegerOption(
       "maxConcurrentToolCalls",
       options.maxConcurrentToolCalls,
       1
     );
     this.sessionStore = options.sessionStore ?? createSessionStore();
-    this.requestIdGenerator =
-      options.requestIdGenerator ?? (() => `req-${this.nextRequestId++}`);
+    this.requestIdGenerator = options.requestIdGenerator ?? (() => `req-${this.nextRequestId++}`);
     this.observability = options.observability ?? {};
     this.trustedProxy = options.trustedProxy ?? false;
   }
 
-  async handleRequest(
-    req: IncomingMessage,
-    res: ServerResponse
-  ): Promise<void> {
+  async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const startedAt = Date.now();
     const requestId = this.readRequestId(req) ?? this.requestIdGenerator();
     this.responseRequestIds.set(res, requestId);
@@ -218,7 +186,7 @@ export class StreamableHttpTransport {
       requestId,
       method: req.method ?? "",
       path: req.url ?? "",
-      sessionId: this.readSessionId(req),
+      sessionId: this.readSessionId(req)
     });
 
     try {
@@ -248,7 +216,7 @@ export class StreamableHttpTransport {
           return;
         default:
           this.respondWithStatus(res, 405, undefined, {
-            Allow: ALLOWED_METHODS,
+            Allow: ALLOWED_METHODS
           });
       }
     } catch (error) {
@@ -258,7 +226,7 @@ export class StreamableHttpTransport {
         method: req.method ?? "",
         durationMs: Date.now() - startedAt,
         error,
-        sessionId: this.readSessionId(req),
+        sessionId: this.readSessionId(req)
       });
       if (!res.headersSent) {
         this.respondWithStatus(res, 500);
@@ -273,12 +241,13 @@ export class StreamableHttpTransport {
         method: req.method ?? "",
         statusCode: res.statusCode,
         durationMs: Date.now() - startedAt,
-        sessionId: this.readSessionId(req),
+        sessionId: this.readSessionId(req)
       });
     }
   }
 
   async close(): Promise<void> {
+    this.stopSseKeepAlive();
     for (const sessionId of [...this.sseStreams.keys()]) {
       this.closeStreamsForSession(sessionId);
     }
@@ -289,10 +258,7 @@ export class StreamableHttpTransport {
     this.sessionMessages.clear();
   }
 
-  private async handlePost(
-    req: IncomingMessage,
-    res: ServerResponse
-  ): Promise<void> {
+  private async handlePost(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!this.isJsonRequest(req)) {
       this.respondWithJsonRpcError(
         res,
@@ -312,25 +278,20 @@ export class StreamableHttpTransport {
     try {
       classified = await readAndClassifyBody(req, undefined, {
         maxBytes: this.maxRequestBytes,
-        maxBatchSize: this.maxBatchSize,
+        maxBatchSize: this.maxBatchSize
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Invalid Request";
       if (message === "Payload too large") {
-        this.respondWithJsonRpcError(
-          res,
-          413,
-          JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-          message
-        );
+        this.respondWithJsonRpcError(res, 413, JSON_RPC_ERROR_CODES.INVALID_REQUEST, message);
         return;
       }
       const code =
         error instanceof JsonRpcMessageError
           ? error.code
           : message === "Parse error"
-          ? JSON_RPC_ERROR_CODES.PARSE_ERROR
-          : JSON_RPC_ERROR_CODES.INVALID_REQUEST;
+            ? JSON_RPC_ERROR_CODES.PARSE_ERROR
+            : JSON_RPC_ERROR_CODES.INVALID_REQUEST;
       const id = error instanceof JsonRpcMessageError ? error.id : null;
 
       this.respondWithJsonRpcError(res, 400, code, message, id);
@@ -375,7 +336,10 @@ export class StreamableHttpTransport {
 
         sessionId = headerSessionId;
         this.touchSession(sessionId);
-        if (session?.protocolVersion !== undefined && !this.acceptsProtocolVersion(req, session.protocolVersion)) {
+        if (
+          session?.protocolVersion !== undefined &&
+          !this.acceptsProtocolVersion(req, session.protocolVersion)
+        ) {
           this.respondWithStatus(res, 400);
           return;
         }
@@ -388,10 +352,12 @@ export class StreamableHttpTransport {
 
       for (const message of classified.entries) {
         if (message === null) {
-          responses.push(formatErrorResponse(null, {
-            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-            message: "Invalid Request",
-          }));
+          responses.push(
+            formatErrorResponse(null, {
+              code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+              message: "Invalid Request"
+            })
+          );
           continue;
         }
 
@@ -401,17 +367,19 @@ export class StreamableHttpTransport {
 
         const session = sessionId === undefined ? undefined : this.sessionStore.get(sessionId);
         if (
-          session !== undefined
-          && message.method !== "initialize"
-          && message.method !== "notifications/initialized"
-          && message.method !== "ping"
-          && !session.initialized
+          session !== undefined &&
+          message.method !== "initialize" &&
+          message.method !== "notifications/initialized" &&
+          message.method !== "ping" &&
+          !session.initialized
         ) {
           if (this.isRequest(message)) {
-            responses.push(formatErrorResponse(message.id, {
-              code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-              message: "Session not initialized",
-            }));
+            responses.push(
+              formatErrorResponse(message.id, {
+                code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+                message: "Session not initialized"
+              })
+            );
           }
           continue;
         }
@@ -419,22 +387,25 @@ export class StreamableHttpTransport {
         const requestId = this.responseRequestIds.get(res) ?? "";
         const toolName = this.readToolName(message);
         if (
-          message.method === "tools/call"
-          && this.maxConcurrentToolCalls !== undefined
-          && this.activeToolCalls >= this.maxConcurrentToolCalls
+          message.method === "tools/call" &&
+          this.maxConcurrentToolCalls !== undefined &&
+          this.activeToolCalls >= this.maxConcurrentToolCalls
         ) {
           if (this.isRequest(message)) {
-            responses.push(formatErrorResponse(message.id, {
-              code: -32000,
-              message: "Too many concurrent tool calls",
-            }));
+            responses.push(
+              formatErrorResponse(message.id, {
+                code: -32000,
+                message: "Too many concurrent tool calls"
+              })
+            );
           }
           continue;
         }
 
-        const messageHandler = sessionId === undefined
-          ? this.server.handleMessage
-          : this.sessionMessages.get(sessionId)?.handleMessage ?? this.server.handleMessage;
+        const messageHandler =
+          sessionId === undefined
+            ? this.server.handleMessage
+            : (this.sessionMessages.get(sessionId)?.handleMessage ?? this.server.handleMessage);
         const isToolCall = message.method === "tools/call";
         const toolStartedAt = Date.now();
         if (isToolCall) {
@@ -443,15 +414,12 @@ export class StreamableHttpTransport {
             type: "tool.start",
             requestId,
             sessionId,
-            toolName,
+            toolName
           });
         }
         let handled;
         try {
-          handled = await messageHandler(
-            message.method,
-            message.params
-          );
+          handled = await messageHandler(message.method, message.params);
         } finally {
           if (isToolCall) {
             this.activeToolCalls -= 1;
@@ -465,7 +433,7 @@ export class StreamableHttpTransport {
             sessionId,
             toolName,
             ok: this.isToolCallOk(error, result),
-            durationMs: Date.now() - toolStartedAt,
+            durationMs: Date.now() - toolStartedAt
           });
         }
 
@@ -476,8 +444,8 @@ export class StreamableHttpTransport {
               session.protocolVersion = initializeResult.protocolVersion;
             }
           } else if (
-            message.method === "notifications/initialized"
-            && session.protocolVersion !== undefined
+            message.method === "notifications/initialized" &&
+            session.protocolVersion !== undefined
           ) {
             session.initialized = true;
           }
@@ -509,17 +477,9 @@ export class StreamableHttpTransport {
       const body =
         formattedResponses.length === 1
           ? formattedResponses[0]
-          : JSON.stringify(
-              formattedResponses.map((responseText) => JSON.parse(responseText))
-            );
+          : JSON.stringify(formattedResponses.map((responseText) => JSON.parse(responseText)));
 
-      this.respondWithStatus(
-        res,
-        200,
-        sessionId,
-        { "Content-Type": "application/json" },
-        body
-      );
+      this.respondWithStatus(res, 200, sessionId, { "Content-Type": "application/json" }, body);
       return;
     }
 
@@ -533,7 +493,7 @@ export class StreamableHttpTransport {
   private async handleGet(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (this.sessionIdGenerator === undefined) {
       this.respondWithStatus(res, 405, undefined, {
-        Allow: ALLOWED_METHODS,
+        Allow: ALLOWED_METHODS
       });
       return;
     }
@@ -557,9 +517,9 @@ export class StreamableHttpTransport {
 
     this.touchSession(sessionId);
     if (
-      session.initialized
-      && session.protocolVersion !== undefined
-      && !this.acceptsProtocolVersion(req, session.protocolVersion)
+      session.initialized &&
+      session.protocolVersion !== undefined &&
+      !this.acceptsProtocolVersion(req, session.protocolVersion)
     ) {
       this.respondWithStatus(res, 400);
       return;
@@ -579,10 +539,11 @@ export class StreamableHttpTransport {
     }
 
     streams.add(res);
+    this.startSseKeepAlive();
     this.emit({
       type: "stream.opened",
       sessionId,
-      streamCount: streams.size,
+      streamCount: streams.size
     });
     const cleanup = () => {
       const activeStreams = this.sseStreams.get(sessionId);
@@ -595,12 +556,13 @@ export class StreamableHttpTransport {
         this.emit({
           type: "stream.closed",
           sessionId,
-          streamCount: activeStreams.size,
+          streamCount: activeStreams.size
         });
       }
       if (activeStreams.size === 0) {
         this.sseStreams.delete(sessionId);
       }
+      this.stopSseKeepAliveIfIdle();
     };
 
     req.on("close", cleanup);
@@ -614,7 +576,7 @@ export class StreamableHttpTransport {
   private handleDelete(req: IncomingMessage, res: ServerResponse): void {
     if (this.sessionIdGenerator === undefined) {
       this.respondWithStatus(res, 405, undefined, {
-        Allow: ALLOWED_METHODS,
+        Allow: ALLOWED_METHODS
       });
       return;
     }
@@ -626,7 +588,10 @@ export class StreamableHttpTransport {
     }
 
     const session = this.getActiveSession(sessionId);
-    if (session?.protocolVersion !== undefined && !this.acceptsProtocolVersion(req, session.protocolVersion)) {
+    if (
+      session?.protocolVersion !== undefined &&
+      !this.acceptsProtocolVersion(req, session.protocolVersion)
+    ) {
       this.respondWithStatus(res, 400);
       return;
     }
@@ -645,7 +610,7 @@ export class StreamableHttpTransport {
 
     if (method !== undefined && !ALLOWED_METHODS.split(", ").includes(method)) {
       this.respondWithStatus(res, 405, undefined, {
-        Allow: ALLOWED_METHODS,
+        Allow: ALLOWED_METHODS
       });
       return;
     }
@@ -656,8 +621,8 @@ export class StreamableHttpTransport {
       "Access-Control-Allow-Methods": ALLOWED_METHODS,
       "Access-Control-Allow-Headers": Array.isArray(requestedHeaders)
         ? requestedHeaders.join(", ")
-        : requestedHeaders ?? DEFAULT_ALLOWED_HEADERS,
-      "Access-Control-Max-Age": "600",
+        : (requestedHeaders ?? DEFAULT_ALLOWED_HEADERS),
+      "Access-Control-Max-Age": "600"
     });
   }
 
@@ -754,10 +719,7 @@ export class StreamableHttpTransport {
     return this.sessionMessages.size;
   }
 
-  private deleteSession(
-    sessionId: string,
-    reason: "client" | "expired" | "closed"
-  ): boolean {
+  private deleteSession(sessionId: string, reason: "client" | "expired" | "closed"): boolean {
     const deleted = this.sessionStore.delete(sessionId);
     if (!deleted) {
       return false;
@@ -791,7 +753,7 @@ export class StreamableHttpTransport {
     const messageSession = this.createLocalMessageSession(sessionId);
     if (session.protocolVersion !== undefined) {
       await messageSession.handleMessage("initialize", {
-        protocolVersion: session.protocolVersion,
+        protocolVersion: session.protocolVersion
       });
       if (session.initialized) {
         await messageSession.handleMessage("notifications/initialized");
@@ -814,12 +776,44 @@ export class StreamableHttpTransport {
     }
 
     this.sseStreams.delete(sessionId);
+    this.stopSseKeepAliveIfIdle();
   }
 
-  private sendNotificationToSession(
-    sessionId: string,
-    notification: JSONRPCMessage
-  ): void {
+  private startSseKeepAlive(): void {
+    if (this.sseKeepAliveMs === 0 || this.sseKeepAliveInterval !== undefined) {
+      return;
+    }
+
+    this.sseKeepAliveInterval = setInterval(() => {
+      for (const streams of this.sseStreams.values()) {
+        for (const response of streams) {
+          if (!response.writableEnded) {
+            response.write(": keepalive\n\n");
+          }
+        }
+      }
+    }, this.sseKeepAliveMs);
+    this.sseKeepAliveInterval.unref();
+  }
+
+  private stopSseKeepAliveIfIdle(): void {
+    if ([...this.sseStreams.values()].some((streams) => streams.size > 0)) {
+      return;
+    }
+
+    this.stopSseKeepAlive();
+  }
+
+  private stopSseKeepAlive(): void {
+    if (this.sseKeepAliveInterval === undefined) {
+      return;
+    }
+
+    clearInterval(this.sseKeepAliveInterval);
+    this.sseKeepAliveInterval = undefined;
+  }
+
+  private sendNotificationToSession(sessionId: string, notification: JSONRPCMessage): void {
     if (!this.sessionStore.get(sessionId)?.initialized) {
       return;
     }
@@ -834,7 +828,7 @@ export class StreamableHttpTransport {
 
     const event = formatSseEvent({
       id: String(id),
-      data,
+      data
     });
     let latestResponse: ServerResponse | undefined;
     for (const response of streams) {
@@ -858,11 +852,7 @@ export class StreamableHttpTransport {
     this.sseEventHistory.set(sessionId, history);
   }
 
-  private replaySseEvents(
-    req: IncomingMessage,
-    res: ServerResponse,
-    sessionId: string
-  ): void {
+  private replaySseEvents(req: IncomingMessage, res: ServerResponse, sessionId: string): void {
     const value = req.headers["last-event-id"];
     const header = Array.isArray(value) ? value[0] : value;
     if (header === undefined) {
@@ -935,7 +925,7 @@ export class StreamableHttpTransport {
     }
 
     const host = req.headers.host;
-    return Array.isArray(host) ? host[0] ?? "127.0.0.1" : host ?? "127.0.0.1";
+    return Array.isArray(host) ? (host[0] ?? "127.0.0.1") : (host ?? "127.0.0.1");
   }
 
   private readForwardedHeader(
@@ -971,9 +961,7 @@ export class StreamableHttpTransport {
       return normalized;
     }
 
-    return normalized.includes(":")
-      ? normalized.split(":")[0] ?? normalized
-      : normalized;
+    return normalized.includes(":") ? (normalized.split(":")[0] ?? normalized) : normalized;
   }
 
   private acceptsConfiguredResponse(req: IncomingMessage): boolean {
@@ -1021,8 +1009,7 @@ export class StreamableHttpTransport {
     }
 
     return !(
-      hasOwnProperty(result, "isError")
-      && (result as { isError?: unknown }).isError === true
+      hasOwnProperty(result, "isError") && (result as { isError?: unknown }).isError === true
     );
   }
 
@@ -1069,21 +1056,21 @@ export class StreamableHttpTransport {
         ? {}
         : {
             "Access-Control-Allow-Origin": origin,
-            "Access-Control-Expose-Headers": "Mcp-Session-Id, X-Request-Id",
-          }),
+            "Access-Control-Expose-Headers": "Mcp-Session-Id, X-Request-Id"
+          })
     };
 
     if (sessionId === undefined) {
       return {
         ...baseHeaders,
-        ...(headers ?? {}),
+        ...(headers ?? {})
       };
     }
 
     return {
       ...baseHeaders,
       ...(headers ?? {}),
-      [MCP_SESSION_ID_HEADER]: sessionId,
+      [MCP_SESSION_ID_HEADER]: sessionId
     };
   }
 

@@ -19,6 +19,10 @@ export interface ListTracesOptions {
 
 export interface LoadTraceOptions {
   fs: AgentTraceFileSystem;
+  signal?: AbortSignal;
+  cacheDir?: string;
+  deferExactTokens?: boolean;
+  onExactBreakdown?: (breakdown: ContextBreakdown) => void;
 }
 
 export interface ContextUsage {
@@ -45,6 +49,7 @@ export interface ContextBreakdownCategory {
 export interface ContextBreakdown {
   measuredTokens: number;
   categories: ContextBreakdownCategory[];
+  source: "exact" | "estimated";
 }
 
 export type TraceView = NormalizedTrace & {

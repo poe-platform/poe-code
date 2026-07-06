@@ -5,7 +5,9 @@ export interface AgentTraceFileSystem {
   writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
   readdir(path: string): Promise<string[]>;
-  stat(path: string): Promise<{ isFile(): boolean; isDirectory(): boolean; mtime?: Date }>;
+  stat(
+    path: string
+  ): Promise<{ isFile(): boolean; isDirectory(): boolean; mtime?: Date; size?: number }>;
 }
 
 export interface SqliteTraceDatabase {

@@ -155,8 +155,8 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
-      release: open
+      commit: done
+      release: done
 
   - id: http-sse-keepalive
     title: SSE keepalive for GET streams
@@ -173,10 +173,10 @@ tasks:
       30s, comment arrives; interval is unref'd and cleared by close(). Update
       README option and CLI tables.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: http-sse-backpressure

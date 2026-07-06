@@ -660,6 +660,8 @@ describe("StreamableHttpTransport", () => {
   interface FixtureOptions {
     enableJsonResponse?: boolean;
     sessionIdGenerator?: (() => string) | undefined;
+    maxStreamsPerSession?: number;
+    sseKeepAliveMs?: number;
   }
 
   interface Fixture {
@@ -677,6 +679,7 @@ describe("StreamableHttpTransport", () => {
   interface RequestOptions {
     sessionId?: string;
     headers?: Record<string, string>;
+    signal?: AbortSignal;
   }
 
   interface TestResponse {
@@ -738,6 +741,7 @@ describe("StreamableHttpTransport", () => {
       return nodeFetch(url, {
         method,
         headers,
+        signal: requestOptions.signal,
         ...(payload === undefined ? {} : { body: payload })
       });
     };
@@ -1712,6 +1716,137 @@ describe("StreamableHttpTransport", () => {
     await expectReaderToStayOpen(reader!);
   });
 
+  it("sends unref'd keepalive comments and clears the interval on close", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    const setIntervalSpy = vi.spyOn(globalThis, "setInterval");
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+
+    try {
+      const fixture = await createFixture({
+        enableJsonResponse: true,
+        sessionIdGenerator: () => "session-1"
+      });
+
+      const { sessionId } = await fixture.initialize();
+      const response = await fixture.get({ sessionId: sessionId ?? undefined });
+      const reader = response.body!.getReader();
+      const interval = setIntervalSpy.mock.results[0]?.value as NodeJS.Timeout;
+
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30_000);
+      expect(interval.hasRef()).toBe(false);
+
+      const event = readSseEvent(reader);
+      vi.advanceTimersByTime(30_000);
+
+      await expect(event).resolves.toBe(": keepalive\n\n");
+
+      await fixture.transport.close();
+
+      expect(clearIntervalSpy).toHaveBeenCalledWith(interval);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shares one keepalive interval and clears it after the last GET stream closes", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    const setIntervalSpy = vi.spyOn(globalThis, "setInterval");
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+
+    try {
+      const fixture = await createFixture({
+        enableJsonResponse: true,
+        sessionIdGenerator: () => "session-1",
+        maxStreamsPerSession: 2
+      });
+
+      const { sessionId } = await fixture.initialize();
+      const firstAbortController = new AbortController();
+      const secondAbortController = new AbortController();
+      await fixture.get({
+        sessionId: sessionId ?? undefined,
+        signal: firstAbortController.signal
+      });
+      await fixture.get({
+        sessionId: sessionId ?? undefined,
+        signal: secondAbortController.signal
+      });
+      const interval = setIntervalSpy.mock.results[0]?.value as NodeJS.Timeout;
+
+      expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+
+      firstAbortController.abort();
+      await vi.waitFor(() => expect(clearIntervalSpy).not.toHaveBeenCalled());
+
+      secondAbortController.abort();
+      await vi.waitFor(() => expect(clearIntervalSpy).toHaveBeenCalledWith(interval));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("uses the configured keepalive interval and restarts after all GET streams close", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    const setIntervalSpy = vi.spyOn(globalThis, "setInterval");
+
+    try {
+      const fixture = await createFixture({
+        enableJsonResponse: true,
+        sessionIdGenerator: () => "session-1",
+        sseKeepAliveMs: 5_000
+      });
+
+      const { sessionId } = await fixture.initialize();
+      const firstAbortController = new AbortController();
+      await fixture.get({
+        sessionId: sessionId ?? undefined,
+        signal: firstAbortController.signal
+      });
+
+      expect(setIntervalSpy).toHaveBeenLastCalledWith(expect.any(Function), 5_000);
+
+      firstAbortController.abort();
+      await vi.waitFor(() => expect(vi.getTimerCount()).toBe(0));
+
+      const secondResponse = await fixture.get({ sessionId: sessionId ?? undefined });
+
+      expect(setIntervalSpy).toHaveBeenCalledTimes(2);
+      expect(setIntervalSpy).toHaveBeenLastCalledWith(expect.any(Function), 5_000);
+
+      await secondResponse.body!.cancel();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not schedule keepalives for POST SSE responses or disabled GET streams", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    const setIntervalSpy = vi.spyOn(globalThis, "setInterval");
+
+    try {
+      const postFixture = await createFixture({
+        sessionIdGenerator: () => "post-session"
+      });
+      await postFixture.initialize();
+
+      expect(setIntervalSpy).not.toHaveBeenCalled();
+
+      const disabledFixture = await createFixture({
+        enableJsonResponse: true,
+        sessionIdGenerator: () => "disabled-session",
+        sseKeepAliveMs: 0
+      });
+      const { sessionId } = await disabledFixture.initialize();
+      const response = await disabledFixture.get({ sessionId: sessionId ?? undefined });
+
+      expect(setIntervalSpy).not.toHaveBeenCalled();
+
+      await response.body!.cancel();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("T31 notifyToolsChanged sends an event on the GET stream", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
@@ -1858,6 +1993,12 @@ describe("StreamableHttpTransport", () => {
     );
     expect(() => new StreamableHttpTransport(server, { maxSessions: -1 })).toThrow(
       "maxSessions must be an integer greater than or equal to 1."
+    );
+    expect(() => new StreamableHttpTransport(server, { sseKeepAliveMs: -1 })).toThrow(
+      "sseKeepAliveMs must be an integer greater than or equal to 0."
+    );
+    expect(() => new StreamableHttpTransport(server, { sseKeepAliveMs: 1.5 })).toThrow(
+      "sseKeepAliveMs must be an integer greater than or equal to 0."
     );
   });
 });
@@ -3458,6 +3599,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const cases = [
       ["--port", "0x50"],
       ["--max-batch-size", "1e3"],
+      ["--sse-keep-alive-ms", "1e3"],
       ["--request-timeout-ms", "0x100"]
     ];
 
@@ -3583,6 +3725,8 @@ describe("tiny-http-mcp-server CLI", () => {
         "2",
         "--max-sse-event-history",
         "10",
+        "--sse-keep-alive-ms",
+        "15000",
         "--max-concurrent-tool-calls",
         "4",
         "--trusted-proxy",
@@ -3612,6 +3756,7 @@ describe("tiny-http-mcp-server CLI", () => {
         sessionTtlMs: 60_000,
         maxStreamsPerSession: 2,
         maxSseEventHistory: 10,
+        sseKeepAliveMs: 15_000,
         maxConcurrentToolCalls: 4,
         trustedProxy: true
       })
@@ -3648,6 +3793,7 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(shortOutput.stdout).toContain("--json-response");
     expect(shortOutput.stdout).toContain("--allowed-host");
     expect(shortOutput.stdout).toContain("--max-request-bytes");
+    expect(shortOutput.stdout).toContain("--sse-keep-alive-ms");
     expect(shortOutput.stdout).toContain("--trusted-proxy");
     expect(shortOutput.stdout).toContain("--request-timeout-ms");
     expect(shortOutput.stdout).toContain("--oauth-resource");

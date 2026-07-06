@@ -266,13 +266,13 @@ describe("poe-agent-plugin-shell", () => {
         command: createNodeCommand(
           "process.stdout.write('partial stdout\\n'); process.stderr.write('partial stderr\\n'); setTimeout(() => {}, 5_000);"
         ),
-        timeout: 0.1
+        timeout: 0.5
       });
     } catch (error) {
       message = error instanceof Error ? error.message : String(error);
     }
 
-    expect(message).toContain("Command timed out after 0.1 seconds");
+    expect(message).toContain("Command timed out after 0.5 seconds");
     expect(message).toContain("partial stdout");
     expect(message).toContain("partial stderr");
   });

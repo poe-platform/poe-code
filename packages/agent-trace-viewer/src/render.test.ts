@@ -250,7 +250,7 @@ describe("renderSubagents", () => {
 });
 
 describe("renderTraceDetail", () => {
-  it("renders the header, breakdown, subagents, and conversation", () => {
+  it("renders the header, breakdown, subagents, and conversation", async () => {
     const view: TraceView = {
       source: "codex",
       id: "trace-1",
@@ -272,7 +272,7 @@ describe("renderTraceDetail", () => {
     };
 
     const output = plain(
-      renderTraceDetail(view, [
+      await renderTraceDetail(view, [
         {
           reference: { source: "codex", id: "child", title: "Child", agentType: "Explore" },
           context: { tokens: 1000, window: 200000, percent: 1, source: "reported" },
@@ -294,7 +294,7 @@ describe("renderTraceDetail", () => {
     expect(output).toContain("system ⚠ system message");
   });
 
-  it("sanitizes trace text and keeps detail lines within 80 columns", () => {
+  it("sanitizes trace text and keeps detail lines within 80 columns", async () => {
     const view: TraceView = {
       source: "claude",
       id: "trace-1",
@@ -314,7 +314,7 @@ describe("renderTraceDetail", () => {
       ]
     };
 
-    const output = plain(renderTraceDetail(view));
+    const output = plain(await renderTraceDetail(view));
 
     expect(output).not.toContain("[31m");
     expect(output).toContain("before red after");
@@ -326,22 +326,42 @@ describe("renderTraceDetail", () => {
     ).toBe(true);
   });
 
-  it("caps long conversation previews", () => {
+  it("renders every turn of long conversations", async () => {
     const view: TraceView = {
       source: "codex",
       id: "trace-1",
       context: { tokens: 10, window: 200000, percent: 0, source: "estimated" },
       breakdown: { measuredTokens: 0, categories: [] },
-      turns: Array.from({ length: 80 }, (_, index) => ({
+      turns: Array.from({ length: 600 }, (_, index) => ({
         role: "assistant" as const,
         text: `message ${index}`
       }))
     };
 
-    const output = plain(renderTraceDetail(view));
+    const output = plain(await renderTraceDetail(view));
 
     expect(output).toContain("Conversation");
-    expect(output).toContain("… 32 more turns");
-    expect(output).not.toContain("message 79");
+    expect(output).toContain("message 0");
+    expect(output).toContain("message 599");
+  });
+
+  it("stops rendering turns once aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const view: TraceView = {
+      source: "codex",
+      id: "trace-1",
+      context: { tokens: 10, window: 200000, percent: 0, source: "estimated" },
+      breakdown: { measuredTokens: 0, categories: [] },
+      turns: Array.from({ length: 600 }, (_, index) => ({
+        role: "assistant" as const,
+        text: `message ${index}`
+      }))
+    };
+
+    const output = plain(await renderTraceDetail(view, [], { signal: controller.signal }));
+
+    expect(output).toContain("message 0");
+    expect(output).not.toContain("message 599");
   });
 });

@@ -115,9 +115,13 @@ function stepKey(
       case "bottom":
         return setCursor(state, state.filtered.length - 1);
       case "pageUp":
-        return moveCursor(state, -pageSize(state));
+        return isDetailBlobFocused(state)
+          ? detailScroll(state, -detailBodyHeight(state))
+          : moveCursor(state, -pageSize(state));
       case "pageDown":
-        return moveCursor(state, pageSize(state));
+        return isDetailBlobFocused(state)
+          ? detailScroll(state, detailBodyHeight(state))
+          : moveCursor(state, pageSize(state));
       case "focusNext":
         return focusNext(state);
       case "escape":
@@ -447,7 +451,19 @@ function moveCursor(state: ExplorerState, delta: number): StepResult {
     return moveDetailCursor(state, delta);
   }
 
+  if (isDetailBlobFocused(state)) {
+    return detailScroll(state, delta);
+  }
+
   return setCursor(state, state.cursor + delta);
+}
+
+function isDetailBlobFocused(state: ExplorerState): boolean {
+  return (
+    state.focused === "detail" &&
+    !hasDetailCursor(state) &&
+    (state.detail.items?.length ?? 0) > 0
+  );
 }
 
 function moveDetailCursor(state: ExplorerState, delta: number): StepResult {

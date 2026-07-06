@@ -56,7 +56,7 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
       return;
     }
 
-    writeLine(output, renderTraceDetail(view, subagents));
+    writeLine(output, await renderTraceDetail(view, subagents));
     return;
   }
 
@@ -183,12 +183,17 @@ function buildTraceExplorerConfig(options: {
           return;
         }
 
-        const view = await loadTrace(reference, { fs: options.fs });
+        const rowId = ctx.row.id;
+        const view = await loadTrace(reference, {
+          fs: options.fs,
+          deferExactTokens: true,
+          onExactBreakdown: () => state.detailByRowId.delete(rowId)
+        });
         const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
         const loaded = { view, subagents };
-        const content = renderTraceDetail(loaded.view, loaded.subagents);
-        state.detailByRowId.set(ctx.row.id, content);
-        state.childrenByRowId.set(ctx.row.id, loaded.view.children ?? []);
+        const content = await renderTraceDetail(loaded.view, loaded.subagents);
+        state.detailByRowId.set(rowId, content);
+        state.childrenByRowId.set(rowId, loaded.view.children ?? []);
 
         ctx.openModal({ title: ctx.row.title, content });
       }
@@ -250,8 +255,23 @@ function buildTraceExplorerConfig(options: {
     detail: {
       items: async (row, ctx) => {
         const reference = getReference(state.referenceByRowId, row.id);
+        const cached = state.detailByRowId.get(row.id);
+        if (cached !== undefined) {
+          return [
+            {
+              id: row.id,
+              render: () => cached
+            } satisfies DetailItem
+          ];
+        }
+
         const loaded = await loadUnlessAborted(ctx.signal, async () => {
-          const view = await loadTrace(reference, { fs: options.fs });
+          const view = await loadTrace(reference, {
+            fs: options.fs,
+            signal: ctx.signal,
+            deferExactTokens: true,
+            onExactBreakdown: () => state.detailByRowId.delete(row.id)
+          });
           const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
           return { view, subagents };
         });
@@ -261,7 +281,12 @@ function buildTraceExplorerConfig(options: {
         }
 
         state.childrenByRowId.set(row.id, loaded.view.children ?? []);
-        const content = renderTraceDetail(loaded.view, loaded.subagents);
+        const content = await renderTraceDetail(loaded.view, loaded.subagents, {
+          signal: ctx.signal
+        });
+        if (ctx.signal.aborted) {
+          return [];
+        }
         state.detailByRowId.set(row.id, content);
         return [
           {

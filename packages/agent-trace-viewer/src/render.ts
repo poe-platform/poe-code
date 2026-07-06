@@ -20,7 +20,7 @@ const MAX_TRACE_META_CWD_WIDTH = 18;
 const MAX_SUBAGENT_AGENT_WIDTH = 13;
 const MAX_SUBAGENT_DESCRIPTION_WIDTH = 26;
 const COLLAPSED_TURN_LINES = 3;
-const MAX_CONVERSATION_LINES = 48;
+const TURNS_PER_RENDER_YIELD = 256;
 
 const CATEGORY_ORDER = [
   "system-prompt",
@@ -83,6 +83,10 @@ export function renderBreakdown(breakdown: ContextBreakdown, width = 32): string
   }
 
   const theme = getTheme();
+  const title =
+    breakdown.source === "estimated"
+      ? `Context breakdown ${theme.muted("(counting exact tokens…)")}`
+      : "Context breakdown";
   const bar = renderSegmentedBar(categories, normalizeGaugeWidth(width), theme);
   const labelWidth = Math.max(10, ...categories.map((category) => category.label.length));
   const tokenWidth = Math.max(
@@ -90,7 +94,7 @@ export function renderBreakdown(breakdown: ContextBreakdown, width = 32): string
     ...categories.map((category) => formatCount(category.tokens).length)
   );
   const percentWidth = Math.max(3, ...categories.map((category) => `${category.percent}%`.length));
-  const lines = ["Context breakdown", `  ${bar}`];
+  const lines = [title, `  ${bar}`];
 
   for (const category of categories) {
     const styler = categoryColor(category.id, theme);
@@ -180,7 +184,15 @@ export function renderSubagents(summaries: SubagentSummary[]): string {
   return lines.join("\n");
 }
 
-export function renderTraceDetail(view: TraceView, subagents: SubagentSummary[] = []): string {
+export interface RenderTraceDetailOptions {
+  signal?: AbortSignal;
+}
+
+export async function renderTraceDetail(
+  view: TraceView,
+  subagents: SubagentSummary[] = [],
+  options: RenderTraceDetailOptions = {}
+): Promise<string> {
   const theme = getTheme();
   const lines = [
     theme.header(truncate(sanitizeInline(view.title?.trim() || view.id), MAX_RENDER_WIDTH)),
@@ -203,25 +215,26 @@ export function renderTraceDetail(view: TraceView, subagents: SubagentSummary[] 
   lines.push("", theme.header("Conversation"));
   if (view.turns.length === 0) {
     lines.push(`  ${theme.muted("No turns")}`);
-  } else {
-    const conversationLines: string[] = [];
-    let renderedTurns = 0;
-    for (const turn of view.turns) {
-      if (conversationLines.length >= MAX_CONVERSATION_LINES) {
+    return lines.join("\n");
+  }
+
+  for (let index = 0; index < view.turns.length; index += 1) {
+    if (index > 0 && index % TURNS_PER_RENDER_YIELD === 0) {
+      await yieldToEventLoop();
+      if (options.signal?.aborted) {
         break;
       }
-      conversationLines.push(...renderTurn(turn, theme));
-      renderedTurns += 1;
     }
-    lines.push(...conversationLines.slice(0, MAX_CONVERSATION_LINES));
-    const truncatedLastTurn = conversationLines.length > MAX_CONVERSATION_LINES;
-    const remaining = view.turns.length - renderedTurns + (truncatedLastTurn ? 1 : 0);
-    if (remaining > 0) {
-      lines.push(`  ${theme.muted(`… ${remaining} more turns`)}`);
-    }
+    lines.push(...renderTurn(view.turns[index]!, theme));
   }
 
   return lines.join("\n");
+}
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => {
+    setImmediate(resolve);
+  });
 }
 
 function renderBreakdownItems(

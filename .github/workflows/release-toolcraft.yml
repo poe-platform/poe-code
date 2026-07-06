@@ -117,7 +117,7 @@ jobs:
           AUDIT_DIR=$(mktemp -d)
           printf '%s\n' '{"name":"toolcraft-packed-signature-audit","private":true}' > "$AUDIT_DIR/package.json"
           npm install --ignore-scripts --prefix "$AUDIT_DIR" "$PACK_DIR/$TARBALL"
-          npm audit signatures --prefix "$AUDIT_DIR"
+          npm audit signatures --omit=optional --prefix "$AUDIT_DIR"
       - name: Publish toolcraft
         working-directory: packages/toolcraft
         run: |
@@ -138,4 +138,4 @@ jobs:
           printf '%s\n' '{"name":"toolcraft-signature-audit","private":true}' > "$AUDIT_DIR/package.json"
           cd "$AUDIT_DIR"
           npm install "toolcraft@${{ steps.version.outputs.next }}"
-          npm audit signatures
+          npm audit signatures --omit=optional

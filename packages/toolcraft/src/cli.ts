@@ -10,11 +10,13 @@ import {
 import type {
   AnySchema,
   ArraySchema,
+  CliMissingParameterContext,
   EnumSchema,
   JsonValueSchema,
   ObjectSchema,
   RecordSchema
 } from "toolcraft-schema";
+import { validate as validateSchema } from "toolcraft-schema";
 import {
   cancel,
   configureTheme,
@@ -254,6 +256,8 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   logLevel?: LogLevel;
   logger?: RuntimeLoggerInput;
   outputEmitter?: (entry: string) => void;
+  promptInput?: NodeJS.ReadableStream;
+  promptOutput?: NodeJS.WritableStream;
   projectRoot?: string;
   rootDisplayName?: string;
   rootUsageName?: string;
@@ -2893,7 +2897,28 @@ function enumOptionLabel(schema: Extract<FieldSchema, { kind: "enum" }>, value: 
   return schema.labels[key] ?? key;
 }
 
-async function promptForField(field: FieldDefinition): Promise<unknown> {
+interface PromptStreams {
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
+}
+
+function withPromptStreams<T extends object>(options: T, streams: PromptStreams): T & PromptStreams {
+  return {
+    ...options,
+    ...(streams.input === undefined ? {} : { input: streams.input }),
+    ...(streams.output === undefined ? {} : { output: streams.output })
+  };
+}
+
+function throwPromptCancellation(): never {
+  cancel("Operation cancelled.");
+  throw new UserError("Operation cancelled.");
+}
+
+async function promptForField(
+  field: FieldDefinition,
+  streams: PromptStreams = {}
+): Promise<unknown> {
   const schema = field.schema;
   if (schema.kind === "enum") {
     const options = schema.loadOptions
@@ -2902,45 +2927,57 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
           label: enumOptionLabel(schema, value),
           value
         }));
-    const selected = await select({
-      message: field.description ?? fieldPromptLabel(field),
-      options,
-      initialValue: field.hasDefault ? field.defaultValue : undefined
-    });
+    const selected = await select(
+      withPromptStreams(
+        {
+          message: field.description ?? fieldPromptLabel(field),
+          options,
+          initialValue: field.hasDefault ? field.defaultValue : undefined
+        },
+        streams
+      )
+    );
 
     if (isCancel(selected)) {
-      cancel("Operation cancelled.");
-      throw new UserError("Operation cancelled.");
+      throwPromptCancellation();
     }
 
     return selected;
   }
 
   if (field.schema.kind === "boolean") {
-    const selected = await confirm({
-      message: fieldPromptLabel(field),
-      initialValue: field.hasDefault ? Boolean(field.defaultValue) : undefined
-    });
+    const selected = await confirm(
+      withPromptStreams(
+        {
+          message: fieldPromptLabel(field),
+          initialValue: field.hasDefault ? Boolean(field.defaultValue) : undefined
+        },
+        streams
+      )
+    );
 
     if (isCancel(selected)) {
-      cancel("Operation cancelled.");
-      throw new UserError("Operation cancelled.");
+      throwPromptCancellation();
     }
 
     return selected;
   }
 
-  const entered = await promptText({
-    message: fieldPromptLabel(field),
-    initialValue:
-      field.hasDefault && field.defaultValue !== undefined
-        ? formatResolvedValue(field.defaultValue)
-        : undefined
-  });
+  const entered = await promptText(
+    withPromptStreams(
+      {
+        message: fieldPromptLabel(field),
+        initialValue:
+          field.hasDefault && field.defaultValue !== undefined
+            ? formatResolvedValue(field.defaultValue)
+            : undefined
+      },
+      streams
+    )
+  );
 
   if (isCancel(entered)) {
-    cancel("Operation cancelled.");
-    throw new UserError("Operation cancelled.");
+    throwPromptCancellation();
   }
 
   if (typeof entered !== "string") {
@@ -4477,7 +4514,9 @@ async function resolveParams(
   rawArgv: string[],
   casing: Casing,
   presetPath: string | undefined,
-  shouldPrompt: boolean
+  shouldPrompt: boolean,
+  missingParameterContext: CliMissingParameterContext | undefined,
+  promptStreams: PromptStreams
 ): Promise<Record<string, unknown>> {
   const params: Record<string, unknown> = {};
   const presetValues =
@@ -4490,6 +4529,7 @@ async function resolveParams(
 
   for (const field of fields) {
     let value: unknown;
+    let resolvedMissing = false;
     let source: "default" | "option" | "positional" | "preset" | "prompt" | undefined;
 
     if (field.positionalIndex !== undefined) {
@@ -4560,8 +4600,62 @@ async function resolveParams(
       value = parsed.value;
     }
 
+    if (
+      value === undefined &&
+      field.optional &&
+      missingParameterContext !== undefined &&
+      field.schema.cli?.resolveMissing !== undefined
+    ) {
+      const resolution = await field.schema.cli.resolveMissing({
+        ...missingParameterContext,
+        params: { ...params }
+      });
+      const choices = resolution?.choices ?? [];
+
+      if (choices.length === 1) {
+        value = choices[0]?.value;
+        resolvedMissing = true;
+        source = "prompt";
+      } else if (choices.length > 1) {
+        const selected = await select<unknown>(
+          withPromptStreams(
+            {
+              message: resolution?.message ?? field.description ?? fieldPromptLabel(field),
+              options: choices.map((choice) => ({
+                label: choice.label,
+                value: choice.value as unknown
+              }))
+            },
+            promptStreams
+          )
+        );
+
+        if (isCancel(selected)) {
+          throwPromptCancellation();
+        }
+
+        value = selected;
+        resolvedMissing = true;
+        source = "prompt";
+      }
+    }
+
+    if (resolvedMissing) {
+      const validation = validateSchema(field.schema, value);
+      if (!validation.ok) {
+        errors.push(
+          ...validation.issues.map((issue) => ({
+            path: field.displayPath,
+            message: issue.message
+          }))
+        );
+        continue;
+      }
+      value = validation.value;
+    }
+
     if (value === undefined && shouldPrompt && !field.optional) {
-      value = await promptForField(field);
+      value = await promptForField(field, promptStreams);
       source = "prompt";
     }
 
@@ -4653,6 +4747,7 @@ async function executeCommand<TServices extends object>(
   runtimeEnv: Record<string, string> | undefined,
   runtimeFs: HandlerFs | undefined,
   outputEmitter: ((entry: string) => void) | undefined,
+  promptStreams: PromptStreams,
   diagnosticsOptions: {
     logLevel?: LogLevel;
     logger?: RuntimeLoggerInput;
@@ -4683,7 +4778,21 @@ async function executeCommand<TServices extends object>(
         : diagnosticsOptions.logLevel),
     logger: diagnosticsOptions.logger ?? writeCLIDiagnosticEvent
   });
-  const shouldPrompt = !resolvedFlags.yes && Boolean(process.stdin.isTTY);
+  const promptInput = promptStreams.input ?? process.stdin;
+  const promptOutput = promptStreams.output ?? process.stdout;
+  const stdinTTY = Boolean((promptInput as NodeJS.ReadStream).isTTY);
+  const stdoutTTY = Boolean((promptOutput as NodeJS.WriteStream).isTTY);
+  const shouldPrompt = !resolvedFlags.yes && stdinTTY;
+  const missingParameterContext: CliMissingParameterContext | undefined =
+    !resolvedFlags.yes && output === "rich" && stdinTTY && stdoutTTY
+      ? {
+          commandPath: state.commandPath,
+          params: {},
+          output,
+          stdinTTY,
+          stdoutTTY
+        }
+      : undefined;
   const runtime = await resolveFixtureRuntime(
     state.command,
     services,
@@ -4721,7 +4830,9 @@ async function executeCommand<TServices extends object>(
         state.rawArgv,
         state.casing,
         state.presetsEnabled ? resolvedFlags.preset : undefined,
-        shouldPrompt
+        shouldPrompt,
+        missingParameterContext,
+        promptStreams
       );
       resolvedParams = params;
       runtimeSecrets = runtime.secrets;
@@ -5702,6 +5813,10 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         options.env,
         options.fs,
         options.outputEmitter,
+        {
+          input: options.promptInput,
+          output: options.promptOutput
+        },
         {
           logLevel: options.logLevel,
           logger: options.logger,

@@ -18,6 +18,9 @@ import type {
 
 describe("toolcraft-schema", () => {
   it("exports typed builders from the package root", () => {
+    const resolveMissing = async () => ({
+      choices: [{ label: "Primary", value: "home-1" }]
+    });
     const stringSchema = S.String({ description: "Name", default: "guest" });
     const numberSchema = S.Number({ description: "Count", default: 3 });
     const booleanSchema = S.Boolean({ description: "Enabled", default: false });
@@ -55,6 +58,7 @@ describe("toolcraft-schema", () => {
     expect(unionSchema.kind).toBe("union");
     expect(recordSchema.kind).toBe("record");
     expect(jsonSchema.kind).toBe("json");
+    expect(S.String({ cli: { resolveMissing } }).cli?.resolveMissing).toBe(resolveMissing);
 
     expectTypeOf(stringSchema).toMatchTypeOf<StringSchema>();
     expectTypeOf(numberSchema).toMatchTypeOf<NumberSchema>();

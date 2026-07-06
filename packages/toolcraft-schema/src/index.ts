@@ -31,6 +31,30 @@ type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
 type EmptyOptions = Record<never, never>;
 type SchemaScope = "cli" | "mcp" | "sdk";
+export type CliOutputMode = "rich" | "md" | "json";
+export interface CliMissingParameterChoice<TValue> {
+  label: string;
+  value: TValue;
+}
+export interface CliMissingParameterContext {
+  commandPath: string;
+  params: Readonly<Record<string, unknown>>;
+  output: CliOutputMode;
+  stdinTTY: boolean;
+  stdoutTTY: boolean;
+}
+export interface CliMissingParameterResolution<TValue> {
+  choices: readonly CliMissingParameterChoice<TValue>[];
+  message?: string;
+}
+export interface CliSchemaOptions<TValue> {
+  resolveMissing?: (
+    context: CliMissingParameterContext
+  ) =>
+    | CliMissingParameterResolution<TValue>
+    | undefined
+    | Promise<CliMissingParameterResolution<TValue> | undefined>;
+}
 type StringMetadata = {
   format?: string;
   maxLength?: number;
@@ -65,6 +89,7 @@ type InferObject<TShape extends ObjectShape> = {
 };
 
 type SchemaOptions<TDefault> = {
+  cli?: CliSchemaOptions<TDefault>;
   description?: string;
   cliDescription?: string;
   cliAliases?: readonly string[];
@@ -83,6 +108,7 @@ type WithNullable<
 
 export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
+  readonly cli?: CliSchemaOptions<TStatic>;
   readonly description?: string;
   readonly cliDescription?: string;
   readonly cliAliases?: readonly string[];

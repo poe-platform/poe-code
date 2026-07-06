@@ -15,6 +15,36 @@ vi.mock("./human-in-loop/index.js", async (importOriginal) => {
 
 const { createSDK } = await import("./sdk.js");
 
+describe("createSDK CLI-only schema metadata", () => {
+  it("does not run missing-parameter resolvers", async () => {
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
+    const resolveMissing = vi.fn(async () => ({
+      choices: [{ label: "Kitchen", value: "homey-kitchen" }]
+    }));
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "init",
+            params: S.Object({
+              home: S.Optional(S.String({ cli: { resolveMissing } }))
+            }),
+            handler: async ({ params }) => params
+          })
+        ]
+      })
+    ) as {
+      init(params: { home?: string }): Promise<{ home?: string }>;
+    };
+
+    await expect(sdk.init({})).resolves.toEqual({});
+    expect(resolveMissing).not.toHaveBeenCalled();
+  });
+});
+
 describe("createSDK human-in-loop runtime options plumbing", () => {
   beforeEach(() => {
     invokeWithHumanInLoopMock.mockReset();

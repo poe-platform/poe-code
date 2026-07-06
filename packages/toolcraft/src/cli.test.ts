@@ -1110,6 +1110,178 @@ describe("runCLI", () => {
     expect(handler.mock.calls[0]?.[0].params).toEqual({ mode: "safe" });
   });
 
+  it("resolves an omitted optional parameter through an interactive CLI hook", async () => {
+    const resolveMissing = vi.fn(async () => ({
+      message: "Select a Homey",
+      choices: [
+        { label: "Kitchen", value: "homey-kitchen" },
+        { label: "Office", value: "homey-office" }
+      ]
+    }));
+    const handler = vi.fn(async ({ params }: { params: { home?: string } }) => params);
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({
+        home: S.Optional(S.String({ cli: { resolveMissing } }))
+      }),
+      handler
+    });
+    const root = defineGroup({ name: "toolcraft", children: [init] });
+    const promptInput = process.stdin;
+    const promptOutput = process.stdout;
+
+    promptState.select.mockResolvedValueOnce("homey-office");
+
+    await runCLI(root, {
+      argv: ["node", "toolcraft", "init"],
+      promptInput,
+      promptOutput
+    });
+
+    expect(resolveMissing).toHaveBeenCalledWith({
+      commandPath: "init",
+      params: {},
+      output: "rich",
+      stdinTTY: true,
+      stdoutTTY: true
+    });
+    expect(promptState.select).toHaveBeenCalledWith({
+      message: "Select a Homey",
+      options: [
+        { label: "Kitchen", value: "homey-kitchen" },
+        { label: "Office", value: "homey-office" }
+      ],
+      input: promptInput,
+      output: promptOutput
+    });
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { home: "homey-office" } })
+    );
+  });
+
+  it("automatically selects a single missing-parameter choice without prompting", async () => {
+    const resolveMissing = vi.fn(async () => ({
+      choices: [{ label: "Kitchen", value: "homey-kitchen" }]
+    }));
+    const handler = vi.fn(async ({ params }: { params: { home?: string } }) => params);
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({
+        home: S.Optional(S.String({ cli: { resolveMissing } }))
+      }),
+      handler
+    });
+
+    await runCLI(defineGroup({ name: "toolcraft", children: [init] }), {
+      argv: ["node", "toolcraft", "init"]
+    });
+
+    expect(promptState.select).not.toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { home: "homey-kitchen" } })
+    );
+  });
+
+  it.each([
+    { name: "an explicit value", argv: ["node", "toolcraft", "init", "--home", "given"] },
+    {
+      name: "structured output",
+      argv: ["node", "toolcraft", "init", "--output", "json"]
+    }
+  ])("bypasses missing-parameter resolution for $name", async ({ argv }) => {
+    const resolveMissing = vi.fn(async () => ({
+      choices: [{ label: "Kitchen", value: "homey-kitchen" }]
+    }));
+    const handler = vi.fn(async ({ params }: { params: { home?: string } }) => params);
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({
+        home: S.Optional(S.String({ cli: { resolveMissing } }))
+      }),
+      handler
+    });
+
+    await runCLI(defineGroup({ name: "toolcraft", children: [init] }), { argv });
+
+    expect(resolveMissing).not.toHaveBeenCalled();
+    expect(promptState.select).not.toHaveBeenCalled();
+  });
+
+  it("bypasses missing-parameter resolution when either prompt stream is not a TTY", async () => {
+    const resolveMissing = vi.fn(async () => ({
+      choices: [{ label: "Kitchen", value: "homey-kitchen" }]
+    }));
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({
+        home: S.Optional(S.String({ cli: { resolveMissing } }))
+      }),
+      handler: async ({ params }) => params
+    });
+
+    setTTY(process.stdout, false);
+    await runCLI(defineGroup({ name: "toolcraft", children: [init] }), {
+      argv: ["node", "toolcraft", "init"]
+    });
+
+    expect(resolveMissing).not.toHaveBeenCalled();
+  });
+
+  it("treats missing-parameter prompt cancellation as a user cancellation", async () => {
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({
+        home: S.Optional(
+          S.String({
+            cli: {
+              resolveMissing: async () => ({
+                choices: [
+                  { label: "Kitchen", value: "homey-kitchen" },
+                  { label: "Office", value: "homey-office" }
+                ]
+              })
+            }
+          })
+        )
+      }),
+      handler: vi.fn()
+    });
+
+    promptState.select.mockResolvedValueOnce(Symbol("cancel"));
+    await runCLI(defineGroup({ name: "toolcraft", children: [init] }), {
+      argv: ["node", "toolcraft", "init"]
+    });
+
+    expect(promptState.cancel).toHaveBeenCalledWith("Operation cancelled.");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("validates a resolved canonical value before handler execution", async () => {
+    const handler = vi.fn();
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({
+        home: S.Optional(
+          S.Enum(["homey-kitchen", "homey-office"] as const, {
+            cli: {
+              resolveMissing: async () => ({
+                choices: [{ label: "Invalid", value: "homey-invalid" }]
+              })
+            }
+          })
+        )
+      }),
+      handler
+    });
+
+    await runCLI(defineGroup({ name: "toolcraft", children: [init] }), {
+      argv: ["node", "toolcraft", "init"]
+    });
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+  });
+
   it("uses enum labels and schema description for the select prompt when provided", async () => {
     const handler = vi.fn(async (ctx: { params: { mode: "safe" | "fast" } }) => ctx.params);
 

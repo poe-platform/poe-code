@@ -10,24 +10,31 @@ npm run lint:packages
 
 Expect:
 
-- A header: `package-lint · 9 rules · <N> packages`.
-- Failing rules grouped under a red `■` header with a `(count)`; each violation
-  lists the package, the `via` field in parentheses, a one-line message, and a
-  `↳ fix:` hint on the following line.
-- `public-needs-publish-wiring` is a hygiene warning (`▲`): a public package
-  with no release workflow / `repository.directory` has no publish path.
+- A header: `package-lint · 14 rules · <N> packages`.
+- One line per rule.
+- Passing rules render `<rule-id>    ✓`.
+- The current repo baseline ends with `✓ all 14 rules passed`.
+- Exit code is `0`.
+
+When a rule fails, expect:
+
+- failures grouped under a red `■` header with a `(count)`;
+- warnings grouped under a yellow `▲` header;
+- each violation lists the package, optional `via` field, one-line message, and
+  `↳ fix:` hint;
+- a summary line such as `<n> rules failed · <m> violations`;
+- exit code `1`.
+
+Important rules:
+
+- `public-needs-publish-wiring` is a hygiene warning: a public package with no
+  release workflow or `repository.directory` has no publish path.
 - `no-cross-package-relative-import` flags relative imports that escape into a
-  sibling package (e.g. `../../mcp-oauth/dist/index.js`) — error in shipped
-  code, warning in tests.
+  sibling package. This is an error in shipped code and a warning in tests.
 - `imported-workspace-dep-unresolvable` flags a published package whose shipped
-  source imports a workspace package it neither bundles nor publishes (e.g.
-  `terminal-pilot` → `@poe-code/agent-skill-config`).
+  source imports a workspace package it neither bundles nor publishes.
 - `exports-subpath-resolvable` flags a bare subpath import of a workspace package
-  (e.g. `toolcraft/cli`) that the target's `exports` map does not expose (clean
-  today — a regression guard).
-- Rules with no violations render `<rule-id>    ✓`.
-- A summary line: `<n> rules failed · <m> violations` (with `(k warnings)` when any).
-- Exit code is `1` (violations present). Confirm with `echo $?`.
+  that the target's `exports` map does not expose.
 
 The import-driven rules parse real `src` imports with the TypeScript compiler,
 so they catch undeclared imports that the package.json-based rules cannot.
@@ -38,10 +45,17 @@ so they catch undeclared imports that the package.json-based rules cannot.
 npm run lint:packages -- --json
 ```
 
-Expect valid JSON with `summary` (`packages`, `rules`, `violations`, `ok: false`),
-a `violations` array (each with `rule`, `package`, `severity`, optional `via`,
-`detail`, `message`), and `skipped`. Pipe through `node -e` or `jq` to confirm it
-parses.
+Expect valid JSON with:
+
+- `summary.packages`
+- `summary.rules`
+- `summary.violations`
+- `summary.ok`
+- `violations`
+- `skipped`
+
+On the current clean baseline, `summary.ok` is `true` and `violations` is empty.
+Pipe through `node -e` or `jq` to confirm it parses.
 
 ## 3. Single rule
 
@@ -49,7 +63,7 @@ parses.
 npm run lint:packages -- --rule no-published-to-private-dep
 ```
 
-Expect only that rule to run (header shows `1 rules`) and only its violations.
+Expect only that rule to run. The header shows `1 rules`.
 
 ## 4. Build-aware rule participates after a build
 
@@ -59,8 +73,7 @@ npm run lint:packages -- --json
 ```
 
 Expect `skipped` to be empty (no longer `["bundle-self-contained"]`) because
-`dist/metafile.json` now exists, and `bundle-self-contained` to report `✓`
-(the bundle inlines every workspace package and externalizes only root deps).
+`dist/metafile.json` now exists. `bundle-self-contained` should report `✓`.
 
 Before any build (or after `rm dist/metafile.json`), expect
 `skipped: ["bundle-self-contained"]` and the rendered report to show
@@ -72,6 +85,6 @@ Before any build (or after `rm dist/metafile.json`), expect
 npx vitest run packages/package-lint/src/repo-baseline.test.ts
 ```
 
-Expect green. This asserts the analyzer still finds exactly the violation set in
+Expect green. This asserts the analyzer still finds the violation set recorded in
 `packages/package-lint/baseline.json`. When a violation is fixed, regenerate the
 baseline so the set shrinks toward `[]`.

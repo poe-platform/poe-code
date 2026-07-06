@@ -1,15 +1,19 @@
-# Spawn-time MCP Server Injection
+# Spawn-Time MCP Server Injection
 
 Pass MCP servers directly at spawn time via `--mcp-servers`, removing the need to pre-configure agent config files.
 The CLI accepts inline JSON or `@path/to/file.json` (deprecated alias: `--mcp-config`).
 
 ## Supported Agents
 
-| Agent | Serialization |
-|-------|---------------|
-| Claude Code | `--mcp-servers` JSON |
-| Codex | `-c` TOML overrides |
-| Kimi | `--mcp-servers` JSON |
+| Agent       | Serialization                         |
+| ----------- | ------------------------------------- |
+| Claude Code | `--mcp-servers` JSON                  |
+| Codex       | `-c` TOML overrides                   |
+| Cursor      | temporary `.cursor/mcp.json`          |
+| OpenCode    | environment-backed MCP config         |
+| Kimi        | `--mcp-servers` JSON                  |
+| Goose       | repeated `--with-extension` arguments |
+| Gemini CLI  | ACP MCP server names                  |
 
 Unsupported agents receive a clear error listing which agents do support it.
 
@@ -68,8 +72,8 @@ Add a single `mcpArgs` function to the agent's spawn config:
 ```typescript
 export const myAgentSpawnConfig: CliSpawnConfig = {
   // ...existing config
-  mcpArgs: serializeJsonMcpArgs, // or a custom serializer
+  mcpArgs: serializeJsonMcpArgs // or a custom serializer
 };
 ```
 
-The agent automatically appears in `listMcpSupportedAgents()` and passes the `supportsMcpAtSpawn()` check.
+For CLI spawn configs, the agent automatically appears in `listMcpSupportedAgents()` and passes the `supportsMcpAtSpawn()` check. Provider-owned custom spawn handlers can also advertise support with `supportsMcpSpawn: true`.

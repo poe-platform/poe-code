@@ -1,4 +1,4 @@
-## Poe Code Vision
+# Poe Code Vision
 
 Poe Code lets developers use their preferred coding agents through Poe.
 One Poe subscription should be enough to run Claude Code, Codex, OpenCode,
@@ -98,9 +98,9 @@ We prioritize:
 - Clear failures when an agent cannot support a requested capability
 - No hidden network or provider behavior outside the user's command
 
-Powerful workflows are allowed, but the user should know when they are
-configuring credentials, changing agent config, invoking MCP servers, or
-running an agent in a workspace.
+Long-running and multi-agent workflows are allowed, but the user should know
+when they are configuring credentials, changing agent config, invoking MCP
+servers, or running an agent in a workspace.
 
 ## Contribution Rules
 
@@ -137,7 +137,7 @@ Do not update the root README without explicit user permission.
 
 This list is a direction guardrail.
 Strong user demand and a clear technical reason can change it, but the default
-is to keep Poe Code small, provider-driven, explicit, and easy to test.
+is to keep Poe Code small, provider-driven, explicit, and fast to test.
 
 ## Release Direction
 

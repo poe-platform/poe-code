@@ -1,34 +1,58 @@
 # Development
 
-## Run locally
+## Run Locally
 
-- Run `npm run dev -- <command>` to invoke the CLI without rebuilding:
+Use the development CLI without rebuilding:
 
-## Install local package
+```sh
+npm run dev -- <command> <args>
+npm run dev -- --help
+```
 
-Install a locally-built version globally, mimicking a real npm release:
+Install a locally built package globally when you need release-like behavior:
 
-```bash
+```sh
 npm run install-local-package
+poe-code --version
 ```
 
-Verify it worked with `poe-code --version` — local builds show a ` local build ` badge.
+Local builds show a `local build` badge.
 
-## E2E testing
+## Checks
 
-Requires a valid API key plus the selected backend prerequisites. Local runs default to `sandbox`; CI defaults to `env`. Override with `E2E_BACKEND=env|sandbox|podman`.
-
-```bash
-npm run e2e           # Quiet mode - shows progress and summary
-npm run e2e:verbose   # Verbose mode - shows all output
+```sh
+npm run test -- <path-or-pattern>
+npm run lint
+npm run typecheck
+npm run lint:packages
 ```
 
-Additional commands:
-- `npm run e2e:cleanup` - Backend-aware cleanup for podman artifacts and local cache
-- `npm run e2e:cache:clear` - Clear the local e2e cache if dependencies seem stale
+Use targeted tests while iterating. Broaden to root checks for cross-package changes.
 
-The e2e runner caches downloads at `~/.cache/poe-e2e`. See `docs/development/e2e.md` for backend details and prerequisites.
+## E2E
 
-## Use different base_url
+E2E requires a valid API key plus backend prerequisites. Local runs default to `sandbox`; CI defaults to `env`.
 
-`POE_BASE_URL=<http://localhost:8000/__proxy__/poe/v1> npx poe-code@latest configure claude`
+```sh
+npm run e2e
+npm run e2e:verbose
+E2E_BACKEND=env npm run e2e
+E2E_BACKEND=podman E2E_PODMAN_IMAGE=poe-code-e2e:local npm run e2e
+```
+
+Cleanup:
+
+```sh
+npm run e2e:cleanup
+npm run e2e:cache:clear
+```
+
+See [docs/development/e2e.md](docs/development/e2e.md) for backend details.
+
+## Local Poe API
+
+Point commands at a local Poe-compatible API:
+
+```sh
+POE_BASE_URL=http://localhost:8000/__proxy__/poe/v1 npm run dev -- configure claude
+```

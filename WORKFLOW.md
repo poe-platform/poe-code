@@ -81,6 +81,7 @@ states:
   archive:
     terminal: true
 ---
+
 {{ task.qualifiedId }}: {{ task.name }}
 
 {{ task.description }}

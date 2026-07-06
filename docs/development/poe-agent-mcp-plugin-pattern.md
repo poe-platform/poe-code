@@ -4,6 +4,7 @@ MCP servers in `@poe-code/poe-agent` are regular runtime plugins.
 
 Use a plain `AgentPlugin` and call `api.addMcp()` in `setup()` with server config.
 The runtime handles:
+
 - Creating `StdioTransport`
 - Connecting `McpClient`
 - Discovering server tools
@@ -28,9 +29,9 @@ const myServer = (options: MyServerOptions): AgentPlugin => ({
       name: "my-server",
       command: options.command,
       args: options.args,
-      env: options.env,
+      env: options.env
     });
-  },
+  }
 });
 
 export default myServer;
@@ -39,6 +40,7 @@ export default myServer;
 ## Config Shape
 
 `McpServerConfig` extends `McpSpawnServer` from `@poe-code/agent-spawn` with:
+
 - `name` (required)
 - `visibility` (`"model" | "skill"`, optional)
 

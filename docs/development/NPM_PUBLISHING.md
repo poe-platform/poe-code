@@ -1,41 +1,83 @@
-# Publishing a new npm package
+# NPM Publishing
 
-## 1. First publish (local, one-time)
+Releases happen in GitHub Actions. Do not run `npm publish` locally.
 
-```sh
-cd packages/<package-dir>
-npm login
-npm publish --access public
+## Root Package
+
+The root `poe-code` package is released by `.github/workflows/release.yml`.
+
+| Target | Branch | Dist tag |
+| ------ | ------ | -------- |
+| Stable | `main` | `latest` |
+| Beta   | `beta` | `beta`   |
+
+Use `.github/workflows/bump-version.yml` when GitHub should bump and release the
+root package. The release workflow runs semantic-release and publishes from
+GitHub.
+
+## Workspace Packages
+
+Workspace packages use dedicated release workflows, for example
+`release-toolcraft.yml`, `release-tokenfill.yml`, and `release-terminal-png.yml`.
+
+Before making a workspace package public:
+
+1. Remove `private: true` from the package manifest.
+2. Keep `files: ["dist"]` so source-only files are not published accidentally.
+3. Add repository metadata:
+
+   ```json
+   {
+     "repository": {
+       "type": "git",
+       "url": "git+https://github.com/poe-platform/poe-code.git",
+       "directory": "packages/<package-dir>"
+     }
+   }
+   ```
+
+4. Add or update a release workflow in `.github/workflows/`.
+5. Run `npm run lint:packages`.
+
+Release workflows should:
+
+- trigger from `main` with package-specific path filters when possible;
+- build the package before publishing;
+- publish with `npm publish --provenance --access public`;
+- use GitHub OIDC provenance instead of npm tokens.
+
+Required workflow permissions:
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
 ```
 
-## 2. Configure provenance on npmjs.com
+Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`. In
+`actions/setup-node`, set the Node version, then upgrade npm before publishing:
 
-Go to `https://www.npmjs.com/package/<package-name>/access` and add a trusted publisher:
+```sh
+npm install --global npm@^11.5.1
+npm publish --provenance --access public
+```
 
-- **Organization or user:** `poe-platform`
-- **Repository:** `poe-code`
-- **Workflow filename:** the workflow file that publishes the package (e.g. `release-<name>.yml`)
-- **Environment:** leave empty
+## Trusted Publishing
 
-After this, GitHub Actions can publish new versions using OIDC provenance — no tokens needed.
+Configure trusted publishing on npmjs.com for each public package:
 
-## 3. Create a release workflow
+- Organization or user: `poe-platform`
+- Repository: `poe-code`
+- Workflow filename: the workflow that publishes the package
+- Environment: leave empty unless the workflow uses one
 
-Add a workflow in `.github/workflows/` that triggers on push to `main` with a path filter for the package directory. The workflow should:
+After that, GitHub Actions can publish with provenance without `NPM_TOKEN` or
+`NODE_AUTH_TOKEN`.
 
-1. Build the package
-2. Auto-bump the patch version from whatever is currently on npm
-3. Publish with `--provenance --access public`
+## Version Alignment
 
-Required permissions: `id-token: write` (for OIDC provenance).
-
-For trusted publishing, avoid token-based npm auth in the workflow:
-
-- Do not set `NODE_AUTH_TOKEN` / `NPM_TOKEN` for the publish job.
-- Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`.
-- In `actions/setup-node`, set `node-version`, then upgrade npm (example: `npm install --global npm@^11.5.1`) before running `npm publish --provenance --access public`.
-
-For the version alignment step, use `--allow-same-version` so the workflow does not fail on first run after local initial publish:
+Package release workflows that publish independent workspace packages should
+align with the current npm version before bumping:
 
 ```sh
 REMOTE=$(npm view <package-name> version 2>/dev/null || echo "0.0.0")
@@ -43,24 +85,16 @@ npm version --no-git-tag-version --allow-same-version "$REMOTE"
 npm version --no-git-tag-version patch
 ```
 
-## 4. Provenance troubleshooting
+Use `--allow-same-version` so the first workflow run after setup does not fail
+when the manifest already matches npm.
+
+## Provenance Failures
 
 If publish fails with an error like:
 
-`E422 ... Error verifying sigstore provenance bundle ... package.json: "repository.url" is "", expected to match "https://github.com/poe-platform/poe-code" from provenance`
-
-Then make sure the package `package.json` includes repository metadata that points to this repo:
-
-```json
-{
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/<package-dir>"
-  }
-}
+```text
+E422 ... Error verifying sigstore provenance bundle ... package.json: "repository.url" is "", expected to match "https://github.com/poe-platform/poe-code" from provenance
 ```
 
-## 5. Releasing new versions
-
-Just merge your changes to `main`. The workflow auto-bumps the patch version and publishes — no manual version bumps needed.
+Fix the package `repository` metadata. The URL must point to this repo, and
+`repository.directory` must point to the workspace package directory.

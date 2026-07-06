@@ -1,421 +1,137 @@
-# E2E Assertion Catalog (US-006 Investigation)
+# E2E Assertion Guide
 
-Investigation of what to assert in each e2e step, based on source code analysis
-of the CLI commands, provider definitions, and templates.
+Use this guide when adding or reviewing tests under `e2e/`. Keep assertions tied
+to observable behavior, generated files, and the selected backend. Do not copy
+absolute paths or model ids from one provider test into another.
 
-## How `stdoutMatchesExpected` works
+## Baseline Pattern
 
-The health check passes if the expected string appears as an exact match on any
-trimmed non-empty line of stdout (`command-checks.ts:stdoutMatchesExpected`).
-This is important: we don't need to match the entire stdout, just one line.
+New provider e2e tests should normally cover this flow:
 
----
-
-## Login
-
-**Command:** `poe-code login --api-key '<key>'`
-
-### Assertions
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Exit code | `result.exitCode` | `0` |
-| Success message | `result.stdout` | Contains `Poe API key stored at` |
-| Credentials file exists | `container.fileExists('~/.poe-code/credentials.json')` | `true` |
-| Credentials file content | `container.readFile('~/.poe-code/credentials.json')` | Valid JSON with `apiKey` field |
-
-### Notes
-- The exact success message is: `Poe API key stored at /root/.poe-code/credentials.json.`
-- The credentials file has the structure: `{ "apiKey": "<key>" }`
-- After login, if services were previously configured, they are reconfigured with the new key
-- The `~/.poe-code/` directory is created automatically if it doesn't exist
-
----
-
-## Install
-
-**Commands per agent:**
-- `poe-code install claude-code`
-- `poe-code install codex`
-- `poe-code install opencode`
-- `poe-code install kimi`
-- `poe-code install goose`
-
-### Common Assertions (all agents)
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Exit code | `result.exitCode` | `0` |
-| Success message | `result.stdout` | Contains `Installed <label>.` |
-
-### Per-Agent Assertions
-
-#### claude-code
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed Claude Code.` or `Installed Claude CLI.` |
-| Binary exists | `container.exec('which claude')` | Exit code `0` |
-| Binary path (common) | `container.fileExists('/root/.claude/local/bin/claude')` | `true` (may vary by install method) |
-
-**Install method:** `curl -fsSL https://claude.ai/install.sh | bash` (unix)
-
-#### codex
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed Codex.` or `Installed Codex CLI via npm.` |
-| Binary exists | `container.exec('which codex')` | Exit code `0` |
-
-**Install method:** `npm install -g @openai/codex`
-
-#### opencode
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed OpenCode CLI.` or `Installed OpenCode CLI via npm.` |
-| Binary exists | `container.exec('which opencode')` | Exit code `0` |
-
-**Install method:** `npm install -g opencode-ai`
-
-#### kimi
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed Kimi.` or `Installed Kimi CLI via uv.` |
-| Binary exists | `container.exec('which kimi')` | Exit code `0` |
-
-**Install method:** `uv tool install --python 3.13 kimi-cli`
-
-#### goose
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Installed Goose CLI.` |
-| Binary exists | `container.exec('which goose')` | Exit code `0` |
-
-**Install method:** `brew install block-goose-cli` (macOS) or Goose install script (Linux/Windows)
-
-### Notes
-- Install is idempotent; if the binary already exists, it may skip with a
-  different message (e.g., "already installed")
-- The install check uses `which <binary>` first, then `where <binary>`, then
-  common path tests (`/usr/local/bin/<binary>`, `/usr/bin/<binary>`,
-  `$HOME/.local/bin/<binary>`, `$HOME/.claude/local/bin/<binary>`)
-- Success messages use `adapter.label` (e.g., "Claude Code", "Codex", "OpenCode CLI", "Kimi")
-  with the pattern: `Installed <label>.`
-
----
-
-## Configure
-
-**Commands per agent:**
-- `poe-code configure claude-code --yes`
-- `poe-code configure codex --yes`
-- `poe-code configure opencode --yes`
-- `poe-code configure kimi --yes`
-- `poe-code configure goose --yes`
-
-### Common Assertions (all agents)
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Exit code | `result.exitCode` | `0` |
-| Success message | `result.stdout` | Contains `Configured <label>.` |
-| Credentials updated | `container.readFile('~/.poe-code/credentials.json')` | Has `configured_services.<agent>` |
-
-### Per-Agent Assertions
-
-#### claude-code
-
-**Config path:** `~/.claude/settings.json`
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Configured Claude Code.` |
-| Config file exists | `container.fileExists('/root/.claude/settings.json')` | `true` |
-| Config structure | `container.readFile('/root/.claude/settings.json')` | Valid JSON |
-| Config: apiKeyHelper | parsed config | `apiKeyHelper` field starts with `echo ` |
-| Config: env.ANTHROPIC_BASE_URL | parsed config | Non-empty URL string |
-| Config: model | parsed config | One of: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4.7` |
-| Post-configure message | `result.stdout` | Contains `vscode://settings/claudeCode.disableLoginPrompt` |
-
-**Expected config structure:**
-```json
-{
-  "apiKeyHelper": "echo <api-key>",
-  "env": {
-    "ANTHROPIC_BASE_URL": "https://api.poe.com/v1"
-  },
-  "model": "claude-opus-4.7"
-}
-```
-
-**Default model:** `anthropic/claude-opus-4.7` (stripped to `claude-opus-4.7`)
-
-#### codex
-
-**Config path:** `~/.codex/config.toml`
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Configured Codex.` |
-| Config dir exists | `container.exec('test -d /root/.codex')` | Exit code `0` |
-| Config file exists | `container.fileExists('/root/.codex/config.toml')` | `true` |
-| Config: model_provider | parsed TOML | `"poe"` |
-| Config: model | parsed TOML | Default: `gpt-5.5` |
-| Config: model_reasoning_effort | parsed TOML | Default: `medium` |
-| Config: model_verbosity | parsed TOML | Default: `medium` |
-| Config: profiles.gpt-5.5.model | parsed TOML | `gpt-5.5` |
-| Config: model_providers.poe.base_url | parsed TOML | Non-empty URL |
-| Config: model_providers.poe.experimental_bearer_token | parsed TOML | Non-empty string (API key) |
-
-**Expected config structure (TOML):**
-```toml
-model_provider = "poe"
-model = "gpt-5.5"
-model_reasoning_effort = "medium"
-model_verbosity = "medium"
-
-[profiles."gpt-5.5"]
-model = "gpt-5.5"
-model_provider = "poe"
-model_reasoning_effort = "medium"
-model_verbosity = "medium"
-
-[model_providers.poe]
-name = "poe"
-base_url = "https://api.poe.com/v1"
-wire_api = "responses"
-experimental_bearer_token = "<api-key>"
-```
-
-**Default model:** `openai/gpt-5.5` (stripped to `gpt-5.5`)
-
-#### opencode
-
-**Config paths:** `~/.config/opencode/config.json` and `~/.opencode-data/auth.json`
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Configured OpenCode CLI.` |
-| Config file exists | `container.fileExists('/root/.config/opencode/config.json')` | `true` |
-| Auth file exists | `container.fileExists('/root/.opencode-data/auth.json')` | `true` |
-| Config: model | parsed JSON | `"poe/claude-sonnet-4.6"` (default) |
-| Config: enabled_providers | parsed JSON | Contains `"poe"` |
-| Auth: poe.type | parsed JSON | `"api"` |
-| Auth: poe.key | parsed JSON | Non-empty string (API key) |
-
-**Expected config structure:**
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "model": "poe/claude-sonnet-4.6",
-  "enabled_providers": ["poe"]
-}
-```
-
-**Expected auth structure:**
-```json
-{
-  "poe": {
-    "type": "api",
-    "key": "<api-key>"
-  }
-}
-```
-
-**Default model:** `anthropic/claude-sonnet-4.6` (provider-prefixed as `poe/claude-sonnet-4.6`)
-
-#### kimi
-
-**Config path:** `~/.kimi/config.toml`
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Success message | `result.stdout` | Contains `Configured Kimi.` |
-| Config dir exists | `container.exec('test -d /root/.kimi')` | Exit code `0` |
-| Config file exists | `container.fileExists('/root/.kimi/config.toml')` | `true` |
-| Config: default_model | parsed TOML | `"poe/kimi-k2.5"` (default) |
-| Config: default_thinking | parsed TOML | `true` |
-| Config: providers.poe.type | parsed TOML | `"openai_legacy"` |
-| Config: providers.poe.base_url | parsed TOML | Non-empty URL |
-| Config: providers.poe.api_key | parsed TOML | Non-empty string (API key) |
-| Config: models | parsed TOML | Contains entries for all KIMI_MODELS |
-
-**Expected config structure (TOML):**
-```toml
-default_model = "poe/kimi-k2.5"
-default_thinking = true
-
-[models."poe/kimi-k2.5"]
-provider = "poe"
-model = "kimi-k2.5"
-max_context_size = 256000
-
-[models."poe/kimi-k2-thinking"]
-provider = "poe"
-model = "kimi-k2-thinking"
-max_context_size = 256000
-
-[providers.poe]
-type = "openai_legacy"
-base_url = "https://api.poe.com/v1"
-api_key = "<api-key>"
-```
-
-**Default model:** `novitaai/kimi-k2.5` (provider-prefixed as `poe/kimi-k2.5`)
-
-**All Kimi models configured:**
-- `novitaai/kimi-k2.5` -> `poe/kimi-k2.5`
-- `novitaai/kimi-k2-thinking` -> `poe/kimi-k2-thinking`
-
----
-
-## Test
-
-**Commands per agent:**
-- `poe-code test claude-code`
-- `poe-code test codex`
-- `poe-code test opencode`
-- `poe-code test kimi`
-- `poe-code test goose`
-
-### Common Assertions (all agents)
-
-| What | How to check | Expected |
-|------|-------------|----------|
-| Exit code | `result.exitCode` | `0` |
-| Success message | `result.stdout` | Contains `Tested <label>.` |
-
-### Per-Agent Health Check Details
-
-#### claude-code
-| What | How to check | Expected |
-|------|-------------|----------|
-| Health check output | `result.stdout` | Contains `CLAUDE_CODE_OK` on a line |
-| Success message | `result.stdout` | Contains `Tested Claude Code.` |
-
-**Health check command:** `claude -p "Output exactly: CLAUDE_CODE_OK" --model claude-opus-4.7 --allowedTools Bash,Read --permission-mode acceptEdits --output-format text`
-
-#### codex
-| What | How to check | Expected |
-|------|-------------|----------|
-| Health check output | `result.stdout` | Contains `CODEX_OK` on a line |
-| Success message | `result.stdout` | Contains `Tested Codex.` |
-
-**Health check command:** `codex --model gpt-5.2-codex exec "Output exactly: CODEX_OK" --full-auto --skip-git-repo-check`
-
-#### opencode
-| What | How to check | Expected |
-|------|-------------|----------|
-| Health check output | `result.stdout` | Contains `OPEN_CODE_OK` on a line |
-| Success message | `result.stdout` | Contains `Tested OpenCode CLI.` |
-
-**Health check command:** `opencode --model poe/claude-sonnet-4.6 run "Output exactly: OPEN_CODE_OK"`
-
-#### kimi
-| What | How to check | Expected |
-|------|-------------|----------|
-| Health check output | `result.stdout` | Contains `KIMI_OK` on a line |
-| Success message | `result.stdout` | Contains `Tested Kimi.` |
-
-**Health check command:** `kimi --quiet -p "Output exactly: KIMI_OK"`
-
-#### goose
-| What | How to check | Expected |
-|------|-------------|----------|
-| Health check output | `result.stdout` | Contains `GOOSE_OK` on a line |
-| Success message | `result.stdout` | Contains `Tested Goose.` |
-
-**Health check command:** `goose run --text "Reply with exactly: GOOSE_OK" --output-format text`
-
-### Isolated Test Mode
-
-**Commands per agent:**
-- `poe-code test claude-code --isolated`
-- `poe-code test codex --isolated`
-- `poe-code test opencode --isolated`
-- `poe-code test kimi --isolated`
-- `poe-code test goose --isolated`
-
-Same assertions as above, but the test runs in an isolated environment using
-`poe-code wrap <agent> -- <args>` under the hood.
-
----
-
-## Recommended Assertion Patterns for US-007
-
-Based on the investigation above, here are the recommended assertion patterns for
-the refactored e2e tests using the Container API:
-
-### Pattern: Login + Verify Credentials
 ```typescript
-it('login', async () => {
-  await container.login();
-  expect(await container.fileExists('/root/.poe-code/credentials.json')).toBe(true);
-  const creds = JSON.parse(await container.readFile('/root/.poe-code/credentials.json'));
-  expect(creds).toHaveProperty('apiKey');
+import { describe, expect, it, beforeEach } from "vitest";
+import { useContainer } from "@poe-code/e2e-test-runner";
+
+describe("agent-name", () => {
+  const container = useContainer({ testName: "agent-name" });
+
+  beforeEach(async () => {
+    const installResult = await container.exec("poe-code install agent-name");
+    expect(installResult).toHaveExitCode(0);
+  });
+
+  it("configure and test", async () => {
+    const configureResult = await container.exec("poe-code configure agent-name --yes");
+    expect(configureResult).toHaveExitCode(0);
+
+    await expect(container).toHaveFile(`${container.home}/path/to/generated/config`);
+
+    const testResult = await container.exec("poe-code test agent-name");
+    expect(testResult).toSucceedWith("Tested Agent Label.");
+  });
 });
 ```
 
-### Pattern: Install + Verify Binary
+Prefer the runner matchers over raw string checks:
+
+- `toHaveExitCode(0)` for command success.
+- `toSucceedWith("...")` when the CLI must print a stable success line.
+- `toFail()` and `toHaveStderr("...")` for expected failures.
+- `toHaveFile(path)` for generated config and state files.
+
+## Path Rules
+
+Always build paths from runner-provided locations:
+
+- Use `container.home` for user config such as `.codex/config.toml`.
+- Use `container.workspace` for files the agent should create in the test repo.
+- Avoid `/root`, `/home/poe`, and host temp paths in assertions.
+
+`container.home` changes by backend:
+
+| Backend   | `container.home`         |
+| --------- | ------------------------ |
+| `env`     | Temporary host directory |
+| `sandbox` | Temporary host directory |
+| `podman`  | `/home/poe`              |
+
+## Configure Assertions
+
+`poe-code configure <agent> --yes` should assert:
+
+- exit code `0`;
+- the provider-specific config file exists under `container.home`;
+- the config parses with the right parser for its format;
+- required Poe wiring is present: provider name, base URL, API-key reference or
+  stored secret;
+- provider-specific files are created when the provider needs more than one file.
+
+Do not assert every generated field. Assert the fields that prove the command
+wrote a usable provider config.
+
+For model assertions, import the default from `src/cli/constants.ts` when the
+test is checking the current default. Use an explicit `--model <model-id>` when
+the behavior under test is model override handling.
+
+## Test Command Assertions
+
+`poe-code test <agent>` should assert:
+
+- command success through `toSucceedWith("Tested <Agent Label>.")`;
+- no dependency on `POE_API_KEY` when the provider stores its own secret during
+  configure;
+- isolated mode when the provider supports it:
+
 ```typescript
-it('install', async () => {
-  const result = await container.exec('poe-code install <agent>');
-  expect(result.exitCode).toBe(0);
-  // Verify binary is on PATH
-  const which = await container.exec('which <binary>');
-  expect(which.exitCode).toBe(0);
-});
+const result = await container.exec("poe-code test agent-name --isolated");
+expect(result).toSucceedWith("Tested Agent Label.");
 ```
 
-### Pattern: Configure + Verify Config Files
-```typescript
-it('configure', async () => {
-  const result = await container.exec('poe-code configure <agent> --yes');
-  expect(result.exitCode).toBe(0);
-  // Verify config file exists and has expected structure
-  expect(await container.fileExists('<config-path>')).toBe(true);
-  const config = await container.readFile('<config-path>');
-  // Parse and validate structure (JSON.parse or TOML parse)
-});
-```
+For isolated mode, assert copied or generated state under
+`${container.home}/.poe-code/<agent>/...` only when that state is part of the
+contract.
 
-### Pattern: Test + Verify Health Check
-```typescript
-it('test', async () => {
-  const result = await container.exec('poe-code test <agent>');
-  expect(result.exitCode).toBe(0);
-  expect(result.stdout).toContain('<EXPECTED_TOKEN>');
-});
-```
+## Spawn Assertions
 
----
+Use spawn e2e coverage only when a provider feature cannot be proven by
+`configure` plus `test`.
 
-## Key File Paths Summary
+Good spawn assertions:
 
-| Agent | Binary Name | Config Path(s) | Install Method |
-|-------|------------|----------------|----------------|
-| claude-code | `claude` | `~/.claude/settings.json` | curl installer |
-| codex | `codex` | `~/.codex/config.toml` | npm -g |
-| opencode | `opencode` | `~/.config/opencode/config.json`, `~/.opencode-data/auth.json` | npm -g |
-| kimi | `kimi` | `~/.kimi/config.toml` | uv tool install |
-| goose | `goose` | `~/.config/goose/config.yaml`, `~/.config/goose/secrets.yaml`, `~/.config/goose/custom_providers/custom_poe.json` | brew or install script |
+- command exits with code `0`;
+- the agent creates or edits an expected file in `container.workspace`;
+- the file content proves the prompt was followed;
+- MCP spawn tests validate tool output, not generic agent prose.
 
-**Shared:** `~/.poe-code/credentials.json` (login, tracks configured services)
+Keep prompts deterministic and scoped to one observable effect.
 
-## Health Check Tokens
+## Output Matching
 
-| Agent | Expected Token | Matching Rule |
-|-------|---------------|---------------|
-| claude-code | `CLAUDE_CODE_OK` | Any trimmed non-empty line equals token |
-| codex | `CODEX_OK` | Any trimmed non-empty line equals token |
-| opencode | `OPEN_CODE_OK` | Any trimmed non-empty line equals token |
-| kimi | `KIMI_OK` | Any trimmed non-empty line equals token |
-| goose | `GOOSE_OK` | Any trimmed non-empty line equals token |
+The e2e runner success matcher treats expected stdout as a complete trimmed line.
+Use stable CLI result lines such as `Tested Codex.` rather than full output
+transcripts.
 
-## Default Models (with `--yes`)
+When warnings are part of the behavior, combine stdout and stderr and assert on
+the exact warning fragments that matter.
 
-| Agent | Raw Default | Stripped (in config) |
-|-------|------------|---------------------|
-| claude-code | `anthropic/claude-opus-4.7` | `claude-opus-4.7` |
-| codex | `openai/gpt-5.2-codex` | `gpt-5.2-codex` |
-| opencode | `anthropic/claude-sonnet-4.6` | `poe/claude-sonnet-4.6` (provider-prefixed) |
-| kimi | `novitaai/kimi-k2.5` | `poe/kimi-k2.5` (provider-prefixed) |
-| goose | `anthropic/claude-sonnet-4.6` | `anthropic/claude-sonnet-4.6` (provider kept) |
+## What Not To Assert
+
+Avoid assertions on:
+
+- provider default model ids copied into the test as string literals;
+- full config file snapshots;
+- absolute backend paths;
+- terminal color codes or decorative formatting;
+- generated config fields that are not part of the behavior under test;
+- installation messages that vary by already-installed state.
+
+## When Adding A Provider
+
+A provider e2e test should prove the one provider file works through the public
+CLI:
+
+1. `poe-code install <agent>` succeeds or no-ops cleanly.
+2. `poe-code configure <agent> --yes` writes valid provider config.
+3. `poe-code test <agent>` succeeds.
+4. `poe-code test <agent> --isolated` succeeds when isolation is supported.
+5. A focused spawn test exists only for provider-specific spawn behavior.

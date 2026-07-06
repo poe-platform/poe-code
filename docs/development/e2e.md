@@ -2,17 +2,17 @@
 
 This repo uses `@poe-code/e2e-test-runner` with three backends:
 
-| Backend | Default usage | Isolation model | `container.home` |
-| --- | --- | --- | --- |
-| `env` | CI default | Fresh HOME/XDG on the host | Temporary host directory |
-| `sandbox` | Local default | Fresh HOME/XDG on the host plus OS sandboxing | Temporary host directory |
-| `podman` | Explicit opt-in | Persistent rootless container | `/home/poe` |
+| Backend   | Default usage   | Isolation model                               | `container.home`         |
+| --------- | --------------- | --------------------------------------------- | ------------------------ |
+| `env`     | CI default      | Fresh HOME/XDG on the host                    | Temporary host directory |
+| `sandbox` | Local default   | Fresh HOME/XDG on the host plus OS sandboxing | Temporary host directory |
+| `podman`  | Explicit opt-in | Persistent rootless container                 | `/home/poe`              |
 
 Backend resolution order:
 
 1. `E2E_BACKEND=env|sandbox|podman`
-2. `CI` → `env`
-3. local machine → `sandbox`
+2. `CI`: `env`
+3. local machine: `sandbox`
 4. if the sandbox runtime is unavailable locally, fall back to `env`
 
 No Docker Desktop or Colima setup is required.
@@ -76,20 +76,20 @@ npm run e2e:cleanup:aggressive
 Prefer `useContainer()` for new tests. It creates a fresh backend-aware container before each test, logs in automatically, and destroys it after each test.
 
 ```typescript
-import { describe, expect, it } from 'vitest';
-import { useContainer } from '@poe-code/e2e-test-runner';
+import { describe, expect, it } from "vitest";
+import { useContainer } from "@poe-code/e2e-test-runner";
 
-describe('claude-code', () => {
-  const container = useContainer({ testName: 'claude-code' });
+describe("claude-code", () => {
+  const container = useContainer({ testName: "claude-code" });
 
-  it('configure and test', async () => {
-    const result = await container.exec('poe-code configure claude-code --yes');
+  it("configure and test", async () => {
+    const result = await container.exec("poe-code configure claude-code --yes");
     expect(result).toHaveExitCode(0);
 
     await expect(container).toHaveFile(`${container.home}/.claude/settings.json`);
 
-    const testResult = await container.exec('poe-code test claude-code');
-    expect(testResult).toSucceedWith('Tested Claude Code.');
+    const testResult = await container.exec("poe-code test claude-code");
+    expect(testResult).toSucceedWith("Tested Claude Code.");
   });
 });
 ```
@@ -103,35 +103,35 @@ The repo already wires preflight and matchers through the e2e Vitest config.
 ### `e2e/vitest.config.ts`
 
 ```typescript
-import { defineConfig } from 'vitest/config';
-import path from 'path';
+import { defineConfig } from "vitest/config";
+import path from "path";
 
-const e2ePackageSrc = path.resolve(__dirname, '../packages/e2e-test-runner/src');
+const e2ePackageSrc = path.resolve(__dirname, "../packages/e2e-test-runner/src");
 
 export default defineConfig({
   test: {
     root: __dirname,
     testTimeout: 300000,
     hookTimeout: 300000,
-    include: ['*.test.ts'],
+    include: ["*.test.ts"],
     maxWorkers: 1,
-    globalSetup: './setup.ts',
-    setupFiles: [path.join(e2ePackageSrc, 'matchers.ts')],
-  },
+    globalSetup: "./setup.ts",
+    setupFiles: [path.join(e2ePackageSrc, "matchers.ts")]
+  }
 });
 ```
 
 ### `e2e/setup.ts`
 
 ```typescript
-import { runPreflight, formatPreflightResults } from '@poe-code/e2e-test-runner';
+import { runPreflight, formatPreflightResults } from "@poe-code/e2e-test-runner";
 
 export async function setup(): Promise<void> {
   const { passed, results } = await runPreflight();
   console.error(formatPreflightResults(results));
 
   if (!passed) {
-    throw new Error('Preflight checks failed');
+    throw new Error("Preflight checks failed");
   }
 }
 ```
@@ -147,20 +147,16 @@ export async function setup(): Promise<void> {
 Use the low-level API only when you need manual lifecycle control:
 
 ```typescript
-import {
-  createBackendContainer,
-  resolveBackend,
-  setWorkspaceDir,
-} from '@poe-code/e2e-test-runner';
+import { createBackendContainer, resolveBackend, setWorkspaceDir } from "@poe-code/e2e-test-runner";
 
 setWorkspaceDir(process.cwd());
 const container = await createBackendContainer(resolveBackend(), {
-  testName: 'manual-e2e',
+  testName: "manual-e2e"
 });
 
 try {
   await container.login();
-  await container.execOrThrow('poe-code configure codex --yes');
+  await container.execOrThrow("poe-code configure codex --yes");
 } finally {
   await container.destroy();
 }

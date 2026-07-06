@@ -53,7 +53,16 @@ Key fields:
 - `main`/`types`: Point to compiled output for production build
 - `exports`: Required for Vite/Vitest ESM module resolution. Without this field, tests will fail with "Failed to resolve entry for package"
 
-### 3. Create tsconfig.json
+### 3. Add README.md
+
+Every package needs its own README. Include:
+
+- what the package does;
+- public API or CLI entry points;
+- `Environment Variables`, even when the package exposes none;
+- `Configuration` or `Configuration Options`, even when the package exposes none.
+
+### 4. Create tsconfig.json
 
 ```json
 {
@@ -69,7 +78,7 @@ Key fields:
 }
 ```
 
-### 4. Create source files
+### 5. Create source files
 
 ```typescript
 // packages/your-package/src/index.ts
@@ -79,7 +88,7 @@ export type { SomeType } from "./types.js";
 
 Note: Use `.js` extensions in imports (TypeScript resolves these to `.ts` files).
 
-### 5. Link the package
+### 6. Link the package
 
 ```bash
 npm install
@@ -87,7 +96,7 @@ npm install
 
 This creates a symlink at `node_modules/@poe-code/your-package`.
 
-### 6. Import from main code
+### 7. Import from main code
 
 ```typescript
 import { something } from "@poe-code/your-package";
@@ -113,14 +122,18 @@ Run with `npm run test` from root.
 
 ## Key Points
 
-- **Build for production**: Packages compile via `npm run build --workspaces` during the main build
-- **Tests in package**: Place `*.test.ts` files alongside source. Excluded from build via tsconfig.
-- **Zero imports from src/**: Packages must not import from the main `src/` directory to avoid circular dependencies.
+- Build for production: packages compile via `npm run build --workspaces` during the main build.
+- Tests in package: place `*.test.ts` files alongside source. Exclude them from build through `tsconfig.json`.
+- No imports from `src/`: packages must not import from the root `src/` directory.
+- Keep package logic in the package. The root CLI and SDK should wire packages and expose public APIs.
+- Run `npm run lint:packages` before publishing or changing release wiring.
 
-## Publishing (Future)
+## Publishing
 
-When ready to publish a package:
+When a package becomes public:
 
-1. Remove `private: true`
-2. Ensure `files: ["dist"]` is set
-3. Consider adding `publishConfig` if needed
+1. Remove `private: true`.
+2. Keep `files: ["dist"]`.
+3. Add repository metadata with the package directory.
+4. Add or update the GitHub release workflow.
+5. Follow [NPM publishing](NPM_PUBLISHING.md). Releases happen from GitHub, not local `npm publish`.

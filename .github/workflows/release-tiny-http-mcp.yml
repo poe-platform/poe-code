@@ -1,0 +1,42 @@
+name: Release tiny-http-mcp-server
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/tiny-http-mcp-server/**'
+      - '.github/workflows/release-tiny-http-mcp.yml'
+concurrency:
+  group: release-tiny-http-mcp
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build workspace dependencies
+        run: |
+          npm run build --workspace tiny-stdio-mcp-server
+          npm run build --workspace mcp-oauth
+      - name: Build
+        working-directory: packages/tiny-http-mcp-server
+        run: npm run build
+      - name: Auto-bump patch version from npm
+        working-directory: packages/tiny-http-mcp-server
+        run: |
+          REMOTE=$(npm view tiny-http-mcp-server version 2>/dev/null || echo "0.0.0")
+          npm version --no-git-tag-version "$REMOTE" --allow-same-version
+          npm version --no-git-tag-version patch
+      - name: Publish
+        working-directory: packages/tiny-http-mcp-server
+        run: npm publish --provenance --access public

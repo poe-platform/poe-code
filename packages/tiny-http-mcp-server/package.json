@@ -1,7 +1,6 @@
 {
   "name": "tiny-http-mcp-server",
   "version": "0.1.0",
-  "private": true,
   "description": "Minimal MCP server over HTTP built on tiny-stdio-mcp-server",
   "type": "module",
   "main": "dist/index.js",
@@ -21,13 +20,16 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . mcp-oauth auth-store tiny-mcp-client",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client",
     "prepublishOnly": "tsc"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "engines": {
-    "node": ">=18.18"
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
@@ -36,21 +38,22 @@
   },
   "license": "MIT",
   "dependencies": {
+    "express": "^5.1.0",
+    "jose": "^6.1.2",
+    "tiny-stdio-mcp-server": "^0.1.0"
+  },
+  "bundleDependencies": [
+    "mcp-oauth",
+    "auth-store",
+    "tiny-mcp-client"
+  ],
+  "optionalDependencies": {
     "mcp-oauth": "*",
-    "tiny-stdio-mcp-server": "*"
-  },
-  "peerDependencies": {
-    "express": "^5.1.0"
-  },
-  "peerDependenciesMeta": {
-    "express": {
-      "optional": true
-    }
+    "auth-store": "*",
+    "tiny-mcp-client": "*"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "@types/express": "^5.0.6",
-    "express": "^5.1.0",
-    "tiny-mcp-client": "*"
+    "@types/express": "^5.0.6"
   }
 }

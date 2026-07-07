@@ -429,7 +429,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: packaging-express-dep
     title: express as regular dependency, engines >=20
@@ -445,10 +445,10 @@ tasks:
       required" (and Node 18 is EOL) — set engines.node to ">=20".
       Run the package build and full test suite to confirm nothing regresses.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: test-helper-isolation

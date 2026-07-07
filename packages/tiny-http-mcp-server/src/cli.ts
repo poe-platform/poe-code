@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-import { readFileSync, realpathSync } from "node:fs";
+import { realpathSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { createHttpServer } from "./http-server.js";
 import type { HttpServer } from "./http-server.js";
 import { loadOAuthVerifier } from "./load-oauth-verifier.js";
 import type { TokenVerifier } from "./auth.js";
+import packageJson from "../package.json" with { type: "json" };
 
 interface PackageInfo {
   name: string;
@@ -63,24 +64,9 @@ interface RunCliDependencies {
 }
 
 function readPackageInfo(): PackageInfo {
-  try {
-    const packageJson = JSON.parse(
-      readFileSync(new URL("../package.json", import.meta.url), "utf8")
-    ) as { name?: unknown; version?: unknown };
-
-    if (typeof packageJson.name === "string" && typeof packageJson.version === "string") {
-      return {
-        name: packageJson.name,
-        version: packageJson.version
-      };
-    }
-  } catch {
-    // Fall through to a stable default when package.json is unavailable.
-  }
-
   return {
-    name: "tiny-http-mcp-server",
-    version: "0.0.0"
+    name: packageJson.name,
+    version: packageJson.version
   };
 }
 

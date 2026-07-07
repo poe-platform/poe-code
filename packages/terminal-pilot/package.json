@@ -64,6 +64,7 @@
     "node-pty": "^1.1.0",
     "sisteransi": "^1.0.5",
     "smol-toml": "^1.6.0",
+    "terminal-png": "^0.1.0",
     "toolcraft": "^0.0.51",
     "yaml": "^2.8.2"
   },
@@ -87,7 +88,6 @@
     "@poe-code/frontmatter": "*"
   },
   "devDependencies": {
-    "toolcraft-schema": "*",
-    "terminal-png": "*"
+    "toolcraft-schema": "*"
   }
 }

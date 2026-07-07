@@ -449,7 +449,10 @@ try {
   }
 
   writeConsumerFixture(consumerDir);
-  runConsumerSmoke(consumerDir, Object.values(tarballs));
+  // Install only what a real consumer installs. Adding the toolcraft-schema
+  // tarball here would hoist it top-level and mask phantom (undeclared)
+  // imports of it — exactly how the toolcraft-openapi breakage slipped through.
+  runConsumerSmoke(consumerDir, [tarballs.agentKit, tarballs.agentKitOpenApi]);
   runOptionalDependencySmoke(optionalConsumerDir, tarballs.agentKit, workspaceManifests);
 
   console.log("toolcraft standalone publish smoke passed.");

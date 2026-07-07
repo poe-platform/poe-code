@@ -15,6 +15,7 @@ interface PackageInfo {
 
 interface ParsedCliArgs {
   help: boolean;
+  version: boolean;
   port: number;
   hostname: string;
   path: string;
@@ -35,6 +36,7 @@ interface ParsedCliArgs {
   requestTimeoutMs?: number;
   headersTimeoutMs?: number;
   keepAliveTimeoutMs?: number;
+  shutdownGraceMs: number;
   oauth?: {
     resource: string;
     authorizationServers: string[];
@@ -56,6 +58,8 @@ interface RunCliDependencies {
   stdout?: Pick<NodeJS.WriteStream, "write">;
   stderr?: Pick<NodeJS.WriteStream, "write">;
   waitForShutdown?: (shutdown: () => Promise<void>) => Promise<void>;
+  listenForShutdownSignals?: (listener: () => void) => () => void;
+  scheduleShutdownGrace?: (listener: () => void, graceMs: number) => () => void;
 }
 
 function readPackageInfo(): PackageInfo {
@@ -116,6 +120,8 @@ const HELP_TEXT = [
   "                        Node HTTP headers timeout",
   "  --keep-alive-timeout-ms <ms>",
   "                        Node HTTP keep-alive timeout",
+  "  --shutdown-grace-ms <ms>",
+  "                        Grace period before force-closing connections (default: 10000)",
   "  --oauth-resource <uri> Enable OAuth mode with this canonical resource URI",
   "  --oauth-authorization-server <issuer>",
   "                        Authorization server issuer URL (repeatable)",
@@ -129,6 +135,7 @@ const HELP_TEXT = [
   "                        Module that exports the TokenVerifier implementation",
   "  --oauth-verifier-export <name>",
   "                        Export name to load from the verifier module (default: default)",
+  "  --version              Show the package version",
   "  -h, --help             Show this help message"
 ].join("\n");
 
@@ -304,6 +311,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "request-timeout-ms": { type: "string" },
       "headers-timeout-ms": { type: "string" },
       "keep-alive-timeout-ms": { type: "string" },
+      "shutdown-grace-ms": { type: "string" },
       "oauth-resource": { type: "string" },
       "oauth-authorization-server": { type: "string", multiple: true },
       "oauth-supported-scope": { type: "string", multiple: true },
@@ -311,7 +319,8 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "oauth-bearer-method": { type: "string", multiple: true },
       "oauth-verifier-module": { type: "string" },
       "oauth-verifier-export": { type: "string" },
-      help: { type: "boolean", short: "h" }
+      help: { type: "boolean", short: "h" },
+      version: { type: "boolean" }
     }
   });
 
@@ -363,9 +372,12 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     "--keep-alive-timeout-ms",
     0
   );
+  const shutdownGraceMs =
+    parseOptionalInteger(values["shutdown-grace-ms"], "--shutdown-grace-ms", 0) ?? 10_000;
 
   return {
     help: values.help ?? false,
+    version: values.version ?? false,
     port: parsePort(values.port),
     hostname: values.hostname ?? "127.0.0.1",
     path: values.path ?? "/mcp",
@@ -394,20 +406,81 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     ...(requestTimeoutMs === undefined ? {} : { requestTimeoutMs }),
     ...(headersTimeoutMs === undefined ? {} : { headersTimeoutMs }),
     ...(keepAliveTimeoutMs === undefined ? {} : { keepAliveTimeoutMs }),
+    shutdownGraceMs,
     oauth: parseCliOAuthOptions(values)
   };
 }
 
-function waitForShutdown(shutdown: () => Promise<void>): Promise<void> {
+function listenForShutdownSignals(listener: () => void): () => void {
+  process.on("SIGINT", listener);
+  process.on("SIGTERM", listener);
+
+  return () => {
+    process.off("SIGINT", listener);
+    process.off("SIGTERM", listener);
+  };
+}
+
+function scheduleShutdownGrace(listener: () => void, graceMs: number): () => void {
+  const timer = setTimeout(listener, graceMs);
+  return () => clearTimeout(timer);
+}
+
+function waitForShutdown(
+  shutdown: () => Promise<void>,
+  forceShutdown: () => void,
+  graceMs: number,
+  listenForSignals: (listener: () => void) => () => void,
+  scheduleGrace: (listener: () => void, graceMs: number) => () => void
+): Promise<boolean> {
   return new Promise((resolve, reject) => {
+    let shutdownStarted = false;
+    let settled = false;
+    let cancelGrace: () => void = () => undefined;
+    let removeSignalListeners: () => void = () => undefined;
+
+    const finish = (forced: boolean) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cancelGrace();
+      removeSignalListeners();
+      resolve(forced);
+    };
+    const force = () => {
+      if (settled) {
+        return;
+      }
+      try {
+        forceShutdown();
+        finish(true);
+      } catch {
+        finish(true);
+      }
+    };
     const onSignal = () => {
-      process.off("SIGINT", onSignal);
-      process.off("SIGTERM", onSignal);
-      void shutdown().then(resolve, reject);
+      if (shutdownStarted) {
+        force();
+        return;
+      }
+      shutdownStarted = true;
+      cancelGrace = scheduleGrace(force, graceMs);
+      void shutdown().then(
+        () => finish(false),
+        (error) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cancelGrace();
+          removeSignalListeners();
+          reject(error);
+        }
+      );
     };
 
-    process.once("SIGINT", onSignal);
-    process.once("SIGTERM", onSignal);
+    removeSignalListeners = listenForSignals(onSignal);
   });
 }
 
@@ -440,13 +513,27 @@ export async function runCli(
   const stdout = dependencies.stdout ?? process.stdout;
   const stderr = dependencies.stderr ?? process.stderr;
   const customWaitForShutdown = dependencies.waitForShutdown;
+  const listenForSignals = dependencies.listenForShutdownSignals ?? listenForShutdownSignals;
+  const scheduleGrace = dependencies.scheduleShutdownGrace ?? scheduleShutdownGrace;
   let handle: Awaited<ReturnType<HttpServer["listenHttp"]>> | undefined;
+  let shutdownStarted = false;
+  let options: ParsedCliArgs;
 
   try {
-    const options = parseCliOptions(args);
+    options = parseCliOptions(args);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    stderr.write(`${message}\nRun with --help for usage.\n`);
+    return 1;
+  }
 
+  try {
     if (options.help) {
       stdout.write(`${HELP_TEXT}\n`);
+      return 0;
+    }
+    if (options.version) {
+      stdout.write(`${packageInfo.version}\n`);
       return 0;
     }
 
@@ -517,14 +604,27 @@ export async function runCli(
     });
 
     const shutdown = async () => {
+      shutdownStarted = true;
       await handle?.close();
     };
+    const forceShutdown = () => {
+      handle?.closeAllConnections();
+    };
     const shutdownPromise =
-      customWaitForShutdown === undefined ? waitForShutdown(shutdown) : undefined;
+      customWaitForShutdown === undefined
+        ? waitForShutdown(
+            shutdown,
+            forceShutdown,
+            options.shutdownGraceMs,
+            listenForSignals,
+            scheduleGrace
+          )
+        : undefined;
 
     stdout.write(`${handle.url}\n`);
     if (customWaitForShutdown === undefined) {
-      await shutdownPromise;
+      const forced = await shutdownPromise;
+      return forced ? 1 : 0;
     } else {
       await customWaitForShutdown(shutdown);
     }
@@ -533,7 +633,11 @@ export async function runCli(
   } catch (error) {
     if (handle !== undefined) {
       try {
-        await handle.close();
+        if (shutdownStarted) {
+          handle.closeAllConnections();
+        } else {
+          await handle.close();
+        }
       } catch {
         // Preserve the original CLI failure below.
       }

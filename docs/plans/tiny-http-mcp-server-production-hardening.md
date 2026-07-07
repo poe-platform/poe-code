@@ -385,8 +385,8 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
-      release: open
+      commit: done
+      release: done
 
   - id: cli-dx
     title: CLI --version, help hint, forced shutdown
@@ -405,10 +405,10 @@ tasks:
       (nodeServer.closeAllConnections()) and exit non-zero.
       Update the README CLI table and the built-in help text.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: core-registration-dx

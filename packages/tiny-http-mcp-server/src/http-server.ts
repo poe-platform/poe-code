@@ -60,6 +60,7 @@ export interface HttpServerHandle {
   url: string;
   port: number;
   close(): Promise<void>;
+  closeAllConnections(): void;
 }
 
 export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
@@ -412,7 +413,10 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
     return {
       url: buildUrl(hostname, resolvedPort, path),
       port: resolvedPort,
-      close
+      close,
+      closeAllConnections: () => {
+        nodeServer.closeAllConnections();
+      }
     };
   };
 

@@ -13,9 +13,16 @@ const { createServerMock, fakeServer } = vi.hoisted(() => {
       callback();
     });
     closeIdleConnections = vi.fn();
-    listen(): void { queueMicrotask(() => this.emit("listening")); }
-    once(event: string, callback: () => void): void { this.listeners.set(event, new Set([callback])); }
-    off(event: string, callback: () => void): void { this.listeners.get(event)?.delete(callback); }
+    closeAllConnections = vi.fn();
+    listen(): void {
+      queueMicrotask(() => this.emit("listening"));
+    }
+    once(event: string, callback: () => void): void {
+      this.listeners.set(event, new Set([callback]));
+    }
+    off(event: string, callback: () => void): void {
+      this.listeners.get(event)?.delete(callback);
+    }
     emit(event: string): void {
       for (const callback of this.listeners.get(event) ?? []) callback();
       this.listeners.delete(event);
@@ -33,7 +40,7 @@ vi.mock("node:http", async () => {
   return {
     ...actual,
     default: { ...actual.default, createServer: createServerMock },
-    createServer: createServerMock,
+    createServer: createServerMock
   };
 });
 
@@ -46,5 +53,13 @@ describe("HttpServerHandle close", () => {
     await expect(handle.close()).rejects.toThrow("close temporarily failed");
     await expect(handle.close()).resolves.toBeUndefined();
     expect(fakeServer.close).toHaveBeenCalledTimes(2);
+  });
+
+  it("force-closes all remaining Node HTTP connections", async () => {
+    const handle = await createHttpServer({ name: "test", version: "1" }).listenHttp();
+
+    handle.closeAllConnections();
+
+    expect(fakeServer.closeAllConnections).toHaveBeenCalledOnce();
   });
 });

@@ -644,6 +644,7 @@ describe("tiny-http-mcp-server", () => {
       url: string;
       port: number;
       close: () => Promise<void>;
+      closeAllConnections: () => void;
     }>();
     expectTypeOf<HttpServer>().toMatchTypeOf<{
       tool: (...args: unknown[]) => HttpServer;
@@ -3814,7 +3815,52 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(shortOutput.stdout).toContain("--oauth-bearer-method");
     expect(shortOutput.stdout).toContain("--oauth-verifier-module");
     expect(shortOutput.stdout).toContain("--oauth-verifier-export");
+    expect(shortOutput.stdout).toContain("--shutdown-grace-ms");
+    expect(shortOutput.stdout).toContain("--version");
     expect(longOutput.stdout).toContain("-h, --help");
+  });
+
+  it("prints the package version and exits with code 0", async () => {
+    const createServer = vi.fn();
+    const output = createCapturedOutput();
+
+    const exitCode = await runCli(["--version"], {
+      createServer,
+      stdout: output.io.stdout,
+      stderr: output.io.stderr
+    });
+
+    expect(exitCode).toBe(0);
+    expect(createServer).not.toHaveBeenCalled();
+    expect(output.stdout).toBe("0.1.0\n");
+    expect(output.stderr).toBe("");
+  });
+
+  it("appends a help hint to argument-parse failures", async () => {
+    const output = createCapturedOutput();
+
+    const exitCode = await runCli(["--port", "invalid"], {
+      stdout: output.io.stdout,
+      stderr: output.io.stderr
+    });
+
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toContain("--port must be an integer.");
+    expect(output.stderr.endsWith("Run with --help for usage.\n")).toBe(true);
+  });
+
+  it("rejects a negative shutdown grace period with the help hint", async () => {
+    const output = createCapturedOutput();
+
+    const exitCode = await runCli(["--shutdown-grace-ms=-1"], {
+      stdout: output.io.stdout,
+      stderr: output.io.stderr
+    });
+
+    expect(exitCode).toBe(1);
+    expect(output.stderr).toBe(
+      "--shutdown-grace-ms must be an integer.\nRun with --help for usage.\n"
+    );
   });
 
   it("C11 SIGINT triggers graceful shutdown", async () => {
@@ -3822,7 +3868,8 @@ describe("tiny-http-mcp-server CLI", () => {
     const listenHttp = vi.fn().mockResolvedValue({
       url: "http://127.0.0.1:41000/mcp",
       port: 41000,
-      close
+      close,
+      closeAllConnections: vi.fn()
     });
     const createServer = vi.fn(() => ({ listenHttp }));
     const output = createCapturedOutput();
@@ -3840,6 +3887,147 @@ describe("tiny-http-mcp-server CLI", () => {
     await expect(runPromise).resolves.toBe(0);
     expect(close).toHaveBeenCalledOnce();
     expect(output.stderr).toBe("");
+  });
+
+  it("force-closes hung connections after the shutdown grace period", async () => {
+    let signalHandler = () => undefined;
+    let graceHandler = () => undefined;
+    const close = vi.fn(() => new Promise<void>(() => undefined));
+    const closeAllConnections = vi.fn();
+    const listenHttp = vi.fn().mockResolvedValue({
+      url: "http://127.0.0.1:41000/mcp",
+      port: 41000,
+      close,
+      closeAllConnections
+    });
+    const output = createCapturedOutput();
+    const runPromise = runCli(["--shutdown-grace-ms", "25"], {
+      createServer: vi.fn(() => ({ listenHttp })),
+      stdout: output.io.stdout,
+      stderr: output.io.stderr,
+      listenForShutdownSignals: (handler) => {
+        signalHandler = handler;
+        return vi.fn();
+      },
+      scheduleShutdownGrace: (handler, graceMs) => {
+        expect(graceMs).toBe(25);
+        graceHandler = handler;
+        return vi.fn();
+      }
+    });
+
+    await vi.waitFor(() => expect(output.stdout).toContain("http://127.0.0.1:41000/mcp"));
+    signalHandler();
+    expect(close).toHaveBeenCalledOnce();
+    graceHandler();
+
+    await expect(runPromise).resolves.toBe(1);
+    expect(closeAllConnections).toHaveBeenCalledOnce();
+  });
+
+  it("cancels forced shutdown when graceful shutdown completes", async () => {
+    let signalHandler = () => undefined;
+    const cancelGrace = vi.fn();
+    const removeSignalListeners = vi.fn();
+    const close = vi.fn().mockResolvedValue(undefined);
+    const closeAllConnections = vi.fn();
+    const listenHttp = vi.fn().mockResolvedValue({
+      url: "http://127.0.0.1:41000/mcp",
+      port: 41000,
+      close,
+      closeAllConnections
+    });
+    const output = createCapturedOutput();
+    const runPromise = runCli([], {
+      createServer: vi.fn(() => ({ listenHttp })),
+      stdout: output.io.stdout,
+      stderr: output.io.stderr,
+      listenForShutdownSignals: (handler) => {
+        signalHandler = handler;
+        return removeSignalListeners;
+      },
+      scheduleShutdownGrace: () => cancelGrace
+    });
+
+    await vi.waitFor(() => expect(output.stdout).toContain("http://127.0.0.1:41000/mcp"));
+    signalHandler();
+
+    await expect(runPromise).resolves.toBe(0);
+    expect(close).toHaveBeenCalledOnce();
+    expect(closeAllConnections).not.toHaveBeenCalled();
+    expect(cancelGrace).toHaveBeenCalledOnce();
+    expect(removeSignalListeners).toHaveBeenCalledOnce();
+  });
+
+  it("force-closes hung connections immediately on a second shutdown signal", async () => {
+    let signalHandler = () => undefined;
+    const cancelGrace = vi.fn();
+    const close = vi.fn(() => new Promise<void>(() => undefined));
+    const closeAllConnections = vi.fn();
+    const listenHttp = vi.fn().mockResolvedValue({
+      url: "http://127.0.0.1:41000/mcp",
+      port: 41000,
+      close,
+      closeAllConnections
+    });
+    const output = createCapturedOutput();
+    const runPromise = runCli([], {
+      createServer: vi.fn(() => ({ listenHttp })),
+      stdout: output.io.stdout,
+      stderr: output.io.stderr,
+      listenForShutdownSignals: (handler) => {
+        signalHandler = handler;
+        return vi.fn();
+      },
+      scheduleShutdownGrace: (_handler, graceMs) => {
+        expect(graceMs).toBe(10_000);
+        return cancelGrace;
+      }
+    });
+
+    await vi.waitFor(() => expect(output.stdout).toContain("http://127.0.0.1:41000/mcp"));
+    signalHandler();
+    signalHandler();
+
+    await expect(runPromise).resolves.toBe(1);
+    expect(close).toHaveBeenCalledOnce();
+    expect(closeAllConnections).toHaveBeenCalledOnce();
+    expect(cancelGrace).toHaveBeenCalledOnce();
+  });
+
+  it("force-closes connections when graceful shutdown rejects", async () => {
+    let signalHandler = () => undefined;
+    const cancelGrace = vi.fn();
+    const removeSignalListeners = vi.fn();
+    const close = vi.fn().mockRejectedValue(new Error("shutdown failed"));
+    const closeAllConnections = vi.fn();
+    const listenHttp = vi.fn().mockResolvedValue({
+      url: "http://127.0.0.1:41000/mcp",
+      port: 41000,
+      close,
+      closeAllConnections
+    });
+    const output = createCapturedOutput();
+    const runPromise = runCli([], {
+      createServer: vi.fn(() => ({ listenHttp })),
+      stdout: output.io.stdout,
+      stderr: output.io.stderr,
+      listenForShutdownSignals: (handler) => {
+        signalHandler = handler;
+        return removeSignalListeners;
+      },
+      scheduleShutdownGrace: () => cancelGrace
+    });
+
+    await vi.waitFor(() => expect(output.stdout).toContain("http://127.0.0.1:41000/mcp"));
+    signalHandler();
+
+    await expect(runPromise).resolves.toBe(1);
+    expect(close).toHaveBeenCalledOnce();
+    expect(closeAllConnections).toHaveBeenCalledOnce();
+    expect(cancelGrace).toHaveBeenCalledOnce();
+    expect(removeSignalListeners).toHaveBeenCalledOnce();
+    expect(output.stderr).toBe("shutdown failed\n");
   });
 
   it("C12 exits with code 1 when --oauth-resource is set without --oauth-authorization-server", async () => {

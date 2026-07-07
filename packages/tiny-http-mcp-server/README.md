@@ -463,6 +463,7 @@ tiny-http-mcp-server [options]
 | `--request-timeout-ms <ms>`                  | Node default | Node HTTP request timeout.                                                                                                           |
 | `--headers-timeout-ms <ms>`                  | Node default | Node HTTP headers timeout.                                                                                                           |
 | `--keep-alive-timeout-ms <ms>`               | Node default | Node HTTP keep-alive timeout.                                                                                                        |
+| `--shutdown-grace-ms <ms>`                   | `10000`      | Grace period after the first `SIGINT` or `SIGTERM` before remaining connections are force-closed and the CLI exits non-zero.         |
 | `--oauth-resource <uri>`                     | none         | Enable OAuth mode with this canonical protected resource URI. Requires `--oauth-authorization-server` and `--oauth-verifier-module`. |
 | `--oauth-authorization-server <issuer>`      | none         | Authorization server issuer URL to publish in metadata. Repeat the flag for multiple issuers.                                        |
 | `--oauth-supported-scope <scope>`            | none         | Scope to publish in `scopes_supported`. Repeat the flag for multiple scopes.                                                         |
@@ -470,6 +471,7 @@ tiny-http-mcp-server [options]
 | `--oauth-bearer-method <method>`             | none         | Bearer transport to publish in `bearer_methods_supported`. Repeat the flag for multiple methods.                                     |
 | `--oauth-verifier-module <path-or-file-url>` | none         | Module path, `file:` URL, or package specifier that exports the `TokenVerifier` used in CLI mode.                                    |
 | `--oauth-verifier-export <name>`             | `default`    | Named export to load from `--oauth-verifier-module`.                                                                                 |
+| `--version`                                  | off          | Print the package version and exit.                                                                                                  |
 | `-h`, `--help`                               | off          | Print help and exit.                                                                                                                 |
 
 Examples:

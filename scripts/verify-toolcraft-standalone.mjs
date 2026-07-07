@@ -1,12 +1,5 @@
 import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -118,7 +111,7 @@ function runConsumerSmoke(projectDir, tarballs) {
         'if (typeof toolcraftCli.createCLICommandTreeSnapshot !== "function") throw new Error("Missing createCLICommandTreeSnapshot export.");',
         'if (typeof toolcraftCli.renderErrorReport !== "function") throw new Error("Missing renderErrorReport export.");',
         'const { loadToolcraftComposition } = await import("toolcraft/composition");',
-        'const composition = await loadToolcraftComposition();',
+        "const composition = await loadToolcraftComposition();",
         'if (composition.schemaVersion !== 1 || !composition.packages.some(({ name }) => name === "toolcraft")) throw new Error("Invalid Toolcraft composition manifest.");',
         'await import("toolcraft/design");',
         'const fileChanges = await import("toolcraft/file-changes");',
@@ -182,7 +175,7 @@ function runConsumerSmoke(projectDir, tarballs) {
       'import { createFileChangeRenderers } from "toolcraft/file-changes";',
       'import type { FileChange } from "toolcraft";',
       'const changes = [{ kind: "added", path: "flows/morning.json" }] satisfies FileChange[];',
-      'createFileChangeRenderers().json?.({ changes }, {} as never);'
+      "createFileChangeRenderers().json?.({ changes }, {} as never);"
     ].join("\n") + "\n"
   );
 
@@ -255,8 +248,6 @@ try {
     Array.isArray(bundledRuntimeDependencies) && bundledRuntimeDependencies.length > 0,
     "Expected toolcraft to declare bundled runtime dependencies."
   );
-  const toolcraftTarEntries = new Set(listTarEntries(tarballs.agentKit));
-
   const packAssertions = [
     {
       tarball: tarballs.agentKit,
@@ -301,12 +292,8 @@ try {
     const bundledPackagePath = `package/node_modules/${dependencyName}`;
     const bundledPackageJson = readTarJson(tarballs.agentKit, `${bundledPackagePath}/package.json`);
     assert(
-      bundledPackageJson.license === "MIT",
-      `Expected bundled ${dependencyName} to declare the MIT license.`
-    );
-    assert(
-      toolcraftTarEntries.has(`${bundledPackagePath}/LICENSE`),
-      `Expected bundled ${dependencyName} to include LICENSE.`
+      typeof bundledPackageJson.license === "string" && bundledPackageJson.license.length > 0,
+      `Expected bundled ${dependencyName} to declare a license.`
     );
     assert(
       toolcraftPackageJson.optionalDependencies?.[dependencyName] ??

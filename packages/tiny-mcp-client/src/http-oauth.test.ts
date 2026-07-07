@@ -1,22 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
-import { nodeFetch } from "tiny-http-mcp-server/testing";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import type { OAuthSessionStore, StoredOAuthSession } from "mcp-oauth";
 import {
   HttpTransport,
   type OAuthDiscoveryCache,
   type OAuthDiscoveryResult,
   parseBearerWwwAuthenticateHeader,
-  resolveAuthorizationServerMetadataUrl,
+  resolveAuthorizationServerMetadataUrl
 } from "./internal.js";
 import { OAuthMetadataDiscovery, discoverOAuthMetadata } from "./oauth-discovery.js";
+
+installInMemoryHttp();
 
 function jsonResponse(body: unknown, init?: ResponseInit): Response {
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    ...init,
+    ...init
   });
 }
 
@@ -35,7 +37,7 @@ describe("discoverOAuthMetadata", () => {
       get: vi.fn(async (key: string) => sharedCacheStore.get(key)),
       set: vi.fn(async (key: string, value: OAuthDiscoveryResult) => {
         sharedCacheStore.set(key, value);
-      }),
+      })
     };
 
     const fetchMock = vi.fn(async (input: string | URL): Promise<Response> => {
@@ -46,15 +48,15 @@ describe("discoverOAuthMetadata", () => {
           resource: resourceUrl,
           authorization_servers: [
             "https://auth.example.com/issuer-a",
-            "https://auth.example.com/issuer-b",
-          ],
+            "https://auth.example.com/issuer-b"
+          ]
         });
       }
 
       if (url === failingAuthorizationServerMetadataUrl) {
         return new Response("no metadata here", {
           status: 404,
-          statusText: "Not Found",
+          statusText: "Not Found"
         });
       }
 
@@ -64,7 +66,7 @@ describe("discoverOAuthMetadata", () => {
           authorization_endpoint: "https://auth.example.com/issuer-b/authorize",
           token_endpoint: "https://auth.example.com/issuer-b/token",
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["plain", "S256"],
+          code_challenge_methods_supported: ["plain", "S256"]
         });
       }
 
@@ -73,7 +75,7 @@ describe("discoverOAuthMetadata", () => {
 
     const discoveryClient = new OAuthMetadataDiscovery({
       fetch: fetchMock,
-      cache,
+      cache
     });
     const firstDiscovery = await discoveryClient.discover(resourceUrl);
 
@@ -84,17 +86,17 @@ describe("discoverOAuthMetadata", () => {
       resourceMetadata: {
         authorization_servers: [
           "https://auth.example.com/issuer-a",
-          "https://auth.example.com/issuer-b",
-        ],
+          "https://auth.example.com/issuer-b"
+        ]
       },
       authorizationServerMetadata: {
-        issuer: "https://auth.example.com/issuer-b",
-      },
+        issuer: "https://auth.example.com/issuer-b"
+      }
     });
     expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
       resourceMetadataUrl,
       failingAuthorizationServerMetadataUrl,
-      successfulAuthorizationServerMetadataUrl,
+      successfulAuthorizationServerMetadataUrl
     ]);
     expect(cache.set).toHaveBeenCalledWith(resourceUrl, firstDiscovery);
 
@@ -109,7 +111,7 @@ describe("discoverOAuthMetadata", () => {
     });
     const secondDiscoveryClient = new OAuthMetadataDiscovery({
       fetch: secondFetch,
-      cache,
+      cache
     });
     const cachedDiscovery = await secondDiscoveryClient.discover(resourceUrl);
 
@@ -120,10 +122,11 @@ describe("discoverOAuthMetadata", () => {
   it("rejects invalid protected resource metadata with a clear error", async () => {
     const resourceUrl = "https://resource.example.com/tenant/mcp";
 
-    const fetchMock = vi.fn(async (): Promise<Response> =>
-      jsonResponse({
-        resource: resourceUrl,
-      })
+    const fetchMock = vi.fn(
+      async (): Promise<Response> =>
+        jsonResponse({
+          resource: resourceUrl
+        })
     );
 
     await expect(discoverOAuthMetadata(resourceUrl, { fetch: fetchMock })).rejects.toThrow(
@@ -140,7 +143,7 @@ describe("discoverOAuthMetadata", () => {
       if (url.includes("oauth-protected-resource")) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: ["https://auth.example.com/issuer-a"],
+          authorization_servers: ["https://auth.example.com/issuer-a"]
         });
       }
 
@@ -149,7 +152,7 @@ describe("discoverOAuthMetadata", () => {
         authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
         token_endpoint: "https://auth.example.com/issuer-a/token",
         response_types_supported: ["code"],
-        code_challenge_methods_supported: ["plain"],
+        code_challenge_methods_supported: ["plain"]
       });
     });
 
@@ -170,7 +173,7 @@ describe("discoverOAuthMetadata", () => {
       if (url.includes("oauth-protected-resource")) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: [`${normalizedAuthorizationServer}/`],
+          authorization_servers: [`${normalizedAuthorizationServer}/`]
         });
       }
 
@@ -180,7 +183,7 @@ describe("discoverOAuthMetadata", () => {
           authorization_endpoint: `${normalizedAuthorizationServer}/authorize`,
           token_endpoint: `${normalizedAuthorizationServer}/token`,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
+          code_challenge_methods_supported: ["S256"]
         });
       }
 
@@ -193,7 +196,7 @@ describe("discoverOAuthMetadata", () => {
     expect(discovery.authorizationServerMetadataUrl).toBe(authorizationServerMetadataUrl);
     expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
       "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp",
-      authorizationServerMetadataUrl,
+      authorizationServerMetadataUrl
     ]);
   });
 
@@ -213,7 +216,7 @@ describe("discoverOAuthMetadata", () => {
           return jsonResponse({
             resource: resourceUrl,
             authorization_servers: [authorizationServer],
-            resource_name: "Example MCP",
+            resource_name: "Example MCP"
           });
         }
 
@@ -224,12 +227,12 @@ describe("discoverOAuthMetadata", () => {
             token_endpoint: `${authorizationServer}/token`,
             response_types_supported: ["code"],
             code_challenge_methods_supported: ["S256"],
-            service_documentation: `${authorizationServer}/docs`,
+            service_documentation: `${authorizationServer}/docs`
           });
         }
 
         throw new Error(`Unexpected fetch URL: ${url}`);
-      }),
+      })
     });
 
     expect(discovery.resourceMetadata.resource_name).toBe("Example MCP");
@@ -249,7 +252,7 @@ describe("discoverOAuthMetadata", () => {
           if (url.includes("oauth-protected-resource")) {
             return jsonResponse({
               resource: resourceUrl,
-              authorization_servers: ["https://auth.example.com/issuer-a"],
+              authorization_servers: ["https://auth.example.com/issuer-a"]
             });
           }
 
@@ -257,9 +260,9 @@ describe("discoverOAuthMetadata", () => {
             issuer: "https://auth.example.com/issuer-a",
             authorization_endpoint: "https://auth.example.com/issuer-a/authorize",
             token_endpoint: "https://auth.example.com/issuer-a/token",
-            code_challenge_methods_supported: ["S256"],
+            code_challenge_methods_supported: ["S256"]
           });
-        }),
+        })
       })
     ).rejects.toThrow("response_types_supported");
   });
@@ -272,7 +275,7 @@ describe("discoverOAuthMetadata", () => {
       if (url.includes("oauth-protected-resource")) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: ["http://auth.example.com/issuer-a"],
+          authorization_servers: ["http://auth.example.com/issuer-a"]
         });
       }
 
@@ -283,7 +286,7 @@ describe("discoverOAuthMetadata", () => {
       "must use https unless it targets a loopback host"
     );
     expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
-      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp",
+      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp"
     ]);
   });
 
@@ -309,12 +312,12 @@ describe("discoverOAuthMetadata", () => {
           if (url.includes("oauth-protected-resource")) {
             return jsonResponse({
               resource: resourceUrl,
-              authorization_servers: ["https://auth.example.com/issuer-a?tenant=acme"],
+              authorization_servers: ["https://auth.example.com/issuer-a?tenant=acme"]
             });
           }
 
           throw new Error(`Unexpected fetch URL: ${url}`);
-        }),
+        })
       })
     ).rejects.toThrow("Authorization server issuer must not include query or fragment");
   });
@@ -334,7 +337,7 @@ describe("discoverOAuthMetadata", () => {
         if (url === resourceMetadataUrl) {
           return jsonResponse({
             resource: resourceUrl,
-            authorization_servers: [authorizationServer],
+            authorization_servers: [authorizationServer]
           });
         }
 
@@ -344,12 +347,12 @@ describe("discoverOAuthMetadata", () => {
             authorization_endpoint: `${authorizationServer}/authorize`,
             token_endpoint: `${authorizationServer}/token`,
             response_types_supported: ["code"],
-            code_challenge_methods_supported: ["S256"],
+            code_challenge_methods_supported: ["S256"]
           });
         }
 
         throw new Error(`Unexpected fetch URL: ${url}`);
-      }),
+      })
     });
 
     expect(discovery.authorizationServerMetadataUrl).toBe(authorizationServerMetadataUrl);
@@ -359,8 +362,7 @@ describe("discoverOAuthMetadata", () => {
     const resourceUrl = "https://resource.example.com/tenant/mcp";
     const originalResourceMetadataUrl =
       "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp";
-    const hintedResourceMetadataUrl =
-      "https://resource.example.com/metadata/rotated";
+    const hintedResourceMetadataUrl = "https://resource.example.com/metadata/rotated";
     const originalAuthorizationServer = "https://auth.example.com/issuer-a";
     const hintedAuthorizationServer = "https://auth.example.com/issuer-b";
     const originalAuthorizationServerMetadataUrl =
@@ -374,14 +376,14 @@ describe("discoverOAuthMetadata", () => {
       if (url === originalResourceMetadataUrl) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: [originalAuthorizationServer],
+          authorization_servers: [originalAuthorizationServer]
         });
       }
 
       if (url === hintedResourceMetadataUrl) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: [hintedAuthorizationServer],
+          authorization_servers: [hintedAuthorizationServer]
         });
       }
 
@@ -391,7 +393,7 @@ describe("discoverOAuthMetadata", () => {
           authorization_endpoint: `${originalAuthorizationServer}/authorize`,
           token_endpoint: `${originalAuthorizationServer}/token`,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
+          code_challenge_methods_supported: ["S256"]
         });
       }
 
@@ -401,7 +403,7 @@ describe("discoverOAuthMetadata", () => {
           authorization_endpoint: `${hintedAuthorizationServer}/authorize`,
           token_endpoint: `${hintedAuthorizationServer}/token`,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
+          code_challenge_methods_supported: ["S256"]
         });
       }
 
@@ -409,11 +411,11 @@ describe("discoverOAuthMetadata", () => {
     });
 
     const discoveryClient = new OAuthMetadataDiscovery({
-      fetch: fetchMock,
+      fetch: fetchMock
     });
     const originalDiscovery = await discoveryClient.discover(resourceUrl);
     const hintedDiscovery = await discoveryClient.discover(resourceUrl, {
-      resourceMetadataUrl: hintedResourceMetadataUrl,
+      resourceMetadataUrl: hintedResourceMetadataUrl
     });
 
     expect(originalDiscovery.resourceMetadataUrl).toBe(originalResourceMetadataUrl);
@@ -424,7 +426,7 @@ describe("discoverOAuthMetadata", () => {
       originalResourceMetadataUrl,
       originalAuthorizationServerMetadataUrl,
       hintedResourceMetadataUrl,
-      hintedAuthorizationServerMetadataUrl,
+      hintedAuthorizationServerMetadataUrl
     ]);
   });
 
@@ -440,7 +442,7 @@ describe("discoverOAuthMetadata", () => {
       if (url === resourceMetadataUrl) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: [rotated ? secondIssuer : firstIssuer],
+          authorization_servers: [rotated ? secondIssuer : firstIssuer]
         });
       }
       const issuer = url.includes("issuer-a") ? firstIssuer : secondIssuer;
@@ -449,7 +451,7 @@ describe("discoverOAuthMetadata", () => {
         authorization_endpoint: `${issuer}/authorize`,
         token_endpoint: `${issuer}/token`,
         response_types_supported: ["code"],
-        code_challenge_methods_supported: ["S256"],
+        code_challenge_methods_supported: ["S256"]
       });
     });
     const discoveryClient = new OAuthMetadataDiscovery({ fetch: fetchMock });
@@ -463,7 +465,7 @@ describe("discoverOAuthMetadata", () => {
       resourceMetadataUrl,
       "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a",
       resourceMetadataUrl,
-      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-b",
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-b"
     ]);
   });
 });
@@ -478,12 +480,10 @@ describe("parseBearerWwwAuthenticateHeader", () => {
       scheme: "Bearer",
       params: {
         realm: "Example, Inc",
-        resource_metadata:
-          "https://resource.example.com/.well-known/oauth-protected-resource/mcp",
-        error: "invalid_token",
+        resource_metadata: "https://resource.example.com/.well-known/oauth-protected-resource/mcp",
+        error: "invalid_token"
       },
-      raw:
-        'Basic realm="legacy", Bearer realm="Example, Inc", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp", error="invalid_token"',
+      raw: 'Basic realm="legacy", Bearer realm="Example, Inc", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp", error="invalid_token"'
     });
   });
 
@@ -496,11 +496,9 @@ describe("parseBearerWwwAuthenticateHeader", () => {
       scheme: "Bearer",
       params: {
         realm: "mcp",
-        resource_metadata:
-          "https://resource.example.com/.well-known/oauth-protected-resource/mcp",
+        resource_metadata: "https://resource.example.com/.well-known/oauth-protected-resource/mcp"
       },
-      raw:
-        'Digest abc123==, Bearer abc123==, Bearer realm="mcp", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp"',
+      raw: 'Digest abc123==, Bearer abc123==, Bearer realm="mcp", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp"'
     });
   });
 
@@ -564,7 +562,7 @@ describe("HttpTransport OAuth authorization", () => {
       if (url === resourceMetadataUrl) {
         return jsonResponse({
           resource: requestUrl,
-          authorization_servers: [authorizationServer],
+          authorization_servers: [authorizationServer]
         });
       }
 
@@ -575,7 +573,7 @@ describe("HttpTransport OAuth authorization", () => {
           token_endpoint: tokenEndpoint,
           registration_endpoint: registrationEndpoint,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
+          code_challenge_methods_supported: ["S256"]
         });
       }
 
@@ -588,7 +586,7 @@ describe("HttpTransport OAuth authorization", () => {
         return jsonResponse(
           {
             client_id: clientId,
-            token_endpoint_auth_method: "none",
+            token_endpoint_auth_method: "none"
           },
           { status: 201 }
         );
@@ -618,7 +616,7 @@ describe("HttpTransport OAuth authorization", () => {
           access_token: issueAccessToken(),
           token_type: "Bearer",
           expires_in: 3600,
-          refresh_token: "refresh-1",
+          refresh_token: "refresh-1"
         });
       }
 
@@ -632,8 +630,8 @@ describe("HttpTransport OAuth authorization", () => {
             headers: {
               "WWW-Authenticate":
                 `Bearer realm="Example, Inc", error="invalid_token", ` +
-                `resource_metadata="${resourceMetadataUrl}"`,
-            },
+                `resource_metadata="${resourceMetadataUrl}"`
+            }
           });
         }
 
@@ -648,8 +646,8 @@ describe("HttpTransport OAuth authorization", () => {
           jsonrpc: "2.0",
           id: resourceAuthorizations.length,
           result: {
-            ok: true,
-          },
+            ok: true
+          }
         });
       }
 
@@ -670,7 +668,7 @@ describe("HttpTransport OAuth authorization", () => {
       authorizationCodes.set(code, {
         clientId,
         redirectUri: url.searchParams.get("redirect_uri") ?? "",
-        codeChallenge: url.searchParams.get("code_challenge") ?? "",
+        codeChallenge: url.searchParams.get("code_challenge") ?? ""
       });
 
       expect(url.searchParams.get("resource")).toBe(requestUrl);
@@ -690,7 +688,7 @@ describe("HttpTransport OAuth authorization", () => {
       },
       async clear(resource: string): Promise<void> {
         storedSessions.delete(resource);
-      },
+      }
     };
 
     const transport = new HttpTransport({
@@ -700,14 +698,14 @@ describe("HttpTransport OAuth authorization", () => {
         client: {
           mode: "dynamic",
           metadata: {
-            clientName: "tiny-mcp-client test",
-          },
+            clientName: "tiny-mcp-client test"
+          }
         },
         browser: {
-          openBrowser,
+          openBrowser
         },
-        sessionStore,
-      },
+        sessionStore
+      }
     });
 
     transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
@@ -715,8 +713,8 @@ describe("HttpTransport OAuth authorization", () => {
       jsonrpc: "2.0",
       id: 2,
       result: {
-        ok: true,
-      },
+        ok: true
+      }
     });
 
     transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"ping"}\n');
@@ -724,8 +722,8 @@ describe("HttpTransport OAuth authorization", () => {
       jsonrpc: "2.0",
       id: 3,
       result: {
-        ok: true,
-      },
+        ok: true
+      }
     });
 
     expect(registrationBodies).toHaveLength(1);
@@ -769,7 +767,7 @@ describe("HttpTransport OAuth authorization", () => {
       if (url === resourceMetadataUrl) {
         return jsonResponse({
           resource: requestUrl,
-          authorization_servers: [authorizationServer],
+          authorization_servers: [authorizationServer]
         });
       }
 
@@ -780,7 +778,7 @@ describe("HttpTransport OAuth authorization", () => {
           token_endpoint: tokenEndpoint,
           registration_endpoint: registrationEndpoint,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
+          code_challenge_methods_supported: ["S256"]
         });
       }
 
@@ -788,7 +786,7 @@ describe("HttpTransport OAuth authorization", () => {
         return jsonResponse(
           {
             client_id: "client-1",
-            token_endpoint_auth_method: "none",
+            token_endpoint_auth_method: "none"
           },
           { status: 201 }
         );
@@ -814,7 +812,7 @@ describe("HttpTransport OAuth authorization", () => {
           access_token: "access-1",
           token_type: "Bearer",
           expires_in: 3600,
-          refresh_token: "refresh-1",
+          refresh_token: "refresh-1"
         });
       }
 
@@ -826,8 +824,8 @@ describe("HttpTransport OAuth authorization", () => {
           return new Response(null, {
             status: 401,
             headers: {
-              "WWW-Authenticate": 'Bearer realm="Example, Inc", error="invalid_token"',
-            },
+              "WWW-Authenticate": 'Bearer realm="Example, Inc", error="invalid_token"'
+            }
           });
         }
 
@@ -835,8 +833,8 @@ describe("HttpTransport OAuth authorization", () => {
           jsonrpc: "2.0",
           id: 1,
           result: {
-            ok: true,
-          },
+            ok: true
+          }
         });
       }
 
@@ -850,7 +848,7 @@ describe("HttpTransport OAuth authorization", () => {
       authorizationCodes.set(code, {
         clientId: url.searchParams.get("client_id") ?? "",
         redirectUri: url.searchParams.get("redirect_uri") ?? "",
-        codeChallenge: url.searchParams.get("code_challenge") ?? "",
+        codeChallenge: url.searchParams.get("code_challenge") ?? ""
       });
 
       const callbackUrl = new URL(url.searchParams.get("redirect_uri") ?? "");
@@ -868,7 +866,7 @@ describe("HttpTransport OAuth authorization", () => {
       },
       async clear(resource: string): Promise<void> {
         storedSessions.delete(resource);
-      },
+      }
     };
 
     const transport = new HttpTransport({
@@ -878,14 +876,14 @@ describe("HttpTransport OAuth authorization", () => {
         client: {
           mode: "dynamic",
           metadata: {
-            clientName: "tiny-mcp-client test",
-          },
+            clientName: "tiny-mcp-client test"
+          }
         },
         browser: {
-          openBrowser,
+          openBrowser
         },
-        sessionStore,
-      },
+        sessionStore
+      }
     });
 
     transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
@@ -893,8 +891,8 @@ describe("HttpTransport OAuth authorization", () => {
       jsonrpc: "2.0",
       id: 1,
       result: {
-        ok: true,
-      },
+        ok: true
+      }
     });
 
     expect(resourceAuthorizations).toEqual([null, "Bearer access-1"]);
@@ -911,9 +909,11 @@ function readTransportLine(transport: HttpTransport): Promise<string> {
     transport.readable.once("data", (chunk: Buffer | string) => {
       resolve(chunk.toString("utf8").trim());
     });
-    transport.closed.then((event) => {
-      reject(event.reason);
-    }).catch(reject);
+    transport.closed
+      .then((event) => {
+        reject(event.reason);
+      })
+      .catch(reject);
   });
 }
 

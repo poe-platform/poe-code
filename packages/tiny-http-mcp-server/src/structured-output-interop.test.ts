@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { createHttpServer, defineSchema } from "./index.js";
 import { createHttpTestPair, type HttpTestPair } from "./testing.js";

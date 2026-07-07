@@ -4,10 +4,12 @@ import {
   HttpTransport,
   McpClient,
   type OAuthSessionStore,
-  type StoredOAuthSession,
+  type StoredOAuthSession
 } from "tiny-mcp-client";
-import { nodeFetch } from "tiny-http-mcp-server";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import { createMcpOAuthTestServer } from "./index.js";
+
+installInMemoryHttp();
 
 interface JsonRpcResponse {
   result?: {
@@ -25,9 +27,9 @@ function createInitializeRequestBody(): string {
       capabilities: {},
       clientInfo: {
         name: "tiny-http-mcp-oauth-test-server-test",
-        version: "1.0.0",
-      },
-    },
+        version: "1.0.0"
+      }
+    }
   });
 }
 
@@ -39,16 +41,16 @@ function createEchoRequestBody(text: string): string {
     params: {
       name: "echo",
       arguments: {
-        text,
-      },
-    },
+        text
+      }
+    }
   });
 }
 
 function createInitializedNotificationBody(): string {
   return JSON.stringify({
     jsonrpc: "2.0",
-    method: "notifications/initialized",
+    method: "notifications/initialized"
   });
 }
 
@@ -58,7 +60,7 @@ async function initializeSession(input: {
 }): Promise<{ response: Response; sessionId: string | null }> {
   const headers = new Headers({
     Accept: "application/json, text/event-stream",
-    "Content-Type": "application/json",
+    "Content-Type": "application/json"
   });
 
   if (input.token !== undefined) {
@@ -68,12 +70,12 @@ async function initializeSession(input: {
   const response = await nodeFetch(input.url, {
     method: "POST",
     headers,
-    body: createInitializeRequestBody(),
+    body: createInitializeRequestBody()
   });
 
   return {
     response,
-    sessionId: response.headers.get("mcp-session-id"),
+    sessionId: response.headers.get("mcp-session-id")
   };
 }
 
@@ -116,7 +118,7 @@ function createMemorySessionStore(): OAuthSessionStore {
     },
     async clear(resource: string): Promise<void> {
       sessions.delete(resource);
-    },
+    }
   };
 }
 
@@ -146,7 +148,7 @@ describe("createMcpOAuthTestServer", () => {
   it("boots, serves PRM pointing at the embedded authorization server, and rejects unauthenticated MCP traffic", async () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -157,7 +159,7 @@ describe("createMcpOAuthTestServer", () => {
     expect(prmResponse.status).toBe(200);
     await expect(prmResponse.json()).resolves.toMatchObject({
       resource: handle.resource,
-      authorization_servers: [handle.oauth.issuer],
+      authorization_servers: [handle.oauth.issuer]
     });
 
     const initialize = await initializeSession({ url: handle.mcpUrl });
@@ -171,25 +173,25 @@ describe("createMcpOAuthTestServer", () => {
   it("rejects issuer URLs that the embedded HTTP authorization server cannot serve safely", () => {
     expect(() =>
       createMcpOAuthTestServer({
-        issuer: "https://127.0.0.1:43191/oauth",
+        issuer: "https://127.0.0.1:43191/oauth"
       })
     ).toThrow("issuer must use http:");
 
     expect(() =>
       createMcpOAuthTestServer({
-        issuer: "http://127.0.0.1:43191",
+        issuer: "http://127.0.0.1:43191"
       })
     ).toThrow("issuer must include a non-root path");
 
     expect(() =>
       createMcpOAuthTestServer({
-        issuer: "http://127.0.0.1:43191/oauth?tenant=demo",
+        issuer: "http://127.0.0.1:43191/oauth?tenant=demo"
       })
     ).toThrow("issuer must not include a query or fragment");
 
     expect(() =>
       createMcpOAuthTestServer({
-        issuer: "http://127.0.0.1:43191/oauth#fragment",
+        issuer: "http://127.0.0.1:43191/oauth#fragment"
       })
     ).toThrow("issuer must not include a query or fragment");
   });
@@ -198,9 +200,9 @@ describe("createMcpOAuthTestServer", () => {
     expect(() => createMcpOAuthTestServer({ resource: "/mcp" })).toThrow(
       "resource must be an absolute URL"
     );
-    expect(() => createMcpOAuthTestServer({ resource: "https://resource.example/mcp#fragment" })).toThrow(
-      "resource must not include a fragment"
-    );
+    expect(() =>
+      createMcpOAuthTestServer({ resource: "https://resource.example/mcp#fragment" })
+    ).toThrow("resource must not include a fragment");
     expect(() => createMcpOAuthTestServer({ mcpPath: "/mcp?tenant=demo" })).toThrow(
       "mcpPath must not include a query or fragment"
     );
@@ -219,16 +221,16 @@ describe("createMcpOAuthTestServer", () => {
     for (const port of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 70000]) {
       const server = createMcpOAuthTestServer();
 
-      await expect(
-        server.listen({ port, hostname: "127.0.0.1" })
-      ).rejects.toThrow("port must be an integer between 0 and 65535");
+      await expect(server.listen({ port, hostname: "127.0.0.1" })).rejects.toThrow(
+        "port must be an integer between 0 and 65535"
+      );
     }
   });
 
   it("accepts direct tokens from the embedded OAuth server and exposes the test MCP tools", async () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -236,11 +238,11 @@ describe("createMcpOAuthTestServer", () => {
     const token = await handle.oauth.issueTokenFor({
       clientId: "demo-client",
       resource: handle.resource,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const initialize = await initializeSession({
       url: handle.mcpUrl,
-      token,
+      token
     });
 
     expect(initialize.response.status).toBe(200);
@@ -251,12 +253,12 @@ describe("createMcpOAuthTestServer", () => {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       "Mcp-Session-Id": initialize.sessionId ?? "",
-      "MCP-Protocol-Version": "2025-03-26",
+      "MCP-Protocol-Version": "2025-03-26"
     };
     const initialized = await nodeFetch(handle.mcpUrl, {
       method: "POST",
       headers: sessionHeaders,
-      body: createInitializedNotificationBody(),
+      body: createInitializedNotificationBody()
     });
 
     expect(initialized.status).toBe(202);
@@ -264,14 +266,14 @@ describe("createMcpOAuthTestServer", () => {
     const response = await nodeFetch(handle.mcpUrl, {
       method: "POST",
       headers: sessionHeaders,
-      body: createEchoRequestBody("hello"),
+      body: createEchoRequestBody("hello")
     });
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject<JsonRpcResponse>({
       result: {
-        content: [{ type: "text", text: "hello" }],
-      },
+        content: [{ type: "text", text: "hello" }]
+      }
     });
   });
 
@@ -309,7 +311,7 @@ describe("createMcpOAuthTestServer", () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,
       scopes: ["mcp.read"],
-      resource: "https://resource.example.com/mcp",
+      resource: "https://resource.example.com/mcp"
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -317,12 +319,12 @@ describe("createMcpOAuthTestServer", () => {
     const token = await handle.oauth.issueTokenFor({
       clientId: "wrong-audience-client",
       resource: "https://resource.example.com/other",
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
 
     const initialize = await initializeSession({
       url: handle.mcpUrl,
-      token,
+      token
     });
 
     expect(initialize.response.status).toBe(401);
@@ -337,7 +339,7 @@ describe("createMcpOAuthTestServer", () => {
     const server = createMcpOAuthTestServer({
       issuer,
       autoApprove: true,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -346,17 +348,17 @@ describe("createMcpOAuthTestServer", () => {
 
     const prmResponse = await nodeFetch(handle.prmUrl);
     await expect(prmResponse.json()).resolves.toMatchObject({
-      authorization_servers: [issuer],
+      authorization_servers: [issuer]
     });
 
     const token = await handle.oauth.issueTokenFor({
       clientId: "issuer-bound-client",
       resource: handle.resource,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const initialize = await initializeSession({
       url: handle.mcpUrl,
-      token,
+      token
     });
 
     expect(initialize.response.status).toBe(200);
@@ -365,7 +367,7 @@ describe("createMcpOAuthTestServer", () => {
   it("supports the full discovery, DCR, and PKCE flow via tiny-mcp-client", async () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -374,8 +376,8 @@ describe("createMcpOAuthTestServer", () => {
     const client = new McpClient({
       clientInfo: {
         name: "tiny-http-mcp-oauth-test-server-test",
-        version: "1.0.0",
-      },
+        version: "1.0.0"
+      }
     });
     cleanups.add(async () => {
       await client.close();
@@ -388,8 +390,8 @@ describe("createMcpOAuthTestServer", () => {
         client: {
           mode: "dynamic",
           metadata: {
-            clientName: "tiny-http-mcp-oauth-test-server test client",
-          },
+            clientName: "tiny-http-mcp-oauth-test-server test client"
+          }
         },
         sessionStore: createMemorySessionStore(),
         browser: {
@@ -404,9 +406,9 @@ describe("createMcpOAuthTestServer", () => {
             const callbackResponse = await nodeFetch(callbackUrl ?? "");
             expect(callbackResponse.ok).toBe(true);
             await callbackResponse.text();
-          },
-        },
-      },
+          }
+        }
+      }
     });
 
     await client.connect(transport);
@@ -417,8 +419,8 @@ describe("createMcpOAuthTestServer", () => {
     const result = await client.callTool({
       name: "echo",
       arguments: {
-        text: "oauth client",
-      },
+        text: "oauth client"
+      }
     });
 
     expect(authorizationRequests).toHaveLength(1);
@@ -426,7 +428,7 @@ describe("createMcpOAuthTestServer", () => {
       handle.resource
     );
     expect(result).toMatchObject({
-      content: [{ type: "text", text: "oauth client" }],
+      content: [{ type: "text", text: "oauth client" }]
     });
   });
 });

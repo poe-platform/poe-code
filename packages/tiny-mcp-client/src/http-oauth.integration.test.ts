@@ -1,21 +1,15 @@
 import http from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  OAuthError,
-  type OAuthSessionStore,
-  type StoredOAuthSession,
-} from "mcp-oauth";
-import { nodeFetch } from "tiny-http-mcp-server/testing";
+import { OAuthError, type OAuthSessionStore, type StoredOAuthSession } from "mcp-oauth";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import {
   createMcpOAuthTestServer,
   type McpOAuthTestServerHandle,
-  type McpOAuthTestServerOptions,
+  type McpOAuthTestServerOptions
 } from "tiny-http-mcp-oauth-test-server";
-import {
-  HttpTransport,
-  McpClient,
-  resolveAuthorizationServerMetadataUrl,
-} from "./internal.js";
+import { HttpTransport, McpClient, resolveAuthorizationServerMetadataUrl } from "./internal.js";
+
+installInMemoryHttp();
 
 interface RequestRecord {
   url: string;
@@ -72,8 +66,8 @@ function createSessionStore(): SessionStoreWithMap {
       },
       async clear(resource: string): Promise<void> {
         sessions.delete(resource);
-      },
-    },
+      }
+    }
   };
 }
 
@@ -82,7 +76,7 @@ function cloneResponse(response: Response, body: string): Response {
   return new Response(body, {
     status: response.status,
     statusText: response.statusText,
-    headers,
+    headers
   });
 }
 
@@ -91,7 +85,9 @@ interface BoundLoopbackServerFactory {
   port: number;
 }
 
-async function createBoundLoopbackServerFactory(hostname: string): Promise<BoundLoopbackServerFactory> {
+async function createBoundLoopbackServerFactory(
+  hostname: string
+): Promise<BoundLoopbackServerFactory> {
   const server = http.createServer();
 
   await new Promise<void>((resolve, reject) => {
@@ -127,7 +123,7 @@ async function createBoundLoopbackServerFactory(hostname: string): Promise<Bound
     createServer(): http.Server {
       return server;
     },
-    port: address.port,
+    port: address.port
   };
 }
 
@@ -143,10 +139,7 @@ function parseFormBody(record: RequestRecord): URLSearchParams {
   return new URLSearchParams(record.body ?? "");
 }
 
-function requireRequest(
-  request: RequestRecord | undefined,
-  description: string
-): RequestRecord {
+function requireRequest(request: RequestRecord | undefined, description: string): RequestRecord {
   if (request === undefined) {
     throw new Error(`Expected ${description}`);
   }
@@ -179,17 +172,14 @@ function summarizeTraffic(
   const tokenUrl = `${handle.oauth.issuer}/token`;
 
   return {
-    prm: requests.filter(
-      (request) => request.method === "GET" && request.url === handle.prmUrl
-    ).length,
+    prm: requests.filter((request) => request.method === "GET" && request.url === handle.prmUrl)
+      .length,
     asMetadata: requests.filter(
       (request) =>
-        request.method === "GET"
-        && request.url === authorizationServerMetadataUrl.toString()
+        request.method === "GET" && request.url === authorizationServerMetadataUrl.toString()
     ).length,
-    register: requests.filter(
-      (request) => request.method === "POST" && request.url === registerUrl
-    ).length,
+    register: requests.filter((request) => request.method === "POST" && request.url === registerUrl)
+      .length,
     authorize: requests.filter(
       (request) => request.method === "GET" && request.url.startsWith(authorizeUrl)
     ).length,
@@ -209,7 +199,7 @@ function summarizeTraffic(
     }).length,
     mcpPost: requests.filter(
       (request) => request.method === "POST" && request.url === handle.mcpUrl
-    ).length,
+    ).length
   };
 }
 
@@ -225,8 +215,7 @@ function summarizeAuthorizationServerTraffic(
   return {
     metadata: requestLog.filter(
       (request) =>
-        request.method === "GET"
-        && request.url === authorizationServerMetadataUrl.toString()
+        request.method === "GET" && request.url === authorizationServerMetadataUrl.toString()
     ).length,
     register: requestLog.filter(
       (request) => request.method === "POST" && request.url === registerUrl
@@ -247,7 +236,7 @@ function summarizeAuthorizationServerTraffic(
       }
 
       return new URLSearchParams(request.body ?? "").get("grant_type") === "refresh_token";
-    }).length,
+    }).length
   };
 }
 
@@ -266,20 +255,20 @@ function getJsonRpcMethod(record: RequestRecord): string | undefined {
 
 function getTextContent(result: unknown): string | undefined {
   if (
-    typeof result !== "object"
-    || result === null
-    || !("content" in result)
-    || !Array.isArray(result.content)
+    typeof result !== "object" ||
+    result === null ||
+    !("content" in result) ||
+    !Array.isArray(result.content)
   ) {
     return undefined;
   }
 
   const [firstItem] = result.content;
   if (
-    typeof firstItem !== "object"
-    || firstItem === null
-    || !("text" in firstItem)
-    || typeof firstItem.text !== "string"
+    typeof firstItem !== "object" ||
+    firstItem === null ||
+    !("text" in firstItem) ||
+    typeof firstItem.text !== "string"
   ) {
     return undefined;
   }
@@ -296,41 +285,43 @@ function getStoredSession(harness: OAuthClientHarness): StoredOAuthSession {
   return session;
 }
 
-async function createHarness(options: {
-  now?: () => number;
-  oauthClient?:
-    | {
-        mode: "dynamic";
-        metadata?: {
-          clientName?: string;
-          scope?: string;
+async function createHarness(
+  options: {
+    now?: () => number;
+    oauthClient?:
+      | {
+          mode: "dynamic";
+          metadata?: {
+            clientName?: string;
+            scope?: string;
+          };
+        }
+      | {
+          mode: "static";
+          clientId: string;
+          clientSecret?: string;
+          metadata?: {
+            clientName?: string;
+            scope?: string;
+          };
         };
-      }
-    | {
-        mode: "static";
-        clientId: string;
-        clientSecret?: string;
-        metadata?: {
-          clientName?: string;
-          scope?: string;
-        };
-      };
-  responseTransform?: (input: {
-    handle: McpOAuthTestServerHandle;
-    record: RequestRecord;
-    response: Response;
-  }) => Promise<Response | undefined>;
-  serverOptions?: McpOAuthTestServerOptions;
-  createServer?: () => http.Server;
-} = {}): Promise<OAuthClientHarness> {
+    responseTransform?: (input: {
+      handle: McpOAuthTestServerHandle;
+      record: RequestRecord;
+      response: Response;
+    }) => Promise<Response | undefined>;
+    serverOptions?: McpOAuthTestServerOptions;
+    createServer?: () => http.Server;
+  } = {}
+): Promise<OAuthClientHarness> {
   const server = createMcpOAuthTestServer({
     autoApprove: true,
     scopes: ["mcp.read"],
-    ...(options.serverOptions ?? {}),
+    ...(options.serverOptions ?? {})
   });
   const handle = await server.listen({
     port: 0,
-    hostname: "127.0.0.1",
+    hostname: "127.0.0.1"
   });
   const requests: RequestRecord[] = [];
   const sessionStore = createSessionStore();
@@ -341,16 +332,17 @@ async function createHarness(options: {
       method: init.method ?? "GET",
       authorization: new Headers(init.headers).get("authorization"),
       sessionId: new Headers(init.headers).get("mcp-session-id"),
-      body: typeof init.body === "string" ? init.body : undefined,
+      body: typeof init.body === "string" ? init.body : undefined
     };
     const response = await nodeFetch(record.url, init);
-    const transformed = options.responseTransform === undefined
-      ? undefined
-      : await options.responseTransform({
-          handle,
-          record,
-          response,
-        });
+    const transformed =
+      options.responseTransform === undefined
+        ? undefined
+        : await options.responseTransform({
+            handle,
+            record,
+            response
+          });
 
     requests.push(record);
     return transformed ?? response;
@@ -358,8 +350,8 @@ async function createHarness(options: {
   const client = new McpClient({
     clientInfo: {
       name: "tiny-mcp-client-http-oauth-integration-test",
-      version: "1.0.0",
-    },
+      version: "1.0.0"
+    }
   });
   const transport = new HttpTransport({
     url: handle.mcpUrl,
@@ -368,13 +360,13 @@ async function createHarness(options: {
       client: options.oauthClient ?? {
         mode: "dynamic",
         metadata: {
-          clientName: "tiny-mcp-client integration test",
-        },
+          clientName: "tiny-mcp-client integration test"
+        }
       },
       browser: {
         async openBrowser(authorizationUrl) {
           const authorizationResponse = await fetchImpl(authorizationUrl, {
-            method: "GET",
+            method: "GET"
           });
           if (authorizationResponse.status !== 302) {
             throw new Error(
@@ -386,7 +378,7 @@ async function createHarness(options: {
           expect(callbackUrl).toBeTruthy();
 
           const callbackResponse = await fetchImpl(callbackUrl ?? "", {
-            method: "GET",
+            method: "GET"
           });
           expect(callbackResponse.ok).toBe(true);
           await callbackResponse.text();
@@ -394,12 +386,12 @@ async function createHarness(options: {
         ...(options.createServer === undefined
           ? {}
           : {
-              createServer: options.createServer,
-            }),
+              createServer: options.createServer
+            })
       },
       now: () => currentNow,
-      sessionStore: sessionStore.store,
-    },
+      sessionStore: sessionStore.store
+    }
   });
 
   return {
@@ -414,7 +406,7 @@ async function createHarness(options: {
     setNow(value: number): void {
       currentNow = value;
     },
-    transport,
+    transport
   };
 }
 
@@ -438,8 +430,8 @@ describe("HttpTransport OAuth integration", () => {
     const firstResult = await harness.client.callTool({
       name: "echo",
       arguments: {
-        text: "first-call",
-      },
+        text: "first-call"
+      }
     });
 
     expect(getTextContent(firstResult)).toBe("first-call");
@@ -452,21 +444,21 @@ describe("HttpTransport OAuth integration", () => {
       prm: 1,
       register: 1,
       tokenAuthorizationCode: 1,
-      tokenRefresh: 0,
+      tokenRefresh: 0
     });
     expect(summarizeAuthorizationServerTraffic(harness.handle)).toEqual({
       authorize: 1,
       metadata: 1,
       register: 1,
       tokenAuthorizationCode: 1,
-      tokenRefresh: 0,
+      tokenRefresh: 0
     });
 
     const initializePosts = harness.requests.filter(
       (request) =>
-        request.method === "POST"
-        && request.url === harness.handle.mcpUrl
-        && getJsonRpcMethod(request) === "initialize"
+        request.method === "POST" &&
+        request.url === harness.handle.mcpUrl &&
+        getJsonRpcMethod(request) === "initialize"
     );
     expect(initializePosts).toHaveLength(2);
     expect(initializePosts[0]?.authorization).toBeNull();
@@ -474,52 +466,56 @@ describe("HttpTransport OAuth integration", () => {
 
     const callToolPosts = harness.requests.filter(
       (request) =>
-        request.method === "POST"
-        && request.url === harness.handle.mcpUrl
-        && getJsonRpcMethod(request) === "tools/call"
+        request.method === "POST" &&
+        request.url === harness.handle.mcpUrl &&
+        getJsonRpcMethod(request) === "tools/call"
     );
     expect(callToolPosts).toHaveLength(1);
     expect(callToolPosts[0]?.authorization).toMatch(/^Bearer /);
 
     const registrationRequest = harness.requests.find(
-      (request) => request.method === "POST" && request.url === `${harness.handle.oauth.issuer}/register`
+      (request) =>
+        request.method === "POST" && request.url === `${harness.handle.oauth.issuer}/register`
     );
-    expect(parseJsonBody(requireRequest(registrationRequest, "registration request"))).toMatchObject({
+    expect(
+      parseJsonBody(requireRequest(registrationRequest, "registration request"))
+    ).toMatchObject({
       client_name: "tiny-mcp-client integration test",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
-      token_endpoint_auth_method: "none",
+      token_endpoint_auth_method: "none"
     });
 
     const authorizationRequest = harness.requests.find(
       (request) =>
-        request.method === "GET"
-        && request.url.startsWith(`${harness.handle.oauth.issuer}/authorize`)
+        request.method === "GET" &&
+        request.url.startsWith(`${harness.handle.oauth.issuer}/authorize`)
     );
-    expect(new URL(requireRequest(authorizationRequest, "authorization request").url).searchParams.get("resource")).toBe(
-      harness.handle.mcpUrl
-    );
+    expect(
+      new URL(requireRequest(authorizationRequest, "authorization request").url).searchParams.get(
+        "resource"
+      )
+    ).toBe(harness.handle.mcpUrl);
 
     const tokenRequest = harness.requests.find((request) => {
-      if (
-        request.method !== "POST"
-        || request.url !== `${harness.handle.oauth.issuer}/token`
-      ) {
+      if (request.method !== "POST" || request.url !== `${harness.handle.oauth.issuer}/token`) {
         return false;
       }
 
       return parseFormBody(request).get("grant_type") === "authorization_code";
     });
-    expect(parseFormBody(requireRequest(tokenRequest, "authorization-code token request")).get("resource")).toBe(
-      harness.handle.mcpUrl
-    );
+    expect(
+      parseFormBody(requireRequest(tokenRequest, "authorization-code token request")).get(
+        "resource"
+      )
+    ).toBe(harness.handle.mcpUrl);
 
     const secondCallBaseline = summarizeTraffic(harness.requests, harness.handle);
     const secondResult = await harness.client.callTool({
       name: "echo",
       arguments: {
-        text: "second-call",
-      },
+        text: "second-call"
+      }
     });
 
     expect(getTextContent(secondResult)).toBe("second-call");
@@ -529,7 +525,9 @@ describe("HttpTransport OAuth integration", () => {
       harness.handle
     );
     expect(summaryAfterSecondCall.authorize - secondCallBaseline.authorize).toBe(0);
-    expect(summaryAfterSecondCall.tokenAuthorizationCode - secondCallBaseline.tokenAuthorizationCode).toBe(0);
+    expect(
+      summaryAfterSecondCall.tokenAuthorizationCode - secondCallBaseline.tokenAuthorizationCode
+    ).toBe(0);
     expect(summaryAfterSecondCall.tokenRefresh - secondCallBaseline.tokenRefresh).toBe(0);
     expect(summaryAfterSecondCall.mcpPost - secondCallBaseline.mcpPost).toBe(1);
     expect(authorizationServerSummaryAfterSecondCall).toEqual({
@@ -537,7 +535,7 @@ describe("HttpTransport OAuth integration", () => {
       metadata: 1,
       register: 1,
       tokenAuthorizationCode: 1,
-      tokenRefresh: 0,
+      tokenRefresh: 0
     });
   });
 
@@ -548,17 +546,17 @@ describe("HttpTransport OAuth integration", () => {
       createServer: loopbackServer.createServer,
       oauthClient: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       serverOptions: {
         staticClients: [
           {
             clientId: "static-client",
             redirectUris: [redirectUri],
-            scopes: ["mcp.read"],
-          },
-        ],
-      },
+            scopes: ["mcp.read"]
+          }
+        ]
+      }
     });
     cleanups.add(harness.close);
 
@@ -567,16 +565,14 @@ describe("HttpTransport OAuth integration", () => {
     const result = await harness.client.callTool({
       name: "echo",
       arguments: {
-        text: "static-client",
-      },
+        text: "static-client"
+      }
     });
 
     expect(getTextContent(result)).toBe("static-client");
 
     const summary = summarizeTraffic(harness.requests, harness.handle);
-    const authorizationServerSummary = summarizeAuthorizationServerTraffic(
-      harness.handle
-    );
+    const authorizationServerSummary = summarizeAuthorizationServerTraffic(harness.handle);
     expect(summary.register).toBe(0);
     expect(summary.authorize).toBe(1);
     expect(summary.tokenAuthorizationCode).toBe(1);
@@ -585,31 +581,32 @@ describe("HttpTransport OAuth integration", () => {
       metadata: 1,
       register: 0,
       tokenAuthorizationCode: 1,
-      tokenRefresh: 0,
+      tokenRefresh: 0
     });
 
     const authorizationRequest = harness.requests.find(
       (request) =>
-        request.method === "GET"
-        && request.url.startsWith(`${harness.handle.oauth.issuer}/authorize`)
+        request.method === "GET" &&
+        request.url.startsWith(`${harness.handle.oauth.issuer}/authorize`)
     );
-    expect(new URL(requireRequest(authorizationRequest, "authorization request").url).searchParams.get("client_id")).toBe(
-      "static-client"
-    );
+    expect(
+      new URL(requireRequest(authorizationRequest, "authorization request").url).searchParams.get(
+        "client_id"
+      )
+    ).toBe("static-client");
 
     const tokenRequest = harness.requests.find((request) => {
-      if (
-        request.method !== "POST"
-        || request.url !== `${harness.handle.oauth.issuer}/token`
-      ) {
+      if (request.method !== "POST" || request.url !== `${harness.handle.oauth.issuer}/token`) {
         return false;
       }
 
       return parseFormBody(request).get("grant_type") === "authorization_code";
     });
-    expect(parseFormBody(requireRequest(tokenRequest, "authorization-code token request")).get("client_id")).toBe(
-      "static-client"
-    );
+    expect(
+      parseFormBody(requireRequest(tokenRequest, "authorization-code token request")).get(
+        "client_id"
+      )
+    ).toBe("static-client");
   });
 
   it("refreshes once after the current access token is revoked and the MCP server returns invalid_token", async () => {
@@ -620,8 +617,8 @@ describe("HttpTransport OAuth integration", () => {
     await harness.client.callTool({
       name: "echo",
       arguments: {
-        text: "before-revoke",
-      },
+        text: "before-revoke"
+      }
     });
 
     const initialSession = getStoredSession(harness);
@@ -630,42 +627,37 @@ describe("HttpTransport OAuth integration", () => {
     harness.handle.oauth.revoke(revokedAccessToken);
 
     const baseline = summarizeTraffic(harness.requests, harness.handle);
-    const authorizationServerBaseline = summarizeAuthorizationServerTraffic(
-      harness.handle
-    );
+    const authorizationServerBaseline = summarizeAuthorizationServerTraffic(harness.handle);
     const refreshedResult = await harness.client.callTool({
       name: "echo",
       arguments: {
-        text: "after-revoke",
-      },
+        text: "after-revoke"
+      }
     });
 
     expect(getTextContent(refreshedResult)).toBe("after-revoke");
 
     const summary = summarizeTraffic(harness.requests, harness.handle);
-    const authorizationServerSummary = summarizeAuthorizationServerTraffic(
-      harness.handle
-    );
+    const authorizationServerSummary = summarizeAuthorizationServerTraffic(harness.handle);
     expect(summary.authorize - baseline.authorize).toBe(0);
     expect(summary.tokenRefresh - baseline.tokenRefresh).toBe(1);
     expect(summary.mcpPost - baseline.mcpPost).toBe(2);
-    expect(
-      authorizationServerSummary.tokenRefresh - authorizationServerBaseline.tokenRefresh
-    ).toBe(1);
-
-    const refreshRequest = findLastRequest(harness.requests, (request) => {
-      if (
-        request.method !== "POST"
-        || request.url !== `${harness.handle.oauth.issuer}/token`
-      ) {
-        return false;
-      }
-
-      return parseFormBody(request).get("grant_type") === "refresh_token";
-    }, "refresh token request");
-    expect(parseFormBody(refreshRequest).get("resource")).toBe(
-      harness.handle.mcpUrl
+    expect(authorizationServerSummary.tokenRefresh - authorizationServerBaseline.tokenRefresh).toBe(
+      1
     );
+
+    const refreshRequest = findLastRequest(
+      harness.requests,
+      (request) => {
+        if (request.method !== "POST" || request.url !== `${harness.handle.oauth.issuer}/token`) {
+          return false;
+        }
+
+        return parseFormBody(request).get("grant_type") === "refresh_token";
+      },
+      "refresh token request"
+    );
+    expect(parseFormBody(refreshRequest).get("resource")).toBe(harness.handle.mcpUrl);
 
     const updatedSession = getStoredSession(harness);
     expect(updatedSession.tokens?.accessToken).toBeTruthy();
@@ -680,22 +672,20 @@ describe("HttpTransport OAuth integration", () => {
     await harness.client.callTool({
       name: "echo",
       arguments: {
-        text: "seed-token",
-      },
+        text: "seed-token"
+      }
     });
 
     harness.setNow(80_000);
     const baseline = summarizeTraffic(harness.requests, harness.handle);
-    const authorizationServerBaseline = summarizeAuthorizationServerTraffic(
-      harness.handle
-    );
+    const authorizationServerBaseline = summarizeAuthorizationServerTraffic(harness.handle);
     const results = await Promise.all(
       Array.from({ length: 5 }, (_, index) =>
         harness.client.callTool({
           name: "echo",
           arguments: {
-            text: `parallel-${index}`,
-          },
+            text: `parallel-${index}`
+          }
         })
       )
     );
@@ -705,44 +695,42 @@ describe("HttpTransport OAuth integration", () => {
       "parallel-1",
       "parallel-2",
       "parallel-3",
-      "parallel-4",
+      "parallel-4"
     ]);
 
     const summary = summarizeTraffic(harness.requests, harness.handle);
-    const authorizationServerSummary = summarizeAuthorizationServerTraffic(
-      harness.handle
-    );
+    const authorizationServerSummary = summarizeAuthorizationServerTraffic(harness.handle);
     expect(summary.authorize - baseline.authorize).toBe(0);
     expect(summary.tokenRefresh - baseline.tokenRefresh).toBe(1);
     expect(summary.mcpPost - baseline.mcpPost).toBe(5);
-    expect(
-      authorizationServerSummary.tokenRefresh - authorizationServerBaseline.tokenRefresh
-    ).toBe(1);
+    expect(authorizationServerSummary.tokenRefresh - authorizationServerBaseline.tokenRefresh).toBe(
+      1
+    );
   });
 
   it("maps verifier audience mismatches to a typed OAuthError instead of a generic transport error", async () => {
     const harness = await createHarness({
       responseTransform: async ({ handle, record, response }) => {
         if (
-          record.method !== "POST"
-          || record.url !== `${handle.oauth.issuer}/token`
-          || parseFormBody(record).get("grant_type") !== "authorization_code"
+          record.method !== "POST" ||
+          record.url !== `${handle.oauth.issuer}/token` ||
+          parseFormBody(record).get("grant_type") !== "authorization_code"
         ) {
           return undefined;
         }
 
-        const payload = await response.clone().json() as Record<string, unknown>;
+        const payload = (await response.clone().json()) as Record<string, unknown>;
         const wrongAudienceToken = await handle.oauth.issueTokenFor({
           clientId: parseFormBody(record).get("client_id") ?? "unknown-client",
           resource: `${handle.mcpUrl}/wrong-audience`,
-          scopes: ["mcp.read"],
+          scopes: ["mcp.read"]
         });
 
         payload.access_token = wrongAudienceToken;
         delete payload.refresh_token;
 
         return cloneResponse(response, JSON.stringify(payload));
-      },
+      }
     });
     cleanups.add(harness.close);
 
@@ -758,7 +746,7 @@ describe("HttpTransport OAuth integration", () => {
     expect(caughtError).toMatchObject({
       error: "invalid_token",
       errorDescription: "audience mismatch",
-      status: 401,
+      status: 401
     });
     expect((caughtError as Error).message).toBe("audience mismatch");
   });
@@ -767,25 +755,25 @@ describe("HttpTransport OAuth integration", () => {
     const harness = await createHarness({
       responseTransform: async ({ handle, record, response }) => {
         if (
-          record.method !== "POST"
-          || record.url !== `${handle.oauth.issuer}/token`
-          || parseFormBody(record).get("grant_type") !== "authorization_code"
+          record.method !== "POST" ||
+          record.url !== `${handle.oauth.issuer}/token` ||
+          parseFormBody(record).get("grant_type") !== "authorization_code"
         ) {
           return undefined;
         }
 
-        const payload = await response.clone().json() as Record<string, unknown>;
+        const payload = (await response.clone().json()) as Record<string, unknown>;
         const insufficientScopeToken = await handle.oauth.issueTokenFor({
           clientId: parseFormBody(record).get("client_id") ?? "unknown-client",
           resource: handle.mcpUrl,
-          scopes: ["mcp.write"],
+          scopes: ["mcp.write"]
         });
 
         payload.access_token = insufficientScopeToken;
         delete payload.refresh_token;
 
         return cloneResponse(response, JSON.stringify(payload));
-      },
+      }
     });
     cleanups.add(harness.close);
 
@@ -801,7 +789,7 @@ describe("HttpTransport OAuth integration", () => {
     expect(caughtError).toMatchObject({
       error: "insufficient_scope",
       errorDescription: "insufficient scope",
-      status: 403,
+      status: 403
     });
     expect((caughtError as Error).message).toBe("insufficient scope");
   });

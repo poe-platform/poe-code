@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import {
   PromptListChangedNotificationSchema,
   ResourceUpdatedNotificationSchema

@@ -1,14 +1,10 @@
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import type { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { HttpServer, HttpServerHandle } from "./http-server.js";
-import {
-  TokenVerificationError,
-  type TokenVerifier,
-  type VerifiedAccessToken,
-} from "./auth.js";
-import { nodeFetch } from "./test-support.js";
+import { TokenVerificationError, type TokenVerifier, type VerifiedAccessToken } from "./auth.js";
+import { installInMemoryHttp, nodeFetch } from "./test-support.js";
 
-export { createTestMcpServer, nodeFetch } from "./test-support.js";
+export { createTestMcpServer, installInMemoryHttp, nodeFetch } from "./test-support.js";
 
 export interface HttpTestPair {
   client: Client;
@@ -57,14 +53,12 @@ export interface InMemoryTokenVerifier {
   issueToken(input: InMemoryAccessTokenInput): string;
 }
 
-function cloneVerifiedAccessToken(
-  token: VerifiedAccessToken
-): VerifiedAccessToken {
+function cloneVerifiedAccessToken(token: VerifiedAccessToken): VerifiedAccessToken {
   return {
     ...token,
     audience: [...token.audience],
     scopes: [...token.scopes],
-    claims: structuredClone(token.claims),
+    claims: structuredClone(token.claims)
   };
 }
 
@@ -84,28 +78,28 @@ export function createInMemoryTokenVerifier(
         if (token === undefined) {
           throw new TokenVerificationError({
             error: "invalid_token",
-            errorDescription: "unknown token",
+            errorDescription: "unknown token"
           });
         }
 
         if (!input.authorizationServers.includes(token.issuer)) {
           throw new TokenVerificationError({
             error: "invalid_token",
-            errorDescription: "issuer mismatch",
+            errorDescription: "issuer mismatch"
           });
         }
 
         if (!token.audience.includes(input.resource)) {
           throw new TokenVerificationError({
             error: "invalid_token",
-            errorDescription: "audience mismatch",
+            errorDescription: "audience mismatch"
           });
         }
 
         if (token.expiresAt <= now()) {
           throw new TokenVerificationError({
             error: "invalid_token",
-            errorDescription: "token expired",
+            errorDescription: "token expired"
           });
         }
 
@@ -116,12 +110,12 @@ export function createInMemoryTokenVerifier(
           throw new TokenVerificationError({
             error: "insufficient_scope",
             errorDescription: "insufficient scope",
-            scope: input.requiredScopes,
+            scope: input.requiredScopes
           });
         }
 
         return cloneVerifiedAccessToken(token);
-      },
+      }
     },
     issueToken(input) {
       const token = input.token ?? `test-token-${nextTokenId++}`;
@@ -140,13 +134,13 @@ export function createInMemoryTokenVerifier(
         ...(input.subject === undefined
           ? {}
           : {
-              sub: input.subject,
+              sub: input.subject
             }),
         ...(input.clientId === undefined
           ? {}
           : {
-              client_id: input.clientId,
-            }),
+              client_id: input.clientId
+            })
       };
 
       tokens.set(token, {
@@ -159,17 +153,17 @@ export function createInMemoryTokenVerifier(
         ...(input.subject === undefined
           ? {}
           : {
-              subject: input.subject,
+              subject: input.subject
             }),
         ...(input.clientId === undefined
           ? {}
           : {
-              clientId: input.clientId,
-            }),
+              clientId: input.clientId
+            })
       });
 
       return token;
-    },
+    }
   };
 }
 
@@ -187,10 +181,11 @@ export async function createHttpTestPair(server: HttpServer): Promise<HttpTestPa
     );
   }
 
+  installInMemoryHttp();
   const handle = await server.listenHttp({ port: 0 });
   const client = new sdkClient.Client({ name: "sdk-test-client", version: "1.0.0" });
   const transport = new sdkTransport.StreamableHTTPClientTransport(new URL(handle.url), {
-    fetch: nodeFetch,
+    fetch: nodeFetch
   });
 
   try {
@@ -213,25 +208,29 @@ export async function createHttpTestPair(server: HttpServer): Promise<HttpTestPa
       if (rejected !== undefined) {
         throw rejected.reason;
       }
-    },
+    }
   };
 }
 
 export async function createHttpTestPairWithTinyClient(
   server: HttpServer
-): Promise<TinyHttpTestPair | null> {
+): Promise<TinyHttpTestPair> {
   let tinyMcpClient: typeof import("tiny-mcp-client");
 
   try {
     tinyMcpClient = await import("tiny-mcp-client");
-  } catch {
-    return null;
+  } catch (error) {
+    throw new Error(
+      "createHttpTestPairWithTinyClient requires tiny-mcp-client; install tiny-mcp-client as a devDependency",
+      { cause: error }
+    );
   }
 
+  installInMemoryHttp();
   const handle = await server.listenHttp({ port: 0 });
   const requests: TinyHttpRequestLogEntry[] = [];
   const client = new tinyMcpClient.McpClient({
-    clientInfo: { name: "tiny-http-test-client", version: "1.0.0" },
+    clientInfo: { name: "tiny-http-test-client", version: "1.0.0" }
   });
   const transport = new tinyMcpClient.HttpTransport({
     url: handle.url,
@@ -257,11 +256,11 @@ export async function createHttpTestPairWithTinyClient(
         method,
         sessionId: headers.get("mcp-session-id"),
         jsonRpcMethod,
-        responseContentType: response.headers.get("content-type"),
+        responseContentType: response.headers.get("content-type")
       });
 
       return response;
-    },
+    }
   });
 
   await client.connect(transport);
@@ -275,6 +274,6 @@ export async function createHttpTestPairWithTinyClient(
     cleanup: async () => {
       await client.close();
       await handle.close();
-    },
+    }
   };
 }

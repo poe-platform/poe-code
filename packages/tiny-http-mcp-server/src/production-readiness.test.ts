@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
 import type { IncomingMessage, ServerResponse } from "node:http";

@@ -2,8 +2,10 @@ import http from "node:http";
 import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLocalJWKSet, jwtVerify } from "jose";
-import { nodeFetch } from "tiny-http-mcp-server/testing";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import { createOAuthTestServer } from "./index.js";
+
+installInMemoryHttp();
 
 function hasOwnErrorCode(error: unknown, code: string): boolean {
   return (
@@ -49,11 +51,7 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
-async function verifyToken(input: {
-  issuer: string;
-  resource: string;
-  token: string;
-}) {
+async function verifyToken(input: { issuer: string; resource: string; token: string }) {
   const jwksResponse = await nodeFetch(`${input.issuer}/.well-known/jwks.json`);
   const jwks = createLocalJWKSet(
     (await jwksResponse.json()) as {
@@ -63,7 +61,7 @@ async function verifyToken(input: {
 
   return jwtVerify(input.token, jwks, {
     issuer: input.issuer,
-    audience: input.resource,
+    audience: input.resource
   });
 }
 
@@ -75,12 +73,12 @@ async function registerClient(input: {
   const response = await nodeFetch(`${input.baseUrl}/register`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
       redirect_uris: input.redirectUris,
-      scope: input.scope,
-    }),
+      scope: input.scope
+    })
   });
 
   expect(response.status).toBe(201);
@@ -117,7 +115,7 @@ async function authorize(input: {
   }
 
   const response = await nodeFetch(url, {
-    redirect: "manual",
+    redirect: "manual"
   });
 
   expect(response.status).toBe(302);
@@ -131,7 +129,7 @@ async function authorize(input: {
   return {
     code: code ?? "",
     state: callbackUrl.searchParams.get("state"),
-    iss: callbackUrl.searchParams.get("iss"),
+    iss: callbackUrl.searchParams.get("iss")
   };
 }
 
@@ -149,15 +147,15 @@ async function exchangeAuthorizationCode(input: {
     code: input.code,
     code_verifier: input.codeVerifier,
     redirect_uri: input.redirectUri,
-    resource: input.resource,
+    resource: input.resource
   });
 
   return nodeFetch(`${input.baseUrl}/token`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: body.toString(),
+    body: body.toString()
   });
 }
 
@@ -171,15 +169,15 @@ async function refreshAccessToken(input: {
     grant_type: "refresh_token",
     client_id: input.clientId,
     refresh_token: input.refreshToken,
-    resource: input.resource,
+    resource: input.resource
   });
 
   return nodeFetch(`${input.baseUrl}/token`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: body.toString(),
+    body: body.toString()
   });
 }
 
@@ -236,7 +234,7 @@ describe("tiny-oauth-test-server", () => {
     const server = createOAuthTestServer({
       defaultTokenTtlSeconds: 60,
       signingKeySeed: "tiny-oauth-test-server:test-seed",
-      defaultAuthorization: { autoApprove: true },
+      defaultAuthorization: { autoApprove: true }
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -246,9 +244,7 @@ describe("tiny-oauth-test-server", () => {
   it("serves RFC 8414 authorization server metadata", async () => {
     const { server } = await listenServer();
 
-    const response = await nodeFetch(
-      `${server.issuer}/.well-known/oauth-authorization-server`
-    );
+    const response = await nodeFetch(`${server.issuer}/.well-known/oauth-authorization-server`);
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
@@ -262,7 +258,7 @@ describe("tiny-oauth-test-server", () => {
       grant_types_supported: ["authorization_code", "refresh_token"],
       token_endpoint_auth_methods_supported: ["none"],
       code_challenge_methods_supported: ["S256"],
-      authorization_response_iss_parameter_supported: true,
+      authorization_response_iss_parameter_supported: true
     });
   });
 
@@ -303,7 +299,9 @@ describe("tiny-oauth-test-server", () => {
     ).toThrow("staticClients[].clientId must be unique");
     expect(() =>
       createOAuthTestServer({
-        staticClients: [{ clientId: "client", redirectUris: [redirectUri], scopes: ["mcp.read mcp.admin"] }]
+        staticClients: [
+          { clientId: "client", redirectUris: [redirectUri], scopes: ["mcp.read mcp.admin"] }
+        ]
       })
     ).toThrow("scope entries must not contain spaces");
     expect(() =>
@@ -322,9 +320,9 @@ describe("tiny-oauth-test-server", () => {
     cleanups.add(handle.close);
 
     const response = await nodeFetch(
-      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("empty-scope-verifier")))}`
-        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&scope=mcp.admin",
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("empty-scope-verifier")))}` +
+        "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&scope=mcp.admin",
       { redirect: "manual" }
     );
 
@@ -356,7 +354,7 @@ describe("tiny-oauth-test-server", () => {
       const issuer = `http://127.0.0.1:${issuerPort}/oauth`;
       const server = createOAuthTestServer({
         issuer,
-        signingKeySeed: "tiny-oauth-test-server:pathful-issuer",
+        signingKeySeed: "tiny-oauth-test-server:pathful-issuer"
       });
 
       try {
@@ -393,8 +391,8 @@ describe("tiny-oauth-test-server", () => {
     cleanups.add(handle.close);
 
     const response = await nodeFetch(
-      `http://127.0.0.1:${issuerPort}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.0.0.1:43123/callback")}`
-        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
+      `http://127.0.0.1:${issuerPort}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.0.0.1:43123/callback")}` +
+        "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
       { redirect: "manual" }
     );
 
@@ -415,7 +413,7 @@ describe("tiny-oauth-test-server", () => {
     const clientId = await registerClient({
       baseUrl: server.issuer,
       redirectUris: [redirectUri],
-      scope: "mcp.read mcp.write",
+      scope: "mcp.read mcp.write"
     });
 
     const authorization = await authorize({
@@ -425,7 +423,7 @@ describe("tiny-oauth-test-server", () => {
       resource,
       codeChallenge: createPkceChallenge(codeVerifier),
       scope: "mcp.read mcp.write",
-      state: "state-123",
+      state: "state-123"
     });
 
     expect(authorization.state).toBe("state-123");
@@ -437,7 +435,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
 
     expect(tokenResponse.status).toBe(200);
@@ -455,7 +453,7 @@ describe("tiny-oauth-test-server", () => {
     const verified = await verifyToken({
       issuer: server.issuer,
       resource,
-      token: tokenPayload.access_token,
+      token: tokenPayload.access_token
     });
 
     expect(verified.payload.iss).toBe(server.issuer);
@@ -470,7 +468,7 @@ describe("tiny-oauth-test-server", () => {
     const response = await nodeFetch(`${server.issuer}/register`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         client_name: "poe-code test",
@@ -480,12 +478,12 @@ describe("tiny-oauth-test-server", () => {
         token_endpoint_auth_method: "none",
         scope: "mcp.read mcp.write",
         software_id: "poe-code",
-        software_version: "1.0.0",
-      }),
+        software_version: "1.0.0"
+      })
     });
 
     expect(response.status).toBe(201);
-    const payload = await response.json() as Record<string, unknown>;
+    const payload = (await response.json()) as Record<string, unknown>;
 
     expect(payload).toMatchObject({
       client_id: expect.stringMatching(/^client_\d{6}$/),
@@ -496,7 +494,7 @@ describe("tiny-oauth-test-server", () => {
       token_endpoint_auth_method: "none",
       scope: "mcp.read mcp.write",
       software_id: "poe-code",
-      software_version: "1.0.0",
+      software_version: "1.0.0"
     });
     expect(typeof payload.client_id_issued_at).toBe("number");
     expect(payload.client_secret).toBeUndefined();
@@ -508,7 +506,7 @@ describe("tiny-oauth-test-server", () => {
     const response = await nodeFetch(`${server.issuer}/register`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         client_name: "poe-code test",
@@ -516,14 +514,14 @@ describe("tiny-oauth-test-server", () => {
         grant_types: ["authorization_code", "refresh_token"],
         response_types: ["code"],
         token_endpoint_auth_method: "client_secret_basic",
-        scope: "mcp.read",
-      }),
+        scope: "mcp.read"
+      })
     });
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: "invalid_client_metadata",
-      error_description: "token_endpoint_auth_method client_secret_basic is not supported",
+      error_description: "token_endpoint_auth_method client_secret_basic is not supported"
     });
   });
 
@@ -619,18 +617,17 @@ describe("tiny-oauth-test-server", () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43130/callback";
     const resource = "https://resource.example.com/unreserved";
-    const codeVerifier =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+    const codeVerifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -639,7 +636,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
 
     expect(tokenResponse.status).toBe(200);
@@ -651,14 +648,14 @@ describe("tiny-oauth-test-server", () => {
     const resource = "https://resource.example.com/mcp";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(createValidVerifier("expected-verifier")),
+      codeChallenge: createPkceChallenge(createValidVerifier("expected-verifier"))
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -667,12 +664,12 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier: createValidVerifier("wrong-verifier"),
       redirectUri,
-      resource,
+      resource
     });
 
     expect(tokenResponse.status).toBe(400);
     await expect(tokenResponse.json()).resolves.toMatchObject({
-      error: "invalid_grant",
+      error: "invalid_grant"
     });
   });
 
@@ -683,14 +680,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = "short";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -699,7 +696,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     const payload = (await tokenResponse.json()) as {
       error: string;
@@ -718,14 +715,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = `${"A".repeat(42)}!`;
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -734,7 +731,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     const payload = (await tokenResponse.json()) as {
       error: string;
@@ -751,14 +748,14 @@ describe("tiny-oauth-test-server", () => {
     const redirectUri = "http://127.0.0.1:43125/callback";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource: "https://resource.example.com/a",
-      codeChallenge: createPkceChallenge(createValidVerifier("matching-verifier")),
+      codeChallenge: createPkceChallenge(createValidVerifier("matching-verifier"))
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -767,12 +764,12 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier: createValidVerifier("matching-verifier"),
       redirectUri,
-      resource: "https://resource.example.com/b",
+      resource: "https://resource.example.com/b"
     });
 
     expect(tokenResponse.status).toBe(400);
     await expect(tokenResponse.json()).resolves.toMatchObject({
-      error: "invalid_grant",
+      error: "invalid_grant"
     });
   });
 
@@ -781,29 +778,29 @@ describe("tiny-oauth-test-server", () => {
     const redirectUri = "http://127.0.0.1:43136/callback";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
 
     const authorizeResponse = await nodeFetch(
       new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code"
-        + `&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("fragment-verifier")))}`
-        + "&code_challenge_method=S256"
-        + `&resource=${encodeURIComponent("https://resource.example.com/mcp#fragment")}`
-        + "&auto_approve=1",
+        `/authorize?client_id=${encodeURIComponent(clientId)}` +
+          `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+          "&response_type=code" +
+          `&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("fragment-verifier")))}` +
+          "&code_challenge_method=S256" +
+          `&resource=${encodeURIComponent("https://resource.example.com/mcp#fragment")}` +
+          "&auto_approve=1",
         server.issuer
       ),
       {
-        redirect: "manual",
+        redirect: "manual"
       }
     );
 
     expect(authorizeResponse.status).toBe(400);
     await expect(authorizeResponse.json()).resolves.toMatchObject({
       error: "invalid_request",
-      error_description: "resource must not include a fragment",
+      error_description: "resource must not include a fragment"
     });
   });
 
@@ -813,27 +810,27 @@ describe("tiny-oauth-test-server", () => {
     const resource = "https://resource.example.com/plain";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const response = await nodeFetch(
       new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code"
-        + "&code_challenge=plain-verifier"
-        + "&code_challenge_method=plain"
-        + `&resource=${encodeURIComponent(resource)}`
-        + "&auto_approve=1",
+        `/authorize?client_id=${encodeURIComponent(clientId)}` +
+          `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+          "&response_type=code" +
+          "&code_challenge=plain-verifier" +
+          "&code_challenge_method=plain" +
+          `&resource=${encodeURIComponent(resource)}` +
+          "&auto_approve=1",
         server.issuer
       ),
       {
-        redirect: "manual",
+        redirect: "manual"
       }
     );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_request",
+      error: "invalid_request"
     });
   });
 
@@ -842,10 +839,10 @@ describe("tiny-oauth-test-server", () => {
     const redirectUri = "http://127.0.0.1:43146/callback";
     const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
     const response = await nodeFetch(
-      `${server.issuer}/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`
-        + "&code_challenge=not-a-sha256-code-challenge&code_challenge_method=S256"
-        + "&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
+      `${server.issuer}/authorize?client_id=${encodeURIComponent(clientId)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code` +
+        "&code_challenge=not-a-sha256-code-challenge&code_challenge_method=S256" +
+        "&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
       { redirect: "manual" }
     );
 
@@ -863,9 +860,9 @@ describe("tiny-oauth-test-server", () => {
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
     const response = await nodeFetch(
-      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("consent-verifier")))}`
-        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("consent-verifier")))}` +
+        "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
       { redirect: "manual" }
     );
 
@@ -891,7 +888,6 @@ describe("tiny-oauth-test-server", () => {
     expect(close).toHaveBeenCalledTimes(2);
   });
 
-
   it("rotates refresh tokens and issues a new access token", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43126/callback";
@@ -899,14 +895,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = createValidVerifier("refresh-flow-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
     const firstTokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
@@ -914,7 +910,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     const firstPayload = (await firstTokenResponse.json()) as {
       access_token: string;
@@ -925,7 +921,7 @@ describe("tiny-oauth-test-server", () => {
       baseUrl: server.issuer,
       clientId,
       refreshToken: firstPayload.refresh_token,
-      resource,
+      resource
     });
 
     expect(refreshResponse.status).toBe(200);
@@ -982,14 +978,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = createValidVerifier("refresh-reuse-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
     const firstTokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
@@ -997,7 +993,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     const firstPayload = (await firstTokenResponse.json()) as {
       refresh_token: string;
@@ -1007,7 +1003,7 @@ describe("tiny-oauth-test-server", () => {
       baseUrl: server.issuer,
       clientId,
       refreshToken: firstPayload.refresh_token,
-      resource,
+      resource
     });
     expect(rotatedResponse.status).toBe(200);
 
@@ -1015,13 +1011,13 @@ describe("tiny-oauth-test-server", () => {
       baseUrl: server.issuer,
       clientId,
       refreshToken: firstPayload.refresh_token,
-      resource,
+      resource
     });
 
     expect(reuseResponse.status).toBe(400);
     await expect(reuseResponse.json()).resolves.toMatchObject({
       error: "invalid_grant",
-      error_description: "refresh token is invalid",
+      error_description: "refresh token is invalid"
     });
   });
 
@@ -1032,14 +1028,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = "redaction-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     await exchangeAuthorizationCode({
@@ -1048,14 +1044,14 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
 
     const tokenRequest = server.requestLog.find(
       (request) =>
-        request.method === "POST"
-        && request.url.endsWith("/token")
-        && (request.body?.includes("grant_type=authorization_code") ?? false)
+        request.method === "POST" &&
+        request.url.endsWith("/token") &&
+        (request.body?.includes("grant_type=authorization_code") ?? false)
     );
     expect(tokenRequest?.body).toBeTruthy();
     expect(tokenRequest?.body).not.toContain(codeVerifier);
@@ -1069,7 +1065,7 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = createValidVerifier("request-log-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
@@ -1077,7 +1073,7 @@ describe("tiny-oauth-test-server", () => {
       redirectUri,
       resource,
       codeChallenge: createPkceChallenge(codeVerifier),
-      scope: "mcp.read",
+      scope: "mcp.read"
     });
     const tokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
@@ -1085,7 +1081,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     const tokenPayload = (await tokenResponse.json()) as {
       refresh_token: string;
@@ -1095,7 +1091,7 @@ describe("tiny-oauth-test-server", () => {
       baseUrl: server.issuer,
       clientId,
       refreshToken: tokenPayload.refresh_token,
-      resource,
+      resource
     });
 
     const requestLog = server.requestLog;
@@ -1103,7 +1099,9 @@ describe("tiny-oauth-test-server", () => {
       requestLog.filter((request) => request.method === "POST" && request.url.endsWith("/register"))
     ).toHaveLength(1);
     expect(
-      requestLog.filter((request) => request.method === "GET" && request.url.includes("/authorize?"))
+      requestLog.filter(
+        (request) => request.method === "GET" && request.url.includes("/authorize?")
+      )
     ).toHaveLength(1);
     expect(
       requestLog.filter((request) => {
@@ -1137,14 +1135,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = createValidVerifier("single-use-code-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const firstResponse = await exchangeAuthorizationCode({
@@ -1153,7 +1151,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
 
     expect(firstResponse.status).toBe(200);
@@ -1164,12 +1162,12 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
 
     expect(secondResponse.status).toBe(400);
     await expect(secondResponse.json()).resolves.toMatchObject({
-      error: "invalid_grant",
+      error: "invalid_grant"
     });
   });
 
@@ -1210,7 +1208,7 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = "reused-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
 
     const firstAuthorization = await authorize({
@@ -1218,7 +1216,7 @@ describe("tiny-oauth-test-server", () => {
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
     const firstTokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
@@ -1226,7 +1224,7 @@ describe("tiny-oauth-test-server", () => {
       code: firstAuthorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     expect(firstTokenResponse.status).toBe(200);
 
@@ -1235,7 +1233,7 @@ describe("tiny-oauth-test-server", () => {
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
     const secondTokenResponse = await exchangeAuthorizationCode({
       baseUrl: server.issuer,
@@ -1243,7 +1241,7 @@ describe("tiny-oauth-test-server", () => {
       code: secondAuthorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
     const secondPayload = (await secondTokenResponse.json()) as {
       error: string;
@@ -1266,7 +1264,7 @@ describe("tiny-oauth-test-server", () => {
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_redirect_uri",
+      error: "invalid_redirect_uri"
     });
   });
 
@@ -1281,7 +1279,7 @@ describe("tiny-oauth-test-server", () => {
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_redirect_uri",
+      error: "invalid_redirect_uri"
     });
   });
 
@@ -1294,9 +1292,9 @@ describe("tiny-oauth-test-server", () => {
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
     const response = await nodeFetch(
-      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.attacker.example.test/callback")}`
-        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12"
-        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.attacker.example.test/callback")}` +
+        "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12" +
+        "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
       { redirect: "manual" }
     );
 
@@ -1310,7 +1308,7 @@ describe("tiny-oauth-test-server", () => {
     const resource = "https://resource.example.com/port-variance";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [registeredRedirectUri],
+      redirectUris: [registeredRedirectUri]
     });
 
     const authorization = await authorize({
@@ -1318,7 +1316,7 @@ describe("tiny-oauth-test-server", () => {
       clientId,
       redirectUri: requestedRedirectUri,
       resource,
-      codeChallenge: createPkceChallenge("port-variance-verifier-ABCDEFGHIJKLMNOPQRSTUVWX"),
+      codeChallenge: createPkceChallenge("port-variance-verifier-ABCDEFGHIJKLMNOPQRSTUVWX")
     });
 
     expect(authorization.code).toBeTruthy();
@@ -1328,27 +1326,27 @@ describe("tiny-oauth-test-server", () => {
     const { server } = await listenServer();
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: ["http://127.0.0.1/callback"],
+      redirectUris: ["http://127.0.0.1/callback"]
     });
     const response = await nodeFetch(
       new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent("http://127.0.0.1:43138/other")}`
-        + "&response_type=code"
-        + `&code_challenge=${encodeURIComponent(createPkceChallenge("path-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
-        + "&code_challenge_method=S256"
-        + `&resource=${encodeURIComponent("https://resource.example.com/path-mismatch")}`
-        + "&auto_approve=1",
+        `/authorize?client_id=${encodeURIComponent(clientId)}` +
+          `&redirect_uri=${encodeURIComponent("http://127.0.0.1:43138/other")}` +
+          "&response_type=code" +
+          `&code_challenge=${encodeURIComponent(createPkceChallenge("path-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}` +
+          "&code_challenge_method=S256" +
+          `&resource=${encodeURIComponent("https://resource.example.com/path-mismatch")}` +
+          "&auto_approve=1",
         server.issuer
       ),
       {
-        redirect: "manual",
+        redirect: "manual"
       }
     );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_request",
+      error: "invalid_request"
     });
   });
 
@@ -1359,14 +1357,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = "token-path-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUV";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -1375,12 +1373,12 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri: `${redirectUri}/`,
-      resource,
+      resource
     });
 
     expect(tokenResponse.status).toBe(400);
     await expect(tokenResponse.json()).resolves.toMatchObject({
-      error: "invalid_grant",
+      error: "invalid_grant"
     });
   });
 
@@ -1391,14 +1389,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = "token-port-mismatch-verifier-ABCDEFGHIJKLMNOPQRSTUV";
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: ["http://127.0.0.1/callback"],
+      redirectUris: ["http://127.0.0.1/callback"]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -1407,12 +1405,12 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri: "http://127.0.0.1:43141/callback",
-      resource,
+      resource
     });
 
     expect(tokenResponse.status).toBe(400);
     await expect(tokenResponse.json()).resolves.toMatchObject({
-      error: "invalid_grant",
+      error: "invalid_grant"
     });
   });
 
@@ -1423,14 +1421,14 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = createValidVerifier("wrong-content-type");
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
     const authorization = await authorize({
       baseUrl: server.issuer,
       clientId,
       codeChallenge: createPkceChallenge(codeVerifier),
       redirectUri,
-      resource,
+      resource
     });
     const body = new URLSearchParams({
       grant_type: "authorization_code",
@@ -1438,19 +1436,19 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       code_verifier: codeVerifier,
       redirect_uri: redirectUri,
-      resource,
+      resource
     });
 
     const response = await nodeFetch(`${server.issuer}/token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: body.toString(),
+      body: body.toString()
     });
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: "invalid_request",
-      error_description: "Content-Type must be application/x-www-form-urlencoded",
+      error_description: "Content-Type must be application/x-www-form-urlencoded"
     });
   });
 
@@ -1462,13 +1460,13 @@ describe("tiny-oauth-test-server", () => {
       clientId: "direct-client",
       resource,
       scopes: ["mcp.read"],
-      ttlSeconds: 120,
+      ttlSeconds: 120
     });
 
     const verified = await verifyToken({
       issuer: server.issuer,
       resource,
-      token,
+      token
     });
 
     expect(verified.payload.client_id).toBe("direct-client");
@@ -1484,7 +1482,7 @@ describe("tiny-oauth-test-server", () => {
         server.issueTokenFor({
           clientId,
           resource: "https://resource.example.com/direct",
-          scopes: ["mcp.read"],
+          scopes: ["mcp.read"]
         })
       ).rejects.toThrow("clientId must be non-empty");
 
@@ -1494,14 +1492,14 @@ describe("tiny-oauth-test-server", () => {
         body: JSON.stringify({
           client_id: clientId,
           resource: "https://resource.example.com/direct",
-          scopes: ["mcp.read"],
-        }),
+          scopes: ["mcp.read"]
+        })
       });
 
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toMatchObject({
         error: "invalid_request",
-        error_description: "client_id is required",
+        error_description: "client_id is required"
       });
     }
   });
@@ -1513,7 +1511,7 @@ describe("tiny-oauth-test-server", () => {
       server.issueTokenFor({
         clientId: "direct-client",
         resource: "https://resource.example.com/direct",
-        scopes: ["mcp.read mcp.admin"],
+        scopes: ["mcp.read mcp.admin"]
       })
     ).rejects.toThrow("scope entries must not contain spaces");
 
@@ -1523,14 +1521,14 @@ describe("tiny-oauth-test-server", () => {
       body: JSON.stringify({
         client_id: "direct-client",
         resource: "https://resource.example.com/direct",
-        scopes: ["mcp.read mcp.admin"],
-      }),
+        scopes: ["mcp.read mcp.admin"]
+      })
     });
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: "invalid_request",
-      error_description: "scope entries must not contain spaces",
+      error_description: "scope entries must not contain spaces"
     });
   });
 
@@ -1597,7 +1595,7 @@ describe("tiny-oauth-test-server", () => {
     const codeVerifier = createValidVerifier("ipv6-loopback-verifier");
     const clientId = await registerClient({
       baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+      redirectUris: [redirectUri]
     });
 
     const authorization = await authorize({
@@ -1605,7 +1603,7 @@ describe("tiny-oauth-test-server", () => {
       clientId,
       redirectUri,
       resource,
-      codeChallenge: createPkceChallenge(codeVerifier),
+      codeChallenge: createPkceChallenge(codeVerifier)
     });
 
     const tokenResponse = await exchangeAuthorizationCode({
@@ -1614,7 +1612,7 @@ describe("tiny-oauth-test-server", () => {
       code: authorization.code,
       codeVerifier,
       redirectUri,
-      resource,
+      resource
     });
 
     expect(tokenResponse.status).toBe(200);

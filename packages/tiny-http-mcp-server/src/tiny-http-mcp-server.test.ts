@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import http, { type IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createRequire } from "node:module";
@@ -2802,9 +2803,6 @@ describe("HttpServer integration", () => {
   tinyDescribe("tiny-mcp-client integration", () => {
     it("I9 connects and initializes a tiny-mcp-client transport", async () => {
       const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
-      if (pair === null) {
-        return;
-      }
 
       trackCleanup(pair.cleanup);
 
@@ -2826,9 +2824,6 @@ describe("HttpServer integration", () => {
 
     it("I10 lists tools with tiny-mcp-client", async () => {
       const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
-      if (pair === null) {
-        return;
-      }
 
       trackCleanup(pair.cleanup);
 
@@ -2840,9 +2835,6 @@ describe("HttpServer integration", () => {
 
     it("I11 calls a tool with tiny-mcp-client", async () => {
       const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
-      if (pair === null) {
-        return;
-      }
 
       trackCleanup(pair.cleanup);
 
@@ -2856,9 +2848,6 @@ describe("HttpServer integration", () => {
 
     it("I12 receives SSE POST responses with tiny-mcp-client", async () => {
       const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
-      if (pair === null) {
-        return;
-      }
 
       trackCleanup(pair.cleanup);
 
@@ -2880,9 +2869,6 @@ describe("HttpServer integration", () => {
 
     it("I13 sends DELETE when the tiny-mcp-client transport is disposed", async () => {
       const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
-      if (pair === null) {
-        return;
-      }
 
       trackCleanup(pair.cleanup);
 

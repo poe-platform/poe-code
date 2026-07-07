@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
-import "tiny-http-mcp-server/testing";
+import { installInMemoryHttp } from "tiny-http-mcp-server/test-support";
 import { runCli } from "./cli.js";
+
+installInMemoryHttp();
 
 describe("tiny-http-mcp-oauth-test-server CLI", () => {
   const cleanups = new Set<() => Promise<void>>();
@@ -17,15 +19,18 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
     let stdout = "";
     let stderr = "";
 
-    const exitCode = await runCli(["--port", "0", "--hostname", "127.0.0.1", "--print-test-token"], {
-      stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
-      stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
-      waitForShutdown: async (shutdown) => {
-        cleanups.add(shutdown);
-        await shutdown();
-        cleanups.delete(shutdown);
-      },
-    });
+    const exitCode = await runCli(
+      ["--port", "0", "--hostname", "127.0.0.1", "--print-test-token"],
+      {
+        stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
+        stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+        waitForShutdown: async (shutdown) => {
+          cleanups.add(shutdown);
+          await shutdown();
+          cleanups.delete(shutdown);
+        }
+      }
+    );
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain("MCP URL: http://127.0.0.1:");
@@ -38,14 +43,14 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
   it("rejects non-decimal numeric flags", async () => {
     for (const args of [
       ["--port", "0x0", "--print-test-token"],
-      ["--ttl-seconds", "1e2", "--print-test-token"],
+      ["--ttl-seconds", "1e2", "--print-test-token"]
     ]) {
       let stdout = "";
       let stderr = "";
 
       const exitCode = await runCli(args, {
         stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
-        stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+        stderr: { write: (chunk) => ((stderr += String(chunk)), true) }
       });
 
       expect(exitCode).toBe(1);
@@ -61,7 +66,7 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
 
     const exitCode = await runCli(["--scopes", "mcp.read,,mcp.write"], {
       stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
-      stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+      stderr: { write: (chunk) => ((stderr += String(chunk)), true) }
     });
 
     expect(exitCode).toBe(1);
@@ -73,7 +78,7 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
     for (const args of [
       ["--mcp-path", "/mcp?tenant=demo"],
       ["--resource", "https://resource.example.com/mcp#fragment"],
-      ["--scopes", "mcp.read mcp.write"],
+      ["--scopes", "mcp.read mcp.write"]
     ]) {
       let stdout = "";
       let stderr = "";
@@ -81,7 +86,7 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
       const exitCode = await runCli(args, {
         stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
         stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
-        waitForShutdown: async (shutdown) => shutdown(),
+        waitForShutdown: async (shutdown) => shutdown()
       });
 
       expect(exitCode).toBe(1);
@@ -97,7 +102,7 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
     const exitCode = await runCli([], {
       stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
       stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
-      waitForShutdown: async (shutdown) => shutdown(),
+      waitForShutdown: async (shutdown) => shutdown()
     });
 
     expect(exitCode).toBe(0);

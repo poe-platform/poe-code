@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import http from "node:http";
 import { describe, expect, it } from "vitest";
 import { createInMemoryTokenVerifier, nodeFetch } from "./testing.js";
@@ -6,7 +7,7 @@ const VERIFY_INPUT = {
   token: "token",
   resource: "https://resource.example/mcp",
   authorizationServers: ["https://issuer.example"],
-  requiredScopes: ["mcp.read"],
+  requiredScopes: ["mcp.read"]
 };
 
 describe("testing helpers", () => {
@@ -22,8 +23,8 @@ describe("testing helpers", () => {
         iss: "https://forged.example",
         aud: "https://forged.example/resource",
         scope: "admin",
-        exp: 1,
-      },
+        exp: 1
+      }
     });
 
     await expect(issued.verifier.verify(VERIFY_INPUT)).resolves.toMatchObject({
@@ -31,8 +32,8 @@ describe("testing helpers", () => {
         iss: "https://issuer.example",
         aud: "https://resource.example/mcp",
         scope: "mcp.read",
-        exp: 100,
-      },
+        exp: 100
+      }
     });
   });
 
@@ -43,16 +44,18 @@ describe("testing helpers", () => {
       issuer: "https://issuer.example",
       audience: ["https://resource.example/mcp"],
       scopes: ["mcp.read"],
-      expiresAt: 100,
+      expiresAt: 100
     });
 
-    expect(() => issued.issueToken({
-      token: "token",
-      issuer: "https://issuer.example",
-      audience: ["https://resource.example/mcp"],
-      scopes: ["mcp.write"],
-      expiresAt: 100,
-    })).toThrow("Token has already been issued: token");
+    expect(() =>
+      issued.issueToken({
+        token: "token",
+        issuer: "https://issuer.example",
+        audience: ["https://resource.example/mcp"],
+        scopes: ["mcp.write"],
+        expiresAt: 100
+      })
+    ).toThrow("Token has already been issued: token");
   });
 
   it("returns isolated nested verified claims", async () => {
@@ -63,7 +66,7 @@ describe("testing helpers", () => {
       audience: ["https://resource.example/mcp"],
       scopes: ["mcp.read"],
       expiresAt: 100,
-      claims: { profile: { role: "reader" } },
+      claims: { profile: { role: "reader" } }
     });
 
     const first = await issued.verifier.verify(VERIFY_INPUT);
@@ -77,7 +80,9 @@ describe("testing helpers", () => {
     let body = "";
     const server = http.createServer((request, response) => {
       request.setEncoding("utf8");
-      request.on("data", (chunk) => { body += chunk; });
+      request.on("data", (chunk) => {
+        body += chunk;
+      });
       request.on("end", () => {
         response.writeHead(204);
         response.end();
@@ -90,11 +95,13 @@ describe("testing helpers", () => {
     try {
       await nodeFetch(`http://127.0.0.1:${address.port}/submit`, {
         method: "POST",
-        body: new URLSearchParams({ code: "expected" }),
+        body: new URLSearchParams({ code: "expected" })
       });
       expect(body).toBe("code=expected");
     } finally {
-      await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve()))
+      );
     }
   });
 
@@ -111,7 +118,9 @@ describe("testing helpers", () => {
       const response = await nodeFetch(`http://127.0.0.1:${address.port}/cookies`);
       expect(response.headers.getSetCookie()).toEqual(["first=one; Path=/", "second=two; Path=/"]);
     } finally {
-      await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve()))
+      );
     }
   });
 });

@@ -2,12 +2,7 @@ import http from "node:http";
 import https from "node:https";
 import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
-import {
-  Audio,
-  defineSchema,
-  File,
-  Image,
-} from "tiny-stdio-mcp-server";
+import { Audio, defineSchema, File, Image } from "tiny-stdio-mcp-server";
 import { createHttpServer, type HttpServer } from "./http-server.js";
 
 const TEST_PNG_BASE64 = "iVBORw0KGgo=";
@@ -50,7 +45,7 @@ function getInMemoryHttpState(): InMemoryHttpState {
     target[IN_MEMORY_HTTP_STATE] = {
       installed: false,
       nextPort: 41_000,
-      servers: new Map(),
+      servers: new Map()
     };
   }
 
@@ -65,14 +60,8 @@ function normalizeRequestHostname(hostname: string): string {
   return hostname;
 }
 
-function shouldUseInMemoryHttp(): boolean {
-  return process.env.VITEST !== undefined || process.env.NODE_ENV === "test";
-}
-
 function formatHostnameForOrigin(hostname: string): string {
-  return hostname.includes(":") && !hostname.startsWith("[")
-    ? `[${hostname}]`
-    : hostname;
+  return hostname.includes(":") && !hostname.startsWith("[") ? `[${hostname}]` : hostname;
 }
 
 function normalizeListenHostname(hostname: string | undefined): string {
@@ -97,7 +86,7 @@ function parseListenArgs(args: unknown[]): {
     return {
       port: options.port ?? 0,
       hostname: normalizeListenHostname(options.host ?? options.hostname),
-      callback,
+      callback
     };
   }
 
@@ -106,15 +95,11 @@ function parseListenArgs(args: unknown[]): {
   return {
     port,
     hostname: normalizeListenHostname(hostname),
-    callback,
+    callback
   };
 }
 
-function installInMemoryHttp(): void {
-  if (!shouldUseInMemoryHttp()) {
-    return;
-  }
-
+export function installInMemoryHttp(): void {
   const state = getInMemoryHttpState();
   if (state.installed) {
     return;
@@ -123,6 +108,7 @@ function installInMemoryHttp(): void {
   state.installed = true;
   const originalAddress = http.Server.prototype.address;
   const originalClose = http.Server.prototype.close;
+  const originalFetch = globalThis.fetch.bind(globalThis);
 
   http.Server.prototype.listen = function listen(
     this: InMemoryHttpServer,
@@ -137,9 +123,9 @@ function installInMemoryHttp(): void {
       address: {
         address,
         family: address.includes(":") ? "IPv6" : "IPv4",
-        port,
+        port
       },
-      listening: true,
+      listening: true
     };
     this[IN_MEMORY_HTTP_META] = meta;
     state.servers.set(origin, this);
@@ -147,7 +133,7 @@ function installInMemoryHttp(): void {
       configurable: true,
       get() {
         return this[IN_MEMORY_HTTP_META]?.listening ?? false;
-      },
+      }
     });
     queueMicrotask(() => {
       this.emit("listening");
@@ -179,14 +165,25 @@ function installInMemoryHttp(): void {
     });
     return this;
   };
+
+  globalThis.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const normalized = normalizeFetchInput(input, init);
+    const inMemoryServer = getInMemoryServer(normalized.url);
+    if (inMemoryServer !== undefined) {
+      return fetchInMemory(inMemoryServer, normalized.url, normalized.init);
+    }
+
+    return originalFetch(input, init);
+  };
 }
 
 function getInMemoryServer(url: URL): http.Server | undefined {
-  if (!shouldUseInMemoryHttp()) {
+  const state = (globalThis as InMemoryHttpGlobal)[IN_MEMORY_HTTP_STATE];
+  if (state?.installed !== true) {
     return undefined;
   }
 
-  return getInMemoryHttpState().servers.get(url.origin);
+  return state.servers.get(url.origin);
 }
 
 async function readFetchBody(body: RequestInit["body"]): Promise<string | undefined> {
@@ -213,31 +210,24 @@ async function readFetchBody(body: RequestInit["body"]): Promise<string | undefi
   return String(body);
 }
 
-async function fetchInMemory(
-  server: http.Server,
-  url: URL,
-  init: RequestInit
-): Promise<Response> {
+async function fetchInMemory(server: http.Server, url: URL, init: RequestInit): Promise<Response> {
   const headers = new Headers(init.headers);
   if (!headers.has("host")) {
     headers.set("host", url.host);
   }
   const body = await readFetchBody(init.body);
-  const request = Object.assign(
-    Readable.from(body === undefined ? [] : [body]),
-    {
-      method: init.method ?? "GET",
-      url: `${url.pathname}${url.search}`,
-      headers: Object.fromEntries(headers.entries()),
-      socket: {},
-    }
-  ) as http.IncomingMessage;
+  const request = Object.assign(Readable.from(body === undefined ? [] : [body]), {
+    method: init.method ?? "GET",
+    url: `${url.pathname}${url.search}`,
+    headers: Object.fromEntries(headers.entries()),
+    socket: {}
+  }) as http.IncomingMessage;
   const response = new EventEmitter() as any;
   let streamController: ReadableStreamDefaultController<Uint8Array> | undefined;
   const responseBody = new ReadableStream<Uint8Array>({
     start(controller) {
       streamController = controller;
-    },
+    }
   });
   response.statusCode = 200;
   response.statusMessage = "OK";
@@ -274,7 +264,10 @@ async function fetchInMemory(
   response.removeHeader = ((name: string) => {
     response.headerValues.delete(name);
   }) as http.ServerResponse["removeHeader"];
-  response.writeHead = ((statusCode: number, responseHeaders?: Record<string, number | string | readonly string[]>) => {
+  response.writeHead = ((
+    statusCode: number,
+    responseHeaders?: Record<string, number | string | readonly string[]>
+  ) => {
     response.statusCode = statusCode;
     response.headersSent = true;
     for (const [key, value] of Object.entries(responseHeaders ?? {})) {
@@ -334,19 +327,18 @@ async function fetchInMemory(
     response.once("finish", resolve);
   });
 
-  const responseContent = response.writableEnded
-    ? Buffer.concat(response.chunks)
-    : responseBody;
+  const responseContent = response.writableEnded ? Buffer.concat(response.chunks) : responseBody;
   return new Response(response.statusCode === 204 ? null : responseContent, {
     status: response.statusCode,
     statusText: response.statusMessage,
-    headers: response.headerValues,
+    headers: response.headerValues
   });
 }
 
-installInMemoryHttp();
-
-function normalizeFetchInput(input: RequestInfo | URL, init: RequestInit = {}): NormalizedFetchInput {
+function normalizeFetchInput(
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): NormalizedFetchInput {
   if (input instanceof Request) {
     return {
       url: new URL(input.url),
@@ -355,27 +347,14 @@ function normalizeFetchInput(input: RequestInfo | URL, init: RequestInit = {}): 
         method: init.method ?? input.method,
         headers: init.headers ?? input.headers,
         body: init.body ?? input.body,
-        signal: init.signal ?? input.signal,
-      },
+        signal: init.signal ?? input.signal
+      }
     };
   }
 
   return {
     url: new URL(String(input)),
-    init,
-  };
-}
-
-if (shouldUseInMemoryHttp()) {
-  const originalFetch = globalThis.fetch.bind(globalThis);
-  globalThis.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    const normalized = normalizeFetchInput(input, init);
-    const inMemoryServer = getInMemoryServer(normalized.url);
-    if (inMemoryServer !== undefined) {
-      return fetchInMemory(inMemoryServer, normalized.url, normalized.init);
-    }
-
-    return originalFetch(input, init);
+    init
   };
 }
 
@@ -396,7 +375,7 @@ export async function nodeFetch(input: string | URL, init: RequestInit = {}): Pr
         hostname: normalizeRequestHostname(url.hostname),
         port: url.port.length > 0 ? Number(url.port) : url.protocol === "https:" ? 443 : 80,
         path: `${url.pathname}${url.search}`,
-        headers: Object.fromEntries(headers.entries()),
+        headers: Object.fromEntries(headers.entries())
       },
       (response) => {
         const responseHeaders = new Headers();
@@ -423,7 +402,7 @@ export async function nodeFetch(input: string | URL, init: RequestInit = {}): Pr
           new Response(body, {
             status: response.statusCode ?? 0,
             statusText: response.statusMessage ?? "",
-            headers: responseHeaders,
+            headers: responseHeaders
           })
         );
       }
@@ -470,77 +449,77 @@ export function createTestMcpServer(
 ): HttpServer {
   const emptySchema = defineSchema({});
   const textSchema = defineSchema({
-    text: { type: "string" },
+    text: { type: "string" }
   });
 
-  return createHttpServer({
-    name: options.name ?? "conformance-test-server",
-    version: options.version ?? "1.0.0",
-    ...(hasOwnProperty(options, "enableJsonResponse")
-      ? { enableJsonResponse: options.enableJsonResponse }
-      : {}),
-    ...(hasOwnProperty(options, "sessionIdGenerator")
-      ? { sessionIdGenerator: options.sessionIdGenerator }
-      : {}),
-    ...(hasOwnProperty(options, "oauth") ? { oauth: options.oauth } : {}),
-  })
-    .tool("echo", "Echo input text", textSchema, ({ text }) => String(text))
-    .tool("reverse", "Reverse input text", textSchema, ({ text }) =>
-      String(text).split("").reverse().join("")
-    )
-    .tool("uppercase", "Uppercase input text", textSchema, ({ text }) =>
-      String(text).toUpperCase()
-    )
-    .tool(
-      "get_user",
-      "Return a test user object",
-      defineSchema({ id: { type: "string" } }),
-      ({ id }) => ({
-        id: String(id),
-        name: "Alice",
-        role: "admin",
-      }),
-      {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          role: { type: "string" },
-        },
-        required: ["id", "name", "role"],
-        additionalProperties: false,
-      }
-    )
-    // Deliberately untyped fixture: exercises legacy JSON-array text fallback.
-    .tool("get_list", "Return a numeric array", emptySchema, () => [1, 2, 3])
-    .tool("get_image", "Return an image block", emptySchema, () =>
-      Image.fromBase64(TEST_PNG_BASE64, "image/png")
-    )
-    .tool("get_audio", "Return an audio block", emptySchema, () =>
-      Audio.fromBase64(TEST_MP3_BASE64, "audio/mpeg")
-    )
-    .tool("get_file", "Return a file block", emptySchema, () =>
-      File.fromText("hello,world", "text/csv")
-    )
-    .tool("get_mixed", "Return multiple content blocks", emptySchema, () => [
-      Image.fromBase64(TEST_PNG_BASE64, "image/png"),
-      "Caption for the image",
-      File.fromText("notes"),
-    ])
-    .tool("throw_sync", "Throw synchronously", emptySchema, () => {
-      throw new Error("sync boom");
+  return (
+    createHttpServer({
+      name: options.name ?? "conformance-test-server",
+      version: options.version ?? "1.0.0",
+      ...(hasOwnProperty(options, "enableJsonResponse")
+        ? { enableJsonResponse: options.enableJsonResponse }
+        : {}),
+      ...(hasOwnProperty(options, "sessionIdGenerator")
+        ? { sessionIdGenerator: options.sessionIdGenerator }
+        : {}),
+      ...(hasOwnProperty(options, "oauth") ? { oauth: options.oauth } : {})
     })
-    .tool("throw_async", "Throw asynchronously", emptySchema, async () => {
-      throw new Error("async boom");
-    })
-    .tool("empty_result", "Return undefined", emptySchema, () => undefined)
-    .tool("slow", "Resolve slowly", emptySchema, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      return "done";
-    })
-    .tool("large_output", "Return 100KB of text", emptySchema, () =>
-      "x".repeat(100_000)
-    );
+      .tool("echo", "Echo input text", textSchema, ({ text }) => String(text))
+      .tool("reverse", "Reverse input text", textSchema, ({ text }) =>
+        String(text).split("").reverse().join("")
+      )
+      .tool("uppercase", "Uppercase input text", textSchema, ({ text }) =>
+        String(text).toUpperCase()
+      )
+      .tool(
+        "get_user",
+        "Return a test user object",
+        defineSchema({ id: { type: "string" } }),
+        ({ id }) => ({
+          id: String(id),
+          name: "Alice",
+          role: "admin"
+        }),
+        {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            name: { type: "string" },
+            role: { type: "string" }
+          },
+          required: ["id", "name", "role"],
+          additionalProperties: false
+        }
+      )
+      // Deliberately untyped fixture: exercises legacy JSON-array text fallback.
+      .tool("get_list", "Return a numeric array", emptySchema, () => [1, 2, 3])
+      .tool("get_image", "Return an image block", emptySchema, () =>
+        Image.fromBase64(TEST_PNG_BASE64, "image/png")
+      )
+      .tool("get_audio", "Return an audio block", emptySchema, () =>
+        Audio.fromBase64(TEST_MP3_BASE64, "audio/mpeg")
+      )
+      .tool("get_file", "Return a file block", emptySchema, () =>
+        File.fromText("hello,world", "text/csv")
+      )
+      .tool("get_mixed", "Return multiple content blocks", emptySchema, () => [
+        Image.fromBase64(TEST_PNG_BASE64, "image/png"),
+        "Caption for the image",
+        File.fromText("notes")
+      ])
+      .tool("throw_sync", "Throw synchronously", emptySchema, () => {
+        throw new Error("sync boom");
+      })
+      .tool("throw_async", "Throw asynchronously", emptySchema, async () => {
+        throw new Error("async boom");
+      })
+      .tool("empty_result", "Return undefined", emptySchema, () => undefined)
+      .tool("slow", "Resolve slowly", emptySchema, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        return "done";
+      })
+      .tool("large_output", "Return 100KB of text", emptySchema, () => "x".repeat(100_000))
+  );
 }
 
 function hasOwnProperty(value: object, key: string): boolean {

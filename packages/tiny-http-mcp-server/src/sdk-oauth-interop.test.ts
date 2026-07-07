@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 /**
  * Official SDK OAuth interop coverage for the survey in
  * docs/plans/research/mcp-oauth-implementations.md.
@@ -12,17 +13,17 @@ import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   UnauthorizedError,
-  type OAuthClientProvider,
+  type OAuthClientProvider
 } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import {
   StreamableHTTPClientTransport,
-  StreamableHTTPError,
+  StreamableHTTPError
 } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type {
   OAuthClientInformationMixed,
   OAuthClientMetadata,
-  OAuthTokens,
+  OAuthTokens
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { createMcpOAuthTestServer } from "tiny-http-mcp-oauth-test-server";
 import { nodeFetch } from "./testing.js";
@@ -41,7 +42,7 @@ interface LoopbackRedirectHandle {
 function createSdkClient(): Client {
   return new Client({
     name: "official-sdk-oauth-test-client",
-    version: "1.0.0",
+    version: "1.0.0"
   });
 }
 
@@ -75,7 +76,7 @@ async function listenLoopbackRedirectServer(): Promise<LoopbackRedirectHandle> {
       new Promise<void>((resolve, reject) => {
         server.close((error) => (error !== undefined ? reject(error) : resolve()));
         server.closeAllConnections();
-      }),
+      })
   };
 }
 
@@ -130,7 +131,7 @@ class TestOAuthClientProvider implements OAuthClientProvider {
       response_types: ["code"],
       token_endpoint_auth_method: "none",
       client_name: "official-sdk-oauth-test-client",
-      scope: "mcp.read",
+      scope: "mcp.read"
     };
   }
 
@@ -154,13 +155,12 @@ class TestOAuthClientProvider implements OAuthClientProvider {
   }
 
   public saveTokens(tokens: OAuthTokens): void {
-    const storedTokens =
-      this.tamperNextAccessTokenOnSave
-        ? {
-            ...tokens,
-            access_token: `tampered-${tokens.access_token}`,
-          }
-        : tokens;
+    const storedTokens = this.tamperNextAccessTokenOnSave
+      ? {
+          ...tokens,
+          access_token: `tampered-${tokens.access_token}`
+        }
+      : tokens;
 
     this.tamperNextAccessTokenOnSave = false;
     this.tokenStore.set("default", storedTokens);
@@ -241,10 +241,10 @@ function isClientOAuthFlowRequest(url: string): boolean {
   const pathname = new URL(url).pathname;
 
   return (
-    pathname.includes("/.well-known/oauth-authorization-server")
-    || pathname.endsWith("/register")
-    || pathname.endsWith("/authorize")
-    || pathname.endsWith("/token")
+    pathname.includes("/.well-known/oauth-authorization-server") ||
+    pathname.endsWith("/register") ||
+    pathname.endsWith("/authorize") ||
+    pathname.endsWith("/token")
   );
 }
 
@@ -267,14 +267,14 @@ describe("official SDK OAuth interop", () => {
     const provider = new TestOAuthClientProvider(redirectHandle, requests);
     const fixture = createMcpOAuthTestServer({
       autoApprove: true,
-      scopes: ["mcp.read"],
+      scopes: ["mcp.read"]
     });
     const handle = await fixture.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
 
     const authTransport = new StreamableHTTPClientTransport(new URL(handle.mcpUrl), {
       authProvider: provider,
-      fetch: (input, init) => loggedFetch(requests, input, init),
+      fetch: (input, init) => loggedFetch(requests, input, init)
     });
     cleanups.add(async () => {
       await authTransport.close();
@@ -291,18 +291,18 @@ describe("official SDK OAuth interop", () => {
     await authTransport.finishAuth(provider.consumeAuthorizationCode());
 
     expect(provider.clientInformation()).toMatchObject({
-      client_id: expect.any(String),
+      client_id: expect.any(String)
     });
     expect(provider.tokens()).toMatchObject({
       access_token: expect.any(String),
       refresh_token: expect.any(String),
-      token_type: "Bearer",
+      token_type: "Bearer"
     });
 
     const client = createSdkClient();
     const transport = new StreamableHTTPClientTransport(new URL(handle.mcpUrl), {
       authProvider: provider,
-      fetch: (input, init) => loggedFetch(requests, input, init),
+      fetch: (input, init) => loggedFetch(requests, input, init)
     });
     cleanups.add(async () => {
       await client.close();
@@ -313,12 +313,12 @@ describe("official SDK OAuth interop", () => {
     const firstResult = await client.callTool({
       name: "echo",
       arguments: {
-        text: "official sdk",
-      },
+        text: "official sdk"
+      }
     });
 
     expect(firstResult).toEqual({
-      content: [{ type: "text", text: "official sdk" }],
+      content: [{ type: "text", text: "official sdk" }]
     });
 
     const authorizationServerUrl = new URL(handle.oauth.issuer);
@@ -327,9 +327,7 @@ describe("official SDK OAuth interop", () => {
       authorizationServerUrl.origin
     ).toString();
     const authorizationPathPrefix =
-      authorizationServerUrl.pathname === "/"
-        ? ""
-        : authorizationServerUrl.pathname;
+      authorizationServerUrl.pathname === "/" ? "" : authorizationServerUrl.pathname;
     const authorizePath = `${authorizationPathPrefix}/authorize`;
 
     const prmRequestIndex = requests.findIndex((request) => request.url === handle.prmUrl);
@@ -340,9 +338,7 @@ describe("official SDK OAuth interop", () => {
       (request) => request.method === "POST" && request.url === `${handle.oauth.issuer}/register`
     );
     const authorizeRequestIndex = requests.findIndex(
-      (request) =>
-        request.method === "GET"
-        && new URL(request.url).pathname === authorizePath
+      (request) => request.method === "GET" && new URL(request.url).pathname === authorizePath
     );
     const tokenRequestIndex = requests.findIndex(
       (request) => request.method === "POST" && request.url === `${handle.oauth.issuer}/token`
@@ -360,12 +356,12 @@ describe("official SDK OAuth interop", () => {
     const secondResult = await client.callTool({
       name: "echo",
       arguments: {
-        text: "cached token",
-      },
+        text: "cached token"
+      }
     });
 
     expect(secondResult).toEqual({
-      content: [{ type: "text", text: "cached token" }],
+      content: [{ type: "text", text: "cached token" }]
     });
     expect(
       handle.oauth.requestLog.map((request) => request.url).filter(isClientOAuthFlowRequest)
@@ -375,7 +371,7 @@ describe("official SDK OAuth interop", () => {
     const savedTokens = provider.requireTokens();
     provider.setTokens({
       ...savedTokens,
-      access_token: `tampered-${savedTokens.access_token}`,
+      access_token: `tampered-${savedTokens.access_token}`
     });
     provider.tamperNextSavedAccessToken();
 
@@ -383,12 +379,12 @@ describe("official SDK OAuth interop", () => {
       client.callTool({
         name: "echo",
         arguments: {
-          text: "tampered token",
-        },
+          text: "tampered token"
+        }
       })
     ).rejects.toMatchObject<Partial<StreamableHTTPError>>({
       code: 401,
-      message: expect.stringContaining("successful authentication"),
+      message: expect.stringContaining("successful authentication")
     });
   });
 });

@@ -1,11 +1,12 @@
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { createJwksTokenVerifier } from "mcp-oauth";
-import { createTestMcpServer, nodeFetch, TokenVerificationError } from "tiny-http-mcp-server";
+import { TokenVerificationError } from "tiny-http-mcp-server";
+import { createTestMcpServer, nodeFetch } from "tiny-http-mcp-server/test-support";
 import {
   createOAuthTestServer,
   type OAuthTestStaticClient,
-  type OAuthTestServer,
+  type OAuthTestServer
 } from "tiny-oauth-test-server";
 import { hasOwnErrorCode } from "./error-codes.js";
 
@@ -34,9 +35,7 @@ export interface McpOAuthTestServerHandle {
 }
 
 export interface McpOAuthTestServer {
-  listen(
-    options?: McpOAuthTestServerListenOptions
-  ): Promise<McpOAuthTestServerHandle>;
+  listen(options?: McpOAuthTestServerListenOptions): Promise<McpOAuthTestServerHandle>;
 }
 
 const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource";
@@ -44,9 +43,11 @@ const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource"
 function getProtectedResourceMetadataUrl(mcpUrl: string): string {
   const url = new URL(mcpUrl);
   const protectedResourcePath =
-    url.pathname === "/" ? "" : url.pathname.length > 1 && url.pathname.endsWith("/")
-      ? url.pathname.slice(0, -1)
-      : url.pathname;
+    url.pathname === "/"
+      ? ""
+      : url.pathname.length > 1 && url.pathname.endsWith("/")
+        ? url.pathname.slice(0, -1)
+        : url.pathname;
 
   return new URL(`${PROTECTED_RESOURCE_METADATA_PATH}${protectedResourcePath}`, url).toString();
 }
@@ -157,9 +158,7 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
 function normalizeTtlSeconds(ttlSeconds: number | undefined): number {
   const normalizedTtlSeconds = ttlSeconds ?? 60;
   if (!Number.isInteger(normalizedTtlSeconds) || normalizedTtlSeconds <= 0) {
-    throw new TypeError(
-      `ttlSeconds must be a positive integer, received ${normalizedTtlSeconds}`
-    );
+    throw new TypeError(`ttlSeconds must be a positive integer, received ${normalizedTtlSeconds}`);
   }
 
   return normalizedTtlSeconds;
@@ -252,146 +251,136 @@ export function createMcpOAuthTestServer(
 
       listenPending = false;
       throw lastError;
-    },
+    }
   };
 
   async function listenOnce(
     hostname: string,
     requestedPort: number
   ): Promise<McpOAuthTestServerHandle> {
-      const oauthHostname =
-        configuredIssuer === undefined
-          ? hostname
-          : normalizeHostForListen(configuredIssuer.hostname);
-      const oauthPort =
-        configuredIssuer === undefined
-          ? await reservePort(oauthHostname)
-          : Number(configuredIssuer.port.length > 0 ? configuredIssuer.port : "80");
-      const issuer =
-        configuredIssuer?.toString() ?? buildUrl(oauthHostname, oauthPort, "/oauth");
-      let fixedPort = requestedPort;
+    const oauthHostname =
+      configuredIssuer === undefined ? hostname : normalizeHostForListen(configuredIssuer.hostname);
+    const oauthPort =
+      configuredIssuer === undefined
+        ? await reservePort(oauthHostname)
+        : Number(configuredIssuer.port.length > 0 ? configuredIssuer.port : "80");
+    const issuer = configuredIssuer?.toString() ?? buildUrl(oauthHostname, oauthPort, "/oauth");
+    let fixedPort = requestedPort;
 
-      if (
-        fixedPort !== 0 &&
-        fixedPort === oauthPort &&
-        normalizeHostForListen(hostname) === oauthHostname
-      ) {
-        throw new Error(
-          "issuer must not use the same hostname and port as the MCP listener because this fixture runs them on separate HTTP listeners"
-        );
+    if (
+      fixedPort !== 0 &&
+      fixedPort === oauthPort &&
+      normalizeHostForListen(hostname) === oauthHostname
+    ) {
+      throw new Error(
+        "issuer must not use the same hostname and port as the MCP listener because this fixture runs them on separate HTTP listeners"
+      );
+    }
+
+    if (fixedPort === 0 && configuredResource === undefined) {
+      do {
+        fixedPort = await reservePort(hostname);
+      } while (fixedPort === oauthPort && normalizeHostForListen(hostname) === oauthHostname);
+    }
+
+    const oauth = createOAuthTestServer({
+      issuer,
+      defaultTokenTtlSeconds: ttlSeconds,
+      staticClients: options.staticClients,
+      defaultAuthorization: {
+        autoApprove: options.autoApprove ?? false,
+        scopes
       }
+    });
+    let oauthHandle: Awaited<ReturnType<OAuthTestServer["listen"]>> | undefined;
+    let mcpHandle:
+      | Awaited<ReturnType<ReturnType<typeof createTestMcpServer>["listenHttp"]>>
+      | undefined;
 
-      if (fixedPort === 0 && configuredResource === undefined) {
-        do {
-          fixedPort = await reservePort(hostname);
-        } while (
-          fixedPort === oauthPort &&
-          normalizeHostForListen(hostname) === oauthHostname
-        );
-      }
-
-      const oauth = createOAuthTestServer({
-        issuer,
-          defaultTokenTtlSeconds: ttlSeconds,
-        staticClients: options.staticClients,
-        defaultAuthorization: {
-          autoApprove: options.autoApprove ?? false,
-          scopes,
-        },
+    try {
+      oauthHandle = await oauth.listen({
+        port: oauthPort,
+        hostname: oauthHostname
       });
-      let oauthHandle: Awaited<ReturnType<OAuthTestServer["listen"]>> | undefined;
-      let mcpHandle:
-        | Awaited<ReturnType<ReturnType<typeof createTestMcpServer>["listenHttp"]>>
-        | undefined;
+      const resource = configuredResource ?? buildUrl(hostname, fixedPort, mcpPath);
+      const jwksVerifier = createJwksTokenVerifier({
+        jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
+        fetch: (input, init) => nodeFetch(input instanceof Request ? input.url : input, init)
+      });
+      const verifier = {
+        async verify(input: Parameters<typeof jwksVerifier.verify>[0]) {
+          if (isRevokedToken(oauth, input.token)) {
+            throw new TokenVerificationError({
+              error: "invalid_token",
+              errorDescription: "token revoked"
+            });
+          }
 
-      try {
-        oauthHandle = await oauth.listen({
-          port: oauthPort,
-          hostname: oauthHostname,
-        });
-        const resource = configuredResource ?? buildUrl(hostname, fixedPort, mcpPath);
-        const jwksVerifier = createJwksTokenVerifier({
-          jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-          fetch: (input, init) =>
-            nodeFetch(input instanceof Request ? input.url : input, init),
-        });
-        const verifier = {
-          async verify(input: Parameters<typeof jwksVerifier.verify>[0]) {
-            if (isRevokedToken(oauth, input.token)) {
-              throw new TokenVerificationError({
-                error: "invalid_token",
-                errorDescription: "token revoked",
-              });
-            }
+          return jwksVerifier.verify(input);
+        }
+      };
 
-            return jwksVerifier.verify(input);
-          },
-        };
-
-        mcpHandle = await createTestMcpServer({
-          enableJsonResponse: true,
-          oauth: {
-            resource,
-            authorizationServers: [oauth.issuer],
-            bearerMethodsSupported: ["header"],
-            scopesSupported: scopes,
-            requiredScopes: scopes,
-            verifier,
-          },
-        }).listenHttp({
-          port: fixedPort,
-          hostname,
-          path: mcpPath,
-        });
-
-        const prmUrl = getProtectedResourceMetadataUrl(mcpHandle.url);
-
-        const handle: McpOAuthTestServerHandle = {
-          url: mcpHandle.url,
-          mcpUrl: mcpHandle.url,
-          prmUrl,
+      mcpHandle = await createTestMcpServer({
+        enableJsonResponse: true,
+        oauth: {
           resource,
-          oauth,
-          close: async () => {
-            if (currentHandle !== handle) {
-              return;
-            }
-
-            const results = await Promise.allSettled([
-              mcpHandle?.close(),
-              oauthHandle?.close(),
-            ]);
-            const rejected = results.find(
-              (result): result is PromiseRejectedResult => result.status === "rejected"
-            );
-
-            if (rejected !== undefined) {
-              throw rejected.reason;
-            }
-
-            currentHandle = null;
-          },
-        };
-
-        currentHandle = handle;
-        return handle;
-      } catch (error) {
-        const closeOperations = oauthHandle === undefined ? [] : [oauthHandle.close()];
-
-        if (mcpHandle !== undefined) {
-          closeOperations.unshift(mcpHandle.close());
+          authorizationServers: [oauth.issuer],
+          bearerMethodsSupported: ["header"],
+          scopesSupported: scopes,
+          requiredScopes: scopes,
+          verifier
         }
+      }).listenHttp({
+        port: fixedPort,
+        hostname,
+        path: mcpPath
+      });
 
-        const closeResults = await Promise.allSettled(closeOperations);
-        const failedClose = closeResults.find(
-          (result): result is PromiseRejectedResult => result.status === "rejected"
-        );
-        if (failedClose !== undefined) {
-          throw failedClose.reason;
+      const prmUrl = getProtectedResourceMetadataUrl(mcpHandle.url);
+
+      const handle: McpOAuthTestServerHandle = {
+        url: mcpHandle.url,
+        mcpUrl: mcpHandle.url,
+        prmUrl,
+        resource,
+        oauth,
+        close: async () => {
+          if (currentHandle !== handle) {
+            return;
+          }
+
+          const results = await Promise.allSettled([mcpHandle?.close(), oauthHandle?.close()]);
+          const rejected = results.find(
+            (result): result is PromiseRejectedResult => result.status === "rejected"
+          );
+
+          if (rejected !== undefined) {
+            throw rejected.reason;
+          }
+
+          currentHandle = null;
         }
+      };
 
-        throw error;
+      currentHandle = handle;
+      return handle;
+    } catch (error) {
+      const closeOperations = oauthHandle === undefined ? [] : [oauthHandle.close()];
+
+      if (mcpHandle !== undefined) {
+        closeOperations.unshift(mcpHandle.close());
       }
+
+      const closeResults = await Promise.allSettled(closeOperations);
+      const failedClose = closeResults.find(
+        (result): result is PromiseRejectedResult => result.status === "rejected"
+      );
+      if (failedClose !== undefined) {
+        throw failedClose.reason;
+      }
+
+      throw error;
+    }
   }
 }
 

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
-import "tiny-http-mcp-server/testing";
+import { installInMemoryHttp } from "tiny-http-mcp-server/test-support";
 import { runCli } from "./cli.js";
+
+installInMemoryHttp();
 
 interface CapturedOutput {
   stdout: string;
@@ -24,15 +26,15 @@ function createCapturedOutput(): CapturedOutput {
         write(chunk: string) {
           output.stdout += chunk;
           return true;
-        },
+        }
       },
       stderr: {
         write(chunk: string) {
           output.stderr += chunk;
           return true;
-        },
-      },
-    },
+        }
+      }
+    }
   };
 
   return output;
@@ -72,19 +74,15 @@ describe("tiny-oauth-test-server CLI", () => {
         cleanups.add(shutdown);
         await shutdown();
         cleanups.delete(shutdown);
-      },
+      }
     });
 
     expect(exitCode).toBe(0);
     expect(output.stdout).toContain("tiny-oauth-test-server 0.1.0");
     expect(output.stdout).toContain("Bound URL: http://127.0.0.1:");
     expect(output.stdout).toContain("Issuer: http://127.0.0.1:");
-    expect(output.stdout).toContain(
-      "Authorization server metadata URL: http://127.0.0.1:"
-    );
-    expect(output.stdout).toContain(
-      "Issue token curl: curl -sS -X POST http://127.0.0.1:"
-    );
+    expect(output.stdout).toContain("Authorization server metadata URL: http://127.0.0.1:");
+    expect(output.stdout).toContain("Issue token curl: curl -sS -X POST http://127.0.0.1:");
     expect(output.stdout).toContain("/testing/issue-token");
     expect(output.stderr).toBe("");
   });
@@ -92,7 +90,7 @@ describe("tiny-oauth-test-server CLI", () => {
   it("rejects non-decimal numeric flags", async () => {
     for (const args of [
       ["--port", "0x400"],
-      ["--ttl-seconds", "1e2"],
+      ["--ttl-seconds", "1e2"]
     ]) {
       const output = createCapturedOutput();
       const exitCode = await runCli(args, output.io);
@@ -107,12 +105,15 @@ describe("tiny-oauth-test-server CLI", () => {
   it("prints the served metadata path for a pathful issuer", async () => {
     const output = createCapturedOutput();
 
-    await runCli(["--port", "0", "--hostname", "127.0.0.1", "--issuer", "http://127.0.0.1:43219/oauth"], {
-      ...output.io,
-      waitForShutdown: async (shutdown) => {
-        await shutdown();
+    await runCli(
+      ["--port", "0", "--hostname", "127.0.0.1", "--issuer", "http://127.0.0.1:43219/oauth"],
+      {
+        ...output.io,
+        waitForShutdown: async (shutdown) => {
+          await shutdown();
+        }
       }
-    });
+    );
 
     expect(output.stdout).toContain(
       "Authorization server metadata URL: http://127.0.0.1:43219/.well-known/oauth-authorization-server/oauth"

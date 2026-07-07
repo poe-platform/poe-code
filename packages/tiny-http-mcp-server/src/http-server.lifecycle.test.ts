@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import { describe, expect, it, vi } from "vitest";
 
 const { createServerMock, fakeServer } = vi.hoisted(() => {

@@ -449,7 +449,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: test-helper-isolation
     title: Stop monkey-patching on import; test-support subpath
@@ -483,9 +483,9 @@ tasks:
       after installInMemoryHttp() the existing in-memory suites still pass.
       Run the test suites of every migrated package.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
       release: open
 

@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import { describe, expect, it } from "vitest";
 import { loadOAuthVerifier } from "./load-oauth-verifier.js";
 

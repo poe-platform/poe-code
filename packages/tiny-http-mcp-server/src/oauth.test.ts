@@ -1,3 +1,4 @@
+import "../vitest.setup.js";
 import http, { type IncomingMessage } from "node:http";
 import { Readable } from "node:stream";
 import type { AddressInfo } from "node:net";

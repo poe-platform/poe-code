@@ -1,3 +1,4 @@
+import "./node-require-shim.js";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerFs, LogLevel, RuntimeLoggerInput, Scope } from "./index.js";
 import {

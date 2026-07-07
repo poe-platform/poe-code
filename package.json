@@ -79,6 +79,7 @@
     "smoke": "tsx scripts/smoke-test.ts",
     "smoke:verbose": "tsx scripts/smoke-test.ts --verbose",
     "smoke:toolcraft-bundle": "node scripts/verify-toolcraft-cli-bundle.mjs",
+    "smoke:toolcraft-entrypoints": "node scripts/verify-toolcraft-entrypoint-bundles.mjs",
     "metric:test_count": "node scripts/metric-test-count.mjs",
     "metric:test_duration": "node scripts/metric-test-duration.mjs",
     "demo:dashboard": "tsx packages/toolcraft-design/src/dashboard/demo.ts",

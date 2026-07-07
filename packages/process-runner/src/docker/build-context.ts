@@ -1,10 +1,9 @@
 import { readdir, readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import path from "node:path";
+import ignoreModule from "ignore";
 import type { Ignore, Options as IgnoreOptions } from "ignore";
 
-const require = createRequire(import.meta.url);
-const createIgnore = require("ignore") as (options?: IgnoreOptions) => Ignore;
+const createIgnore = ignoreModule as unknown as (options?: IgnoreOptions) => Ignore;
 
 export interface DockerBuildContextFile {
   relativePath: string;

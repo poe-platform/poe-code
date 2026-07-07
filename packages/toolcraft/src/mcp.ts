@@ -1,3 +1,4 @@
+import "./node-require-shim.js";
 import {
   createServer,
   JSON_RPC_ERROR_CODES,

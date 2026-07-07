@@ -8,6 +8,7 @@ export type ValidationIssue = {
   expected: string;
   received: string;
   message: string;
+  keyword?: string;
 };
 
 export type ValidationResult<T> =

@@ -606,6 +606,8 @@ export function toJsonSchemaDocument(
 }
 
 export { Json, OneOf, RecordBuilder as Record, Union, validate };
+export { compileJsonSchema, formatIssues } from "./json-schema/index.js";
+export type { CompileJsonSchemaOptions, CompiledJsonSchema } from "./json-schema/index.js";
 export type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
 export type {
   JsonValue,

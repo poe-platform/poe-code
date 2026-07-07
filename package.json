@@ -90,6 +90,7 @@
     "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
     "smoke:toolcraft-sdk-types": "node scripts/verify-toolcraft-published-sdk-types.mjs",
     "sync-skills": "tsx scripts/sync-skills.ts",
+    "sync:json-schema-test-suite": "node scripts/sync-json-schema-test-suite.mjs",
     "postinstall": "node scripts/postinstall-sync-skills.mjs"
   },
   "bin": {
@@ -184,7 +185,6 @@
   },
   "packageManager": "npm@10.9.2",
   "dependencies": {
-    "ajv": "^8.20.0",
     "chalk": "^5.6.2",
     "commander": "^13.1.0",
     "console-table-printer": "^2.15.0",

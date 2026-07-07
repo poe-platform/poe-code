@@ -1,6 +1,5 @@
 import * as readline from "readline";
-import AjvModule from "ajv";
-import type { ValidateFunction } from "ajv";
+import { compileJsonSchema, formatIssues, type CompiledJsonSchema } from "toolcraft-schema";
 import uriTemplateParser from "uri-template";
 import UriTemplate from "uri-template-lite";
 import type {
@@ -99,8 +98,17 @@ interface LifecycleState {
 }
 
 interface RegisteredToolDefinition extends ToolDefinition {
-  inputValidator: ValidateFunction;
-  outputValidator?: ValidateFunction;
+  inputValidator: CompiledJsonSchema;
+  outputValidator?: CompiledJsonSchema;
+}
+
+function compileToolSchema(schema: JSONSchema): CompiledJsonSchema {
+  try {
+    return compileJsonSchema(schema);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`schema is invalid: ${message}`, { cause: error });
+  }
 }
 
 export function createServer(options: ServerOptions): Server {
@@ -111,8 +119,6 @@ export function createServer(options: ServerOptions): Server {
     throw new Error("toolCallTimeoutMs must be a positive integer.");
   }
 
-  const Ajv = "default" in AjvModule ? AjvModule.default : AjvModule;
-  const jsonSchemaValidator = new Ajv({ strict: false });
   const supportNotifications = options.supportNotifications !== false;
   const supportResourceSubscriptions = options.supportResourceSubscriptions !== false;
   const tools = new Map<string, RegisteredToolDefinition>();
@@ -244,13 +250,13 @@ export function createServer(options: ServerOptions): Server {
       }
 
       const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
-      if (options.validateToolArguments !== false && !tool.inputValidator(toolArgs)) {
-        const errors = tool.inputValidator.errors ?? [];
+      const inputValidation = tool.inputValidator.validate(toolArgs);
+      if (options.validateToolArguments !== false && !inputValidation.ok) {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            message: `Invalid tool arguments: ${jsonSchemaValidator.errorsText(errors)}`,
-            data: errors
+            message: `Invalid tool arguments: ${formatIssues(inputValidation.issues)}`,
+            data: inputValidation.issues
           }
         };
       }
@@ -281,16 +287,12 @@ export function createServer(options: ServerOptions): Server {
           });
         }
         const result = normalizeToolResult(handlerResult, tool.outputSchema);
-        if (
-          result.isError !== true &&
-          tool.outputValidator !== undefined &&
-          !tool.outputValidator(result.structuredContent)
-        ) {
-          const errors = tool.outputValidator.errors ?? [];
+        const outputValidation = tool.outputValidator?.validate(result.structuredContent);
+        if (result.isError !== true && outputValidation !== undefined && !outputValidation.ok) {
           throw new ToolError(
             JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-            `Invalid structured tool result: ${jsonSchemaValidator.errorsText(errors)}`,
-            errors
+            `Invalid structured tool result: ${formatIssues(outputValidation.issues)}`,
+            outputValidation.issues
           );
         }
         return { result };
@@ -574,11 +576,11 @@ export function createServer(options: ServerOptions): Server {
       if (tools.has(name)) {
         throw new Error(`Tool already registered: ${name}`);
       }
-      const inputValidator = jsonSchemaValidator.compile(inputSchema as JSONSchema);
-      let outputValidator: ValidateFunction | undefined;
+      const inputValidator = compileToolSchema(inputSchema as JSONSchema);
+      let outputValidator: CompiledJsonSchema | undefined;
       if (outputSchema !== undefined) {
         assertObjectRootSchema(outputSchema, "outputSchema");
-        outputValidator = jsonSchemaValidator.compile(outputSchema as JSONSchema);
+        outputValidator = compileToolSchema(outputSchema as JSONSchema);
       }
       tools.set(name, {
         name,
@@ -600,11 +602,11 @@ export function createServer(options: ServerOptions): Server {
       if (tools.has(definition.name)) {
         throw new Error(`Tool already registered: ${definition.name}`);
       }
-      const inputValidator = jsonSchemaValidator.compile(definition.inputSchema);
-      let outputValidator: ValidateFunction | undefined;
+      const inputValidator = compileToolSchema(definition.inputSchema);
+      let outputValidator: CompiledJsonSchema | undefined;
       if (definition.outputSchema !== undefined) {
         assertObjectRootSchema(definition.outputSchema, "outputSchema");
-        outputValidator = jsonSchemaValidator.compile(definition.outputSchema);
+        outputValidator = compileToolSchema(definition.outputSchema);
       }
       tools.set(definition.name, {
         ...definition,

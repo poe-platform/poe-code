@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "cd ../.. && vitest run packages/toolcraft-schema/src/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/toolcraft-schema/src/*.test.ts",
+    "test": "cd ../.. && vitest run packages/toolcraft-schema/src",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-schema/src",
     "lint": "cd ../.. && eslint packages/toolcraft-schema/src --ext ts && tsc -p packages/toolcraft-schema/tsconfig.json --noEmit"
   },
   "files": [

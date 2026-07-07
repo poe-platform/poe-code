@@ -2077,7 +2077,45 @@ describe("server protocol handlers", () => {
         error: {
           code: -32602,
           message: expect.stringContaining("must have required property 'name'"),
-          data: [expect.objectContaining({ keyword: "required" })]
+          data: expect.arrayContaining([expect.objectContaining({ keyword: "required" })])
+        }
+      });
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it("validates draft 2020-12 tuple schemas", async () => {
+      const handler = vi.fn(async () => "unexpected");
+      const server = createServer({ name: "test", version: "1.0.0" }).registerTool(
+        {
+          name: "tuple",
+          description: "Tuple",
+          inputSchema: {
+            type: "object",
+            properties: {
+              values: {
+                type: "array",
+                prefixItems: [{ type: "string" }, { type: "number" }],
+                items: false
+              }
+            },
+            required: ["values"]
+          }
+        },
+        handler
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "tuple",
+          arguments: { values: ["valid", "invalid"] }
+        })
+      ).resolves.toMatchObject({
+        error: {
+          code: -32602,
+          message: expect.stringContaining("must be number"),
+          data: [expect.objectContaining({ keyword: "type", path: ["values", "1"] })]
         }
       });
       expect(handler).not.toHaveBeenCalled();

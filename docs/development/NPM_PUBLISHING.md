@@ -1,6 +1,7 @@
 # NPM Publishing
 
-Releases happen in GitHub Actions. Do not run `npm publish` locally.
+Releases happen in GitHub Actions. Do not run `npm publish` locally. The only
+exception is the first publish of a new package (see Initial Publish).
 
 ## Root Package
 
@@ -61,6 +62,19 @@ Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`. In
 npm install --global npm@^11.5.1
 npm publish --provenance --access public
 ```
+
+## Initial Publish
+
+Trusted publishing cannot create a package that does not exist on npm yet, so
+the first version of a new package is published locally:
+
+1. `npm login` (browser + 2FA).
+2. From the package directory: `npm publish --access public`. Skip
+   `--provenance` — it only works in CI. The 2FA prompt prints a
+   `https://www.npmjs.com/auth/cli/...` URL to approve in the browser.
+3. Verify with `npm view <package-name>` and a scratch `npm install`.
+4. Configure trusted publishing for the package (see Trusted Publishing).
+5. All later releases run from GitHub Actions with provenance.
 
 ## Trusted Publishing
 

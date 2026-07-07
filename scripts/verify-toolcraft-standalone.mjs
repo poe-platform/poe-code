@@ -428,7 +428,6 @@ try {
     toolcraftComposition.packages.map((entry) => [entry.name, entry])
   );
   const expectedTinyHttpVersion = process.env.EXPECTED_TINY_HTTP_MCP_SERVER_VERSION;
-  const expectedAuthorizationServerVersion = process.env.EXPECTED_MCP_OAUTH_SERVER_VERSION;
   assert(
     compositionByName.get("toolcraft")?.version === toolcraftPackageJson.version,
     "Expected composition to include the exact toolcraft version."
@@ -461,20 +460,6 @@ try {
     assert(
       compositionByName.get("tiny-http-mcp-server")?.version === expectedTinyHttpVersion,
       `Expected composition to report tiny-http-mcp-server version ${expectedTinyHttpVersion}.`
-    );
-  }
-  if (expectedAuthorizationServerVersion !== undefined) {
-    const bundledAuthorizationServerPackageJson = readTarJson(
-      tarballs.agentKit,
-      "package/node_modules/mcp-oauth-server/package.json"
-    );
-    assert(
-      bundledAuthorizationServerPackageJson.version === expectedAuthorizationServerVersion,
-      `Expected bundled mcp-oauth-server version ${expectedAuthorizationServerVersion}.`
-    );
-    assert(
-      compositionByName.get("mcp-oauth-server")?.version === expectedAuthorizationServerVersion,
-      `Expected composition to report mcp-oauth-server version ${expectedAuthorizationServerVersion}.`
     );
   }
 

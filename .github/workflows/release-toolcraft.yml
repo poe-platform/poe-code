@@ -71,11 +71,6 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
-      - name: Prepare released authorization-server version
-        id: authorization-server-version
-        run: |
-          VERSION=$(node scripts/prepare-published-workspace-version.mjs packages/mcp-oauth-server)
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Prepare released HTTP transport version
         id: http-version
         run: |
@@ -109,7 +104,6 @@ jobs:
         run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
         env:
-          EXPECTED_MCP_OAUTH_SERVER_VERSION: ${{ steps.authorization-server-version.outputs.version }}
           EXPECTED_TINY_HTTP_MCP_SERVER_VERSION: ${{ steps.http-version.outputs.version }}
         run: npm run smoke:toolcraft-standalone
       - name: Publish toolcraft-schema

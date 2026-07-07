@@ -17,11 +17,12 @@ The package provides:
 - CSRF, state, nonce, and secure cookie helpers
 - a Toolcraft adapter through `createHTTPMCPAuthorization()` from `toolcraft/http`
 
-## Install
+## Availability
 
-```sh
-npm install mcp-oauth-server
-```
+This package is bundled privately inside the published `toolcraft` package and
+is supported through the `toolcraft/http` exports. It is not published as a
+standalone npm package because that npm package name is owned outside this
+repository.
 
 ## Quick Start
 
@@ -29,11 +30,12 @@ npm install mcp-oauth-server
 import { generateKeyPairSync } from "node:crypto";
 import { exportJWK } from "jose";
 import {
+  createHTTPMCPAuthorization,
   createOAuthAuthorizationServer,
+  runHTTPMCP,
   type AuthorizationInteraction,
   type AuthorizationServerStore
-} from "mcp-oauth-server";
-import { createHTTPMCPAuthorization, runHTTPMCP } from "toolcraft/http";
+} from "toolcraft/http";
 
 const { privateKey, publicKey } = generateKeyPairSync("ec", {
   namedCurve: "P-256"

@@ -1,6 +1,7 @@
 {
   "name": "mcp-oauth-server",
   "version": "0.1.0",
+  "private": true,
   "description": "Production OAuth authorization server primitives for MCP applications",
   "type": "module",
   "main": "dist/index.js",

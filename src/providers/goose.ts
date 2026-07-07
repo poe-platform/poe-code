@@ -99,7 +99,7 @@ function buildCustomProvider(
 
 const GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS: Record<string, number> = {
   "anthropic/claude-opus-4.7": 200_000,
-  "anthropic/claude-sonnet-4.6": 200_000,
+  "anthropic/claude-sonnet-5": 983_040,
   "openai/gpt-5.3-codex": 128_000,
   "openai/gpt-5.4-pro": 1_050_000,
   "google/gemini-3.1-pro": 1_000_000

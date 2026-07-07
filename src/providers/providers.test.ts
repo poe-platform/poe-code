@@ -398,7 +398,7 @@ describe("claude-code service", () => {
         "-p",
         "Output exactly: CLAUDE_CODE_OK",
         "--model",
-        expect.stringContaining("claude-sonnet-4-6")
+        expect.stringContaining("claude-sonnet-5")
       ])
     );
   });
@@ -2363,7 +2363,7 @@ describe("goose service", () => {
     >;
     expect(provider.models).toEqual([
       { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
-      { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
+      { name: "anthropic/claude-sonnet-5", context_limit: 983_040 },
       { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
       { name: "openai/gpt-5.4-pro", context_limit: 1_050_000 },
       { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
@@ -2384,7 +2384,7 @@ describe("goose service", () => {
               context_window: { context_length: 983040 }
             },
             {
-              id: "claude-sonnet-4.6",
+              id: "claude-sonnet-5",
               context_window: { context_length: 983040 }
             },
             {
@@ -2442,7 +2442,7 @@ describe("goose service", () => {
     expect(result).toEqual({
       modelContextLimits: {
         "anthropic/claude-opus-4.7": 983040,
-        "anthropic/claude-sonnet-4.6": 200_000,
+        "anthropic/claude-sonnet-5": 983_040,
         "openai/gpt-5.3-codex": 128_000,
         "openai/gpt-5.4-pro": 1_050_000,
         "google/gemini-3.1-pro": 1_000_000
@@ -2722,7 +2722,7 @@ function buildCustomProviderModelsFixture(): Array<Record<string, unknown>> {
 function buildGooseModelContextLimitsFixture(): Record<string, number> {
   return {
     "anthropic/claude-opus-4.7": 983040,
-    "anthropic/claude-sonnet-4.6": 983040,
+    "anthropic/claude-sonnet-5": 983040,
     "openai/gpt-5.3-codex": 400000,
     "openai/gpt-5.4-pro": 1050000,
     "google/gemini-3.1-pro": 1048576

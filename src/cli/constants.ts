@@ -1,6 +1,6 @@
 export const FRONTIER_MODELS = [
   "anthropic/claude-opus-4.7",
-  "anthropic/claude-sonnet-4.6",
+  "anthropic/claude-sonnet-5",
   "openai/gpt-5.3-codex",
   "openai/gpt-5.4-pro",
   "google/gemini-3.1-pro"
@@ -11,7 +11,7 @@ export const DEFAULT_CURSOR_MODEL = DEFAULT_FRONTIER_MODEL;
 
 export const CLAUDE_CODE_VARIANTS = {
   haiku: "anthropic/claude-haiku-4.5",
-  sonnet: "anthropic/claude-sonnet-4.6",
+  sonnet: "anthropic/claude-sonnet-5",
   opus: "anthropic/claude-opus-4.7"
 } as const;
 
@@ -19,7 +19,7 @@ export const DEFAULT_CLAUDE_CODE_MODEL = CLAUDE_CODE_VARIANTS.sonnet;
 
 /**
  * Extracts the model ID from a namespaced model slug (lowercase).
- * e.g., "anthropic/claude-sonnet-4.6" -> "claude-sonnet-4.6"
+ * e.g., "anthropic/claude-sonnet-5" -> "claude-sonnet-5"
  */
 export function stripModelNamespace(model: string): string {
   const slashIndex = model.indexOf("/");

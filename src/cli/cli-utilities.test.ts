@@ -352,7 +352,7 @@ describe("poe-code command runner", () => {
         json: async () => ({
           data: [
             { id: "claude-opus-4.7", context_window: { context_length: 983040 } },
-            { id: "claude-sonnet-4.6", context_window: { context_length: 983040 } },
+            { id: "claude-sonnet-5", context_window: { context_length: 983040 } },
             { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
             { id: "gpt-5.4-pro", context_window: { context_length: 1050000 } },
             { id: "gemini-3.1-pro", context_window: { context_length: 1048576 } }

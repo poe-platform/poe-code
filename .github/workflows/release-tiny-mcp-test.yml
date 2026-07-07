@@ -24,6 +24,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
+      - name: Build toolcraft-schema dependency
+        run: npm run build --workspace toolcraft-schema
       - name: Build tiny-stdio-mcp-server dependency
         run: npm run build --workspace tiny-stdio-mcp-server
       - name: Build

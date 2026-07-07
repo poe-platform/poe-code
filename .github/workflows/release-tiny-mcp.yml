@@ -1,5 +1,6 @@
 name: Release tiny-stdio-mcp-server
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -23,6 +24,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
+      - name: Build toolcraft-schema dependency
+        run: npm run build --workspace toolcraft-schema
       - name: Build
         working-directory: packages/tiny-stdio-mcp-server
         run: npm run build

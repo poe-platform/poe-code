@@ -19,8 +19,8 @@
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/toolcraft-openapi/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-design @poe-code/frontmatter auth-store",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/frontmatter auth-store"
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-design @poe-code/frontmatter auth-store fast-string-width fast-wrap-ansi sisteransi yaml",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/frontmatter auth-store fast-string-width fast-wrap-ansi sisteransi yaml"
   },
   "files": [
     "LICENSE",
@@ -52,6 +52,10 @@
   "bundleDependencies": [
     "toolcraft-design",
     "@poe-code/frontmatter",
-    "auth-store"
+    "auth-store",
+    "fast-string-width",
+    "fast-wrap-ansi",
+    "sisteransi",
+    "yaml"
   ]
 }

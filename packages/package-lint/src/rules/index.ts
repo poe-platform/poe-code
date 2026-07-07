@@ -9,6 +9,7 @@ import { noCrossPackageRelativeImport } from "./no-cross-package-relative-import
 import { importedWorkspaceDepUnresolvable } from "./imported-workspace-dep-unresolvable.js";
 import { exportsSubpathResolvable } from "./exports-subpath-resolvable.js";
 import { bundleSelfContained } from "./bundle-self-contained.js";
+import { bundledTransitiveNpmDepUnbundled } from "./bundled-transitive-npm-dep-unbundled.js";
 import { publishedBinMustBeExecutable } from "./published-bin-must-be-executable.js";
 import { packageReadmeRequired } from "./package-readme-required.js";
 import { runtimeFileAssetsCollocated } from "./runtime-file-assets-collocated.js";
@@ -26,6 +27,7 @@ export const rules: Rule[] = [
   importedWorkspaceDepUnresolvable,
   exportsSubpathResolvable,
   bundleSelfContained,
+  bundledTransitiveNpmDepUnbundled,
   publishedBinMustBeExecutable,
   packageReadmeRequired,
   runtimeFileAssetsCollocated,

@@ -24,8 +24,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations toolcraft-design @poe-code/frontmatter",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations toolcraft-design @poe-code/frontmatter",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml",
     "test": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "test:unit": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "qa:cli": "cd ../.. && tsx packages/terminal-pilot/src/testing/qa-cli.ts",
@@ -72,7 +72,13 @@
     "@poe-code/agent-defs",
     "@poe-code/config-mutations",
     "toolcraft-design",
-    "@poe-code/frontmatter"
+    "@poe-code/frontmatter",
+    "fast-string-width",
+    "fast-wrap-ansi",
+    "jsonc-parser",
+    "sisteransi",
+    "smol-toml",
+    "yaml"
   ],
   "optionalDependencies": {
     "@poe-code/agent-defs": "*",

@@ -24,8 +24,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . mcp-oauth auth-store tiny-mcp-client",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . mcp-oauth auth-store tiny-mcp-client jose",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client jose",
     "prepublishOnly": "tsc"
   },
   "files": [
@@ -49,7 +49,8 @@
   "bundleDependencies": [
     "mcp-oauth",
     "auth-store",
-    "tiny-mcp-client"
+    "tiny-mcp-client",
+    "jose"
   ],
   "optionalDependencies": {
     "mcp-oauth": "*",

@@ -5,6 +5,9 @@ on:
       - main
     paths:
       - 'packages/tiny-http-mcp-server/**'
+      - 'packages/auth-store/**'
+      - 'packages/mcp-oauth/**'
+      - 'packages/tiny-mcp-client/**'
       - '.github/workflows/release-tiny-http-mcp.yml'
 concurrency:
   group: release-tiny-http-mcp

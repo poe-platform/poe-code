@@ -1,7 +1,5 @@
 import * as readline from "readline";
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema } from "toolcraft-schema";
-import uriTemplateParser from "uri-template";
-import UriTemplate from "uri-template-lite";
 import type {
   ServerOptions,
   ToolDefinition,
@@ -29,6 +27,7 @@ import type {
 import { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";
 import { parseMessage, formatSuccessResponse, formatErrorResponse } from "./jsonrpc.js";
 import type { TypedSchema } from "./schema.js";
+import { parseUriTemplate, type UriTemplate } from "./uri-template.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
@@ -102,6 +101,10 @@ interface RegisteredToolDefinition extends ToolDefinition {
   outputValidator?: CompiledJsonSchema;
 }
 
+interface RegisteredResourceTemplateDefinition extends ResourceTemplateDefinition {
+  template: UriTemplate;
+}
+
 function compileToolSchema(schema: JSONSchema): CompiledJsonSchema {
   try {
     return compileJsonSchema(schema);
@@ -124,7 +127,7 @@ export function createServer(options: ServerOptions): Server {
   const tools = new Map<string, RegisteredToolDefinition>();
   const prompts = new Map<string, PromptDefinition>();
   const resources = new Map<string, ResourceDefinition>();
-  const resourceTemplates = new Map<string, ResourceTemplateDefinition>();
+  const resourceTemplates = new Map<string, RegisteredResourceTemplateDefinition>();
   const methods = new Map<string, CustomMethodHandler>();
   const notificationListeners = new Set<(notification: JSONRPCNotification) => void>();
   const connectionNotificationListeners = new Map<
@@ -363,7 +366,7 @@ export function createServer(options: ServerOptions): Server {
       return {
         result: {
           resourceTemplates: [...resourceTemplates.values()].map(
-            ({ handler: _handler, ...resourceTemplate }) => resourceTemplate
+            ({ handler: _handler, template: _template, ...resourceTemplate }) => resourceTemplate
           )
         }
       };
@@ -638,12 +641,11 @@ export function createServer(options: ServerOptions): Server {
     },
 
     resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server {
-      assertReadableUriTemplate(definition.uriTemplate);
-      new UriTemplate(definition.uriTemplate);
+      const template = parseReadableUriTemplate(definition.uriTemplate);
       if (resourceTemplates.has(definition.uriTemplate)) {
         throw new Error(`Resource template already registered: ${definition.uriTemplate}`);
       }
-      resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
+      resourceTemplates.set(definition.uriTemplate, { ...definition, handler, template });
       return server;
     },
 
@@ -888,20 +890,12 @@ function assertNonEmptyName(name: string, message: string): void {
   }
 }
 
-function assertReadableUriTemplate(uriTemplate: string): void {
-  const parsed = uriTemplateParser.parse(uriTemplate);
-  const expanded = parsed.expand(
-    new Proxy(
-      {},
-      {
-        get: (_target, property) => (typeof property === "string" ? "value" : undefined)
-      }
-    )
-  );
-
-  if (typeof expanded !== "string" || !isValidUri(expanded)) {
+function parseReadableUriTemplate(uriTemplate: string): UriTemplate {
+  const template = parseUriTemplate(uriTemplate);
+  if (!isValidUri(template.expand({}))) {
     throw new Error(`Invalid resource URI template: ${uriTemplate}`);
   }
+  return template;
 }
 
 function toStringArguments(value: unknown): Record<string, string> | undefined {
@@ -934,24 +928,14 @@ function hasRequiredPromptArguments(
 function findReadableResource(
   uri: string,
   resources: Map<string, ResourceDefinition>,
-  resourceTemplates: Map<string, ResourceTemplateDefinition>
+  resourceTemplates: Map<string, RegisteredResourceTemplateDefinition>
 ): ResourceDefinition | ResourceTemplateDefinition | undefined {
   const resource = resources.get(uri);
   if (resource !== undefined) {
     return resource;
   }
 
-  return [...resourceTemplates.values()].find((template) =>
-    matchesUriTemplate(template.uriTemplate, uri)
-  );
-}
-
-function matchesUriTemplate(template: string, uri: string): boolean {
-  try {
-    return new UriTemplate(template).match(uri) !== null;
-  } catch {
-    return false;
-  }
+  return [...resourceTemplates.values()].find((template) => template.template.match(uri) !== null);
 }
 
 function isCallToolResult(value: unknown): value is CallToolResult {

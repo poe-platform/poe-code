@@ -91,6 +91,7 @@
     "smoke:toolcraft-sdk-types": "node scripts/verify-toolcraft-published-sdk-types.mjs",
     "sync-skills": "tsx scripts/sync-skills.ts",
     "sync:json-schema-test-suite": "node scripts/sync-json-schema-test-suite.mjs",
+    "sync:uri-template-test": "node scripts/sync-uri-template-test.mjs",
     "postinstall": "node scripts/postinstall-sync-skills.mjs"
   },
   "bin": {
@@ -211,8 +212,6 @@
     "toolcraft": "^0.0.51",
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
-    "uri-template": "^2.0.0",
-    "uri-template-lite": "^23.4.0",
     "yaml": "^2.8.2"
   },
   "optionalDependencies": {

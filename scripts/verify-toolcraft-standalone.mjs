@@ -1,5 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +40,41 @@ function readTarJson(tarballPath, entryPath) {
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
+  }
+}
+
+function readPrivateWorkspaceVersions() {
+  const versions = new Map();
+  for (const entry of readdirSync(path.join(repoRoot, "packages"), { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+    const manifestPath = path.join(repoRoot, "packages", entry.name, "package.json");
+    if (!existsSync(manifestPath)) {
+      continue;
+    }
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    if (manifest.private === true) {
+      versions.set(manifest.name, manifest.version);
+    }
+  }
+  return versions;
+}
+
+function assertLockOmitsPrivateIdentities(projectDir, privateWorkspaceVersions) {
+  const lock = JSON.parse(readFileSync(path.join(projectDir, "package-lock.json"), "utf8"));
+  for (const [lockPath, entry] of Object.entries(lock.packages ?? {})) {
+    if (lockPath === "") {
+      continue;
+    }
+    const nameFromPath = lockPath.slice(
+      lockPath.lastIndexOf("node_modules/") + "node_modules/".length
+    );
+    const identity = entry.name ?? nameFromPath;
+    assert(
+      !(privateWorkspaceVersions.has(identity) && entry.version !== undefined),
+      `Expected consumer lock to omit auditable private identity ${identity} at ${lockPath}.`
+    );
   }
 }
 
@@ -185,7 +228,7 @@ function runConsumerSmoke(projectDir, tarballs) {
   });
 }
 
-function runOptionalDependencySmoke(projectDir, toolcraftTarball) {
+function runOptionalDependencySmoke(projectDir, toolcraftTarball, privateWorkspaceVersions) {
   writeFileSync(
     path.join(projectDir, "package.json"),
     JSON.stringify(
@@ -211,7 +254,9 @@ function runOptionalDependencySmoke(projectDir, toolcraftTarball) {
   });
   rmSync(path.join(projectDir, "node_modules"), { recursive: true, force: true });
   execFileSync("npm", ["ci", "--ignore-scripts"], { cwd: projectDir, stdio: "inherit" });
-  execFileSync("npm", ["ls", "ajv", "--all"], { cwd: projectDir, stdio: "inherit" });
+  execFileSync("npm", ["ls", "--all"], { cwd: projectDir, stdio: "inherit" });
+  assertLockOmitsPrivateIdentities(projectDir, privateWorkspaceVersions);
+  execFileSync("npm", ["audit", "signatures"], { cwd: projectDir, stdio: "inherit" });
   execFileSync(
     process.execPath,
     ["--input-type=module", "--eval", 'await import("toolcraft/mcp");'],
@@ -288,6 +333,8 @@ try {
     }
   }
 
+  const privateWorkspaceVersions = readPrivateWorkspaceVersions();
+
   for (const dependencyName of bundledRuntimeDependencies) {
     const bundledPackagePath = `package/node_modules/${dependencyName}`;
     const bundledPackageJson = readTarJson(tarballs.agentKit, `${bundledPackagePath}/package.json`);
@@ -300,6 +347,17 @@ try {
         toolcraftPackageJson.dependencies?.[dependencyName],
       `Expected bundled ${dependencyName} to be declared as a runtime dependency.`
     );
+    if (privateWorkspaceVersions.has(dependencyName)) {
+      assert(
+        bundledPackageJson.name === undefined && bundledPackageJson.version === undefined,
+        `Expected bundled private ${dependencyName} to omit its registry identity.`
+      );
+    } else {
+      assert(
+        bundledPackageJson.name === dependencyName,
+        `Expected bundled public ${dependencyName} to keep its registry identity.`
+      );
+    }
   }
 
   const compositionByName = new Map(
@@ -314,8 +372,10 @@ try {
       tarballs.agentKit,
       `package/node_modules/${dependencyName}/package.json`
     );
+    const expectedVersion =
+      privateWorkspaceVersions.get(dependencyName) ?? bundledPackageJson.version;
     assert(
-      compositionByName.get(dependencyName)?.version === bundledPackageJson.version,
+      compositionByName.get(dependencyName)?.version === expectedVersion,
       `Expected composition to include exact version for ${dependencyName}.`
     );
     assert(
@@ -326,7 +386,7 @@ try {
 
   writeConsumerFixture(consumerDir);
   runConsumerSmoke(consumerDir, Object.values(tarballs));
-  runOptionalDependencySmoke(optionalConsumerDir, tarballs.agentKit);
+  runOptionalDependencySmoke(optionalConsumerDir, tarballs.agentKit, privateWorkspaceVersions);
 
   console.log("toolcraft standalone publish smoke passed.");
 } finally {

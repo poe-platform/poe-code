@@ -46,7 +46,7 @@
     "directory": "packages/toolcraft-openapi"
   },
   "optionalDependencies": {
-    "toolcraft-design": "^0.0.2",
+    "toolcraft-design": "*",
     "@poe-code/frontmatter": "*"
   },
   "bundleDependencies": [

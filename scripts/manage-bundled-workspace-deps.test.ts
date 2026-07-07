@@ -2,12 +2,48 @@ import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
 import {
+  anonymizeBundledWorkspaceManifest,
   assertSafeBundledPath,
   collectInstalledDependencyTree,
   createBundledCompositionManifest,
   restoreGeneratedFiles,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
+
+describe("anonymizeBundledWorkspaceManifest", () => {
+  it("removes registry identity from private manifests while preserving runtime metadata", () => {
+    expect(
+      anonymizeBundledWorkspaceManifest({
+        name: "tiny-mcp-client",
+        version: "0.1.0",
+        private: true,
+        type: "module",
+        exports: {
+          ".": "./dist/index.js"
+        }
+      })
+    ).toEqual({
+      private: true,
+      type: "module",
+      exports: {
+        ".": "./dist/index.js"
+      }
+    });
+  });
+
+  it("keeps registry identity for public manifests", () => {
+    const manifest = {
+      name: "toolcraft-schema",
+      version: "0.0.1",
+      type: "module",
+      exports: {
+        ".": "./dist/index.js"
+      }
+    };
+
+    expect(anonymizeBundledWorkspaceManifest(manifest)).toEqual(manifest);
+  });
+});
 
 describe("collectInstalledDependencyTree", () => {
   it("includes hoisted transitive runtime dependencies", () => {

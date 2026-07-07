@@ -53,12 +53,12 @@ describe("standalone package publish metadata", () => {
   it("declares bundled toolcraft-design as optional in standalone consumers", () => {
     expect(
       readPackageJson("packages/toolcraft/package.json").optionalDependencies?.["toolcraft-design"]
-    ).toBe("^0.0.2");
+    ).toBe("*");
     expect(
       readPackageJson("packages/toolcraft-openapi/package.json").optionalDependencies?.[
         "toolcraft-design"
       ]
-    ).toBe("^0.0.2");
+    ).toBe("*");
   });
 
   it("records repository.directory for standalone toolcraft packages", () => {

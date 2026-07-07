@@ -155,7 +155,7 @@
   ],
   "optionalDependencies": {
     "toolcraft-schema": "*",
-    "toolcraft-design": "^0.0.2",
+    "toolcraft-design": "*",
     "@poe-code/frontmatter": "*",
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-human-in-loop": "*",

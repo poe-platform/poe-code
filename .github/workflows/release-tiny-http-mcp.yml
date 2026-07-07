@@ -1,5 +1,6 @@
 name: Release tiny-http-mcp-server
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

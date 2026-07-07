@@ -552,7 +552,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 ---
 
 # Context

@@ -82,6 +82,10 @@ export interface HttpToolContext {
   request: AuthenticatedIncomingMessage;
 }
 
+type MountedIncomingMessage = IncomingMessage & {
+  baseUrl?: unknown;
+};
+
 export type HttpToolHandler<T = Record<string, unknown>, TOut = ToolReturn> = (
   args: T,
   context: HttpToolContext
@@ -407,7 +411,11 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
   };
 
   httpServer.handleRequest = async (req, res) => {
-    if (!(await authorizeHttpRequest(req, res, "/mcp"))) {
+    const { baseUrl } = req as MountedIncomingMessage;
+    const protectedResourcePath =
+      typeof baseUrl === "string" && baseUrl.length > 0 ? baseUrl : "/mcp";
+
+    if (!(await authorizeHttpRequest(req, res, protectedResourcePath))) {
       return;
     }
 

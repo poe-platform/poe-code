@@ -343,7 +343,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: express-mount-path-challenge
     title: Correct WWW-Authenticate metadata path for Express mounts
@@ -359,10 +359,10 @@ tasks:
       mounting the middleware at /api/v1/mcp with oauth -> the 401 challenge
       references /.well-known/oauth-protected-resource/api/v1/mcp.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: tool-context-dx

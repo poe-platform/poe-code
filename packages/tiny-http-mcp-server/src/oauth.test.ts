@@ -4,6 +4,7 @@ import type { AddressInfo } from "node:net";
 import express, { type Express } from "express";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  createExpressMiddleware,
   createExpressOAuthHandlers,
   createHttpServer,
   defineSchema,
@@ -409,6 +410,77 @@ describe("OAuth protected resource", () => {
     const handle = await listenExpressApp((app) => {
       app.use(handlers.metadataMiddleware);
       app.use("/mcp", handlers.mcpMiddleware);
+    });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(`${handle.baseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource/mcp"`
+    );
+  });
+
+  it("uses the Express mount path in OAuth challenges from createExpressMiddleware", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const server = createTestMcpServer({ oauth });
+    const handle = await listenExpressApp((app) => {
+      app.use("/api/v1/mcp", createExpressMiddleware(server));
+    });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(`${handle.baseUrl}/api/v1/mcp`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource/api/v1/mcp"`
+    );
+  });
+
+  it("uses the full Express mount path through nested routers", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const server = createTestMcpServer({ oauth });
+    const handle = await listenExpressApp((app) => {
+      const router = express.Router();
+      router.use("/v1/mcp", createExpressMiddleware(server));
+      app.use("/api", router);
+    });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(`${handle.baseUrl}/api/v1/mcp`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json"
+      },
+      body: createInitializeRequestBody()
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource/api/v1/mcp"`
+    );
+  });
+
+  it("falls back to /mcp when Express baseUrl is empty", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const server = createTestMcpServer({ oauth });
+    const handle = await listenExpressApp((app) => {
+      app.use(createExpressMiddleware(server));
     });
     trackCleanup(handle.close);
 

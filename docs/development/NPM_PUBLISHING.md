@@ -76,6 +76,31 @@ the first version of a new package is published locally:
 4. Configure trusted publishing for the package (see Trusted Publishing).
 5. All later releases run from GitHub Actions with provenance.
 
+### Automating steps 1–2 with terminal-pilot
+
+Both prompts block on a browser approval, not a code typed back into the
+terminal. Run them through the terminal-pilot MCP skill so the link opens
+automatically and the assistant can wait for completion instead of relaying
+a one-time code:
+
+```
+terminal_create_session  command="npm" args=["login"]
+terminal_wait_for         pattern="https://www\.npmjs\.com/login"
+open "<captured URL>"                          # plain `open`, not a specific browser
+terminal_wait_for         pattern="Logged in"
+terminal_close_session
+
+terminal_create_session  command="npx" args=["-y","npm@11.5.1","publish","--access","public"] cwd=<package dir>
+terminal_wait_for         pattern="https://www\.npmjs\.com/auth/cli"
+open "<captured URL>"
+terminal_wait_for         pattern="\+ <package-name>@"
+terminal_close_session
+```
+
+Use `npx npm@11.5.1` for publish (not the locally installed npm) so the
+prompt renders the browser-approval flow. Never pass `--otp=<code>` —
+approving the link satisfies the OTP check without a code changing hands.
+
 ## Trusted Publishing
 
 Configure trusted publishing on npmjs.com for each public package:

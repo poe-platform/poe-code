@@ -14,7 +14,7 @@ const CLAUDE_DEFAULT_MODEL = DEFAULT_CLAUDE_CODE_MODEL;
  */
 export const AVAILABLE_MODELS = Object.freeze([
   CLAUDE_DEFAULT_MODEL,
-  "gpt-5.5",
+  "gpt-5.4-pro",
   "gpt-5.4",
   "gpt-5.4-chat",
   "gpt-5.4-pro",
@@ -58,11 +58,11 @@ export interface ModelContext {
 }
 
 /**
- * Mixed strategy: alternates between gpt-5.5 and the default Claude model
+ * Mixed strategy: alternates between gpt-5.4-pro and the default Claude model
  */
 export class MixedStrategy implements ModelStrategy {
   private currentIndex = 0;
-  private models: ModelIdentifier[] = ["gpt-5.5", CLAUDE_DEFAULT_MODEL];
+  private models: ModelIdentifier[] = ["gpt-5.4-pro", CLAUDE_DEFAULT_MODEL];
 
   getNextModel(): ModelIdentifier {
     const model = this.models[this.currentIndex];
@@ -75,7 +75,7 @@ export class MixedStrategy implements ModelStrategy {
   }
 
   getDescription(): string {
-    return `Alternates between gpt-5.5 and ${CLAUDE_DEFAULT_MODEL} on each call`;
+    return `Alternates between gpt-5.4-pro and ${CLAUDE_DEFAULT_MODEL} on each call`;
   }
 
   reset(): void {
@@ -96,10 +96,10 @@ export class SmartStrategy implements ModelStrategy {
 
     // Smart selection based on context
     if (context.messageType === "code" || context.messageType === "reasoning") {
-      // Use gpt-5.5 for complex coding and reasoning tasks
+      // Use gpt-5.4-pro for complex coding and reasoning tasks
       if (context.complexity === "complex") {
-        this.lastModel = "gpt-5.5";
-        return "gpt-5.5";
+        this.lastModel = "gpt-5.4-pro";
+        return "gpt-5.4-pro";
       }
       // Use Claude for medium complexity code
       this.lastModel = CLAUDE_DEFAULT_MODEL;
@@ -216,7 +216,7 @@ export class ModelStrategyFactory {
     return [
       {
         type: "mixed",
-        description: `Alternate between gpt-5.5 and ${CLAUDE_DEFAULT_MODEL}`
+        description: `Alternate between gpt-5.4-pro and ${CLAUDE_DEFAULT_MODEL}`
       },
       { type: "smart", description: "Intelligently select based on task type" },
       { type: "fixed", description: "Always use the same model" },

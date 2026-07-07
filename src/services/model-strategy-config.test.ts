@@ -48,7 +48,7 @@ describe("StrategyConfigManager", () => {
     volume.symlinkSync("/outside", "/home/user/.poe-code");
     const manager = await loadManager(volume);
 
-    expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
+    expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.4-pro" }))
       .toThrow("symbolic link");
     expect(manager.loadConfig()).toBeNull();
     expect(volume.readFileSync("/outside/strategy-config.json", "utf8"))
@@ -69,7 +69,7 @@ describe("StrategyConfigManager", () => {
     });
 
     await withObjectPrototypeCode("EEXIST", async () => {
-      expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
+      expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.4-pro" }))
         .toThrow("strategy disk full");
     });
     expect(manager.loadConfig()).toEqual({ type: "fixed", fixedModel: "gpt-5.4" });
@@ -99,7 +99,7 @@ describe("StrategyConfigManager", () => {
       volume.writeFileSync(filePath, String(data), options as never);
     });
 
-    expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
+    expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.4-pro" }))
       .toThrow();
 
     expect(temporaryPath).toBeDefined();

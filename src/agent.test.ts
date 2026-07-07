@@ -26,7 +26,7 @@ describe("public composable agent API", () => {
     };
 
     const built = agent()
-      .model("gpt-5.5")
+      .model("gpt-5.4-pro")
       .use(openaiResponsesPlugin())
       .use(systemPromptPlugin())
       .use(plugin)

@@ -2365,7 +2365,7 @@ describe("goose service", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
       { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
-      { name: "openai/gpt-5.5", context_limit: 1_050_000 },
+      { name: "openai/gpt-5.4-pro", context_limit: 1_050_000 },
       { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
     ]);
   });
@@ -2392,7 +2392,7 @@ describe("goose service", () => {
               context_window: { context_length: 400000 }
             },
             {
-              id: "gpt-5.5",
+              id: "gpt-5.4-pro",
               context_window: { context_length: 1050000 }
             },
             {
@@ -2444,7 +2444,7 @@ describe("goose service", () => {
         "anthropic/claude-opus-4.7": 983040,
         "anthropic/claude-sonnet-4.6": 200_000,
         "openai/gpt-5.3-codex": 128_000,
-        "openai/gpt-5.5": 1_050_000,
+        "openai/gpt-5.4-pro": 1_050_000,
         "google/gemini-3.1-pro": 1_000_000
       }
     });
@@ -2724,7 +2724,7 @@ function buildGooseModelContextLimitsFixture(): Record<string, number> {
     "anthropic/claude-opus-4.7": 983040,
     "anthropic/claude-sonnet-4.6": 983040,
     "openai/gpt-5.3-codex": 400000,
-    "openai/gpt-5.5": 1050000,
+    "openai/gpt-5.4-pro": 1050000,
     "google/gemini-3.1-pro": 1048576
   };
 }
@@ -2936,7 +2936,7 @@ describe("poe-agent provider", () => {
         "~/.poe-code/sessions/poe-agent-existing.json": `${JSON.stringify({
           version: 1,
           threadId: "poe-agent-existing",
-          model: "openai/gpt-5.5",
+          model: "openai/gpt-5.4-pro",
           cwd: "/workspace/original",
           createdAt: "2026-06-12T12:00:00.000Z",
           updatedAt: "2026-06-12T12:00:00.000Z",
@@ -2964,7 +2964,7 @@ describe("poe-agent provider", () => {
     );
     expect(createAgentSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: "openai/gpt-5.5",
+        model: "openai/gpt-5.4-pro",
         resume: { messages: [{ role: "assistant", content: "remembered" }] }
       })
     );

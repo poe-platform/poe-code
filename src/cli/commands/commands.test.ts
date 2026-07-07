@@ -301,14 +301,14 @@ describe("configure command", () => {
           { id: "claude-opus-4.7", context_window: { context_length: 983040 } },
           { id: "claude-sonnet-4.6", context_window: { context_length: 983040 } },
           { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
-          { id: "gpt-5.5", context_window: { context_length: 1050000 } },
+          { id: "gpt-5.4-pro", context_window: { context_length: 1050000 } },
           { id: "gemini-3.1-pro", context_window: { context_length: 1048576 } }
         ]
       })
     })) satisfies HttpClient;
     const { container } = createContainer({ httpClient });
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-goose");
-    vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.5");
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.4-pro");
 
     const program = createTestProgram();
     await executeConfigure(program, container, "goose", {});
@@ -317,7 +317,7 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/config.yaml`, "utf8")
     ) as Record<string, unknown>;
     expect(config.GOOSE_PROVIDER).toBe("custom_poe");
-    expect(config.GOOSE_MODEL).toBe("openai/gpt-5.5");
+    expect(config.GOOSE_MODEL).toBe("openai/gpt-5.4-pro");
 
     const provider = JSON.parse(
       await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
@@ -328,7 +328,7 @@ describe("configure command", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 983040 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 983040 },
       { name: "openai/gpt-5.3-codex", context_limit: 400000 },
-      { name: "openai/gpt-5.5", context_limit: 1050000 },
+      { name: "openai/gpt-5.4-pro", context_limit: 1050000 },
       { name: "google/gemini-3.1-pro", context_limit: 1048576 }
     ]);
 
@@ -348,7 +348,7 @@ describe("configure command", () => {
       ],
       provider: "poe",
       apiShape: "openai-chat-completions",
-      model: "openai/gpt-5.5"
+      model: "openai/gpt-5.4-pro"
     });
     expect(httpClient).toHaveBeenCalledWith(
       "https://api.poe.com/v1/models",
@@ -365,12 +365,12 @@ describe("configure command", () => {
       ok: true,
       status: 200,
       json: async () => ({
-        data: [{ id: "gpt-5.5", context_window: { context_length: 1050000 } }]
+        data: [{ id: "gpt-5.4-pro", context_window: { context_length: 1050000 } }]
       })
     })) satisfies HttpClient;
     const { container } = createContainer({ httpClient });
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-goose");
-    vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.5");
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("openai/gpt-5.4-pro");
 
     const program = createTestProgram();
     await executeConfigure(program, container, "goose", {});
@@ -382,7 +382,7 @@ describe("configure command", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
       { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
-      { name: "openai/gpt-5.5", context_limit: 1_050_000 },
+      { name: "openai/gpt-5.4-pro", context_limit: 1_050_000 },
       { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
     ]);
   });

@@ -1,12 +1,6 @@
-import { createRequire } from "node:module";
 import path from "node:path";
 import { isMap, parseDocument, type Document, type YAMLMap } from "yaml";
-
-// createRequire instead of JSON import attributes: `with { type: "json" }` is a
-// syntax error before Node 18.20, and engines declares >=18.18 (#517).
-const require = createRequire(import.meta.url);
-const storeSchema = require("../schema/store.schema.json") as { $id: string };
-const taskSchema = require("../schema/task.schema.json") as { $id: string };
+import { STORE_SCHEMA_ID, TASK_SCHEMA_ID } from "../schema/ids.js";
 import { eventsFromState, findEvent } from "../state-machine.js";
 import { resolveStateMachine } from "../state.js";
 import {
@@ -42,10 +36,8 @@ import {
 } from "./utils.js";
 
 const STORE_KIND = "task-store";
-const STORE_SCHEMA_ID = storeSchema.$id;
 const STORE_VERSION = 1;
 const TASK_KIND = "task";
-const TASK_SCHEMA_ID = taskSchema.$id;
 const TASK_VERSION = 1;
 const RESERVED_TASK_KEYS = new Set([
   "$schema",

@@ -8,6 +8,10 @@ import {
   type HttpTransportOptions
 } from "tiny-http-mcp-server/server";
 import type { Group } from "./index.js";
+import type {
+  OAuthAuthorizationServer,
+  VerifiedAuthorizationServerToken
+} from "mcp-oauth-server";
 import {
   createMCPServerForTransport,
   type RunMCPOptions
@@ -34,6 +38,63 @@ export interface RunHTTPMCPOptions<TServices extends object = Record<string, unk
   requestServices?(
     context: ToolcraftHTTPContext
   ): Partial<TServices> | Promise<Partial<TServices>>;
+}
+
+export interface HTTPMCPAuthorizationOptions {
+  authorizationServer: Pick<OAuthAuthorizationServer, "issuer" | "verifyAccessToken">;
+  resource: string;
+  requiredScopes?: readonly string[];
+  scopesSupported?: readonly string[];
+}
+
+function toVerifiedAccessToken(
+  token: string,
+  issuer: string,
+  verified: VerifiedAuthorizationServerToken
+): import("tiny-http-mcp-server/server").VerifiedAccessToken {
+  return {
+    token,
+    issuer,
+    audience: [verified.resource],
+    scopes: [...verified.scopes],
+    expiresAt: verified.expiresAt,
+    claims: {
+      sub: verified.subject,
+      client_id: verified.clientId,
+      aud: verified.resource,
+      jti: verified.tokenId
+    },
+    subject: verified.subject,
+    clientId: verified.clientId
+  };
+}
+
+export function createHTTPMCPAuthorization(
+  options: HTTPMCPAuthorizationOptions
+): import("tiny-http-mcp-server/server").TinyHttpMcpServerOAuthOptions {
+  const issuer = options.authorizationServer.issuer;
+  const resource = new URL(options.resource).href;
+  return {
+    resource,
+    authorizationServers: [issuer],
+    requiredScopes: options.requiredScopes,
+    scopesSupported: options.scopesSupported ?? options.requiredScopes,
+    verifier: {
+      async verify(input) {
+        if (input.authorizationServers.length !== 1 || input.authorizationServers[0] !== issuer) {
+          throw new Error("authorization server issuer does not match");
+        }
+        if (new URL(input.resource).href !== resource) {
+          throw new Error("protected resource does not match");
+        }
+        const verified = await options.authorizationServer.verifyAccessToken(
+          input.token,
+          resource
+        );
+        return toVerifiedAccessToken(input.token, issuer, verified);
+      }
+    }
+  };
 }
 
 function createTransportOptions<TServices extends object>(
@@ -128,3 +189,17 @@ export {
   createJwksTokenVerifier,
   TokenVerificationError
 } from "tiny-http-mcp-server/server";
+export {
+  createAuthorizationInteractionSecurity,
+  createInMemoryAuthorizationServerStore,
+  createOAuthAuthorizationServer,
+  verifyAuthorizationInteractionCsrf
+} from "mcp-oauth-server";
+export type {
+  AuthorizationInteraction,
+  AuthorizationInteractionSecurity,
+  AuthorizationServerStore,
+  OAuthAuthorizationServer,
+  OAuthAuthorizationServerOptions,
+  VerifiedAuthorizationServerToken
+} from "mcp-oauth-server";

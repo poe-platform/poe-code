@@ -1,0 +1,38 @@
+{
+  "name": "mcp-oauth-server",
+  "version": "0.1.0",
+  "description": "Production OAuth authorization server primitives for MCP applications",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/mcp-oauth-server/src",
+    "test:unit": "cd ../.. && vitest run packages/mcp-oauth-server/src"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/mcp-oauth-server"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "jose": "^6.1.2"
+  },
+  "devDependencies": {
+    "mcp-oauth": "*"
+  }
+}

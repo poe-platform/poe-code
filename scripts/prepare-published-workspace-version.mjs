@@ -68,7 +68,16 @@ export async function preparePublishedWorkspaceVersion({
   }
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const metadata = await readPublishedMetadata(packageName);
+    let metadata;
+    try {
+      metadata = await readPublishedMetadata(packageName);
+    } catch {
+      if (attempt < attempts) {
+        await delay();
+        continue;
+      }
+      break;
+    }
     validatePublishedMetadata(packageName, metadata);
 
     if (!sourceChangedSince(metadata.gitHead)) {

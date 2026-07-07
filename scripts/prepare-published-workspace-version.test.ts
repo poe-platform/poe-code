@@ -94,4 +94,35 @@ describe("preparePublishedWorkspaceVersion", () => {
       })
     ).rejects.toThrow("Invalid published metadata for tiny-http-mcp-server");
   });
+
+  it("waits while a package has not reached the registry yet", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/packages/mcp-oauth-server/package.json": JSON.stringify({
+        name: "mcp-oauth-server",
+        version: "0.1.0"
+      })
+    });
+    const fileSystem = createFsFromVolume(volume);
+    const readPublishedMetadata = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("npm E404"))
+      .mockResolvedValueOnce({
+        name: "mcp-oauth-server",
+        version: "0.1.0",
+        gitHead: "current-release"
+      });
+    const delay = vi.fn(async () => undefined);
+
+    await expect(
+      preparePublishedWorkspaceVersion({
+        packageDir: "/repo/packages/mcp-oauth-server",
+        attempts: 2,
+        delay,
+        fileSystem,
+        readPublishedMetadata,
+        sourceChangedSince: () => false
+      })
+    ).resolves.toBe("0.1.0");
+    expect(delay).toHaveBeenCalledTimes(1);
+  });
 });

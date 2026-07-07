@@ -80,6 +80,7 @@ describe("createLoopbackAuthorizationSession", () => {
     const waitForCode = session.waitForCode(
       "https://auth.example.com/authorize?state=expected-state"
     );
+    const rejection = expect(waitForCode).rejects.toThrow("OAuth callback missing state");
 
     try {
       await expect(
@@ -89,7 +90,7 @@ describe("createLoopbackAuthorizationSession", () => {
         body: "OAuth callback missing state"
       });
 
-      await expect(waitForCode).rejects.toThrow("OAuth callback missing state");
+      await rejection;
     } finally {
       session.close();
     }

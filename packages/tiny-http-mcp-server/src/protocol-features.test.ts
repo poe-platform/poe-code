@@ -1,6 +1,6 @@
 import {
   PromptListChangedNotificationSchema,
-  ResourceUpdatedNotificationSchema,
+  ResourceUpdatedNotificationSchema
 } from "@modelcontextprotocol/sdk/types.js";
 import { describe, expect, it, vi } from "vitest";
 import { createHttpServer } from "./http-server.js";
@@ -15,8 +15,8 @@ const INITIALIZE_BODY = {
   params: {
     protocolVersion: "2025-11-25",
     capabilities: {},
-    clientInfo: { name: "test", version: "1" },
-  },
+    clientInfo: { name: "test", version: "1" }
+  }
 };
 
 async function withObjectPrototypeProperties<T>(
@@ -29,7 +29,7 @@ async function withObjectPrototypeProperties<T>(
     Object.defineProperty(Object.prototype, key, {
       configurable: true,
       value,
-      writable: true,
+      writable: true
     });
   }
 
@@ -50,21 +50,25 @@ describe("HTTP prompt and resource SDK interoperability", () => {
   it("exposes prompts and resources through Streamable HTTP", async () => {
     const server = createHttpServer({ name: "http-features", version: "1.0.0" })
       .prompt({ name: "welcome" }, () => ({
-        messages: [{ role: "user", content: { type: "text", text: "hello" } }],
+        messages: [{ role: "user", content: { type: "text", text: "hello" } }]
       }))
       .resource({ uri: "memory://welcome", name: "welcome" }, () => ({
-        contents: [{ uri: "memory://welcome", text: "hello over HTTP" }],
+        contents: [{ uri: "memory://welcome", text: "hello over HTTP" }]
       }));
     const pair = await createHttpTestPair(server);
 
     try {
-      await expect(pair.client.listPrompts()).resolves.toMatchObject({ prompts: [{ name: "welcome" }] });
-      await expect(pair.client.getPrompt({ name: "welcome" })).resolves.toMatchObject({
-        messages: [{ content: { text: "hello" } }],
+      await expect(pair.client.listPrompts()).resolves.toMatchObject({
+        prompts: [{ name: "welcome" }]
       });
-      await expect(pair.client.listResources()).resolves.toMatchObject({ resources: [{ uri: "memory://welcome" }] });
+      await expect(pair.client.getPrompt({ name: "welcome" })).resolves.toMatchObject({
+        messages: [{ content: { text: "hello" } }]
+      });
+      await expect(pair.client.listResources()).resolves.toMatchObject({
+        resources: [{ uri: "memory://welcome" }]
+      });
       await expect(pair.client.readResource({ uri: "memory://welcome" })).resolves.toMatchObject({
-        contents: [{ text: "hello over HTTP" }],
+        contents: [{ text: "hello over HTTP" }]
       });
     } finally {
       await pair.cleanup();
@@ -105,9 +109,18 @@ describe("HTTP prompt and resource SDK interoperability", () => {
         headers: {
           Accept: "application/json, text/event-stream",
           "Content-Type": "application/json",
-          Origin: "https://evil.example",
+          Origin: "https://evil.example"
         },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "test", version: "1" } } }),
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-11-25",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1" }
+          }
+        })
       });
       expect(response.status).toBe(403);
     } finally {
@@ -120,11 +133,17 @@ describe("HTTP prompt and resource SDK interoperability", () => {
       name: "stateless",
       version: "1.0.0",
       sessionIdGenerator: undefined,
-      enableJsonResponse: true,
-    }).resource({ uri: "memory://item", name: "item" }, () => ({ contents: [{ uri: "memory://item", text: "item" }] }));
+      enableJsonResponse: true
+    }).resource({ uri: "memory://item", name: "item" }, () => ({
+      contents: [{ uri: "memory://item", text: "item" }]
+    }));
     const pair = await createHttpTestPair(server);
     try {
-      expect(pair.client.getServerCapabilities()).toMatchObject({ resources: {}, prompts: {}, tools: {} });
+      expect(pair.client.getServerCapabilities()).toMatchObject({
+        resources: {},
+        prompts: {},
+        tools: {}
+      });
       expect(pair.client.getServerCapabilities()?.resources).not.toHaveProperty("subscribe");
       await expect(pair.client.subscribeResource({ uri: "memory://item" })).rejects.toThrow();
     } finally {
@@ -139,7 +158,7 @@ describe("HTTP prompt and resource SDK interoperability", () => {
         const server = createHttpServer({
           name: "inherited-generator",
           version: "1.0.0",
-          enableJsonResponse: true,
+          enableJsonResponse: true
         });
         const handle = await server.listenHttp({ port: 0 });
 
@@ -148,9 +167,9 @@ describe("HTTP prompt and resource SDK interoperability", () => {
             method: "POST",
             headers: {
               Accept: "application/json, text/event-stream",
-              "Content-Type": "application/json",
+              "Content-Type": "application/json"
             },
-            body: JSON.stringify(INITIALIZE_BODY),
+            body: JSON.stringify(INITIALIZE_BODY)
           });
 
           expect(response.status).toBe(200);
@@ -168,15 +187,15 @@ describe("HTTP prompt and resource SDK interoperability", () => {
       const server = createHttpServer({
         name: "inherited-stateless",
         version: "1.0.0",
-        enableJsonResponse: true,
+        enableJsonResponse: true
       }).resource({ uri: "memory://item", name: "item" }, () => ({
-        contents: [{ uri: "memory://item", text: "item" }],
+        contents: [{ uri: "memory://item", text: "item" }]
       }));
       const pair = await createHttpTestPair(server);
 
       try {
         expect(pair.client.getServerCapabilities()).toMatchObject({
-          resources: { subscribe: true },
+          resources: { subscribe: true }
         });
       } finally {
         await pair.cleanup();
@@ -186,16 +205,44 @@ describe("HTTP prompt and resource SDK interoperability", () => {
 
   it("preserves request context for rich HTTP tool registration", async () => {
     const server = createHttpServer({ name: "rich-http", version: "1.0.0" }).registerTool(
-      { name: "context", inputSchema: defineSchema({}), outputSchema: defineSchema({ present: { type: "boolean" } }) },
-      (_args, context) => ({ content: [], structuredContent: { present: context.request !== undefined } })
+      {
+        name: "context",
+        inputSchema: defineSchema({}),
+        outputSchema: defineSchema({ present: { type: "boolean" } })
+      },
+      (_args, context) => ({
+        content: [],
+        structuredContent: { present: context.request !== undefined }
+      })
     );
     const pair = await createHttpTestPair(server);
     try {
-      await expect(pair.client.callTool({ name: "context", arguments: {} })).resolves.toMatchObject({
-        structuredContent: { present: true },
-      });
+      await expect(pair.client.callTool({ name: "context", arguments: {} })).resolves.toMatchObject(
+        {
+          structuredContent: { present: true }
+        }
+      );
     } finally {
       await pair.cleanup();
     }
+  });
+
+  it("provides safe request headers for direct message handling", async () => {
+    const server = createHttpServer({ name: "direct-context", version: "1.0.0" }).tool(
+      "header",
+      "Read a request header",
+      defineSchema({}),
+      (_args, context) => String(context.request.headers.x)
+    );
+
+    await server.handleMessage("initialize", INITIALIZE_BODY.params);
+
+    await expect(
+      server.handleMessage("tools/call", { name: "header", arguments: {} })
+    ).resolves.toMatchObject({
+      result: {
+        content: [{ type: "text", text: "undefined" }]
+      }
+    });
   });
 });

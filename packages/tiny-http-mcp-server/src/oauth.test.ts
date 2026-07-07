@@ -1099,7 +1099,7 @@ describe("OAuth protected resource", () => {
     expect(response.headers.get("www-authenticate")).toBeNull();
   });
 
-  it("passes verified token claims to tools through request.auth", async () => {
+  it("passes the session id and verified auth to tools through context", async () => {
     const { oauth, verifier } = createProtectedResourceMetadata();
     const token = verifier.issueToken({
       token: "claims-token",
@@ -1118,16 +1118,17 @@ describe("OAuth protected resource", () => {
       version: "1.0.0",
       oauth,
       enableJsonResponse: true
-    }).tool("auth_snapshot", "Return auth info", defineSchema({}), (_args, { request }) =>
+    }).tool("auth_snapshot", "Return auth info", defineSchema({}), (_args, context) =>
       JSON.stringify({
-        token: request.auth?.token,
-        clientId: request.auth?.clientId,
-        scopes: request.auth?.scopes,
-        issuer: request.auth?.issuer,
-        audience: request.auth?.audience,
-        subject: request.auth?.subject,
-        resource: request.auth?.resource?.toString(),
-        claims: request.auth?.claims
+        sessionId: context.sessionId,
+        token: context.auth?.token,
+        clientId: context.auth?.clientId,
+        scopes: context.auth?.scopes,
+        issuer: context.auth?.issuer,
+        audience: context.auth?.audience,
+        subject: context.auth?.subject,
+        resource: context.auth?.resource?.toString(),
+        claims: context.auth?.claims
       })
     );
     const handle = await server.listenHttp({ port: 0 });
@@ -1192,6 +1193,7 @@ describe("OAuth protected resource", () => {
 
     expect(text).toBeTruthy();
     expect(JSON.parse(String(text))).toEqual({
+      sessionId,
       token,
       clientId: "test-client",
       scopes: [REQUIRED_SCOPE, "mcp.write"],

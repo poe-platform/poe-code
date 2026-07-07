@@ -415,6 +415,24 @@ interface HttpServer {
 
 Invalid typed handler results are treated as server bugs and fail the JSON-RPC call with an internal `ToolError`, matching `tiny-stdio-mcp-server`.
 
+#### `HttpToolContext`
+
+HTTP tool handlers receive request-specific context as their second argument:
+
+```ts
+interface HttpToolContext {
+  request: AuthenticatedIncomingMessage;
+  sessionId?: string;
+  auth?: RequestAuthInfo;
+}
+```
+
+- `request`: the Node.js incoming request for HTTP calls.
+- `sessionId`: the `Mcp-Session-Id` request header, or `undefined` for initialization, stateless, and non-HTTP calls.
+- `auth`: the verified `RequestAuthInfo` attached to `request.auth`, or `undefined` when the request is unauthenticated.
+
+Calls made directly through `server.handleMessage()` do not have an HTTP request. Their fallback `request` has empty `headers` and `socket` objects, so reads such as `context.request.headers["x-custom-header"]` safely return `undefined`.
+
 ## CLI Usage
 
 ```sh

@@ -363,7 +363,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: tool-context-dx
     title: sessionId and auth on the tool context, safe default
@@ -382,9 +382,9 @@ tasks:
       context.request.headers without throwing. Update the README API
       section.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
       release: open
 

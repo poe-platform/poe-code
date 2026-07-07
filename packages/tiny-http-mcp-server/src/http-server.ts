@@ -80,6 +80,8 @@ export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
 
 export interface HttpToolContext {
   request: AuthenticatedIncomingMessage;
+  sessionId?: string;
+  auth?: RequestAuthInfo;
 }
 
 type MountedIncomingMessage = IncomingMessage & {
@@ -204,7 +206,11 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
   const transport = new StreamableHttpTransport(server, options, async (req, callback) =>
     requestContextStorage.run(
       {
-        request: req as AuthenticatedIncomingMessage
+        request: req as AuthenticatedIncomingMessage,
+        sessionId: Array.isArray(req.headers["mcp-session-id"])
+          ? req.headers["mcp-session-id"][0]
+          : req.headers["mcp-session-id"],
+        auth: (req as AuthenticatedIncomingMessage).auth
       },
       callback
     )
@@ -217,7 +223,7 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
   const registerTool = server.tool.bind(server);
   const registerRichTool = server.registerTool.bind(server);
   const defaultContext = {
-    request: {} as AuthenticatedIncomingMessage
+    request: { headers: {}, socket: {} } as AuthenticatedIncomingMessage
   } satisfies HttpToolContext;
 
   const authorizeHttpRequest = async (

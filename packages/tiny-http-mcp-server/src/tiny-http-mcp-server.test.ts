@@ -1575,7 +1575,10 @@ describe("StreamableHttpTransport", () => {
     expect(body).toEqual({
       jsonrpc: "2.0",
       id: 2,
-      error: { code: -32602, message: "Tool not found: missing" }
+      error: {
+        code: -32602,
+        message: "Tool not found: missing. Available: echo, explode"
+      }
     });
   });
 
@@ -5148,7 +5151,11 @@ describe("Spec conformance", () => {
           expect(await readJsonRpcPayload(response)).toEqual({
             jsonrpc: "2.0",
             id: 2,
-            error: { code: -32602, message: "Tool not found: missing" }
+            error: {
+              code: -32602,
+              message:
+                "Tool not found: missing. Available: echo, reverse, uppercase, get_user, get_list, get_image, get_audio, get_file, get_mixed, throw_sync, throw_async, empty_result, slow, large_output, notify_during_call, typed_profile, invalid_typed_profile"
+            }
           });
         });
 

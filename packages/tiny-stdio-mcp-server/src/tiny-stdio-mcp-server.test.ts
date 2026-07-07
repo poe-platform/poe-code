@@ -1911,6 +1911,30 @@ describe("server protocol handlers", () => {
       });
     });
 
+    it("includes up to 20 available tool names in tool not found errors", async () => {
+      const schema = defineSchema({});
+      const server = createServer({ name: "test", version: "1.0.0" });
+      for (let index = 1; index <= 21; index++) {
+        server.tool(`tool-${index}`, `Tool ${index}`, schema, async () => "called");
+      }
+
+      await server.handleMessage("initialize", {});
+      const listResponse = await server.handleMessage("tools/list");
+      if (!("result" in listResponse)) {
+        throw new Error("Expected tools/list to succeed");
+      }
+      const availableNames = listResponse.result.tools.slice(0, 20).map((tool) => tool.name);
+
+      await expect(server.handleMessage("tools/call", { name: "missing" })).resolves.toEqual({
+        error: {
+          code: -32602,
+          message: `Tool not found: missing. Available: ${availableNames.join(", ")}`
+        }
+      });
+      expect(availableNames).toHaveLength(20);
+      expect(availableNames).not.toContain("tool-21");
+    });
+
     it('R7: handleMessage("tools/call", {}) returns tool name required error', async () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 

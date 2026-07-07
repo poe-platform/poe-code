@@ -232,10 +232,13 @@ export function createServer(options: ServerOptions): Server {
 
       const tool = tools.get(toolName);
       if (!tool) {
+        const availableTools = [...tools.keys()].slice(0, 20);
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            message: `Tool not found: ${toolName}`
+            message: `Tool not found: ${toolName}${
+              availableTools.length === 0 ? "" : `. Available: ${availableTools.join(", ")}`
+            }`
           }
         };
       }
@@ -568,6 +571,9 @@ export function createServer(options: ServerOptions): Server {
       outputSchema?: TypedSchema<TOut>
     ): Server {
       assertNonEmptyName(name, "Tool name required");
+      if (tools.has(name)) {
+        throw new Error(`Tool already registered: ${name}`);
+      }
       const inputValidator = jsonSchemaValidator.compile(inputSchema as JSONSchema);
       let outputValidator: ValidateFunction | undefined;
       if (outputSchema !== undefined) {
@@ -591,6 +597,9 @@ export function createServer(options: ServerOptions): Server {
       handler: ToolHandler<TIn, TOut>
     ): Server {
       assertNonEmptyName(definition.name, "Tool name required");
+      if (tools.has(definition.name)) {
+        throw new Error(`Tool already registered: ${definition.name}`);
+      }
       const inputValidator = jsonSchemaValidator.compile(definition.inputSchema);
       let outputValidator: ValidateFunction | undefined;
       if (definition.outputSchema !== undefined) {
@@ -608,6 +617,9 @@ export function createServer(options: ServerOptions): Server {
 
     prompt(definition: Prompt, handler: PromptHandler): Server {
       assertNonEmptyName(definition.name, "Prompt name required");
+      if (prompts.has(definition.name)) {
+        throw new Error(`Prompt already registered: ${definition.name}`);
+      }
       prompts.set(definition.name, { ...definition, handler });
       return server;
     },
@@ -616,6 +628,9 @@ export function createServer(options: ServerOptions): Server {
       if (!isValidUri(definition.uri)) {
         throw new Error(`Invalid resource URI: ${definition.uri}`);
       }
+      if (resources.has(definition.uri)) {
+        throw new Error(`Resource already registered: ${definition.uri}`);
+      }
       resources.set(definition.uri, { ...definition, handler });
       return server;
     },
@@ -623,6 +638,9 @@ export function createServer(options: ServerOptions): Server {
     resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server {
       assertReadableUriTemplate(definition.uriTemplate);
       new UriTemplate(definition.uriTemplate);
+      if (resourceTemplates.has(definition.uriTemplate)) {
+        throw new Error(`Resource template already registered: ${definition.uriTemplate}`);
+      }
       resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
       return server;
     },

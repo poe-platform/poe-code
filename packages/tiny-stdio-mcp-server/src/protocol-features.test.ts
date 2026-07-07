@@ -624,6 +624,97 @@ describe("prompts and resources protocol conformance", () => {
     );
   });
 
+  it("rejects duplicate tool registrations across both tool APIs", async () => {
+    const schema = defineSchema({});
+    const toolServer = createServer({ name: "duplicate-tool", version: "1.0.0" });
+    toolServer.tool("duplicate", "First", schema, () => "first");
+
+    expect(() => toolServer.tool("duplicate", "Second", schema, () => "second")).toThrow(
+      "Tool already registered: duplicate"
+    );
+    expect(() =>
+      toolServer.registerTool(
+        { name: "duplicate", description: "Third", inputSchema: schema },
+        () => "third"
+      )
+    ).toThrow("Tool already registered: duplicate");
+
+    await toolServer.handleMessage("initialize", {});
+    await expect(toolServer.handleMessage("tools/list")).resolves.toMatchObject({
+      result: { tools: [{ name: "duplicate", description: "First" }] }
+    });
+    await expect(toolServer.handleMessage("tools/call", { name: "duplicate" })).resolves.toEqual({
+      result: { content: [{ type: "text", text: "first" }] }
+    });
+
+    const registerToolServer = createServer({
+      name: "duplicate-register-tool",
+      version: "1.0.0"
+    });
+    registerToolServer.registerTool({ name: "duplicate", inputSchema: schema }, () => "first");
+
+    expect(() =>
+      registerToolServer.registerTool({ name: "duplicate", inputSchema: schema }, () => "second")
+    ).toThrow("Tool already registered: duplicate");
+    expect(() => registerToolServer.tool("duplicate", "Third", schema, () => "third")).toThrow(
+      "Tool already registered: duplicate"
+    );
+  });
+
+  it("rejects duplicate prompt, resource, and resource template registrations", () => {
+    const server = createServer({ name: "duplicate-features", version: "1.0.0" });
+    server.prompt({ name: "duplicate" }, () => ({ messages: [] }));
+    server.resource({ uri: "memory://duplicate", name: "duplicate" }, () => ({
+      contents: []
+    }));
+    server.resourceTemplate({ uriTemplate: "memory://{duplicate}", name: "duplicate" }, () => ({
+      contents: []
+    }));
+
+    expect(() => server.prompt({ name: "duplicate" }, () => ({ messages: [] }))).toThrow(
+      "Prompt already registered: duplicate"
+    );
+    expect(() =>
+      server.resource({ uri: "memory://duplicate", name: "replacement" }, () => ({ contents: [] }))
+    ).toThrow("Resource already registered: memory://duplicate");
+    expect(() =>
+      server.resourceTemplate({ uriTemplate: "memory://{duplicate}", name: "replacement" }, () => ({
+        contents: []
+      }))
+    ).toThrow("Resource template already registered: memory://{duplicate}");
+  });
+
+  it("allows registration again after removing the existing entry", () => {
+    const schema = defineSchema({});
+    const server = createServer({ name: "replace-removed", version: "1.0.0" })
+      .tool("tool", "First", schema, () => "first")
+      .prompt({ name: "prompt" }, () => ({ messages: [] }))
+      .resource({ uri: "memory://resource", name: "resource" }, () => ({
+        contents: []
+      }))
+      .resourceTemplate({ uriTemplate: "memory://{resource}", name: "resource" }, () => ({
+        contents: []
+      }));
+
+    expect(server.removeTool("tool")).toBe(true);
+    expect(server.removePrompt("prompt")).toBe(true);
+    expect(server.removeResource("memory://resource")).toBe(true);
+    expect(server.removeResourceTemplate("memory://{resource}")).toBe(true);
+
+    expect(() => server.tool("tool", "Second", schema, () => "second")).not.toThrow();
+    expect(() => server.prompt({ name: "prompt" }, () => ({ messages: [] }))).not.toThrow();
+    expect(() =>
+      server.resource({ uri: "memory://resource", name: "resource" }, () => ({
+        contents: []
+      }))
+    ).not.toThrow();
+    expect(() =>
+      server.resourceTemplate({ uriTemplate: "memory://{resource}", name: "resource" }, () => ({
+        contents: []
+      }))
+    ).not.toThrow();
+  });
+
   it("rejects invalid tool content metadata and resource URIs", async () => {
     const server = createServer({
       name: "invalid-tool-content",

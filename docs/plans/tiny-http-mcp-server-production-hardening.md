@@ -409,7 +409,7 @@ tasks:
       refactor: done
       test: done
       commit: done
-      release: open
+      release: done
 
   - id: core-registration-dx
     title: Throw on duplicate registration, tool-not-found hints
@@ -425,10 +425,10 @@ tasks:
       ". Available: a, b, c" capped at 20 names — the list is already public
       via tools/list, and LLM callers self-correct from error text.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 
   - id: packaging-express-dep

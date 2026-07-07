@@ -1,5 +1,5 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import type { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { HttpServer, HttpServerHandle } from "./http-server.js";
 import {
   TokenVerificationError,
@@ -174,9 +174,22 @@ export function createInMemoryTokenVerifier(
 }
 
 export async function createHttpTestPair(server: HttpServer): Promise<HttpTestPair> {
+  let sdkClient: typeof import("@modelcontextprotocol/sdk/client/index.js");
+  let sdkTransport: typeof import("@modelcontextprotocol/sdk/client/streamableHttp.js");
+
+  try {
+    sdkClient = await import("@modelcontextprotocol/sdk/client/index.js");
+    sdkTransport = await import("@modelcontextprotocol/sdk/client/streamableHttp.js");
+  } catch (error) {
+    throw new Error(
+      "createHttpTestPair requires @modelcontextprotocol/sdk; install it as a devDependency or use createHttpTestPairWithTinyClient",
+      { cause: error }
+    );
+  }
+
   const handle = await server.listenHttp({ port: 0 });
-  const client = new Client({ name: "sdk-test-client", version: "1.0.0" });
-  const transport = new StreamableHTTPClientTransport(new URL(handle.url), {
+  const client = new sdkClient.Client({ name: "sdk-test-client", version: "1.0.0" });
+  const transport = new sdkTransport.StreamableHTTPClientTransport(new URL(handle.url), {
     fetch: nodeFetch,
   });
 

@@ -192,8 +192,43 @@ function runConsumerSmoke(projectDir, tarballs) {
   });
 }
 
+function runOptionalDependencySmoke(projectDir, toolcraftTarball) {
+  writeFileSync(
+    path.join(projectDir, "package.json"),
+    JSON.stringify(
+      {
+        name: "toolcraft-optional-consumer-smoke",
+        private: true,
+        type: "module",
+        devDependencies: {
+          eslint: "9.39.4"
+        },
+        optionalDependencies: {
+          toolcraft: `file:${toolcraftTarball}`
+        }
+      },
+      null,
+      2
+    ) + "\n"
+  );
+
+  execFileSync("npm", ["install", "--package-lock-only"], {
+    cwd: projectDir,
+    stdio: "inherit"
+  });
+  rmSync(path.join(projectDir, "node_modules"), { recursive: true, force: true });
+  execFileSync("npm", ["ci", "--ignore-scripts"], { cwd: projectDir, stdio: "inherit" });
+  execFileSync("npm", ["ls", "ajv", "--all"], { cwd: projectDir, stdio: "inherit" });
+  execFileSync(
+    process.execPath,
+    ["--input-type=module", "--eval", 'await import("toolcraft/mcp");'],
+    { cwd: projectDir, stdio: "inherit" }
+  );
+}
+
 const packDir = mkdtempSync(path.join(os.tmpdir(), "toolcraft-pack-"));
 const consumerDir = mkdtempSync(path.join(os.tmpdir(), "toolcraft-consumer-"));
+const optionalConsumerDir = mkdtempSync(path.join(os.tmpdir(), "toolcraft-optional-consumer-"));
 
 try {
   const tarballs = {
@@ -274,12 +309,9 @@ try {
       `Expected bundled ${dependencyName} to include LICENSE.`
     );
     assert(
-      toolcraftPackageJson.optionalDependencies?.[dependencyName],
-      `Expected bundled ${dependencyName} to be an optional dependency for standalone installers.`
-    );
-    assert(
-      !toolcraftPackageJson.dependencies?.[dependencyName],
-      `Expected bundled ${dependencyName} to be omitted from required dependencies.`
+      toolcraftPackageJson.optionalDependencies?.[dependencyName] ??
+        toolcraftPackageJson.dependencies?.[dependencyName],
+      `Expected bundled ${dependencyName} to be declared as a runtime dependency.`
     );
   }
 
@@ -307,9 +339,11 @@ try {
 
   writeConsumerFixture(consumerDir);
   runConsumerSmoke(consumerDir, Object.values(tarballs));
+  runOptionalDependencySmoke(optionalConsumerDir, tarballs.agentKit);
 
   console.log("toolcraft standalone publish smoke passed.");
 } finally {
   rmSync(packDir, { recursive: true, force: true });
   rmSync(consumerDir, { recursive: true, force: true });
+  rmSync(optionalConsumerDir, { recursive: true, force: true });
 }

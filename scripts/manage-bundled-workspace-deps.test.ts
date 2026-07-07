@@ -3,10 +3,33 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertSafeBundledPath,
+  collectInstalledDependencyTree,
   createBundledCompositionManifest,
   restoreGeneratedFiles,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
+
+describe("collectInstalledDependencyTree", () => {
+  it("includes hoisted transitive runtime dependencies", () => {
+    const volume = Volume.fromJSON({
+      "/repo/node_modules/ajv/package.json": JSON.stringify({
+        name: "ajv",
+        version: "8.20.0",
+        dependencies: { "fast-deep-equal": "^3.1.3" }
+      }),
+      "/repo/node_modules/fast-deep-equal/package.json": JSON.stringify({
+        name: "fast-deep-equal",
+        version: "3.1.3"
+      })
+    });
+    const fs = createFsFromVolume(volume);
+
+    expect(collectInstalledDependencyTree("/repo", "ajv", fs)).toEqual([
+      { name: "ajv", sourceDir: "/repo/node_modules/ajv" },
+      { name: "fast-deep-equal", sourceDir: "/repo/node_modules/fast-deep-equal" }
+    ]);
+  });
+});
 
 describe("createBundledCompositionManifest", () => {
   it("lists root, scoped, and nested bundled packages with exact licenses and versions", () => {

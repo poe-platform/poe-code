@@ -56,6 +56,63 @@ function dependencyParentDir(packageDir, dependencyName) {
   return path.dirname(dependencyTargetDir(packageDir, dependencyName));
 }
 
+function resolveInstalledDependencyDir(requestingDir, dependencyName, fileSystem) {
+  let currentDir = requestingDir;
+  while (true) {
+    const candidate = dependencyTargetDir(currentDir, dependencyName);
+    if (fileSystem.existsSync(path.join(candidate, "package.json"))) {
+      return candidate;
+    }
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      return undefined;
+    }
+    currentDir = parentDir;
+  }
+}
+
+export function collectInstalledDependencyTree(
+  packageDir,
+  dependencyName,
+  fileSystem = { existsSync, readFileSync }
+) {
+  const rootDependencyDir = resolveInstalledDependencyDir(packageDir, dependencyName, fileSystem);
+  if (rootDependencyDir === undefined) {
+    throw new Error(`Bundled dependency is not installed: ${dependencyName}`);
+  }
+
+  const dependencies = [];
+  const pending = [{ name: dependencyName, sourceDir: rootDependencyDir }];
+  const visited = new Set();
+  while (pending.length > 0) {
+    const dependency = pending.shift();
+    if (visited.has(dependency.sourceDir)) {
+      continue;
+    }
+    visited.add(dependency.sourceDir);
+    dependencies.push(dependency);
+
+    const manifest = JSON.parse(
+      fileSystem.readFileSync(path.join(dependency.sourceDir, "package.json"), "utf8")
+    );
+    const runtimeDependencies = {
+      ...manifest.dependencies,
+      ...manifest.optionalDependencies
+    };
+    for (const transitiveName of Object.keys(runtimeDependencies)) {
+      const sourceDir = resolveInstalledDependencyDir(
+        dependency.sourceDir,
+        transitiveName,
+        fileSystem
+      );
+      if (sourceDir !== undefined) {
+        pending.push({ name: transitiveName, sourceDir });
+      }
+    }
+  }
+  return dependencies;
+}
+
 function ensureRemoved(targetPath) {
   rmSync(targetPath, { recursive: true, force: true });
 }
@@ -244,7 +301,7 @@ function prepare(packageDir, dependencyNames) {
   for (const dependencyName of dependencyNames) {
     const workspaceDir = findWorkspacePackageDir(dependencyName);
     if (workspaceDir === undefined) {
-      bundledDirs.push(copyInstalledDependency(packageDir, dependencyName));
+      bundledDirs.push(...copyInstalledDependencyTree(packageDir, dependencyName));
       continue;
     }
     const packOutput = execFileSync(
@@ -300,19 +357,17 @@ function prepare(packageDir, dependencyNames) {
   ensureRemoved(tempDir);
 }
 
-function copyInstalledDependency(packageDir, dependencyName) {
-  const sourceDir = dependencyTargetDir(repoRoot, dependencyName);
-  if (!existsSync(sourceDir)) {
-    throw new Error(`Bundled dependency is not installed: ${dependencyName}`);
-  }
-  const parentDir = dependencyParentDir(packageDir, dependencyName);
-  const targetDir = dependencyTargetDir(packageDir, dependencyName);
-  assertSafeBundledPath(packageDir, parentDir);
-  assertSafeBundledPath(packageDir, targetDir);
-  mkdirSync(parentDir, { recursive: true });
-  ensureRemoved(targetDir);
-  cpSync(sourceDir, targetDir, { recursive: true, dereference: true });
-  return targetDir;
+function copyInstalledDependencyTree(packageDir, dependencyName) {
+  return collectInstalledDependencyTree(repoRoot, dependencyName).map(({ name, sourceDir }) => {
+    const parentDir = dependencyParentDir(packageDir, name);
+    const targetDir = dependencyTargetDir(packageDir, name);
+    assertSafeBundledPath(packageDir, parentDir);
+    assertSafeBundledPath(packageDir, targetDir);
+    mkdirSync(parentDir, { recursive: true });
+    ensureRemoved(targetDir);
+    cpSync(sourceDir, targetDir, { recursive: true, dereference: true });
+    return targetDir;
+  });
 }
 
 function cleanup(packageDir) {

@@ -18,9 +18,11 @@ on:
       - "packages/mcp-oauth/**"
       - "packages/process-runner/**"
       - "packages/task-list/**"
+      - "packages/tiny-http-mcp-server/**"
       - "packages/tiny-mcp-client/**"
       - "scripts/toolcraft-standalone-bundle.mjs"
       - "scripts/manage-bundled-workspace-deps.mjs"
+      - "scripts/prepare-published-workspace-version.mjs"
       - "scripts/verify-toolcraft-cli-bundle.mjs"
       - "scripts/verify-toolcraft-standalone.mjs"
       - "scripts/verify-toolcraft-published-sdk-types.mjs"
@@ -58,6 +60,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
@@ -66,6 +70,11 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
+      - name: Prepare released HTTP transport version
+        id: http-version
+        run: |
+          VERSION=$(node scripts/prepare-published-workspace-version.mjs packages/tiny-http-mcp-server)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Compute next version
         id: version
         run: |
@@ -93,6 +102,8 @@ jobs:
       - name: Build toolcraft packages and dependencies
         run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
+        env:
+          EXPECTED_TINY_HTTP_MCP_SERVER_VERSION: ${{ steps.http-version.outputs.version }}
         run: npm run smoke:toolcraft-standalone
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema

@@ -427,6 +427,7 @@ try {
   const compositionByName = new Map(
     toolcraftComposition.packages.map((entry) => [entry.name, entry])
   );
+  const expectedTinyHttpVersion = process.env.EXPECTED_TINY_HTTP_MCP_SERVER_VERSION;
   assert(
     compositionByName.get("toolcraft")?.version === toolcraftPackageJson.version,
     "Expected composition to include the exact toolcraft version."
@@ -445,6 +446,20 @@ try {
     assert(
       compositionByName.get(dependencyName)?.license === bundledPackageJson.license,
       `Expected composition to include the license for ${dependencyName}.`
+    );
+  }
+  if (expectedTinyHttpVersion !== undefined) {
+    const bundledTinyHttpPackageJson = readTarJson(
+      tarballs.agentKit,
+      "package/node_modules/tiny-http-mcp-server/package.json"
+    );
+    assert(
+      bundledTinyHttpPackageJson.version === expectedTinyHttpVersion,
+      `Expected bundled tiny-http-mcp-server version ${expectedTinyHttpVersion}.`
+    );
+    assert(
+      compositionByName.get("tiny-http-mcp-server")?.version === expectedTinyHttpVersion,
+      `Expected composition to report tiny-http-mcp-server version ${expectedTinyHttpVersion}.`
     );
   }
 

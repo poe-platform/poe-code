@@ -136,6 +136,26 @@ describe("Toolcraft HTTP MCP adapter", () => {
     ]);
   });
 
+  it.each([["stateful"], ["stateless"]])("supports %s mode with tiny-mcp-client", async (mode) => {
+    const handle = await runHTTPMCP(createCommands(), {
+      name: "daybook-tiny-client-test",
+      version: "1.0.0",
+      ...(mode === "stateless" ? { sessionIdGenerator: undefined } : {})
+    });
+    cleanupCallbacks.push(handle.close);
+    const client = new McpClient({ name: "tiny-client-test", version: "1.0.0" });
+    await client.connect(new HttpTransport({ url: handle.url, fetch: nodeFetch }));
+    cleanupCallbacks.push(() => client.close());
+
+    const tools = await client.listTools();
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "daybook__read_entry",
+      "daybook__secret_entry",
+      "daybook__write_entry",
+      "daybook__fail_entry"
+    ]);
+  });
+
   it("maps request-scoped authentication into command services", async () => {
     type Services = { requester: string };
     const commands = defineGroup<Services>({
@@ -222,11 +242,24 @@ describe("Toolcraft HTTP MCP adapter", () => {
     await client.connect(transport);
     cleanupCallbacks.push(() => client.close());
 
+    const stdioSession = createMCPServer(commands, {
+      name: "stream-context-stdio-test",
+      version: "1.0.0"
+    }).createMessageSession();
+    await stdioSession.handleMessage("initialize", {
+      protocolVersion: "2025-11-25",
+      capabilities: {},
+      clientInfo: { name: "stream-context-stdio-client", version: "1.0.0" }
+    });
+    await stdioSession.handleMessage("notifications/initialized");
+    cleanupCallbacks.push(async () => stdioSession.close());
+
     const streams = await client.request(
       { method: MCP_STREAM_METHODS.list, params: {} } as never,
-      z.object({ streams: z.array(z.object({ name: z.string() })) })
+      z.object({ streams: z.array(z.object({ name: z.string() }).passthrough()) })
     );
-    expect(streams.streams).toEqual([{ name: "events__watch" }]);
+    const stdioStreams = await stdioSession.handleMessage(MCP_STREAM_METHODS.list);
+    expect(streams).toEqual(stdioStreams.result);
     await expect(
       client.request(
         {

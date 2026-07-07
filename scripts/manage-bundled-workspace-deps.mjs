@@ -117,21 +117,49 @@ function ensureRemoved(targetPath) {
   rmSync(targetPath, { recursive: true, force: true });
 }
 
-function readCompositionPackage(packageDir, fileSystem) {
+function inferInstalledPackageName(packageDir) {
+  const packageName = path.basename(packageDir);
+  const scope = path.basename(path.dirname(packageDir));
+  return scope.startsWith("@") ? `${scope}/${packageName}` : packageName;
+}
+
+function resolveWorkspaceCompositionPackage(packageName) {
+  const workspaceDir = findWorkspacePackageDir(packageName);
+  if (workspaceDir === undefined) {
+    return undefined;
+  }
+
+  const manifest = readJson(path.join(workspaceDir, "package.json"));
+  return {
+    name: packageName,
+    version: manifest.version,
+    license: manifest.license
+  };
+}
+
+function readCompositionPackage(packageDir, fileSystem, resolvePackageIdentity) {
   const manifest = JSON.parse(
     fileSystem.readFileSync(path.join(packageDir, "package.json"), "utf8")
   );
+  const recoveredIdentity =
+    typeof manifest.name === "string" && typeof manifest.version === "string"
+      ? undefined
+      : resolvePackageIdentity(inferInstalledPackageName(packageDir));
+  const compositionPackage = {
+    name: manifest.name ?? recoveredIdentity?.name,
+    version: manifest.version ?? recoveredIdentity?.version,
+    license: manifest.license ?? recoveredIdentity?.license
+  };
   for (const field of ["name", "version", "license"]) {
-    if (typeof manifest[field] !== "string" || manifest[field].length === 0) {
+    if (
+      typeof compositionPackage[field] !== "string" ||
+      compositionPackage[field].length === 0
+    ) {
       throw new Error(`Bundled package ${packageDir} must declare a non-empty ${field}.`);
     }
   }
 
-  return {
-    name: manifest.name,
-    version: manifest.version,
-    license: manifest.license
-  };
+  return compositionPackage;
 }
 
 function listInstalledPackageDirs(nodeModulesDir, fileSystem) {
@@ -178,12 +206,17 @@ function compareCompositionPackages(left, right) {
 
 export function createBundledCompositionManifest(
   packageDir,
-  fileSystem = { existsSync, readFileSync, readdirSync }
+  fileSystem = { existsSync, readFileSync, readdirSync },
+  resolvePackageIdentity = resolveWorkspaceCompositionPackage
 ) {
   const packages = new Map();
 
   function visit(currentPackageDir) {
-    const entry = readCompositionPackage(currentPackageDir, fileSystem);
+    const entry = readCompositionPackage(
+      currentPackageDir,
+      fileSystem,
+      resolvePackageIdentity
+    );
     packages.set(`${entry.name}\0${entry.version}\0${entry.license}`, entry);
     for (const dependencyDir of listInstalledPackageDirs(
       path.join(currentPackageDir, "node_modules"),

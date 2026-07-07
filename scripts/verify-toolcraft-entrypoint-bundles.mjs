@@ -17,13 +17,14 @@ function runtimeNodeBinaries() {
   return configured === undefined ? [process.execPath] : configured.split(path.delimiter);
 }
 
-async function bundleEntrypoint(name, source) {
+async function bundleEntrypoint(name, source, target = "node18") {
   const sourcePath = path.join(buildDirectory, `${name}.mjs`);
   const outputPath = path.join(buildDirectory, "dist", `${name}.mjs`);
   writeFileSync(sourcePath, source);
   await build({
     ...createToolcraftBundleOptions(sourcePath, outputPath),
-    legalComments: "none"
+    legalComments: "none",
+    target
   });
   return outputPath;
 }
@@ -111,9 +112,40 @@ try {
       "});"
     ].join("\n")
   );
+  const httpBundle = await bundleEntrypoint(
+    "http",
+    [
+      'import { defineCommand, defineGroup, S } from "toolcraft";',
+      'import { runHTTPMCP } from "toolcraft/http";',
+      'const commands = defineGroup({ name: "root", children: [',
+      '  defineCommand({ name: "hello", scope: ["mcp"], params: S.Object({}), handler: async () => "world" })',
+      '] });',
+      'const handle = await runHTTPMCP(commands, {',
+      '  name: "bundle-http-smoke",',
+      '  version: "1.0.0",',
+      '  enableJsonResponse: true,',
+      '  sessionIdGenerator: undefined',
+      '});',
+      'try {',
+      '  const headers = { accept: "application/json, text/event-stream", "content-type": "application/json" };',
+      '  const initialize = await fetch(handle.url, { method: "POST", headers, body: JSON.stringify({',
+      '    jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "bundle-smoke", version: "1.0.0" } }',
+      '  }) });',
+      '  if (!initialize.ok) throw new Error(`initialize failed: ${initialize.status}`);',
+      '  const tools = await fetch(handle.url, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }) });',
+      '  const body = await tools.json();',
+      '  if (body.result?.tools?.[0]?.name !== "root__hello") throw new Error("HTTP tool call failed");',
+      '  console.log("http-ok");',
+      '} finally {',
+      '  await handle.close();',
+      '}'
+    ].join("\n"),
+    "node20"
+  );
 
   const sdkFixture = installBundleFixture("sdk", sdkBundle);
   const mcpFixture = installBundleFixture("mcp", mcpBundle);
+  const httpFixture = installBundleFixture("http", httpBundle);
 
   const initializeRequest = `${JSON.stringify({
     jsonrpc: "2.0",
@@ -146,9 +178,17 @@ try {
       )
     );
     assert.equal(response.result.serverInfo.name, "bundle-smoke");
+    assert.equal(
+      execFileSync(
+        nodeBinary,
+        ["--input-type=module", "--eval", `await import("${httpFixture.packageName}")`],
+        { cwd: httpFixture.consumerDirectory, encoding: "utf8" }
+      ),
+      "http-ok\n"
+    );
   }
 
-  console.log("Toolcraft SDK and MCP standalone bundles passed in clean runtimes.");
+  console.log("Toolcraft SDK, stdio MCP, and HTTP MCP standalone bundles passed in clean runtimes.");
 } finally {
   rmSync(fixtureDirectory, { recursive: true, force: true });
 }

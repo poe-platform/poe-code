@@ -28,9 +28,11 @@ describe("Toolcraft CLI bundling", () => {
     const bundledInputs = Object.keys(result.metafile.inputs);
     for (const optionalPackage of [
       "process-runner",
+      "tiny-http-mcp-server",
       "tiny-mcp-client",
       "agent-human-in-loop",
-      "mcp-oauth"
+      "mcp-oauth",
+      "express"
     ]) {
       expect(bundledInputs.some((input) => input.includes(optionalPackage))).toBe(false);
     }
@@ -40,5 +42,32 @@ describe("Toolcraft CLI bundling", () => {
     await expect(
       import(`data:text/javascript;base64,${Buffer.from(output?.contents ?? []).toString("base64")}`)
     ).resolves.toBeDefined();
+  });
+
+  it("keeps Streamable HTTP code out of stdio MCP bundles", async () => {
+    const result = await build({
+      stdin: {
+        contents: [
+          'import { defineGroup } from "./index.ts";',
+          'import { createMCPServer } from "./mcp.ts";',
+          'createMCPServer(defineGroup({ name: "fixture", children: [] }), { name: "fixture", version: "1.0.0" });'
+        ].join("\n"),
+        loader: "ts",
+        resolveDir: path.resolve("packages/toolcraft/src"),
+        sourcefile: "toolcraft-stdio-mcp.ts"
+      },
+      bundle: true,
+      format: "esm",
+      logLevel: "silent",
+      metafile: true,
+      platform: "node",
+      target: "node18",
+      write: false
+    });
+
+    const bundledInputs = Object.keys(result.metafile.inputs);
+    for (const httpPackage of ["tiny-http-mcp-server", "mcp-oauth", "express"]) {
+      expect(bundledInputs.some((input) => input.includes(httpPackage))).toBe(false);
+    }
   });
 });

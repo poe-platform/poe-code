@@ -104,6 +104,37 @@ describe("createBundledCompositionManifest", () => {
       ]
     });
   });
+
+  it("recovers anonymized nested workspace identities for composition metadata", () => {
+    const volume = Volume.fromJSON({
+      "/repo/pkg/package.json": JSON.stringify({
+        name: "toolcraft",
+        version: "1.2.3",
+        license: "MIT"
+      }),
+      "/repo/pkg/node_modules/tiny-http-mcp-server/package.json": JSON.stringify({
+        name: "tiny-http-mcp-server",
+        version: "0.1.0",
+        license: "MIT"
+      }),
+      "/repo/pkg/node_modules/tiny-http-mcp-server/node_modules/auth-store/package.json":
+        JSON.stringify({ private: true, license: "MIT" })
+    });
+    const fs = createFsFromVolume(volume);
+
+    expect(
+      createBundledCompositionManifest("/repo/pkg", fs, (name) =>
+        name === "auth-store" ? { name, version: "0.1.0", license: "MIT" } : undefined
+      )
+    ).toEqual({
+      schemaVersion: 1,
+      packages: [
+        { name: "auth-store", version: "0.1.0", license: "MIT" },
+        { name: "tiny-http-mcp-server", version: "0.1.0", license: "MIT" },
+        { name: "toolcraft", version: "1.2.3", license: "MIT" }
+      ]
+    });
+  });
 });
 
 describe("assertSafeBundledPath", () => {

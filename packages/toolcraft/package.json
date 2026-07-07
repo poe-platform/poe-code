@@ -70,6 +70,10 @@
       "types": "./dist/human-in-loop/index.d.ts",
       "import": "./dist/human-in-loop/index.js"
     },
+    "./http": {
+      "types": "./dist/http.d.ts",
+      "import": "./dist/http.js"
+    },
     "./frontmatter": {
       "types": "./dist/frontmatter.d.ts",
       "import": "./dist/frontmatter.js"
@@ -104,8 +108,8 @@
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
-    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client tiny-stdio-mcp-server auth-store fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client tiny-stdio-mcp-server auth-store fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml"
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-http-mcp-server tiny-mcp-client tiny-stdio-mcp-server auth-store jose fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-http-mcp-server tiny-mcp-client tiny-stdio-mcp-server auth-store jose fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml"
   },
   "dependencies": {
     "commander": "^13.1.0",
@@ -142,9 +146,11 @@
     "@poe-code/agent-defs",
     "@poe-code/config-mutations",
     "@poe-code/process-runner",
+    "tiny-http-mcp-server",
     "tiny-mcp-client",
     "tiny-stdio-mcp-server",
     "auth-store",
+    "jose",
     "fast-string-width",
     "fast-wrap-ansi",
     "ignore",
@@ -163,6 +169,7 @@
     "@poe-code/agent-defs": "*",
     "@poe-code/config-mutations": "*",
     "@poe-code/process-runner": "*",
+    "tiny-http-mcp-server": "*",
     "tiny-mcp-client": "*",
     "tiny-stdio-mcp-server": "*",
     "auth-store": "*"

@@ -40,6 +40,18 @@ type Casing = "snake" | "camel";
 type CmdkitServer = Omit<TinyServer, "connect"> & {
   connect(transport: SDKTransport): Promise<void>;
 };
+type InvocationServicesResolver<TServices extends object> = (
+  context: unknown
+) => Partial<TServices> | Promise<Partial<TServices>>;
+interface MCPServerRuntime<TServices extends object> {
+  createServer?(options: {
+    name: string;
+    version: string;
+    validateToolArguments: false;
+  }): TinyServer;
+  getRequestContext?(): unknown;
+  requestServices?: InvocationServicesResolver<TServices>;
+}
 type ToolContent =
   | { type: "text"; text: string }
   | { type: "image"; data: string; mimeType: string }
@@ -1064,7 +1076,8 @@ function toToolError(error: unknown, reportPath?: string): ToolError {
 
 function createResolvedMCPServer<TServices extends object = Record<string, unknown>>(
   root: Group<TServices>,
-  options: RunMCPOptions<TServices>
+  options: RunMCPOptions<TServices>,
+  runtime: MCPServerRuntime<TServices> = {}
 ): CmdkitServer {
   const casing = options.casing ?? "snake";
   const services = (options.services ?? {}) as TServices;
@@ -1074,11 +1087,6 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     level: options.logLevel,
     logger: options.logger
   });
-  const servicesWithBuiltIns = {
-    ...services,
-    runtimeOptions,
-    root
-  } as TServices;
   validateServices(services as Record<string, unknown>);
 
   const tools = enumerateTools(
@@ -1088,11 +1096,17 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     options.omitRootToolNamePrefix ?? false
   );
   const version = resolveMCPVersion(options.version);
-  const server = createServer({
-    name: options.name,
-    version,
-    validateToolArguments: false
-  });
+  const server =
+    runtime.createServer?.({
+      name: options.name,
+      version,
+      validateToolArguments: false
+    }) ??
+    createServer({
+      name: options.name,
+      version,
+      validateToolArguments: false
+    });
   const streamTools = tools.filter((tool) => tool.command.stream !== undefined);
   const subscriptions = new Map<
     string,
@@ -1122,8 +1136,12 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     }
     const argumentsValue = isPlainObject(request?.arguments) ? request.arguments : {};
     const secrets = resolveCommandSecrets(tool.command, options.env);
+    const requestServices = await runtime.requestServices?.(runtime.getRequestContext?.());
     const baseContext = {
-      ...servicesWithBuiltIns,
+      ...services,
+      ...requestServices,
+      runtimeOptions,
+      root,
       secrets,
       fetch: runtimeFetch,
       fs: createFs(options.fs),
@@ -1222,13 +1240,20 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   });
 
   for (const tool of tools.filter((candidate) => candidate.command.stream === undefined)) {
-    const handler = async (argumentsValue: Record<string, unknown>) => {
+    const handler = async (
+      argumentsValue: Record<string, unknown>,
+      transportContext?: unknown
+    ) => {
       let params: unknown;
       let secrets: Record<string, string | undefined> | undefined;
       try {
         secrets = resolveCommandSecrets(tool.command, options.env);
+        const requestServices = await runtime.requestServices?.(transportContext);
         const baseContext = {
-          ...servicesWithBuiltIns,
+          ...services,
+          ...requestServices,
+          runtimeOptions,
+          root,
           secrets,
           fetch: runtimeFetch,
           fs: createFs(options.fs),
@@ -1377,6 +1402,20 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   }
 
   return createDeferredMCPServer(root, options);
+}
+
+/** @internal */
+export async function createMCPServerForTransport<
+  TServices extends object = Record<string, unknown>
+>(
+  roots: Group<TServices> | Group<TServices>[],
+  options: RunMCPOptions<TServices>,
+  runtime: MCPServerRuntime<TServices>
+): Promise<void> {
+  const normalizedRoot = normalizeRoots(roots);
+  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
+  await resolveMcpProxies(root, { projectRoot: options.projectRoot });
+  createResolvedMCPServer(root, options, runtime);
 }
 
 export async function runMCP<TServices extends object = Record<string, unknown>>(

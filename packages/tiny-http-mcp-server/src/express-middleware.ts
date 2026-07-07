@@ -1,4 +1,4 @@
-import express, { type RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { authorizeBearerRequest, type AuthenticatedIncomingMessage } from "./auth.js";
 import {
   createProtectedResourceMetadataDocument,
@@ -52,7 +52,6 @@ export function createProtectedResourceMetadataRouter(
     path?: string;
   }
 ): RequestHandler {
-  const router = express.Router();
   const document = createProtectedResourceMetadataDocument(options);
   const metadataPaths = (() => {
     const path = normalizePath(options.path ?? "/");
@@ -63,15 +62,16 @@ export function createProtectedResourceMetadataRouter(
     return [`${PROTECTED_RESOURCE_METADATA_PATH}${path}`];
   })();
 
-  for (const metadataPath of metadataPaths) {
-    router.get(metadataPath, (_req, res) => {
-      setHardeningHeaders(res);
-      res.set("Cache-Control", PROTECTED_RESOURCE_METADATA_CACHE_CONTROL);
-      res.status(200).json(document);
-    });
-  }
+  return (req, res, next) => {
+    if (req.method !== "GET" || !metadataPaths.includes(req.path)) {
+      next();
+      return;
+    }
 
-  return router;
+    setHardeningHeaders(res);
+    res.set("Cache-Control", PROTECTED_RESOURCE_METADATA_CACHE_CONTROL);
+    res.status(200).json(document);
+  };
 }
 
 export interface CreateExpressOAuthHandlersOptions {

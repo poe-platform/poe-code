@@ -198,6 +198,7 @@ function runConsumerSmoke(projectDir, tarballs) {
         'await import("toolcraft/auth-store");',
         'await import("toolcraft/config-mutations");',
         'await import("toolcraft/frontmatter");',
+        'await import("toolcraft/http");',
         'await import("toolcraft/mcp");',
         'await import("toolcraft/mcp-proxy");',
         'await import("toolcraft/process-runner");',
@@ -316,7 +317,11 @@ function runOptionalDependencySmoke(projectDir, toolcraftTarball, workspaceManif
   }
   execFileSync(
     process.execPath,
-    ["--input-type=module", "--eval", 'await import("toolcraft/mcp");'],
+    [
+      "--input-type=module",
+      "--eval",
+      'await import("toolcraft/mcp"); await import("toolcraft/http");'
+    ],
     { cwd: projectDir, stdio: "inherit" }
   );
 }
@@ -358,6 +363,7 @@ try {
         "package/dist/cli.js",
         "package/dist/design.js",
         "package/dist/file-change-renderer.js",
+        "package/dist/http.js",
         "package/composition.json",
         "package/LICENSE",
         ...bundledRuntimeDependencies.map(

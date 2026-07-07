@@ -13,6 +13,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
     "./testing": {
       "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js"
@@ -42,7 +46,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "express": "^5.1.0",
     "jose": "^6.1.2",
     "tiny-stdio-mcp-server": "^0.1.0"
   },
@@ -59,6 +62,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "@types/express": "^5.0.6"
+    "@types/express": "^5.0.6",
+    "express": "^5.1.0"
   }
 }

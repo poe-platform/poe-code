@@ -77,6 +77,7 @@ export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
   ): HttpServer;
   listenHttp(options?: HttpListenOptions): Promise<HttpServerHandle>;
   handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>;
+  getRequestContext(): HttpToolContext | undefined;
 }
 
 export interface HttpToolContext {
@@ -431,6 +432,8 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
 
     await transport.handleRequest(req, res);
   };
+
+  httpServer.getRequestContext = () => requestContextStorage.getStore();
 
   return httpServer;
 }

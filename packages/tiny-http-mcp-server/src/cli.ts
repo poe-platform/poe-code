@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 
 import { realpathSync } from "node:fs";
+import { createRequire } from "node:module";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { createHttpServer } from "./http-server.js";
 import type { HttpServer } from "./http-server.js";
 import { loadOAuthVerifier } from "./load-oauth-verifier.js";
 import type { TokenVerifier } from "./auth.js";
-import packageJson from "../package.json" with { type: "json" };
+
+// createRequire instead of JSON import attributes: `with { type: "json" }` is a
+// syntax error before Node 18.20, and engines declares >=18.18 (#517).
+const require = createRequire(import.meta.url);
+const packageJson = require("../package.json") as { name: string; version: string };
 
 interface PackageInfo {
   name: string;

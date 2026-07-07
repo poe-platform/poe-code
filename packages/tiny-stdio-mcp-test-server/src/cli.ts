@@ -2,7 +2,7 @@
 import { Command } from "commander";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { access } from "node:fs/promises";
-import packageJson from "../package.json" with { type: "json" };
+import { createRequire } from "node:module";
 import {
   createEncryptServer,
   createWordOfTheDayServer,
@@ -13,6 +13,11 @@ import {
   SERVE_TOOL_NAMES,
   type ServeToolName,
 } from "./cli-support.js";
+
+// createRequire instead of JSON import attributes: `with { type: "json" }` is a
+// syntax error before Node 18.20, and engines declares >=18.18 (#517).
+const require = createRequire(import.meta.url);
+const packageJson = require("../package.json") as { version: string };
 
 const program = new Command();
 

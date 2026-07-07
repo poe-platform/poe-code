@@ -1,6 +1,11 @@
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
 import { appendFileSync } from "node:fs";
-import packageJson from "../package.json" with { type: "json" };
+import { createRequire } from "node:module";
+
+// createRequire instead of JSON import attributes: `with { type: "json" }` is a
+// syntax error before Node 18.20, and engines declares >=18.18 (#517).
+const require = createRequire(import.meta.url);
+const packageJson = require("../package.json") as { version: string };
 
 const SERVER_NAME = "tiny-stdio-mcp-test-server";
 const SERVER_VERSION = packageJson.version;

@@ -1,6 +1,11 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 import { parseDocument, stringify } from "yaml";
-import taskSchema from "../schema/task.schema.json" with { type: "json" };
+
+// createRequire instead of JSON import attributes: `with { type: "json" }` is a
+// syntax error before Node 18.20, and engines declares >=18.18 (#517).
+const require = createRequire(import.meta.url);
+const taskSchema = require("../schema/task.schema.json") as { $id: string };
 import { eventsFromState, findEvent } from "../state-machine.js";
 import { resolveStateMachine } from "../state.js";
 import {

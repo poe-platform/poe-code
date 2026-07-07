@@ -5,6 +5,7 @@ import { createFsFromVolume, Volume } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import { ApprovalDeclinedError, defineCommand, defineGroup } from "../index.js";
+import { createHumanInLoop } from "./runtime.js";
 import { approvalStateMachine } from "./state-machine.js";
 
 const spawnUnrefMock = vi.hoisted(() => vi.fn());
@@ -78,9 +79,9 @@ describe("human-in-loop SDK runtime", () => {
       deployed: params.target,
     }));
     const sdk = createSDK(createRoot("sync", handler), {
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider,
-      },
+      }),
     }) as {
       deploy: {
         prod(params: { target: string }): Promise<{ deployed: string }>;
@@ -100,9 +101,9 @@ describe("human-in-loop SDK runtime", () => {
   it("throws ApprovalDeclinedError when sync approval is declined", async () => {
     const handler = vi.fn(async () => "should not run");
     const sdk = createSDK(createRoot("sync", handler), {
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider: mockProvider({ outcome: "declined", reason: "Need ticket" }),
-      },
+      }),
     }) as {
       deploy: {
         prod(params: { target: string }): Promise<string>;
@@ -127,14 +128,14 @@ describe("human-in-loop SDK runtime", () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const handler = vi.fn(async () => "should not run");
     const sdk = createSDK(createRoot("async", handler), {
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider,
         taskList,
         binPath: {
           execPath: "node",
           entryArgs: ["toolcraft.js"],
         },
-      },
+      }),
     }) as {
       deploy: {
         prod(params: { target: string }): Promise<{
@@ -175,13 +176,14 @@ describe("human-in-loop SDK runtime", () => {
 
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const sdk = createSDK(createRoot("async", vi.fn(async () => "should not run")), {
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
+        provider: mockProvider({ outcome: "approved" }),
         taskList,
         binPath: {
           execPath: "node",
           entryArgs: ["toolcraft.js"],
         },
-      },
+      }),
     }) as {
       deploy: {
         prod(params: { target: string }): Promise<{

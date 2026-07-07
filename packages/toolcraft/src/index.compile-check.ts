@@ -12,7 +12,7 @@ import type {
   HandlerContext,
   HumanInLoopConfig,
   HumanInLoopPending,
-  HumanInLoopRuntimeOptions,
+  HumanInLoopRuntime,
   InferSecrets,
   Renderers,
   Requires,
@@ -164,42 +164,16 @@ type ignoredHandlerContextExport = AssertAssignable<
   },
   Parameters<typeof ignoredCommand.handler>[0]
 >;
-type ignoredHumanInLoopRuntimeOptionsExport = AssertAssignable<
+type ignoredHumanInLoopRuntimeExport = AssertAssignable<
   {
-    provider?: {
-      id: string;
-      requestApproval(request: {
-        message: string;
-        declineInputPrompt?: string;
-      }): Promise<{ outcome: "approved" } | { outcome: "declined"; reason?: string }>;
-    };
-    taskList?:
-      | {
-          list(name: string): {
-            all(filter?: { state?: string; includeArchived?: boolean }): Promise<unknown[]>;
-            get(id: string): Promise<unknown>;
-            create(input: {
-              id: string;
-              name: string;
-              description?: string;
-              metadata?: Record<string, unknown>;
-            }): Promise<unknown>;
-            fire(id: string, event: string, opts?: { metadataPatch?: Record<string, unknown> }): Promise<unknown>;
-            canFire(id: string, event: string): Promise<boolean>;
-            events(id: string): Promise<readonly string[]>;
-          };
-          lists(): Promise<string[]>;
-          allTasks(filter?: { state?: string; includeArchived?: boolean }): Promise<unknown[]>;
-          get(qualifiedId: string): Promise<unknown>;
-        }
-      | {
-          dir: string;
-          format: "markdown-dir" | "yaml-file";
-        };
-    listName?: string;
-    binPath?: { execPath: string; entryArgs: readonly string[] };
+    invoke(
+      node: Command<any, any, any, unknown>,
+      ctx: HandlerContext<any, any, any>,
+      commandPath: string
+    ): Promise<unknown>;
+    mergeApprovalsGroup(root: Group<Record<string, never>>): Group<Record<string, never>>;
   },
-  HumanInLoopRuntimeOptions
+  HumanInLoopRuntime
 >;
 type ignoredHumanInLoopPendingExport = AssertAssignable<
   { status: "pending-approval"; approvalId: string; message: string; enqueuedAt: string },

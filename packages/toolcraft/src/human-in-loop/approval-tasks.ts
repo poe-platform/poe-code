@@ -9,13 +9,16 @@ import type {
 import { randomBytes } from "node:crypto";
 import { UserError } from "../user-error.js";
 import { approvalStateMachine } from "./state-machine.js";
-import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./types.js";
+import type { HumanInLoopPending } from "./types.js";
+import type { HumanInLoopRuntimeOptions } from "./runtime-options.js";
+
+type ApprovalListOptions = Pick<HumanInLoopRuntimeOptions, "taskList" | "listName">;
 import { isApprovalPlanValue, type ApprovalPlanValue } from "./plan-hash.js";
 
 const DEFAULT_LIST_NAME = "approvals";
 
-const openedTaskListsByRuntime = new WeakMap<HumanInLoopRuntimeOptions, Promise<TaskList>>();
-const validatedListsByRuntime = new WeakMap<HumanInLoopRuntimeOptions, Set<string>>();
+const openedTaskListsByRuntime = new WeakMap<ApprovalListOptions, Promise<TaskList>>();
+const validatedListsByRuntime = new WeakMap<ApprovalListOptions, Set<string>>();
 
 export interface ApprovalPayload {
   approvalId?: string;
@@ -32,7 +35,7 @@ export interface ApprovalPayload {
 }
 
 export async function ensureApprovalList(
-  runtimeOptions: HumanInLoopRuntimeOptions | undefined,
+  runtimeOptions: ApprovalListOptions | undefined,
   deps: {
     create?: boolean;
     openTaskList?: (options: OpenTaskListOptions) => Promise<TaskList>;
@@ -107,8 +110,8 @@ export async function loadApproval(ctx: {
 }
 
 async function resolveTaskList(
-  runtimeOptions: HumanInLoopRuntimeOptions,
-  taskList: NonNullable<HumanInLoopRuntimeOptions["taskList"]>,
+  runtimeOptions: ApprovalListOptions,
+  taskList: NonNullable<ApprovalListOptions["taskList"]>,
   openTaskListFn: (options: OpenTaskListOptions) => Promise<TaskList>,
   create: boolean
 ): Promise<TaskList> {
@@ -134,7 +137,7 @@ async function resolveTaskList(
   return openedTaskList;
 }
 
-function cacheValidatedList(runtimeOptions: HumanInLoopRuntimeOptions, listName: string): void {
+function cacheValidatedList(runtimeOptions: ApprovalListOptions, listName: string): void {
   const validatedLists = validatedListsByRuntime.get(runtimeOptions);
 
   if (validatedLists === undefined) {
@@ -145,7 +148,7 @@ function cacheValidatedList(runtimeOptions: HumanInLoopRuntimeOptions, listName:
   validatedLists.add(listName);
 }
 
-function isListValidated(runtimeOptions: HumanInLoopRuntimeOptions, listName: string): boolean {
+function isListValidated(runtimeOptions: ApprovalListOptions, listName: string): boolean {
   return validatedListsByRuntime.get(runtimeOptions)?.has(listName) ?? false;
 }
 
@@ -214,13 +217,13 @@ function isApprovalStateMachine(stateMachine: StateMachineDef): boolean {
 }
 
 function isTaskListConfig(
-  taskList: HumanInLoopRuntimeOptions["taskList"]
-): taskList is NonNullable<Exclude<HumanInLoopRuntimeOptions["taskList"], TaskList>> {
+  taskList: ApprovalListOptions["taskList"]
+): taskList is NonNullable<Exclude<ApprovalListOptions["taskList"], TaskList>> {
   return taskList !== undefined && "dir" in taskList;
 }
 
 function getTaskListDirectory(
-  taskList: NonNullable<HumanInLoopRuntimeOptions["taskList"]>
+  taskList: NonNullable<ApprovalListOptions["taskList"]>
 ): string {
   return isTaskListConfig(taskList) ? taskList.dir : "unknown";
 }

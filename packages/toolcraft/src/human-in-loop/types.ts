@@ -1,6 +1,5 @@
-import type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
-import type { TaskList } from "@poe-code/task-list";
 import type { ObjectSchema, Static } from "toolcraft-schema";
+import type { Command, Group, HandlerContext } from "../index.js";
 import { UserError } from "../user-error.js";
 
 export interface HumanInLoopConfig<TParamsSchema extends ObjectSchema<any>> {
@@ -13,19 +12,18 @@ export interface HumanInLoopConfig<TParamsSchema extends ObjectSchema<any>> {
   declineInputPrompt?: string;
 }
 
-export interface HumanInLoopRuntimeOptions {
-  provider?: HumanInLoopProvider;
-  taskList?:
-    | TaskList
-    | {
-        dir: string;
-        format: "markdown-dir" | "yaml-file";
-      };
-  listName?: string;
-  binPath?: {
-    execPath: string;
-    entryArgs: readonly string[];
-  };
+/**
+ * The wired human-in-loop runtime. Core entrypoints only know this interface;
+ * the implementation ships behind the `toolcraft/human-in-loop` export and is
+ * created with `createHumanInLoop({ provider, ... })`.
+ */
+export interface HumanInLoopRuntime {
+  invoke<T>(
+    node: Command<any, any, any, T>,
+    ctx: HandlerContext<any, any, any>,
+    commandPath: string
+  ): Promise<T | HumanInLoopPending>;
+  mergeApprovalsGroup<TServices extends object>(root: Group<TServices>): Group<TServices>;
 }
 
 export interface HumanInLoopPending {
@@ -53,5 +51,3 @@ export class ApprovalDeclinedError extends UserError {
     this.commandPath = options.commandPath;
   }
 }
-
-export type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";

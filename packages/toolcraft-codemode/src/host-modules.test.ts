@@ -1,5 +1,5 @@
 import { lint, run } from "@poe-code/safejs/core";
-import type { HumanInLoopProvider } from "toolcraft/human-in-loop";
+import { createHumanInLoop, type HumanInLoopProvider } from "toolcraft/human-in-loop";
 import { createSDK } from "toolcraft/sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineCommand, defineGroup } from "toolcraft";
@@ -60,9 +60,9 @@ describe("buildHostModules", () => {
       ]
     });
     const sdk = createSDK(root, {
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider
-      }
+      })
     }) as {
       deploy: {
         prod(params: { target: string }): Promise<{ deployed: string }>;

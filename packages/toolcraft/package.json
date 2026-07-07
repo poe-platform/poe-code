@@ -22,10 +22,6 @@
       "types": "./dist/agent-defs.d.ts",
       "import": "./dist/agent-defs.js"
     },
-    "./agent-human-in-loop": {
-      "types": "./dist/agent-human-in-loop.d.ts",
-      "import": "./dist/agent-human-in-loop.js"
-    },
     "./agent-mcp-config": {
       "types": "./dist/agent-mcp-config.d.ts",
       "import": "./dist/agent-mcp-config.js"
@@ -93,10 +89,6 @@
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js"
-    },
-    "./task-list": {
-      "types": "./dist/task-list.d.ts",
-      "import": "./dist/task-list.js"
     },
     "./tiny-mcp-client": {
       "types": "./dist/tiny-mcp-client.d.ts",

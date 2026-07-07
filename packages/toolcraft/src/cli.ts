@@ -60,7 +60,8 @@ import {
 } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
-import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/types.js";
+import type { HumanInLoopPending, HumanInLoopRuntime } from "./human-in-loop/types.js";
+import { assertHumanInLoopWired, mergeApprovalsRoot } from "./human-in-loop/wiring.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
@@ -84,8 +85,6 @@ export { configureTheme };
 
 const NULL_OPTION_VALUE = Symbol("toolcraft.cli.null");
 const optionalModulePaths = {
-  approvals: "./human-in-loop/approvals-commands.js",
-  humanInLoop: "./human-in-loop/gate.js",
   mcpProxy: "./mcp-proxy.js"
 } as const;
 
@@ -270,7 +269,7 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   env?: Record<string, string>;
   fetch?: typeof globalThis.fetch;
   fs?: HandlerFs;
-  humanInLoop?: HumanInLoopRuntimeOptions;
+  humanInLoop?: HumanInLoopRuntime;
   logLevel?: LogLevel;
   logger?: RuntimeLoggerInput;
   outputEmitter?: (entry: string) => void;
@@ -336,6 +335,7 @@ export interface CLICommandTreeSnapshotOptions {
   argv?: readonly string[];
   casing?: Casing;
   controls?: CLIControls;
+  humanInLoop?: HumanInLoopRuntime;
   presets?: boolean;
   version?: string;
 }
@@ -354,14 +354,7 @@ export async function createCLICommandTreeSnapshot<TServices extends object>(
 ): Promise<CLICommandTreeSnapshot> {
   const argv = [...(options.argv ?? ["node", "toolcraft"])];
   const normalizedRoot = normalizeRoots(roots, argv);
-  const root =
-    options.approvals === true
-      ? (
-          await importOptionalModule<typeof import("./human-in-loop/approvals-commands.js")>(
-            optionalModulePaths.approvals
-          )
-        ).mergeApprovalsGroup(normalizedRoot)
-      : normalizedRoot;
+  const root = mergeApprovalsRoot(normalizedRoot, options);
   const controls = resolveCLIControls(options.controls);
   const presetsEnabled = options.presets === true;
   const globalLongOptionFlags = getGlobalLongOptionFlags(
@@ -4806,7 +4799,7 @@ async function executeCommand<TServices extends object>(
   services: TServices,
   requirementOptions: CommandRequirementOptions,
   runtimeFetch: typeof globalThis.fetch,
-  runtimeOptions: HumanInLoopRuntimeOptions | undefined,
+  humanInLoop: HumanInLoopRuntime | undefined,
   runtimeEnv: Record<string, string> | undefined,
   runtimeFs: HandlerFs | undefined,
   outputEmitter: ((entry: string) => void) | undefined,
@@ -5001,13 +4994,10 @@ async function executeCommand<TServices extends object>(
         }
       }
 
-      const result = state.command.humanInLoop
-        ? await (
-            await importOptionalModule<typeof import("./human-in-loop/gate.js")>(
-              optionalModulePaths.humanInLoop
-            )
-          ).invokeWithHumanInLoop(state.command, context, runtimeOptions, state.commandPath)
-        : await state.command.handler(context);
+      const result =
+        state.command.humanInLoop && humanInLoop !== undefined
+          ? await humanInLoop.invoke(state.command, context, state.commandPath)
+          : await state.command.handler(context);
 
       if (output === "rich" && runtime.isFixture) {
         writeRichHeader(`${state.command.name} (fixture)`);
@@ -5890,14 +5880,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   try {
     const normalizedRoot = normalizeRoots(roots, argv);
-    const root =
-      options.approvals === true
-        ? (
-            await importOptionalModule<typeof import("./human-in-loop/approvals-commands.js")>(
-              optionalModulePaths.approvals
-            )
-          ).mergeApprovalsGroup(normalizedRoot)
-        : normalizedRoot;
+    const root = mergeApprovalsRoot(normalizedRoot, options);
+    assertHumanInLoopWired(root, options.humanInLoop);
     if (hasMcpProxyConfig(root)) {
       await (
         await importOptionalModule<typeof import("./mcp-proxy.js")>(optionalModulePaths.mcpProxy)
@@ -5905,12 +5889,12 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     }
     const casing = options.casing ?? "kebab";
     const services = (options.services ?? {}) as TServices;
-    const runtimeOptions = options.humanInLoop ?? {};
+    const humanInLoop = options.humanInLoop;
     const runtimeFetch = options.fetch ?? globalThis.fetch;
     version = options.version ?? findEntrypointPackageMetadata(argv[1])?.version;
     const servicesWithBuiltIns = {
       ...services,
-      runtimeOptions,
+      humanInLoop,
       root
     } as TServices;
     const requirementOptions = {
@@ -5964,7 +5948,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         servicesWithBuiltIns,
         requirementOptions,
         runtimeFetch,
-        runtimeOptions,
+        humanInLoop,
         options.env,
         options.fs,
         options.outputEmitter,

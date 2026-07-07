@@ -1,5 +1,6 @@
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
+import type { HumanInLoopRuntime } from "./index.js";
 import { createCLICommandTreeSnapshot, renderErrorReport, runCLI } from "./cli.js";
 import type {
   CLICommandTreeSnapshot,
@@ -35,7 +36,10 @@ const ignoredOptions: RunCLIOptions<Record<string, never>> = {
   logger: (event) => {
     event.level satisfies "error" | "warn" | "info" | "debug" | "trace";
   },
-  humanInLoop: {},
+  humanInLoop: {
+    invoke: async (node, ctx) => node.handler(ctx),
+    mergeApprovalsGroup: (root) => root,
+  } satisfies HumanInLoopRuntime,
   version: "1.0.0",
 };
 

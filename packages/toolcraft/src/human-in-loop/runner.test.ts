@@ -9,7 +9,7 @@ import { enqueueApproval } from "./approval-tasks.js";
 import { createApprovalPlan, formatApprovalMessage } from "./plan-hash.js";
 import { runApproval } from "./runner.js";
 import { approvalStateMachine } from "./state-machine.js";
-import type { HumanInLoopRuntimeOptions } from "./types.js";
+import type { HumanInLoopRuntimeOptions } from "./runtime-options.js";
 
 function createMemFs(): TaskListFs {
   return createFsFromVolume(Volume.fromJSON({}, "/")).promises as unknown as TaskListFs;

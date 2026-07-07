@@ -90,14 +90,12 @@ describe("standalone package publish metadata", () => {
     });
     const bundledExports = [
       ["agent-defs", "agent-defs"],
-      ["agent-human-in-loop", "agent-human-in-loop"],
       ["agent-mcp-config", "agent-mcp-config"],
       ["auth-store", "auth-store"],
       ["config-mutations", "config-mutations"],
       ["toolcraft-design", "design"],
       ["frontmatter", "frontmatter"],
       ["process-runner", "process-runner"],
-      ["task-list", "task-list"],
       ["tiny-mcp-client", "tiny-mcp-client"]
     ] as const;
 
@@ -108,6 +106,18 @@ describe("standalone package publish metadata", () => {
         import: `./dist/${exportName}.js`
       });
     }
+
+    // Bundled for the human-in-loop runtime only — reachable through
+    // toolcraft/human-in-loop, never as their own subpath exports.
+    for (const packageDir of ["agent-human-in-loop", "task-list"]) {
+      expect(readPackageJson(`packages/${packageDir}/package.json`).private).toBe(true);
+    }
+    expect(toolcraftPackage.exports?.["./agent-human-in-loop"]).toBeUndefined();
+    expect(toolcraftPackage.exports?.["./task-list"]).toBeUndefined();
+    expect(toolcraftPackage.exports?.["./human-in-loop"]).toEqual({
+      types: "./dist/human-in-loop/index.d.ts",
+      import: "./dist/human-in-loop/index.js"
+    });
   });
 
   it("inlines private mcp-oauth into tiny-mcp-client", () => {

@@ -3,6 +3,7 @@ import { Command, Help, InvalidArgumentError, Option } from "commander";
 import type { CommandNode, Group } from "toolcraft";
 import { S, type Static } from "toolcraft-schema";
 import { runCLI } from "toolcraft/cli";
+import { createHumanInLoop, defaultProviderForPlatform } from "toolcraft/human-in-loop";
 import { evalGroup } from "@poe-code/agent-eval";
 import { ghGroup } from "@poe-code/github-workflows";
 import { codeReviewGroup } from "agent-code-review";
@@ -689,13 +690,14 @@ function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): st
   return [entry, script, ...commandArgs, ...forwardedFlags];
 }
 
-function createToolcraftHumanInLoopOptions(container: CliContainer) {
-  return {
+function createToolcraftHumanInLoop(container: CliContainer) {
+  return createHumanInLoop({
+    provider: defaultProviderForPlatform(),
     taskList: {
       dir: join(container.env.cwd, ".poe-code", "approvals.yaml"),
       format: "yaml-file" as const
     }
-  };
+  });
 }
 
 function registerForwardedToolcraftCommand(
@@ -724,7 +726,7 @@ function registerForwardedToolcraftCommand(
         },
         rootDisplayName: heading,
         rootUsageName: usageCommand,
-        humanInLoop: createToolcraftHumanInLoopOptions(container)
+        humanInLoop: createToolcraftHumanInLoop(container)
       });
     } finally {
       process.argv = originalArgv;

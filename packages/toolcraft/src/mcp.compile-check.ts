@@ -2,7 +2,7 @@ import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
 import { createMCPServer, runMCP } from "./mcp.js";
 import type { RunMCPOptions } from "./mcp.js";
-import type { HumanInLoopRuntimeOptions } from "./index.js";
+import type { HumanInLoopRuntime } from "./index.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
 
@@ -27,7 +27,10 @@ const ignoredOptions = {
   fetch: globalThis.fetch,
   tools: ["usage"],
   casing: "snake",
-  humanInLoop: {} satisfies HumanInLoopRuntimeOptions,
+  humanInLoop: {
+    invoke: async (node, ctx) => node.handler(ctx),
+    mergeApprovalsGroup: (root) => root,
+  } satisfies HumanInLoopRuntime,
 } satisfies RunMCPOptions;
 
 const ignoredServer = createMCPServer(ignoredRoot, ignoredOptions);

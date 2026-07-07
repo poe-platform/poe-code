@@ -4,6 +4,7 @@ import { createFsFromVolume, vol } from "memfs";
 import { defineGroup } from "./index.js";
 
 const mockFsPromises = createFsFromVolume(vol).promises;
+const { createHumanInLoop } = await import("./human-in-loop/index.js");
 
 const serverState = {
   created: [] as Array<{
@@ -284,6 +285,12 @@ describe("MCP proxy entrypoints", () => {
 
     await createMCPServer(root, {
       approvals: true,
+      humanInLoop: createHumanInLoop({
+        provider: {
+          id: "test-provider",
+          requestApproval: async () => ({ outcome: "approved" as const })
+        }
+      }),
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true

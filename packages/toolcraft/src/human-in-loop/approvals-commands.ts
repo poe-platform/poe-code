@@ -5,12 +5,12 @@ import { hasOwnErrorCode } from "../error-codes.js";
 import { UserError, defineCommand, defineGroup } from "../index.js";
 import { ensureApprovalList } from "./approval-tasks.js";
 import { runApproval } from "./runner.js";
-import type { HumanInLoopRuntimeOptions } from "./types.js";
+import type { HumanInLoopRuntimeInstance } from "./runtime-options.js";
 
 const approvalsGroupSymbol = Symbol("toolcraft.humanInLoop.approvalsBuiltIn");
 
 interface ApprovalBuiltInServices {
-  runtimeOptions: HumanInLoopRuntimeOptions;
+  humanInLoop: HumanInLoopRuntimeInstance;
   root: CommandNode<any>;
 }
 
@@ -43,9 +43,11 @@ export const approvalsGroup = markApprovalsBuiltIn(
         description: "List queued approvals.",
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: listParams,
-        handler: async ({ params, runtimeOptions }) => {
+        handler: async ({ params, humanInLoop }) => {
           try {
-            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            const { tasks } = await ensureApprovalList(humanInLoop.runtimeOptions, {
+              create: false
+            });
             return loadApprovals(tasks, params.state);
           } catch (error) {
             if (isMissingStateError(error)) {
@@ -72,9 +74,11 @@ export const approvalsGroup = markApprovalsBuiltIn(
         description: "Show one approval.",
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: showParams,
-        handler: async ({ params, runtimeOptions }) => {
+        handler: async ({ params, humanInLoop }) => {
           try {
-            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            const { tasks } = await ensureApprovalList(humanInLoop.runtimeOptions, {
+              create: false
+            });
             return tasks.get(params.approvalId);
           } catch (error) {
             if (isMissingStateError(error)) {
@@ -101,8 +105,8 @@ export const approvalsGroup = markApprovalsBuiltIn(
         description: "Run one queued approval.",
         scope: runScope as unknown as ["cli"],
         params: runParams,
-        handler: async ({ params, runtimeOptions, root }) => {
-          return runApproval(params.approvalId, runtimeOptions, root);
+        handler: async ({ params, humanInLoop, root }) => {
+          return runApproval(params.approvalId, humanInLoop.runtimeOptions, root);
         },
         render: {
           rich: (result, primitives) => {

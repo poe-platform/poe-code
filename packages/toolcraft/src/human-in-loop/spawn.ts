@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
-import type { HumanInLoopRuntimeOptions } from "./types.js";
+import type { HumanInLoopRuntimeOptions } from "./runtime-options.js";
 
 export function spawnApprovalRunner(
   approvalId: string,
-  runtimeOptions: HumanInLoopRuntimeOptions,
+  runtimeOptions: Pick<HumanInLoopRuntimeOptions, "binPath">,
   spawnFn?: typeof import("node:child_process").spawn
 ): void {
   const { execPath, entryArgs } = runtimeOptions.binPath ?? {

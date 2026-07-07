@@ -1,7 +1,6 @@
 import type { ChildProcess } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { spawnApprovalRunner } from "./spawn.js";
-import type { HumanInLoopRuntimeOptions } from "./types.js";
 
 type SpawnFn = typeof import("node:child_process").spawn;
 
@@ -41,7 +40,7 @@ describe("spawnApprovalRunner", () => {
 
   it("honours a custom binPath", () => {
     const { spawnFn } = createSpawnHarness();
-    const runtimeOptions: HumanInLoopRuntimeOptions = {
+    const runtimeOptions: Parameters<typeof spawnApprovalRunner>[1] = {
       binPath: {
         execPath: "/custom/bin/node",
         entryArgs: ["/custom/bin/poe-code.mjs", "--config", "/tmp/poe-code.json"],

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
 import { createCLICommandTreeSnapshot } from "./cli.js";
+import { createHumanInLoop } from "./human-in-loop/index.js";
 
 describe("createCLICommandTreeSnapshot", () => {
   it("returns deterministic CLI structure with hidden commands and typed options", async () => {
@@ -123,7 +124,15 @@ describe("createCLICommandTreeSnapshot", () => {
   it("includes Toolcraft-injected approval commands when enabled", async () => {
     const root = defineGroup({ name: "acme", children: [] });
 
-    const snapshot = await createCLICommandTreeSnapshot(root, { approvals: true });
+    const snapshot = await createCLICommandTreeSnapshot(root, {
+      approvals: true,
+      humanInLoop: createHumanInLoop({
+        provider: {
+          id: "test-provider",
+          requestApproval: async () => ({ outcome: "approved" as const })
+        }
+      })
+    });
     const approvals = snapshot.root.children.find((child) => child.name === "approvals");
 
     expect(approvals).toMatchObject({

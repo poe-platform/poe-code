@@ -425,22 +425,24 @@ Modes:
 - `sync` — handler waits for approval before running.
 - `async` — toolcraft enqueues the command, returns a pending marker, and runs it in a fresh process when an operator approves via the reserved `approvals` group.
 
-Wire the same `humanInLoop` options into every entrypoint:
+The runtime never ships with the core entrypoints — it loads only through the `toolcraft/human-in-loop` export, and providers are surfaced from the same export. Wire the same runtime into every entrypoint:
 
 ```ts
-const humanInLoop = {
-  provider: slackApprovalProvider({ channel: "#deploys", client }),
-  taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const }
-};
+import { createHumanInLoop, osascriptProvider } from "toolcraft/human-in-loop";
 
-await runCLI(root, { humanInLoop });
-createMCPServer(root, { name: "mytool", version: "0.1.0", humanInLoop });
-const sdk = createSDK(root, { humanInLoop });
+const humanInLoop = createHumanInLoop({
+  provider: osascriptProvider({ title: "Approval needed" }), // required
+  taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const }
+});
+
+await runCLI(root, { humanInLoop, approvals: true });
+createMCPServer(root, { name: "mytool", version: "0.1.0", humanInLoop, approvals: true });
+const sdk = createSDK(root, { humanInLoop, approvals: true });
 ```
 
-If `provider` is omitted, toolcraft picks a default lazily on first use: `osascriptProvider` on macOS; otherwise a stub that throws `UserError("no human-in-loop provider configured for this platform")`.
+`provider` is required — there is no implicit platform default. `defaultProviderForPlatform()` (osascript on macOS, a throwing stub elsewhere) is exported for callers that want that behavior explicitly. A command that declares `humanInLoop` config while no runtime is wired fails at startup, as does `approvals: true` without a runtime.
 
-A built-in `approvals` group is auto-merged into every root:
+With `approvals: true`, the built-in `approvals` group is merged into the root:
 
 - `approvals list` — list pending tasks (CLI, MCP, SDK).
 - `approvals show --approval-id <id>` — show one task.
@@ -448,7 +450,7 @@ A built-in `approvals` group is auto-merged into every root:
 
 The name `approvals` is reserved. Defining your own `approvals` group fails at startup.
 
-The async runner re-execs your binary (`process.execPath` + `process.argv[1]` by default; override via `humanInLoop.binPath`). Re-exec calls the same toolcraft entrypoint with the same `humanInLoop` options — do not branch on `argv` before calling `runCLI`/`runMCP`/`createSDK`.
+The async runner re-execs your binary (`process.execPath` + `process.argv[1]` by default; override via the `binPath` option of `createHumanInLoop`). Re-exec calls the same toolcraft entrypoint with the same wired runtime — do not branch on `argv` before calling `runCLI`/`runMCP`/`createSDK`.
 
 Async results must be JSON-serializable; non-serializable returns mark the approval as failed instead of being persisted.
 
@@ -459,7 +461,7 @@ import type {
   ApprovalRequest,
   ApprovalResult,
   HumanInLoopProvider
-} from "@poe-code/agent-human-in-loop";
+} from "toolcraft/human-in-loop";
 
 export function slackApprovalProvider(opts: {
   channel: string;
@@ -545,7 +547,7 @@ esbuild records dependency paths relative to the build layout. A standalone inst
 
 ## Configuration Options
 
-Toolcraft configuration is code-first. Use `defineCommand(config)` and `defineGroup(config)` for the command tree, then pass runtime options to `runCLI`, `createSDK`, `createMCPServer`, or `runMCP`. MCP proxy schemas are cached under `.toolcraft/mcp`, and optional human-in-loop state is configured with `HumanInLoopRuntimeOptions`.
+Toolcraft configuration is code-first. Use `defineCommand(config)` and `defineGroup(config)` for the command tree, then pass runtime options to `runCLI`, `createSDK`, `createMCPServer`, or `runMCP`. MCP proxy schemas are cached under `.toolcraft/mcp`, and human-in-loop approvals are wired explicitly with `createHumanInLoop` from `toolcraft/human-in-loop`.
 
 ## API reference
 
@@ -589,7 +591,8 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
 - `controls?: { debug?, logLevel?, output?, verbose?, yes? }` — enables generated global CLI controls. Set `output: true` to expose `--output <rich|md|markdown|json>`.
 - `apiVersion?: string` — for `requires.apiVersion`.
-- `humanInLoop?: HumanInLoopRuntimeOptions`
+- `humanInLoop?: HumanInLoopRuntime` — from `createHumanInLoop` (`toolcraft/human-in-loop`); required for commands with `humanInLoop` config.
+- `approvals?: boolean` — merge the built-in `approvals` group; requires `humanInLoop`.
 - `errorReports?: boolean | { dir?: string }`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
@@ -609,16 +612,20 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).
 - `casing?: "snake" | "camel"` — affects MCP input-schema property names, output-schema property names, and structured result keys. Tool names always stay `__`-joined snake_case.
 
-### `HumanInLoopRuntimeOptions`
+### `createHumanInLoop(options)` (from `toolcraft/human-in-loop`)
 
 ```ts
+import { createHumanInLoop, defaultProviderForPlatform, osascriptProvider } from "toolcraft/human-in-loop";
+
 type HumanInLoopRuntimeOptions = {
-  provider?: HumanInLoopProvider;
+  provider: HumanInLoopProvider; // required
   taskList?: TaskList | { dir: string; format: "markdown-dir" | "yaml-file" };
   listName?: string; // defaults to "approvals"
   binPath?: { execPath: string; entryArgs: readonly string[] };
 };
 ```
+
+Returns the `HumanInLoopRuntime` accepted by `runCLI` / `createMCPServer` / `createSDK`.
 
 ### Handler context
 
@@ -635,7 +642,7 @@ type HumanInLoopRuntimeOptions = {
 - `defineCommand`, `defineGroup`
 - `S`, `toJsonSchema`, type helpers — re-exported from `toolcraft-schema`
 - `UserError`, `ApprovalDeclinedError`, `HttpError` and the HTTP error subclasses.
-- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, schema types from `toolcraft-schema`.
+- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntime`, schema types from `toolcraft-schema`.
 
 Subpath imports:
 

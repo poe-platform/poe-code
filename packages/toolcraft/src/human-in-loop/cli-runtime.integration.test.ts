@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
 import { defineCommand, defineGroup } from "../index.js";
+import { createHumanInLoop } from "./runtime.js";
 
 const loggerState = {
   error: [] as string[]
@@ -113,9 +114,9 @@ describe("human-in-loop CLI runtime", () => {
     process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
     await runCLI(root, {
       controls: { yes: true },
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider
-      }
+      })
     });
 
     expect(provider.requestApproval).toHaveBeenCalledWith({
@@ -155,9 +156,9 @@ describe("human-in-loop CLI runtime", () => {
     process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
     await runCLI(root, {
       controls: { yes: true },
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider
-      }
+      })
     });
 
     expect(loggerState.error).toContain("Declined: Need ticket");
@@ -193,9 +194,9 @@ describe("human-in-loop CLI runtime", () => {
     process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
     await runCLI(root, {
       controls: { yes: true },
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider
-      }
+      })
     });
 
     expect(loggerState.error).toContain("Declined.");

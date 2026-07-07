@@ -8,9 +8,8 @@ import {
   resolveCommandSecrets
 } from "./index.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
-import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
-import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
-import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
+import type { HumanInLoopPending, HumanInLoopRuntime } from "./human-in-loop/types.js";
+import { assertHumanInLoopWired, mergeApprovalsRoot } from "./human-in-loop/wiring.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
@@ -226,7 +225,7 @@ export interface CreateSDKOptions<TServices extends object = Record<string, unkn
   fs?: HandlerFs;
   services?: TServices;
   casing?: "camel";
-  humanInLoop?: HumanInLoopRuntimeOptions;
+  humanInLoop?: HumanInLoopRuntime;
   apiVersion?: string;
   projectRoot?: string;
   errorReports?: ErrorReportsOption;
@@ -646,7 +645,8 @@ export function createSDK(
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
   enableSourceMaps();
-  const mergedRoot = options.approvals === true ? mergeApprovalsGroup(root) : root;
+  const mergedRoot = mergeApprovalsRoot(root, options);
+  assertHumanInLoopWired(mergedRoot, options.humanInLoop);
 
   if (!hasMcpProxyGroups(mergedRoot)) {
     return createResolvedSDK(mergedRoot, options);
@@ -660,7 +660,7 @@ function createResolvedSDK(
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
   const services = options.services ?? {};
-  const runtimeOptions = options.humanInLoop ?? {};
+  const humanInLoop = options.humanInLoop;
   const runtimeFetch = options.fetch ?? globalThis.fetch;
   const diagnostics = createRuntimeLogger({
     level: options.logLevel,
@@ -692,7 +692,7 @@ function createResolvedSDK(
                 secrets = resolveCommandSecrets(node, options.env);
                 const baseContext = {
                   ...services,
-                  runtimeOptions,
+                  humanInLoop,
                   root,
                   secrets,
                   fetch: runtimeFetch,
@@ -750,7 +750,7 @@ function createResolvedSDK(
           secrets = resolveCommandSecrets(node, options.env);
           const baseContext = {
             ...services,
-            runtimeOptions,
+            humanInLoop,
             root,
             secrets,
             fetch: runtimeFetch,
@@ -780,15 +780,13 @@ function createResolvedSDK(
           }
 
           validatedParams = validateSDKArguments(paramsSchema, params);
-          return await invokeWithHumanInLoop(
-            node,
-            {
-              ...baseContext,
-              params: validatedParams
-            } as Parameters<typeof node.handler>[0],
-            runtimeOptions,
-            commandPath
-          );
+          const handlerContext = {
+            ...baseContext,
+            params: validatedParams
+          } as Parameters<typeof node.handler>[0];
+          return humanInLoop === undefined
+            ? await node.handler(handlerContext)
+            : await humanInLoop.invoke(node, handlerContext, commandPath);
         } catch (error) {
           await writeErrorReport({
             command: node,

@@ -7,6 +7,14 @@ import { defineCommand, defineGroup } from "../index.js";
 import { enqueueApproval } from "./approval-tasks.js";
 import { approvalStateMachine } from "./state-machine.js";
 import { approvalsGroup, mergeApprovalsGroup } from "./approvals-commands.js";
+import { createHumanInLoop } from "./runtime.js";
+
+function stubProvider() {
+  return {
+    id: "stub-provider",
+    requestApproval: async () => ({ outcome: "approved" as const })
+  };
+}
 
 const loggerState = {
   error: [] as string[]
@@ -178,9 +186,7 @@ describe("approvals built-in commands", () => {
     });
 
     const baseContext = {
-      runtimeOptions: {
-        taskList
-      },
+      humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList }),
       root: defineGroup({
         name: "root",
         children: []
@@ -203,7 +209,7 @@ describe("approvals built-in commands", () => {
       listCommand.handler({
         ...baseContext,
         params: {}
-      } as Parameters<typeof listCommand.handler>[0])
+      } as unknown as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: pendingId, state: "pending" }),
@@ -218,7 +224,7 @@ describe("approvals built-in commands", () => {
         params: {
           state: "pending"
         }
-      } as Parameters<typeof listCommand.handler>[0])
+      } as unknown as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual([expect.objectContaining({ id: pendingId, state: "pending" })]);
 
     await expect(
@@ -227,7 +233,7 @@ describe("approvals built-in commands", () => {
         params: {
           state: "pending, declined"
         }
-      } as Parameters<typeof listCommand.handler>[0])
+      } as unknown as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual([
       expect.objectContaining({ id: pendingId, state: "pending" }),
       expect.objectContaining({ id: declinedId, state: "declined" })
@@ -241,9 +247,7 @@ describe("approvals built-in commands", () => {
       message: "show me"
     });
     const baseContext = {
-      runtimeOptions: {
-        taskList
-      },
+      humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList }),
       root: defineGroup({
         name: "root",
         children: []
@@ -268,7 +272,7 @@ describe("approvals built-in commands", () => {
         params: {
           approvalId
         }
-      } as Parameters<typeof showCommand.handler>[0])
+      } as unknown as Parameters<typeof showCommand.handler>[0])
     ).resolves.toMatchObject({
       id: approvalId,
       state: "pending"
@@ -280,7 +284,7 @@ describe("approvals built-in commands", () => {
         params: {
           approvalId: "missing"
         }
-      } as Parameters<typeof showCommand.handler>[0])
+      } as unknown as Parameters<typeof showCommand.handler>[0])
     ).rejects.toBeInstanceOf(TaskNotFoundError);
   });
 
@@ -310,10 +314,10 @@ describe("approvals built-in commands", () => {
     process.argv = ["node", "toolcraft", "approvals", "run", "--approval-id", approvalId];
     await runCLI(root, {
       approvals: true,
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         taskList,
         provider
-      }
+      })
     });
 
     const cliTask = await taskList.list("approvals").get(approvalId);
@@ -330,9 +334,7 @@ describe("approvals built-in commands", () => {
         name: "toolcraft-test",
         version: "1.0.0",
         omitRootToolNamePrefix: true,
-        humanInLoop: {
-          taskList
-        }
+        humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList })
       }
     );
     const { client, cleanup } = await createSdkTestPair(
@@ -364,9 +366,7 @@ describe("approvals built-in commands", () => {
       }),
       {
         approvals: true,
-        humanInLoop: {
-          taskList
-        }
+        humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList })
       }
     ) as Record<string, unknown>;
 
@@ -445,7 +445,7 @@ describe("approvals built-in commands", () => {
       }),
       {
         approvals: false,
-        humanInLoop: { provider }
+        humanInLoop: createHumanInLoop({ provider })
       }
     ) as { deploy(params: Record<string, never>): Promise<{ ok: boolean }> };
 
@@ -463,7 +463,7 @@ describe("approvals built-in commands", () => {
 
     await expect(
       runCommand.handler({
-        runtimeOptions: {},
+        humanInLoop: createHumanInLoop({ provider: stubProvider() }),
         root,
         params: {
           approvalId: "approval-1"
@@ -480,7 +480,7 @@ describe("approvals built-in commands", () => {
         },
         diagnostics: { level: "silent", emit: vi.fn() },
         progress: vi.fn()
-      } as Parameters<typeof runCommand.handler>[0])
+      } as unknown as Parameters<typeof runCommand.handler>[0])
     ).rejects.toThrowError("humanInLoop.taskList required for async-mode commands");
   });
 
@@ -498,7 +498,8 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "--help"];
 
-    await runCLI(rootFactory(), { approvals: true });
+    const humanInLoop = () => createHumanInLoop({ provider: stubProvider() });
+    await runCLI(rootFactory(), { approvals: true, humanInLoop: humanInLoop() });
 
     expect(process.exitCode).toBe(1);
     expect(loggerState.error.join("\n")).toContain(
@@ -508,18 +509,20 @@ describe("approvals built-in commands", () => {
       createMCPServer(rootFactory(), {
         approvals: true,
         name: "toolcraft-test",
-        version: "1.0.0"
+        version: "1.0.0",
+        humanInLoop: humanInLoop()
       })
     ).toThrowError("'approvals' is reserved for human-in-loop built-ins");
     await expect(
       runMCP(rootFactory(), {
         approvals: true,
         name: "toolcraft-test",
-        version: "1.0.0"
+        version: "1.0.0",
+        humanInLoop: humanInLoop()
       })
     ).rejects.toThrowError("'approvals' is reserved for human-in-loop built-ins");
-    expect(() => createSDK(rootFactory(), { approvals: true })).toThrowError(
-      "'approvals' is reserved for human-in-loop built-ins"
-    );
+    expect(() =>
+      createSDK(rootFactory(), { approvals: true, humanInLoop: humanInLoop() })
+    ).toThrowError("'approvals' is reserved for human-in-loop built-ins");
   });
 });

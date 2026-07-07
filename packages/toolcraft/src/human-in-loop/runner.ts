@@ -3,9 +3,8 @@ import type { Command, CommandNode, HandlerContext } from "../index.js";
 import { UserError, resolveCommandSecrets } from "../index.js";
 import { createEnv, createFs } from "../runtime/io.js";
 import { ensureApprovalList } from "./approval-tasks.js";
-import { resolveProvider } from "./gate.js";
 import type { ApprovalPayload } from "./approval-tasks.js";
-import type { HumanInLoopRuntimeOptions } from "./types.js";
+import type { HumanInLoopRuntimeOptions } from "./runtime-options.js";
 import { createRuntimeLogger } from "../runtime-logging.js";
 import {
   assertApprovalPlanHash,
@@ -38,7 +37,7 @@ export async function runApproval(
   }
 
   const approval = readApprovalPayload(task);
-  const provider = resolveProvider(runtimeOptions);
+  const provider = runtimeOptions.provider;
 
   try {
     await tasks.fire(approvalId, "claim", {

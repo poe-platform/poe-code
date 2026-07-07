@@ -193,7 +193,6 @@ function runConsumerSmoke(projectDir, tarballs) {
         'const fileChanges = await import("toolcraft/file-changes");',
         'if (typeof fileChanges.createFileChangeRenderers !== "function") throw new Error("Missing createFileChangeRenderers export.");',
         'await import("toolcraft/agent-defs");',
-        'await import("toolcraft/agent-human-in-loop");',
         'await import("toolcraft/agent-mcp-config");',
         'await import("toolcraft/auth-store");',
         'await import("toolcraft/config-mutations");',
@@ -203,8 +202,9 @@ function runConsumerSmoke(projectDir, tarballs) {
         'await import("toolcraft/mcp-proxy");',
         'await import("toolcraft/process-runner");',
         'await import("toolcraft/sdk");',
-        'await import("toolcraft/human-in-loop");',
-        'await import("toolcraft/task-list");',
+        'const humanInLoop = await import("toolcraft/human-in-loop");',
+        'if (typeof humanInLoop.createHumanInLoop !== "function") throw new Error("Missing createHumanInLoop export.");',
+        'if (typeof humanInLoop.osascriptProvider !== "function") throw new Error("Missing osascriptProvider export.");',
         'await import("toolcraft/tiny-mcp-client");'
       ].join("\n")
     ],

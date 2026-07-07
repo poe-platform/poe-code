@@ -18,13 +18,12 @@ import {
   resolveCommandSecrets
 } from "./index.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
-import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import {
   ApprovalDeclinedError,
-  invokeWithHumanInLoop,
   type HumanInLoopPending,
-  type HumanInLoopRuntimeOptions
-} from "./human-in-loop/index.js";
+  type HumanInLoopRuntime
+} from "./human-in-loop/types.js";
+import { assertHumanInLoopWired, mergeApprovalsRoot } from "./human-in-loop/wiring.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
@@ -88,7 +87,7 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
   fs?: HandlerFs;
   name: string;
   version?: string;
-  humanInLoop?: HumanInLoopRuntimeOptions;
+  humanInLoop?: HumanInLoopRuntime;
   projectRoot?: string;
   logLevel?: LogLevel;
   logger?: RuntimeLoggerInput;
@@ -1081,7 +1080,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
 ): CmdkitServer {
   const casing = options.casing ?? "snake";
   const services = (options.services ?? {}) as TServices;
-  const runtimeOptions = options.humanInLoop ?? {};
+  const humanInLoop = options.humanInLoop;
   const runtimeFetch = options.fetch ?? globalThis.fetch;
   const diagnostics = createRuntimeLogger({
     level: options.logLevel,
@@ -1140,7 +1139,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     const baseContext = {
       ...services,
       ...requestServices,
-      runtimeOptions,
+      humanInLoop,
       root,
       secrets,
       fetch: runtimeFetch,
@@ -1252,7 +1251,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         const baseContext = {
           ...services,
           ...requestServices,
-          runtimeOptions,
+          humanInLoop,
           root,
           secrets,
           fetch: runtimeFetch,
@@ -1274,15 +1273,14 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         );
 
         params = validateToolArguments(tool.command.params, argumentsValue, casing);
-        const result = await invokeWithHumanInLoop(
-          tool.command,
-          {
-            ...baseContext,
-            params
-          } as Parameters<typeof tool.command.handler>[0],
-          runtimeOptions,
-          tool.commandPath
-        );
+        const handlerContext = {
+          ...baseContext,
+          params
+        } as Parameters<typeof tool.command.handler>[0];
+        const result =
+          humanInLoop === undefined
+            ? await tool.command.handler(handlerContext)
+            : await humanInLoop.invoke(tool.command, handlerContext, tool.commandPath);
 
         if (isHumanInLoopPending(result)) {
           return renderPendingApproval(result);
@@ -1395,7 +1393,8 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   options: RunMCPOptions<TServices>
 ): CmdkitServer {
   const normalizedRoot = normalizeRoots(roots);
-  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
+  const root = mergeApprovalsRoot(normalizedRoot, options);
+  assertHumanInLoopWired(root, options.humanInLoop);
 
   if (!hasMcpProxyGroups(root)) {
     return createResolvedMCPServer(root, options);
@@ -1413,7 +1412,8 @@ export async function createMCPServerForTransport<
   runtime: MCPServerRuntime<TServices>
 ): Promise<void> {
   const normalizedRoot = normalizeRoots(roots);
-  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
+  const root = mergeApprovalsRoot(normalizedRoot, options);
+  assertHumanInLoopWired(root, options.humanInLoop);
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   createResolvedMCPServer(root, options, runtime);
 }
@@ -1424,7 +1424,8 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
 ): Promise<void> {
   enableSourceMaps();
   const normalizedRoot = normalizeRoots(roots);
-  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
+  const root = mergeApprovalsRoot(normalizedRoot, options);
+  assertHumanInLoopWired(root, options.humanInLoop);
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const server = createResolvedMCPServer(root, options);
   await server.listen();

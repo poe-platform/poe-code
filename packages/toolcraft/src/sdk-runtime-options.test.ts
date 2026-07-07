@@ -1,25 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup, type HandlerFs } from "./index.js";
-
-const invokeWithHumanInLoopMock = vi.hoisted(() => vi.fn());
-
-vi.mock("./human-in-loop/index.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./human-in-loop/index.js")>();
-
-  return {
-    ...actual,
-    invokeWithHumanInLoop: invokeWithHumanInLoopMock
-  };
-});
-
-const { createSDK } = await import("./sdk.js");
+import { createHumanInLoop } from "./human-in-loop/index.js";
+import { createSDK } from "./sdk.js";
 
 describe("createSDK CLI-only schema metadata", () => {
   it("does not run missing-parameter resolvers", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
-      command.handler(context)
-    );
     const resolveMissing = vi.fn(async () => ({
       choices: [{ label: "Kitchen", value: "homey-kitchen" }]
     }));
@@ -45,51 +31,54 @@ describe("createSDK CLI-only schema metadata", () => {
   });
 });
 
-describe("createSDK human-in-loop runtime options plumbing", () => {
-  beforeEach(() => {
-    invokeWithHumanInLoopMock.mockReset();
+describe("createSDK human-in-loop wiring", () => {
+  const gatedRoot = defineGroup({
+    name: "root",
+    children: [
+      defineCommand({
+        name: "deploy",
+        params: S.Object({
+          target: S.String()
+        }),
+        humanInLoop: {
+          mode: "sync",
+          message: ({ params }: { params: { target: string } }) => `Deploy to ${params.target}?`
+        },
+        handler: async ({ params }: { params: { target: string } }) => ({
+          deployed: params.target
+        })
+      })
+    ]
   });
 
-  it("passes the normalized runtime options object to the gate when options.humanInLoop is omitted", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (_command, context, runtimeOptions) => {
-      expect(runtimeOptions).toBe(context.runtimeOptions);
-      expect(runtimeOptions).toEqual({});
-
-      return {
-        deployed: context.params.target
-      };
-    });
-
-    const sdk = createSDK(
-      defineGroup({
-        name: "root",
-        children: [
-          defineCommand({
-            name: "deploy",
-            params: S.Object({
-              target: S.String()
-            }),
-            handler: async () => "should not run"
-          })
-        ]
+  it("routes gated commands through the wired runtime provider", async () => {
+    const requestApproval = vi.fn(async () => ({ outcome: "approved" as const }));
+    const sdk = createSDK(gatedRoot, {
+      humanInLoop: createHumanInLoop({
+        provider: { id: "sdk-test", requestApproval }
       })
-    ) as {
+    }) as {
       deploy(params: { target: string }): Promise<{ deployed: string }>;
     };
 
     await expect(sdk.deploy({ target: "prod" })).resolves.toEqual({
       deployed: "prod"
     });
+    expect(requestApproval).toHaveBeenCalledWith({
+      message: "Deploy to prod?",
+      declineInputPrompt: undefined
+    });
+  });
+
+  it("throws at startup when a command declares humanInLoop and no runtime is wired", () => {
+    expect(() => createSDK(gatedRoot)).toThrow(
+      "command 'deploy' declares humanInLoop but no runtime is wired"
+    );
   });
 });
 
 describe("createSDK API version runtime options plumbing", () => {
   it("passes options.apiVersion to command requirement checks", async () => {
-    invokeWithHumanInLoopMock.mockReset();
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
-      command.handler(context)
-    );
-
     const sdk = createSDK(
       defineGroup({
         name: "root",
@@ -117,10 +106,6 @@ describe("createSDK API version runtime options plumbing", () => {
 
 describe("createSDK fetch runtime options plumbing", () => {
   it("passes options.fetch to command contexts", async () => {
-    invokeWithHumanInLoopMock.mockReset();
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
-      command.handler(context)
-    );
     const injectedFetch = vi.fn<typeof globalThis.fetch>(
       async () =>
         new Response(JSON.stringify({ ok: true }), {
@@ -159,10 +144,6 @@ describe("createSDK fetch runtime options plumbing", () => {
 
 describe("createSDK hermetic runtime options plumbing", () => {
   it("uses options.env for secrets, requirements, and handler env and options.fs for handler fs", async () => {
-    invokeWithHumanInLoopMock.mockReset();
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
-      command.handler(context)
-    );
     const injectedEnv = {
       POE_API_KEY: "auth-token",
       TOOL_TOKEN: "secret-token",
@@ -215,16 +196,8 @@ describe("createSDK hermetic runtime options plumbing", () => {
 });
 
 describe("createSDK diagnostic runtime options plumbing", () => {
-  beforeEach(() => {
-    invokeWithHumanInLoopMock.mockReset();
-  });
-
   it("passes log level and logger through command contexts", async () => {
     const events: Array<{ level: string; message: string }> = [];
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
-      command.handler(context)
-    );
-
     const sdk = createSDK(
       defineGroup({
         name: "root",

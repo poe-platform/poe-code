@@ -17,6 +17,7 @@ import {
   createSdkTestPair
 } from "tiny-mcp-client";
 import { createMCPServer } from "./mcp.js";
+import { createHumanInLoop } from "./human-in-loop/index.js";
 import { createHttpError } from "./http-errors.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
@@ -907,6 +908,12 @@ describe("createMCPServer", () => {
 
     const server = createMCPServer(root, {
       approvals: true,
+      humanInLoop: createHumanInLoop({
+        provider: {
+          id: "test-provider",
+          requestApproval: async () => ({ outcome: "approved" as const })
+        }
+      }),
       name: "toolcraft-test",
       version: "1.0.0"
     });
@@ -1120,6 +1127,12 @@ describe("createMCPServer", () => {
     });
     const server = createMCPServer(root, {
       approvals: true,
+      humanInLoop: createHumanInLoop({
+        provider: {
+          id: "test-provider",
+          requestApproval: async () => ({ outcome: "approved" as const })
+        }
+      }),
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true
@@ -1225,6 +1238,12 @@ describe("createMCPServer", () => {
 
     const server = createMCPServer(root, {
       approvals: true,
+      humanInLoop: createHumanInLoop({
+        provider: {
+          id: "test-provider",
+          requestApproval: async () => ({ outcome: "approved" as const })
+        }
+      }),
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true
@@ -1670,6 +1689,12 @@ describe("createMCPServer", () => {
 
     const server = createMCPServer([firstRoot, secondRoot], {
       approvals: true,
+      humanInLoop: createHumanInLoop({
+        provider: {
+          id: "test-provider",
+          requestApproval: async () => ({ outcome: "approved" as const })
+        }
+      }),
       name: "toolcraft-test",
       version: "1.0.0"
     });

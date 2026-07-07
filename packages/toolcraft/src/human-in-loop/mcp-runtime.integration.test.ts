@@ -5,6 +5,7 @@ import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "../index.js";
+import { createHumanInLoop } from "./runtime.js";
 import { approvalStateMachine } from "./state-machine.js";
 
 const spawnUnrefMock = vi.hoisted(() => vi.fn());
@@ -98,9 +99,9 @@ describe("human-in-loop MCP runtime", () => {
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true,
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider,
-      },
+      }),
     });
     const { client, cleanup } = await createClient(server);
 
@@ -139,9 +140,9 @@ describe("human-in-loop MCP runtime", () => {
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true,
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider,
-      },
+      }),
     });
     const { client, cleanup } = await createClient(server);
 
@@ -189,14 +190,14 @@ describe("human-in-loop MCP runtime", () => {
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true,
-      humanInLoop: {
+      humanInLoop: createHumanInLoop({
         provider,
         taskList,
         binPath: {
           execPath: "node",
           entryArgs: ["toolcraft.js"],
         },
-      },
+      }),
     });
     const { client, cleanup } = await createClient(server);
 

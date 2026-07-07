@@ -1,6 +1,6 @@
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
-import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./index.js";
+import type { HumanInLoopPending, HumanInLoopRuntime } from "./index.js";
 import { createSDK } from "./sdk.js";
 import type { CreateSDKOptions } from "./sdk.js";
 
@@ -99,7 +99,10 @@ const ignoredOptions = {
   services: {
     logger: console,
   },
-  humanInLoop: {} satisfies HumanInLoopRuntimeOptions,
+  humanInLoop: {
+    invoke: async (node, ctx) => node.handler(ctx),
+    mergeApprovalsGroup: (root) => root,
+  } satisfies HumanInLoopRuntime,
 } satisfies CreateSDKOptions<{ logger: Console }>;
 
 const ignoredSdk = createSDK(ignoredRoot, ignoredOptions);

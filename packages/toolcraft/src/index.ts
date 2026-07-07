@@ -6,7 +6,7 @@ import { ApprovalDeclinedError } from "./human-in-loop/types.js";
 import type {
   HumanInLoopConfig,
   HumanInLoopPending,
-  HumanInLoopRuntimeOptions
+  HumanInLoopRuntime
 } from "./human-in-loop/types.js";
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
 import { ToolcraftBugError, UserError } from "./user-error.js";
@@ -1198,4 +1198,4 @@ export type {
   ValidationIssue,
   ValidationResult
 } from "./schema.js";
-export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions };
+export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntime };

@@ -132,9 +132,16 @@ vi.mock("node:fs", async () => {
 });
 
 const { runCLI: runCLIWithoutControls } = await import("./cli.js");
+const { createHumanInLoop } = await import("./human-in-loop/index.js");
 const runCLI: typeof runCLIWithoutControls = (roots, options = {}) =>
   runCLIWithoutControls(roots, {
     approvals: true,
+    humanInLoop: createHumanInLoop({
+      provider: {
+        id: "cli-test",
+        requestApproval: async () => ({ outcome: "approved" as const })
+      }
+    }),
     controls: {
       debug: true,
       output: true,

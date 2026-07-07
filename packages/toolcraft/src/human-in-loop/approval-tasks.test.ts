@@ -11,7 +11,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { UserError } from "../user-error.js";
 import { ensureApprovalList, enqueueApproval, loadApproval } from "./approval-tasks.js";
 import { approvalStateMachine } from "./state-machine.js";
-import type { HumanInLoopRuntimeOptions } from "./types.js";
 
 type OtherState = "draft" | "done";
 type OtherEvent = "finish";
@@ -66,7 +65,7 @@ describe("approval tasks", () => {
 
   it("opens configured task-list directories once and memoizes the instance on runtime options", async () => {
     const fs = createMemFs();
-    const runtimeOptions: HumanInLoopRuntimeOptions = {
+    const runtimeOptions: Parameters<typeof ensureApprovalList>[0] = {
       taskList: {
         dir: "/repo/approvals.yaml",
         format: "yaml-file"
@@ -96,7 +95,7 @@ describe("approval tasks", () => {
   });
 
   it("opens configured task-list storage read-only without creating it", async () => {
-    const runtimeOptions: HumanInLoopRuntimeOptions = {
+    const runtimeOptions: Parameters<typeof ensureApprovalList>[0] = {
       taskList: {
         dir: "/repo/approvals.yaml",
         format: "yaml-file"

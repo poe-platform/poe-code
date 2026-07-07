@@ -1048,12 +1048,17 @@ describe("root command", () => {
     expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "approvals", "list"]]);
     expect(runCliState.optionsSnapshots).toEqual([
       expect.objectContaining({
-        humanInLoop: {
-          taskList: {
-            dir: "/repo/.poe-code/approvals.yaml",
-            format: "yaml-file"
-          }
-        }
+        humanInLoop: expect.objectContaining({
+          invoke: expect.any(Function),
+          mergeApprovalsGroup: expect.any(Function),
+          runtimeOptions: expect.objectContaining({
+            provider: expect.objectContaining({ requestApproval: expect.any(Function) }),
+            taskList: {
+              dir: "/repo/.poe-code/approvals.yaml",
+              format: "yaml-file"
+            }
+          })
+        })
       })
     ]);
     expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "approvals", "list"]);

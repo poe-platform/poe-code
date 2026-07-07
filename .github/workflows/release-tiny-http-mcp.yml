@@ -24,13 +24,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
-      - name: Build workspace dependencies
-        run: |
-          npm run build --workspace tiny-stdio-mcp-server
-          npm run build --workspace mcp-oauth
-      - name: Build
-        working-directory: packages/tiny-http-mcp-server
-        run: npm run build
+      - name: Build package and workspace dependencies
+        run: npx turbo build --filter=tiny-http-mcp-server
       - name: Auto-bump patch version from npm
         working-directory: packages/tiny-http-mcp-server
         run: |

@@ -63,6 +63,7 @@ process.on("SIGINT", () => {
 - `url`: full MCP endpoint URL
 - `port`: resolved TCP port
 - `close()`: graceful shutdown for the HTTP listener and transport
+- `closeAllConnections()`: force-close remaining HTTP connections after a shutdown grace period
 
 By default, programmatic `listenHttp()` uses:
 
@@ -97,13 +98,14 @@ const server = createHttpServer({
   version: "1.0.0"
 }).tool("echo", "Echo text", defineSchema({ text: { type: "string" } }), ({ text }) => text);
 
-app.use(express.json());
 app.use("/mcp", createExpressMiddleware(server));
 
 app.listen(3000, "127.0.0.1");
 ```
 
 `createExpressMiddleware(server)` returns an Express `RequestHandler` that forwards MCP HTTP traffic to `server.handleRequest(req, res)`.
+
+Do not mount `express.json()` or another body parser before the MCP middleware. The transport reads the raw request stream so it can enforce `maxRequestBytes` and return JSON-RPC parse error `-32700`. Any body parser mounted first takes over request-size limits and parse-error semantics; for example, Express defaults to a 100 KB JSON limit and returns its own HTML errors.
 
 Use this when you want to:
 
@@ -116,12 +118,14 @@ Use this when you want to:
 To publish RFC 9728 protected-resource metadata and require a Bearer header on MCP requests, pass `oauth` to `createHttpServer()`:
 
 ```ts
+import express from "express";
 import {
   createHttpServer,
   createExpressOAuthHandlers,
-  createJwksTokenVerifier,
-  TokenVerificationError
+  createJwksTokenVerifier
 } from "tiny-http-mcp-server";
+
+const app = express();
 
 const oauth = {
   resource: "https://example.com/mcp",
@@ -129,14 +133,10 @@ const oauth = {
   bearerMethodsSupported: ["header"],
   scopesSupported: ["mcp.read", "mcp.write"],
   requiredScopes: ["mcp.read"],
-  verifier: {
-    async verify(input) {
-      throw new TokenVerificationError({
-        error: "invalid_token",
-        errorDescription: `Implement token verification for ${input.resource}.`
-      });
-    }
-  }
+  verifier: createJwksTokenVerifier({
+    jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+    requireAccessTokenType: true
+  })
 };
 
 const server = createHttpServer({
@@ -150,6 +150,11 @@ const { metadataMiddleware, mcpMiddleware } = createExpressOAuthHandlers({
   server,
   oauth
 });
+
+app.use(metadataMiddleware);
+app.use("/mcp", mcpMiddleware);
+
+app.listen(3000, "127.0.0.1");
 ```
 
 `oauth` currently supports:
@@ -165,12 +170,85 @@ For JWT bearer tokens signed by an authorization server JWKS endpoint, use the e
 
 ```ts
 const verifier = createJwksTokenVerifier({
-  issuer: "https://auth.example.com",
-  jwksUri: "https://auth.example.com/.well-known/jwks.json",
-  audience: "https://example.com/mcp",
-  requiredScopes: ["mcp.read"]
+  jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+  jwksFetchTimeoutMs: 5000,
+  jwksRefreshCooldownMs: 30000,
+  requireAccessTokenType: true
 });
 ```
+
+`createJwksTokenVerifier(options)` accepts:
+
+| Option                   | Type                | Default        | Description                                                                              |
+| ------------------------ | ------------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `jwksUrl`                | `string \| URL`     | none           | Authorization server JWKS endpoint.                                                      |
+| `clockSkewSeconds`       | `number`            | `30`           | Allowed JWT time-claim clock skew.                                                       |
+| `allowedAlgorithms`      | `readonly string[]` | asymmetric set | Allowed JWT signature algorithms.                                                        |
+| `jwksCacheTtlMs`         | `number`            | `300000`       | Successful JWKS cache lifetime.                                                          |
+| `jwksFetchTimeoutMs`     | `number`            | `5000`         | Timeout for each JWKS HTTP fetch.                                                        |
+| `jwksRefreshCooldownMs`  | `number`            | `30000`        | Minimum interval between forced refreshes after an unknown key id.                       |
+| `allowInsecureJwks`      | `boolean`           | `false`        | Permit non-HTTPS JWKS URLs. Loopback HTTP URLs are allowed without enabling this option. |
+| `requireAccessTokenType` | `boolean`           | `false`        | Require the JWT `typ` protected header to be `at+jwt`.                                   |
+| `fetch`                  | `typeof fetch`      | global `fetch` | Custom fetch implementation.                                                             |
+
+For opaque access tokens, implement `TokenVerifier` with RFC 7662 token introspection:
+
+```ts
+import { TokenVerificationError, type TokenVerifier } from "tiny-http-mcp-server";
+
+const verifier: TokenVerifier = {
+  async verify({ token, resource, authorizationServers, requiredScopes }) {
+    const response = await fetch("https://auth.example.com/oauth2/introspect", {
+      method: "POST",
+      headers: {
+        authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ token, token_type_hint: "access_token" })
+    });
+    if (!response.ok) {
+      throw Object.assign(new Error("introspection unavailable"), {
+        error: "temporarily_unavailable"
+      });
+    }
+
+    const claims = (await response.json()) as Record<string, unknown>;
+    const scopes = typeof claims.scope === "string" ? claims.scope.split(" ").filter(Boolean) : [];
+    const audience =
+      typeof claims.aud === "string"
+        ? [claims.aud]
+        : Array.isArray(claims.aud) && claims.aud.every((value) => typeof value === "string")
+          ? claims.aud
+          : [];
+    const issuer = typeof claims.iss === "string" ? claims.iss : "";
+    const expiresAt = typeof claims.exp === "number" ? claims.exp : 0;
+    if (
+      claims.active !== true ||
+      !authorizationServers.includes(issuer) ||
+      !audience.includes(resource) ||
+      expiresAt <= Math.floor(Date.now() / 1000)
+    ) {
+      throw new TokenVerificationError({ error: "invalid_token" });
+    }
+    if (!requiredScopes.every((scope) => scopes.includes(scope))) {
+      throw new TokenVerificationError({ error: "insufficient_scope", scope: requiredScopes });
+    }
+
+    return {
+      token,
+      issuer,
+      audience,
+      scopes,
+      expiresAt,
+      claims,
+      ...(typeof claims.sub === "string" ? { subject: claims.sub } : {}),
+      ...(typeof claims.client_id === "string" ? { clientId: claims.client_id } : {})
+    };
+  }
+};
+```
+
+Keep introspection credentials server-side, authenticate the introspection request using the method required by your authorization server, and validate any additional issuer, audience, token-type, or expiry rules your deployment requires.
 
 When OAuth is enabled, the server exposes `GET /.well-known/oauth-protected-resource` with `application/json`:
 
@@ -189,9 +267,9 @@ Unauthenticated requests to the MCP endpoint return `401` with:
 WWW-Authenticate: Bearer realm="mcp", resource_metadata="http://127.0.0.1:3000/.well-known/oauth-protected-resource"
 ```
 
-Standalone `listenHttp()` serves both the MCP endpoint and the protected-resource metadata route. For Express, mount `metadataMiddleware` at the app root and mount `mcpMiddleware` on your MCP path.
+Standalone `listenHttp()` serves both the MCP endpoint and the protected-resource metadata route. For Express, mount `metadataMiddleware` at the app root and mount `mcpMiddleware` on your MCP path, as shown above. Do not put a body parser before `mcpMiddleware`.
 
-OAuth sessions are bound to the verified token `subject`, falling back to `clientId` when the subject is absent. Requests with a different identity receive `404`, just like an unknown session. Tokens with neither a non-empty subject nor client id create unbound sessions.
+OAuth sessions are bound to the verified token `subject`, falling back to `clientId` when the subject is absent. This auth-subject binding prevents a different identity from reusing the session id: mismatched requests receive `404`, just like an unknown session. Tokens with neither a non-empty subject nor client id create unbound sessions.
 
 For non-HTTP integrations, `createProtectedResourceMetadataDocument(oauth)` returns the metadata JSON document without creating middleware.
 
@@ -201,6 +279,56 @@ For non-HTTP integrations, `createProtectedResourceMetadataDocument(oauth)` retu
 - `observability`: emit auth failure events through the same observability hook shape used by the HTTP transport.
 
 The package does not define any OAuth-specific environment variables. Configure OAuth with the `oauth` object in code or the CLI flags below.
+
+## Production Deployment
+
+Prefer the standalone `listenHttp()` server behind a TLS-terminating reverse proxy such as nginx or an AWS Application Load Balancer. Reserve the Express adapter for embedding MCP into an existing Express application; it adds middleware-ordering concerns without replacing the transport's production controls.
+
+Production checklist:
+
+- Set `allowedHosts` to the public MCP hostname, such as `mcp.example.com`. The loopback-only default intentionally returns `403` for public hostnames.
+- When TLS terminates at the proxy, set `trustedProxy: true` and have the proxy replace `X-Forwarded-Proto` and `X-Forwarded-Host`. Only trust these headers when requests can reach the server exclusively through that proxy.
+- Set `allowedOrigins` only when browser-based clients need CORS. Non-browser MCP clients do not require it.
+- Apply explicit limits for the workload: `maxRequestBytes` around 1-4 MiB, `maxBatchSize` around `16`, plus bounded `maxSessions`, `sessionTtlMs` around 15 minutes, `maxConcurrentToolCalls`, and `toolCallTimeoutMs`.
+- Configure `requestTimeoutMs`, `headersTimeoutMs`, and `keepAliveTimeoutMs` deliberately. Keep Node timeouts that can end proxied work above the proxy idle timeout so the proxy owns idle connection cleanup.
+- Keep `maxStreamsPerSession` at its default of `1` unless clients genuinely need parallel GET SSE streams. Bound slow consumers with `maxStreamBufferBytes` and the replay window with `maxSseEventHistory`.
+- Configure graceful shutdown. The CLI defaults `--shutdown-grace-ms` to 10 seconds. Programmatic deployments should start `handle.close()`, then call `handle.closeAllConnections()` only if their own grace deadline expires first.
+- Use OAuth with `createJwksTokenVerifier()` for JWT access tokens, or a custom `TokenVerifier` for opaque tokens. Leave `allowInsecureJwks` disabled outside local development and consider `requireAccessTokenType: true` when the issuer emits RFC 9068 access-token JWTs.
+- Put request-rate and connection-rate limits at the reverse proxy, before requests consume Node streams, sessions, or tool-call capacity.
+
+For nginx, disable response buffering for SSE, use HTTP/1.1 to the upstream, and keep `proxy_read_timeout` greater than `sseKeepAliveMs`:
+
+```nginx
+location /mcp {
+  proxy_pass http://127.0.0.1:3000;
+  proxy_http_version 1.1;
+  proxy_buffering off;
+  proxy_read_timeout 75s; # greater than the default 30s sseKeepAliveMs
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-Host $host;
+  proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+Wire `observability.onEvent` to structured logs or metrics. This console recipe can be replaced directly with `logger.info(event, "mcp.http")` for pino:
+
+```ts
+const server = createHttpServer({
+  name: "production-server",
+  version: "1.0.0",
+  observability: {
+    onEvent(event) {
+      console.info(JSON.stringify({ component: "mcp.http", ...event }));
+    }
+  }
+});
+```
+
+### Multiple Instances and Sticky Routing
+
+A custom `sessionStore` can preserve the session record so an instance can reconstruct session lifecycle state, including the `authSubject` used to bind an OAuth session to its verified identity. It does not make the HTTP transport distributed: active SSE streams and `Last-Event-ID` replay history remain in memory on the instance that created them.
+
+Horizontal scaling therefore requires sticky routing by `Mcp-Session-Id` so every request for a session reaches the same instance. Restarting or rerouting an instance loses its live streams and replay history even when the session record survives. `maxSseEventHistory` bounds how many instance-local events can be replayed; it is not a shared event log.
 
 ## BYO HTTP Server: Raw Node.js
 
@@ -283,6 +411,7 @@ const server = createHttpServer({
 Returned `HttpServer` instances support:
 
 - `.tool(name, description, schema, handler, outputSchema?)` to register tools
+- `.registerTool(definition, handler)` to register tools with full MCP metadata
 - `.listenHttp(options?)` to start a standalone Node HTTP server
 - `.handleRequest(req, res)` to plug into an existing HTTP stack
 
@@ -308,11 +437,32 @@ Returned `HttpServer` instances support:
 | `maxSseEventHistory`     | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                             |
 | `sseKeepAliveMs`         | `number`                                     | `30000`                          | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.         |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited                        | Maximum concurrent tool calls across sessions.                                                |
-| `sessionStore`           | `SessionStore`                               | in-memory store                  | Pluggable session storage for long-running or multi-instance deployments.                     |
+| `sessionStore`           | `SessionStore`                               | in-memory store                  | Pluggable session-record storage; SSE streams and replay history remain instance-local.       |
 | `requestIdGenerator`     | `() => string`                               | incrementing ids                 | Generates request ids when `X-Request-Id` is absent.                                          |
 | `observability`          | `HttpObservabilityOptions`                   | none                             | Emits request, auth, session, stream, and tool lifecycle events.                              |
 | `trustedProxy`           | `boolean`                                    | `false`                          | Trust `X-Forwarded-Proto` and `X-Forwarded-Host` for metadata challenge URLs.                 |
 | `oauth`                  | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`                      | Enables OAuth protected-resource metadata and bearer-token verification for the MCP endpoint. |
+
+### `registerTool(definition, handler)`
+
+Registers a tool using the complete MCP tool definition. Use it instead of `.tool(...)` when you need fields such as `title`, `annotations`, `execution`, `icons`, or `_meta`.
+
+```ts
+server.registerTool(
+  {
+    name: "lookup",
+    title: "Lookup",
+    description: "Look up a record",
+    inputSchema: defineSchema({ id: { type: "string" } }),
+    annotations: { readOnlyHint: true }
+  },
+  async ({ id }, context) => {
+    return `Lookup ${id} for session ${context.sessionId ?? "stateless"}`;
+  }
+);
+```
+
+The handler receives the same `HttpToolContext` as `.tool(...)`. The optional `outputSchema` in the definition enables typed structured-output validation.
 
 ### `createExpressMiddleware(server)`
 
@@ -328,7 +478,8 @@ Behavior:
 
 - Returns an Express `RequestHandler`
 - Passes request failures to `next(error)`
-- Works with normal Express middleware ordering, including auth and `express.json()`
+- Works with normal Express middleware ordering, including authentication middleware
+- Must be mounted before any body parser that would consume the MCP request stream
 
 ### Types
 
@@ -364,18 +515,20 @@ Options for `server.listenHttp()`:
 
 Returned by `listenHttp()`:
 
-| Property | Type                  | Description                                       |
-| -------- | --------------------- | ------------------------------------------------- |
-| `url`    | `string`              | Full MCP endpoint URL.                            |
-| `port`   | `number`              | Resolved TCP port.                                |
-| `close`  | `() => Promise<void>` | Gracefully shuts down the listener and transport. |
+| Property              | Type                  | Description                                                                               |
+| --------------------- | --------------------- | ----------------------------------------------------------------------------------------- |
+| `url`                 | `string`              | Full MCP endpoint URL.                                                                    |
+| `port`                | `number`              | Resolved TCP port.                                                                        |
+| `close`               | `() => Promise<void>` | Gracefully shuts down the listener and transport.                                         |
+| `closeAllConnections` | `() => void`          | Force-closes all remaining HTTP connections. Use only after a graceful shutdown deadline. |
 
 #### `HttpTransportOptions` / `StreamableHttpTransportOptions`
 
-These are the same shape:
+`HttpTransportOptions` combines the base `ServerOptions` with `StreamableHttpTransportOptions` and the optional OAuth config. The table notes options that are not part of the lower-level transport type.
 
 | Option                   | Type                                         | Default            | Description                                                                               |
 | ------------------------ | -------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| `toolCallTimeoutMs`      | `number`                                     | unlimited          | `HttpTransportOptions` only. Returns `-32603` on timeout without cancelling the handler.  |
 | `sessionIdGenerator`     | `(() => string) \| undefined`                | built-in generator | Controls session support and session id creation.                                         |
 | `enableJsonResponse`     | `boolean`                                    | `false`            | Switches `POST` responses from SSE framing to plain JSON responses.                       |
 | `allowedHosts`           | `readonly string[]`                          | loopback hosts     | Allowed `Host` header values.                                                             |
@@ -389,7 +542,7 @@ These are the same shape:
 | `maxSseEventHistory`     | `number`                                     | `100`              | Number of SSE events retained for replay.                                                 |
 | `sseKeepAliveMs`         | `number`                                     | `30000`            | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.     |
 | `maxConcurrentToolCalls` | `number`                                     | unlimited          | Maximum concurrent tool calls across sessions.                                            |
-| `sessionStore`           | `SessionStore`                               | in-memory store    | Pluggable session storage.                                                                |
+| `sessionStore`           | `SessionStore`                               | in-memory store    | Pluggable session-record storage; SSE and replay state remain local to each instance.     |
 | `requestIdGenerator`     | `() => string`                               | incrementing ids   | Request id generator used when the request lacks `X-Request-Id`.                          |
 | `observability`          | `HttpObservabilityOptions`                   | none               | Event hook for request, auth, session, stream, and tool lifecycle telemetry.              |
 | `trustedProxy`           | `boolean`                                    | `false`            | Trust forwarded host/proto headers for metadata challenge URLs.                           |
@@ -408,8 +561,19 @@ interface HttpServer {
     handler: HttpToolHandler<TIn, TOut>,
     outputSchema?: TypedSchema<TOut>
   ): HttpServer;
+  registerTool<TIn, TOut>(
+    definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
+    handler: HttpToolHandler<TIn, TOut>
+  ): HttpServer;
   listenHttp(options?: HttpListenOptions): Promise<HttpServerHandle>;
   handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>;
+}
+
+interface HttpServerHandle {
+  url: string;
+  port: number;
+  close(): Promise<void>;
+  closeAllConnections(): void;
 }
 ```
 

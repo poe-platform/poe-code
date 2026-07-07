@@ -507,8 +507,8 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
-      release: open
+      commit: done
+      release: done
 
   - id: docs-production-guidance
     title: README production guidance and corrections
@@ -548,10 +548,10 @@ tasks:
       requireAccessTokenType) appears in the relevant option/CLI tables of
       the tiny-http-mcp-server and mcp-oauth READMEs.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
       release: open
 ---
 

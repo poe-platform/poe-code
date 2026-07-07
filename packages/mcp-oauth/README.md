@@ -50,15 +50,17 @@ const verifier = createJwksTokenVerifier({
 
 `createJwksTokenVerifier(options)` accepts:
 
-- `jwksUrl`
-- `clockSkewSeconds` optional, defaults to `30`
-- `allowedAlgorithms` optional asymmetric allow-list
-- `jwksCacheTtlMs` optional, defaults to `300000`
-- `jwksFetchTimeoutMs` optional, defaults to `5000`
-- `jwksRefreshCooldownMs` optional, defaults to `30000`
-- `allowInsecureJwks` optional, defaults to `false`; non-HTTPS JWKS URLs are only accepted for loopback hosts unless enabled
-- `requireAccessTokenType` optional, defaults to `false`; when enabled, requires the JWT `typ` header to be `at+jwt`
-- `fetch` optional override
+| Option                   | Type                | Default        | Description                                                                              |
+| ------------------------ | ------------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `jwksUrl`                | `string \| URL`     | none           | Authorization server JWKS endpoint.                                                      |
+| `clockSkewSeconds`       | `number`            | `30`           | Allowed JWT time-claim clock skew.                                                       |
+| `allowedAlgorithms`      | `readonly string[]` | asymmetric set | Allowed JWT signature algorithms.                                                        |
+| `jwksCacheTtlMs`         | `number`            | `300000`       | Successful JWKS cache lifetime.                                                          |
+| `jwksFetchTimeoutMs`     | `number`            | `5000`         | Timeout for each JWKS HTTP fetch.                                                        |
+| `jwksRefreshCooldownMs`  | `number`            | `30000`        | Minimum interval between forced refreshes after an unknown key id.                       |
+| `allowInsecureJwks`      | `boolean`           | `false`        | Permit non-HTTPS JWKS URLs. Loopback HTTP URLs are allowed without enabling this option. |
+| `requireAccessTokenType` | `boolean`           | `false`        | Require the JWT `typ` protected header to be `at+jwt`.                                   |
+| `fetch`                  | `typeof fetch`      | global `fetch` | Custom fetch implementation.                                                             |
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
 

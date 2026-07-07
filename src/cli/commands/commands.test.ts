@@ -715,7 +715,12 @@ describe("logout command", () => {
     return program;
   }
 
+  beforeEach(() => {
+    vi.stubEnv("POE_API_KEY", "");
+  });
+
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 

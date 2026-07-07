@@ -43,8 +43,8 @@ function assert(condition, message) {
   }
 }
 
-function readPrivateWorkspaceVersions() {
-  const versions = new Map();
+function readWorkspaceManifests() {
+  const manifests = new Map();
   for (const entry of readdirSync(path.join(repoRoot, "packages"), { withFileTypes: true })) {
     if (!entry.isDirectory()) {
       continue;
@@ -54,11 +54,44 @@ function readPrivateWorkspaceVersions() {
       continue;
     }
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-    if (manifest.private === true) {
-      versions.set(manifest.name, manifest.version);
-    }
+    manifests.set(manifest.name, manifest);
   }
-  return versions;
+  return manifests;
+}
+
+function privateVersionsOf(workspaceManifests) {
+  return new Map(
+    [...workspaceManifests]
+      .filter(([, manifest]) => manifest.private === true)
+      .map(([name, manifest]) => [name, manifest.version])
+  );
+}
+
+function collectBundledRegistryIdentities(projectDir) {
+  const lock = JSON.parse(readFileSync(path.join(projectDir, "package-lock.json"), "utf8"));
+  const identities = [];
+  for (const [lockPath, entry] of Object.entries(lock.packages ?? {})) {
+    if (!lockPath.startsWith("node_modules/toolcraft/node_modules/")) {
+      continue;
+    }
+    if (entry.version === undefined) {
+      continue;
+    }
+    const nameFromPath = lockPath.slice(
+      lockPath.lastIndexOf("node_modules/") + "node_modules/".length
+    );
+    identities.push({ name: entry.name ?? nameFromPath, version: entry.version });
+  }
+  return identities;
+}
+
+function isPublishedToRegistry(name, version) {
+  try {
+    execFileSync("npm", ["view", `${name}@${version}`, "version"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function assertLockOmitsPrivateIdentities(projectDir, privateWorkspaceVersions) {
@@ -228,7 +261,8 @@ function runConsumerSmoke(projectDir, tarballs) {
   });
 }
 
-function runOptionalDependencySmoke(projectDir, toolcraftTarball, privateWorkspaceVersions) {
+function runOptionalDependencySmoke(projectDir, toolcraftTarball, workspaceManifests) {
+  const privateWorkspaceVersions = privateVersionsOf(workspaceManifests);
   writeFileSync(
     path.join(projectDir, "package.json"),
     JSON.stringify(
@@ -256,7 +290,30 @@ function runOptionalDependencySmoke(projectDir, toolcraftTarball, privateWorkspa
   execFileSync("npm", ["ci", "--ignore-scripts"], { cwd: projectDir, stdio: "inherit" });
   execFileSync("npm", ["ls", "--all"], { cwd: projectDir, stdio: "inherit" });
   assertLockOmitsPrivateIdentities(projectDir, privateWorkspaceVersions);
-  execFileSync("npm", ["audit", "signatures"], { cwd: projectDir, stdio: "inherit" });
+
+  const bundledIdentities = collectBundledRegistryIdentities(projectDir);
+  const pendingRelease = bundledIdentities.filter(
+    ({ name, version }) => !isPublishedToRegistry(name, version)
+  );
+  const unexpected = pendingRelease.filter(({ name, version }) => {
+    const manifest = workspaceManifests.get(name);
+    return !(manifest && manifest.private !== true && manifest.version === version);
+  });
+  assert(
+    unexpected.length === 0,
+    `Expected bundled registry identities to exist on npm: ${unexpected
+      .map(({ name, version }) => `${name}@${version}`)
+      .join(", ")}.`
+  );
+  if (pendingRelease.length > 0) {
+    console.log(
+      `Skipping npm audit signatures: ${pendingRelease
+        .map(({ name, version }) => `${name}@${version}`)
+        .join(", ")} published by this release run.`
+    );
+  } else {
+    execFileSync("npm", ["audit", "signatures"], { cwd: projectDir, stdio: "inherit" });
+  }
   execFileSync(
     process.execPath,
     ["--input-type=module", "--eval", 'await import("toolcraft/mcp");'],
@@ -333,7 +390,8 @@ try {
     }
   }
 
-  const privateWorkspaceVersions = readPrivateWorkspaceVersions();
+  const workspaceManifests = readWorkspaceManifests();
+  const privateWorkspaceVersions = privateVersionsOf(workspaceManifests);
 
   for (const dependencyName of bundledRuntimeDependencies) {
     const bundledPackagePath = `package/node_modules/${dependencyName}`;
@@ -386,7 +444,7 @@ try {
 
   writeConsumerFixture(consumerDir);
   runConsumerSmoke(consumerDir, Object.values(tarballs));
-  runOptionalDependencySmoke(optionalConsumerDir, tarballs.agentKit, privateWorkspaceVersions);
+  runOptionalDependencySmoke(optionalConsumerDir, tarballs.agentKit, workspaceManifests);
 
   console.log("toolcraft standalone publish smoke passed.");
 } finally {

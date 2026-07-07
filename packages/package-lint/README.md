@@ -41,6 +41,7 @@ malformed `package.json`).
 | `package-readme-required`               | Every workspace package under `packages/*` has a package-local `README.md` documenting env vars and config options.                                                                                                               |
 | `runtime-file-assets-collocated`        | Runtime source does not read package-owned file assets from another package's `src` / `dist` tree or from a repo-root path that will not exist after publish.                                                                     |
 | `runtime-file-assets-packaged`          | Every finite package-local runtime file or directory reference exists in the built runtime tree and is included by each artifact surface that can execute the package.                                                            |
+| `no-import-attributes-in-shipped-source` | No npm-reaching source (published packages and the private packages they bundle/inline) uses import attributes (`with { type: ... }`) — a syntax error before Node 18.20 that contradicts the `>=18.18` engines floor (#517).     |
 
 Imports are parsed with the TypeScript compiler's own scanner (the engine
 `typescript-eslint` runs on) over each package's `src`, so the import-driven

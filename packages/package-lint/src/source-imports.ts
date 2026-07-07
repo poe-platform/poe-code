@@ -13,6 +13,8 @@ export interface ImportRef {
   typeOnly: boolean;
   /** True when the file is a test/spec (not shipped). */
   isTest: boolean;
+  /** True when the declaration carries import attributes (`with { type: "json" }`). */
+  importAttributes: boolean;
   /** For bare specifiers: the package name (scope-aware), e.g. "@scope/pkg". */
   packageName?: string;
   /** For relative specifiers that resolve outside the owning package dir: where they land. */
@@ -41,6 +43,7 @@ function isTestFile(relFile: string): boolean {
 export interface RawImport {
   specifier: string;
   typeOnly: boolean;
+  importAttributes: boolean;
 }
 
 function scriptKind(fileName: string): ts.ScriptKind {
@@ -78,7 +81,11 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
         const elements = clause.namedBindings.elements;
         typeOnly = elements.length > 0 && elements.every((e) => e.isTypeOnly);
       }
-      out.push({ specifier: statement.moduleSpecifier.text, typeOnly });
+      out.push({
+        specifier: statement.moduleSpecifier.text,
+        typeOnly,
+        importAttributes: statement.attributes !== undefined
+      });
     } else if (ts.isExportDeclaration(statement) && statement.moduleSpecifier) {
       if (ts.isStringLiteralLike(statement.moduleSpecifier)) {
         let typeOnly = statement.isTypeOnly;
@@ -86,12 +93,20 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
           const elements = statement.exportClause.elements;
           typeOnly = elements.length > 0 && elements.every((e) => e.isTypeOnly);
         }
-        out.push({ specifier: statement.moduleSpecifier.text, typeOnly });
+        out.push({
+          specifier: statement.moduleSpecifier.text,
+          typeOnly,
+          importAttributes: statement.attributes !== undefined
+        });
       }
     } else if (ts.isImportEqualsDeclaration(statement)) {
       const ref = statement.moduleReference;
       if (ts.isExternalModuleReference(ref) && ts.isStringLiteralLike(ref.expression)) {
-        out.push({ specifier: ref.expression.text, typeOnly: statement.isTypeOnly });
+        out.push({
+          specifier: ref.expression.text,
+          typeOnly: statement.isTypeOnly,
+          importAttributes: false
+        });
       }
     }
   }
@@ -103,7 +118,7 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
       const isRequire = ts.isIdentifier(node.expression) && node.expression.text === "require";
       const arg = node.arguments[0];
       if ((isDynamicImport || isRequire) && arg && ts.isStringLiteralLike(arg)) {
-        out.push({ specifier: arg.text, typeOnly: false });
+        out.push({ specifier: arg.text, typeOnly: false, importAttributes: false });
       }
     }
     ts.forEachChild(node, visit);
@@ -154,6 +169,12 @@ export function mayContainRelevantImport(
   source: string,
   workspaceNames: ReadonlySet<string>
 ): boolean {
+  // Import attributes (`from "x" with { type: "json" }`) matter even on
+  // same-package specifiers the workspace-name check below would skip.
+  if (source.includes(" with {") || source.includes(" assert {")) {
+    return true;
+  }
+
   const imports = ts.preProcessFile(source, true, true).importedFiles;
   for (const { fileName } of imports) {
     if (fileName.startsWith("../")) {
@@ -182,7 +203,8 @@ function classify(
     specifier: raw.specifier,
     kind: raw.specifier.startsWith(".") ? "relative" : "bare",
     typeOnly: raw.typeOnly,
-    isTest: isTestFile(relFile)
+    isTest: isTestFile(relFile),
+    importAttributes: raw.importAttributes
   };
 
   if (base.kind === "bare") {

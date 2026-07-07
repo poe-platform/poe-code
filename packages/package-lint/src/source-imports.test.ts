@@ -21,6 +21,15 @@ describe("mayContainRelevantImport", () => {
     ).toBe(true);
   });
 
+  it("accepts source with import attributes on a same-package specifier", () => {
+    expect(
+      mayContainRelevantImport(
+        'import schema from "./schema.json" with { type: "json" };\n',
+        workspaceNames
+      )
+    ).toBe(true);
+  });
+
   it("accepts source with a parent-relative import", () => {
     expect(mayContainRelevantImport('import "../../shared/src/index.js";\n', workspaceNames)).toBe(
       true
@@ -69,10 +78,29 @@ describe("extractRelevantImports", () => {
         "index.ts"
       )
     ).toEqual([
-      { specifier: "private-package", typeOnly: false },
-      { specifier: "@poe-code/shared/testing", typeOnly: false },
-      { specifier: "private-package/lazy", typeOnly: false },
-      { specifier: "../../shared/src/index.js", typeOnly: false }
+      { specifier: "private-package", typeOnly: false, importAttributes: false },
+      { specifier: "@poe-code/shared/testing", typeOnly: false, importAttributes: false },
+      { specifier: "private-package/lazy", typeOnly: false, importAttributes: false },
+      { specifier: "../../shared/src/index.js", typeOnly: false, importAttributes: false }
+    ]);
+  });
+
+  it("marks static import attributes and leaves dynamic import options unmarked", () => {
+    expect(
+      extractRelevantImports(
+        [
+          'import schema from "./schema.json" with { type: "json" };',
+          'export { other } from "./other.json" with { type: "json" };',
+          'const lazy = await import("./lazy.js", { with: { type: "json" } });',
+          'import plain from "./plain.js";'
+        ].join("\n"),
+        "index.ts"
+      )
+    ).toEqual([
+      { specifier: "./schema.json", typeOnly: false, importAttributes: true },
+      { specifier: "./other.json", typeOnly: false, importAttributes: true },
+      { specifier: "./plain.js", typeOnly: false, importAttributes: false },
+      { specifier: "./lazy.js", typeOnly: false, importAttributes: false }
     ]);
   });
 
@@ -89,11 +117,11 @@ describe("extractRelevantImports", () => {
         "index.ts"
       )
     ).toEqual([
-      { specifier: "private-package", typeOnly: true },
-      { specifier: "@poe-code/shared/testing", typeOnly: true },
-      { specifier: "private-package/types", typeOnly: true },
-      { specifier: "private-package/compact", typeOnly: true },
-      { specifier: "private-package/export-compact", typeOnly: true }
+      { specifier: "private-package", typeOnly: true, importAttributes: false },
+      { specifier: "@poe-code/shared/testing", typeOnly: true, importAttributes: false },
+      { specifier: "private-package/types", typeOnly: true, importAttributes: false },
+      { specifier: "private-package/compact", typeOnly: true, importAttributes: false },
+      { specifier: "private-package/export-compact", typeOnly: true, importAttributes: false }
     ]);
   });
 

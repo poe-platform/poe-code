@@ -18,7 +18,7 @@
 | 10 | Confirmed packages/toolcraft/src/cli.ts and mcp.ts hardcode toolcraft approvals. |
 | 11 | Blocked-flow copy Track toolcraft approvals show id. |
 | 12 | approvals show --approval-id missing returns Task "approvals/missing" not found — task terminology for appr… |
-| 13 | Live reconfirm of auth api-key --dry-run secret print |
+| 13 | Reconfirmed Critical: auth api-key --dry-run still emits the full API key (dry-run ignored). |
 | 14 | Help says only Display stored API key with no mention of masking, --reveal, or secret handling — even thoug… |
 | 15 | auth logout help says Remove all configuration and credentials same as root logout — if auth logout is alia… |
 

@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 856 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 861 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,14 +14,15 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 856. Continuously committed on main.
-Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
+Master == disk == 861. Continuously committed on main.
+Claude settings: model `claude-sonnet-4-6`, effortLevel `high` (repeatedly restored from fable/sonnet/xhigh corruption during session).
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
+Note: `claude-fable-*` appears in agent-traces test fixtures; live fable writes may be concurrent agent activity.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **856**. Critical 18 → **26**. Continuous commits on main.
+Started ~687 issues → **861**. Critical 18 → **26**. Continuous commits on main (~45 commits this stretch).
 
 ## Live reconfirms (still open)
 
@@ -34,7 +35,8 @@ Started ~687 issues → **856**. Critical 18 → **26**. Continuous commits on m
 - test kimi Provider poe not found
 - doctor still missing
 - gaslight ingest non-TTY POE_NO_PROMPT
+- live Claude settings intermittently corrupted (fable/sonnet/xhigh)
 
 ## Continue
 
-TTY interactive, dashboard, Windows, postinstall, residual edges. Prefer dry-run; never leave gaslight unattended; never print secrets into issue files; never skill unconfigure --force without backup; **verify Claude model after every configure probe**.
+TTY interactive, dashboard, Windows, postinstall, residual edges. Prefer dry-run; never leave gaslight unattended; never print secrets into issue files; never skill unconfigure --force without backup; **verify Claude model after every probe**.

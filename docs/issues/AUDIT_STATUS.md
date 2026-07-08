@@ -1,27 +1,32 @@
 # UX audit session status
 
-**Count:** 432 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 436 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
 Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
-## Critical 1–11
+## Critical 1–12
 
 1. Dry-run diffs print secrets  
 2–3. auth api-key reveal (+ dry-run)  
 4. Hard-coded dead `claude-sonnet-5` defaults  
-5. Goose configure still embeds sonnet-5 in models list  
-6. `--skip-if-configured --yes` rewrote live config to sonnet-5  
-7. `--skip-if-configured` help text lies about no-write behavior  
-8. skip-if-configured dry-run still shows dead sonnet-5 default  
-9. spawn poe-agent crash  
-10. plan archive/delete --yes arbitrary  
-11. logout factory-reset  
+5. configure --yes --dry-run always defaults to dead sonnet-5  
+6. Goose configure still embeds sonnet-5 in models list  
+7. `--skip-if-configured --yes` rewrote live config to sonnet-5  
+8. `--skip-if-configured` help text lies about no-write behavior  
+9. skip-if-configured dry-run still shows dead sonnet-5 default  
+10. spawn poe-agent crash  
+11. plan archive/delete --yes arbitrary  
+12. logout factory-reset  
+
+## Positive contrast
+
+spawn/test with anthropic/claude-sonnet-4.6 succeed; catalog has sonnet-4.6.
 
 ## Integrity
 
-Master == disk == 432. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 436. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

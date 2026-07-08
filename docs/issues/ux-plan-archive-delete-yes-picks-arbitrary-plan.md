@@ -29,6 +29,14 @@ Archived docs/plans/toolcraft-human-in-loop-opt-in-exports.md
 ```
 (Restored via git after audit probe.)
 
+## Reconfirmed (delete)
+
+```bash
+$ poe-code plan delete --yes
+Deleted docs/plans/tiny-http-mcp-server-production-hardening.md
+```
+(Restored via git after audit probe.)
+
 ## Severity
 
 **Critical**

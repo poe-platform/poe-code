@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 729 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 733 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,7 +14,7 @@ memory INDEX, root help hides half the product.
 
 ## Integrity
 
-Master == disk == 729. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 733. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 Restored docs/plans after gaslight/agent side effects. Removed audit .gemini and ux-probe-eval dirs.
 
 ## Continue

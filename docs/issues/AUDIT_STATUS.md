@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 513 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 518 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -8,11 +8,16 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 ## Critical 1–15
 
-See MASTER top 15 (secrets, sonnet-5 cluster, any-string model configure, poe-agent crash, plan --yes, logout).
+See MASTER top 15.
+
+## Latest batch
+
+plan browse non-TTY dump; tasks get 401 raw JSON; superintendent Unclosed tag;
+eval npm run dev; wrap still missing.
 
 ## Integrity
 
-Master == disk == 513. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 518. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

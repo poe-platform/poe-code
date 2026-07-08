@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 191 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 194 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,6 +15,11 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. plan archive/delete --yes arbitrary  
 7. README wrap missing  
 8. logout factory-reset  
+
+## Positive
+
+- pipeline validate on real pipeline plan works (aside from Problems footer)  
+- empty states for worktree/harness list are clean  
 
 ## Continue
 

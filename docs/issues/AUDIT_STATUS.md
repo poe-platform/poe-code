@@ -1,20 +1,20 @@
 # UX audit session status
 
-**Count:** 736 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 747 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
 Identify UX issues for ~12 hours; maintain master 1–N; keep finding, triaging, prioritizing.
 
-## Critical 1–21
+## Critical 1–22
 
-See MASTER top 21 — secrets, sonnet-5 cluster, effort always xhigh, gaslight
-empty model + read-mode plan mutation, poe-agent crash, plan --yes, logout,
+See MASTER top 22 — secrets, sonnet-5 cluster, effort always xhigh, spawn --yes→yolo,
+gaslight empty model + read-mode plan mutation, poe-agent crash, plan --yes, logout,
 memory INDEX, root help hides half the product.
 
 ## Integrity
 
-Master == disk == 736. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 747. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 Restored docs/plans after gaslight/agent side effects. Removed audit .gemini and ux-probe-eval dirs.
 
 ## Continue

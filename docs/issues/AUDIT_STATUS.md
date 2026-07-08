@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 376 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 379 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -18,7 +18,7 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 ## Integrity
 
-Master == disk == 376. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 379. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

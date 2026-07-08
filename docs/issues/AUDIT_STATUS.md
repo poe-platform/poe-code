@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 194 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 197 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -18,8 +18,7 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 ## Positive
 
-- pipeline validate on real pipeline plan works (aside from Problems footer)  
-- empty states for worktree/harness list are clean  
+- codex/claude/pi/goose spawn with valid models succeed  
 
 ## Continue
 

@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 885 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 889 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,7 +14,7 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 885. Continuously committed on main.
+Master == disk == 889. Continuously committed on main.
 Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
 Auth: **Not logged in** (mid-session). Catalog: sonnet-5 = 0 matches; opus-4.7 has xhigh; sonnet-4.6 does not.
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
@@ -22,7 +22,7 @@ Restored docs/plans and .claude/skills after audit side effects. Removed audit p
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **885**. Critical 18 → **27**. Continuous commits on main (~51 commits this stretch).
+Started ~687 issues → **889**. Critical 18 → **27**. Continuous commits on main (~52 commits this stretch).
 
 ## Live reconfirms (still open)
 
@@ -37,6 +37,7 @@ Started ~687 issues → **885**. Critical 18 → **27**. Continuous commits on m
 - experiment install --force still Skill already exists
 - plan archive/delete help still omit --yes
 - root help Usage npm run dev
+- install/unconfigure help still sparse
 - doctor still missing
 - gaslight ingest non-TTY POE_NO_PROMPT
 - live Claude settings intermittently corrupted (fable/sonnet/xhigh)

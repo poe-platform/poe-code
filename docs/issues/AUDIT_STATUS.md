@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 837 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 846 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,14 +14,14 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 837. Continuously committed on main.
+Master == disk == 846. Continuously committed on main.
 Claude model restored to claude-sonnet-4-6 after fable corruption incident.
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **837**. Critical 18 → **26**. Continuous commits on main (~40 commits this stretch).
+Started ~687 issues → **846**. Critical 18 → **26**. Continuous commits on main.
 
 ## Live reconfirms (still open)
 
@@ -29,6 +29,8 @@ Started ~687 issues → **837**. Critical 18 → **26**. Continuous commits on m
 - spawn poe-agent still fs.lstat crash
 - skip-if-configured matching sonnet-4.6 still full rewrite dry-run
 - configure haiku still plans effortLevel xhigh
+- configure --model sonnet writes literal sonnet
+- experiment install --force still Skill already exists
 - test kimi Provider poe not found
 
 ## Continue

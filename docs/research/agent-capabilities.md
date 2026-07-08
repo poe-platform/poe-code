@@ -5,21 +5,21 @@ Current snapshot of first-party agent support.
 Authoritative sources:
 
 - Spawn and spawn-time MCP: `packages/agent-spawn/src/configs/`
-- Configure/test/isolation/wrap: `src/providers/`
+- Configure/test/isolation: `src/providers/`
 - Persistent MCP config: `packages/agent-mcp-config/src/configs.ts`
 - Skills: `packages/agent-skill-config/src/configs.ts`
 
-| Agent          | Spawn | Spawn-time MCP | Configure | Isolated test/run | Wrap | Persistent MCP config | Skills |
-| -------------- | ----- | -------------- | --------- | ----------------- | ---- | --------------------- | ------ |
-| Claude Code    | Yes   | Yes            | Yes       | Yes               | Yes  | Yes                   | Yes    |
-| Codex          | Yes   | Yes            | Yes       | Yes               | Yes  | Yes                   | Yes    |
-| OpenCode       | Yes   | Yes            | Yes       | Yes               | Yes  | Yes                   | Yes    |
-| Kimi           | Yes   | Yes            | Yes       | Yes               | No   | Yes                   | No     |
-| Goose          | Yes   | Yes            | Yes       | Yes               | No   | Yes                   | Yes    |
-| Cursor         | Yes   | Yes            | Yes       | No                | No   | Yes                   | Yes    |
-| Gemini CLI     | Yes   | Yes            | Yes       | Yes               | No   | No                    | Yes    |
-| Claude Desktop | No    | No             | File-only | No                | No   | Yes                   | No     |
-| Poe Agent      | Yes   | No             | Yes       | No                | No   | No                    | No     |
+| Agent          | Spawn | Spawn-time MCP | Configure | Isolated test/run | Persistent MCP config | Skills |
+| -------------- | ----- | -------------- | --------- | ----------------- | --------------------- | ------ |
+| Claude Code    | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
+| Codex          | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
+| OpenCode       | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
+| Kimi           | Yes   | Yes            | Yes       | Yes               | Yes                   | No     |
+| Goose          | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
+| Cursor         | Yes   | Yes            | Yes       | No                | Yes                   | Yes    |
+| Gemini CLI     | Yes   | Yes            | Yes       | Yes               | No                    | Yes    |
+| Claude Desktop | No    | No             | File-only | No                | Yes                   | No     |
+| Poe Agent      | Yes   | No             | Yes       | No                | No                    | No     |
 
 ## Definitions
 

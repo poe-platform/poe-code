@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 912 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 919 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,7 +14,7 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 912. Continuously committed on main.
+Master == disk == 919. Continuously committed on main.
 Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
 Auth: **Not logged in** (mid-session). Catalog: sonnet-5 = 0 matches; opus-4.7 has xhigh; sonnet-4.6 does not.
 Source still has sonnet-5 in constants.ts + goose.ts context map. Root help still hides 13 working commands.
@@ -23,7 +23,7 @@ Restored docs/plans and .claude/skills after audit side effects. Removed audit p
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **912**. Critical 18 → **28**. Continuous commits on main (~59 commits this stretch).
+Started ~687 issues → **919**. Critical 18 → **28**. Continuous commits on main (~60 commits this stretch).
 
 ## Live reconfirms (still open)
 
@@ -40,6 +40,7 @@ Started ~687 issues → **912**. Critical 18 → **28**. Continuous commits on m
 - root help Usage npm run dev + hides 13 commands
 - gaslight help still says plan to implement
 - package.json extra bins still present
+- memory INDEX still not showable after init
 - doctor still missing
 - gaslight ingest non-TTY POE_NO_PROMPT
 - live Claude settings intermittently corrupted (fable/sonnet/xhigh)

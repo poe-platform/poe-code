@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 167 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 170 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,12 +14,6 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 5. plan archive/delete --yes arbitrary  
 6. README wrap missing  
 7. logout factory-reset  
-
-## Launch cluster (High)
-
-- Tombstone `.state-removed-*` breaks status  
-- Ghost rows with ID `-`  
-- npm run dev turbo noise on launch  
 
 ## Continue
 

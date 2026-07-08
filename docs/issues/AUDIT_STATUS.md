@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 152 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 155 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,10 +15,6 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. README wrap missing  
 7. logout factory-reset  
 
-## Latest finds
+## Progress
 
-- configure accepts invalid --model without validation  
-- plan browse non-TTY dumps plan body  
-- spawn --detach unclear on failure  
-
-Committed once to protect corpus; amend/follow-up commits as list grows.
+Committed to main in this worktree to prevent untracked wipe. Continue expanding backlog and re-triaging.

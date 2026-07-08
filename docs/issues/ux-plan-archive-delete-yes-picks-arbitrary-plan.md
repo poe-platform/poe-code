@@ -21,6 +21,14 @@ Data loss; --yes means accept defaults not pick random destructive target.
 
 Never allow archive/delete without explicit path even with --yes.
 
+## Reconfirmed
+
+```bash
+$ poe-code plan archive --yes
+Archived docs/plans/toolcraft-human-in-loop-opt-in-exports.md
+```
+(Restored via git after audit probe.)
+
 ## Severity
 
 **Critical**

@@ -1,28 +1,31 @@
-# UX: traces --cwd-only is unknown despite earlier help documenting it
+# UX: traces workspace filter is --all-workspaces; --cwd-only no longer exists
 
 ## Summary
 
-traces --cwd-only now errors unknown option, while earlier audit capture listed --cwd-only / --all-workspaces on traces help — flag drift or help/implementation mismatch.
+traces defaults to cwd-only listing; expansion is via --all-workspaces. The flag --cwd-only is unknown. Earlier audit notes and possibly stale help/docs referenced --cwd-only, creating drift.
 
 ## Evidence
 
 ```bash
-$ poe-code traces --cwd-only --limit 3
+$ poe-code traces --help
+  --all-workspaces       Read traces from every workspace, not just cwd
+  # no --cwd-only
+
+$ poe-code traces --cwd-only
 error: unknown option '--cwd-only'
 ```
-Current traces --help should be checked for workspace filters.
 
 ## Why it matters
 
-Users following old help or muscle memory fail; document current filters.
+Muscle memory / old docs fail. Default cwd-only is fine if documented; the inverted flag name is the surprise.
 
 ## Suggested direction
 
-Restore flag or document replacement; keep help/implementation in sync.
+Document default = cwd; --all-workspaces to expand. If --cwd-only was ever public, keep as no-op alias for compatibility.
 
 ## Severity
 
-Medium
+Low–Medium
 
 ## Area
 

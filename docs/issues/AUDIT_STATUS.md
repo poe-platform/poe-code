@@ -1,10 +1,10 @@
 # UX audit session status
 
-**Count:** 149 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 152 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
-Identify UX issues; maintain master priorities 1–N; keep finding, triaging, prioritizing.
+Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 ## Critical 1–7
 
@@ -15,10 +15,10 @@ Identify UX issues; maintain master priorities 1–N; keep finding, triaging, pr
 6. README wrap missing  
 7. logout factory-reset  
 
-## Integrity
+## Latest finds
 
-Staged in git. **Commit recommended.**
+- configure accepts invalid --model without validation  
+- plan browse non-TTY dumps plan body  
+- spawn --detach unclear on failure  
 
-## Continue
-
-TTY interactive, dashboard, Windows, postinstall, residual edges.
+Committed once to protect corpus; amend/follow-up commits as list grows.

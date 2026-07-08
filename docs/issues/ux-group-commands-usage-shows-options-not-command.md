@@ -12,6 +12,8 @@ Four group commands incorrectly show `[options]` in their Usage line instead of 
 | `poe-code utils` | `poe-code utils [options]` | `poe-code utils [command]` |
 | `poe-code usage` | `poe-code usage [options]` | `poe-code usage [command]` |
 | `poe-code ralph` | `poe-code ralph [options]` | `poe-code ralph [command]` |
+| `poe-code worktree` | `poe-code worktree [options]` | `poe-code worktree [command]` |
+| `poe-code harness` | `poe-code harness [options]` | `poe-code harness [command]` |
 
 ## Correct examples (for reference)
 

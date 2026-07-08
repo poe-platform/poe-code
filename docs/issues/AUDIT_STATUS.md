@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 162 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 164 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,9 +15,9 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. README wrap missing  
 7. logout factory-reset  
 
-## Status
+## High note
 
-Backlog committed on main in this worktree. Continuous discovery ongoing.
+`launch status` can hard-fail on `.state-removed-*` tombstones after normal `launch rm` — ops surface bricked until manual filesystem cleanup.
 
 ## Continue
 

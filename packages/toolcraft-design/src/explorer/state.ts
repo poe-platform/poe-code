@@ -24,7 +24,14 @@ export interface Detail<R> {
   actions?: Action<R>[];      // run against the focused detail item
 }
 
-export interface DetailCtx { width: number; height: number; signal: AbortSignal; row: Row }
+export interface DetailCtx {
+  width: number;
+  height: number;
+  signal: AbortSignal;
+  row: Row;
+  /** Re-run detail.items for the focused row and repaint the preview pane. */
+  reloadDetail?: () => void;
+}
 
 export interface Action<R> {
   id: string;
@@ -44,6 +51,8 @@ export interface ActionContext<R> {
   item?: DetailItem;           // populated for actions declared under detail.actions
   filter: string;
   refresh: () => Promise<void>;
+  /** Re-run detail.items for the focused row and repaint the preview pane. */
+  reloadDetail: () => void;
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
   openModal: (content: { title: string; content: string }) => void;
   toast: (msg: string, tone?: Tone) => void;
@@ -67,6 +76,8 @@ export interface ExplorerConfig<R> {
   keybindOverrides?: Record<string, string | string[]>;
   emptyHint?: string;
   initialFilter?: string;
+  /** Synchronous first paint rows; still refreshed via `rows()` after start. */
+  initialRows?: Row[];
 }
 
 export const REGION_HEADER = 1 << 0;
@@ -149,23 +160,26 @@ export function createInitialState<R>(
   };
   const multiSelect = config.multiSelect ?? true;
 
+  const initialRows = config.initialRows ?? [];
+  const initialFilter = config.initialFilter ?? "";
+  // Defer filtering to first rowsLoaded when empty; seed list immediately when provided.
   return {
     title: config.title,
     emptyHint: config.emptyHint ?? "No detail",
-    rows: [],
-    filtered: [],
+    rows: initialRows,
+    filtered: initialRows.map((_, index) => index),
     matchPositions: new Map(),
     cursor: 0,
-    filter: config.initialFilter ?? "",
+    filter: initialFilter,
     filterFocused: false,
     focused: "list",
     detail: {
-      rowId: null,
+      rowId: initialRows[0]?.id ?? null,
       items: null,
       cursor: 0,
       scroll: 0,
-      token: 0,
-      loading: false
+      token: initialRows.length > 0 ? 1 : 0,
+      loading: initialRows.length > 0
     },
     selected: new Set(),
     multiSelect,

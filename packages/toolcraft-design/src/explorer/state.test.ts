@@ -115,4 +115,21 @@ describe("createInitialState", () => {
       detail: { items: async () => [], actions: [detailAction] }
     }), { cols: 120, rows: 24 })).toThrow("Duplicate explorer action id: open");
   });
+
+  it("seeds rows from initialRows for first paint", () => {
+    const state = createInitialState(
+      config({
+        initialRows: [
+          { id: "one", title: "One" },
+          { id: "two", title: "Two" }
+        ]
+      }),
+      { cols: 120, rows: 24 }
+    );
+
+    expect(state.rows.map((row) => row.id)).toEqual(["one", "two"]);
+    expect(state.filtered).toEqual([0, 1]);
+    expect(state.detail.rowId).toBe("one");
+    expect(state.detail.loading).toBe(true);
+  });
 });

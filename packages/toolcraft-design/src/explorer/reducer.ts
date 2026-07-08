@@ -28,6 +28,7 @@ type ExplorerKeypressEvent = Extract<ExplorerEvent, { type: "key" }>["key"];
 const NO_EFFECTS: Effect[] = [];
 const DEFAULT_ACTION_HANDLES: ActionRuntimeHandles = {
   refresh: async () => undefined,
+  reloadDetail: () => undefined,
   suspendAnd: async (fn) => fn(),
   openModal: () => undefined,
   toast: () => undefined,

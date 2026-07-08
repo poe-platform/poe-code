@@ -62,6 +62,9 @@ class ExplorerRuntime<R> {
       refresh: async () => {
         await this.refreshRowsFromSource();
       },
+      reloadDetail: (rowId) => {
+        this.reloadFocusedDetail(rowId);
+      },
       suspendAnd: async (fn) => this.suspendAnd(fn),
       openModal: (content) => {
         this.dispatch({ type: "modalOpened", title: content.title, content: content.content });
@@ -82,6 +85,10 @@ class ExplorerRuntime<R> {
 
       try {
         this.startTerminal();
+        if (this.config.initialRows !== undefined && this.config.initialRows.length > 0) {
+          // Seed list/detail before first paint so callers with known rows avoid an empty flash.
+          this.dispatch({ type: "rowsLoaded", rows: this.config.initialRows });
+        }
         this.render();
         this.loadRows().catch((error) => {
           this.fail(error);
@@ -180,12 +187,29 @@ class ExplorerRuntime<R> {
       detailHidden: this.state.layout === "narrow-list-only" || this.state.layout === "too-narrow"
     });
 
-    void this.detailJobs.schedule(rowId, (ctx) => this.config.detail.items(row, ctx), {
-      width: layout.detail.width,
-      height: layout.detail.height,
-      row,
-      signal: new AbortController().signal
-    });
+    const reloadDetail = () => this.reloadFocusedDetail(rowId);
+    void this.detailJobs.schedule(
+      rowId,
+      (ctx) => this.config.detail.items(row, { ...ctx, reloadDetail }),
+      {
+        width: layout.detail.width,
+        height: layout.detail.height,
+        row,
+        signal: new AbortController().signal,
+        reloadDetail
+      }
+    );
+  }
+
+  private reloadFocusedDetail(rowId?: string): void {
+    const focusedId = this.state.detail.rowId;
+    if (focusedId === null) {
+      return;
+    }
+    if (rowId !== undefined && rowId !== focusedId) {
+      return;
+    }
+    this.renderDetail(focusedId);
   }
 
   private loadDetailContent(

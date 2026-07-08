@@ -40,7 +40,9 @@ function loadedState(overrides: Partial<ExplorerConfig<unknown>> = {}): Explorer
 function handles(): ActionRuntimeHandles {
   return {
     refresh: vi.fn(async () => undefined),
+    reloadDetail: vi.fn(),
     suspendAnd: vi.fn(async (fn) => fn()),
+    openModal: vi.fn(),
     toast: vi.fn(),
     confirm: vi.fn(async () => true),
     exit: vi.fn()

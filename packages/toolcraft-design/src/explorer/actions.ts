@@ -6,6 +6,7 @@ type ExplorerKeypressEvent = Extract<ExplorerEvent, { type: "key" }>["key"];
 
 export type ActionRuntimeHandles = {
   refresh: () => Promise<void>;
+  reloadDetail: (rowId?: string) => void;
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
   openModal: (content: { title: string; content: string }) => void;
   toast: (msg: string, tone?: Tone) => void;
@@ -49,6 +50,7 @@ export function buildActionContext<R>(
     item: source === "detail" ? currentDetailItem(state) : undefined,
     filter: state.filter,
     refresh: runtimeHandles.refresh,
+    reloadDetail: runtimeHandles.reloadDetail,
     suspendAnd: runtimeHandles.suspendAnd,
     openModal: runtimeHandles.openModal,
     toast: runtimeHandles.toast,

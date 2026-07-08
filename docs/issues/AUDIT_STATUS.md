@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 499 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 504 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -12,12 +12,12 @@ See MASTER top 14 (secrets, sonnet-5 cluster, poe-agent crash, plan --yes, logou
 
 ## Latest batch
 
-memory install agent/force gaps; braintrust status-only; dashboard missing;
-activity-timeout system chrome; extra npm bins reconfirm; postinstall skill sync.
+unwritable --log-dir silent; models --model namespaced 0 hits; mode validation
+positive; pipeline validate positives/reconfirms; harness kinds reconfirm.
 
 ## Integrity
 
-Master == disk == 499. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 504. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 325 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 329 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -17,7 +17,7 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 ## Integrity
 
-Master == disk == 325. Continuously committed on main.
+Master == disk == 329. Continuously committed on main.
 
 ## Continue
 

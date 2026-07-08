@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 861 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 865 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,29 +14,31 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 861. Continuously committed on main.
-Claude settings: model `claude-sonnet-4-6`, effortLevel `high` (repeatedly restored from fable/sonnet/xhigh corruption during session).
+Master == disk == 865. Continuously committed on main.
+Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
+Auth flipped to **Not logged in** mid-session without intentional logout (credentials missing).
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
-Note: `claude-fable-*` appears in agent-traces test fixtures; live fable writes may be concurrent agent activity.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **861**. Critical 18 → **26**. Continuous commits on main (~45 commits this stretch).
+Started ~687 issues → **865**. Critical 18 → **26**. Continuous commits on main (~46 commits this stretch).
 
 ## Live reconfirms (still open)
 
-- auth api-key --dry-run still prints full secret
+- auth api-key --dry-run still prints full secret (when logged in)
 - spawn poe-agent still fs.lstat crash
 - skip-if-configured matching sonnet-4.6 still full rewrite dry-run
 - configure haiku still plans effortLevel xhigh
+- configure goose with haiku still embeds sonnet-5 in models list
 - configure --model sonnet writes literal sonnet
 - experiment install --force still Skill already exists
 - test kimi Provider poe not found
 - doctor still missing
 - gaslight ingest non-TTY POE_NO_PROMPT
 - live Claude settings intermittently corrupted (fable/sonnet/xhigh)
+- auth status became Not logged in mid-session
 
 ## Continue
 
-TTY interactive, dashboard, Windows, postinstall, residual edges. Prefer dry-run; never leave gaslight unattended; never print secrets into issue files; never skill unconfigure --force without backup; **verify Claude model after every probe**.
+TTY interactive, dashboard, Windows, postinstall, residual edges. Prefer dry-run; never leave gaslight unattended; never print secrets into issue files; never skill unconfigure --force without backup; **verify Claude model after every probe**. Auth currently logged out — avoid spawn/test that need keys unless relogin.

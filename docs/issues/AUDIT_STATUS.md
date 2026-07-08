@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 810 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 813 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,14 +14,15 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 810. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 813. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 Restored docs/plans after gaslight/agent side effects. Removed audit probe dirs.
 **Restored .claude/skills/** after skill unconfigure --force wiped them.
-**Never commit live secrets**.
+Removed audit `.poe-code/code-review/` install probe.
+**Never commit live secrets**. Do not revert concurrent untracked work (e.g. trace-browser plans).
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **810**. Critical 18 → **24**. Continuous commits on main.
+Started ~687 issues → **813**. Critical 18 → **25**. Continuous commits on main (~30 commits this stretch).
 
 ## Live reconfirms (still open)
 

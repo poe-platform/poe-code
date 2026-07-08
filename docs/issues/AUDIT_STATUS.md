@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 346 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 350 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -11,13 +11,13 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 1. Dry-run diffs print secrets  
 2–3. auth api-key reveal (+ dry-run)  
 4. Hard-coded dead `claude-sonnet-5` defaults  
-5. spawn poe-agent crash  
+5. spawn poe-agent crash (reconfirmed live)  
 6. plan archive/delete --yes arbitrary  
 7. logout factory-reset  
 
 ## Integrity
 
-Master == disk == 346. Continuously committed on main.
+Master == disk == 350. Continuously committed on main.
 
 ## Continue
 

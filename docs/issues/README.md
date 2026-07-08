@@ -1,6 +1,6 @@
 # UX issues
 
-**[MASTER.md](./MASTER.md)** — **278** issues, **1 = fix first**. [AUDIT_STATUS.md](./AUDIT_STATUS.md)
+**[MASTER.md](./MASTER.md)** — **279** issues, **1 = fix first**. [AUDIT_STATUS.md](./AUDIT_STATUS.md)
 
 ## Top 15
 
@@ -142,6 +142,7 @@
 | [ux-many-parent-groups-only-dump-help.md](./ux-many-parent-groups-only-dump-help.md) | 125 |
 | [ux-mcp-servers-missing-file-almost-good.md](./ux-mcp-servers-missing-file-almost-good.md) | 221 |
 | [ux-mcp-servers-validation-good.md](./ux-mcp-servers-validation-good.md) | 261 |
+| [ux-memory-cache-clear-requires-yes-good.md](./ux-memory-cache-clear-requires-yes-good.md) | 262 |
 | [ux-memory-clear-help-still-no-force-or-yes.md](./ux-memory-clear-help-still-no-force-or-yes.md) | 126 |
 | [ux-memory-clear-no-confirmation.md](./ux-memory-clear-no-confirmation.md) | 127 |
 | [ux-memory-install-already-exists-system-chrome.md](./ux-memory-install-already-exists-system-chrome.md) | 128 |
@@ -156,7 +157,7 @@
 | [ux-models-exact-id-filter-rejects-namespaced-ids.md](./ux-models-exact-id-filter-rejects-namespaced-ids.md) | 37 |
 | [ux-models-feature-bogus-silent-empty.md](./ux-models-feature-bogus-silent-empty.md) | 134 |
 | [ux-models-feature-flag-not-repeatable.md](./ux-models-feature-flag-not-repeatable.md) | 135 |
-| [ux-models-help-examples-are-excellent.md](./ux-models-help-examples-are-excellent.md) | 262 |
+| [ux-models-help-examples-are-excellent.md](./ux-models-help-examples-are-excellent.md) | 263 |
 | [ux-models-input-bogus-silent-empty.md](./ux-models-input-bogus-silent-empty.md) | 136 |
 | [ux-models-invalid-feature-silent-empty.md](./ux-models-invalid-feature-silent-empty.md) | 137 |
 | [ux-models-invalid-modality-silent-empty.md](./ux-models-invalid-modality-silent-empty.md) | 138 |
@@ -173,7 +174,7 @@
 | [ux-permission-mode-sets-differ-across-commands.md](./ux-permission-mode-sets-differ-across-commands.md) | 41 |
 | [ux-pi-spawnable-but-not-configurable.md](./ux-pi-spawnable-but-not-configurable.md) | 42 |
 | [ux-pipeline-init-yes-error-ok-but-panel-lifecycle.md](./ux-pipeline-init-yes-error-ok-but-panel-lifecycle.md) | 142 |
-| [ux-pipeline-max-runs-zero-good-validation.md](./ux-pipeline-max-runs-zero-good-validation.md) | 263 |
+| [ux-pipeline-max-runs-zero-good-validation.md](./ux-pipeline-max-runs-zero-good-validation.md) | 264 |
 | [ux-pipeline-run-autopicks-plan-and-ignores-missing-task-context.md](./ux-pipeline-run-autopicks-plan-and-ignores-missing-task-context.md) | 43 |
 | [ux-pipeline-tui-flag-ignored-on-init-failure.md](./ux-pipeline-tui-flag-ignored-on-init-failure.md) | 143 |
 | [ux-pipeline-validate-enoent-system-error.md](./ux-pipeline-validate-enoent-system-error.md) | 144 |
@@ -186,7 +187,7 @@
 | [ux-plan-delete-allows-readme.md](./ux-plan-delete-allows-readme.md) | 45 |
 | [ux-plan-docs-advertise-goal-and-chat-commands-missing.md](./ux-plan-docs-advertise-goal-and-chat-commands-missing.md) | 148 |
 | [ux-plan-edit-hangs-without-editor.md](./ux-plan-edit-hangs-without-editor.md) | 46 |
-| [ux-plan-install-success-good.md](./ux-plan-install-success-good.md) | 264 |
+| [ux-plan-install-success-good.md](./ux-plan-install-success-good.md) | 265 |
 | [ux-plan-list-empty-table-no-message.md](./ux-plan-list-empty-table-no-message.md) | 229 |
 | [ux-plan-list-includes-noise-files.md](./ux-plan-list-includes-noise-files.md) | 149 |
 | [ux-plan-list-output-json-unframed.md](./ux-plan-list-output-json-unframed.md) | 230 |
@@ -194,9 +195,9 @@
 | [ux-plan-markdown-read-section-wrong-command-hint.md](./ux-plan-markdown-read-section-wrong-command-hint.md) | 150 |
 | [ux-plan-markdown-read-system-chrome.md](./ux-plan-markdown-read-system-chrome.md) | 151 |
 | [ux-plan-non-tty-unclear-failure.md](./ux-plan-non-tty-unclear-failure.md) | 152 |
-| [ux-plan-output-invalid-validation-good.md](./ux-plan-output-invalid-validation-good.md) | 265 |
-| [ux-plan-path-commands-bare-stdout-reconfirmed.md](./ux-plan-path-commands-bare-stdout-reconfirmed.md) | 266 |
-| [ux-plan-path-commands-bare-stdout.md](./ux-plan-path-commands-bare-stdout.md) | 267 |
+| [ux-plan-output-invalid-validation-good.md](./ux-plan-output-invalid-validation-good.md) | 266 |
+| [ux-plan-path-commands-bare-stdout-reconfirmed.md](./ux-plan-path-commands-bare-stdout-reconfirmed.md) | 267 |
+| [ux-plan-path-commands-bare-stdout.md](./ux-plan-path-commands-bare-stdout.md) | 268 |
 | [ux-plan-view-json-dumps-full-markdown-content.md](./ux-plan-view-json-dumps-full-markdown-content.md) | 232 |
 | [ux-plan-view-vs-markdown-read-not-found-inconsistent.md](./ux-plan-view-vs-markdown-read-not-found-inconsistent.md) | 153 |
 | [ux-primary-commands-lack-examples-in-help.md](./ux-primary-commands-lack-examples-in-help.md) | 154 |
@@ -217,7 +218,7 @@
 | [ux-resume-thread-errors-are-agent-raw.md](./ux-resume-thread-errors-are-agent-raw.md) | 163 |
 | [ux-root-help-footer-npm-run-dev-for-options.md](./ux-root-help-footer-npm-run-dev-for-options.md) | 52 |
 | [ux-root-help-usage-line-is-npm-run-dev.md](./ux-root-help-usage-line-is-npm-run-dev.md) | 53 |
-| [ux-root-tagline-inconsistent.md](./ux-root-tagline-inconsistent.md) | 268 |
+| [ux-root-tagline-inconsistent.md](./ux-root-tagline-inconsistent.md) | 269 |
 | [ux-runtime-jobs-list-unbounded-opaque-statuses.md](./ux-runtime-jobs-list-unbounded-opaque-statuses.md) | 164 |
 | [ux-runtime-jobs-logs-ambiguous-lists-many-including-running.md](./ux-runtime-jobs-logs-ambiguous-lists-many-including-running.md) | 54 |
 | [ux-runtime-jobs-show-unknown-suggests-stop.md](./ux-runtime-jobs-show-unknown-suggests-stop.md) | 165 |
@@ -228,13 +229,13 @@
 | [ux-sdk-cli-mode-default-mismatch.md](./ux-sdk-cli-mode-default-mismatch.md) | 55 |
 | [ux-sdk-getpoeapikey-throws-generic-error.md](./ux-sdk-getpoeapikey-throws-generic-error.md) | 167 |
 | [ux-shape-base-url-error-good-message-system-prefix.md](./ux-shape-base-url-error-good-message-system-prefix.md) | 236 |
-| [ux-shape-base-url-invalid-validation-good.md](./ux-shape-base-url-invalid-validation-good.md) | 269 |
+| [ux-shape-base-url-invalid-validation-good.md](./ux-shape-base-url-invalid-validation-good.md) | 270 |
 | [ux-skill-and-skills-flags-undocumented-relationship.md](./ux-skill-and-skills-flags-undocumented-relationship.md) | 237 |
 | [ux-skill-bridge-failure-system-chrome.md](./ux-skill-bridge-failure-system-chrome.md) | 168 |
 | [ux-skill-configure-goose-writes-dot-agents-skills.md](./ux-skill-configure-goose-writes-dot-agents-skills.md) | 238 |
 | [ux-skill-configure-kimi-unsupported-abrupt.md](./ux-skill-configure-kimi-unsupported-abrupt.md) | 169 |
 | [ux-skill-configure-yes-defaults-agent-silently.md](./ux-skill-configure-yes-defaults-agent-silently.md) | 170 |
-| [ux-skill-install-from-file-works-well.md](./ux-skill-install-from-file-works-well.md) | 270 |
+| [ux-skill-install-from-file-works-well.md](./ux-skill-install-from-file-works-well.md) | 271 |
 | [ux-skill-install-name-and-file-both-required.md](./ux-skill-install-name-and-file-both-required.md) | 171 |
 | [ux-skill-naming-collisions.md](./ux-skill-naming-collisions.md) | 172 |
 | [ux-skill-parent-no-next-step-guidance.md](./ux-skill-parent-no-next-step-guidance.md) | 173 |
@@ -251,11 +252,11 @@
 | [ux-spawn-gemini-provider-credential-opaque-error.md](./ux-spawn-gemini-provider-credential-opaque-error.md) | 58 |
 | [ux-spawn-interactive-raw-agent-error.md](./ux-spawn-interactive-raw-agent-error.md) | 59 |
 | [ux-spawn-interactive-still-uses-stale-model-bare-error.md](./ux-spawn-interactive-still-uses-stale-model-bare-error.md) | 60 |
-| [ux-spawn-invalid-mode-validation-good.md](./ux-spawn-invalid-mode-validation-good.md) | 271 |
+| [ux-spawn-invalid-mode-validation-good.md](./ux-spawn-invalid-mode-validation-good.md) | 272 |
 | [ux-spawn-mode-and-permission-copy.md](./ux-spawn-mode-and-permission-copy.md) | 61 |
 | [ux-spawn-no-prompt-system-chrome.md](./ux-spawn-no-prompt-system-chrome.md) | 181 |
 | [ux-spawn-poe-agent-crashes-fs-lstat.md](./ux-spawn-poe-agent-crashes-fs-lstat.md) | 5 |
-| [ux-spawn-runtime-docker-error-good-install-hints.md](./ux-spawn-runtime-docker-error-good-install-hints.md) | 272 |
+| [ux-spawn-runtime-docker-error-good-install-hints.md](./ux-spawn-runtime-docker-error-good-install-hints.md) | 273 |
 | [ux-spawn-success-still-problems-footer.md](./ux-spawn-success-still-problems-footer.md) | 240 |
 | [ux-spawn-validates-mode-before-agent.md](./ux-spawn-validates-mode-before-agent.md) | 182 |
 | [ux-stale-configured-model-fails-late.md](./ux-stale-configured-model-fails-late.md) | 62 |
@@ -268,7 +269,7 @@
 | [ux-tasks-github-auth-raw-error.md](./ux-tasks-github-auth-raw-error.md) | 186 |
 | [ux-test-and-install-reject-spawn-only-agents-as-unknown.md](./ux-test-and-install-reject-spawn-only-agents-as-unknown.md) | 65 |
 | [ux-test-failure-dumps-jsonl.md](./ux-test-failure-dumps-jsonl.md) | 66 |
-| [ux-test-with-valid-model-succeeds.md](./ux-test-with-valid-model-succeeds.md) | 273 |
+| [ux-test-with-valid-model-succeeds.md](./ux-test-with-valid-model-succeeds.md) | 274 |
 | [ux-timeout-errors-use-system-chrome.md](./ux-timeout-errors-use-system-chrome.md) | 187 |
 | [ux-toolcraft-has-suggestions-poe-code-root-does-not.md](./ux-toolcraft-has-suggestions-poe-code-root-does-not.md) | 188 |
 | [ux-toolcraft-heading-doubles-poe-code.md](./ux-toolcraft-heading-doubles-poe-code.md) | 189 |
@@ -283,17 +284,17 @@
 | [ux-unconfigure-nonconfigured-agent-still-plans-mutations.md](./ux-unconfigure-nonconfigured-agent-still-plans-mutations.md) | 193 |
 | [ux-unknown-agent-no-allow-list-or-suggestions.md](./ux-unknown-agent-no-allow-list-or-suggestions.md) | 71 |
 | [ux-update-always-suggests-npm-install-g.md](./ux-update-always-suggests-npm-install-g.md) | 194 |
-| [ux-update-package-manager-override-works.md](./ux-update-package-manager-override-works.md) | 274 |
-| [ux-usage-balance-presentation-good.md](./ux-usage-balance-presentation-good.md) | 275 |
+| [ux-update-package-manager-override-works.md](./ux-update-package-manager-override-works.md) | 275 |
+| [ux-usage-balance-presentation-good.md](./ux-usage-balance-presentation-good.md) | 276 |
 | [ux-usage-help-hides-default-balance.md](./ux-usage-help-hides-default-balance.md) | 243 |
 | [ux-usage-list-no-json-flag.md](./ux-usage-list-no-json-flag.md) | 195 |
 | [ux-user-errors-look-like-system-failures.md](./ux-user-errors-look-like-system-failures.md) | 72 |
-| [ux-utils-config-init-already-exists-is-info.md](./ux-utils-config-init-already-exists-is-info.md) | 276 |
+| [ux-utils-config-init-already-exists-is-info.md](./ux-utils-config-init-already-exists-is-info.md) | 277 |
 | [ux-utils-config-path-subcommand-missing.md](./ux-utils-config-path-subcommand-missing.md) | 196 |
 | [ux-utils-config-show-dumps-large-json.md](./ux-utils-config-show-dumps-large-json.md) | 197 |
-| [ux-utils-symlink-skills-both-exist-good-guidance.md](./ux-utils-symlink-skills-both-exist-good-guidance.md) | 277 |
+| [ux-utils-symlink-skills-both-exist-good-guidance.md](./ux-utils-symlink-skills-both-exist-good-guidance.md) | 278 |
 | [ux-utils-symlink-skills-scope-error-vs-agents.md](./ux-utils-symlink-skills-scope-error-vs-agents.md) | 244 |
-| [ux-utils-symlink-skills-yes-local-dry-run-works.md](./ux-utils-symlink-skills-yes-local-dry-run-works.md) | 278 |
+| [ux-utils-symlink-skills-yes-local-dry-run-works.md](./ux-utils-symlink-skills-yes-local-dry-run-works.md) | 279 |
 | [ux-validation-error-still-prints-stack.md](./ux-validation-error-still-prints-stack.md) | 73 |
 | [ux-verbose-prefixes-every-log-line.md](./ux-verbose-prefixes-every-log-line.md) | 245 |
 | [ux-version-nags-dev-to-major-jump.md](./ux-version-nags-dev-to-major-jump.md) | 198 |

@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 819 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 820 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,13 +14,13 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 819. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 820. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **819**. Critical 18 → **26**. Continuous commits on main.
+Started ~687 issues → **820**. Critical 18 → **26**. Continuous commits on main.
 
 ## Live reconfirms (still open)
 

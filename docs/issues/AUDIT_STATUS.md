@@ -10,11 +10,6 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 See MASTER top 16 (secrets, sonnet-5 cluster, any-string model, poe-agent, plan --yes, logout).
 
-## Latest batch
-
-models --output json breaks --search; configure unknown provider positive;
-provider login See logs; skill configure --yes default claude.
-
 ## Integrity
 
 Master == disk == 525. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.

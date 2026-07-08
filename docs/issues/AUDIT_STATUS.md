@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 155 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 158 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,6 +15,10 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. README wrap missing  
 7. logout factory-reset  
 
-## Progress
+## Note
 
-Committed to main in this worktree to prevent untracked wipe. Continue expanding backlog and re-triaging.
+Positive pattern: `--activity-timeout-ms 0` validates cleanly without system chrome — copy that style widely.
+
+## Continue
+
+TTY interactive, dashboard, Windows, postinstall, residual edges.

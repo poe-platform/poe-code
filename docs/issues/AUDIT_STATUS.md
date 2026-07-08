@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 158 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 160 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,9 +15,10 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. README wrap missing  
 7. logout factory-reset  
 
-## Note
+## Latest
 
-Positive pattern: `--activity-timeout-ms 0` validates cleanly without system chrome — copy that style widely.
+- --reasoning-effort may be silently ignored for Claude  
+- --feature not repeatable (last-wins)  
 
 ## Continue
 

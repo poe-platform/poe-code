@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 504 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 509 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -12,12 +12,12 @@ See MASTER top 14 (secrets, sonnet-5 cluster, poe-agent crash, plan --yes, logou
 
 ## Latest batch
 
-unwritable --log-dir silent; models --model namespaced 0 hits; mode validation
-positive; pipeline validate positives/reconfirms; harness kinds reconfirm.
+install --yes silent claude default; install pi capability gap; agent empty
+See logs; usage balance positive.
 
 ## Integrity
 
-Master == disk == 504. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 509. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

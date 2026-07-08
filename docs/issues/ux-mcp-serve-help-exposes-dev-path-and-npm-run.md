@@ -39,9 +39,13 @@ The correct configuration for an installed CLI would reference the `poe-code` bi
 
 Replace the auto-generated config snippet with the installed binary invocation: `"command": "poe-code", "args": ["mcp", "serve"]`. Do not derive the config from `process.argv[0]` or the current working directory.
 
+## Current state
+
+As of 2026-07-08, `poe-code mcp serve --help` returns "Unknown command: mcp" — the `mcp` command has been removed. This issue documents the state as of the May 2025 screenshots. If `mcp serve` is re-added, the configuration snippet must use the installed binary path rather than the dev path.
+
 ## Severity
 
-High
+High (if re-added); moot for current builds
 
 ## Area
 

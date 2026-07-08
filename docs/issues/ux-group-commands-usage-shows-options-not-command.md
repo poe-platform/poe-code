@@ -1,0 +1,30 @@
+# UX: Multiple group commands show [options] instead of [command] in Usage line
+
+## Summary
+
+Four group commands incorrectly show `[options]` in their Usage line instead of `[command]`. This pattern implies the group itself accepts flags and runs standalone, when in fact all four require a subcommand.
+
+## Affected commands
+
+| Command | Shown | Should be |
+|---|---|---|
+| `poe-code skill` | `poe-code skill [options]` | `poe-code skill [command]` |
+| `poe-code utils` | `poe-code utils [options]` | `poe-code utils [command]` |
+| `poe-code usage` | `poe-code usage [options]` | `poe-code usage [command]` |
+| `poe-code ralph` | `poe-code ralph [options]` | `poe-code ralph [command]` |
+
+## Correct examples (for reference)
+
+Commands that get this right: `memory`, `runtime`, `provider`, `auth`, `pipeline`, `experiment` — all show `[command]`.
+
+## Why it matters
+
+Users who read the Usage line first see `[options]` and look for flags. The `[command]` affordance is the standard signal that a group requires a subcommand. This is a systemic registration bug, not a one-off copy issue.
+
+## Severity
+
+Low (systemic)
+
+## Area
+
+CLI / group commands / help / usage / consistency

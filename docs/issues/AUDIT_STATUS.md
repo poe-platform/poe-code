@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 598 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 601 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -12,7 +12,7 @@ See MASTER top 17 — secrets, sonnet-5 cluster, poe-agent crash, plan --yes, lo
 
 ## Integrity
 
-Master == disk == 598. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 601. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

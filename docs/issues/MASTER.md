@@ -1,6 +1,6 @@
 # UX issues — master priority list
 
-**1 = fix first.** Count: **907**. Continuous audit 2026-07-07/08.
+**1 = fix first.** Count: **912**. Continuous audit 2026-07-07/08.
 
 ## Master list (1–N)
 
@@ -511,414 +511,419 @@
 | 503 | open | Medium | Plan | [ux-plan-markdown-read-system-chrome.md](./ux-plan-markdown-read-system-chrome.md) | file not found + logs. |
 | 504 | open | Medium | Plan | [ux-plan-non-tty-unclear-failure.md](./ux-plan-non-tty-unclear-failure.md) | plan question bare 400. |
 | 505 | open | Medium | Plan | [ux-plan-question-starts-session-without-mode.md](./ux-plan-question-starts-session-without-mode.md) | plan "test plan question only" --yes printed What do you want to build? and began session — multi-word with… |
-| 506 | open | Medium | Plan | [ux-plan-view-json-dumps-full-content.md](./ux-plan-view-json-dumps-full-content.md) | plan view --output json includes entire content string of the plan body — huge payload for scripts that onl… |
-| 507 | open | Medium | Plan | [ux-plan-view-vs-markdown-read-not-found-inconsistent.md](./ux-plan-view-vs-markdown-read-not-found-inconsistent.md) | plan view missing.md → Plan not found: missing.md (clean, no logs). plan markdown-read missing.md → file no… |
-| 508 | open | Medium | Help | [ux-primary-commands-lack-examples-in-help.md](./ux-primary-commands-lack-examples-in-help.md) | models has Examples; configure/spawn do not. |
-| 509 | open | Medium | Help | [ux-primary-commands-still-lack-examples.md](./ux-primary-commands-still-lack-examples.md) | spawn, configure, and gaslight --help still have no Examples section while models --help is best-in-class w… |
-| 510 | open | Medium | Providers | [ux-provider-list-agents-column-incomplete.md](./ux-provider-list-agents-column-incomplete.md) | Omits spawn-only agents. |
-| 511 | open | Medium | Providers | [ux-provider-list-agents-column-truncates.md](./ux-provider-list-agents-column-truncates.md) | provider list cloudflare Agents cell ends with poe-… truncation — full agent list not visible without wide … |
-| 512 | open | Medium | Providers | [ux-provider-list-no-json-flag.md](./ux-provider-list-no-json-flag.md) | provider list --json is unknown; only design-system table available for scripting. |
-| 513 | open | Medium | Provider auth / security | [ux-provider-login-api-key-flag-history-risk.md](./ux-provider-login-api-key-flag-history-risk.md) | `provider login --help` lists `--api-key <key>` as a first-class option. Passing secrets via CLI args leaks… |
-| 514 | open | Medium | Provider auth | [ux-provider-login-missing-key-system-chrome.md](./ux-provider-login-missing-key-system-chrome.md) | Good message + logs. |
-| 515 | open | Medium | Workflows | [ux-ralph-experiment-wrong-kind-says-not-found.md](./ux-ralph-experiment-wrong-kind-says-not-found.md) | Existing plan wrong kind. |
-| 516 | open | Medium | Ralph | [ux-ralph-run-help-omits-yes.md](./ux-ralph-run-help-omits-yes.md) | ralph run help has agent/iterations/cwd/archive/tui/worktree/runtime/detach — no --yes for non-TTY. |
-| 517 | open | Medium | Ralph | [ux-ralph-validate-command-missing.md](./ux-ralph-validate-command-missing.md) | ralph validate unknown command while experiment/superintendent/pipeline have validate. |
-| 518 | open | Medium | Errors | [ux-raw-commander-invalid-option-choices.md](./ux-raw-commander-invalid-option-choices.md) | --view nope raw. |
-| 519 | open | Medium | Errors | [ux-raw-commander-missing-args.md](./ux-raw-commander-missing-args.md) | unconfigure/wrap missing agent raw error. |
-| 520 | open | Medium | Docs / CLI sync | [ux-readme-features-wrap-but-cli-missing.md](./ux-readme-features-wrap-but-cli-missing.md) | README wrap quickstart removed; wrap CLI residual (muscle memory / external docs) |
-| 521 | open | Medium | Configure | [ux-reasoning-effort-flag-opaque.md](./ux-reasoning-effort-flag-opaque.md) | No validation/examples. |
-| 522 | open | Medium | Spawn | [ux-resume-thread-errors-are-agent-raw.md](./ux-resume-thread-errors-are-agent-raw.md) | Long agent usage text. |
-| 523 | open | Medium | Spawn | [ux-resume-thread-invalid-agent-raw-error.md](./ux-resume-thread-invalid-agent-raw-error.md) | spawn --resume-thread-id not-a-real-id fails with long Claude Code usage text about UUID/session title + Se… |
-| 524 | open | Medium | Help | [ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md](./ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md) | confgure and spwn → Unknown command + npm run dev help — no Did you mean configure/spawn. |
-| 525 | open | Medium | Help | [ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md](./ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md) | configuree and modell → Unknown command + npm run dev — no Did you mean configure/models. |
-| 526 | open | Medium | Spawn | [ux-runner-sync-and-runtime-invalid-raw-commander.md](./ux-runner-sync-and-runtime-invalid-raw-commander.md) | Invalid --runner-sync bogus and --runtime bogus print Commander option argument is invalid. Allowed choices… |
-| 527 | open | Medium | Spawn / runtime | [ux-runner-sync-without-runtime-silently-accepted.md](./ux-runner-sync-without-runtime-silently-accepted.md) | spawn with --runner-sync both but no runtime/detach runs inline successfully — flag appears no-op without w… |
-| 528 | open | Medium | Runtime jobs | [ux-runtime-job-missing-see-logs.md](./ux-runtime-job-missing-see-logs.md) | runtime jobs stop/logs missing-id: No runtime job found + See logs — clear message, system chrome. |
-| 529 | open | Medium | Runtime jobs | [ux-runtime-jobs-attach-missing-see-logs.md](./ux-runtime-jobs-attach-missing-see-logs.md) | runtime jobs attach missing: No runtime job found + See logs — same class as stop/logs. |
-| 530 | open | Medium | Runtime | [ux-runtime-jobs-list-unbounded-opaque-statuses.md](./ux-runtime-jobs-list-unbounded-opaque-statuses.md) | History dump; lost unexplained. |
-| 531 | open | Medium | Runtime jobs | [ux-runtime-jobs-logs-stop-missing-see-logs.md](./ux-runtime-jobs-logs-stop-missing-see-logs.md) | runtime jobs logs/stop missing: No runtime job found + See logs — clear message, system chrome residual. |
-| 532 | open | Medium | Runtime jobs | [ux-runtime-jobs-ls-help-no-limit-reconfirmed.md](./ux-runtime-jobs-ls-help-no-limit-reconfirmed.md) | runtime jobs ls --help only -h — no --limit, --since, --status despite unbounded May-era list. |
-| 533 | open | Medium | Runtime jobs | [ux-runtime-jobs-show-unknown-suggests-stop.md](./ux-runtime-jobs-show-unknown-suggests-stop.md) | runtime jobs show is not a command; Commander Did you mean: stop? — users expect show/get for job details. |
-| 534 | open | Medium | Runtime / errors | [ux-runtime-missing-deps-good-message-system-chrome.md](./ux-runtime-missing-deps-good-message-system-chrome.md) | spawn --runtime docker/e2b missing engine/API key messages include install links and config paths (excellen… |
-| 535 | open | Medium | Runtime | [ux-runtime-templates-ls-empty-rows.md](./ux-runtime-templates-ls-empty-rows.md) | runtime templates ls shows docker and e2b rows with Hash (empty) and blank artifact/Dockerfile/Built — look… |
-| 536 | open | Medium | SDK | [ux-sdk-getpoeapikey-throws-generic-error.md](./ux-sdk-getpoeapikey-throws-generic-error.md) | SDK credential helper throws new Error("No API key found…") rather than a typed/user-facing error class, so… |
-| 537 | open | Medium | Spawn / skills | [ux-skill-bridge-failure-system-chrome.md](./ux-skill-bridge-failure-system-chrome.md) | Paths listed + See logs. |
-| 538 | open | Medium | Skill / configure / agent list / consistency | [ux-skill-configure-agent-list-differs-from-configure.md](./ux-skill-configure-agent-list-differs-from-configure.md) | `skill configure [agent]` lists supported agents as: ``` claude-code / codex / cursor / gemini-cli / openco… |
-| 539 | open | Medium | Skills | [ux-skill-configure-agent-list-subset-reconfirmed.md](./ux-skill-configure-agent-list-subset-reconfirmed.md) | skill configure agents: claude-code, codex, cursor, gemini-cli, opencode, goose — omits kimi (configure inc… |
-| 540 | open | Medium | Skills / agents | [ux-skill-configure-kimi-unsupported-abrupt.md](./ux-skill-configure-kimi-unsupported-abrupt.md) | Skills not supported for kimi. |
-| 541 | open | Medium | Skills | [ux-skill-configure-yes-defaults-agent-silently.md](./ux-skill-configure-yes-defaults-agent-silently.md) | skill configure --yes --local without agent configures claude-code without stating default selection policy… |
-| 542 | open | Medium | Skills | [ux-skill-configure-yes-defaults-to-claude-already-exists.md](./ux-skill-configure-yes-defaults-to-claude-already-exists.md) | skill configure --yes without agent targets claude-code and fails Skill already exists … See logs — silent … |
-| 543 | open | Medium | Skills | [ux-skill-install-file-required-before-name.md](./ux-skill-install-file-required-before-name.md) | skill install claude-code --name onlyname fails required option --file first — both name and file required;… |
-| 544 | open | Medium | Skills | [ux-skill-install-missing-file-enoent-see-logs.md](./ux-skill-install-missing-file-enoent-see-logs.md) | skill install with missing SKILL.md path: ENOENT open + See logs — should be ValidationError file not found. |
-| 545 | open | Medium | Skills | [ux-skill-install-missing-file-enoent.md](./ux-skill-install-missing-file-enoent.md) | skill install --file /tmp/no-skill.md fails ENOENT: no such file… + See logs. |
-| 546 | open | Medium | Skills | [ux-skill-install-name-and-file-both-required.md](./ux-skill-install-name-and-file-both-required.md) | Serial required options opaque. |
-| 547 | open | Medium | Naming | [ux-skill-naming-collisions.md](./ux-skill-naming-collisions.md) | skills≠skill; dual /plan. |
-| 548 | open | Medium | Skills / first-run | [ux-skill-parent-no-next-step-guidance.md](./ux-skill-parent-no-next-step-guidance.md) | poe-code skill with no subcommand prints a bare subcommand list without suggesting the common onboarding pa… |
-| 549 | open | Medium | Skills | [ux-skill-unconfigure-defaults-agent-and-soft-blocks.md](./ux-skill-unconfigure-defaults-agent-and-soft-blocks.md) | skill unconfigure without agent defaults to claude-code and refuses non-empty skill dirs unless --force, bu… |
-| 550 | open | Medium | Spawn / skills | [ux-skills-empty-string-silently-ignored.md](./ux-skills-empty-string-silently-ignored.md) | spawn with --skills "" succeeds without warning — empty skills flag ignored unlike --skill "" which fails m… |
-| 551 | open | Medium | Spawn / skills | [ux-skills-flag-without-value-is-noop-or-unclear.md](./ux-skills-flag-without-value-is-noop-or-unclear.md) | spawn … --skills with no value still runs the agent successfully (boolean presence?) without error or warni… |
-| 552 | open | Medium | Configure | [ux-skip-if-configured-still-writes-when-model-differs.md](./ux-skip-if-configured-still-writes-when-model-differs.md) | Passing --skip-if-configured with an explicit --model that differs from stored config still runs a full con… |
-| 553 | open | Medium | Spawn help | [ux-spawn-advanced-flags-undifferentiated.md](./ux-spawn-advanced-flags-undifferentiated.md) | ~20 options ungrouped. |
-| 554 | open | Medium | Spawn / codex | [ux-spawn-codex-reads-stdin-message-on-tty-less-success.md](./ux-spawn-codex-reads-stdin-message-on-tty-less-success.md) | Even when prompt is provided as an argument, successful codex spawn emits Reading additional input from std… |
-| 555 | open | Medium | Spawn | [ux-spawn-cwd-file-not-directory-see-logs.md](./ux-spawn-cwd-file-not-directory-see-logs.md) | spawn --cwd /tmp/file: Workspace path is not a directory + See logs — clear message, system chrome. |
-| 556 | open | Medium | Spawn | [ux-spawn-cwd-missing-see-logs.md](./ux-spawn-cwd-missing-see-logs.md) | spawn --cwd /tmp/does-not-exist: Workspace path does not exist + See logs — clear message, system chrome. |
-| 557 | open | Medium | Spawn / paths | [ux-spawn-cwd-missing-system-chrome.md](./ux-spawn-cwd-missing-system-chrome.md) | spawn -C /missing says Workspace path does not exist (good) but still attaches errors.log system-failure fo… |
-| 558 | open | Medium | Spawn / runtime | [ux-spawn-detach-ignored-on-failure-path.md](./ux-spawn-detach-ignored-on-failure-path.md) | With --detach, spawn still appears to run the agent path that fails on stale model in-foreground with succe… |
-| 559 | open | Medium | Spawn | [ux-spawn-empty-at-file-see-logs.md](./ux-spawn-empty-at-file-see-logs.md) | spawn claude @/tmp/empty.txt: No prompt provided via argument or stdin + See logs — clear message, system c… |
-| 560 | open | Medium | Spawn | [ux-spawn-interactive-bypasses-design-system-panel.md](./ux-spawn-interactive-bypasses-design-system-panel.md) | spawn … --interactive / -i in non-TTY still runs and prints bare agent text (ok / Hey!) without Poe - spawn… |
-| 561 | open | Medium | Spawn / interactive | [ux-spawn-interactive-non-tty-still-runs.md](./ux-spawn-interactive-non-tty-still-runs.md) | spawn … --interactive without TTY still produces agent output (not a clear "requires TTY" failure) — flag i… |
-| 562 | open | Medium | Spawn / security | [ux-spawn-log-content-help-underwarns-sensitive-data.md](./ux-spawn-log-content-help-underwarns-sensitive-data.md) | spawn --help: --log-content Include message and tool content in ACP JSONL spawn logs — no danger that logs … |
-| 563 | open | Medium | Spawn | [ux-spawn-missing-agent-raw-commander.md](./ux-spawn-missing-agent-raw-commander.md) | spawn with no args: error: missing required argument agent — raw commander not design-system; no agent list. |
-| 564 | open | Medium | Spawn | [ux-spawn-no-prompt-system-chrome.md](./ux-spawn-no-prompt-system-chrome.md) | No prompt provided via argument or stdin is correct message but still See logs system chrome. |
-| 565 | open | Medium | Spawn / skills | [ux-spawn-skill-missing-lists-searched-paths-see-logs.md](./ux-spawn-skill-missing-lists-searched-paths-see-logs.md) | spawn --skill no-such-skill: Failed to bridge active skills… Not found skill references; searched paths lis… |
-| 566 | open | Medium | Spawn | [ux-spawn-stdin-empty-see-logs.md](./ux-spawn-stdin-empty-see-logs.md) | spawn --stdin with empty stdin: No prompt provided via argument or stdin + See logs — good message, system … |
-| 567 | open | Medium | Spawn | [ux-spawn-validates-mode-before-agent-reconfirmed.md](./ux-spawn-validates-mode-before-agent-reconfirmed.md) | spawn unknown-agent --mode foobar fails mode first; spawn unknown-agent --mode read fails Unknown agent wit… |
-| 568 | open | Medium | Spawn / errors | [ux-spawn-validates-mode-before-agent.md](./ux-spawn-validates-mode-before-agent.md) | Invalid agent fails missing --mode first. |
-| 569 | open | Medium | Spawn / help / discoverability | [ux-spawn-yes-not-in-options.md](./ux-spawn-yes-not-in-options.md) | `spawn --help` does not list `--yes` as its own option. The flag is mentioned only inside the `--mode` desc… |
-| 570 | open | Medium | Visual language | [ux-successful-spawn-still-uses-checkmark-for-agent-text.md](./ux-successful-spawn-still-uses-checkmark-for-agent-text.md) | Even successful spawn pi output prefixes agent thinking/answer lines with ✓, same glyph as success status —… |
-| 571 | open | Medium | Help / identity | [ux-superintendent-builder-inspector-npm-run-dev.md](./ux-superintendent-builder-inspector-npm-run-dev.md) | superintendent builder/inspector help Usage: npm run dev -- superintendent builder … — reconfirm identity. |
-| 572 | open | Medium | Help / identity | [ux-superintendent-code-review-npm-run-dev-identity.md](./ux-superintendent-code-review-npm-run-dev-identity.md) | superintendent and code-review Usage: npm run dev -- … — identity leak class. |
-| 573 | open | Medium | Superintendent | [ux-superintendent-complete-wrong-kind-debug-tease.md](./ux-superintendent-complete-wrong-kind-debug-tease.md) | superintendent complete on plan-kind file: frontmatter kind must be superintendent Use --debug for a stack … |
-| 574 | open | Medium | Help / identity | [ux-superintendent-help-npm-run-dev-and-dense-run-options.md](./ux-superintendent-help-npm-run-dev-and-dense-run-options.md) | superintendent --help and superintendent run --help use npm run dev Usage and toolcraft-style dense OPTIONS… |
-| 575 | open | Medium | Superintendent | [ux-superintendent-validate-unclosed-tag-opaque.md](./ux-superintendent-validate-unclosed-tag-opaque.md) | No location. |
-| 576 | open | Medium | Tables | [ux-tables-ignore-terminal-width.md](./ux-tables-ignore-terminal-width.md) | Wide at COLUMNS=40. |
-| 577 | open | Medium | Tasks / auth | [ux-tasks-github-auth-raw-error.md](./ux-tasks-github-auth-raw-error.md) | tasks get raw GraphQL 401. |
-| 578 | open | Medium | Tasks | [ux-tasks-import-dry-run-still-requires-to.md](./ux-tasks-import-dry-run-still-requires-to.md) | tasks import --dry-run --from /tmp fails tasks import requires --to <workflow.md> — dry-run cannot preview … |
-| 579 | open | Medium | Test / capability | [ux-test-help-omits-pi-poe-agent.md](./ux-test-help-omits-pi-poe-agent.md) | test agent list ends at opencode — no pi/poe-agent; spawn lists them; test pi would be unknown vs spawn-onl… |
-| 580 | open | Medium | Spawn / timeouts | [ux-timeout-errors-use-system-chrome.md](./ux-timeout-errors-use-system-chrome.md) | 0.001s + See logs. |
-| 581 | open | Medium | Errors / recovery | [ux-toolcraft-has-suggestions-poe-code-root-does-not.md](./ux-toolcraft-has-suggestions-poe-code-root-does-not.md) | suggest.ts exists; root unused. |
-| 582 | open | Medium | Help / visual | [ux-toolcraft-heading-doubles-poe-code.md](./ux-toolcraft-heading-doubles-poe-code.md) | Double name heading. |
-| 583 | open | Medium | Traces | [ux-traces-directory-path-eisdir-reconfirmed.md](./ux-traces-directory-path-eisdir-reconfirmed.md) | traces /tmp → EISDIR illegal operation on directory, read + See logs — reconfirm kind-aware path error. |
-| 584 | open | Medium | Traces | [ux-traces-directory-path-eisdir.md](./ux-traces-directory-path-eisdir.md) | traces docs EISDIR. |
-| 585 | open | Medium | Traces | [ux-traces-missing-file-enoent-system-chrome.md](./ux-traces-missing-file-enoent-system-chrome.md) | traces /tmp/no-trace.jsonl → ENOENT open + See logs. |
-| 586 | open | Medium | Traces | [ux-traces-missing-file-system-error.md](./ux-traces-missing-file-system-error.md) | System chrome. |
-| 587 | open | Medium | Traces | [ux-traces-poe-code-source-titles-are-agent-names.md](./ux-traces-poe-code-source-titles-are-agent-names.md) | poe-code source traces show title pi / claude-code / cursor without user prompt — less useful than claude s… |
-| 588 | open | Medium | Dry-run | [ux-unconfigure-goose-dry-run-full-config-dump.md](./ux-unconfigure-goose-dry-run-full-config-dump.md) | unconfigure goose --dry-run creates large full config.yaml + dump rather than intentional-only removal summ… |
-| 589 | open | Medium | Unconfigure | [ux-unconfigure-help-missing-dry-run-and-yes.md](./ux-unconfigure-help-missing-dry-run-and-yes.md) | unconfigure help only -h; no --dry-run/--yes though global flags may apply — destructive command underdocum… |
-| 590 | open | Medium | Unconfigure | [ux-unconfigure-help-no-dry-run-or-yes.md](./ux-unconfigure-help-no-dry-run-or-yes.md) | unconfigure --help only lists agent and -h — no mention of global --dry-run, confirmation, or files affected. |
-| 591 | open | Medium | Unconfigure | [ux-unconfigure-missing-agent-raw-commander.md](./ux-unconfigure-missing-agent-raw-commander.md) | unconfigure without agent: error: missing required argument agent — raw commander; unconfigure not-an-agent… |
-| 592 | open | Medium | Destructive | [ux-unconfigure-no-confirmation.md](./ux-unconfigure-no-confirmation.md) | Immediate rewrite no --yes gate. |
-| 593 | open | Medium | Unconfigure | [ux-unconfigure-nonconfigured-agent-still-plans-mutations.md](./ux-unconfigure-nonconfigured-agent-still-plans-mutations.md) | unconfigure gemini --dry-run still emits large settings diffs and backup deletes even when user mental mode… |
-| 594 | open | Medium | Unconfigure | [ux-unconfigure-rejects-spawn-only-agents.md](./ux-unconfigure-rejects-spawn-only-agents.md) | unconfigure pi and unconfigure poe-agent: Unknown agent — correct that they are not configurable, but error… |
-| 595 | open | Medium | Update | [ux-update-always-suggests-npm-install-g.md](./ux-update-always-suggests-npm-install-g.md) | Ignores install method. |
-| 596 | open | Medium | Usage | [ux-usage-help-hides-default-balance-reconfirmed.md](./ux-usage-help-hides-default-balance-reconfirmed.md) | usage with no subcommand runs balance successfully, but usage --help only lists list subcommand — default b… |
-| 597 | open | Medium | Usage | [ux-usage-list-no-json-flag.md](./ux-usage-list-no-json-flag.md) | usage list lacks --json/--output; scripts cannot machine-parse usage history without scraping tables. trace… |
-| 598 | open | Medium | Usage | [ux-usage-pages-1-still-shows-20-entries.md](./ux-usage-pages-1-still-shows-20-entries.md) | usage list --pages 1 still fetches/displays 20 usage entries — --pages means number of pages not page size,… |
-| 599 | open | Medium | Usage | [ux-usage-pages-invalid-raw-commander.md](./ux-usage-pages-invalid-raw-commander.md) | --pages 0/-1 prints error: option argument is invalid. Expected a positive integer without design-system fr… |
-| 600 | open | Medium | Utils / editor | [ux-utils-config-edit-missing-editor-system-chrome.md](./ux-utils-config-edit-missing-editor-system-chrome.md) | utils config edit without EDITOR says Set $EDITOR to use this command + See logs — good message, unnecessar… |
-| 601 | open | Medium | Utils / config | [ux-utils-config-path-subcommand-missing.md](./ux-utils-config-path-subcommand-missing.md) | utils config path fails with too many arguments; only show/init/edit exist. Users often need the path witho… |
-| 602 | open | Medium | Utils / config | [ux-utils-config-show-dumps-large-json.md](./ux-utils-config-show-dumps-large-json.md) | utils config show prints full global config JSON including configured_services detail — useful but noisy; n… |
-| 603 | open | Medium | Utils / config / visual | [ux-utils-config-show-unframed-raw-json.md](./ux-utils-config-show-unframed-raw-json.md) | `utils config show` outputs two sections (`--- Environment variable overrides ---` and `--- Resolved (merge… |
-| 604 | open | Medium | Utils / symlink / visual | [ux-utils-symlink-help-missing-design-system-colors.md](./ux-utils-symlink-help-missing-design-system-colors.md) | `utils symlink --help` shows the panel title "Poe - utils symlink" in plain white/grey text rather than the… |
-| 605 | open | Medium | Utils / symlink / help / design system / visual consistency | [ux-utils-symlink-help-unformatted-white-text.md](./ux-utils-symlink-help-unformatted-white-text.md) | `poe-code utils symlink --help` renders its entire output in white unstyled text. No design system colors a… |
-| 606 | open | Medium | Version | [ux-version-nags-dev-to-major-jump.md](./ux-version-nags-dev-to-major-jump.md) | Local 0.0.0-dev build reports Update available to 4.0.0 and suggests npm install -g, which is noise for con… |
-| 607 | open | Medium | Version | [ux-version-still-nags-dev-to-4.0.0.md](./ux-version-still-nags-dev-to-4.0.0.md) | Reconfirmed: --version shows Update available: 0.0.0-dev -> 4.0.0 and npm install -g suggestion. |
-| 608 | open | Medium | Version | [ux-version-subcommand-missing-use-flag.md](./ux-version-subcommand-missing-use-flag.md) | poe-code version is Unknown command; version works via -V/--version. Users typing version as subcommand (co… |
-| 609 | open | Medium | Version | [ux-version-update-nag-dev-to-4-0-1.md](./ux-version-update-nag-dev-to-4-0-1.md) | poe-code -V shows Update available: 0.0.0-dev -> 4.0.1 — noisy on monorepo/dev builds. |
-| 610 | open | Medium | Auth / help | [ux-whoami-root-missing-auth-only.md](./ux-whoami-root-missing-auth-only.md) | whoami at root → Unknown command + npm run dev; auth whoami works as JSON. Users expect top-level whoami. |
-| 611 | open | Medium | Tables | [ux-wide-tables-truncate-critical-cells.md](./ux-wide-tables-truncate-critical-cells.md) | Agents column ellipsis. |
-| 612 | open | Medium | Worktree | [ux-worktree-reconcile-not-found-system-chrome.md](./ux-worktree-reconcile-not-found-system-chrome.md) | Worktree "missing" not found in registry + See logs — same as remove not-found. |
-| 613 | open | Medium | Worktree | [ux-worktree-reconcile-requires-agent-raw-commander.md](./ux-worktree-reconcile-requires-agent-raw-commander.md) | worktree reconcile missing --yes: error: required option --agent not specified — raw commander; help may li… |
-| 614 | open | Medium | Worktree | [ux-worktree-reconcile-requires-agent-raw.md](./ux-worktree-reconcile-requires-agent-raw.md) | worktree reconcile missing --yes fails required option --agent not specified (raw) before not-found; --yes … |
-| 615 | open | Medium | Worktree | [ux-worktree-remove-help-no-yes.md](./ux-worktree-remove-help-no-yes.md) | worktree remove --help has --delete-branch but no --yes / confirmation notes for destructive remove. |
-| 616 | open | Medium | Worktree | [ux-worktree-remove-help-omits-yes.md](./ux-worktree-remove-help-omits-yes.md) | worktree remove --help shows only --delete-branch; no --yes. worktree remove ghost-name --yes fails Worktre… |
-| 617 | open | Medium | Worktree | [ux-worktree-remove-missing-see-logs.md](./ux-worktree-remove-missing-see-logs.md) | worktree remove no-such-wt --yes: Worktree not found in registry + See logs — clear message, system chrome … |
-| 618 | open | Medium | Worktree | [ux-worktree-remove-no-confirmation.md](./ux-worktree-remove-no-confirmation.md) | Destructive no confirm. |
-| 619 | open | Medium | Worktree | [ux-worktree-remove-not-found-system-chrome.md](./ux-worktree-remove-not-found-system-chrome.md) | worktree remove no-such → Worktree not found in registry + See logs. |
-| 620 | open | Medium | Docs / CLI sync | [ux-wrap-command-still-missing.md](./ux-wrap-command-still-missing.md) | wrap remains Unknown command — residual after README wrap removal; muscle memory / external docs. |
-| 621 | open | Medium | Dry-run | [ux-wrap-dry-run-forwards-flag.md](./ux-wrap-dry-run-forwards-flag.md) | would run goose --dry-run. |
-| 622 | open | Medium | Dry-run | [ux-wrap-resolves-alias-but-dry-run-lies.md](./ux-wrap-resolves-alias-but-dry-run-lies.md) | kimi-cli --dry-run invented. |
-| 623 | open | Low–Medium | Agent defaults | [ux-agent-default-model-hardcoded.md](./ux-agent-default-model-hardcoded.md) | default anthropic/claude-opus-4.7. |
-| 624 | open | Low–Medium | Config / models | [ux-agent-default-opus-4-7-not-latest-opus-4-8.md](./ux-agent-default-opus-4-7-not-latest-opus-4-8.md) | agent --model default is anthropic/claude-opus-4.7; catalog has anthropic/claude-opus-4.8 (Date Added 2026-… |
-| 625 | open | Low–Medium | Auth | [ux-auth-status-no-json-flag.md](./ux-auth-status-no-json-flag.md) | auth status --json unknown; whoami is JSON. Split is OK if documented; status --help does not mention whoam… |
-| 626 | open | Low–Medium | Auth | [ux-auth-whoami-raw-json-vs-status-panel.md](./ux-auth-whoami-raw-json-vs-status-panel.md) | auth whoami dumps raw JSON identity; auth status uses design-system Logged in as. Dual presentation for sam… |
-| 627 | open | Low–Medium | Auth polish | [ux-auth-whoami-raw-json.md](./ux-auth-whoami-raw-json.md) | JSON vs status design-system. |
-| 628 | open | Low–Medium | Braintrust | [ux-braintrust-status-minimal-disabled.md](./ux-braintrust-status-minimal-disabled.md) | braintrust status prints disabled with Problems footer — no how to enable, env vars, or docs link (reaffirm… |
-| 629 | open | Low–Medium | Spawn / telemetry | [ux-capture-otel-no-visible-output-change.md](./ux-capture-otel-no-visible-output-change.md) | spawn … --capture-otel succeeds like normal spawn without saying where OTEL was written or if capture was a… |
-| 630 | open | Low–Medium | Code-review | [ux-code-review-profiles-raw-table.md](./ux-code-review-profiles-raw-table.md) | code-review profiles dumps a minimal ascii table of name/source without Poe panel framing used elsewhere. |
-| 631 | open | Low–Medium | Code-review / visual | [ux-code-review-profiles-table-outside-design-system.md](./ux-code-review-profiles-table-outside-design-system.md) | No Poe framing. |
-| 632 | open | Low–Medium | Help | [ux-command-aliases-undocumented-on-root-help.md](./ux-command-aliases-undocumented-on-root-help.md) | Work but not shown. |
-| 633 | open | Low–Medium | Configure help | [ux-configure-shape-base-url-opaque.md](./ux-configure-shape-base-url-opaque.md) | Jargon no examples. |
-| 634 | open | Low–Medium | Configure | [ux-configure-unknown-provider-see-logs-missing.md](./ux-configure-unknown-provider-see-logs-missing.md) | configure --provider bogus: Unknown provider "bogus" — clear; should list available providers (poe, anthrop… |
-| 635 | open | Low–Medium | Help | [ux-dashboard-command-missing.md](./ux-dashboard-command-missing.md) | dashboard / dashboard --help → Unknown command. No TUI dashboard entry despite maestro tui existing. |
-| 636 | open | Low–Medium | Help / discoverability | [ux-dashboard-ui-tui-missing.md](./ux-dashboard-ui-tui-missing.md) | dashboard, ui, tui are Unknown command with npm run dev help — no interactive dashboard entrypoint in CLI. |
-| 637 | open | Low–Medium | Editor | [ux-editor-missing-raw-error.md](./ux-editor-missing-raw-error.md) | throw new Error Set $EDITOR. |
-| 638 | open | Low–Medium | Eval | [ux-eval-errors-outside-design-system.md](./ux-eval-errors-outside-design-system.md) | Some eval plain text. |
-| 639 | open | Low–Medium | Eval | [ux-eval-init-creates-in-cwd-with-bare-success.md](./ux-eval-init-creates-in-cwd-with-bare-success.md) | eval init ux-audit-eval-two creates files with bare name/next lines — reconfirm eval init success framing; … |
-| 640 | open | Low–Medium | Eval | [ux-eval-init-success-is-bare-paths.md](./ux-eval-init-success-is-bare-paths.md) | eval init prints folder name and next: poe-code eval check … as bare lines; also next command may still be … |
-| 641 | open | Low–Medium | Eval | [ux-eval-report-debug-flag-undocumented-in-error.md](./ux-eval-report-debug-flag-undocumented-in-error.md) | eval report with no eval folders says Use --debug for a stack trace while primary help may not surface --de… |
-| 642 | open | Low–Medium | Experiment | [ux-experiment-journal-wrong-doc-type-message.md](./ux-experiment-journal-wrong-doc-type-message.md) | Doc not found for existing. |
-| 643 | open | Low–Medium | Install / IA | [ux-extra-npm-bins-confusing.md](./ux-extra-npm-bins-confusing.md) | poe-code-configure + test servers. |
-| 644 | open | Low–Medium | Gaslight | [ux-gaslight-archive-and-no-archive-both-accepted.md](./ux-gaslight-archive-and-no-archive-both-accepted.md) | Passing both --archive and --no-archive does not error; one silently wins (Commander negate) while help lis… |
-| 645 | open | Low–Medium | GH workflows | [ux-gh-install-eject-flag-opaque.md](./ux-gh-install-eject-flag-opaque.md) | Description eject. |
-| 646 | open | Low–Medium | Harness | [ux-harness-run-no-path-says-no-pairs.md](./ux-harness-run-no-path-says-no-pairs.md) | harness run --yes without md-path: No harness pairs found — OK if empty, but does not prompt to pick or sug… |
-| 647 | open | Low–Medium | Hooks / spawn | [ux-hooks-from-pi-unsupported-lists-supported.md](./ux-hooks-from-pi-unsupported-lists-supported.md) | spawn --hooks-from pi: Unsupported source hook agent "pi". Supported hook agents: claude-code, codex — clea… |
-| 648 | open | Low–Medium | Spawn / hooks | [ux-hooks-scope-invalid-raw-commander.md](./ux-hooks-scope-invalid-raw-commander.md) | spawn --hooks-scope bogus: raw commander Allowed choices are project, user, merged — same class as hooks-st… |
-| 649 | open | Low–Medium | Spawn / hooks | [ux-hooks-strategy-invalid-raw-commander.md](./ux-hooks-strategy-invalid-raw-commander.md) | spawn --hooks-strategy bogus: error: option argument bogus is invalid. Allowed choices are auto, symlink, t… |
-| 650 | open | Low–Medium | Install | [ux-install-always-claims-success.md](./ux-install-always-claims-success.md) | No already-present state. |
-| 651 | open | Low–Medium | Launch | [ux-launch-status-shows-failed-experiment-leftovers.md](./ux-launch-status-shows-failed-experiment-leftovers.md) | stopped leftovers no cleanup hint. |
-| 652 | open | Low–Medium | Spawn / logging | [ux-log-dir-relative-works-with-path-feedback-gap.md](./ux-log-dir-relative-works-with-path-feedback-gap.md) | spawn --log-dir ./tmp-ux-logs creates timestamped jsonl under relative dir successfully — works; still no p… |
-| 653 | open | Low–Medium | Auth / help | [ux-login-help-omits-yes.md](./ux-login-help-omits-yes.md) | login help only --api-key and -h; --yes exists for non-TTY (login --yes without key message works) but undo… |
-| 654 | open | Low–Medium | Auth / help | [ux-login-help-still-omits-yes-reconfirmed.md](./ux-login-help-still-omits-yes-reconfirmed.md) | login help only --api-key and -h — --yes works for non-TTY but undocumented (reconfirm). |
-| 655 | open | Low–Medium | Plan | [ux-markdown-read-depth-zero-empty-sections.md](./ux-markdown-read-depth-zero-empty-sections.md) | markdown-read --depth 0 prints sections: (none) while file has content — depth 0 means no headings shown wi… |
-| 656 | open | Low–Medium | Spawn | [ux-mcp-servers-empty-object-accepted.md](./ux-mcp-servers-empty-object-accepted.md) | spawn with --mcp-servers {} succeeds without warning that no servers were configured — empty object is vali… |
-| 657 | open | Low–Medium | Errors / consistency | [ux-mcp-servers-missing-file-almost-good.md](./ux-mcp-servers-missing-file-almost-good.md) | Good message class vary. |
-| 658 | open | Low–Medium | Memory | [ux-memory-cache-clear-requires-yes-see-logs.md](./ux-memory-cache-clear-requires-yes-see-logs.md) | memory cache clear without --yes: Refusing to clear cache without --yes + See logs — good policy, system ch… |
-| 659 | open | Low–Medium | Memory / MCP | [ux-memory-mcp-print-config-raw-json.md](./ux-memory-mcp-print-config-raw-json.md) | Bare JSON no guidance. |
-| 660 | open | Low–Medium | Memory | [ux-memory-status-after-write-is-terse.md](./ux-memory-status-after-write-is-terse.md) | memory status prints Pages/Bytes/Last write/Tokens as bare lines without panel framing or interpretation (h… |
-| 661 | open | Low–Medium | Memory | [ux-memory-write-bare-stdout-path.md](./ux-memory-write-bare-stdout-path.md) | memory write pages/hello.md prints bare hello.md without design-system success panel — inconsistent with me… |
-| 662 | open | Low–Medium | Memory | [ux-memory-write-success-bare-path-stdout.md](./ux-memory-write-success-bare-path-stdout.md) | memory write pages/hello.md --reason test succeeds then show works; write success appears as bare path "hel… |
-| 663 | open | Low–Medium | Models | [ux-models-double-feature-flag-uses-last-or-and.md](./ux-models-double-feature-flag-uses-last-or-and.md) | models --feature tools --feature reasoning returns 44/341 — repeated --feature appears to AND (tools AND re… |
-| 664 | open | Low–Medium | Models | [ux-models-empty-model-filter-returns-all.md](./ux-models-empty-model-filter-returns-all.md) | models --view pricing --model "" → 341/341 models — empty --model ignored (empty flag class). |
-| 665 | open | Low–Medium | Models | [ux-models-raw-view-bypasses-design-system-reconfirmed.md](./ux-models-raw-view-bypasses-design-system-reconfirmed.md) | models --model claude-haiku-4.5 --view raw prints raw YAML without design-system panel — reconfirm models-r… |
-| 666 | open | Low–Medium | Models | [ux-models-raw-view-bypasses-design-system.md](./ux-models-raw-view-bypasses-design-system.md) | No framing. |
-| 667 | open | Low–Medium | Models | [ux-models-search-empty-returns-all.md](./ux-models-search-empty-returns-all.md) | models --search "" → 341/341 models — empty search ignored (empty flag class). |
-| 668 | open | Low–Medium | Models | [ux-models-since-1d-empty-today.md](./ux-models-since-1d-empty-today.md) | models --since 1d returns 0/341 No models match — correct if no adds in 24h but message looks like filter f… |
-| 669 | open | Low–Medium | Models | [ux-models-tools-and-feature-filter-semantics-undocumented.md](./ux-models-tools-and-feature-filter-semantics-undocumented.md) | --tools is documented as shorthand for --feature tools, but combining --tools with --feature web_search ret… |
-| 670 | open | Low–Medium | Models | [ux-models-view-invalid-raw-commander.md](./ux-models-view-invalid-raw-commander.md) | models --view bogus: raw commander Allowed choices are capabilities, pricing, parameters, raw — contrast pl… |
-| 671 | open | Low–Medium | Help / completion | [ux-no-shell-completion-command.md](./ux-no-shell-completion-command.md) | No poe-code completion (bash/zsh/fish) command to install tab completion, despite a large command surface w… |
-| 672 | open | Low–Medium | Auth polish | [ux-oauth-url-dumps-full-query-string.md](./ux-oauth-url-dumps-full-query-string.md) | Long authorize URL line. |
-| 673 | open | Low–Medium | Pipeline / Experiment / help / naming | [ux-pipeline-experiment-plan-path-as-subcommand.md](./ux-pipeline-experiment-plan-path-as-subcommand.md) | Both `pipeline --help` and `experiment --help` list `plan-path` as a sibling of action-verb subcommands (`r… |
-| 674 | open | Low–Medium | Pipeline | [ux-pipeline-validate-success-still-problems-footer.md](./ux-pipeline-validate-success-still-problems-footer.md) | Valid pipeline validation ends with Problems? GitHub link after Plan is valid success. |
-| 675 | open | Low–Medium | Plan list | [ux-plan-list-empty-table-no-message.md](./ux-plan-list-empty-table-no-message.md) | No no-plans message. |
-| 676 | open | Low–Medium | Plan list | [ux-plan-list-output-json-unframed.md](./ux-plan-list-output-json-unframed.md) | plan list --output json prints a raw JSON array to stdout with no design-system intro; --output md prints a… |
-| 677 | open | Low–Medium | Plan | [ux-plan-markdown-read-raw-yaml-ish-output.md](./ux-plan-markdown-read-raw-yaml-ish-output.md) | plan markdown-read prints raw file:/frontmatter:/sections: blocks without design-system framing used by pla… |
-| 678 | open | Low–Medium | Plan / MCP | [ux-plan-markdown-reader-mcp-help-minimal.md](./ux-plan-markdown-reader-mcp-help-minimal.md) | plan markdown-reader-mcp --help only description Run the standalone markdown reader MCP server with -h — no… |
-| 679 | open | Low–Medium | Plan view | [ux-plan-view-json-dumps-full-markdown-content.md](./ux-plan-view-json-dumps-full-markdown-content.md) | plan view --output json includes a huge content string of the full plan body, which is useful for tooling b… |
-| 680 | open | Low–Medium | Design system | [ux-problems-footer-on-every-success.md](./ux-problems-footer-on-every-success.md) | finalize always. |
-| 681 | open | Low–Medium | Providers / tables | [ux-provider-list-agents-column-truncated.md](./ux-provider-list-agents-column-truncated.md) | provider list Agents column ends with poe-… for cloudflare row — terminal width truncation without --wide o… |
-| 682 | open | Low–Medium | Providers | [ux-provider-login-unknown-has-list-hint-and-see-logs.md](./ux-provider-login-unknown-has-list-hint-and-see-logs.md) | provider login not-a-provider: Unknown provider … Run provider list — good next step; still See logs system… |
-| 683 | open | Low–Medium | Runtime | [ux-runtime-templates-ls-shows-empty-docker-row.md](./ux-runtime-templates-ls-shows-empty-docker-row.md) | runtime templates ls includes a docker row with (empty) hash and dashes, plus many old e2b artifacts — nois… |
-| 684 | open | Low–Medium | Runtime | [ux-runtime-templates-ls-unbounded-noise.md](./ux-runtime-templates-ls-unbounded-noise.md) | Old e2b /tmp rows. |
-| 685 | open | Low–Medium | Runtime | [ux-runtime-templates-parent-no-default-subcommand.md](./ux-runtime-templates-parent-no-default-subcommand.md) | runtime templates without subcommand prints help twice (Usage block duplicated) instead of defaulting to ls. |
-| 686 | open | Low–Medium | Configure | [ux-shape-base-url-error-good-message-system-prefix.md](./ux-shape-base-url-error-good-message-system-prefix.md) | Good text system prefix. |
-| 687 | open | Low–Medium | Spawn / skills | [ux-skill-and-skills-flags-undocumented-relationship.md](./ux-skill-and-skills-flags-undocumented-relationship.md) | Both merge; help silent. |
-| 688 | open | Low–Medium | Skills | [ux-skill-configure-goose-writes-dot-agents-skills.md](./ux-skill-configure-goose-writes-dot-agents-skills.md) | skill configure goose --yes --local succeeds at ./.agents/skills while claude uses ./.claude/skills — path … |
-| 689 | open | Low–Medium | Spawn / skills | [ux-skill-empty-string-malformed-reference.md](./ux-skill-empty-string-malformed-reference.md) | spawn --skill "" fails Malformed skill references: - (empty) Expected syntax name or agentId/name — empty s… |
-| 690 | open | Low–Medium | Configure | [ux-skip-if-configured-still-noises-dry-run.md](./ux-skip-if-configured-still-noises-dry-run.md) | Still full would-configure. |
-| 691 | open | Low–Medium | Spawn | [ux-spawn-mode-case-sensitive.md](./ux-spawn-mode-case-sensitive.md) | spawn --mode AUTO fails Invalid --mode "AUTO". Expected yolo, auto, edit, or read — case-sensitive; users t… |
-| 692 | open | Low–Medium | Design system | [ux-spawn-success-still-problems-footer.md](./ux-spawn-success-still-problems-footer.md) | Even successful spawn pi/claude/goose runs end with Problems? GitHub issues link, training users to ignore … |
-| 693 | open | Low–Medium | Visual language | [ux-success-and-info-share-magenta-glyphs.md](./ux-success-and-info-share-magenta-glyphs.md) | logger ◆ and ● magenta. |
-| 694 | open | Low–Medium | Traces | [ux-traces-cwd-only-flag-removed-or-renamed.md](./ux-traces-cwd-only-flag-removed-or-renamed.md) | traces defaults to cwd-only listing; expansion is via --all-workspaces. The flag --cwd-only is unknown. Ear… |
-| 695 | open | Low–Medium | Update | [ux-update-help-omits-dry-run.md](./ux-update-help-omits-dry-run.md) | update help lists --force, --no-version-check, --package-manager but not --dry-run though dry-run works via… |
-| 696 | open | Low–Medium | Usage | [ux-usage-help-hides-default-balance.md](./ux-usage-help-hides-default-balance.md) | Bare usage balance; help omits. |
-| 697 | open | Low–Medium | Usage | [ux-usage-list-empty-filter-returns-all.md](./ux-usage-list-empty-filter-returns-all.md) | usage list --filter "" still shows 20 entries — empty filter ignored (empty flag class). |
-| 698 | open | Low–Medium | Utils | [ux-utils-config-no-path-subcommand.md](./ux-utils-config-no-path-subcommand.md) | utils config path fails too many arguments; only show/init/edit — users cannot print config file paths alone. |
-| 699 | open | Low–Medium | Utils | [ux-utils-symlink-skills-is-nested-not-top-level.md](./ux-utils-symlink-skills-is-nested-not-top-level.md) | utils symlink-skills unknown; actual path is utils symlink skills — footgun for muscle memory / docs. |
-| 700 | open | Low–Medium | Utils | [ux-utils-symlink-skills-scope-error-vs-agents.md](./ux-utils-symlink-skills-scope-error-vs-agents.md) | skills dry-run needs flags. |
-| 701 | open | Low–Medium | Logging / verbose | [ux-verbose-prefixes-every-log-line.md](./ux-verbose-prefixes-every-log-line.md) | [models] on tables. |
-| 702 | open | Low–Medium | Version | [ux-version-update-nag-on-dev-builds.md](./ux-version-update-nag-on-dev-builds.md) | Always update available. |
-| 703 | open | Low–Medium | Worktree | [ux-worktree-reconcile-requires-agent-not-in-error-order.md](./ux-worktree-reconcile-requires-agent-not-in-error-order.md) | worktree reconcile without args hits required option --agent before missing name, similar to spawn mode-bef… |
-| 704 | open | Low | Spawn / positive pattern | [ux-activity-timeout-1ms-works-but-chrome.md](./ux-activity-timeout-1ms-works-but-chrome.md) | Agent spawn timed out after 0.001s of inactivity — correct behavior for extreme timeout; still See logs. |
-| 705 | open | Low | Spawn / positive pattern | [ux-activity-timeout-ms-zero-validation-good.md](./ux-activity-timeout-ms-zero-validation-good.md) | spawn --activity-timeout-ms 0: Invalid --activity-timeout-ms "0". Expected a positive integer — clear Valid… |
-| 706 | open | Low | Errors / positive pattern | [ux-activity-timeout-zero-good-validation.md](./ux-activity-timeout-zero-good-validation.md) | Invalid --activity-timeout-ms "0" returns a clear ValidationError-style message without raw Commander text … |
-| 707 | open | Low | Spawn / positive pattern | [ux-activity-timeout-zero-validation-good.md](./ux-activity-timeout-zero-validation-good.md) | Invalid activity timeout returns Expected a positive integer without stack. |
-| 708 | open | Low | Agent / positive pattern | [ux-agent-default-model-is-opus-4-7-good.md](./ux-agent-default-model-is-opus-4-7-good.md) | agent --help default model anthropic/claude-opus-4.7 (live frontier); agent "say only: ping" works. |
-| 709 | open | Low | Agent / positive pattern | [ux-agent-default-model-works-when-opus-valid.md](./ux-agent-default-model-works-when-opus-valid.md) | agent "say only: ok" without --model succeeds using default anthropic/claude-opus-4.7 — positive that DEFAU… |
-| 710 | open | Low | Approvals / positive pattern | [ux-approvals-list-pending-empty-good.md](./ux-approvals-list-pending-empty-good.md) | approvals list --state pending: No approvals found — clear empty state. |
-| 711 | open | Low | Auth / positive pattern | [ux-auth-status-logged-in-good.md](./ux-auth-status-logged-in-good.md) | auth status: Logged in as Name (@handle) — clear without secrets. |
-| 712 | open | Low | Auth / positive pattern | [ux-auth-whoami-field-shape-good.md](./ux-auth-whoami-field-shape-good.md) | auth whoami JSON keys: handle, name, profile_picture, user_id — clean machine shape without secrets. |
-| 713 | open | Low | Auth / positive pattern | [ux-auth-whoami-fields-documented-by-shape.md](./ux-auth-whoami-fields-documented-by-shape.md) | auth whoami JSON keys: handle, name, profile_picture, user_id — stable machine shape. |
-| 714 | open | Low | Auth / positive pattern | [ux-auth-whoami-help-documents-json-good.md](./ux-auth-whoami-help-documents-json-good.md) | auth whoami help says Print Poe account identity as JSON (uses POE_API_KEY if set) — clear machine mode vs … |
-| 715 | open | Low | Braintrust | [ux-braintrust-status-opaque.md](./ux-braintrust-status-opaque.md) | disabled only. |
-| 716 | open | Low | Code-review | [ux-code-review-profiles-bare-table-good.md](./ux-code-review-profiles-bare-table-good.md) | code-review profiles shows simple name/source table with generic built-in — readable but no design-system p… |
-| 717 | open | Low | Code-review / positive pattern | [ux-code-review-prompt-preview-good.md](./ux-code-review-prompt-preview-good.md) | code-review prompt-preview --spawn orchestrator prints Spawn/Profile/Prompt preview without side effects — … |
-| 718 | open | Low | Utils / positive pattern | [ux-config-init-already-exists-good.md](./ux-config-init-already-exists-good.md) | utils config init: Project config already exists at path — clear idempotent message. |
-| 719 | open | Low | Configure / positive pattern | [ux-configure-api-key-dry-run-redacts-bearer.md](./ux-configure-api-key-dry-run-redacts-bearer.md) | configure dry-run shows Authorization: Bearer <redacted> — good redaction in at least this path (contrast u… |
-| 720 | open | Low | Configure / positive pattern | [ux-configure-cursor-dry-run-already-configured-clean.md](./ux-configure-cursor-dry-run-already-configured-clean.md) | configure cursor --yes --dry-run: would configure Cursor; # no filesystem changes — clean intentional dry-r… |
-| 721 | open | Low | Configure / positive pattern | [ux-configure-gemini-dry-run-minimal-good.md](./ux-configure-gemini-dry-run-minimal-good.md) | configure gemini dry-run shows model gemini-2.5-pro and mkdir ensures without full settings flood when alre… |
-| 722 | open | Low | Configure / positive pattern | [ux-configure-success-vscode-next-steps-good.md](./ux-configure-success-vscode-next-steps-good.md) | After configuring Claude Code, a Next steps note with vscode://settings/claudeCode.disableLoginPrompt deep … |
-| 723 | open | Low | Configure / positive pattern | [ux-configure-unknown-api-shape-lists-exposed.md](./ux-configure-unknown-api-shape-lists-exposed.md) | configure --shape-base-url messages=… → Unknown API shape "messages" for provider poe. Exposed shapes: open… |
-| 724 | open | Low | Configure / positive pattern | [ux-configure-unknown-provider-good-message.md](./ux-configure-unknown-provider-good-message.md) | configure --provider notaprovider returns Unknown provider "notaprovider" cleanly (could still list known p… |
-| 725 | open | Low | Configure / positive pattern | [ux-configure-unknown-provider-validation-good.md](./ux-configure-unknown-provider-validation-good.md) | configure --provider not-a-provider → Unknown provider "not-a-provider" without See logs — good ValidationE… |
-| 726 | open | Low | Agents / positive pattern | [ux-cursor-and-cursor-agent-aliases-both-work.md](./ux-cursor-and-cursor-agent-aliases-both-work.md) | spawn cursor and spawn cursor-agent both succeed; configure aliases map to same Cursor surface. Positive al… |
-| 727 | open | Low | Spawn / positive pattern | [ux-cwd-file-path-not-directory-good.md](./ux-cwd-file-path-not-directory-good.md) | spawn --cwd package.json returns Workspace path … is not a directory clearly. |
-| 728 | open | Low | Spawn / positive pattern | [ux-cwd-missing-path-good-message.md](./ux-cwd-missing-path-good-message.md) | spawn --cwd /no/such/dir returns Workspace path does not exist clearly (still See logs). |
-| 729 | open | Low | Spawn / positive pattern | [ux-e2b-missing-key-error-good.md](./ux-e2b-missing-key-error-good.md) | No E2B API key message points to E2B_API_KEY and config.json paths — good recovery (still See logs). |
-| 730 | open | Low | Spawn / positive pattern | [ux-empty-prompt-string-rejected.md](./ux-empty-prompt-string-rejected.md) | spawn claude "" and agent "" both reject empty prompts — good. spawn: No prompt provided; agent: Prompt mus… |
-| 731 | open | Low | Eval / positive pattern | [ux-eval-lint-missing-eval-structured-table-good.md](./ux-eval-lint-missing-eval-structured-table-good.md) | eval lint no-such-eval shows Errors/Warnings tables E001–E005 missing eval.yaml/plan.md/oracle — structured… |
-| 732 | open | Low | Eval / positive pattern | [ux-eval-lint-table-good.md](./ux-eval-lint-table-good.md) | eval lint shows Warnings table with Code W004, path, message about pinning target.ref to SHA — scannable. |
-| 733 | open | Low | Experiment / positive pattern | [ux-experiment-install-force-help-exists.md](./ux-experiment-install-force-help-exists.md) | experiment install --help lists --force Overwrite existing files — better than pipeline install force opaci… |
-| 734 | open | Low | Experiment / positive pattern | [ux-experiment-install-requires-agent-or-yes-good.md](./ux-experiment-install-requires-agent-or-yes-good.md) | experiment install --local --force without agent: Experiment install agent selection requires --agent or --… |
-| 735 | open | Low | Experiment / positive pattern | [ux-experiment-validate-missing-path-good.md](./ux-experiment-validate-missing-path-good.md) | experiment validate /tmp/no-exp.md: Experiment doc not found — clear missing path (wrong-kind still says no… |
-| 736 | open | Low | Gaslight / positive pattern | [ux-gaslight-ingest-has-limit-since-good.md](./ux-gaslight-ingest-has-limit-since-good.md) | gaslight ingest --help has --since 30d default and --limit 200 — good pagination pattern models/runtime lack. |
-| 737 | open | Low | Gaslight / positive pattern | [ux-gaslight-ingest-limit-zero-validation-good.md](./ux-gaslight-ingest-limit-zero-validation-good.md) | --limit must be a positive integer for limit 0 — good ValidationError. |
-| 738 | open | Low | Gaslight / positive pattern | [ux-gaslight-install-force-dry-run-clean.md](./ux-gaslight-install-force-dry-run-clean.md) | gaslight install --local --force --dry-run: Would create path; Would install; no filesystem changes — clean… |
-| 739 | open | Low | Gaslight / positive pattern | [ux-gaslight-install-global-dry-run-clean.md](./ux-gaslight-install-global-dry-run-clean.md) | gaslight install --global --dry-run: Would create path; Would install; no filesystem changes — intentional … |
-| 740 | open | Low | GitHub workflows / positive pattern | [ux-gh-uninstall-invalid-name-lists-choices-good.md](./ux-gh-uninstall-invalid-name-lists-choices-good.md) | Invalid uninstall name lists Expected one of: fix-vulnerabilities, … — good allow-list (still npm run dev h… |
-| 741 | open | Low | GitHub workflows / positive pattern | [ux-gh-variables-list-good.md](./ux-gh-variables-list-good.md) | gh variables shows Name/Status/Source table for shared prompt variables — clear inventory. |
-| 742 | open | Low | Harness / help / capitalisation | [ux-harness-help-command-lowercase-description.md](./ux-harness-help-command-lowercase-description.md) | `harness --help` lists `help [command]` as a subcommand with the description "display help for command" (lo… |
-| 743 | open | Low | Harness / positive pattern | [ux-harness-list-empty-good.md](./ux-harness-list-empty-good.md) | harness list: No harness pairs found — clear empty state. |
-| 744 | open | Low | Harness / positive pattern | [ux-harness-list-empty-message-good.md](./ux-harness-list-empty-message-good.md) | harness list: No harness pairs found — clear empty state (no empty table). |
-| 745 | open | Low | Harness / positive pattern | [ux-harness-new-all-builtin-kinds-work.md](./ux-harness-new-all-builtin-kinds-work.md) | ralph-demo, experiment-demo, superintendent-demo, coverage-demo, pipeline-demo all scaffold successfully wi… |
-| 746 | open | Low | Harness / positive pattern | [ux-harness-new-run-coverage-demo-works.md](./ux-harness-new-run-coverage-demo-works.md) | harness new coverage-demo + harness run succeeds with Result object — end-to-end harness path works. |
-| 747 | open | Low | Harness / positive pattern | [ux-harness-new-success-good.md](./ux-harness-new-success-good.md) | harness new with --yes creates pair with clear Created harness pair at path success framing. |
-| 748 | open | Low | Harness / positive pattern | [ux-harness-run-coverage-demo-works.md](./ux-harness-run-coverage-demo-works.md) | harness new coverage-demo + harness run succeeds with Result object summary and 0 spawns — demo path works … |
-| 749 | open | Low | Harness / positive pattern | [ux-harness-run-fix-works.md](./ux-harness-run-fix-works.md) | harness run … --fix --yes succeeds with Result object — fix path works for demo. |
-| 750 | open | Low | Harness / positive pattern | [ux-harness-run-no-pairs-clear.md](./ux-harness-run-no-pairs-clear.md) | harness run with no pairs: No harness pairs found — clear empty state. |
-| 751 | open | Low | Harness | [ux-harness-unknown-template-no-kinds.md](./ux-harness-unknown-template-no-kinds.md) | No allow-list. |
-| 752 | open | Low | Polish | [ux-help-subcommand-inconsistency.md](./ux-help-subcommand-inconsistency.md) | Some groups help [command]. |
-| 753 | open | Low | Hooks / positive pattern | [ux-hooks-from-unknown-lists-supported-good.md](./ux-hooks-from-unknown-lists-supported-good.md) | Unsupported source hook agent lists Supported hook agents: claude-code, codex — good allow-list (still See … |
-| 754 | open | Low | Install / positive pattern | [ux-install-opencode-success-good.md](./ux-install-opencode-success-good.md) | install opencode --yes: Installed OpenCode CLI — clear success (test still broken after install). |
-| 755 | open | Low | Auth / positive pattern | [ux-login-api-key-rejected-good.md](./ux-login-api-key-rejected-good.md) | login --api-key sk-fake-not-real → API key rejected without overwriting session; auth status still logged in. |
-| 756 | open | Low | Auth / positive pattern | [ux-login-fake-key-rejected-good.md](./ux-login-fake-key-rejected-good.md) | login --api-key sk-fake --yes: API key rejected — clear without writing fake key (when not logged in). |
-| 757 | open | Low | Auth | [ux-login-yes-message-good-but-worth-aligning.md](./ux-login-yes-message-good-but-worth-aligning.md) | --yes fail-fast good; bare hangs. |
-| 758 | open | Low | Auth / positive pattern | [ux-login-yes-without-key-message-good.md](./ux-login-yes-without-key-message-good.md) | login --yes without key: No API key found. Pass --api-key, set POE_API_KEY, or run without --yes to authent… |
-| 759 | open | Low | Maestro | [ux-maestro-dual-invocation-shape.md](./ux-maestro-dual-invocation-shape.md) | Parent + run unclear. |
-| 760 | open | Low | Maestro | [ux-maestro-duplicate-config-flags.md](./ux-maestro-duplicate-config-flags.md) | --config and --workflow same. |
-| 761 | open | Low | Maestro / positive pattern | [ux-maestro-tui-mutual-exclusion-validation-good.md](./ux-maestro-tui-mutual-exclusion-validation-good.md) | Specifying both --config and --workflow fails with clear mutual exclusion message. |
-| 762 | open | Low | Plan / positive pattern | [ux-markdown-read-depth-2-works-well.md](./ux-markdown-read-depth-2-works-well.md) | plan markdown-read --depth 2 prints numbered sections 1–6 for agent-goal plan; --output json includes depth… |
-| 763 | open | Low | Plan / positive pattern | [ux-markdown-read-negative-depth-validation-good.md](./ux-markdown-read-negative-depth-validation-good.md) | markdown-read --depth -1: Invalid depth "-1". Expected a non-negative integer. |
-| 764 | open | Low | Plan / positive pattern | [ux-markdown-read-section-by-number-works.md](./ux-markdown-read-section-by-number-works.md) | plan markdown-read-section … 1 prints section 1 body — section-by-number works (related wrong recovery comm… |
-| 765 | open | Low | Plan / positive pattern | [ux-markdown-read-unlimited-depth-works.md](./ux-markdown-read-unlimited-depth-works.md) | plan markdown-read without --depth prints nested TOC 1–6 with subsections — good when depth unlimited. |
-| 766 | open | Low | Spawn / positive pattern | [ux-mcp-servers-at-file-missing-validation-good.md](./ux-mcp-servers-at-file-missing-validation-good.md) | spawn --mcp-servers @/tmp/no-mcp.json: --mcp-servers could not read file path ENOENT — clear ValidationErro… |
-| 767 | open | Low | Spawn / positive pattern | [ux-mcp-servers-file-and-json-validation-good.md](./ux-mcp-servers-file-and-json-validation-good.md) | Missing @file reports could not read file with path; invalid JSON reports required shape — good ValidationE… |
-| 768 | open | Low | Spawn / positive pattern | [ux-mcp-servers-invalid-json-validation-good.md](./ux-mcp-servers-invalid-json-validation-good.md) | spawn --mcp-servers "{bad" → --mcp-servers must be valid JSON in this shape: {name: {command, args?, env?}}… |
-| 769 | open | Low | Spawn / positive pattern | [ux-mcp-servers-validation-good.md](./ux-mcp-servers-validation-good.md) | Invalid MCP server JSON without command returns a clear field-level ValidationError without system chrome. |
-| 770 | open | Low | Memory / positive pattern | [ux-memory-append-reason-defaults-to-append.md](./ux-memory-append-reason-defaults-to-append.md) | memory append --help: --reason default append — unlike write which requires reason; append has default so n… |
-| 771 | open | Low | Memory / positive pattern | [ux-memory-cache-clear-requires-yes-good.md](./ux-memory-cache-clear-requires-yes-good.md) | memory cache clear without --yes refuses with Refusing to clear cache without --yes — good guard (still See… |
-| 772 | open | Low | Memory / positive pattern | [ux-memory-cache-status-zero-good.md](./ux-memory-cache-status-zero-good.md) | memory cache status: 0 cache entries (0 bytes) — clear empty state. |
-| 773 | open | Low | Memory / positive pattern | [ux-memory-clear-requires-yes-non-tty-good.md](./ux-memory-clear-requires-yes-non-tty-good.md) | memory clear without --yes: memory clear requires --yes when running without an interactive TTY — clear des… |
-| 774 | open | Low | Memory / positive pattern | [ux-memory-clear-yes-reinitializes-index-log.md](./ux-memory-clear-yes-reinitializes-index-log.md) | memory clear --yes after init: Cleared memory; INDEX.md and LOG.md remain (re-initialized). Clear works wit… |
-| 775 | open | Low | Memory / positive pattern | [ux-memory-clear-yes-works-when-initialized.md](./ux-memory-clear-yes-works-when-initialized.md) | memory clear --yes after init succeeds with Cleared memory design-system framing; without init points to me… |
-| 776 | open | Low | Memory / explain / help / description quality | [ux-memory-explain-budget-token-internals.md](./ux-memory-explain-budget-token-internals.md) | `poe-code memory explain --help` shows `--budget <tokens> Token budget` in its Options section — the same L… |
-| 777 | open | Low | Memory / positive pattern | [ux-memory-ingest-not-init-good.md](./ux-memory-ingest-not-init-good.md) | Memory is not initialized. Run poe-code memory init — clear recovery. |
-| 778 | open | Low | Memory / positive pattern | [ux-memory-lint-empty-good.md](./ux-memory-lint-empty-good.md) | memory lint after init: No memory lint issues. |
-| 779 | open | Low | Memory / positive pattern | [ux-memory-ls-empty-message-good.md](./ux-memory-ls-empty-message-good.md) | memory ls after init: No memory pages yet — clear empty state. |
-| 780 | open | Low | Memory / query / help / description quality | [ux-memory-query-terse-description-and-budget-exposed.md](./ux-memory-query-terse-description-and-budget-exposed.md) | `memory query --help` has two issues: |
-| 781 | open | Low | Memory / positive pattern | [ux-memory-search-empty-no-matches-good.md](./ux-memory-search-empty-no-matches-good.md) | memory search foo after init: No matches. — clear empty search (INDEX still not showable). |
-| 782 | open | Low | Memory / positive pattern | [ux-memory-search-not-initialized-good.md](./ux-memory-search-not-initialized-good.md) | memory search without init: Memory is not initialized. Run poe-code memory init — clear recovery with binar… |
-| 783 | open | Low | Memory / positive pattern | [ux-memory-status-not-initialized-good.md](./ux-memory-status-not-initialized-good.md) | memory status without init: Memory is not initialized. Run "poe-code memory init" — clear recovery with poe… |
-| 784 | open | Low | Memory / status / visual | [ux-memory-status-title-not-pink.md](./ux-memory-status-title-not-pink.md) | `poe-code memory status` renders the panel title "Poe - memory status" in plain white/grey text rather than… |
-| 785 | open | Low | Models / positive pattern | [ux-models-endpoint-messages-anthropic-good.md](./ux-models-endpoint-messages-anthropic-good.md) | models --endpoint /v1/messages --provider anthropic returns 8 anthropic models including sonnet-4.6 and opu… |
-| 786 | open | Low | Models / positive pattern | [ux-models-endpoint-pricing-combo-works.md](./ux-models-endpoint-pricing-combo-works.md) | models --endpoint /v1/messages --view pricing returns multi-provider pricing table for messages-capable mod… |
-| 787 | open | Low | Models / positive pattern | [ux-models-feature-reasoning-filter-works.md](./ux-models-feature-reasoning-filter-works.md) | models --feature reasoning --provider anthropic returns reasoning-capable models with ✓ in Reasoning column. |
-| 788 | open | Low | Models / positive pattern | [ux-models-feature-tools-case-insensitive-good.md](./ux-models-feature-tools-case-insensitive-good.md) | models --feature TOOLS returns 139 tool models same as tools — case-insensitive feature filter. |
-| 789 | open | Low | Models / positive pattern | [ux-models-feature-web-search-works.md](./ux-models-feature-web-search-works.md) | models --provider anthropic --feature web_search returns models with web_search ✓. |
-| 790 | open | Low | Models / positive pattern | [ux-models-google-reasoning-filter-works.md](./ux-models-google-reasoning-filter-works.md) | models --provider google --feature reasoning returns 7 gemini models including 3.1-pro and 2.5-pro. |
-| 791 | open | Low | Models / positive pattern | [ux-models-help-examples-are-excellent.md](./ux-models-help-examples-are-excellent.md) | models --help includes Filters, Views, and Examples sections — best-in-class help in the CLI; other primary… |
-| 792 | open | Low | Help / positive pattern | [ux-models-help-examples-still-best-in-class.md](./ux-models-help-examples-still-best-in-class.md) | models --help Examples block shows provider, feature, endpoint, view, search, model, since — reconfirm best… |
-| 793 | open | Low | Models / positive pattern | [ux-models-openai-tools-capabilities-good.md](./ux-models-openai-tools-capabilities-good.md) | models --view capabilities --provider openai --tools returns 41 tool-capable openai models. |
-| 794 | open | Low | Models / positive pattern | [ux-models-openai-tools-filter-works.md](./ux-models-openai-tools-filter-works.md) | models --provider openai --tools returns tool-capable openai models cleanly. |
-| 795 | open | Low | Models / positive pattern | [ux-models-parameters-view-good-for-filtered.md](./ux-models-parameters-view-good-for-filtered.md) | parameters view for anthropic shows output_effort enums including xhigh — useful for configuring reasoning-… |
-| 796 | open | Low | Models / positive pattern | [ux-models-pricing-anthropic-sonnet-works.md](./ux-models-pricing-anthropic-sonnet-works.md) | models pricing + provider anthropic + search sonnet returns sonnet-4.6 and 4.5 with $/MTok — multi-filter p… |
-| 797 | open | Low | Models / positive pattern | [ux-models-pricing-search-combo-good.md](./ux-models-pricing-search-combo-good.md) | models --search haiku --view pricing shows clean single-model pricing row. |
-| 798 | open | Low | Models / positive pattern | [ux-models-pricing-search-works.md](./ux-models-pricing-search-works.md) | models --view pricing --search haiku and --model claude-haiku-4.5 show clear pricing table. |
-| 799 | open | Low | Models / positive pattern | [ux-models-pricing-sonnet-4-6-good.md](./ux-models-pricing-sonnet-4-6-good.md) | models --view pricing --model claude-sonnet-4.6 shows $2.58/$12.88 per MTok cleanly. |
-| 800 | open | Low | Models / positive pattern | [ux-models-provider-anthropic-tools-good.md](./ux-models-provider-anthropic-tools-good.md) | models --feature tools --provider anthropic returns 8 anthropic tool models including sonnet-4.6 and opus-4… |
-| 801 | open | Low | Models / positive pattern | [ux-models-provider-case-insensitive-good.md](./ux-models-provider-case-insensitive-good.md) | models --provider Anthropic --search sonnet works same as anthropic — case-insensitive provider filter. |
-| 802 | open | Low | Models / positive pattern | [ux-models-provider-xai-works.md](./ux-models-provider-xai-works.md) | models --provider xai lists grok models cleanly. |
-| 803 | open | Low | Models / positive pattern | [ux-models-since-7d-works.md](./ux-models-since-7d-works.md) | models --since 7d returns 2 recent models; --since 1s returns 0 with No models match — duration filter works. |
-| 804 | open | Low | Models / positive pattern | [ux-models-tools-and-feature-tools-redundant-ok.md](./ux-models-tools-and-feature-tools-redundant-ok.md) | models --tools --feature tools --provider anthropic returns same tool-capable set — redundant flags compose… |
-| 805 | open | Low | Models | [ux-models-view-raw-bypasses-design-system-reconfirmed.md](./ux-models-view-raw-bypasses-design-system-reconfirmed.md) | models --view raw --search haiku prints bare YAML without design-system panel — reconfirm raw view escape h… |
-| 806 | open | Low | Models / positive pattern | [ux-models-xai-reasoning-filter-works.md](./ux-models-xai-reasoning-filter-works.md) | models --feature reasoning --provider xai returns xai/grok-3-mini — multi-filter works. |
-| 807 | open | Low | Spawn / positive pattern | [ux-pi-agent-alias-works.md](./ux-pi-agent-alias-works.md) | spawn pi-agent resolves to pi and succeeds — positive alias behavior (title shows spawn pi). |
-| 808 | open | Low | Pipeline / positive pattern | [ux-pipeline-init-yes-requires-source-good.md](./ux-pipeline-init-yes-requires-source-good.md) | Provide --source or --sources when using --yes is clear non-TTY guidance. |
-| 809 | open | Low | Pipeline / positive pattern | [ux-pipeline-max-runs-zero-good-validation.md](./ux-pipeline-max-runs-zero-good-validation.md) | Invalid max-runs "0" returns clear positive-integer validation without raw Commander text — positive patter… |
-| 810 | open | Low | Pipeline / positive pattern | [ux-pipeline-max-runs-zero-validation-good.md](./ux-pipeline-max-runs-zero-validation-good.md) | pipeline run --max-runs 0: Invalid max-runs "0". Expected a positive integer — clear ValidationError. |
-| 811 | open | Low | Pipeline / positive pattern | [ux-pipeline-run-model-override-shown-on-nothing-to-run.md](./ux-pipeline-run-model-override-shown-on-nothing-to-run.md) | pipeline run with --model shows Model: anthropic/claude-haiku-4.5 in Config even when 21/21 done and Nothin… |
-| 812 | open | Low | Pipeline / positive pattern | [ux-pipeline-validate-good-plan-positive.md](./ux-pipeline-validate-good-plan-positive.md) | pipeline validate tiny-http… shows Plan path, 21 tasks done, steps list, Plan is valid — clear design-syste… |
-| 813 | open | Low | Pipeline / positive pattern | [ux-pipeline-validate-valid-pipeline-good.md](./ux-pipeline-validate-valid-pipeline-good.md) | pipeline validate on valid pipeline shows Plan, Tasks 21 done, Steps, Plan is valid — clear success framing. |
-| 814 | open | Low | Pipeline / positive pattern | [ux-pipeline-validate-wrong-kind-good-message.md](./ux-pipeline-validate-wrong-kind-good-message.md) | pipeline validate on plan-kind file: Invalid plan YAML: "kind" must be "pipeline" — clear kind check (still… |
-| 815 | open | Low | Plan / positive pattern | [ux-plan-archive-json-output-good.md](./ux-plan-archive-json-output-good.md) | plan archive path --yes --output json returns action/path/archivedPath JSON — good machine contract (destru… |
-| 816 | open | Low | Plan / positive pattern | [ux-plan-archive-requires-yes-non-tty-good.md](./ux-plan-archive-requires-yes-non-tty-good.md) | plan archive docs/plans/32-agent-goal.md --output md without --yes: plan archive requires --yes when runnin… |
-| 817 | open | Low | Plan / positive pattern | [ux-plan-delete-json-output-good.md](./ux-plan-delete-json-output-good.md) | plan delete path --yes --output json returns action/path — good machine contract (restored file after audit). |
-| 818 | open | Low | Plan | [ux-plan-edit-bare-edited-message.md](./ux-plan-edit-bare-edited-message.md) | EDITOR=true plan edit path prints Edited docs/plans/… without design-system panel. |
-| 819 | open | Low | Plan / help / formatting | [ux-plan-help-keymap-hint-unframed.md](./ux-plan-help-keymap-hint-unframed.md) | `plan --help` ends with a bare line: |
-| 820 | open | Low | Plan install / positive pattern | [ux-plan-install-dry-run-clean-good.md](./ux-plan-install-dry-run-clean-good.md) | plan install --agent claude --local --yes --dry-run: Would create SKILL.md; Would install; no filesystem ch… |
-| 821 | open | Low | Plan install / positive pattern | [ux-plan-install-pi-clearer-than-unknown.md](./ux-plan-install-pi-clearer-than-unknown.md) | plan install pi: Unsupported agent: pi — better than install/test Unknown agent for capability gaps. |
-| 822 | open | Low | Plan / positive pattern | [ux-plan-install-success-good.md](./ux-plan-install-success-good.md) | plan install shows Create path and Installed plan skill with design-system framing — positive pattern. |
-| 823 | open | Low | Plan / positive pattern | [ux-plan-kind-invalid-validation-good.md](./ux-plan-kind-invalid-validation-good.md) | Invalid --kind bogus lists Expected plan, pipeline, experiment, ralph, superintendent, superintendent-base. |
-| 824 | open | Low | Plan list / positive pattern | [ux-plan-list-invalid-kind-output-validation-good.md](./ux-plan-list-invalid-kind-output-validation-good.md) | plan list --kind bogus and --output bogus return clear Expected … lists without See logs. |
-| 825 | open | Low | Plan list | [ux-plan-list-json-empty-is-bare-array.md](./ux-plan-list-json-empty-is-bare-array.md) | Empty plan list as JSON is bare [] without envelope — fine for scripts but inconsistent with design-system … |
-| 826 | open | Low | Plan list / positive pattern | [ux-plan-list-output-md-is-markdown-table-good.md](./ux-plan-list-output-md-is-markdown-table-good.md) | plan list --output md prints GFM table with Kind/Type/Name/Detail/Updated — good export (still includes REA… |
-| 827 | open | Low | Plan list / positive pattern | [ux-plan-list-pipeline-json-good.md](./ux-plan-list-pipeline-json-good.md) | JSON array with kind, path, detail 21/21 done — good machine-readable pipeline list. |
-| 828 | open | Low | Plan / positive pattern | [ux-plan-markdown-read-section-by-number-works.md](./ux-plan-markdown-read-section-by-number-works.md) | plan markdown-read-section … "2" returns section 2 User-facing shape content correctly. |
-| 829 | open | Low | Plan / positive pattern | [ux-plan-output-invalid-validation-good.md](./ux-plan-output-invalid-validation-good.md) | Invalid --output value "bad" returns Expected one of: terminal, md, json without raw Commander skin. |
-| 830 | open | Low | Plan path | [ux-plan-path-commands-bare-stdout-reconfirmed.md](./ux-plan-path-commands-bare-stdout-reconfirmed.md) | pipeline/experiment/superintendent plan-path print absolute path as bare stdout — good for scripting, incon… |
-| 831 | open | Low | Plan paths | [ux-plan-path-commands-bare-stdout.md](./ux-plan-path-commands-bare-stdout.md) | Path only. |
-| 832 | open | Low | Plan / positive pattern | [ux-plan-view-missing-path-good.md](./ux-plan-view-missing-path-good.md) | plan view /tmp/no-plan.md: Plan not found: path — clear without See logs. |
-| 833 | open | Low | Plan / positive pattern | [ux-plan-view-non-tty-requires-path-good.md](./ux-plan-view-non-tty-requires-path-good.md) | plan view without path: Plan selection requires a path or --yes when running without an interactive TTY — c… |
-| 834 | open | Low | Plan / positive pattern | [ux-plan-view-pipeline-md-output-good.md](./ux-plan-view-pipeline-md-output-good.md) | plan view on pipeline plan with --output md produces markdown checklist Status 21/21 done with tasks — good… |
-| 835 | open | Low | Configure / positive pattern | [ux-poe-no-prompt-works-for-configure-dry-run.md](./ux-poe-no-prompt-works-for-configure-dry-run.md) | POE_NO_PROMPT=1 configure claude --model haiku --dry-run proceeds without TTY — works but remains obscure v… |
-| 836 | open | Low | Provider / Runtime / Harness / help / capitalisation | [ux-provider-help-command-lowercase-systemic.md](./ux-provider-help-command-lowercase-systemic.md) | Several commands expose a `help [command]` subcommand in their Commands list with a lowercase description "… |
-| 837 | open | Low | Providers / positive pattern | [ux-provider-list-all-logged-out-clean.md](./ux-provider-list-all-logged-out-clean.md) | provider list when not logged in shows all providers Status [-] without secrets — clean empty auth state. |
-| 838 | open | Low | Providers / positive pattern | [ux-provider-login-anthropic-dry-run-clean.md](./ux-provider-login-anthropic-dry-run-clean.md) | provider login anthropic --api-key sk-fake --dry-run: would save credential; no filesystem changes — clean … |
-| 839 | open | Low | Providers / positive pattern | [ux-provider-login-anthropic-dry-run-good.md](./ux-provider-login-anthropic-dry-run-good.md) | provider login anthropic --api-key test --yes --dry-run says would save credential without dumping secrets … |
-| 840 | open | Low | Providers / positive pattern | [ux-provider-login-cloudflare-requires-base-url-good.md](./ux-provider-login-cloudflare-requires-base-url-good.md) | Provider "cloudflare" requires a base URL. Pass --base-url or set CF_AIG_BASE_URL — clear recovery (still S… |
-| 841 | open | Low | Providers / positive pattern | [ux-provider-logout-anthropic-dry-run-good.md](./ux-provider-logout-anthropic-dry-run-good.md) | provider logout anthropic --dry-run only shows would log out + rm credentials.anthropic.enc — good contrast… |
-| 842 | open | Low | Providers / positive pattern | [ux-provider-logout-openai-dry-run-clean.md](./ux-provider-logout-openai-dry-run-clean.md) | provider logout openai --dry-run only would log out + rm credentials.openai.enc — clean credential-only dry… |
-| 843 | open | Low | Ralph / positive pattern | [ux-ralph-init-missing-doc-not-found-good.md](./ux-ralph-init-missing-doc-not-found-good.md) | ralph init /tmp/no-ralph.md --yes: Ralph doc not found: path — clear (kind-aware enough). |
-| 844 | open | Low | Brand | [ux-root-tagline-inconsistent.md](./ux-root-tagline-inconsistent.md) | Different one-liners. |
-| 845 | open | Low | Runtime / positive pattern | [ux-runtime-build-host-message-good.md](./ux-runtime-build-host-message-good.md) | Host runtime has no template to build with pass --runtime e2b/docker or config hint — clear recovery. |
-| 846 | open | Low | Runtime / positive pattern | [ux-runtime-init-docker-dry-run-clean.md](./ux-runtime-init-docker-dry-run-clean.md) | runtime init --type docker --yes --dry-run: would set runtime.type docker; would create Dockerfile — clean. |
-| 847 | open | Low | Runtime / positive pattern | [ux-runtime-init-dry-run-clean.md](./ux-runtime-init-dry-run-clean.md) | runtime init --type host --yes --dry-run: would set runtime.type; would create Dockerfile if missing — inte… |
-| 848 | open | Low | Runtime / jobs / memory / naming / consistency | [ux-runtime-jobs-ls-inconsistent-with-list.md](./ux-runtime-jobs-ls-inconsistent-with-list.md) | `poe-code runtime jobs ls` lists detached runtime jobs. Every other list-style command in the CLI uses `lis… |
-| 849 | open | Low | Runtime / positive pattern | [ux-runtime-templates-clear-no-yes-needed-good.md](./ux-runtime-templates-clear-no-yes-needed-good.md) | runtime templates clear with empty cache: No local runtime template cache entries to clear — clear; --yes n… |
-| 850 | open | Low | Configure / positive pattern | [ux-shape-base-url-invalid-format-validation-good.md](./ux-shape-base-url-invalid-format-validation-good.md) | configure --shape-base-url https://example.invalid: Invalid --shape-base-url value. Use <shape-id>=<url> — … |
-| 851 | open | Low | Configure / positive pattern | [ux-shape-base-url-invalid-validation-good.md](./ux-shape-base-url-invalid-validation-good.md) | Invalid --shape-base-url value returns Use <shape-id>=<url> clearly. |
-| 852 | open | Low | Configure / positive pattern | [ux-shape-base-url-unknown-shape-lists-exposed-good.md](./ux-shape-base-url-unknown-shape-lists-exposed-good.md) | Unknown API shape "messages" lists Exposed shapes: openai-chat-completions, openai-responses, anthropic-mes… |
-| 853 | open | Low | Spawn / positive pattern | [ux-skill-bridge-failure-lists-paths-good.md](./ux-skill-bridge-failure-lists-paths-good.md) | Failed to bridge active skills lists Not found skill references and searched paths — good recovery content … |
-| 854 | open | Low | Skills / positive pattern | [ux-skill-configure-goose-local-success.md](./ux-skill-configure-goose-local-success.md) | skill configure goose --yes --local succeeds at ./.agents/skills with clear path. |
-| 855 | open | Low | Skills / positive pattern | [ux-skill-configure-pi-poe-agent-not-supported-clear.md](./ux-skill-configure-pi-poe-agent-not-supported-clear.md) | skill configure pi/poe-agent: Skills not supported for pi/poe-agent — clear capability message (contrast co… |
-| 856 | open | Low | Skill / help / usage / consistency | [ux-skill-help-usage-says-options-not-command.md](./ux-skill-help-usage-says-options-not-command.md) | `poe-code skill --help` shows: |
-| 857 | open | Low | Skills / positive pattern | [ux-skill-install-from-file-works-well.md](./ux-skill-install-from-file-works-well.md) | skill install with --file/--name/--yes/--local produces a clear design-system success naming agent and path… |
-| 858 | open | Low | Skills / positive pattern | [ux-skill-unconfigure-goose-no-dir-good.md](./ux-skill-unconfigure-goose-no-dir-good.md) | skill unconfigure goose --local: No skill directory found for goose at .agents/skills — clear no-op without… |
-| 859 | open | Low | Skills / positive pattern | [ux-skill-unconfigure-refuses-nonempty-without-force-good.md](./ux-skill-unconfigure-refuses-nonempty-without-force-good.md) | skill unconfigure claude: Skill directory … has files. Use --force to remove — clear safety (no --yes on he… |
-| 860 | open | Low | Spawn / positive pattern | [ux-spawn-at-file-missing-validation-good.md](./ux-spawn-at-file-missing-validation-good.md) | spawn @/tmp/no-prompt.txt reports prompt could not read file with path and ENOENT — clear ValidationError s… |
-| 861 | open | Low | Spawn / positive pattern | [ux-spawn-at-file-works.md](./ux-spawn-at-file-works.md) | spawn claude @/tmp/file with content succeeds — reconfirm @file prompt form works. |
-| 862 | open | Low | Spawn / positive pattern | [ux-spawn-codex-works-with-frontier-model.md](./ux-spawn-codex-works-with-frontier-model.md) | spawn codex --model openai/gpt-5.3-codex succeeds (with stdin reading message residual). |
-| 863 | open | Low | Spawn / positive pattern | [ux-spawn-cursor-with-model-works.md](./ux-spawn-cursor-with-model-works.md) | spawn cursor "say only: ok" --mode read --model anthropic/claude-haiku-4.5 succeeds. |
-| 864 | open | Low | Spawn / positive pattern | [ux-spawn-cwd-tmp-works.md](./ux-spawn-cwd-tmp-works.md) | spawn with -C /tmp succeeds; Resume line shows cd /tmp && claude --resume — cwd override works. |
-| 865 | open | Low | Spawn / positive pattern | [ux-spawn-invalid-mode-validation-good.md](./ux-spawn-invalid-mode-validation-good.md) | Invalid --mode "bogus" returns Expected yolo, auto, edit, or read without Commander raw skin. |
-| 866 | open | Low | Spawn / positive pattern | [ux-spawn-log-default-redacts-agent-message-good.md](./ux-spawn-log-default-redacts-agent-message-good.md) | Default ACP JSONL log writes agent_message text as [redacted] — good privacy default. --log-content include… |
-| 867 | open | Low | Spawn / positive pattern | [ux-spawn-pi-yes-works.md](./ux-spawn-pi-yes-works.md) | spawn pi "say only: ok" --yes succeeds without --mode (pi may not require mode like claude). |
-| 868 | open | Low | Spawn / positive pattern | [ux-spawn-runtime-docker-error-good-install-hints.md](./ux-spawn-runtime-docker-error-good-install-hints.md) | No container engine found includes Docker Desktop / Colima / Podman install hints — good recovery copy (sti… |
-| 869 | open | Low | Spawn / positive pattern | [ux-spawn-runtime-host-works.md](./ux-spawn-runtime-host-works.md) | spawn … --runtime host succeeds for claude with valid model — host runtime path works. |
-| 870 | open | Low | Spawn / positive pattern | [ux-spawn-stdin-pipe-works.md](./ux-spawn-stdin-pipe-works.md) | echo "say only: ok" / spawn claude --mode read --model haiku --stdin succeeds. |
-| 871 | open | Low | Spawn / positive pattern | [ux-spawn-test-cursor-works.md](./ux-spawn-test-cursor-works.md) | spawn cursor and test cursor with anthropic/claude-haiku-4.5 succeed. |
-| 872 | open | Low | Spawn / positive pattern | [ux-spawn-test-goose-works.md](./ux-spawn-test-goose-works.md) | spawn goose and test goose with anthropic/claude-haiku-4.5 succeed. |
-| 873 | open | Low | Configure / positive pattern | [ux-spawn-test-sonnet-4-6-works.md](./ux-spawn-test-sonnet-4-6-works.md) | spawn and test claude with anthropic/claude-sonnet-4.6 succeed — live model works when explicitly passed; d… |
-| 874 | open | Low | Spawn / positive pattern | [ux-spawn-yes-with-explicit-mode-read-works.md](./ux-spawn-yes-with-explicit-mode-read-works.md) | spawn … --yes --mode read succeeds — explicit --mode overrides --yes yolo default as help implies. |
-| 875 | open | Low | Superintendent / positive pattern | [ux-superintendent-complete-missing-doc-good.md](./ux-superintendent-complete-missing-doc-good.md) | superintendent complete /tmp/no.md: Superintendent document not found — clear (better than Unclosed tag on … |
-| 876 | open | Low | Superintendent / positive pattern | [ux-superintendent-run-empty-good.md](./ux-superintendent-run-empty-good.md) | superintendent run --yes: No superintendent documents found — clear empty state. |
-| 877 | open | Low | Tasks / positive pattern | [ux-tasks-verify-bad-list-format-good.md](./ux-tasks-verify-bad-list-format-good.md) | tasks verify some-list: Expected project to use "<owner>/<number>" format — clear ValidationError. |
-| 878 | open | Low | Tasks / positive pattern | [ux-tasks-verify-format-error-good.md](./ux-tasks-verify-format-error-good.md) | Expected project to use owner/number format is clear (still [error] prefix odd). |
-| 879 | open | Low | Test / positive pattern | [ux-test-codex-with-valid-model-succeeds.md](./ux-test-codex-with-valid-model-succeeds.md) | test codex --model openai/gpt-5.3-codex succeeds with design-system Tested Codex framing. |
-| 880 | open | Low | Test / positive pattern | [ux-test-goose-with-valid-model-succeeds.md](./ux-test-goose-with-valid-model-succeeds.md) | test goose --model anthropic/claude-haiku-4.5 succeeds with Tested Goose framing. |
-| 881 | open | Low | Test / positive pattern | [ux-test-with-valid-model-succeeds.md](./ux-test-with-valid-model-succeeds.md) | test claude --model anthropic/claude-haiku-4.5 succeeds with Tested Claude Code framing when model is valid… |
-| 882 | open | Low | Traces / positive pattern | [ux-traces-invalid-source-validation-good.md](./ux-traces-invalid-source-validation-good.md) | traces --source bogus: Unsupported trace source "bogus". Expected one of: claude, codex, poe-code — clear V… |
-| 883 | open | Low | Traces / positive pattern | [ux-traces-limit-3-works.md](./ux-traces-limit-3-works.md) | traces --limit 3 shows 3 recent traces table (claude/codex/pi) — --limit works on traces (models still lack… |
-| 884 | open | Low | Traces / positive pattern | [ux-traces-since-and-source-limit-work.md](./ux-traces-since-and-source-limit-work.md) | traces --since 1d --limit 5 and traces --source claude --limit 2 return filtered tables — --since/--source/… |
-| 885 | open | Low | Traces / positive pattern | [ux-traces-since-limit-works.md](./ux-traces-since-limit-works.md) | traces --since 1h --limit 3 returns 3 recent traces with sources — filters work. |
-| 886 | open | Low | Traces / positive pattern | [ux-traces-source-invalid-validation-good.md](./ux-traces-source-invalid-validation-good.md) | Unsupported trace source lists Expected one of: claude, codex, poe-code without stack. |
-| 887 | open | Low | Traces / positive pattern | [ux-traces-unsupported-source-validation-good.md](./ux-traces-unsupported-source-validation-good.md) | traces --source bogus: Unsupported trace source "bogus". Expected one of: claude, codex, pi, poe-code — cle… |
-| 888 | open | Low | Update / positive pattern | [ux-update-dry-run-always-global-npm.md](./ux-update-dry-run-always-global-npm.md) | update --dry-run plans npm install -g poe-code@latest — clear dry-run (always -g; package-manager override … |
-| 889 | open | Low | Update / positive pattern | [ux-update-dry-run-clean-good.md](./ux-update-dry-run-clean-good.md) | update --dry-run: would run npm install -g poe-code@latest — clean intentional dry-run. |
-| 890 | open | Low | Update / positive pattern | [ux-update-package-manager-override-works.md](./ux-update-package-manager-override-works.md) | update --package-manager bun --dry-run correctly plans bun install -g poe-code@latest — positive package-ma… |
-| 891 | open | Low | Update / positive pattern | [ux-update-package-manager-pnpm-dry-run-good.md](./ux-update-package-manager-pnpm-dry-run-good.md) | update --package-manager pnpm --dry-run: would run pnpm add -g poe-code@latest — clean package-manager over… |
-| 892 | open | Low | Update / positive pattern | [ux-update-pnpm-package-manager-works.md](./ux-update-pnpm-package-manager-works.md) | update --package-manager pnpm --dry-run plans pnpm add -g poe-code@latest — positive package manager overri… |
-| 893 | open | Low | Usage / positive pattern | [ux-usage-balance-default-good.md](./ux-usage-balance-default-good.md) | usage with no subcommand shows balance card with plan/add-on and next grant — strong positive. |
-| 894 | open | Low | Usage / positive pattern | [ux-usage-balance-presentation-good.md](./ux-usage-balance-presentation-good.md) | usage balance shows Balance, Plan, Add-on, next grant with design-system framing and helpful next-points link. |
-| 895 | open | Low | Usage / positive pattern | [ux-usage-list-filter-works-well.md](./ux-usage-list-filter-works-well.md) | usage list --filter Claude-Haiku returns filtered table with clear costs — good list UX (still no --json). |
-| 896 | open | Low | Usage / positive pattern | [ux-usage-list-filter-works.md](./ux-usage-list-filter-works.md) | usage list --filter Claude-Sonnet shows filtered usage table with Sonnet-4.6 rows — filter works. |
-| 897 | open | Low | Usage / positive pattern | [ux-usage-list-no-match-message-good.md](./ux-usage-list-no-match-message-good.md) | usage list --filter nonexistent-model-xyz → No entries match "…" — clear empty filter message. |
-| 898 | open | Low | Usage / positive pattern | [ux-usage-list-table-works.md](./ux-usage-list-table-works.md) | usage list shows Date/Model/Cost/tokens table with 20 entries — design-system table works. |
-| 899 | open | Low | Utils / positive pattern | [ux-utils-config-init-already-exists-is-info.md](./ux-utils-config-init-already-exists-is-info.md) | config init when project config exists prints Project config already exists at path without error exit dram… |
-| 900 | open | Low | Utils / positive pattern | [ux-utils-config-show-logged-out-clean-no-secrets.md](./ux-utils-config-show-logged-out-clean-no-secrets.md) | utils config show with empty global and no env overrides shows project ralph/runtime config only — no secre… |
-| 901 | open | Low | Utils / help / usage / consistency | [ux-utils-help-usage-says-options-not-command.md](./ux-utils-help-usage-says-options-not-command.md) | `poe-code utils --help` shows: |
-| 902 | open | Low | Utils / positive pattern | [ux-utils-symlink-agents-already-linked-good.md](./ux-utils-symlink-agents-already-linked-good.md) | utils symlink agents --dry-run prints already linked without error — good idempotent message. |
-| 903 | open | Low | Utils / positive pattern | [ux-utils-symlink-skills-both-exist-good-guidance.md](./ux-utils-symlink-skills-both-exist-good-guidance.md) | When both .claude/skills and .agents/skills exist, message explains resolve manually steps — good conflict … |
-| 904 | open | Low | Utils / positive pattern | [ux-utils-symlink-skills-yes-local-dry-run-works.md](./ux-utils-symlink-skills-yes-local-dry-run-works.md) | With explicit scope flags, dry-run shows rename+symlink plan — positive once scope is provided (still subje… |
-| 905 | open | Low | Spawn | [ux-verbose-spawn-prefix-minimal.md](./ux-verbose-spawn-prefix-minimal.md) | spawn --verbose adds [spawn:claude-code] line before Resume — relatively quiet (related verbose prefixes ev… |
-| 906 | open | Low | Worktree / positive pattern | [ux-worktree-list-empty-good.md](./ux-worktree-list-empty-good.md) | worktree list: No managed worktrees — clear empty state. |
-| 907 | open | Low | Worktree / list / empty state / visual consistency | [ux-worktree-list-empty-state-unframed.md](./ux-worktree-list-empty-state-unframed.md) | `poe-code worktree list` when no worktrees exist shows: |
+| 506 | open | Medium | Plan | [ux-plan-unknown-subcommand-treated-as-question.md](./ux-plan-unknown-subcommand-treated-as-question.md) | plan foobar non-TTY: Plan session agent selection requires --agent or --yes — foobar is treated as a plan q… |
+| 507 | open | Medium | Plan | [ux-plan-view-json-dumps-full-content.md](./ux-plan-view-json-dumps-full-content.md) | plan view --output json includes entire content string of the plan body — huge payload for scripts that onl… |
+| 508 | open | Medium | Plan | [ux-plan-view-vs-markdown-read-not-found-inconsistent.md](./ux-plan-view-vs-markdown-read-not-found-inconsistent.md) | plan view missing.md → Plan not found: missing.md (clean, no logs). plan markdown-read missing.md → file no… |
+| 509 | open | Medium | Help | [ux-primary-commands-lack-examples-in-help.md](./ux-primary-commands-lack-examples-in-help.md) | models has Examples; configure/spawn do not. |
+| 510 | open | Medium | Help | [ux-primary-commands-still-lack-examples.md](./ux-primary-commands-still-lack-examples.md) | spawn, configure, and gaslight --help still have no Examples section while models --help is best-in-class w… |
+| 511 | open | Medium | Providers | [ux-provider-list-agents-column-incomplete.md](./ux-provider-list-agents-column-incomplete.md) | Omits spawn-only agents. |
+| 512 | open | Medium | Providers | [ux-provider-list-agents-column-truncates.md](./ux-provider-list-agents-column-truncates.md) | provider list cloudflare Agents cell ends with poe-… truncation — full agent list not visible without wide … |
+| 513 | open | Medium | Providers | [ux-provider-list-no-json-flag.md](./ux-provider-list-no-json-flag.md) | provider list --json is unknown; only design-system table available for scripting. |
+| 514 | open | Medium | Provider auth / security | [ux-provider-login-api-key-flag-history-risk.md](./ux-provider-login-api-key-flag-history-risk.md) | `provider login --help` lists `--api-key <key>` as a first-class option. Passing secrets via CLI args leaks… |
+| 515 | open | Medium | Provider auth | [ux-provider-login-missing-key-system-chrome.md](./ux-provider-login-missing-key-system-chrome.md) | Good message + logs. |
+| 516 | open | Medium | Workflows | [ux-ralph-experiment-wrong-kind-says-not-found.md](./ux-ralph-experiment-wrong-kind-says-not-found.md) | Existing plan wrong kind. |
+| 517 | open | Medium | Ralph | [ux-ralph-run-help-omits-yes.md](./ux-ralph-run-help-omits-yes.md) | ralph run help has agent/iterations/cwd/archive/tui/worktree/runtime/detach — no --yes for non-TTY. |
+| 518 | open | Medium | Ralph | [ux-ralph-validate-command-missing.md](./ux-ralph-validate-command-missing.md) | ralph validate unknown command while experiment/superintendent/pipeline have validate. |
+| 519 | open | Medium | Errors | [ux-raw-commander-invalid-option-choices.md](./ux-raw-commander-invalid-option-choices.md) | --view nope raw. |
+| 520 | open | Medium | Errors | [ux-raw-commander-missing-args.md](./ux-raw-commander-missing-args.md) | unconfigure/wrap missing agent raw error. |
+| 521 | open | Medium | Docs / CLI sync | [ux-readme-features-wrap-but-cli-missing.md](./ux-readme-features-wrap-but-cli-missing.md) | README wrap quickstart removed; wrap CLI residual (muscle memory / external docs) |
+| 522 | open | Medium | Configure | [ux-reasoning-effort-flag-opaque.md](./ux-reasoning-effort-flag-opaque.md) | No validation/examples. |
+| 523 | open | Medium | Spawn | [ux-resume-thread-errors-are-agent-raw.md](./ux-resume-thread-errors-are-agent-raw.md) | Long agent usage text. |
+| 524 | open | Medium | Spawn | [ux-resume-thread-invalid-agent-raw-error.md](./ux-resume-thread-invalid-agent-raw-error.md) | spawn --resume-thread-id not-a-real-id fails with long Claude Code usage text about UUID/session title + Se… |
+| 525 | open | Medium | Help | [ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md](./ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md) | confgure and spwn → Unknown command + npm run dev help — no Did you mean configure/spawn. |
+| 526 | open | Medium | Help | [ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md](./ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md) | configuree and modell → Unknown command + npm run dev — no Did you mean configure/models. |
+| 527 | open | Medium | Spawn | [ux-runner-sync-and-runtime-invalid-raw-commander.md](./ux-runner-sync-and-runtime-invalid-raw-commander.md) | Invalid --runner-sync bogus and --runtime bogus print Commander option argument is invalid. Allowed choices… |
+| 528 | open | Medium | Spawn / runtime | [ux-runner-sync-without-runtime-silently-accepted.md](./ux-runner-sync-without-runtime-silently-accepted.md) | spawn with --runner-sync both but no runtime/detach runs inline successfully — flag appears no-op without w… |
+| 529 | open | Medium | Runtime jobs | [ux-runtime-job-missing-see-logs.md](./ux-runtime-job-missing-see-logs.md) | runtime jobs stop/logs missing-id: No runtime job found + See logs — clear message, system chrome. |
+| 530 | open | Medium | Runtime jobs | [ux-runtime-jobs-attach-missing-see-logs.md](./ux-runtime-jobs-attach-missing-see-logs.md) | runtime jobs attach missing: No runtime job found + See logs — same class as stop/logs. |
+| 531 | open | Medium | Runtime | [ux-runtime-jobs-list-unbounded-opaque-statuses.md](./ux-runtime-jobs-list-unbounded-opaque-statuses.md) | History dump; lost unexplained. |
+| 532 | open | Medium | Runtime jobs | [ux-runtime-jobs-logs-stop-missing-see-logs.md](./ux-runtime-jobs-logs-stop-missing-see-logs.md) | runtime jobs logs/stop missing: No runtime job found + See logs — clear message, system chrome residual. |
+| 533 | open | Medium | Runtime jobs | [ux-runtime-jobs-ls-help-no-limit-reconfirmed.md](./ux-runtime-jobs-ls-help-no-limit-reconfirmed.md) | runtime jobs ls --help only -h — no --limit, --since, --status despite unbounded May-era list. |
+| 534 | open | Medium | Runtime jobs | [ux-runtime-jobs-show-unknown-suggests-stop.md](./ux-runtime-jobs-show-unknown-suggests-stop.md) | runtime jobs show is not a command; Commander Did you mean: stop? — users expect show/get for job details. |
+| 535 | open | Medium | Runtime / errors | [ux-runtime-missing-deps-good-message-system-chrome.md](./ux-runtime-missing-deps-good-message-system-chrome.md) | spawn --runtime docker/e2b missing engine/API key messages include install links and config paths (excellen… |
+| 536 | open | Medium | Runtime | [ux-runtime-templates-ls-empty-rows.md](./ux-runtime-templates-ls-empty-rows.md) | runtime templates ls shows docker and e2b rows with Hash (empty) and blank artifact/Dockerfile/Built — look… |
+| 537 | open | Medium | SDK | [ux-sdk-getpoeapikey-throws-generic-error.md](./ux-sdk-getpoeapikey-throws-generic-error.md) | SDK credential helper throws new Error("No API key found…") rather than a typed/user-facing error class, so… |
+| 538 | open | Medium | Spawn / skills | [ux-skill-bridge-failure-system-chrome.md](./ux-skill-bridge-failure-system-chrome.md) | Paths listed + See logs. |
+| 539 | open | Medium | Skill / configure / agent list / consistency | [ux-skill-configure-agent-list-differs-from-configure.md](./ux-skill-configure-agent-list-differs-from-configure.md) | `skill configure [agent]` lists supported agents as: ``` claude-code / codex / cursor / gemini-cli / openco… |
+| 540 | open | Medium | Skills | [ux-skill-configure-agent-list-subset-reconfirmed.md](./ux-skill-configure-agent-list-subset-reconfirmed.md) | skill configure agents: claude-code, codex, cursor, gemini-cli, opencode, goose — omits kimi (configure inc… |
+| 541 | open | Medium | Skills / agents | [ux-skill-configure-kimi-unsupported-abrupt.md](./ux-skill-configure-kimi-unsupported-abrupt.md) | Skills not supported for kimi. |
+| 542 | open | Medium | Skills | [ux-skill-configure-yes-defaults-agent-silently.md](./ux-skill-configure-yes-defaults-agent-silently.md) | skill configure --yes --local without agent configures claude-code without stating default selection policy… |
+| 543 | open | Medium | Skills | [ux-skill-configure-yes-defaults-to-claude-already-exists.md](./ux-skill-configure-yes-defaults-to-claude-already-exists.md) | skill configure --yes without agent targets claude-code and fails Skill already exists … See logs — silent … |
+| 544 | open | Medium | Skills | [ux-skill-install-file-required-before-name.md](./ux-skill-install-file-required-before-name.md) | skill install claude-code --name onlyname fails required option --file first — both name and file required;… |
+| 545 | open | Medium | Skills | [ux-skill-install-missing-file-enoent-see-logs.md](./ux-skill-install-missing-file-enoent-see-logs.md) | skill install with missing SKILL.md path: ENOENT open + See logs — should be ValidationError file not found. |
+| 546 | open | Medium | Skills | [ux-skill-install-missing-file-enoent.md](./ux-skill-install-missing-file-enoent.md) | skill install --file /tmp/no-skill.md fails ENOENT: no such file… + See logs. |
+| 547 | open | Medium | Skills | [ux-skill-install-name-and-file-both-required.md](./ux-skill-install-name-and-file-both-required.md) | Serial required options opaque. |
+| 548 | open | Medium | Naming | [ux-skill-naming-collisions.md](./ux-skill-naming-collisions.md) | skills≠skill; dual /plan. |
+| 549 | open | Medium | Skills / first-run | [ux-skill-parent-no-next-step-guidance.md](./ux-skill-parent-no-next-step-guidance.md) | poe-code skill with no subcommand prints a bare subcommand list without suggesting the common onboarding pa… |
+| 550 | open | Medium | Skills | [ux-skill-unconfigure-defaults-agent-and-soft-blocks.md](./ux-skill-unconfigure-defaults-agent-and-soft-blocks.md) | skill unconfigure without agent defaults to claude-code and refuses non-empty skill dirs unless --force, bu… |
+| 551 | open | Medium | Help / identity | [ux-skill-unknown-subcommand-npm-run-dev.md](./ux-skill-unknown-subcommand-npm-run-dev.md) | skill foobar: Unknown command: foobar + Run npm run dev -- skill --help — identity leak on skill group. |
+| 552 | open | Medium | Spawn / skills | [ux-skills-empty-string-silently-ignored.md](./ux-skills-empty-string-silently-ignored.md) | spawn with --skills "" succeeds without warning — empty skills flag ignored unlike --skill "" which fails m… |
+| 553 | open | Medium | Spawn / skills | [ux-skills-flag-without-value-is-noop-or-unclear.md](./ux-skills-flag-without-value-is-noop-or-unclear.md) | spawn … --skills with no value still runs the agent successfully (boolean presence?) without error or warni… |
+| 554 | open | Medium | Configure | [ux-skip-if-configured-still-writes-when-model-differs.md](./ux-skip-if-configured-still-writes-when-model-differs.md) | Passing --skip-if-configured with an explicit --model that differs from stored config still runs a full con… |
+| 555 | open | Medium | Spawn help | [ux-spawn-advanced-flags-undifferentiated.md](./ux-spawn-advanced-flags-undifferentiated.md) | ~20 options ungrouped. |
+| 556 | open | Medium | Spawn / codex | [ux-spawn-codex-reads-stdin-message-on-tty-less-success.md](./ux-spawn-codex-reads-stdin-message-on-tty-less-success.md) | Even when prompt is provided as an argument, successful codex spawn emits Reading additional input from std… |
+| 557 | open | Medium | Spawn | [ux-spawn-cwd-file-not-directory-see-logs.md](./ux-spawn-cwd-file-not-directory-see-logs.md) | spawn --cwd /tmp/file: Workspace path is not a directory + See logs — clear message, system chrome. |
+| 558 | open | Medium | Spawn | [ux-spawn-cwd-missing-see-logs.md](./ux-spawn-cwd-missing-see-logs.md) | spawn --cwd /tmp/does-not-exist: Workspace path does not exist + See logs — clear message, system chrome. |
+| 559 | open | Medium | Spawn / paths | [ux-spawn-cwd-missing-system-chrome.md](./ux-spawn-cwd-missing-system-chrome.md) | spawn -C /missing says Workspace path does not exist (good) but still attaches errors.log system-failure fo… |
+| 560 | open | Medium | Spawn / runtime | [ux-spawn-detach-ignored-on-failure-path.md](./ux-spawn-detach-ignored-on-failure-path.md) | With --detach, spawn still appears to run the agent path that fails on stale model in-foreground with succe… |
+| 561 | open | Medium | Spawn | [ux-spawn-empty-at-file-see-logs.md](./ux-spawn-empty-at-file-see-logs.md) | spawn claude @/tmp/empty.txt: No prompt provided via argument or stdin + See logs — clear message, system c… |
+| 562 | open | Medium | Spawn | [ux-spawn-interactive-bypasses-design-system-panel.md](./ux-spawn-interactive-bypasses-design-system-panel.md) | spawn … --interactive / -i in non-TTY still runs and prints bare agent text (ok / Hey!) without Poe - spawn… |
+| 563 | open | Medium | Spawn / interactive | [ux-spawn-interactive-non-tty-still-runs.md](./ux-spawn-interactive-non-tty-still-runs.md) | spawn … --interactive without TTY still produces agent output (not a clear "requires TTY" failure) — flag i… |
+| 564 | open | Medium | Spawn / security | [ux-spawn-log-content-help-underwarns-sensitive-data.md](./ux-spawn-log-content-help-underwarns-sensitive-data.md) | spawn --help: --log-content Include message and tool content in ACP JSONL spawn logs — no danger that logs … |
+| 565 | open | Medium | Spawn | [ux-spawn-missing-agent-raw-commander.md](./ux-spawn-missing-agent-raw-commander.md) | spawn with no args: error: missing required argument agent — raw commander not design-system; no agent list. |
+| 566 | open | Medium | Spawn | [ux-spawn-no-prompt-system-chrome.md](./ux-spawn-no-prompt-system-chrome.md) | No prompt provided via argument or stdin is correct message but still See logs system chrome. |
+| 567 | open | Medium | Spawn / skills | [ux-spawn-skill-missing-lists-searched-paths-see-logs.md](./ux-spawn-skill-missing-lists-searched-paths-see-logs.md) | spawn --skill no-such-skill: Failed to bridge active skills… Not found skill references; searched paths lis… |
+| 568 | open | Medium | Spawn | [ux-spawn-stdin-empty-see-logs.md](./ux-spawn-stdin-empty-see-logs.md) | spawn --stdin with empty stdin: No prompt provided via argument or stdin + See logs — good message, system … |
+| 569 | open | Medium | Spawn | [ux-spawn-validates-mode-before-agent-reconfirmed.md](./ux-spawn-validates-mode-before-agent-reconfirmed.md) | spawn unknown-agent --mode foobar fails mode first; spawn unknown-agent --mode read fails Unknown agent wit… |
+| 570 | open | Medium | Spawn / errors | [ux-spawn-validates-mode-before-agent.md](./ux-spawn-validates-mode-before-agent.md) | Invalid agent fails missing --mode first. |
+| 571 | open | Medium | Spawn / help / discoverability | [ux-spawn-yes-not-in-options.md](./ux-spawn-yes-not-in-options.md) | `spawn --help` does not list `--yes` as its own option. The flag is mentioned only inside the `--mode` desc… |
+| 572 | open | Medium | Visual language | [ux-successful-spawn-still-uses-checkmark-for-agent-text.md](./ux-successful-spawn-still-uses-checkmark-for-agent-text.md) | Even successful spawn pi output prefixes agent thinking/answer lines with ✓, same glyph as success status —… |
+| 573 | open | Medium | Help / identity | [ux-superintendent-builder-inspector-npm-run-dev.md](./ux-superintendent-builder-inspector-npm-run-dev.md) | superintendent builder/inspector help Usage: npm run dev -- superintendent builder … — reconfirm identity. |
+| 574 | open | Medium | Help / identity | [ux-superintendent-code-review-npm-run-dev-identity.md](./ux-superintendent-code-review-npm-run-dev-identity.md) | superintendent and code-review Usage: npm run dev -- … — identity leak class. |
+| 575 | open | Medium | Superintendent | [ux-superintendent-complete-wrong-kind-debug-tease.md](./ux-superintendent-complete-wrong-kind-debug-tease.md) | superintendent complete on plan-kind file: frontmatter kind must be superintendent Use --debug for a stack … |
+| 576 | open | Medium | Help / identity | [ux-superintendent-help-npm-run-dev-and-dense-run-options.md](./ux-superintendent-help-npm-run-dev-and-dense-run-options.md) | superintendent --help and superintendent run --help use npm run dev Usage and toolcraft-style dense OPTIONS… |
+| 577 | open | Medium | Superintendent | [ux-superintendent-validate-unclosed-tag-opaque.md](./ux-superintendent-validate-unclosed-tag-opaque.md) | No location. |
+| 578 | open | Medium | Tables | [ux-tables-ignore-terminal-width.md](./ux-tables-ignore-terminal-width.md) | Wide at COLUMNS=40. |
+| 579 | open | Medium | Tasks / auth | [ux-tasks-github-auth-raw-error.md](./ux-tasks-github-auth-raw-error.md) | tasks get raw GraphQL 401. |
+| 580 | open | Medium | Tasks | [ux-tasks-import-dry-run-still-requires-to.md](./ux-tasks-import-dry-run-still-requires-to.md) | tasks import --dry-run --from /tmp fails tasks import requires --to <workflow.md> — dry-run cannot preview … |
+| 581 | open | Medium | Test / capability | [ux-test-help-omits-pi-poe-agent.md](./ux-test-help-omits-pi-poe-agent.md) | test agent list ends at opencode — no pi/poe-agent; spawn lists them; test pi would be unknown vs spawn-onl… |
+| 582 | open | Medium | Spawn / timeouts | [ux-timeout-errors-use-system-chrome.md](./ux-timeout-errors-use-system-chrome.md) | 0.001s + See logs. |
+| 583 | open | Medium | Errors / recovery | [ux-toolcraft-has-suggestions-poe-code-root-does-not.md](./ux-toolcraft-has-suggestions-poe-code-root-does-not.md) | suggest.ts exists; root unused. |
+| 584 | open | Medium | Help / visual | [ux-toolcraft-heading-doubles-poe-code.md](./ux-toolcraft-heading-doubles-poe-code.md) | Double name heading. |
+| 585 | open | Medium | Traces | [ux-traces-directory-path-eisdir-reconfirmed.md](./ux-traces-directory-path-eisdir-reconfirmed.md) | traces /tmp → EISDIR illegal operation on directory, read + See logs — reconfirm kind-aware path error. |
+| 586 | open | Medium | Traces | [ux-traces-directory-path-eisdir.md](./ux-traces-directory-path-eisdir.md) | traces docs EISDIR. |
+| 587 | open | Medium | Traces | [ux-traces-missing-file-enoent-system-chrome.md](./ux-traces-missing-file-enoent-system-chrome.md) | traces /tmp/no-trace.jsonl → ENOENT open + See logs. |
+| 588 | open | Medium | Traces | [ux-traces-missing-file-system-error.md](./ux-traces-missing-file-system-error.md) | System chrome. |
+| 589 | open | Medium | Traces | [ux-traces-poe-code-source-titles-are-agent-names.md](./ux-traces-poe-code-source-titles-are-agent-names.md) | poe-code source traces show title pi / claude-code / cursor without user prompt — less useful than claude s… |
+| 590 | open | Medium | Dry-run | [ux-unconfigure-goose-dry-run-full-config-dump.md](./ux-unconfigure-goose-dry-run-full-config-dump.md) | unconfigure goose --dry-run creates large full config.yaml + dump rather than intentional-only removal summ… |
+| 591 | open | Medium | Unconfigure | [ux-unconfigure-help-missing-dry-run-and-yes.md](./ux-unconfigure-help-missing-dry-run-and-yes.md) | unconfigure help only -h; no --dry-run/--yes though global flags may apply — destructive command underdocum… |
+| 592 | open | Medium | Unconfigure | [ux-unconfigure-help-no-dry-run-or-yes.md](./ux-unconfigure-help-no-dry-run-or-yes.md) | unconfigure --help only lists agent and -h — no mention of global --dry-run, confirmation, or files affected. |
+| 593 | open | Medium | Unconfigure | [ux-unconfigure-missing-agent-raw-commander.md](./ux-unconfigure-missing-agent-raw-commander.md) | unconfigure without agent: error: missing required argument agent — raw commander; unconfigure not-an-agent… |
+| 594 | open | Medium | Destructive | [ux-unconfigure-no-confirmation.md](./ux-unconfigure-no-confirmation.md) | Immediate rewrite no --yes gate. |
+| 595 | open | Medium | Unconfigure | [ux-unconfigure-nonconfigured-agent-still-plans-mutations.md](./ux-unconfigure-nonconfigured-agent-still-plans-mutations.md) | unconfigure gemini --dry-run still emits large settings diffs and backup deletes even when user mental mode… |
+| 596 | open | Medium | Unconfigure | [ux-unconfigure-rejects-spawn-only-agents.md](./ux-unconfigure-rejects-spawn-only-agents.md) | unconfigure pi and unconfigure poe-agent: Unknown agent — correct that they are not configurable, but error… |
+| 597 | open | Medium | Update | [ux-update-always-suggests-npm-install-g.md](./ux-update-always-suggests-npm-install-g.md) | Ignores install method. |
+| 598 | open | Medium | Usage | [ux-usage-help-hides-default-balance-reconfirmed.md](./ux-usage-help-hides-default-balance-reconfirmed.md) | usage with no subcommand runs balance successfully, but usage --help only lists list subcommand — default b… |
+| 599 | open | Medium | Usage | [ux-usage-list-no-json-flag.md](./ux-usage-list-no-json-flag.md) | usage list lacks --json/--output; scripts cannot machine-parse usage history without scraping tables. trace… |
+| 600 | open | Medium | Usage | [ux-usage-pages-1-still-shows-20-entries.md](./ux-usage-pages-1-still-shows-20-entries.md) | usage list --pages 1 still fetches/displays 20 usage entries — --pages means number of pages not page size,… |
+| 601 | open | Medium | Usage | [ux-usage-pages-invalid-raw-commander.md](./ux-usage-pages-invalid-raw-commander.md) | --pages 0/-1 prints error: option argument is invalid. Expected a positive integer without design-system fr… |
+| 602 | open | Medium | Utils / editor | [ux-utils-config-edit-missing-editor-system-chrome.md](./ux-utils-config-edit-missing-editor-system-chrome.md) | utils config edit without EDITOR says Set $EDITOR to use this command + See logs — good message, unnecessar… |
+| 603 | open | Medium | Utils / config | [ux-utils-config-path-subcommand-missing.md](./ux-utils-config-path-subcommand-missing.md) | utils config path fails with too many arguments; only show/init/edit exist. Users often need the path witho… |
+| 604 | open | Medium | Utils / config | [ux-utils-config-show-dumps-large-json.md](./ux-utils-config-show-dumps-large-json.md) | utils config show prints full global config JSON including configured_services detail — useful but noisy; n… |
+| 605 | open | Medium | Utils / config / visual | [ux-utils-config-show-unframed-raw-json.md](./ux-utils-config-show-unframed-raw-json.md) | `utils config show` outputs two sections (`--- Environment variable overrides ---` and `--- Resolved (merge… |
+| 606 | open | Medium | Utils / symlink / visual | [ux-utils-symlink-help-missing-design-system-colors.md](./ux-utils-symlink-help-missing-design-system-colors.md) | `utils symlink --help` shows the panel title "Poe - utils symlink" in plain white/grey text rather than the… |
+| 607 | open | Medium | Utils / symlink / help / design system / visual consistency | [ux-utils-symlink-help-unformatted-white-text.md](./ux-utils-symlink-help-unformatted-white-text.md) | `poe-code utils symlink --help` renders its entire output in white unstyled text. No design system colors a… |
+| 608 | open | Medium | Version | [ux-version-nag-dev-to-4-0-1-reconfirmed.md](./ux-version-nag-dev-to-4-0-1-reconfirmed.md) | poe-code -V still shows Update available: 0.0.0-dev -> 4.0.1 on monorepo/dev builds. |
+| 609 | open | Medium | Version | [ux-version-nags-dev-to-major-jump.md](./ux-version-nags-dev-to-major-jump.md) | Local 0.0.0-dev build reports Update available to 4.0.0 and suggests npm install -g, which is noise for con… |
+| 610 | open | Medium | Version | [ux-version-still-nags-dev-to-4.0.0.md](./ux-version-still-nags-dev-to-4.0.0.md) | Reconfirmed: --version shows Update available: 0.0.0-dev -> 4.0.0 and npm install -g suggestion. |
+| 611 | open | Medium | Version | [ux-version-subcommand-missing-use-flag.md](./ux-version-subcommand-missing-use-flag.md) | poe-code version is Unknown command; version works via -V/--version. Users typing version as subcommand (co… |
+| 612 | open | Medium | Version | [ux-version-update-nag-dev-to-4-0-1.md](./ux-version-update-nag-dev-to-4-0-1.md) | poe-code -V shows Update available: 0.0.0-dev -> 4.0.1 — noisy on monorepo/dev builds. |
+| 613 | open | Medium | Auth / help | [ux-whoami-root-missing-auth-only.md](./ux-whoami-root-missing-auth-only.md) | whoami at root → Unknown command + npm run dev; auth whoami works as JSON. Users expect top-level whoami. |
+| 614 | open | Medium | Tables | [ux-wide-tables-truncate-critical-cells.md](./ux-wide-tables-truncate-critical-cells.md) | Agents column ellipsis. |
+| 615 | open | Medium | Worktree | [ux-worktree-reconcile-not-found-system-chrome.md](./ux-worktree-reconcile-not-found-system-chrome.md) | Worktree "missing" not found in registry + See logs — same as remove not-found. |
+| 616 | open | Medium | Worktree | [ux-worktree-reconcile-requires-agent-raw-commander.md](./ux-worktree-reconcile-requires-agent-raw-commander.md) | worktree reconcile missing --yes: error: required option --agent not specified — raw commander; help may li… |
+| 617 | open | Medium | Worktree | [ux-worktree-reconcile-requires-agent-raw.md](./ux-worktree-reconcile-requires-agent-raw.md) | worktree reconcile missing --yes fails required option --agent not specified (raw) before not-found; --yes … |
+| 618 | open | Medium | Worktree | [ux-worktree-remove-help-no-yes.md](./ux-worktree-remove-help-no-yes.md) | worktree remove --help has --delete-branch but no --yes / confirmation notes for destructive remove. |
+| 619 | open | Medium | Worktree | [ux-worktree-remove-help-omits-yes.md](./ux-worktree-remove-help-omits-yes.md) | worktree remove --help shows only --delete-branch; no --yes. worktree remove ghost-name --yes fails Worktre… |
+| 620 | open | Medium | Worktree | [ux-worktree-remove-missing-see-logs.md](./ux-worktree-remove-missing-see-logs.md) | worktree remove no-such-wt --yes: Worktree not found in registry + See logs — clear message, system chrome … |
+| 621 | open | Medium | Worktree | [ux-worktree-remove-no-confirmation.md](./ux-worktree-remove-no-confirmation.md) | Destructive no confirm. |
+| 622 | open | Medium | Worktree | [ux-worktree-remove-not-found-system-chrome.md](./ux-worktree-remove-not-found-system-chrome.md) | worktree remove no-such → Worktree not found in registry + See logs. |
+| 623 | open | Medium | Docs / CLI sync | [ux-wrap-command-still-missing.md](./ux-wrap-command-still-missing.md) | wrap remains Unknown command — residual after README wrap removal; muscle memory / external docs. |
+| 624 | open | Medium | Dry-run | [ux-wrap-dry-run-forwards-flag.md](./ux-wrap-dry-run-forwards-flag.md) | would run goose --dry-run. |
+| 625 | open | Medium | Dry-run | [ux-wrap-resolves-alias-but-dry-run-lies.md](./ux-wrap-resolves-alias-but-dry-run-lies.md) | kimi-cli --dry-run invented. |
+| 626 | open | Low–Medium | Agent defaults | [ux-agent-default-model-hardcoded.md](./ux-agent-default-model-hardcoded.md) | default anthropic/claude-opus-4.7. |
+| 627 | open | Low–Medium | Config / models | [ux-agent-default-opus-4-7-not-latest-opus-4-8.md](./ux-agent-default-opus-4-7-not-latest-opus-4-8.md) | agent --model default is anthropic/claude-opus-4.7; catalog has anthropic/claude-opus-4.8 (Date Added 2026-… |
+| 628 | open | Low–Medium | Auth | [ux-auth-status-no-json-flag.md](./ux-auth-status-no-json-flag.md) | auth status --json unknown; whoami is JSON. Split is OK if documented; status --help does not mention whoam… |
+| 629 | open | Low–Medium | Auth | [ux-auth-whoami-raw-json-vs-status-panel.md](./ux-auth-whoami-raw-json-vs-status-panel.md) | auth whoami dumps raw JSON identity; auth status uses design-system Logged in as. Dual presentation for sam… |
+| 630 | open | Low–Medium | Auth polish | [ux-auth-whoami-raw-json.md](./ux-auth-whoami-raw-json.md) | JSON vs status design-system. |
+| 631 | open | Low–Medium | Braintrust | [ux-braintrust-status-minimal-disabled.md](./ux-braintrust-status-minimal-disabled.md) | braintrust status prints disabled with Problems footer — no how to enable, env vars, or docs link (reaffirm… |
+| 632 | open | Low–Medium | Spawn / telemetry | [ux-capture-otel-no-visible-output-change.md](./ux-capture-otel-no-visible-output-change.md) | spawn … --capture-otel succeeds like normal spawn without saying where OTEL was written or if capture was a… |
+| 633 | open | Low–Medium | Code-review | [ux-code-review-profiles-raw-table.md](./ux-code-review-profiles-raw-table.md) | code-review profiles dumps a minimal ascii table of name/source without Poe panel framing used elsewhere. |
+| 634 | open | Low–Medium | Code-review / visual | [ux-code-review-profiles-table-outside-design-system.md](./ux-code-review-profiles-table-outside-design-system.md) | No Poe framing. |
+| 635 | open | Low–Medium | Help | [ux-command-aliases-undocumented-on-root-help.md](./ux-command-aliases-undocumented-on-root-help.md) | Work but not shown. |
+| 636 | open | Low–Medium | Configure help | [ux-configure-shape-base-url-opaque.md](./ux-configure-shape-base-url-opaque.md) | Jargon no examples. |
+| 637 | open | Low–Medium | Configure | [ux-configure-unknown-provider-see-logs-missing.md](./ux-configure-unknown-provider-see-logs-missing.md) | configure --provider bogus: Unknown provider "bogus" — clear; should list available providers (poe, anthrop… |
+| 638 | open | Low–Medium | Help | [ux-dashboard-command-missing.md](./ux-dashboard-command-missing.md) | dashboard / dashboard --help → Unknown command. No TUI dashboard entry despite maestro tui existing. |
+| 639 | open | Low–Medium | Help / discoverability | [ux-dashboard-ui-tui-missing.md](./ux-dashboard-ui-tui-missing.md) | dashboard, ui, tui are Unknown command with npm run dev help — no interactive dashboard entrypoint in CLI. |
+| 640 | open | Low–Medium | Editor | [ux-editor-missing-raw-error.md](./ux-editor-missing-raw-error.md) | throw new Error Set $EDITOR. |
+| 641 | open | Low–Medium | Eval | [ux-eval-errors-outside-design-system.md](./ux-eval-errors-outside-design-system.md) | Some eval plain text. |
+| 642 | open | Low–Medium | Eval | [ux-eval-init-creates-in-cwd-with-bare-success.md](./ux-eval-init-creates-in-cwd-with-bare-success.md) | eval init ux-audit-eval-two creates files with bare name/next lines — reconfirm eval init success framing; … |
+| 643 | open | Low–Medium | Eval | [ux-eval-init-success-is-bare-paths.md](./ux-eval-init-success-is-bare-paths.md) | eval init prints folder name and next: poe-code eval check … as bare lines; also next command may still be … |
+| 644 | open | Low–Medium | Eval | [ux-eval-report-debug-flag-undocumented-in-error.md](./ux-eval-report-debug-flag-undocumented-in-error.md) | eval report with no eval folders says Use --debug for a stack trace while primary help may not surface --de… |
+| 645 | open | Low–Medium | Experiment | [ux-experiment-journal-wrong-doc-type-message.md](./ux-experiment-journal-wrong-doc-type-message.md) | Doc not found for existing. |
+| 646 | open | Low–Medium | Install / IA | [ux-extra-npm-bins-confusing.md](./ux-extra-npm-bins-confusing.md) | poe-code-configure + test servers. |
+| 647 | open | Low–Medium | Gaslight | [ux-gaslight-archive-and-no-archive-both-accepted.md](./ux-gaslight-archive-and-no-archive-both-accepted.md) | Passing both --archive and --no-archive does not error; one silently wins (Commander negate) while help lis… |
+| 648 | open | Low–Medium | GH workflows | [ux-gh-install-eject-flag-opaque.md](./ux-gh-install-eject-flag-opaque.md) | Description eject. |
+| 649 | open | Low–Medium | Harness | [ux-harness-run-no-path-says-no-pairs.md](./ux-harness-run-no-path-says-no-pairs.md) | harness run --yes without md-path: No harness pairs found — OK if empty, but does not prompt to pick or sug… |
+| 650 | open | Low–Medium | Hooks / spawn | [ux-hooks-from-pi-unsupported-lists-supported.md](./ux-hooks-from-pi-unsupported-lists-supported.md) | spawn --hooks-from pi: Unsupported source hook agent "pi". Supported hook agents: claude-code, codex — clea… |
+| 651 | open | Low–Medium | Spawn / hooks | [ux-hooks-scope-invalid-raw-commander.md](./ux-hooks-scope-invalid-raw-commander.md) | spawn --hooks-scope bogus: raw commander Allowed choices are project, user, merged — same class as hooks-st… |
+| 652 | open | Low–Medium | Spawn / hooks | [ux-hooks-strategy-invalid-raw-commander.md](./ux-hooks-strategy-invalid-raw-commander.md) | spawn --hooks-strategy bogus: error: option argument bogus is invalid. Allowed choices are auto, symlink, t… |
+| 653 | open | Low–Medium | Install | [ux-install-always-claims-success.md](./ux-install-always-claims-success.md) | No already-present state. |
+| 654 | open | Low–Medium | Launch | [ux-launch-status-shows-failed-experiment-leftovers.md](./ux-launch-status-shows-failed-experiment-leftovers.md) | stopped leftovers no cleanup hint. |
+| 655 | open | Low–Medium | Spawn / logging | [ux-log-dir-relative-works-with-path-feedback-gap.md](./ux-log-dir-relative-works-with-path-feedback-gap.md) | spawn --log-dir ./tmp-ux-logs creates timestamped jsonl under relative dir successfully — works; still no p… |
+| 656 | open | Low–Medium | Auth / help | [ux-login-help-omits-yes.md](./ux-login-help-omits-yes.md) | login help only --api-key and -h; --yes exists for non-TTY (login --yes without key message works) but undo… |
+| 657 | open | Low–Medium | Auth / help | [ux-login-help-still-omits-yes-reconfirmed.md](./ux-login-help-still-omits-yes-reconfirmed.md) | login help only --api-key and -h — --yes works for non-TTY but undocumented (reconfirm). |
+| 658 | open | Low–Medium | Plan | [ux-markdown-read-depth-zero-empty-sections.md](./ux-markdown-read-depth-zero-empty-sections.md) | markdown-read --depth 0 prints sections: (none) while file has content — depth 0 means no headings shown wi… |
+| 659 | open | Low–Medium | Spawn | [ux-mcp-servers-empty-object-accepted.md](./ux-mcp-servers-empty-object-accepted.md) | spawn with --mcp-servers {} succeeds without warning that no servers were configured — empty object is vali… |
+| 660 | open | Low–Medium | Errors / consistency | [ux-mcp-servers-missing-file-almost-good.md](./ux-mcp-servers-missing-file-almost-good.md) | Good message class vary. |
+| 661 | open | Low–Medium | Memory | [ux-memory-cache-clear-requires-yes-see-logs.md](./ux-memory-cache-clear-requires-yes-see-logs.md) | memory cache clear without --yes: Refusing to clear cache without --yes + See logs — good policy, system ch… |
+| 662 | open | Low–Medium | Memory / MCP | [ux-memory-mcp-print-config-raw-json.md](./ux-memory-mcp-print-config-raw-json.md) | Bare JSON no guidance. |
+| 663 | open | Low–Medium | Memory | [ux-memory-status-after-write-is-terse.md](./ux-memory-status-after-write-is-terse.md) | memory status prints Pages/Bytes/Last write/Tokens as bare lines without panel framing or interpretation (h… |
+| 664 | open | Low–Medium | Memory | [ux-memory-write-bare-stdout-path.md](./ux-memory-write-bare-stdout-path.md) | memory write pages/hello.md prints bare hello.md without design-system success panel — inconsistent with me… |
+| 665 | open | Low–Medium | Memory | [ux-memory-write-success-bare-path-stdout.md](./ux-memory-write-success-bare-path-stdout.md) | memory write pages/hello.md --reason test succeeds then show works; write success appears as bare path "hel… |
+| 666 | open | Low–Medium | Models | [ux-models-double-feature-flag-uses-last-or-and.md](./ux-models-double-feature-flag-uses-last-or-and.md) | models --feature tools --feature reasoning returns 44/341 — repeated --feature appears to AND (tools AND re… |
+| 667 | open | Low–Medium | Models | [ux-models-empty-model-filter-returns-all.md](./ux-models-empty-model-filter-returns-all.md) | models --view pricing --model "" → 341/341 models — empty --model ignored (empty flag class). |
+| 668 | open | Low–Medium | Models | [ux-models-raw-view-bypasses-design-system-reconfirmed.md](./ux-models-raw-view-bypasses-design-system-reconfirmed.md) | models --model claude-haiku-4.5 --view raw prints raw YAML without design-system panel — reconfirm models-r… |
+| 669 | open | Low–Medium | Models | [ux-models-raw-view-bypasses-design-system.md](./ux-models-raw-view-bypasses-design-system.md) | No framing. |
+| 670 | open | Low–Medium | Models | [ux-models-search-empty-returns-all.md](./ux-models-search-empty-returns-all.md) | models --search "" → 341/341 models — empty search ignored (empty flag class). |
+| 671 | open | Low–Medium | Models | [ux-models-since-1d-empty-today.md](./ux-models-since-1d-empty-today.md) | models --since 1d returns 0/341 No models match — correct if no adds in 24h but message looks like filter f… |
+| 672 | open | Low–Medium | Models | [ux-models-tools-and-feature-filter-semantics-undocumented.md](./ux-models-tools-and-feature-filter-semantics-undocumented.md) | --tools is documented as shorthand for --feature tools, but combining --tools with --feature web_search ret… |
+| 673 | open | Low–Medium | Models | [ux-models-view-invalid-raw-commander.md](./ux-models-view-invalid-raw-commander.md) | models --view bogus: raw commander Allowed choices are capabilities, pricing, parameters, raw — contrast pl… |
+| 674 | open | Low–Medium | Help / completion | [ux-no-shell-completion-command.md](./ux-no-shell-completion-command.md) | No poe-code completion (bash/zsh/fish) command to install tab completion, despite a large command surface w… |
+| 675 | open | Low–Medium | Auth polish | [ux-oauth-url-dumps-full-query-string.md](./ux-oauth-url-dumps-full-query-string.md) | Long authorize URL line. |
+| 676 | open | Low–Medium | Pipeline / Experiment / help / naming | [ux-pipeline-experiment-plan-path-as-subcommand.md](./ux-pipeline-experiment-plan-path-as-subcommand.md) | Both `pipeline --help` and `experiment --help` list `plan-path` as a sibling of action-verb subcommands (`r… |
+| 677 | open | Low–Medium | Pipeline | [ux-pipeline-validate-success-still-problems-footer.md](./ux-pipeline-validate-success-still-problems-footer.md) | Valid pipeline validation ends with Problems? GitHub link after Plan is valid success. |
+| 678 | open | Low–Medium | Plan list | [ux-plan-list-empty-table-no-message.md](./ux-plan-list-empty-table-no-message.md) | No no-plans message. |
+| 679 | open | Low–Medium | Plan list | [ux-plan-list-output-json-unframed.md](./ux-plan-list-output-json-unframed.md) | plan list --output json prints a raw JSON array to stdout with no design-system intro; --output md prints a… |
+| 680 | open | Low–Medium | Plan | [ux-plan-markdown-read-raw-yaml-ish-output.md](./ux-plan-markdown-read-raw-yaml-ish-output.md) | plan markdown-read prints raw file:/frontmatter:/sections: blocks without design-system framing used by pla… |
+| 681 | open | Low–Medium | Plan / MCP | [ux-plan-markdown-reader-mcp-help-minimal.md](./ux-plan-markdown-reader-mcp-help-minimal.md) | plan markdown-reader-mcp --help only description Run the standalone markdown reader MCP server with -h — no… |
+| 682 | open | Low–Medium | Plan view | [ux-plan-view-json-dumps-full-markdown-content.md](./ux-plan-view-json-dumps-full-markdown-content.md) | plan view --output json includes a huge content string of the full plan body, which is useful for tooling b… |
+| 683 | open | Low–Medium | Design system | [ux-problems-footer-on-every-success.md](./ux-problems-footer-on-every-success.md) | finalize always. |
+| 684 | open | Low–Medium | Providers / tables | [ux-provider-list-agents-column-truncated.md](./ux-provider-list-agents-column-truncated.md) | provider list Agents column ends with poe-… for cloudflare row — terminal width truncation without --wide o… |
+| 685 | open | Low–Medium | Providers | [ux-provider-login-unknown-has-list-hint-and-see-logs.md](./ux-provider-login-unknown-has-list-hint-and-see-logs.md) | provider login not-a-provider: Unknown provider … Run provider list — good next step; still See logs system… |
+| 686 | open | Low–Medium | Runtime | [ux-runtime-templates-ls-shows-empty-docker-row.md](./ux-runtime-templates-ls-shows-empty-docker-row.md) | runtime templates ls includes a docker row with (empty) hash and dashes, plus many old e2b artifacts — nois… |
+| 687 | open | Low–Medium | Runtime | [ux-runtime-templates-ls-unbounded-noise.md](./ux-runtime-templates-ls-unbounded-noise.md) | Old e2b /tmp rows. |
+| 688 | open | Low–Medium | Runtime | [ux-runtime-templates-parent-no-default-subcommand.md](./ux-runtime-templates-parent-no-default-subcommand.md) | runtime templates without subcommand prints help twice (Usage block duplicated) instead of defaulting to ls. |
+| 689 | open | Low–Medium | Configure | [ux-shape-base-url-error-good-message-system-prefix.md](./ux-shape-base-url-error-good-message-system-prefix.md) | Good text system prefix. |
+| 690 | open | Low–Medium | Spawn / skills | [ux-skill-and-skills-flags-undocumented-relationship.md](./ux-skill-and-skills-flags-undocumented-relationship.md) | Both merge; help silent. |
+| 691 | open | Low–Medium | Skills | [ux-skill-configure-goose-writes-dot-agents-skills.md](./ux-skill-configure-goose-writes-dot-agents-skills.md) | skill configure goose --yes --local succeeds at ./.agents/skills while claude uses ./.claude/skills — path … |
+| 692 | open | Low–Medium | Spawn / skills | [ux-skill-empty-string-malformed-reference.md](./ux-skill-empty-string-malformed-reference.md) | spawn --skill "" fails Malformed skill references: - (empty) Expected syntax name or agentId/name — empty s… |
+| 693 | open | Low–Medium | Configure | [ux-skip-if-configured-still-noises-dry-run.md](./ux-skip-if-configured-still-noises-dry-run.md) | Still full would-configure. |
+| 694 | open | Low–Medium | Spawn | [ux-spawn-mode-case-sensitive.md](./ux-spawn-mode-case-sensitive.md) | spawn --mode AUTO fails Invalid --mode "AUTO". Expected yolo, auto, edit, or read — case-sensitive; users t… |
+| 695 | open | Low–Medium | Design system | [ux-spawn-success-still-problems-footer.md](./ux-spawn-success-still-problems-footer.md) | Even successful spawn pi/claude/goose runs end with Problems? GitHub issues link, training users to ignore … |
+| 696 | open | Low–Medium | Visual language | [ux-success-and-info-share-magenta-glyphs.md](./ux-success-and-info-share-magenta-glyphs.md) | logger ◆ and ● magenta. |
+| 697 | open | Low–Medium | Traces | [ux-traces-cwd-only-flag-removed-or-renamed.md](./ux-traces-cwd-only-flag-removed-or-renamed.md) | traces defaults to cwd-only listing; expansion is via --all-workspaces. The flag --cwd-only is unknown. Ear… |
+| 698 | open | Low–Medium | Update | [ux-update-help-omits-dry-run.md](./ux-update-help-omits-dry-run.md) | update help lists --force, --no-version-check, --package-manager but not --dry-run though dry-run works via… |
+| 699 | open | Low–Medium | Usage | [ux-usage-help-hides-default-balance.md](./ux-usage-help-hides-default-balance.md) | Bare usage balance; help omits. |
+| 700 | open | Low–Medium | Usage | [ux-usage-list-empty-filter-returns-all.md](./ux-usage-list-empty-filter-returns-all.md) | usage list --filter "" still shows 20 entries — empty filter ignored (empty flag class). |
+| 701 | open | Low–Medium | Utils | [ux-utils-config-no-path-subcommand.md](./ux-utils-config-no-path-subcommand.md) | utils config path fails too many arguments; only show/init/edit — users cannot print config file paths alone. |
+| 702 | open | Low–Medium | Utils | [ux-utils-symlink-skills-is-nested-not-top-level.md](./ux-utils-symlink-skills-is-nested-not-top-level.md) | utils symlink-skills unknown; actual path is utils symlink skills — footgun for muscle memory / docs. |
+| 703 | open | Low–Medium | Utils | [ux-utils-symlink-skills-scope-error-vs-agents.md](./ux-utils-symlink-skills-scope-error-vs-agents.md) | skills dry-run needs flags. |
+| 704 | open | Low–Medium | Logging / verbose | [ux-verbose-prefixes-every-log-line.md](./ux-verbose-prefixes-every-log-line.md) | [models] on tables. |
+| 705 | open | Low–Medium | Version | [ux-version-update-nag-on-dev-builds.md](./ux-version-update-nag-on-dev-builds.md) | Always update available. |
+| 706 | open | Low–Medium | Worktree | [ux-worktree-reconcile-requires-agent-not-in-error-order.md](./ux-worktree-reconcile-requires-agent-not-in-error-order.md) | worktree reconcile without args hits required option --agent before missing name, similar to spawn mode-bef… |
+| 707 | open | Low | Spawn / positive pattern | [ux-activity-timeout-1ms-works-but-chrome.md](./ux-activity-timeout-1ms-works-but-chrome.md) | Agent spawn timed out after 0.001s of inactivity — correct behavior for extreme timeout; still See logs. |
+| 708 | open | Low | Spawn / positive pattern | [ux-activity-timeout-ms-zero-validation-good.md](./ux-activity-timeout-ms-zero-validation-good.md) | spawn --activity-timeout-ms 0: Invalid --activity-timeout-ms "0". Expected a positive integer — clear Valid… |
+| 709 | open | Low | Errors / positive pattern | [ux-activity-timeout-zero-good-validation.md](./ux-activity-timeout-zero-good-validation.md) | Invalid --activity-timeout-ms "0" returns a clear ValidationError-style message without raw Commander text … |
+| 710 | open | Low | Spawn / positive pattern | [ux-activity-timeout-zero-validation-good.md](./ux-activity-timeout-zero-validation-good.md) | Invalid activity timeout returns Expected a positive integer without stack. |
+| 711 | open | Low | Agent / positive pattern | [ux-agent-default-model-is-opus-4-7-good.md](./ux-agent-default-model-is-opus-4-7-good.md) | agent --help default model anthropic/claude-opus-4.7 (live frontier); agent "say only: ping" works. |
+| 712 | open | Low | Agent / positive pattern | [ux-agent-default-model-works-when-opus-valid.md](./ux-agent-default-model-works-when-opus-valid.md) | agent "say only: ok" without --model succeeds using default anthropic/claude-opus-4.7 — positive that DEFAU… |
+| 713 | open | Low | Approvals / positive pattern | [ux-approvals-list-pending-empty-good.md](./ux-approvals-list-pending-empty-good.md) | approvals list --state pending: No approvals found — clear empty state. |
+| 714 | open | Low | Auth / positive pattern | [ux-auth-status-logged-in-good.md](./ux-auth-status-logged-in-good.md) | auth status: Logged in as Name (@handle) — clear without secrets. |
+| 715 | open | Low | Auth / positive pattern | [ux-auth-whoami-field-shape-good.md](./ux-auth-whoami-field-shape-good.md) | auth whoami JSON keys: handle, name, profile_picture, user_id — clean machine shape without secrets. |
+| 716 | open | Low | Auth / positive pattern | [ux-auth-whoami-fields-documented-by-shape.md](./ux-auth-whoami-fields-documented-by-shape.md) | auth whoami JSON keys: handle, name, profile_picture, user_id — stable machine shape. |
+| 717 | open | Low | Auth / positive pattern | [ux-auth-whoami-help-documents-json-good.md](./ux-auth-whoami-help-documents-json-good.md) | auth whoami help says Print Poe account identity as JSON (uses POE_API_KEY if set) — clear machine mode vs … |
+| 718 | open | Low | Braintrust | [ux-braintrust-status-opaque.md](./ux-braintrust-status-opaque.md) | disabled only. |
+| 719 | open | Low | Code-review | [ux-code-review-profiles-bare-table-good.md](./ux-code-review-profiles-bare-table-good.md) | code-review profiles shows simple name/source table with generic built-in — readable but no design-system p… |
+| 720 | open | Low | Code-review / positive pattern | [ux-code-review-prompt-preview-good.md](./ux-code-review-prompt-preview-good.md) | code-review prompt-preview --spawn orchestrator prints Spawn/Profile/Prompt preview without side effects — … |
+| 721 | open | Low | Utils / positive pattern | [ux-config-init-already-exists-good.md](./ux-config-init-already-exists-good.md) | utils config init: Project config already exists at path — clear idempotent message. |
+| 722 | open | Low | Configure / positive pattern | [ux-configure-api-key-dry-run-redacts-bearer.md](./ux-configure-api-key-dry-run-redacts-bearer.md) | configure dry-run shows Authorization: Bearer <redacted> — good redaction in at least this path (contrast u… |
+| 723 | open | Low | Configure / positive pattern | [ux-configure-cursor-dry-run-already-configured-clean.md](./ux-configure-cursor-dry-run-already-configured-clean.md) | configure cursor --yes --dry-run: would configure Cursor; # no filesystem changes — clean intentional dry-r… |
+| 724 | open | Low | Configure / positive pattern | [ux-configure-gemini-dry-run-minimal-good.md](./ux-configure-gemini-dry-run-minimal-good.md) | configure gemini dry-run shows model gemini-2.5-pro and mkdir ensures without full settings flood when alre… |
+| 725 | open | Low | Configure / positive pattern | [ux-configure-success-vscode-next-steps-good.md](./ux-configure-success-vscode-next-steps-good.md) | After configuring Claude Code, a Next steps note with vscode://settings/claudeCode.disableLoginPrompt deep … |
+| 726 | open | Low | Configure / positive pattern | [ux-configure-unknown-api-shape-lists-exposed.md](./ux-configure-unknown-api-shape-lists-exposed.md) | configure --shape-base-url messages=… → Unknown API shape "messages" for provider poe. Exposed shapes: open… |
+| 727 | open | Low | Configure / positive pattern | [ux-configure-unknown-provider-good-message.md](./ux-configure-unknown-provider-good-message.md) | configure --provider notaprovider returns Unknown provider "notaprovider" cleanly (could still list known p… |
+| 728 | open | Low | Configure / positive pattern | [ux-configure-unknown-provider-validation-good.md](./ux-configure-unknown-provider-validation-good.md) | configure --provider not-a-provider → Unknown provider "not-a-provider" without See logs — good ValidationE… |
+| 729 | open | Low | Agents / positive pattern | [ux-cursor-and-cursor-agent-aliases-both-work.md](./ux-cursor-and-cursor-agent-aliases-both-work.md) | spawn cursor and spawn cursor-agent both succeed; configure aliases map to same Cursor surface. Positive al… |
+| 730 | open | Low | Spawn / positive pattern | [ux-cwd-file-path-not-directory-good.md](./ux-cwd-file-path-not-directory-good.md) | spawn --cwd package.json returns Workspace path … is not a directory clearly. |
+| 731 | open | Low | Spawn / positive pattern | [ux-cwd-missing-path-good-message.md](./ux-cwd-missing-path-good-message.md) | spawn --cwd /no/such/dir returns Workspace path does not exist clearly (still See logs). |
+| 732 | open | Low | Spawn / positive pattern | [ux-e2b-missing-key-error-good.md](./ux-e2b-missing-key-error-good.md) | No E2B API key message points to E2B_API_KEY and config.json paths — good recovery (still See logs). |
+| 733 | open | Low | Spawn / positive pattern | [ux-empty-prompt-string-rejected.md](./ux-empty-prompt-string-rejected.md) | spawn claude "" and agent "" both reject empty prompts — good. spawn: No prompt provided; agent: Prompt mus… |
+| 734 | open | Low | Eval / positive pattern | [ux-eval-lint-missing-eval-structured-table-good.md](./ux-eval-lint-missing-eval-structured-table-good.md) | eval lint no-such-eval shows Errors/Warnings tables E001–E005 missing eval.yaml/plan.md/oracle — structured… |
+| 735 | open | Low | Eval / positive pattern | [ux-eval-lint-table-good.md](./ux-eval-lint-table-good.md) | eval lint shows Warnings table with Code W004, path, message about pinning target.ref to SHA — scannable. |
+| 736 | open | Low | Experiment / positive pattern | [ux-experiment-install-force-help-exists.md](./ux-experiment-install-force-help-exists.md) | experiment install --help lists --force Overwrite existing files — better than pipeline install force opaci… |
+| 737 | open | Low | Experiment / positive pattern | [ux-experiment-install-requires-agent-or-yes-good.md](./ux-experiment-install-requires-agent-or-yes-good.md) | experiment install --local --force without agent: Experiment install agent selection requires --agent or --… |
+| 738 | open | Low | Experiment / positive pattern | [ux-experiment-validate-missing-path-good.md](./ux-experiment-validate-missing-path-good.md) | experiment validate /tmp/no-exp.md: Experiment doc not found — clear missing path (wrong-kind still says no… |
+| 739 | open | Low | Gaslight / positive pattern | [ux-gaslight-ingest-has-limit-since-good.md](./ux-gaslight-ingest-has-limit-since-good.md) | gaslight ingest --help has --since 30d default and --limit 200 — good pagination pattern models/runtime lack. |
+| 740 | open | Low | Gaslight / positive pattern | [ux-gaslight-ingest-limit-zero-validation-good.md](./ux-gaslight-ingest-limit-zero-validation-good.md) | --limit must be a positive integer for limit 0 — good ValidationError. |
+| 741 | open | Low | Gaslight / positive pattern | [ux-gaslight-install-force-dry-run-clean.md](./ux-gaslight-install-force-dry-run-clean.md) | gaslight install --local --force --dry-run: Would create path; Would install; no filesystem changes — clean… |
+| 742 | open | Low | Gaslight / positive pattern | [ux-gaslight-install-global-dry-run-clean.md](./ux-gaslight-install-global-dry-run-clean.md) | gaslight install --global --dry-run: Would create path; Would install; no filesystem changes — intentional … |
+| 743 | open | Low | GitHub workflows / positive pattern | [ux-gh-uninstall-invalid-name-lists-choices-good.md](./ux-gh-uninstall-invalid-name-lists-choices-good.md) | Invalid uninstall name lists Expected one of: fix-vulnerabilities, … — good allow-list (still npm run dev h… |
+| 744 | open | Low | GitHub workflows / positive pattern | [ux-gh-variables-list-good.md](./ux-gh-variables-list-good.md) | gh variables shows Name/Status/Source table for shared prompt variables — clear inventory. |
+| 745 | open | Low | Harness / help / capitalisation | [ux-harness-help-command-lowercase-description.md](./ux-harness-help-command-lowercase-description.md) | `harness --help` lists `help [command]` as a subcommand with the description "display help for command" (lo… |
+| 746 | open | Low | Harness / positive pattern | [ux-harness-list-empty-good.md](./ux-harness-list-empty-good.md) | harness list: No harness pairs found — clear empty state. |
+| 747 | open | Low | Harness / positive pattern | [ux-harness-list-empty-message-good.md](./ux-harness-list-empty-message-good.md) | harness list: No harness pairs found — clear empty state (no empty table). |
+| 748 | open | Low | Harness / positive pattern | [ux-harness-new-all-builtin-kinds-work.md](./ux-harness-new-all-builtin-kinds-work.md) | ralph-demo, experiment-demo, superintendent-demo, coverage-demo, pipeline-demo all scaffold successfully wi… |
+| 749 | open | Low | Harness / positive pattern | [ux-harness-new-run-coverage-demo-works.md](./ux-harness-new-run-coverage-demo-works.md) | harness new coverage-demo + harness run succeeds with Result object — end-to-end harness path works. |
+| 750 | open | Low | Harness / positive pattern | [ux-harness-new-success-good.md](./ux-harness-new-success-good.md) | harness new with --yes creates pair with clear Created harness pair at path success framing. |
+| 751 | open | Low | Harness / positive pattern | [ux-harness-run-coverage-demo-works.md](./ux-harness-run-coverage-demo-works.md) | harness new coverage-demo + harness run succeeds with Result object summary and 0 spawns — demo path works … |
+| 752 | open | Low | Harness / positive pattern | [ux-harness-run-fix-works.md](./ux-harness-run-fix-works.md) | harness run … --fix --yes succeeds with Result object — fix path works for demo. |
+| 753 | open | Low | Harness / positive pattern | [ux-harness-run-no-pairs-clear.md](./ux-harness-run-no-pairs-clear.md) | harness run with no pairs: No harness pairs found — clear empty state. |
+| 754 | open | Low | Harness | [ux-harness-unknown-template-no-kinds.md](./ux-harness-unknown-template-no-kinds.md) | No allow-list. |
+| 755 | open | Low | Polish | [ux-help-subcommand-inconsistency.md](./ux-help-subcommand-inconsistency.md) | Some groups help [command]. |
+| 756 | open | Low | Hooks / positive pattern | [ux-hooks-from-unknown-lists-supported-good.md](./ux-hooks-from-unknown-lists-supported-good.md) | Unsupported source hook agent lists Supported hook agents: claude-code, codex — good allow-list (still See … |
+| 757 | open | Low | Install / positive pattern | [ux-install-opencode-success-good.md](./ux-install-opencode-success-good.md) | install opencode --yes: Installed OpenCode CLI — clear success (test still broken after install). |
+| 758 | open | Low | Auth / positive pattern | [ux-login-api-key-rejected-good.md](./ux-login-api-key-rejected-good.md) | login --api-key sk-fake-not-real → API key rejected without overwriting session; auth status still logged in. |
+| 759 | open | Low | Auth / positive pattern | [ux-login-fake-key-rejected-good.md](./ux-login-fake-key-rejected-good.md) | login --api-key sk-fake --yes: API key rejected — clear without writing fake key (when not logged in). |
+| 760 | open | Low | Auth | [ux-login-yes-message-good-but-worth-aligning.md](./ux-login-yes-message-good-but-worth-aligning.md) | --yes fail-fast good; bare hangs. |
+| 761 | open | Low | Auth / positive pattern | [ux-login-yes-without-key-message-good.md](./ux-login-yes-without-key-message-good.md) | login --yes without key: No API key found. Pass --api-key, set POE_API_KEY, or run without --yes to authent… |
+| 762 | open | Low | Maestro | [ux-maestro-dual-invocation-shape.md](./ux-maestro-dual-invocation-shape.md) | Parent + run unclear. |
+| 763 | open | Low | Maestro | [ux-maestro-duplicate-config-flags.md](./ux-maestro-duplicate-config-flags.md) | --config and --workflow same. |
+| 764 | open | Low | Maestro / positive pattern | [ux-maestro-tui-mutual-exclusion-validation-good.md](./ux-maestro-tui-mutual-exclusion-validation-good.md) | Specifying both --config and --workflow fails with clear mutual exclusion message. |
+| 765 | open | Low | Plan / positive pattern | [ux-markdown-read-depth-2-works-well.md](./ux-markdown-read-depth-2-works-well.md) | plan markdown-read --depth 2 prints numbered sections 1–6 for agent-goal plan; --output json includes depth… |
+| 766 | open | Low | Plan / positive pattern | [ux-markdown-read-negative-depth-validation-good.md](./ux-markdown-read-negative-depth-validation-good.md) | markdown-read --depth -1: Invalid depth "-1". Expected a non-negative integer. |
+| 767 | open | Low | Plan / positive pattern | [ux-markdown-read-section-by-number-works.md](./ux-markdown-read-section-by-number-works.md) | plan markdown-read-section … 1 prints section 1 body — section-by-number works (related wrong recovery comm… |
+| 768 | open | Low | Plan / positive pattern | [ux-markdown-read-unlimited-depth-works.md](./ux-markdown-read-unlimited-depth-works.md) | plan markdown-read without --depth prints nested TOC 1–6 with subsections — good when depth unlimited. |
+| 769 | open | Low | Spawn / positive pattern | [ux-mcp-servers-at-file-missing-validation-good.md](./ux-mcp-servers-at-file-missing-validation-good.md) | spawn --mcp-servers @/tmp/no-mcp.json: --mcp-servers could not read file path ENOENT — clear ValidationErro… |
+| 770 | open | Low | Spawn / positive pattern | [ux-mcp-servers-file-and-json-validation-good.md](./ux-mcp-servers-file-and-json-validation-good.md) | Missing @file reports could not read file with path; invalid JSON reports required shape — good ValidationE… |
+| 771 | open | Low | Spawn / positive pattern | [ux-mcp-servers-invalid-json-validation-good.md](./ux-mcp-servers-invalid-json-validation-good.md) | spawn --mcp-servers "{bad" → --mcp-servers must be valid JSON in this shape: {name: {command, args?, env?}}… |
+| 772 | open | Low | Spawn / positive pattern | [ux-mcp-servers-validation-good.md](./ux-mcp-servers-validation-good.md) | Invalid MCP server JSON without command returns a clear field-level ValidationError without system chrome. |
+| 773 | open | Low | Memory / positive pattern | [ux-memory-append-reason-defaults-to-append.md](./ux-memory-append-reason-defaults-to-append.md) | memory append --help: --reason default append — unlike write which requires reason; append has default so n… |
+| 774 | open | Low | Memory / positive pattern | [ux-memory-cache-clear-requires-yes-good.md](./ux-memory-cache-clear-requires-yes-good.md) | memory cache clear without --yes refuses with Refusing to clear cache without --yes — good guard (still See… |
+| 775 | open | Low | Memory / positive pattern | [ux-memory-cache-status-zero-good.md](./ux-memory-cache-status-zero-good.md) | memory cache status: 0 cache entries (0 bytes) — clear empty state. |
+| 776 | open | Low | Memory / positive pattern | [ux-memory-clear-requires-yes-non-tty-good.md](./ux-memory-clear-requires-yes-non-tty-good.md) | memory clear without --yes: memory clear requires --yes when running without an interactive TTY — clear des… |
+| 777 | open | Low | Memory / positive pattern | [ux-memory-clear-yes-reinitializes-index-log.md](./ux-memory-clear-yes-reinitializes-index-log.md) | memory clear --yes after init: Cleared memory; INDEX.md and LOG.md remain (re-initialized). Clear works wit… |
+| 778 | open | Low | Memory / positive pattern | [ux-memory-clear-yes-works-when-initialized.md](./ux-memory-clear-yes-works-when-initialized.md) | memory clear --yes after init succeeds with Cleared memory design-system framing; without init points to me… |
+| 779 | open | Low | Memory / explain / help / description quality | [ux-memory-explain-budget-token-internals.md](./ux-memory-explain-budget-token-internals.md) | `poe-code memory explain --help` shows `--budget <tokens> Token budget` in its Options section — the same L… |
+| 780 | open | Low | Memory / positive pattern | [ux-memory-ingest-not-init-good.md](./ux-memory-ingest-not-init-good.md) | Memory is not initialized. Run poe-code memory init — clear recovery. |
+| 781 | open | Low | Memory / positive pattern | [ux-memory-lint-empty-good.md](./ux-memory-lint-empty-good.md) | memory lint after init: No memory lint issues. |
+| 782 | open | Low | Memory / positive pattern | [ux-memory-ls-empty-message-good.md](./ux-memory-ls-empty-message-good.md) | memory ls after init: No memory pages yet — clear empty state. |
+| 783 | open | Low | Memory / query / help / description quality | [ux-memory-query-terse-description-and-budget-exposed.md](./ux-memory-query-terse-description-and-budget-exposed.md) | `memory query --help` has two issues: |
+| 784 | open | Low | Memory / positive pattern | [ux-memory-search-empty-no-matches-good.md](./ux-memory-search-empty-no-matches-good.md) | memory search foo after init: No matches. — clear empty search (INDEX still not showable). |
+| 785 | open | Low | Memory / positive pattern | [ux-memory-search-not-initialized-good.md](./ux-memory-search-not-initialized-good.md) | memory search without init: Memory is not initialized. Run poe-code memory init — clear recovery with binar… |
+| 786 | open | Low | Memory / positive pattern | [ux-memory-status-not-initialized-good.md](./ux-memory-status-not-initialized-good.md) | memory status without init: Memory is not initialized. Run "poe-code memory init" — clear recovery with poe… |
+| 787 | open | Low | Memory / status / visual | [ux-memory-status-title-not-pink.md](./ux-memory-status-title-not-pink.md) | `poe-code memory status` renders the panel title "Poe - memory status" in plain white/grey text rather than… |
+| 788 | open | Low | Models / positive pattern | [ux-models-endpoint-messages-anthropic-good.md](./ux-models-endpoint-messages-anthropic-good.md) | models --endpoint /v1/messages --provider anthropic returns 8 anthropic models including sonnet-4.6 and opu… |
+| 789 | open | Low | Models / positive pattern | [ux-models-endpoint-pricing-combo-works.md](./ux-models-endpoint-pricing-combo-works.md) | models --endpoint /v1/messages --view pricing returns multi-provider pricing table for messages-capable mod… |
+| 790 | open | Low | Models / positive pattern | [ux-models-feature-reasoning-filter-works.md](./ux-models-feature-reasoning-filter-works.md) | models --feature reasoning --provider anthropic returns reasoning-capable models with ✓ in Reasoning column. |
+| 791 | open | Low | Models / positive pattern | [ux-models-feature-tools-case-insensitive-good.md](./ux-models-feature-tools-case-insensitive-good.md) | models --feature TOOLS returns 139 tool models same as tools — case-insensitive feature filter. |
+| 792 | open | Low | Models / positive pattern | [ux-models-feature-web-search-works.md](./ux-models-feature-web-search-works.md) | models --provider anthropic --feature web_search returns models with web_search ✓. |
+| 793 | open | Low | Models / positive pattern | [ux-models-google-reasoning-filter-works.md](./ux-models-google-reasoning-filter-works.md) | models --provider google --feature reasoning returns 7 gemini models including 3.1-pro and 2.5-pro. |
+| 794 | open | Low | Models / positive pattern | [ux-models-help-examples-are-excellent.md](./ux-models-help-examples-are-excellent.md) | models --help includes Filters, Views, and Examples sections — best-in-class help in the CLI; other primary… |
+| 795 | open | Low | Help / positive pattern | [ux-models-help-examples-still-best-in-class.md](./ux-models-help-examples-still-best-in-class.md) | models --help Examples block shows provider, feature, endpoint, view, search, model, since — reconfirm best… |
+| 796 | open | Low | Models / positive pattern | [ux-models-openai-tools-capabilities-good.md](./ux-models-openai-tools-capabilities-good.md) | models --view capabilities --provider openai --tools returns 41 tool-capable openai models. |
+| 797 | open | Low | Models / positive pattern | [ux-models-openai-tools-filter-works.md](./ux-models-openai-tools-filter-works.md) | models --provider openai --tools returns tool-capable openai models cleanly. |
+| 798 | open | Low | Models / positive pattern | [ux-models-parameters-view-good-for-filtered.md](./ux-models-parameters-view-good-for-filtered.md) | parameters view for anthropic shows output_effort enums including xhigh — useful for configuring reasoning-… |
+| 799 | open | Low | Models / positive pattern | [ux-models-pricing-anthropic-sonnet-works.md](./ux-models-pricing-anthropic-sonnet-works.md) | models pricing + provider anthropic + search sonnet returns sonnet-4.6 and 4.5 with $/MTok — multi-filter p… |
+| 800 | open | Low | Models / positive pattern | [ux-models-pricing-search-combo-good.md](./ux-models-pricing-search-combo-good.md) | models --search haiku --view pricing shows clean single-model pricing row. |
+| 801 | open | Low | Models / positive pattern | [ux-models-pricing-search-works.md](./ux-models-pricing-search-works.md) | models --view pricing --search haiku and --model claude-haiku-4.5 show clear pricing table. |
+| 802 | open | Low | Models / positive pattern | [ux-models-pricing-sonnet-4-6-good.md](./ux-models-pricing-sonnet-4-6-good.md) | models --view pricing --model claude-sonnet-4.6 shows $2.58/$12.88 per MTok cleanly. |
+| 803 | open | Low | Models / positive pattern | [ux-models-provider-anthropic-tools-good.md](./ux-models-provider-anthropic-tools-good.md) | models --feature tools --provider anthropic returns 8 anthropic tool models including sonnet-4.6 and opus-4… |
+| 804 | open | Low | Models / positive pattern | [ux-models-provider-case-insensitive-good.md](./ux-models-provider-case-insensitive-good.md) | models --provider Anthropic --search sonnet works same as anthropic — case-insensitive provider filter. |
+| 805 | open | Low | Models / positive pattern | [ux-models-provider-xai-works.md](./ux-models-provider-xai-works.md) | models --provider xai lists grok models cleanly. |
+| 806 | open | Low | Models / positive pattern | [ux-models-since-7d-works.md](./ux-models-since-7d-works.md) | models --since 7d returns 2 recent models; --since 1s returns 0 with No models match — duration filter works. |
+| 807 | open | Low | Models / positive pattern | [ux-models-tools-and-feature-tools-redundant-ok.md](./ux-models-tools-and-feature-tools-redundant-ok.md) | models --tools --feature tools --provider anthropic returns same tool-capable set — redundant flags compose… |
+| 808 | open | Low | Models / positive pattern | [ux-models-tools-xai-filter-works.md](./ux-models-tools-xai-filter-works.md) | models --tools --provider xai returns 9 xai tool models including grok-4 and code-fast-1. |
+| 809 | open | Low | Models | [ux-models-view-raw-bypasses-design-system-reconfirmed.md](./ux-models-view-raw-bypasses-design-system-reconfirmed.md) | models --view raw --search haiku prints bare YAML without design-system panel — reconfirm raw view escape h… |
+| 810 | open | Low | Models / positive pattern | [ux-models-xai-reasoning-filter-works.md](./ux-models-xai-reasoning-filter-works.md) | models --feature reasoning --provider xai returns xai/grok-3-mini — multi-filter works. |
+| 811 | open | Low | Spawn / positive pattern | [ux-pi-agent-alias-works.md](./ux-pi-agent-alias-works.md) | spawn pi-agent resolves to pi and succeeds — positive alias behavior (title shows spawn pi). |
+| 812 | open | Low | Pipeline / positive pattern | [ux-pipeline-init-yes-requires-source-good.md](./ux-pipeline-init-yes-requires-source-good.md) | Provide --source or --sources when using --yes is clear non-TTY guidance. |
+| 813 | open | Low | Pipeline / positive pattern | [ux-pipeline-max-runs-zero-good-validation.md](./ux-pipeline-max-runs-zero-good-validation.md) | Invalid max-runs "0" returns clear positive-integer validation without raw Commander text — positive patter… |
+| 814 | open | Low | Pipeline / positive pattern | [ux-pipeline-max-runs-zero-validation-good.md](./ux-pipeline-max-runs-zero-validation-good.md) | pipeline run --max-runs 0: Invalid max-runs "0". Expected a positive integer — clear ValidationError. |
+| 815 | open | Low | Pipeline / positive pattern | [ux-pipeline-run-model-override-shown-on-nothing-to-run.md](./ux-pipeline-run-model-override-shown-on-nothing-to-run.md) | pipeline run with --model shows Model: anthropic/claude-haiku-4.5 in Config even when 21/21 done and Nothin… |
+| 816 | open | Low | Pipeline / positive pattern | [ux-pipeline-validate-good-plan-positive.md](./ux-pipeline-validate-good-plan-positive.md) | pipeline validate tiny-http… shows Plan path, 21 tasks done, steps list, Plan is valid — clear design-syste… |
+| 817 | open | Low | Pipeline / positive pattern | [ux-pipeline-validate-valid-pipeline-good.md](./ux-pipeline-validate-valid-pipeline-good.md) | pipeline validate on valid pipeline shows Plan, Tasks 21 done, Steps, Plan is valid — clear success framing. |
+| 818 | open | Low | Pipeline / positive pattern | [ux-pipeline-validate-wrong-kind-good-message.md](./ux-pipeline-validate-wrong-kind-good-message.md) | pipeline validate on plan-kind file: Invalid plan YAML: "kind" must be "pipeline" — clear kind check (still… |
+| 819 | open | Low | Plan / positive pattern | [ux-plan-archive-json-output-good.md](./ux-plan-archive-json-output-good.md) | plan archive path --yes --output json returns action/path/archivedPath JSON — good machine contract (destru… |
+| 820 | open | Low | Plan / positive pattern | [ux-plan-archive-requires-yes-non-tty-good.md](./ux-plan-archive-requires-yes-non-tty-good.md) | plan archive docs/plans/32-agent-goal.md --output md without --yes: plan archive requires --yes when runnin… |
+| 821 | open | Low | Plan / positive pattern | [ux-plan-delete-json-output-good.md](./ux-plan-delete-json-output-good.md) | plan delete path --yes --output json returns action/path — good machine contract (restored file after audit). |
+| 822 | open | Low | Plan | [ux-plan-edit-bare-edited-message.md](./ux-plan-edit-bare-edited-message.md) | EDITOR=true plan edit path prints Edited docs/plans/… without design-system panel. |
+| 823 | open | Low | Plan / help / formatting | [ux-plan-help-keymap-hint-unframed.md](./ux-plan-help-keymap-hint-unframed.md) | `plan --help` ends with a bare line: |
+| 824 | open | Low | Plan install / positive pattern | [ux-plan-install-dry-run-clean-good.md](./ux-plan-install-dry-run-clean-good.md) | plan install --agent claude --local --yes --dry-run: Would create SKILL.md; Would install; no filesystem ch… |
+| 825 | open | Low | Plan install / positive pattern | [ux-plan-install-pi-clearer-than-unknown.md](./ux-plan-install-pi-clearer-than-unknown.md) | plan install pi: Unsupported agent: pi — better than install/test Unknown agent for capability gaps. |
+| 826 | open | Low | Plan / positive pattern | [ux-plan-install-success-good.md](./ux-plan-install-success-good.md) | plan install shows Create path and Installed plan skill with design-system framing — positive pattern. |
+| 827 | open | Low | Plan / positive pattern | [ux-plan-kind-invalid-validation-good.md](./ux-plan-kind-invalid-validation-good.md) | Invalid --kind bogus lists Expected plan, pipeline, experiment, ralph, superintendent, superintendent-base. |
+| 828 | open | Low | Plan list / positive pattern | [ux-plan-list-invalid-kind-output-validation-good.md](./ux-plan-list-invalid-kind-output-validation-good.md) | plan list --kind bogus and --output bogus return clear Expected … lists without See logs. |
+| 829 | open | Low | Plan list | [ux-plan-list-json-empty-is-bare-array.md](./ux-plan-list-json-empty-is-bare-array.md) | Empty plan list as JSON is bare [] without envelope — fine for scripts but inconsistent with design-system … |
+| 830 | open | Low | Plan list / positive pattern | [ux-plan-list-output-md-is-markdown-table-good.md](./ux-plan-list-output-md-is-markdown-table-good.md) | plan list --output md prints GFM table with Kind/Type/Name/Detail/Updated — good export (still includes REA… |
+| 831 | open | Low | Plan list / positive pattern | [ux-plan-list-pipeline-json-good.md](./ux-plan-list-pipeline-json-good.md) | JSON array with kind, path, detail 21/21 done — good machine-readable pipeline list. |
+| 832 | open | Low | Plan / positive pattern | [ux-plan-markdown-read-section-by-number-works.md](./ux-plan-markdown-read-section-by-number-works.md) | plan markdown-read-section … "2" returns section 2 User-facing shape content correctly. |
+| 833 | open | Low | Plan / positive pattern | [ux-plan-output-invalid-validation-good.md](./ux-plan-output-invalid-validation-good.md) | Invalid --output value "bad" returns Expected one of: terminal, md, json without raw Commander skin. |
+| 834 | open | Low | Plan path | [ux-plan-path-commands-bare-stdout-reconfirmed.md](./ux-plan-path-commands-bare-stdout-reconfirmed.md) | pipeline/experiment/superintendent plan-path print absolute path as bare stdout — good for scripting, incon… |
+| 835 | open | Low | Plan paths | [ux-plan-path-commands-bare-stdout.md](./ux-plan-path-commands-bare-stdout.md) | Path only. |
+| 836 | open | Low | Plan / positive pattern | [ux-plan-view-missing-path-good.md](./ux-plan-view-missing-path-good.md) | plan view /tmp/no-plan.md: Plan not found: path — clear without See logs. |
+| 837 | open | Low | Plan / positive pattern | [ux-plan-view-non-tty-requires-path-good.md](./ux-plan-view-non-tty-requires-path-good.md) | plan view without path: Plan selection requires a path or --yes when running without an interactive TTY — c… |
+| 838 | open | Low | Plan / positive pattern | [ux-plan-view-pipeline-md-output-good.md](./ux-plan-view-pipeline-md-output-good.md) | plan view on pipeline plan with --output md produces markdown checklist Status 21/21 done with tasks — good… |
+| 839 | open | Low | Configure / positive pattern | [ux-poe-no-prompt-works-for-configure-dry-run.md](./ux-poe-no-prompt-works-for-configure-dry-run.md) | POE_NO_PROMPT=1 configure claude --model haiku --dry-run proceeds without TTY — works but remains obscure v… |
+| 840 | open | Low | Provider / Runtime / Harness / help / capitalisation | [ux-provider-help-command-lowercase-systemic.md](./ux-provider-help-command-lowercase-systemic.md) | Several commands expose a `help [command]` subcommand in their Commands list with a lowercase description "… |
+| 841 | open | Low | Providers / positive pattern | [ux-provider-list-all-logged-out-clean.md](./ux-provider-list-all-logged-out-clean.md) | provider list when not logged in shows all providers Status [-] without secrets — clean empty auth state. |
+| 842 | open | Low | Providers / positive pattern | [ux-provider-login-anthropic-dry-run-clean.md](./ux-provider-login-anthropic-dry-run-clean.md) | provider login anthropic --api-key sk-fake --dry-run: would save credential; no filesystem changes — clean … |
+| 843 | open | Low | Providers / positive pattern | [ux-provider-login-anthropic-dry-run-good.md](./ux-provider-login-anthropic-dry-run-good.md) | provider login anthropic --api-key test --yes --dry-run says would save credential without dumping secrets … |
+| 844 | open | Low | Providers / positive pattern | [ux-provider-login-cloudflare-requires-base-url-good.md](./ux-provider-login-cloudflare-requires-base-url-good.md) | Provider "cloudflare" requires a base URL. Pass --base-url or set CF_AIG_BASE_URL — clear recovery (still S… |
+| 845 | open | Low | Providers / positive pattern | [ux-provider-logout-anthropic-dry-run-good.md](./ux-provider-logout-anthropic-dry-run-good.md) | provider logout anthropic --dry-run only shows would log out + rm credentials.anthropic.enc — good contrast… |
+| 846 | open | Low | Providers / positive pattern | [ux-provider-logout-openai-dry-run-clean.md](./ux-provider-logout-openai-dry-run-clean.md) | provider logout openai --dry-run only would log out + rm credentials.openai.enc — clean credential-only dry… |
+| 847 | open | Low | Ralph / positive pattern | [ux-ralph-init-missing-doc-not-found-good.md](./ux-ralph-init-missing-doc-not-found-good.md) | ralph init /tmp/no-ralph.md --yes: Ralph doc not found: path — clear (kind-aware enough). |
+| 848 | open | Low | Brand | [ux-root-tagline-inconsistent.md](./ux-root-tagline-inconsistent.md) | Different one-liners. |
+| 849 | open | Low | Runtime / positive pattern | [ux-runtime-build-host-message-good.md](./ux-runtime-build-host-message-good.md) | Host runtime has no template to build with pass --runtime e2b/docker or config hint — clear recovery. |
+| 850 | open | Low | Runtime / positive pattern | [ux-runtime-init-docker-dry-run-clean.md](./ux-runtime-init-docker-dry-run-clean.md) | runtime init --type docker --yes --dry-run: would set runtime.type docker; would create Dockerfile — clean. |
+| 851 | open | Low | Runtime / positive pattern | [ux-runtime-init-dry-run-clean.md](./ux-runtime-init-dry-run-clean.md) | runtime init --type host --yes --dry-run: would set runtime.type; would create Dockerfile if missing — inte… |
+| 852 | open | Low | Runtime / jobs / memory / naming / consistency | [ux-runtime-jobs-ls-inconsistent-with-list.md](./ux-runtime-jobs-ls-inconsistent-with-list.md) | `poe-code runtime jobs ls` lists detached runtime jobs. Every other list-style command in the CLI uses `lis… |
+| 853 | open | Low | Runtime / positive pattern | [ux-runtime-templates-clear-no-yes-needed-good.md](./ux-runtime-templates-clear-no-yes-needed-good.md) | runtime templates clear with empty cache: No local runtime template cache entries to clear — clear; --yes n… |
+| 854 | open | Low | Configure / positive pattern | [ux-shape-base-url-invalid-format-validation-good.md](./ux-shape-base-url-invalid-format-validation-good.md) | configure --shape-base-url https://example.invalid: Invalid --shape-base-url value. Use <shape-id>=<url> — … |
+| 855 | open | Low | Configure / positive pattern | [ux-shape-base-url-invalid-validation-good.md](./ux-shape-base-url-invalid-validation-good.md) | Invalid --shape-base-url value returns Use <shape-id>=<url> clearly. |
+| 856 | open | Low | Configure / positive pattern | [ux-shape-base-url-unknown-shape-lists-exposed-good.md](./ux-shape-base-url-unknown-shape-lists-exposed-good.md) | Unknown API shape "messages" lists Exposed shapes: openai-chat-completions, openai-responses, anthropic-mes… |
+| 857 | open | Low | Spawn / positive pattern | [ux-skill-bridge-failure-lists-paths-good.md](./ux-skill-bridge-failure-lists-paths-good.md) | Failed to bridge active skills lists Not found skill references and searched paths — good recovery content … |
+| 858 | open | Low | Skills / positive pattern | [ux-skill-configure-goose-local-success.md](./ux-skill-configure-goose-local-success.md) | skill configure goose --yes --local succeeds at ./.agents/skills with clear path. |
+| 859 | open | Low | Skills / positive pattern | [ux-skill-configure-pi-poe-agent-not-supported-clear.md](./ux-skill-configure-pi-poe-agent-not-supported-clear.md) | skill configure pi/poe-agent: Skills not supported for pi/poe-agent — clear capability message (contrast co… |
+| 860 | open | Low | Skill / help / usage / consistency | [ux-skill-help-usage-says-options-not-command.md](./ux-skill-help-usage-says-options-not-command.md) | `poe-code skill --help` shows: |
+| 861 | open | Low | Skills / positive pattern | [ux-skill-install-from-file-works-well.md](./ux-skill-install-from-file-works-well.md) | skill install with --file/--name/--yes/--local produces a clear design-system success naming agent and path… |
+| 862 | open | Low | Skills / positive pattern | [ux-skill-unconfigure-goose-no-dir-good.md](./ux-skill-unconfigure-goose-no-dir-good.md) | skill unconfigure goose --local: No skill directory found for goose at .agents/skills — clear no-op without… |
+| 863 | open | Low | Skills / positive pattern | [ux-skill-unconfigure-refuses-nonempty-without-force-good.md](./ux-skill-unconfigure-refuses-nonempty-without-force-good.md) | skill unconfigure claude: Skill directory … has files. Use --force to remove — clear safety (no --yes on he… |
+| 864 | open | Low | Configure / positive pattern | [ux-skip-if-configured-cursor-already-configured-dry-run-good.md](./ux-skip-if-configured-cursor-already-configured-dry-run-good.md) | configure cursor --model haiku --skip-if-configured --yes --dry-run: Dry run: Cursor is already configured;… |
+| 865 | open | Low | Spawn / positive pattern | [ux-spawn-at-file-missing-validation-good.md](./ux-spawn-at-file-missing-validation-good.md) | spawn @/tmp/no-prompt.txt reports prompt could not read file with path and ENOENT — clear ValidationError s… |
+| 866 | open | Low | Spawn / positive pattern | [ux-spawn-at-file-works.md](./ux-spawn-at-file-works.md) | spawn claude @/tmp/file with content succeeds — reconfirm @file prompt form works. |
+| 867 | open | Low | Spawn / positive pattern | [ux-spawn-codex-works-with-frontier-model.md](./ux-spawn-codex-works-with-frontier-model.md) | spawn codex --model openai/gpt-5.3-codex succeeds (with stdin reading message residual). |
+| 868 | open | Low | Spawn / positive pattern | [ux-spawn-cursor-with-model-works.md](./ux-spawn-cursor-with-model-works.md) | spawn cursor "say only: ok" --mode read --model anthropic/claude-haiku-4.5 succeeds. |
+| 869 | open | Low | Spawn / positive pattern | [ux-spawn-cwd-tmp-works.md](./ux-spawn-cwd-tmp-works.md) | spawn with -C /tmp succeeds; Resume line shows cd /tmp && claude --resume — cwd override works. |
+| 870 | open | Low | Spawn / positive pattern | [ux-spawn-invalid-mode-validation-good.md](./ux-spawn-invalid-mode-validation-good.md) | Invalid --mode "bogus" returns Expected yolo, auto, edit, or read without Commander raw skin. |
+| 871 | open | Low | Spawn / positive pattern | [ux-spawn-log-default-redacts-agent-message-good.md](./ux-spawn-log-default-redacts-agent-message-good.md) | Default ACP JSONL log writes agent_message text as [redacted] — good privacy default. --log-content include… |
+| 872 | open | Low | Spawn / positive pattern | [ux-spawn-pi-yes-works.md](./ux-spawn-pi-yes-works.md) | spawn pi "say only: ok" --yes succeeds without --mode (pi may not require mode like claude). |
+| 873 | open | Low | Spawn / positive pattern | [ux-spawn-runtime-docker-error-good-install-hints.md](./ux-spawn-runtime-docker-error-good-install-hints.md) | No container engine found includes Docker Desktop / Colima / Podman install hints — good recovery copy (sti… |
+| 874 | open | Low | Spawn / positive pattern | [ux-spawn-runtime-host-works.md](./ux-spawn-runtime-host-works.md) | spawn … --runtime host succeeds for claude with valid model — host runtime path works. |
+| 875 | open | Low | Spawn / positive pattern | [ux-spawn-stdin-pipe-works.md](./ux-spawn-stdin-pipe-works.md) | echo "say only: ok" / spawn claude --mode read --model haiku --stdin succeeds. |
+| 876 | open | Low | Spawn / positive pattern | [ux-spawn-test-cursor-works.md](./ux-spawn-test-cursor-works.md) | spawn cursor and test cursor with anthropic/claude-haiku-4.5 succeed. |
+| 877 | open | Low | Spawn / positive pattern | [ux-spawn-test-goose-works.md](./ux-spawn-test-goose-works.md) | spawn goose and test goose with anthropic/claude-haiku-4.5 succeed. |
+| 878 | open | Low | Configure / positive pattern | [ux-spawn-test-sonnet-4-6-works.md](./ux-spawn-test-sonnet-4-6-works.md) | spawn and test claude with anthropic/claude-sonnet-4.6 succeed — live model works when explicitly passed; d… |
+| 879 | open | Low | Spawn / positive pattern | [ux-spawn-yes-with-explicit-mode-read-works.md](./ux-spawn-yes-with-explicit-mode-read-works.md) | spawn … --yes --mode read succeeds — explicit --mode overrides --yes yolo default as help implies. |
+| 880 | open | Low | Superintendent / positive pattern | [ux-superintendent-complete-missing-doc-good.md](./ux-superintendent-complete-missing-doc-good.md) | superintendent complete /tmp/no.md: Superintendent document not found — clear (better than Unclosed tag on … |
+| 881 | open | Low | Superintendent / positive pattern | [ux-superintendent-run-empty-good.md](./ux-superintendent-run-empty-good.md) | superintendent run --yes: No superintendent documents found — clear empty state. |
+| 882 | open | Low | Tasks / positive pattern | [ux-tasks-verify-bad-list-format-good.md](./ux-tasks-verify-bad-list-format-good.md) | tasks verify some-list: Expected project to use "<owner>/<number>" format — clear ValidationError. |
+| 883 | open | Low | Tasks / positive pattern | [ux-tasks-verify-format-error-good.md](./ux-tasks-verify-format-error-good.md) | Expected project to use owner/number format is clear (still [error] prefix odd). |
+| 884 | open | Low | Test / positive pattern | [ux-test-codex-with-valid-model-succeeds.md](./ux-test-codex-with-valid-model-succeeds.md) | test codex --model openai/gpt-5.3-codex succeeds with design-system Tested Codex framing. |
+| 885 | open | Low | Test / positive pattern | [ux-test-goose-with-valid-model-succeeds.md](./ux-test-goose-with-valid-model-succeeds.md) | test goose --model anthropic/claude-haiku-4.5 succeeds with Tested Goose framing. |
+| 886 | open | Low | Test / positive pattern | [ux-test-with-valid-model-succeeds.md](./ux-test-with-valid-model-succeeds.md) | test claude --model anthropic/claude-haiku-4.5 succeeds with Tested Claude Code framing when model is valid… |
+| 887 | open | Low | Traces / positive pattern | [ux-traces-invalid-source-validation-good.md](./ux-traces-invalid-source-validation-good.md) | traces --source bogus: Unsupported trace source "bogus". Expected one of: claude, codex, poe-code — clear V… |
+| 888 | open | Low | Traces / positive pattern | [ux-traces-limit-3-works.md](./ux-traces-limit-3-works.md) | traces --limit 3 shows 3 recent traces table (claude/codex/pi) — --limit works on traces (models still lack… |
+| 889 | open | Low | Traces / positive pattern | [ux-traces-since-and-source-limit-work.md](./ux-traces-since-and-source-limit-work.md) | traces --since 1d --limit 5 and traces --source claude --limit 2 return filtered tables — --since/--source/… |
+| 890 | open | Low | Traces / positive pattern | [ux-traces-since-limit-works.md](./ux-traces-since-limit-works.md) | traces --since 1h --limit 3 returns 3 recent traces with sources — filters work. |
+| 891 | open | Low | Traces / positive pattern | [ux-traces-source-invalid-validation-good.md](./ux-traces-source-invalid-validation-good.md) | Unsupported trace source lists Expected one of: claude, codex, poe-code without stack. |
+| 892 | open | Low | Traces / positive pattern | [ux-traces-unsupported-source-validation-good.md](./ux-traces-unsupported-source-validation-good.md) | traces --source bogus: Unsupported trace source "bogus". Expected one of: claude, codex, pi, poe-code — cle… |
+| 893 | open | Low | Update / positive pattern | [ux-update-dry-run-always-global-npm.md](./ux-update-dry-run-always-global-npm.md) | update --dry-run plans npm install -g poe-code@latest — clear dry-run (always -g; package-manager override … |
+| 894 | open | Low | Update / positive pattern | [ux-update-dry-run-clean-good.md](./ux-update-dry-run-clean-good.md) | update --dry-run: would run npm install -g poe-code@latest — clean intentional dry-run. |
+| 895 | open | Low | Update / positive pattern | [ux-update-package-manager-override-works.md](./ux-update-package-manager-override-works.md) | update --package-manager bun --dry-run correctly plans bun install -g poe-code@latest — positive package-ma… |
+| 896 | open | Low | Update / positive pattern | [ux-update-package-manager-pnpm-dry-run-good.md](./ux-update-package-manager-pnpm-dry-run-good.md) | update --package-manager pnpm --dry-run: would run pnpm add -g poe-code@latest — clean package-manager over… |
+| 897 | open | Low | Update / positive pattern | [ux-update-pnpm-package-manager-works.md](./ux-update-pnpm-package-manager-works.md) | update --package-manager pnpm --dry-run plans pnpm add -g poe-code@latest — positive package manager overri… |
+| 898 | open | Low | Usage / positive pattern | [ux-usage-balance-default-good.md](./ux-usage-balance-default-good.md) | usage with no subcommand shows balance card with plan/add-on and next grant — strong positive. |
+| 899 | open | Low | Usage / positive pattern | [ux-usage-balance-presentation-good.md](./ux-usage-balance-presentation-good.md) | usage balance shows Balance, Plan, Add-on, next grant with design-system framing and helpful next-points link. |
+| 900 | open | Low | Usage / positive pattern | [ux-usage-list-filter-works-well.md](./ux-usage-list-filter-works-well.md) | usage list --filter Claude-Haiku returns filtered table with clear costs — good list UX (still no --json). |
+| 901 | open | Low | Usage / positive pattern | [ux-usage-list-filter-works.md](./ux-usage-list-filter-works.md) | usage list --filter Claude-Sonnet shows filtered usage table with Sonnet-4.6 rows — filter works. |
+| 902 | open | Low | Usage / positive pattern | [ux-usage-list-no-match-message-good.md](./ux-usage-list-no-match-message-good.md) | usage list --filter nonexistent-model-xyz → No entries match "…" — clear empty filter message. |
+| 903 | open | Low | Usage / positive pattern | [ux-usage-list-table-works.md](./ux-usage-list-table-works.md) | usage list shows Date/Model/Cost/tokens table with 20 entries — design-system table works. |
+| 904 | open | Low | Utils / positive pattern | [ux-utils-config-init-already-exists-is-info.md](./ux-utils-config-init-already-exists-is-info.md) | config init when project config exists prints Project config already exists at path without error exit dram… |
+| 905 | open | Low | Utils / positive pattern | [ux-utils-config-show-logged-out-clean-no-secrets.md](./ux-utils-config-show-logged-out-clean-no-secrets.md) | utils config show with empty global and no env overrides shows project ralph/runtime config only — no secre… |
+| 906 | open | Low | Utils / help / usage / consistency | [ux-utils-help-usage-says-options-not-command.md](./ux-utils-help-usage-says-options-not-command.md) | `poe-code utils --help` shows: |
+| 907 | open | Low | Utils / positive pattern | [ux-utils-symlink-agents-already-linked-good.md](./ux-utils-symlink-agents-already-linked-good.md) | utils symlink agents --dry-run prints already linked without error — good idempotent message. |
+| 908 | open | Low | Utils / positive pattern | [ux-utils-symlink-skills-both-exist-good-guidance.md](./ux-utils-symlink-skills-both-exist-good-guidance.md) | When both .claude/skills and .agents/skills exist, message explains resolve manually steps — good conflict … |
+| 909 | open | Low | Utils / positive pattern | [ux-utils-symlink-skills-yes-local-dry-run-works.md](./ux-utils-symlink-skills-yes-local-dry-run-works.md) | With explicit scope flags, dry-run shows rename+symlink plan — positive once scope is provided (still subje… |
+| 910 | open | Low | Spawn | [ux-verbose-spawn-prefix-minimal.md](./ux-verbose-spawn-prefix-minimal.md) | spawn --verbose adds [spawn:claude-code] line before Resume — relatively quiet (related verbose prefixes ev… |
+| 911 | open | Low | Worktree / positive pattern | [ux-worktree-list-empty-good.md](./ux-worktree-list-empty-good.md) | worktree list: No managed worktrees — clear empty state. |
+| 912 | open | Low | Worktree / list / empty state / visual consistency | [ux-worktree-list-empty-state-unframed.md](./ux-worktree-list-empty-state-unframed.md) | `poe-code worktree list` when no worktrees exist shows: |
 
 ## Platform fixes
 
 1. **Secret redaction** (dry-run diffs + auth + logout + unconfigure) + danger help on auth api-key  
 2. **One-line fix: sonnet-5 → sonnet-4.6 in constants.ts + goose map** (catalog 0 matches; goose.ts still has sonnet-5 context)  
-3. Make `--skip-if-configured` truthful (including matching-model dry-run)  
+3. Make `--skip-if-configured` truthful (claude still lies; **cursor skip path already works**)  
 4. **Validate configure --model against catalog** (reject any-string); refuse garbage ids like fable-5  
 5. Intentional-only dry-run diffs (including base-url/shape-base-url visibility); **provider login credential-only**  
 6. **Honor --reasoning-effort** (still ignored — always high after settings restore; was always xhigh)  
@@ -961,18 +966,18 @@
 | File | # |
 | --- | ---: |
 | [ux-acp-stream-uses-success-glyph-for-partial-text.md](./ux-acp-stream-uses-success-glyph-for-partial-text.md) | 317 |
-| [ux-activity-timeout-1ms-works-but-chrome.md](./ux-activity-timeout-1ms-works-but-chrome.md) | 704 |
+| [ux-activity-timeout-1ms-works-but-chrome.md](./ux-activity-timeout-1ms-works-but-chrome.md) | 707 |
 | [ux-activity-timeout-ms-uses-system-chrome.md](./ux-activity-timeout-ms-uses-system-chrome.md) | 318 |
-| [ux-activity-timeout-ms-zero-validation-good.md](./ux-activity-timeout-ms-zero-validation-good.md) | 705 |
-| [ux-activity-timeout-zero-good-validation.md](./ux-activity-timeout-zero-good-validation.md) | 706 |
-| [ux-activity-timeout-zero-validation-good.md](./ux-activity-timeout-zero-validation-good.md) | 707 |
+| [ux-activity-timeout-ms-zero-validation-good.md](./ux-activity-timeout-ms-zero-validation-good.md) | 708 |
+| [ux-activity-timeout-zero-good-validation.md](./ux-activity-timeout-zero-good-validation.md) | 709 |
+| [ux-activity-timeout-zero-validation-good.md](./ux-activity-timeout-zero-validation-good.md) | 710 |
 | [ux-agent-api-key-and-stale-default-model.md](./ux-agent-api-key-and-stale-default-model.md) | 319 |
 | [ux-agent-api-key-flag-on-help.md](./ux-agent-api-key-flag-on-help.md) | 320 |
 | [ux-agent-capability-matrix-spawn-vs-configure-vs-install.md](./ux-agent-capability-matrix-spawn-vs-configure-vs-install.md) | 29 |
-| [ux-agent-default-model-hardcoded.md](./ux-agent-default-model-hardcoded.md) | 623 |
-| [ux-agent-default-model-is-opus-4-7-good.md](./ux-agent-default-model-is-opus-4-7-good.md) | 708 |
-| [ux-agent-default-model-works-when-opus-valid.md](./ux-agent-default-model-works-when-opus-valid.md) | 709 |
-| [ux-agent-default-opus-4-7-not-latest-opus-4-8.md](./ux-agent-default-opus-4-7-not-latest-opus-4-8.md) | 624 |
+| [ux-agent-default-model-hardcoded.md](./ux-agent-default-model-hardcoded.md) | 626 |
+| [ux-agent-default-model-is-opus-4-7-good.md](./ux-agent-default-model-is-opus-4-7-good.md) | 711 |
+| [ux-agent-default-model-works-when-opus-valid.md](./ux-agent-default-model-works-when-opus-valid.md) | 712 |
+| [ux-agent-default-opus-4-7-not-latest-opus-4-8.md](./ux-agent-default-opus-4-7-not-latest-opus-4-8.md) | 627 |
 | [ux-agent-empty-api-key-silently-uses-stored.md](./ux-agent-empty-api-key-silently-uses-stored.md) | 321 |
 | [ux-agent-empty-model-see-logs.md](./ux-agent-empty-model-see-logs.md) | 322 |
 | [ux-agent-empty-prompt-see-logs.md](./ux-agent-empty-prompt-see-logs.md) | 323 |
@@ -984,7 +989,7 @@
 | [ux-approval-queued-message-says-toolcraft.md](./ux-approval-queued-message-says-toolcraft.md) | 31 |
 | [ux-approvals-invalid-state-silent-empty-reconfirmed.md](./ux-approvals-invalid-state-silent-empty-reconfirmed.md) | 328 |
 | [ux-approvals-invalid-state-silent-empty.md](./ux-approvals-invalid-state-silent-empty.md) | 329 |
-| [ux-approvals-list-pending-empty-good.md](./ux-approvals-list-pending-empty-good.md) | 710 |
+| [ux-approvals-list-pending-empty-good.md](./ux-approvals-list-pending-empty-good.md) | 713 |
 | [ux-approvals-missing-id-says-task-not-found-double.md](./ux-approvals-missing-id-says-task-not-found-double.md) | 32 |
 | [ux-approvals-show-missing-says-task-not-found.md](./ux-approvals-show-missing-says-task-not-found.md) | 33 |
 | [ux-approvals-show-missing-task-debug-tease-reconfirmed.md](./ux-approvals-show-missing-task-debug-tease-reconfirmed.md) | 330 |
@@ -1002,22 +1007,22 @@
 | [ux-auth-logout-no-confirmation-removes-all-agents.md](./ux-auth-logout-no-confirmation-removes-all-agents.md) | 25 |
 | [ux-auth-logout-same-as-logout-help.md](./ux-auth-logout-same-as-logout-help.md) | 41 |
 | [ux-auth-status-became-not-logged-in-mid-session.md](./ux-auth-status-became-not-logged-in-mid-session.md) | 42 |
-| [ux-auth-status-logged-in-good.md](./ux-auth-status-logged-in-good.md) | 711 |
-| [ux-auth-status-no-json-flag.md](./ux-auth-status-no-json-flag.md) | 625 |
+| [ux-auth-status-logged-in-good.md](./ux-auth-status-logged-in-good.md) | 714 |
+| [ux-auth-status-no-json-flag.md](./ux-auth-status-no-json-flag.md) | 628 |
 | [ux-auth-status-spinner-pre-panel.md](./ux-auth-status-spinner-pre-panel.md) | 333 |
-| [ux-auth-whoami-field-shape-good.md](./ux-auth-whoami-field-shape-good.md) | 712 |
-| [ux-auth-whoami-fields-documented-by-shape.md](./ux-auth-whoami-fields-documented-by-shape.md) | 713 |
-| [ux-auth-whoami-help-documents-json-good.md](./ux-auth-whoami-help-documents-json-good.md) | 714 |
-| [ux-auth-whoami-raw-json-vs-status-panel.md](./ux-auth-whoami-raw-json-vs-status-panel.md) | 626 |
-| [ux-auth-whoami-raw-json.md](./ux-auth-whoami-raw-json.md) | 627 |
+| [ux-auth-whoami-field-shape-good.md](./ux-auth-whoami-field-shape-good.md) | 715 |
+| [ux-auth-whoami-fields-documented-by-shape.md](./ux-auth-whoami-fields-documented-by-shape.md) | 716 |
+| [ux-auth-whoami-help-documents-json-good.md](./ux-auth-whoami-help-documents-json-good.md) | 717 |
+| [ux-auth-whoami-raw-json-vs-status-panel.md](./ux-auth-whoami-raw-json-vs-status-panel.md) | 629 |
+| [ux-auth-whoami-raw-json.md](./ux-auth-whoami-raw-json.md) | 630 |
 | [ux-binary-wrappers-undocumented.md](./ux-binary-wrappers-undocumented.md) | 334 |
 | [ux-braintrust-only-status-no-enable.md](./ux-braintrust-only-status-no-enable.md) | 335 |
 | [ux-braintrust-status-disabled-no-next-step.md](./ux-braintrust-status-disabled-no-next-step.md) | 336 |
-| [ux-braintrust-status-minimal-disabled.md](./ux-braintrust-status-minimal-disabled.md) | 628 |
-| [ux-braintrust-status-opaque.md](./ux-braintrust-status-opaque.md) | 715 |
+| [ux-braintrust-status-minimal-disabled.md](./ux-braintrust-status-minimal-disabled.md) | 631 |
+| [ux-braintrust-status-opaque.md](./ux-braintrust-status-opaque.md) | 718 |
 | [ux-capture-otel-alone-silent-success.md](./ux-capture-otel-alone-silent-success.md) | 337 |
 | [ux-capture-otel-content-without-capture-silent.md](./ux-capture-otel-content-without-capture-silent.md) | 338 |
-| [ux-capture-otel-no-visible-output-change.md](./ux-capture-otel-no-visible-output-change.md) | 629 |
+| [ux-capture-otel-no-visible-output-change.md](./ux-capture-otel-no-visible-output-change.md) | 632 |
 | [ux-claude-fable-appears-in-trace-fixtures-not-product-defaults.md](./ux-claude-fable-appears-in-trace-fixtures-not-product-defaults.md) | 43 |
 | [ux-claude-settings-model-corrupted-to-fable-restored.md](./ux-claude-settings-model-corrupted-to-fable-restored.md) | 44 |
 | [ux-code-review-double-error-skin.md](./ux-code-review-double-error-skin.md) | 339 |
@@ -1028,23 +1033,23 @@
 | [ux-code-review-install-output-unframed-wrapped.md](./ux-code-review-install-output-unframed-wrapped.md) | 343 |
 | [ux-code-review-install-unframed-and-npm-run-dev.md](./ux-code-review-install-unframed-and-npm-run-dev.md) | 46 |
 | [ux-code-review-missing-prurl-npm-run-dev.md](./ux-code-review-missing-prurl-npm-run-dev.md) | 344 |
-| [ux-code-review-profiles-bare-table-good.md](./ux-code-review-profiles-bare-table-good.md) | 716 |
+| [ux-code-review-profiles-bare-table-good.md](./ux-code-review-profiles-bare-table-good.md) | 719 |
 | [ux-code-review-profiles-bare-table.md](./ux-code-review-profiles-bare-table.md) | 345 |
-| [ux-code-review-profiles-raw-table.md](./ux-code-review-profiles-raw-table.md) | 630 |
-| [ux-code-review-profiles-table-outside-design-system.md](./ux-code-review-profiles-table-outside-design-system.md) | 631 |
-| [ux-code-review-prompt-preview-good.md](./ux-code-review-prompt-preview-good.md) | 717 |
+| [ux-code-review-profiles-raw-table.md](./ux-code-review-profiles-raw-table.md) | 633 |
+| [ux-code-review-profiles-table-outside-design-system.md](./ux-code-review-profiles-table-outside-design-system.md) | 634 |
+| [ux-code-review-prompt-preview-good.md](./ux-code-review-prompt-preview-good.md) | 720 |
 | [ux-code-review-prompt-preview-missing-spawn-npm-run-dev.md](./ux-code-review-prompt-preview-missing-spawn-npm-run-dev.md) | 346 |
 | [ux-code-review-prompt-preview-unframed.md](./ux-code-review-prompt-preview-unframed.md) | 347 |
 | [ux-code-review-run-invalid-url-wrong-error.md](./ux-code-review-run-invalid-url-wrong-error.md) | 47 |
 | [ux-code-review-run-missing-prurl-double-error-npm-run-dev.md](./ux-code-review-run-missing-prurl-double-error-npm-run-dev.md) | 348 |
-| [ux-command-aliases-undocumented-on-root-help.md](./ux-command-aliases-undocumented-on-root-help.md) | 632 |
+| [ux-command-aliases-undocumented-on-root-help.md](./ux-command-aliases-undocumented-on-root-help.md) | 635 |
 | [ux-command-not-found-no-suggestions.md](./ux-command-not-found-no-suggestions.md) | 349 |
 | [ux-completion-command-missing.md](./ux-completion-command-missing.md) | 350 |
 | [ux-config-edit-missing-editor-see-logs.md](./ux-config-edit-missing-editor-see-logs.md) | 351 |
-| [ux-config-init-already-exists-good.md](./ux-config-init-already-exists-good.md) | 718 |
+| [ux-config-init-already-exists-good.md](./ux-config-init-already-exists-good.md) | 721 |
 | [ux-configure-accepts-any-string-as-model-no-catalog-check.md](./ux-configure-accepts-any-string-as-model-no-catalog-check.md) | 9 |
 | [ux-configure-accepts-invalid-model-without-validation.md](./ux-configure-accepts-invalid-model-without-validation.md) | 48 |
-| [ux-configure-api-key-dry-run-redacts-bearer.md](./ux-configure-api-key-dry-run-redacts-bearer.md) | 719 |
+| [ux-configure-api-key-dry-run-redacts-bearer.md](./ux-configure-api-key-dry-run-redacts-bearer.md) | 722 |
 | [ux-configure-api-key-shell-history-risk.md](./ux-configure-api-key-shell-history-risk.md) | 352 |
 | [ux-configure-base-url-may-be-ignored.md](./ux-configure-base-url-may-be-ignored.md) | 49 |
 | [ux-configure-base-url-not-visible-in-dry-run.md](./ux-configure-base-url-not-visible-in-dry-run.md) | 50 |
@@ -1053,7 +1058,7 @@
 | [ux-configure-codex-dry-run-still-floods-profiles.md](./ux-configure-codex-dry-run-still-floods-profiles.md) | 354 |
 | [ux-configure-codex-dry-run-still-leaks-and-noise.md](./ux-configure-codex-dry-run-still-leaks-and-noise.md) | 51 |
 | [ux-configure-codex-reasoning-effort-medium-partial.md](./ux-configure-codex-reasoning-effort-medium-partial.md) | 355 |
-| [ux-configure-cursor-dry-run-already-configured-clean.md](./ux-configure-cursor-dry-run-already-configured-clean.md) | 720 |
+| [ux-configure-cursor-dry-run-already-configured-clean.md](./ux-configure-cursor-dry-run-already-configured-clean.md) | 723 |
 | [ux-configure-cursor-dry-run-no-filesystem-changes.md](./ux-configure-cursor-dry-run-no-filesystem-changes.md) | 356 |
 | [ux-configure-cursor-dry-run-too-quiet.md](./ux-configure-cursor-dry-run-too-quiet.md) | 357 |
 | [ux-configure-cursor-model-flag-silent-noop.md](./ux-configure-cursor-model-flag-silent-noop.md) | 358 |
@@ -1062,7 +1067,7 @@
 | [ux-configure-dry-run-shows-full-existing-settings-as-create.md](./ux-configure-dry-run-shows-full-existing-settings-as-create.md) | 53 |
 | [ux-configure-dry-run-writes-stale-model-id.md](./ux-configure-dry-run-writes-stale-model-id.md) | 54 |
 | [ux-configure-empty-api-key-still-defaults-dead-sonnet-5.md](./ux-configure-empty-api-key-still-defaults-dead-sonnet-5.md) | 55 |
-| [ux-configure-gemini-dry-run-minimal-good.md](./ux-configure-gemini-dry-run-minimal-good.md) | 721 |
+| [ux-configure-gemini-dry-run-minimal-good.md](./ux-configure-gemini-dry-run-minimal-good.md) | 724 |
 | [ux-configure-haiku-full-id-rewrites-to-haiku-4-5.md](./ux-configure-haiku-full-id-rewrites-to-haiku-4-5.md) | 360 |
 | [ux-configure-haiku-still-plans-effortlevel-xhigh.md](./ux-configure-haiku-still-plans-effortlevel-xhigh.md) | 56 |
 | [ux-configure-help-missing-examples.md](./ux-configure-help-missing-examples.md) | 57 |
@@ -1077,22 +1082,22 @@
 | [ux-configure-reasoning-effort-ignored-for-claude.md](./ux-configure-reasoning-effort-ignored-for-claude.md) | 63 |
 | [ux-configure-reasoning-effort-still-ignored-always-high.md](./ux-configure-reasoning-effort-still-ignored-always-high.md) | 15 |
 | [ux-configure-shape-base-url-not-visible-in-dry-run.md](./ux-configure-shape-base-url-not-visible-in-dry-run.md) | 64 |
-| [ux-configure-shape-base-url-opaque.md](./ux-configure-shape-base-url-opaque.md) | 633 |
-| [ux-configure-success-vscode-next-steps-good.md](./ux-configure-success-vscode-next-steps-good.md) | 722 |
-| [ux-configure-unknown-api-shape-lists-exposed.md](./ux-configure-unknown-api-shape-lists-exposed.md) | 723 |
-| [ux-configure-unknown-provider-good-message.md](./ux-configure-unknown-provider-good-message.md) | 724 |
-| [ux-configure-unknown-provider-see-logs-missing.md](./ux-configure-unknown-provider-see-logs-missing.md) | 634 |
-| [ux-configure-unknown-provider-validation-good.md](./ux-configure-unknown-provider-validation-good.md) | 725 |
+| [ux-configure-shape-base-url-opaque.md](./ux-configure-shape-base-url-opaque.md) | 636 |
+| [ux-configure-success-vscode-next-steps-good.md](./ux-configure-success-vscode-next-steps-good.md) | 725 |
+| [ux-configure-unknown-api-shape-lists-exposed.md](./ux-configure-unknown-api-shape-lists-exposed.md) | 726 |
+| [ux-configure-unknown-provider-good-message.md](./ux-configure-unknown-provider-good-message.md) | 727 |
+| [ux-configure-unknown-provider-see-logs-missing.md](./ux-configure-unknown-provider-see-logs-missing.md) | 637 |
+| [ux-configure-unknown-provider-validation-good.md](./ux-configure-unknown-provider-validation-good.md) | 728 |
 | [ux-configure-yes-dry-run-always-defaults-dead-sonnet-5.md](./ux-configure-yes-dry-run-always-defaults-dead-sonnet-5.md) | 8 |
 | [ux-configure-yes-silent-default-agent.md](./ux-configure-yes-silent-default-agent.md) | 364 |
 | [ux-constants-source-of-dead-sonnet-5.md](./ux-constants-source-of-dead-sonnet-5.md) | 5 |
 | [ux-constants-still-hardcodes-sonnet-5-source-reconfirm.md](./ux-constants-still-hardcodes-sonnet-5-source-reconfirm.md) | 65 |
-| [ux-cursor-and-cursor-agent-aliases-both-work.md](./ux-cursor-and-cursor-agent-aliases-both-work.md) | 726 |
-| [ux-cwd-file-path-not-directory-good.md](./ux-cwd-file-path-not-directory-good.md) | 727 |
-| [ux-cwd-missing-path-good-message.md](./ux-cwd-missing-path-good-message.md) | 728 |
-| [ux-dashboard-command-missing.md](./ux-dashboard-command-missing.md) | 635 |
+| [ux-cursor-and-cursor-agent-aliases-both-work.md](./ux-cursor-and-cursor-agent-aliases-both-work.md) | 729 |
+| [ux-cwd-file-path-not-directory-good.md](./ux-cwd-file-path-not-directory-good.md) | 730 |
+| [ux-cwd-missing-path-good-message.md](./ux-cwd-missing-path-good-message.md) | 731 |
+| [ux-dashboard-command-missing.md](./ux-dashboard-command-missing.md) | 638 |
 | [ux-dashboard-keybindings-undocumented-on-cli-help.md](./ux-dashboard-keybindings-undocumented-on-cli-help.md) | 365 |
-| [ux-dashboard-ui-tui-missing.md](./ux-dashboard-ui-tui-missing.md) | 636 |
+| [ux-dashboard-ui-tui-missing.md](./ux-dashboard-ui-tui-missing.md) | 639 |
 | [ux-detach-runtime-host-still-inline.md](./ux-detach-runtime-host-still-inline.md) | 66 |
 | [ux-detach-without-runtime-still-inline-reconfirmed.md](./ux-detach-without-runtime-still-inline-reconfirmed.md) | 67 |
 | [ux-development-mode-usage-intentional-but-leaks.md](./ux-development-mode-usage-intentional-but-leaks.md) | 68 |
@@ -1101,33 +1106,33 @@
 | [ux-doctor-still-missing-reconfirmed.md](./ux-doctor-still-missing-reconfirmed.md) | 367 |
 | [ux-dry-run-diffs-print-secrets.md](./ux-dry-run-diffs-print-secrets.md) | 1 |
 | [ux-dual-help-systems.md](./ux-dual-help-systems.md) | 70 |
-| [ux-e2b-missing-key-error-good.md](./ux-e2b-missing-key-error-good.md) | 729 |
+| [ux-e2b-missing-key-error-good.md](./ux-e2b-missing-key-error-good.md) | 732 |
 | [ux-editor-error-still-system-chrome.md](./ux-editor-error-still-system-chrome.md) | 368 |
-| [ux-editor-missing-raw-error.md](./ux-editor-missing-raw-error.md) | 637 |
+| [ux-editor-missing-raw-error.md](./ux-editor-missing-raw-error.md) | 640 |
 | [ux-effort-xhigh-valid-for-opus-not-sonnet.md](./ux-effort-xhigh-valid-for-opus-not-sonnet.md) | 71 |
 | [ux-empty-api-key-flag-silently-ignored.md](./ux-empty-api-key-flag-silently-ignored.md) | 369 |
 | [ux-empty-api-key-flag-still-silently-ignored.md](./ux-empty-api-key-flag-still-silently-ignored.md) | 72 |
 | [ux-empty-api-key-login-good-but-configure-ignores.md](./ux-empty-api-key-login-good-but-configure-ignores.md) | 73 |
 | [ux-empty-model-flag-behavior-inconsistent.md](./ux-empty-model-flag-behavior-inconsistent.md) | 74 |
 | [ux-empty-plan-kind-lists-still-draw-empty-tables.md](./ux-empty-plan-kind-lists-still-draw-empty-tables.md) | 370 |
-| [ux-empty-prompt-string-rejected.md](./ux-empty-prompt-string-rejected.md) | 730 |
+| [ux-empty-prompt-string-rejected.md](./ux-empty-prompt-string-rejected.md) | 733 |
 | [ux-empty-resume-thread-id-silently-ignored.md](./ux-empty-resume-thread-id-silently-ignored.md) | 371 |
 | [ux-error-panel-closes-before-error.md](./ux-error-panel-closes-before-error.md) | 75 |
 | [ux-eval-check-fails-on-placeholder-target-git-remote.md](./ux-eval-check-fails-on-placeholder-target-git-remote.md) | 76 |
 | [ux-eval-empty-source-message-inconsistent-skins.md](./ux-eval-empty-source-message-inconsistent-skins.md) | 372 |
-| [ux-eval-errors-outside-design-system.md](./ux-eval-errors-outside-design-system.md) | 638 |
+| [ux-eval-errors-outside-design-system.md](./ux-eval-errors-outside-design-system.md) | 641 |
 | [ux-eval-help-npm-run-dev-and-inline-flags.md](./ux-eval-help-npm-run-dev-and-inline-flags.md) | 26 |
 | [ux-eval-help-npm-run-dev-identity.md](./ux-eval-help-npm-run-dev-identity.md) | 373 |
 | [ux-eval-init-bare-stdout-no-design-system.md](./ux-eval-init-bare-stdout-no-design-system.md) | 374 |
-| [ux-eval-init-creates-in-cwd-with-bare-success.md](./ux-eval-init-creates-in-cwd-with-bare-success.md) | 639 |
+| [ux-eval-init-creates-in-cwd-with-bare-success.md](./ux-eval-init-creates-in-cwd-with-bare-success.md) | 642 |
 | [ux-eval-init-help-npm-run-dev.md](./ux-eval-init-help-npm-run-dev.md) | 375 |
 | [ux-eval-init-name-validation-bare-text.md](./ux-eval-init-name-validation-bare-text.md) | 376 |
 | [ux-eval-init-prints-bare-name-and-cwd-default-confusing.md](./ux-eval-init-prints-bare-name-and-cwd-default-confusing.md) | 77 |
-| [ux-eval-init-success-is-bare-paths.md](./ux-eval-init-success-is-bare-paths.md) | 640 |
+| [ux-eval-init-success-is-bare-paths.md](./ux-eval-init-success-is-bare-paths.md) | 643 |
 | [ux-eval-lint-check-empty-same-message.md](./ux-eval-lint-check-empty-same-message.md) | 377 |
-| [ux-eval-lint-missing-eval-structured-table-good.md](./ux-eval-lint-missing-eval-structured-table-good.md) | 731 |
-| [ux-eval-lint-table-good.md](./ux-eval-lint-table-good.md) | 732 |
-| [ux-eval-report-debug-flag-undocumented-in-error.md](./ux-eval-report-debug-flag-undocumented-in-error.md) | 641 |
+| [ux-eval-lint-missing-eval-structured-table-good.md](./ux-eval-lint-missing-eval-structured-table-good.md) | 734 |
+| [ux-eval-lint-table-good.md](./ux-eval-lint-table-good.md) | 735 |
+| [ux-eval-report-debug-flag-undocumented-in-error.md](./ux-eval-report-debug-flag-undocumented-in-error.md) | 644 |
 | [ux-eval-report-empty-debug-tease.md](./ux-eval-report-empty-debug-tease.md) | 378 |
 | [ux-eval-report-invalid-format-npm-run-dev.md](./ux-eval-report-invalid-format-npm-run-dev.md) | 78 |
 | [ux-eval-run-missing-params-npm-run-dev.md](./ux-eval-run-missing-params-npm-run-dev.md) | 379 |
@@ -1135,24 +1140,24 @@
 | [ux-experiment-install-already-exists-vs-pipeline-skip.md](./ux-experiment-install-already-exists-vs-pipeline-skip.md) | 79 |
 | [ux-experiment-install-force-does-not-overwrite-skill.md](./ux-experiment-install-force-does-not-overwrite-skill.md) | 80 |
 | [ux-experiment-install-force-does-not-overwrite.md](./ux-experiment-install-force-does-not-overwrite.md) | 81 |
-| [ux-experiment-install-force-help-exists.md](./ux-experiment-install-force-help-exists.md) | 733 |
+| [ux-experiment-install-force-help-exists.md](./ux-experiment-install-force-help-exists.md) | 736 |
 | [ux-experiment-install-force-still-fails-already-exists.md](./ux-experiment-install-force-still-fails-already-exists.md) | 82 |
-| [ux-experiment-install-requires-agent-or-yes-good.md](./ux-experiment-install-requires-agent-or-yes-good.md) | 734 |
+| [ux-experiment-install-requires-agent-or-yes-good.md](./ux-experiment-install-requires-agent-or-yes-good.md) | 737 |
 | [ux-experiment-journal-empty-kind-unaware.md](./ux-experiment-journal-empty-kind-unaware.md) | 83 |
 | [ux-experiment-journal-error-when-no-doc-provided.md](./ux-experiment-journal-error-when-no-doc-provided.md) | 381 |
 | [ux-experiment-journal-no-experiment-docs-message.md](./ux-experiment-journal-no-experiment-docs-message.md) | 84 |
-| [ux-experiment-journal-wrong-doc-type-message.md](./ux-experiment-journal-wrong-doc-type-message.md) | 642 |
+| [ux-experiment-journal-wrong-doc-type-message.md](./ux-experiment-journal-wrong-doc-type-message.md) | 645 |
 | [ux-experiment-journal-wrong-kind-says-not-found.md](./ux-experiment-journal-wrong-kind-says-not-found.md) | 85 |
 | [ux-experiment-ralph-no-doc-wrong-message.md](./ux-experiment-ralph-no-doc-wrong-message.md) | 86 |
 | [ux-experiment-run-empty-says-no-markdown-under-plans.md](./ux-experiment-run-empty-says-no-markdown-under-plans.md) | 87 |
-| [ux-experiment-validate-missing-path-good.md](./ux-experiment-validate-missing-path-good.md) | 735 |
+| [ux-experiment-validate-missing-path-good.md](./ux-experiment-validate-missing-path-good.md) | 738 |
 | [ux-experiment-validate-wrong-kind-says-not-found.md](./ux-experiment-validate-wrong-kind-says-not-found.md) | 88 |
-| [ux-extra-npm-bins-confusing.md](./ux-extra-npm-bins-confusing.md) | 643 |
+| [ux-extra-npm-bins-confusing.md](./ux-extra-npm-bins-confusing.md) | 646 |
 | [ux-extra-npm-bins-still-published-reconfirmed.md](./ux-extra-npm-bins-still-published-reconfirmed.md) | 89 |
 | [ux-extra-npm-bins-still-shipped.md](./ux-extra-npm-bins-still-shipped.md) | 90 |
 | [ux-failure-shown-as-success-markers.md](./ux-failure-shown-as-success-markers.md) | 91 |
 | [ux-frontier-models-only-sonnet-5-is-dead.md](./ux-frontier-models-only-sonnet-5-is-dead.md) | 6 |
-| [ux-gaslight-archive-and-no-archive-both-accepted.md](./ux-gaslight-archive-and-no-archive-both-accepted.md) | 644 |
+| [ux-gaslight-archive-and-no-archive-both-accepted.md](./ux-gaslight-archive-and-no-archive-both-accepted.md) | 647 |
 | [ux-gaslight-config-missing-enoent-system-chrome.md](./ux-gaslight-config-missing-enoent-system-chrome.md) | 382 |
 | [ux-gaslight-config-missing-enoent.md](./ux-gaslight-config-missing-enoent.md) | 383 |
 | [ux-gaslight-empty-model-falls-back-to-dead-sonnet-5.md](./ux-gaslight-empty-model-falls-back-to-dead-sonnet-5.md) | 18 |
@@ -1160,14 +1165,14 @@
 | [ux-gaslight-help-says-plan-to-implement.md](./ux-gaslight-help-says-plan-to-implement.md) | 93 |
 | [ux-gaslight-help-still-says-implement-reconfirmed.md](./ux-gaslight-help-still-says-implement-reconfirmed.md) | 94 |
 | [ux-gaslight-ingest-failure-dumps-jsonl.md](./ux-gaslight-ingest-failure-dumps-jsonl.md) | 95 |
-| [ux-gaslight-ingest-has-limit-since-good.md](./ux-gaslight-ingest-has-limit-since-good.md) | 736 |
-| [ux-gaslight-ingest-limit-zero-validation-good.md](./ux-gaslight-ingest-limit-zero-validation-good.md) | 737 |
+| [ux-gaslight-ingest-has-limit-since-good.md](./ux-gaslight-ingest-has-limit-since-good.md) | 739 |
+| [ux-gaslight-ingest-limit-zero-validation-good.md](./ux-gaslight-ingest-limit-zero-validation-good.md) | 740 |
 | [ux-gaslight-ingest-no-dry-run-and-jsonl-dump.md](./ux-gaslight-ingest-no-dry-run-and-jsonl-dump.md) | 96 |
 | [ux-gaslight-ingest-nontty-demands-poe-no-prompt.md](./ux-gaslight-ingest-nontty-demands-poe-no-prompt.md) | 97 |
-| [ux-gaslight-install-force-dry-run-clean.md](./ux-gaslight-install-force-dry-run-clean.md) | 738 |
+| [ux-gaslight-install-force-dry-run-clean.md](./ux-gaslight-install-force-dry-run-clean.md) | 741 |
 | [ux-gaslight-install-force-dry-run-vs-already-exists.md](./ux-gaslight-install-force-dry-run-vs-already-exists.md) | 384 |
 | [ux-gaslight-install-force-overwrites-without-diff.md](./ux-gaslight-install-force-overwrites-without-diff.md) | 385 |
-| [ux-gaslight-install-global-dry-run-clean.md](./ux-gaslight-install-global-dry-run-clean.md) | 739 |
+| [ux-gaslight-install-global-dry-run-clean.md](./ux-gaslight-install-global-dry-run-clean.md) | 742 |
 | [ux-gaslight-missing-plan-system-chrome-reconfirmed.md](./ux-gaslight-missing-plan-system-chrome-reconfirmed.md) | 386 |
 | [ux-gaslight-mode-read-still-mutated-plans-dir.md](./ux-gaslight-mode-read-still-mutated-plans-dir.md) | 19 |
 | [ux-gaslight-multi-plan-fails-fast-with-success-markers.md](./ux-gaslight-multi-plan-fails-fast-with-success-markers.md) | 387 |
@@ -1184,11 +1189,11 @@
 | [ux-gemini-default-model-unnamespaced-and-stale-vs-frontier.md](./ux-gemini-default-model-unnamespaced-and-stale-vs-frontier.md) | 102 |
 | [ux-gemini-still-provider-credential-after-configure-dry-run.md](./ux-gemini-still-provider-credential-after-configure-dry-run.md) | 103 |
 | [ux-gh-install-dry-run-lists-paths-without-panel.md](./ux-gh-install-dry-run-lists-paths-without-panel.md) | 394 |
-| [ux-gh-install-eject-flag-opaque.md](./ux-gh-install-eject-flag-opaque.md) | 645 |
+| [ux-gh-install-eject-flag-opaque.md](./ux-gh-install-eject-flag-opaque.md) | 648 |
 | [ux-gh-install-preview-without-dry-run-flag.md](./ux-gh-install-preview-without-dry-run-flag.md) | 395 |
 | [ux-gh-prompt-preview-dumps-long-unframed-prompt.md](./ux-gh-prompt-preview-dumps-long-unframed-prompt.md) | 396 |
-| [ux-gh-uninstall-invalid-name-lists-choices-good.md](./ux-gh-uninstall-invalid-name-lists-choices-good.md) | 740 |
-| [ux-gh-variables-list-good.md](./ux-gh-variables-list-good.md) | 741 |
+| [ux-gh-uninstall-invalid-name-lists-choices-good.md](./ux-gh-uninstall-invalid-name-lists-choices-good.md) | 743 |
+| [ux-gh-variables-list-good.md](./ux-gh-variables-list-good.md) | 744 |
 | [ux-github-cwd-clone-errors-still-raw-git.md](./ux-github-cwd-clone-errors-still-raw-git.md) | 104 |
 | [ux-github-cwd-clone-errors-unframed.md](./ux-github-cwd-clone-errors-unframed.md) | 311 |
 | [ux-global-flags-hidden-on-subcommand-help.md](./ux-global-flags-hidden-on-subcommand-help.md) | 397 |
@@ -1199,53 +1204,53 @@
 | [ux-goose-provider-map-still-has-sonnet-5-context.md](./ux-goose-provider-map-still-has-sonnet-5-context.md) | 107 |
 | [ux-group-commands-print-help-only.md](./ux-group-commands-print-help-only.md) | 399 |
 | [ux-hardcoded-stale-sonnet-5-in-product-defaults.md](./ux-hardcoded-stale-sonnet-5-in-product-defaults.md) | 7 |
-| [ux-harness-help-command-lowercase-description.md](./ux-harness-help-command-lowercase-description.md) | 742 |
-| [ux-harness-list-empty-good.md](./ux-harness-list-empty-good.md) | 743 |
-| [ux-harness-list-empty-message-good.md](./ux-harness-list-empty-message-good.md) | 744 |
+| [ux-harness-help-command-lowercase-description.md](./ux-harness-help-command-lowercase-description.md) | 745 |
+| [ux-harness-list-empty-good.md](./ux-harness-list-empty-good.md) | 746 |
+| [ux-harness-list-empty-message-good.md](./ux-harness-list-empty-message-good.md) | 747 |
 | [ux-harness-list-no-dir-flag.md](./ux-harness-list-no-dir-flag.md) | 400 |
 | [ux-harness-list-only-cwd-not-created-dir.md](./ux-harness-list-only-cwd-not-created-dir.md) | 401 |
 | [ux-harness-missing-file-system-chrome.md](./ux-harness-missing-file-system-chrome.md) | 402 |
-| [ux-harness-new-all-builtin-kinds-work.md](./ux-harness-new-all-builtin-kinds-work.md) | 745 |
+| [ux-harness-new-all-builtin-kinds-work.md](./ux-harness-new-all-builtin-kinds-work.md) | 748 |
 | [ux-harness-new-kinds-undocumented-must-guess-demo-names.md](./ux-harness-new-kinds-undocumented-must-guess-demo-names.md) | 108 |
 | [ux-harness-new-kinds-undocumented-only-coverage-demo-works.md](./ux-harness-new-kinds-undocumented-only-coverage-demo-works.md) | 109 |
-| [ux-harness-new-run-coverage-demo-works.md](./ux-harness-new-run-coverage-demo-works.md) | 746 |
-| [ux-harness-new-success-good.md](./ux-harness-new-success-good.md) | 747 |
+| [ux-harness-new-run-coverage-demo-works.md](./ux-harness-new-run-coverage-demo-works.md) | 749 |
+| [ux-harness-new-success-good.md](./ux-harness-new-success-good.md) | 750 |
 | [ux-harness-new-unknown-kind-no-list.md](./ux-harness-new-unknown-kind-no-list.md) | 403 |
 | [ux-harness-new-unknown-template-no-kinds-reconfirmed.md](./ux-harness-new-unknown-template-no-kinds-reconfirmed.md) | 404 |
-| [ux-harness-run-coverage-demo-works.md](./ux-harness-run-coverage-demo-works.md) | 748 |
-| [ux-harness-run-fix-works.md](./ux-harness-run-fix-works.md) | 749 |
+| [ux-harness-run-coverage-demo-works.md](./ux-harness-run-coverage-demo-works.md) | 751 |
+| [ux-harness-run-fix-works.md](./ux-harness-run-fix-works.md) | 752 |
 | [ux-harness-run-missing-file-system-chrome.md](./ux-harness-run-missing-file-system-chrome.md) | 405 |
-| [ux-harness-run-no-pairs-clear.md](./ux-harness-run-no-pairs-clear.md) | 750 |
-| [ux-harness-run-no-path-says-no-pairs.md](./ux-harness-run-no-path-says-no-pairs.md) | 646 |
+| [ux-harness-run-no-pairs-clear.md](./ux-harness-run-no-pairs-clear.md) | 753 |
+| [ux-harness-run-no-path-says-no-pairs.md](./ux-harness-run-no-path-says-no-pairs.md) | 649 |
 | [ux-harness-run-success-opaque-result-object.md](./ux-harness-run-success-opaque-result-object.md) | 406 |
-| [ux-harness-unknown-template-no-kinds.md](./ux-harness-unknown-template-no-kinds.md) | 751 |
+| [ux-harness-unknown-template-no-kinds.md](./ux-harness-unknown-template-no-kinds.md) | 754 |
 | [ux-harness-unknown-template-still-omits-kind-list.md](./ux-harness-unknown-template-still-omits-kind-list.md) | 407 |
 | [ux-help-command-not-registered.md](./ux-help-command-not-registered.md) | 408 |
-| [ux-help-subcommand-inconsistency.md](./ux-help-subcommand-inconsistency.md) | 752 |
+| [ux-help-subcommand-inconsistency.md](./ux-help-subcommand-inconsistency.md) | 755 |
 | [ux-hidden-and-orphan-commands.md](./ux-hidden-and-orphan-commands.md) | 409 |
 | [ux-hooks-auto-strategy-still-refuses-user-settings.md](./ux-hooks-auto-strategy-still-refuses-user-settings.md) | 110 |
 | [ux-hooks-bridge-refuse-user-authored-file-opaque.md](./ux-hooks-bridge-refuse-user-authored-file-opaque.md) | 410 |
 | [ux-hooks-from-codex-to-claude-not-supported-yet.md](./ux-hooks-from-codex-to-claude-not-supported-yet.md) | 111 |
 | [ux-hooks-from-codex-to-claude-transform-unsupported.md](./ux-hooks-from-codex-to-claude-transform-unsupported.md) | 112 |
-| [ux-hooks-from-pi-unsupported-lists-supported.md](./ux-hooks-from-pi-unsupported-lists-supported.md) | 647 |
+| [ux-hooks-from-pi-unsupported-lists-supported.md](./ux-hooks-from-pi-unsupported-lists-supported.md) | 650 |
 | [ux-hooks-from-spawn-poe-code-enoent.md](./ux-hooks-from-spawn-poe-code-enoent.md) | 113 |
-| [ux-hooks-from-unknown-lists-supported-good.md](./ux-hooks-from-unknown-lists-supported-good.md) | 753 |
+| [ux-hooks-from-unknown-lists-supported-good.md](./ux-hooks-from-unknown-lists-supported-good.md) | 756 |
 | [ux-hooks-from-unsupported-system-chrome.md](./ux-hooks-from-unsupported-system-chrome.md) | 411 |
-| [ux-hooks-scope-invalid-raw-commander.md](./ux-hooks-scope-invalid-raw-commander.md) | 648 |
+| [ux-hooks-scope-invalid-raw-commander.md](./ux-hooks-scope-invalid-raw-commander.md) | 651 |
 | [ux-hooks-scope-project-same-refuse-as-symlink.md](./ux-hooks-scope-project-same-refuse-as-symlink.md) | 412 |
-| [ux-hooks-strategy-invalid-raw-commander.md](./ux-hooks-strategy-invalid-raw-commander.md) | 649 |
+| [ux-hooks-strategy-invalid-raw-commander.md](./ux-hooks-strategy-invalid-raw-commander.md) | 652 |
 | [ux-hooks-strategy-symlink-refuses-user-settings.md](./ux-hooks-strategy-symlink-refuses-user-settings.md) | 114 |
 | [ux-hooks-strategy-transform-unsupported-opaque.md](./ux-hooks-strategy-transform-unsupported-opaque.md) | 115 |
 | [ux-hooks-symlink-refuses-user-settings-reconfirmed.md](./ux-hooks-symlink-refuses-user-settings-reconfirmed.md) | 116 |
 | [ux-hooks-transform-to-claude-not-supported-yet.md](./ux-hooks-transform-to-claude-not-supported-yet.md) | 117 |
 | [ux-important-commands-absent-from-root-help.md](./ux-important-commands-absent-from-root-help.md) | 413 |
 | [ux-inconsistent-agent-surface-across-commands.md](./ux-inconsistent-agent-surface-across-commands.md) | 118 |
-| [ux-install-always-claims-success.md](./ux-install-always-claims-success.md) | 650 |
+| [ux-install-always-claims-success.md](./ux-install-always-claims-success.md) | 653 |
 | [ux-install-always-success-reconfirmed.md](./ux-install-always-success-reconfirmed.md) | 414 |
 | [ux-install-help-missing-yes-and-list.md](./ux-install-help-missing-yes-and-list.md) | 415 |
 | [ux-install-help-no-force-or-options.md](./ux-install-help-no-force-or-options.md) | 416 |
 | [ux-install-non-tty-demands-poe-no-prompt-not-yes.md](./ux-install-non-tty-demands-poe-no-prompt-not-yes.md) | 119 |
-| [ux-install-opencode-success-good.md](./ux-install-opencode-success-good.md) | 754 |
+| [ux-install-opencode-success-good.md](./ux-install-opencode-success-good.md) | 757 |
 | [ux-install-pi-unknown-not-in-installable-list.md](./ux-install-pi-unknown-not-in-installable-list.md) | 120 |
 | [ux-install-skill-flags-inconsistent-across-commands.md](./ux-install-skill-flags-inconsistent-across-commands.md) | 121 |
 | [ux-install-test-pi-unknown-not-spawn-only.md](./ux-install-test-pi-unknown-not-spawn-only.md) | 122 |
@@ -1271,26 +1276,26 @@
 | [ux-launch-status-blank-id-zombie-rows.md](./ux-launch-status-blank-id-zombie-rows.md) | 133 |
 | [ux-launch-status-crashes-on-tombstone-dirs.md](./ux-launch-status-crashes-on-tombstone-dirs.md) | 134 |
 | [ux-launch-status-shows-dash-id-ghost-rows.md](./ux-launch-status-shows-dash-id-ghost-rows.md) | 135 |
-| [ux-launch-status-shows-failed-experiment-leftovers.md](./ux-launch-status-shows-failed-experiment-leftovers.md) | 651 |
+| [ux-launch-status-shows-failed-experiment-leftovers.md](./ux-launch-status-shows-failed-experiment-leftovers.md) | 654 |
 | [ux-live-claude-settings-had-sonnet-alias-and-xhigh-restored.md](./ux-live-claude-settings-had-sonnet-alias-and-xhigh-restored.md) | 136 |
 | [ux-log-content-flag-no-danger-warning.md](./ux-log-content-flag-no-danger-warning.md) | 426 |
 | [ux-log-content-flags-underwarn-sensitive-data.md](./ux-log-content-flags-underwarn-sensitive-data.md) | 427 |
 | [ux-log-content-help-underwarns-reconfirmed.md](./ux-log-content-help-underwarns-reconfirmed.md) | 428 |
-| [ux-log-dir-relative-works-with-path-feedback-gap.md](./ux-log-dir-relative-works-with-path-feedback-gap.md) | 652 |
+| [ux-log-dir-relative-works-with-path-feedback-gap.md](./ux-log-dir-relative-works-with-path-feedback-gap.md) | 655 |
 | [ux-log-dir-unwritable-silently-ignored.md](./ux-log-dir-unwritable-silently-ignored.md) | 137 |
 | [ux-log-file-name-no-path-feedback.md](./ux-log-file-name-no-path-feedback.md) | 429 |
-| [ux-login-api-key-rejected-good.md](./ux-login-api-key-rejected-good.md) | 755 |
-| [ux-login-fake-key-rejected-good.md](./ux-login-fake-key-rejected-good.md) | 756 |
+| [ux-login-api-key-rejected-good.md](./ux-login-api-key-rejected-good.md) | 758 |
+| [ux-login-fake-key-rejected-good.md](./ux-login-fake-key-rejected-good.md) | 759 |
 | [ux-login-help-omits-interactive-and-yes.md](./ux-login-help-omits-interactive-and-yes.md) | 430 |
 | [ux-login-help-omits-oauth-default.md](./ux-login-help-omits-oauth-default.md) | 431 |
-| [ux-login-help-omits-yes.md](./ux-login-help-omits-yes.md) | 653 |
+| [ux-login-help-omits-yes.md](./ux-login-help-omits-yes.md) | 656 |
 | [ux-login-help-still-minimal.md](./ux-login-help-still-minimal.md) | 432 |
-| [ux-login-help-still-omits-yes-reconfirmed.md](./ux-login-help-still-omits-yes-reconfirmed.md) | 654 |
+| [ux-login-help-still-omits-yes-reconfirmed.md](./ux-login-help-still-omits-yes-reconfirmed.md) | 657 |
 | [ux-login-non-tty-hangs-on-oauth.md](./ux-login-non-tty-hangs-on-oauth.md) | 138 |
 | [ux-login-non-tty-hangs-reconfirmed.md](./ux-login-non-tty-hangs-reconfirmed.md) | 139 |
 | [ux-login-rejected-no-recovery.md](./ux-login-rejected-no-recovery.md) | 433 |
-| [ux-login-yes-message-good-but-worth-aligning.md](./ux-login-yes-message-good-but-worth-aligning.md) | 757 |
-| [ux-login-yes-without-key-message-good.md](./ux-login-yes-without-key-message-good.md) | 758 |
+| [ux-login-yes-message-good-but-worth-aligning.md](./ux-login-yes-message-good-but-worth-aligning.md) | 760 |
+| [ux-login-yes-without-key-message-good.md](./ux-login-yes-without-key-message-good.md) | 761 |
 | [ux-logout-dry-run-multi-panel-noise.md](./ux-logout-dry-run-multi-panel-noise.md) | 140 |
 | [ux-logout-dry-run-still-multi-panel-unconfigure.md](./ux-logout-dry-run-still-multi-panel-unconfigure.md) | 141 |
 | [ux-logout-dry-run-still-prints-secrets-reconfirmed.md](./ux-logout-dry-run-still-prints-secrets-reconfirmed.md) | 2 |
@@ -1302,87 +1307,87 @@
 | [ux-maestro-dry-run-hits-github-401-reconfirmed.md](./ux-maestro-dry-run-hits-github-401-reconfirmed.md) | 145 |
 | [ux-maestro-dry-run-hits-github-without-workflow.md](./ux-maestro-dry-run-hits-github-without-workflow.md) | 312 |
 | [ux-maestro-dry-run-path-vs-flag-confusion.md](./ux-maestro-dry-run-path-vs-flag-confusion.md) | 146 |
-| [ux-maestro-dual-invocation-shape.md](./ux-maestro-dual-invocation-shape.md) | 759 |
-| [ux-maestro-duplicate-config-flags.md](./ux-maestro-duplicate-config-flags.md) | 760 |
+| [ux-maestro-dual-invocation-shape.md](./ux-maestro-dual-invocation-shape.md) | 762 |
+| [ux-maestro-duplicate-config-flags.md](./ux-maestro-duplicate-config-flags.md) | 763 |
 | [ux-maestro-run-dry-run-still-hits-github-401.md](./ux-maestro-run-dry-run-still-hits-github-401.md) | 147 |
 | [ux-maestro-tick-missing-task-raw-commander.md](./ux-maestro-tick-missing-task-raw-commander.md) | 435 |
 | [ux-maestro-tick-missing-transition-raw-commander.md](./ux-maestro-tick-missing-transition-raw-commander.md) | 436 |
 | [ux-maestro-tui-duplicate-config-workflow-flags.md](./ux-maestro-tui-duplicate-config-workflow-flags.md) | 437 |
-| [ux-maestro-tui-mutual-exclusion-validation-good.md](./ux-maestro-tui-mutual-exclusion-validation-good.md) | 761 |
+| [ux-maestro-tui-mutual-exclusion-validation-good.md](./ux-maestro-tui-mutual-exclusion-validation-good.md) | 764 |
 | [ux-many-parent-groups-only-dump-help.md](./ux-many-parent-groups-only-dump-help.md) | 438 |
 | [ux-markdown-read-depth-1-empty-for-h1-only-structure.md](./ux-markdown-read-depth-1-empty-for-h1-only-structure.md) | 439 |
-| [ux-markdown-read-depth-2-works-well.md](./ux-markdown-read-depth-2-works-well.md) | 762 |
-| [ux-markdown-read-depth-zero-empty-sections.md](./ux-markdown-read-depth-zero-empty-sections.md) | 655 |
-| [ux-markdown-read-negative-depth-validation-good.md](./ux-markdown-read-negative-depth-validation-good.md) | 763 |
-| [ux-markdown-read-section-by-number-works.md](./ux-markdown-read-section-by-number-works.md) | 764 |
+| [ux-markdown-read-depth-2-works-well.md](./ux-markdown-read-depth-2-works-well.md) | 765 |
+| [ux-markdown-read-depth-zero-empty-sections.md](./ux-markdown-read-depth-zero-empty-sections.md) | 658 |
+| [ux-markdown-read-negative-depth-validation-good.md](./ux-markdown-read-negative-depth-validation-good.md) | 766 |
+| [ux-markdown-read-section-by-number-works.md](./ux-markdown-read-section-by-number-works.md) | 767 |
 | [ux-markdown-read-section-wrong-recovery-command.md](./ux-markdown-read-section-wrong-recovery-command.md) | 148 |
-| [ux-markdown-read-unlimited-depth-works.md](./ux-markdown-read-unlimited-depth-works.md) | 765 |
-| [ux-mcp-servers-at-file-missing-validation-good.md](./ux-mcp-servers-at-file-missing-validation-good.md) | 766 |
-| [ux-mcp-servers-empty-object-accepted.md](./ux-mcp-servers-empty-object-accepted.md) | 656 |
-| [ux-mcp-servers-file-and-json-validation-good.md](./ux-mcp-servers-file-and-json-validation-good.md) | 767 |
-| [ux-mcp-servers-invalid-json-validation-good.md](./ux-mcp-servers-invalid-json-validation-good.md) | 768 |
-| [ux-mcp-servers-missing-file-almost-good.md](./ux-mcp-servers-missing-file-almost-good.md) | 657 |
-| [ux-mcp-servers-validation-good.md](./ux-mcp-servers-validation-good.md) | 769 |
+| [ux-markdown-read-unlimited-depth-works.md](./ux-markdown-read-unlimited-depth-works.md) | 768 |
+| [ux-mcp-servers-at-file-missing-validation-good.md](./ux-mcp-servers-at-file-missing-validation-good.md) | 769 |
+| [ux-mcp-servers-empty-object-accepted.md](./ux-mcp-servers-empty-object-accepted.md) | 659 |
+| [ux-mcp-servers-file-and-json-validation-good.md](./ux-mcp-servers-file-and-json-validation-good.md) | 770 |
+| [ux-mcp-servers-invalid-json-validation-good.md](./ux-mcp-servers-invalid-json-validation-good.md) | 771 |
+| [ux-mcp-servers-missing-file-almost-good.md](./ux-mcp-servers-missing-file-almost-good.md) | 660 |
+| [ux-mcp-servers-validation-good.md](./ux-mcp-servers-validation-good.md) | 772 |
 | [ux-memory-agent-commands-invalid-json-opaque.md](./ux-memory-agent-commands-invalid-json-opaque.md) | 149 |
-| [ux-memory-append-reason-defaults-to-append.md](./ux-memory-append-reason-defaults-to-append.md) | 770 |
+| [ux-memory-append-reason-defaults-to-append.md](./ux-memory-append-reason-defaults-to-append.md) | 773 |
 | [ux-memory-cache-clear-help-omits-yes-reconfirmed.md](./ux-memory-cache-clear-help-omits-yes-reconfirmed.md) | 440 |
-| [ux-memory-cache-clear-requires-yes-good.md](./ux-memory-cache-clear-requires-yes-good.md) | 771 |
-| [ux-memory-cache-clear-requires-yes-see-logs.md](./ux-memory-cache-clear-requires-yes-see-logs.md) | 658 |
-| [ux-memory-cache-status-zero-good.md](./ux-memory-cache-status-zero-good.md) | 772 |
+| [ux-memory-cache-clear-requires-yes-good.md](./ux-memory-cache-clear-requires-yes-good.md) | 774 |
+| [ux-memory-cache-clear-requires-yes-see-logs.md](./ux-memory-cache-clear-requires-yes-see-logs.md) | 661 |
+| [ux-memory-cache-status-zero-good.md](./ux-memory-cache-status-zero-good.md) | 775 |
 | [ux-memory-clear-help-still-no-force-or-yes.md](./ux-memory-clear-help-still-no-force-or-yes.md) | 441 |
 | [ux-memory-clear-no-confirmation.md](./ux-memory-clear-no-confirmation.md) | 442 |
 | [ux-memory-clear-no-yes-no-dry-run.md](./ux-memory-clear-no-yes-no-dry-run.md) | 150 |
 | [ux-memory-clear-requires-yes-help-omits-yes.md](./ux-memory-clear-requires-yes-help-omits-yes.md) | 151 |
-| [ux-memory-clear-requires-yes-non-tty-good.md](./ux-memory-clear-requires-yes-non-tty-good.md) | 773 |
-| [ux-memory-clear-yes-reinitializes-index-log.md](./ux-memory-clear-yes-reinitializes-index-log.md) | 774 |
-| [ux-memory-clear-yes-works-when-initialized.md](./ux-memory-clear-yes-works-when-initialized.md) | 775 |
-| [ux-memory-explain-budget-token-internals.md](./ux-memory-explain-budget-token-internals.md) | 776 |
+| [ux-memory-clear-requires-yes-non-tty-good.md](./ux-memory-clear-requires-yes-non-tty-good.md) | 776 |
+| [ux-memory-clear-yes-reinitializes-index-log.md](./ux-memory-clear-yes-reinitializes-index-log.md) | 777 |
+| [ux-memory-clear-yes-works-when-initialized.md](./ux-memory-clear-yes-works-when-initialized.md) | 778 |
+| [ux-memory-explain-budget-token-internals.md](./ux-memory-explain-budget-token-internals.md) | 779 |
 | [ux-memory-explain-invalid-json-system-chrome.md](./ux-memory-explain-invalid-json-system-chrome.md) | 152 |
 | [ux-memory-ingest-enoent-system-chrome.md](./ux-memory-ingest-enoent-system-chrome.md) | 443 |
-| [ux-memory-ingest-not-init-good.md](./ux-memory-ingest-not-init-good.md) | 777 |
+| [ux-memory-ingest-not-init-good.md](./ux-memory-ingest-not-init-good.md) | 780 |
 | [ux-memory-install-already-exists-system-chrome.md](./ux-memory-install-already-exists-system-chrome.md) | 444 |
 | [ux-memory-install-no-force-already-exists.md](./ux-memory-install-no-force-already-exists.md) | 445 |
 | [ux-memory-install-requires-agent-raw-commander.md](./ux-memory-install-requires-agent-raw-commander.md) | 446 |
-| [ux-memory-lint-empty-good.md](./ux-memory-lint-empty-good.md) | 778 |
-| [ux-memory-ls-empty-message-good.md](./ux-memory-ls-empty-message-good.md) | 779 |
+| [ux-memory-lint-empty-good.md](./ux-memory-lint-empty-good.md) | 781 |
+| [ux-memory-ls-empty-message-good.md](./ux-memory-ls-empty-message-good.md) | 782 |
 | [ux-memory-ls-search-show-raw-unframed.md](./ux-memory-ls-search-show-raw-unframed.md) | 447 |
 | [ux-memory-mcp-print-config-command-missing.md](./ux-memory-mcp-print-config-command-missing.md) | 448 |
-| [ux-memory-mcp-print-config-raw-json.md](./ux-memory-mcp-print-config-raw-json.md) | 659 |
+| [ux-memory-mcp-print-config-raw-json.md](./ux-memory-mcp-print-config-raw-json.md) | 662 |
 | [ux-memory-query-may-hang-or-stall.md](./ux-memory-query-may-hang-or-stall.md) | 449 |
 | [ux-memory-query-no-model-flag.md](./ux-memory-query-no-model-flag.md) | 450 |
-| [ux-memory-query-terse-description-and-budget-exposed.md](./ux-memory-query-terse-description-and-budget-exposed.md) | 780 |
-| [ux-memory-search-empty-no-matches-good.md](./ux-memory-search-empty-no-matches-good.md) | 781 |
-| [ux-memory-search-not-initialized-good.md](./ux-memory-search-not-initialized-good.md) | 782 |
+| [ux-memory-query-terse-description-and-budget-exposed.md](./ux-memory-query-terse-description-and-budget-exposed.md) | 783 |
+| [ux-memory-search-empty-no-matches-good.md](./ux-memory-search-empty-no-matches-good.md) | 784 |
+| [ux-memory-search-not-initialized-good.md](./ux-memory-search-not-initialized-good.md) | 785 |
 | [ux-memory-show-cannot-open-root-index-file.md](./ux-memory-show-cannot-open-root-index-file.md) | 23 |
 | [ux-memory-show-index-md-still-not-found-after-init.md](./ux-memory-show-index-md-still-not-found-after-init.md) | 153 |
 | [ux-memory-show-index-not-found-after-init.md](./ux-memory-show-index-not-found-after-init.md) | 154 |
-| [ux-memory-status-after-write-is-terse.md](./ux-memory-status-after-write-is-terse.md) | 660 |
-| [ux-memory-status-not-initialized-good.md](./ux-memory-status-not-initialized-good.md) | 783 |
-| [ux-memory-status-title-not-pink.md](./ux-memory-status-title-not-pink.md) | 784 |
+| [ux-memory-status-after-write-is-terse.md](./ux-memory-status-after-write-is-terse.md) | 663 |
+| [ux-memory-status-not-initialized-good.md](./ux-memory-status-not-initialized-good.md) | 786 |
+| [ux-memory-status-title-not-pink.md](./ux-memory-status-title-not-pink.md) | 787 |
 | [ux-memory-user-page-show-works-index-does-not.md](./ux-memory-user-page-show-works-index-does-not.md) | 155 |
-| [ux-memory-write-bare-stdout-path.md](./ux-memory-write-bare-stdout-path.md) | 661 |
+| [ux-memory-write-bare-stdout-path.md](./ux-memory-write-bare-stdout-path.md) | 664 |
 | [ux-memory-write-requires-reason-before-path.md](./ux-memory-write-requires-reason-before-path.md) | 451 |
 | [ux-memory-write-requires-reason-raw-commander.md](./ux-memory-write-requires-reason-raw-commander.md) | 452 |
-| [ux-memory-write-success-bare-path-stdout.md](./ux-memory-write-success-bare-path-stdout.md) | 662 |
+| [ux-memory-write-success-bare-path-stdout.md](./ux-memory-write-success-bare-path-stdout.md) | 665 |
 | [ux-memory-write-success-is-raw-unframed.md](./ux-memory-write-success-is-raw-unframed.md) | 453 |
 | [ux-model-id-namespace-stripping-surprises.md](./ux-model-id-namespace-stripping-surprises.md) | 454 |
-| [ux-models-double-feature-flag-uses-last-or-and.md](./ux-models-double-feature-flag-uses-last-or-and.md) | 663 |
+| [ux-models-double-feature-flag-uses-last-or-and.md](./ux-models-double-feature-flag-uses-last-or-and.md) | 666 |
 | [ux-models-dumps-full-catalog.md](./ux-models-dumps-full-catalog.md) | 455 |
-| [ux-models-empty-model-filter-returns-all.md](./ux-models-empty-model-filter-returns-all.md) | 664 |
+| [ux-models-empty-model-filter-returns-all.md](./ux-models-empty-model-filter-returns-all.md) | 667 |
 | [ux-models-empty-search-returns-all.md](./ux-models-empty-search-returns-all.md) | 456 |
 | [ux-models-endpoint-bogus-double-error-and-stack.md](./ux-models-endpoint-bogus-double-error-and-stack.md) | 156 |
 | [ux-models-endpoint-invalid-good-list-but-stack.md](./ux-models-endpoint-invalid-good-list-but-stack.md) | 157 |
-| [ux-models-endpoint-messages-anthropic-good.md](./ux-models-endpoint-messages-anthropic-good.md) | 785 |
-| [ux-models-endpoint-pricing-combo-works.md](./ux-models-endpoint-pricing-combo-works.md) | 786 |
+| [ux-models-endpoint-messages-anthropic-good.md](./ux-models-endpoint-messages-anthropic-good.md) | 788 |
+| [ux-models-endpoint-pricing-combo-works.md](./ux-models-endpoint-pricing-combo-works.md) | 789 |
 | [ux-models-exact-id-filter-rejects-namespaced-ids.md](./ux-models-exact-id-filter-rejects-namespaced-ids.md) | 158 |
 | [ux-models-feature-bogus-silent-empty.md](./ux-models-feature-bogus-silent-empty.md) | 457 |
 | [ux-models-feature-flag-not-repeatable.md](./ux-models-feature-flag-not-repeatable.md) | 458 |
-| [ux-models-feature-reasoning-filter-works.md](./ux-models-feature-reasoning-filter-works.md) | 787 |
-| [ux-models-feature-tools-case-insensitive-good.md](./ux-models-feature-tools-case-insensitive-good.md) | 788 |
-| [ux-models-feature-web-search-works.md](./ux-models-feature-web-search-works.md) | 789 |
-| [ux-models-google-reasoning-filter-works.md](./ux-models-google-reasoning-filter-works.md) | 790 |
-| [ux-models-help-examples-are-excellent.md](./ux-models-help-examples-are-excellent.md) | 791 |
-| [ux-models-help-examples-still-best-in-class.md](./ux-models-help-examples-still-best-in-class.md) | 792 |
+| [ux-models-feature-reasoning-filter-works.md](./ux-models-feature-reasoning-filter-works.md) | 790 |
+| [ux-models-feature-tools-case-insensitive-good.md](./ux-models-feature-tools-case-insensitive-good.md) | 791 |
+| [ux-models-feature-web-search-works.md](./ux-models-feature-web-search-works.md) | 792 |
+| [ux-models-google-reasoning-filter-works.md](./ux-models-google-reasoning-filter-works.md) | 793 |
+| [ux-models-help-examples-are-excellent.md](./ux-models-help-examples-are-excellent.md) | 794 |
+| [ux-models-help-examples-still-best-in-class.md](./ux-models-help-examples-still-best-in-class.md) | 795 |
 | [ux-models-input-bogus-silent-empty.md](./ux-models-input-bogus-silent-empty.md) | 459 |
 | [ux-models-invalid-endpoint-prints-stack.md](./ux-models-invalid-endpoint-prints-stack.md) | 159 |
 | [ux-models-invalid-feature-silent-empty-reconfirmed.md](./ux-models-invalid-feature-silent-empty-reconfirmed.md) | 460 |
@@ -1393,72 +1398,73 @@
 | [ux-models-model-flag-rejects-namespaced-ids.md](./ux-models-model-flag-rejects-namespaced-ids.md) | 162 |
 | [ux-models-no-limit-flag-confirmed.md](./ux-models-no-limit-flag-confirmed.md) | 163 |
 | [ux-models-no-limit-flag.md](./ux-models-no-limit-flag.md) | 164 |
-| [ux-models-openai-tools-capabilities-good.md](./ux-models-openai-tools-capabilities-good.md) | 793 |
-| [ux-models-openai-tools-filter-works.md](./ux-models-openai-tools-filter-works.md) | 794 |
+| [ux-models-openai-tools-capabilities-good.md](./ux-models-openai-tools-capabilities-good.md) | 796 |
+| [ux-models-openai-tools-filter-works.md](./ux-models-openai-tools-filter-works.md) | 797 |
 | [ux-models-output-json-search-returns-empty-inconsistently.md](./ux-models-output-json-search-returns-empty-inconsistently.md) | 165 |
 | [ux-models-parameters-namespaced-id-empty.md](./ux-models-parameters-namespaced-id-empty.md) | 166 |
-| [ux-models-parameters-view-good-for-filtered.md](./ux-models-parameters-view-good-for-filtered.md) | 795 |
-| [ux-models-pricing-anthropic-sonnet-works.md](./ux-models-pricing-anthropic-sonnet-works.md) | 796 |
+| [ux-models-parameters-view-good-for-filtered.md](./ux-models-parameters-view-good-for-filtered.md) | 798 |
+| [ux-models-pricing-anthropic-sonnet-works.md](./ux-models-pricing-anthropic-sonnet-works.md) | 799 |
 | [ux-models-pricing-capabilities-namespaced-id-empty.md](./ux-models-pricing-capabilities-namespaced-id-empty.md) | 167 |
-| [ux-models-pricing-search-combo-good.md](./ux-models-pricing-search-combo-good.md) | 797 |
-| [ux-models-pricing-search-works.md](./ux-models-pricing-search-works.md) | 798 |
-| [ux-models-pricing-sonnet-4-6-good.md](./ux-models-pricing-sonnet-4-6-good.md) | 799 |
-| [ux-models-provider-anthropic-tools-good.md](./ux-models-provider-anthropic-tools-good.md) | 800 |
-| [ux-models-provider-case-insensitive-good.md](./ux-models-provider-case-insensitive-good.md) | 801 |
-| [ux-models-provider-xai-works.md](./ux-models-provider-xai-works.md) | 802 |
+| [ux-models-pricing-search-combo-good.md](./ux-models-pricing-search-combo-good.md) | 800 |
+| [ux-models-pricing-search-works.md](./ux-models-pricing-search-works.md) | 801 |
+| [ux-models-pricing-sonnet-4-6-good.md](./ux-models-pricing-sonnet-4-6-good.md) | 802 |
+| [ux-models-provider-anthropic-tools-good.md](./ux-models-provider-anthropic-tools-good.md) | 803 |
+| [ux-models-provider-case-insensitive-good.md](./ux-models-provider-case-insensitive-good.md) | 804 |
+| [ux-models-provider-xai-works.md](./ux-models-provider-xai-works.md) | 805 |
 | [ux-models-raw-empty-model-dumps-all-yaml.md](./ux-models-raw-empty-model-dumps-all-yaml.md) | 168 |
-| [ux-models-raw-view-bypasses-design-system-reconfirmed.md](./ux-models-raw-view-bypasses-design-system-reconfirmed.md) | 665 |
-| [ux-models-raw-view-bypasses-design-system.md](./ux-models-raw-view-bypasses-design-system.md) | 666 |
+| [ux-models-raw-view-bypasses-design-system-reconfirmed.md](./ux-models-raw-view-bypasses-design-system-reconfirmed.md) | 668 |
+| [ux-models-raw-view-bypasses-design-system.md](./ux-models-raw-view-bypasses-design-system.md) | 669 |
 | [ux-models-search-claude-slash-zero.md](./ux-models-search-claude-slash-zero.md) | 463 |
 | [ux-models-search-confirms-sonnet-5-absent-from-catalog.md](./ux-models-search-confirms-sonnet-5-absent-from-catalog.md) | 169 |
-| [ux-models-search-empty-returns-all.md](./ux-models-search-empty-returns-all.md) | 667 |
+| [ux-models-search-empty-returns-all.md](./ux-models-search-empty-returns-all.md) | 670 |
 | [ux-models-search-quoted-catalog-display-name-fails.md](./ux-models-search-quoted-catalog-display-name-fails.md) | 170 |
 | [ux-models-search-sonnet-5-zero-proves-dead-id.md](./ux-models-search-sonnet-5-zero-proves-dead-id.md) | 171 |
-| [ux-models-since-1d-empty-today.md](./ux-models-since-1d-empty-today.md) | 668 |
-| [ux-models-since-7d-works.md](./ux-models-since-7d-works.md) | 803 |
+| [ux-models-since-1d-empty-today.md](./ux-models-since-1d-empty-today.md) | 671 |
+| [ux-models-since-7d-works.md](./ux-models-since-7d-works.md) | 806 |
 | [ux-models-since-invalid-prints-stack.md](./ux-models-since-invalid-prints-stack.md) | 172 |
 | [ux-models-since-validation-still-prints-stack.md](./ux-models-since-validation-still-prints-stack.md) | 173 |
-| [ux-models-tools-and-feature-filter-semantics-undocumented.md](./ux-models-tools-and-feature-filter-semantics-undocumented.md) | 669 |
-| [ux-models-tools-and-feature-tools-redundant-ok.md](./ux-models-tools-and-feature-tools-redundant-ok.md) | 804 |
-| [ux-models-view-invalid-raw-commander.md](./ux-models-view-invalid-raw-commander.md) | 670 |
+| [ux-models-tools-and-feature-filter-semantics-undocumented.md](./ux-models-tools-and-feature-filter-semantics-undocumented.md) | 672 |
+| [ux-models-tools-and-feature-tools-redundant-ok.md](./ux-models-tools-and-feature-tools-redundant-ok.md) | 807 |
+| [ux-models-tools-xai-filter-works.md](./ux-models-tools-xai-filter-works.md) | 808 |
+| [ux-models-view-invalid-raw-commander.md](./ux-models-view-invalid-raw-commander.md) | 673 |
 | [ux-models-view-invalid-uses-raw-commander.md](./ux-models-view-invalid-uses-raw-commander.md) | 464 |
 | [ux-models-view-parameters-without-filter-floods.md](./ux-models-view-parameters-without-filter-floods.md) | 465 |
-| [ux-models-view-raw-bypasses-design-system-reconfirmed.md](./ux-models-view-raw-bypasses-design-system-reconfirmed.md) | 805 |
+| [ux-models-view-raw-bypasses-design-system-reconfirmed.md](./ux-models-view-raw-bypasses-design-system-reconfirmed.md) | 809 |
 | [ux-models-view-raw-namespaced-id-returns-empty-array.md](./ux-models-view-raw-namespaced-id-returns-empty-array.md) | 174 |
-| [ux-models-xai-reasoning-filter-works.md](./ux-models-xai-reasoning-filter-works.md) | 806 |
+| [ux-models-xai-reasoning-filter-works.md](./ux-models-xai-reasoning-filter-works.md) | 810 |
 | [ux-no-doctor-or-health-overview-command.md](./ux-no-doctor-or-health-overview-command.md) | 466 |
-| [ux-no-shell-completion-command.md](./ux-no-shell-completion-command.md) | 671 |
+| [ux-no-shell-completion-command.md](./ux-no-shell-completion-command.md) | 674 |
 | [ux-non-tty-prompt-wrong-guidance.md](./ux-non-tty-prompt-wrong-guidance.md) | 175 |
-| [ux-oauth-url-dumps-full-query-string.md](./ux-oauth-url-dumps-full-query-string.md) | 672 |
+| [ux-oauth-url-dumps-full-query-string.md](./ux-oauth-url-dumps-full-query-string.md) | 675 |
 | [ux-opencode-model-flag-still-triple-namespace.md](./ux-opencode-model-flag-still-triple-namespace.md) | 467 |
 | [ux-opencode-model-triple-namespace.md](./ux-opencode-model-triple-namespace.md) | 468 |
 | [ux-opus-4-7-catalog-supports-xhigh-sonnet-does-not.md](./ux-opus-4-7-catalog-supports-xhigh-sonnet-does-not.md) | 176 |
 | [ux-package-json-extra-bins-still-present-reconfirmed.md](./ux-package-json-extra-bins-still-present-reconfirmed.md) | 177 |
 | [ux-package-json-extra-npm-bins-reconfirmed.md](./ux-package-json-extra-npm-bins-reconfirmed.md) | 178 |
 | [ux-permission-mode-sets-differ-across-commands.md](./ux-permission-mode-sets-differ-across-commands.md) | 179 |
-| [ux-pi-agent-alias-works.md](./ux-pi-agent-alias-works.md) | 807 |
+| [ux-pi-agent-alias-works.md](./ux-pi-agent-alias-works.md) | 811 |
 | [ux-pi-spawnable-but-not-configurable.md](./ux-pi-spawnable-but-not-configurable.md) | 180 |
-| [ux-pipeline-experiment-plan-path-as-subcommand.md](./ux-pipeline-experiment-plan-path-as-subcommand.md) | 673 |
+| [ux-pipeline-experiment-plan-path-as-subcommand.md](./ux-pipeline-experiment-plan-path-as-subcommand.md) | 676 |
 | [ux-pipeline-init-help-omits-yes.md](./ux-pipeline-init-help-omits-yes.md) | 469 |
 | [ux-pipeline-init-yes-error-ok-but-panel-lifecycle.md](./ux-pipeline-init-yes-error-ok-but-panel-lifecycle.md) | 470 |
-| [ux-pipeline-init-yes-requires-source-good.md](./ux-pipeline-init-yes-requires-source-good.md) | 808 |
+| [ux-pipeline-init-yes-requires-source-good.md](./ux-pipeline-init-yes-requires-source-good.md) | 812 |
 | [ux-pipeline-install-claims-success-when-all-skipped.md](./ux-pipeline-install-claims-success-when-all-skipped.md) | 471 |
 | [ux-pipeline-install-force-skips-skill-overwrites-steps.md](./ux-pipeline-install-force-skips-skill-overwrites-steps.md) | 181 |
 | [ux-pipeline-install-force-skips-skill-still.md](./ux-pipeline-install-force-skips-skill-still.md) | 182 |
-| [ux-pipeline-max-runs-zero-good-validation.md](./ux-pipeline-max-runs-zero-good-validation.md) | 809 |
-| [ux-pipeline-max-runs-zero-validation-good.md](./ux-pipeline-max-runs-zero-validation-good.md) | 810 |
+| [ux-pipeline-max-runs-zero-good-validation.md](./ux-pipeline-max-runs-zero-good-validation.md) | 813 |
+| [ux-pipeline-max-runs-zero-validation-good.md](./ux-pipeline-max-runs-zero-validation-good.md) | 814 |
 | [ux-pipeline-nothing-to-run-success-framing.md](./ux-pipeline-nothing-to-run-success-framing.md) | 472 |
 | [ux-pipeline-run-autopicks-plan-and-ignores-missing-task-context.md](./ux-pipeline-run-autopicks-plan-and-ignores-missing-task-context.md) | 183 |
 | [ux-pipeline-run-help-omits-yes-and-mode.md](./ux-pipeline-run-help-omits-yes-and-mode.md) | 184 |
-| [ux-pipeline-run-model-override-shown-on-nothing-to-run.md](./ux-pipeline-run-model-override-shown-on-nothing-to-run.md) | 811 |
+| [ux-pipeline-run-model-override-shown-on-nothing-to-run.md](./ux-pipeline-run-model-override-shown-on-nothing-to-run.md) | 815 |
 | [ux-pipeline-run-yes-autopicks-completed-plan-nothing-to-run.md](./ux-pipeline-run-yes-autopicks-completed-plan-nothing-to-run.md) | 185 |
 | [ux-pipeline-tui-flag-ignored-on-init-failure.md](./ux-pipeline-tui-flag-ignored-on-init-failure.md) | 473 |
 | [ux-pipeline-validate-enoent-system-error.md](./ux-pipeline-validate-enoent-system-error.md) | 474 |
-| [ux-pipeline-validate-good-plan-positive.md](./ux-pipeline-validate-good-plan-positive.md) | 812 |
+| [ux-pipeline-validate-good-plan-positive.md](./ux-pipeline-validate-good-plan-positive.md) | 816 |
 | [ux-pipeline-validate-no-json-flag.md](./ux-pipeline-validate-no-json-flag.md) | 475 |
-| [ux-pipeline-validate-success-still-problems-footer.md](./ux-pipeline-validate-success-still-problems-footer.md) | 674 |
-| [ux-pipeline-validate-valid-pipeline-good.md](./ux-pipeline-validate-valid-pipeline-good.md) | 813 |
-| [ux-pipeline-validate-wrong-kind-good-message.md](./ux-pipeline-validate-wrong-kind-good-message.md) | 814 |
+| [ux-pipeline-validate-success-still-problems-footer.md](./ux-pipeline-validate-success-still-problems-footer.md) | 677 |
+| [ux-pipeline-validate-valid-pipeline-good.md](./ux-pipeline-validate-valid-pipeline-good.md) | 817 |
+| [ux-pipeline-validate-wrong-kind-good-message.md](./ux-pipeline-validate-wrong-kind-good-message.md) | 818 |
 | [ux-pipeline-validate-wrong-kind-see-logs.md](./ux-pipeline-validate-wrong-kind-see-logs.md) | 476 |
 | [ux-pipeline-validate-wrong-kind-system-chrome-reconfirmed.md](./ux-pipeline-validate-wrong-kind-system-chrome-reconfirmed.md) | 477 |
 | [ux-pipeline-validate-wrong-kind-system-chrome.md](./ux-pipeline-validate-wrong-kind-system-chrome.md) | 478 |
@@ -1467,116 +1473,117 @@
 | [ux-plan-archive-delete-yes-picks-arbitrary-plan.md](./ux-plan-archive-delete-yes-picks-arbitrary-plan.md) | 21 |
 | [ux-plan-archive-help-omits-yes-behavior.md](./ux-plan-archive-help-omits-yes-behavior.md) | 187 |
 | [ux-plan-archive-help-still-omits-yes.md](./ux-plan-archive-help-still-omits-yes.md) | 188 |
-| [ux-plan-archive-json-output-good.md](./ux-plan-archive-json-output-good.md) | 815 |
+| [ux-plan-archive-json-output-good.md](./ux-plan-archive-json-output-good.md) | 819 |
 | [ux-plan-archive-json-skips-without-explaining-why.md](./ux-plan-archive-json-skips-without-explaining-why.md) | 189 |
-| [ux-plan-archive-requires-yes-non-tty-good.md](./ux-plan-archive-requires-yes-non-tty-good.md) | 816 |
+| [ux-plan-archive-requires-yes-non-tty-good.md](./ux-plan-archive-requires-yes-non-tty-good.md) | 820 |
 | [ux-plan-browse-non-tty-dumps-arbitrary-plan-body.md](./ux-plan-browse-non-tty-dumps-arbitrary-plan-body.md) | 190 |
 | [ux-plan-browse-non-tty-dumps-first-plan.md](./ux-plan-browse-non-tty-dumps-first-plan.md) | 480 |
 | [ux-plan-browse-non-tty-dumps-plan-body.md](./ux-plan-browse-non-tty-dumps-plan-body.md) | 191 |
 | [ux-plan-browse-rejects-path-argument.md](./ux-plan-browse-rejects-path-argument.md) | 481 |
 | [ux-plan-delete-allows-readme.md](./ux-plan-delete-allows-readme.md) | 192 |
 | [ux-plan-delete-help-still-omits-yes.md](./ux-plan-delete-help-still-omits-yes.md) | 193 |
-| [ux-plan-delete-json-output-good.md](./ux-plan-delete-json-output-good.md) | 817 |
+| [ux-plan-delete-json-output-good.md](./ux-plan-delete-json-output-good.md) | 821 |
 | [ux-plan-delete-json-skips-without-reason.md](./ux-plan-delete-json-skips-without-reason.md) | 194 |
 | [ux-plan-docs-advertise-goal-and-chat-commands-missing.md](./ux-plan-docs-advertise-goal-and-chat-commands-missing.md) | 482 |
-| [ux-plan-edit-bare-edited-message.md](./ux-plan-edit-bare-edited-message.md) | 818 |
+| [ux-plan-edit-bare-edited-message.md](./ux-plan-edit-bare-edited-message.md) | 822 |
 | [ux-plan-edit-editor-true-claims-edited-without-change.md](./ux-plan-edit-editor-true-claims-edited-without-change.md) | 483 |
 | [ux-plan-edit-hangs-without-editor.md](./ux-plan-edit-hangs-without-editor.md) | 195 |
-| [ux-plan-help-keymap-hint-unframed.md](./ux-plan-help-keymap-hint-unframed.md) | 819 |
+| [ux-plan-help-keymap-hint-unframed.md](./ux-plan-help-keymap-hint-unframed.md) | 823 |
 | [ux-plan-help-omits-yes-on-destructive-subcommands.md](./ux-plan-help-omits-yes-on-destructive-subcommands.md) | 196 |
 | [ux-plan-help-stacked-layout-and-internal-commands.md](./ux-plan-help-stacked-layout-and-internal-commands.md) | 484 |
-| [ux-plan-install-dry-run-clean-good.md](./ux-plan-install-dry-run-clean-good.md) | 820 |
+| [ux-plan-install-dry-run-clean-good.md](./ux-plan-install-dry-run-clean-good.md) | 824 |
 | [ux-plan-install-help-omits-yes-but-accepts-yes.md](./ux-plan-install-help-omits-yes-but-accepts-yes.md) | 485 |
 | [ux-plan-install-no-force-flag.md](./ux-plan-install-no-force-flag.md) | 486 |
-| [ux-plan-install-pi-clearer-than-unknown.md](./ux-plan-install-pi-clearer-than-unknown.md) | 821 |
-| [ux-plan-install-success-good.md](./ux-plan-install-success-good.md) | 822 |
+| [ux-plan-install-pi-clearer-than-unknown.md](./ux-plan-install-pi-clearer-than-unknown.md) | 825 |
+| [ux-plan-install-success-good.md](./ux-plan-install-success-good.md) | 826 |
 | [ux-plan-install-unsupported-agent-pi-kimi.md](./ux-plan-install-unsupported-agent-pi-kimi.md) | 487 |
 | [ux-plan-install-yes-defaults-claude-writes-skill.md](./ux-plan-install-yes-defaults-claude-writes-skill.md) | 488 |
-| [ux-plan-kind-invalid-validation-good.md](./ux-plan-kind-invalid-validation-good.md) | 823 |
+| [ux-plan-kind-invalid-validation-good.md](./ux-plan-kind-invalid-validation-good.md) | 827 |
 | [ux-plan-list-broken-two-line-row-layout.md](./ux-plan-list-broken-two-line-row-layout.md) | 489 |
 | [ux-plan-list-empty-experiment-table-reconfirmed.md](./ux-plan-list-empty-experiment-table-reconfirmed.md) | 490 |
 | [ux-plan-list-empty-kind-table-reconfirmed.md](./ux-plan-list-empty-kind-table-reconfirmed.md) | 491 |
 | [ux-plan-list-empty-ralph-table-reconfirmed.md](./ux-plan-list-empty-ralph-table-reconfirmed.md) | 492 |
 | [ux-plan-list-empty-superintendent-base-table-reconfirmed.md](./ux-plan-list-empty-superintendent-base-table-reconfirmed.md) | 493 |
-| [ux-plan-list-empty-table-no-message.md](./ux-plan-list-empty-table-no-message.md) | 675 |
+| [ux-plan-list-empty-table-no-message.md](./ux-plan-list-empty-table-no-message.md) | 678 |
 | [ux-plan-list-includes-exactly-one-readme.md](./ux-plan-list-includes-exactly-one-readme.md) | 494 |
 | [ux-plan-list-includes-noise-files.md](./ux-plan-list-includes-noise-files.md) | 495 |
 | [ux-plan-list-includes-readme-reconfirmed.md](./ux-plan-list-includes-readme-reconfirmed.md) | 496 |
-| [ux-plan-list-invalid-kind-output-validation-good.md](./ux-plan-list-invalid-kind-output-validation-good.md) | 824 |
-| [ux-plan-list-json-empty-is-bare-array.md](./ux-plan-list-json-empty-is-bare-array.md) | 825 |
+| [ux-plan-list-invalid-kind-output-validation-good.md](./ux-plan-list-invalid-kind-output-validation-good.md) | 828 |
+| [ux-plan-list-json-empty-is-bare-array.md](./ux-plan-list-json-empty-is-bare-array.md) | 829 |
 | [ux-plan-list-json-includes-readme-reconfirmed.md](./ux-plan-list-json-includes-readme-reconfirmed.md) | 497 |
 | [ux-plan-list-md-includes-readme-noise.md](./ux-plan-list-md-includes-readme-noise.md) | 498 |
 | [ux-plan-list-md-includes-readme-reconfirmed.md](./ux-plan-list-md-includes-readme-reconfirmed.md) | 499 |
-| [ux-plan-list-output-json-unframed.md](./ux-plan-list-output-json-unframed.md) | 676 |
-| [ux-plan-list-output-md-is-markdown-table-good.md](./ux-plan-list-output-md-is-markdown-table-good.md) | 826 |
-| [ux-plan-list-pipeline-json-good.md](./ux-plan-list-pipeline-json-good.md) | 827 |
+| [ux-plan-list-output-json-unframed.md](./ux-plan-list-output-json-unframed.md) | 679 |
+| [ux-plan-list-output-md-is-markdown-table-good.md](./ux-plan-list-output-md-is-markdown-table-good.md) | 830 |
+| [ux-plan-list-pipeline-json-good.md](./ux-plan-list-pipeline-json-good.md) | 831 |
 | [ux-plan-markdown-read-depth-zero-shows-no-sections.md](./ux-plan-markdown-read-depth-zero-shows-no-sections.md) | 500 |
-| [ux-plan-markdown-read-raw-yaml-ish-output.md](./ux-plan-markdown-read-raw-yaml-ish-output.md) | 677 |
-| [ux-plan-markdown-read-section-by-number-works.md](./ux-plan-markdown-read-section-by-number-works.md) | 828 |
+| [ux-plan-markdown-read-raw-yaml-ish-output.md](./ux-plan-markdown-read-raw-yaml-ish-output.md) | 680 |
+| [ux-plan-markdown-read-section-by-number-works.md](./ux-plan-markdown-read-section-by-number-works.md) | 832 |
 | [ux-plan-markdown-read-section-wrong-command-hint.md](./ux-plan-markdown-read-section-wrong-command-hint.md) | 501 |
 | [ux-plan-markdown-read-section-wrong-hint-reconfirmed.md](./ux-plan-markdown-read-section-wrong-hint-reconfirmed.md) | 502 |
 | [ux-plan-markdown-read-system-chrome.md](./ux-plan-markdown-read-system-chrome.md) | 503 |
-| [ux-plan-markdown-reader-mcp-help-minimal.md](./ux-plan-markdown-reader-mcp-help-minimal.md) | 678 |
+| [ux-plan-markdown-reader-mcp-help-minimal.md](./ux-plan-markdown-reader-mcp-help-minimal.md) | 681 |
 | [ux-plan-non-tty-unclear-failure.md](./ux-plan-non-tty-unclear-failure.md) | 504 |
-| [ux-plan-output-invalid-validation-good.md](./ux-plan-output-invalid-validation-good.md) | 829 |
-| [ux-plan-path-commands-bare-stdout-reconfirmed.md](./ux-plan-path-commands-bare-stdout-reconfirmed.md) | 830 |
-| [ux-plan-path-commands-bare-stdout.md](./ux-plan-path-commands-bare-stdout.md) | 831 |
+| [ux-plan-output-invalid-validation-good.md](./ux-plan-output-invalid-validation-good.md) | 833 |
+| [ux-plan-path-commands-bare-stdout-reconfirmed.md](./ux-plan-path-commands-bare-stdout-reconfirmed.md) | 834 |
+| [ux-plan-path-commands-bare-stdout.md](./ux-plan-path-commands-bare-stdout.md) | 835 |
 | [ux-plan-question-non-tty-may-hang.md](./ux-plan-question-non-tty-may-hang.md) | 197 |
 | [ux-plan-question-starts-session-without-mode.md](./ux-plan-question-starts-session-without-mode.md) | 505 |
 | [ux-plan-root-non-tty-dumps-arbitrary-body.md](./ux-plan-root-non-tty-dumps-arbitrary-body.md) | 198 |
 | [ux-plan-root-nontty-dumps-arbitrary-plan-body.md](./ux-plan-root-nontty-dumps-arbitrary-plan-body.md) | 199 |
-| [ux-plan-view-json-dumps-full-content.md](./ux-plan-view-json-dumps-full-content.md) | 506 |
-| [ux-plan-view-json-dumps-full-markdown-content.md](./ux-plan-view-json-dumps-full-markdown-content.md) | 679 |
+| [ux-plan-unknown-subcommand-treated-as-question.md](./ux-plan-unknown-subcommand-treated-as-question.md) | 506 |
+| [ux-plan-view-json-dumps-full-content.md](./ux-plan-view-json-dumps-full-content.md) | 507 |
+| [ux-plan-view-json-dumps-full-markdown-content.md](./ux-plan-view-json-dumps-full-markdown-content.md) | 682 |
 | [ux-plan-view-json-embeds-full-content-flood.md](./ux-plan-view-json-embeds-full-content-flood.md) | 200 |
-| [ux-plan-view-missing-path-good.md](./ux-plan-view-missing-path-good.md) | 832 |
-| [ux-plan-view-non-tty-requires-path-good.md](./ux-plan-view-non-tty-requires-path-good.md) | 833 |
-| [ux-plan-view-pipeline-md-output-good.md](./ux-plan-view-pipeline-md-output-good.md) | 834 |
-| [ux-plan-view-vs-markdown-read-not-found-inconsistent.md](./ux-plan-view-vs-markdown-read-not-found-inconsistent.md) | 507 |
-| [ux-poe-no-prompt-works-for-configure-dry-run.md](./ux-poe-no-prompt-works-for-configure-dry-run.md) | 835 |
+| [ux-plan-view-missing-path-good.md](./ux-plan-view-missing-path-good.md) | 836 |
+| [ux-plan-view-non-tty-requires-path-good.md](./ux-plan-view-non-tty-requires-path-good.md) | 837 |
+| [ux-plan-view-pipeline-md-output-good.md](./ux-plan-view-pipeline-md-output-good.md) | 838 |
+| [ux-plan-view-vs-markdown-read-not-found-inconsistent.md](./ux-plan-view-vs-markdown-read-not-found-inconsistent.md) | 508 |
+| [ux-poe-no-prompt-works-for-configure-dry-run.md](./ux-poe-no-prompt-works-for-configure-dry-run.md) | 839 |
 | [ux-postinstall-sync-skills-can-run-on-user-install.md](./ux-postinstall-sync-skills-can-run-on-user-install.md) | 313 |
-| [ux-primary-commands-lack-examples-in-help.md](./ux-primary-commands-lack-examples-in-help.md) | 508 |
-| [ux-primary-commands-still-lack-examples.md](./ux-primary-commands-still-lack-examples.md) | 509 |
-| [ux-problems-footer-on-every-success.md](./ux-problems-footer-on-every-success.md) | 680 |
-| [ux-provider-help-command-lowercase-systemic.md](./ux-provider-help-command-lowercase-systemic.md) | 836 |
-| [ux-provider-list-agents-column-incomplete.md](./ux-provider-list-agents-column-incomplete.md) | 510 |
-| [ux-provider-list-agents-column-truncated.md](./ux-provider-list-agents-column-truncated.md) | 681 |
-| [ux-provider-list-agents-column-truncates.md](./ux-provider-list-agents-column-truncates.md) | 511 |
-| [ux-provider-list-all-logged-out-clean.md](./ux-provider-list-all-logged-out-clean.md) | 837 |
-| [ux-provider-list-no-json-flag.md](./ux-provider-list-no-json-flag.md) | 512 |
+| [ux-primary-commands-lack-examples-in-help.md](./ux-primary-commands-lack-examples-in-help.md) | 509 |
+| [ux-primary-commands-still-lack-examples.md](./ux-primary-commands-still-lack-examples.md) | 510 |
+| [ux-problems-footer-on-every-success.md](./ux-problems-footer-on-every-success.md) | 683 |
+| [ux-provider-help-command-lowercase-systemic.md](./ux-provider-help-command-lowercase-systemic.md) | 840 |
+| [ux-provider-list-agents-column-incomplete.md](./ux-provider-list-agents-column-incomplete.md) | 511 |
+| [ux-provider-list-agents-column-truncated.md](./ux-provider-list-agents-column-truncated.md) | 684 |
+| [ux-provider-list-agents-column-truncates.md](./ux-provider-list-agents-column-truncates.md) | 512 |
+| [ux-provider-list-all-logged-out-clean.md](./ux-provider-list-all-logged-out-clean.md) | 841 |
+| [ux-provider-list-no-json-flag.md](./ux-provider-list-no-json-flag.md) | 513 |
 | [ux-provider-list-table-layout-broken.md](./ux-provider-list-table-layout-broken.md) | 314 |
-| [ux-provider-login-anthropic-dry-run-clean.md](./ux-provider-login-anthropic-dry-run-clean.md) | 838 |
-| [ux-provider-login-anthropic-dry-run-good.md](./ux-provider-login-anthropic-dry-run-good.md) | 839 |
-| [ux-provider-login-api-key-flag-history-risk.md](./ux-provider-login-api-key-flag-history-risk.md) | 513 |
-| [ux-provider-login-cloudflare-requires-base-url-good.md](./ux-provider-login-cloudflare-requires-base-url-good.md) | 840 |
-| [ux-provider-login-missing-key-system-chrome.md](./ux-provider-login-missing-key-system-chrome.md) | 514 |
+| [ux-provider-login-anthropic-dry-run-clean.md](./ux-provider-login-anthropic-dry-run-clean.md) | 842 |
+| [ux-provider-login-anthropic-dry-run-good.md](./ux-provider-login-anthropic-dry-run-good.md) | 843 |
+| [ux-provider-login-api-key-flag-history-risk.md](./ux-provider-login-api-key-flag-history-risk.md) | 514 |
+| [ux-provider-login-cloudflare-requires-base-url-good.md](./ux-provider-login-cloudflare-requires-base-url-good.md) | 844 |
+| [ux-provider-login-missing-key-system-chrome.md](./ux-provider-login-missing-key-system-chrome.md) | 515 |
 | [ux-provider-login-poe-dry-run-rewrites-claude-settings-xhigh.md](./ux-provider-login-poe-dry-run-rewrites-claude-settings-xhigh.md) | 201 |
 | [ux-provider-login-poe-yes-fails-despite-auth-status-logged-in.md](./ux-provider-login-poe-yes-fails-despite-auth-status-logged-in.md) | 202 |
-| [ux-provider-login-unknown-has-list-hint-and-see-logs.md](./ux-provider-login-unknown-has-list-hint-and-see-logs.md) | 682 |
-| [ux-provider-logout-anthropic-dry-run-good.md](./ux-provider-logout-anthropic-dry-run-good.md) | 841 |
+| [ux-provider-login-unknown-has-list-hint-and-see-logs.md](./ux-provider-login-unknown-has-list-hint-and-see-logs.md) | 685 |
+| [ux-provider-logout-anthropic-dry-run-good.md](./ux-provider-logout-anthropic-dry-run-good.md) | 845 |
 | [ux-provider-logout-dry-run-unconfigures-agents.md](./ux-provider-logout-dry-run-unconfigures-agents.md) | 203 |
 | [ux-provider-logout-help-no-danger-or-yes.md](./ux-provider-logout-help-no-danger-or-yes.md) | 204 |
-| [ux-provider-logout-openai-dry-run-clean.md](./ux-provider-logout-openai-dry-run-clean.md) | 842 |
+| [ux-provider-logout-openai-dry-run-clean.md](./ux-provider-logout-openai-dry-run-clean.md) | 846 |
 | [ux-provider-logout-poe-dry-run-still-agent-diffs.md](./ux-provider-logout-poe-dry-run-still-agent-diffs.md) | 205 |
 | [ux-provider-logout-poe-dry-run-unconfigures-agents.md](./ux-provider-logout-poe-dry-run-unconfigures-agents.md) | 206 |
-| [ux-ralph-experiment-wrong-kind-says-not-found.md](./ux-ralph-experiment-wrong-kind-says-not-found.md) | 515 |
-| [ux-ralph-init-missing-doc-not-found-good.md](./ux-ralph-init-missing-doc-not-found-good.md) | 843 |
+| [ux-ralph-experiment-wrong-kind-says-not-found.md](./ux-ralph-experiment-wrong-kind-says-not-found.md) | 516 |
+| [ux-ralph-init-missing-doc-not-found-good.md](./ux-ralph-init-missing-doc-not-found-good.md) | 847 |
 | [ux-ralph-init-plan-says-not-found.md](./ux-ralph-init-plan-says-not-found.md) | 207 |
 | [ux-ralph-init-requires-existing-ralph-doc-circular.md](./ux-ralph-init-requires-existing-ralph-doc-circular.md) | 208 |
 | [ux-ralph-run-empty-kind-unaware-reconfirmed.md](./ux-ralph-run-empty-kind-unaware-reconfirmed.md) | 209 |
-| [ux-ralph-run-help-omits-yes.md](./ux-ralph-run-help-omits-yes.md) | 516 |
+| [ux-ralph-run-help-omits-yes.md](./ux-ralph-run-help-omits-yes.md) | 517 |
 | [ux-ralph-run-plan-kind-says-ralph-doc-not-found.md](./ux-ralph-run-plan-kind-says-ralph-doc-not-found.md) | 210 |
 | [ux-ralph-run-plan-says-not-found-reconfirmed.md](./ux-ralph-run-plan-says-not-found-reconfirmed.md) | 211 |
-| [ux-ralph-validate-command-missing.md](./ux-ralph-validate-command-missing.md) | 517 |
-| [ux-raw-commander-invalid-option-choices.md](./ux-raw-commander-invalid-option-choices.md) | 518 |
-| [ux-raw-commander-missing-args.md](./ux-raw-commander-missing-args.md) | 519 |
-| [ux-readme-features-wrap-but-cli-missing.md](./ux-readme-features-wrap-but-cli-missing.md) | 520 |
+| [ux-ralph-validate-command-missing.md](./ux-ralph-validate-command-missing.md) | 518 |
+| [ux-raw-commander-invalid-option-choices.md](./ux-raw-commander-invalid-option-choices.md) | 519 |
+| [ux-raw-commander-missing-args.md](./ux-raw-commander-missing-args.md) | 520 |
+| [ux-readme-features-wrap-but-cli-missing.md](./ux-readme-features-wrap-but-cli-missing.md) | 521 |
 | [ux-readme-spawn-omits-mode-for-ci.md](./ux-readme-spawn-omits-mode-for-ci.md) | 212 |
 | [ux-reasoning-effort-bogus-silently-ignored.md](./ux-reasoning-effort-bogus-silently-ignored.md) | 213 |
-| [ux-reasoning-effort-flag-opaque.md](./ux-reasoning-effort-flag-opaque.md) | 521 |
+| [ux-reasoning-effort-flag-opaque.md](./ux-reasoning-effort-flag-opaque.md) | 522 |
 | [ux-reasoning-effort-flag-silently-ignored-for-some-agents.md](./ux-reasoning-effort-flag-silently-ignored-for-some-agents.md) | 214 |
 | [ux-reasoning-effort-high-still-writes-xhigh.md](./ux-reasoning-effort-high-still-writes-xhigh.md) | 215 |
-| [ux-resume-thread-errors-are-agent-raw.md](./ux-resume-thread-errors-are-agent-raw.md) | 522 |
-| [ux-resume-thread-invalid-agent-raw-error.md](./ux-resume-thread-invalid-agent-raw-error.md) | 523 |
+| [ux-resume-thread-errors-are-agent-raw.md](./ux-resume-thread-errors-are-agent-raw.md) | 523 |
+| [ux-resume-thread-invalid-agent-raw-error.md](./ux-resume-thread-invalid-agent-raw-error.md) | 524 |
 | [ux-resume-thread-invalid-id-agent-raw-error.md](./ux-resume-thread-invalid-id-agent-raw-error.md) | 216 |
 | [ux-root-help-footer-npm-run-dev-for-options.md](./ux-root-help-footer-npm-run-dev-for-options.md) | 217 |
 | [ux-root-help-footer-npm-run-dev-reconfirmed.md](./ux-root-help-footer-npm-run-dev-reconfirmed.md) | 218 |
@@ -1588,284 +1595,287 @@
 | [ux-root-help-usage-line-is-npm-run-dev.md](./ux-root-help-usage-line-is-npm-run-dev.md) | 223 |
 | [ux-root-help-usage-npm-run-dev-reconfirmed.md](./ux-root-help-usage-npm-run-dev-reconfirmed.md) | 224 |
 | [ux-root-help-usage-still-npm-run-dev-reconfirmed.md](./ux-root-help-usage-still-npm-run-dev-reconfirmed.md) | 225 |
-| [ux-root-tagline-inconsistent.md](./ux-root-tagline-inconsistent.md) | 844 |
-| [ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md](./ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md) | 524 |
-| [ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md](./ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md) | 525 |
+| [ux-root-tagline-inconsistent.md](./ux-root-tagline-inconsistent.md) | 848 |
+| [ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md](./ux-root-typo-confgure-spwn-no-suggestions-reconfirmed.md) | 525 |
+| [ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md](./ux-root-typo-configuree-modell-no-suggestions-reconfirmed.md) | 526 |
 | [ux-root-typo-still-no-suggestions-reconfirmed.md](./ux-root-typo-still-no-suggestions-reconfirmed.md) | 226 |
 | [ux-root-typos-no-did-you-mean-configure-spawn.md](./ux-root-typos-no-did-you-mean-configure-spawn.md) | 227 |
-| [ux-runner-sync-and-runtime-invalid-raw-commander.md](./ux-runner-sync-and-runtime-invalid-raw-commander.md) | 526 |
+| [ux-runner-sync-and-runtime-invalid-raw-commander.md](./ux-runner-sync-and-runtime-invalid-raw-commander.md) | 527 |
 | [ux-runner-sync-without-detach-silently-ignored.md](./ux-runner-sync-without-detach-silently-ignored.md) | 228 |
-| [ux-runner-sync-without-runtime-silently-accepted.md](./ux-runner-sync-without-runtime-silently-accepted.md) | 527 |
-| [ux-runtime-build-host-message-good.md](./ux-runtime-build-host-message-good.md) | 845 |
-| [ux-runtime-init-docker-dry-run-clean.md](./ux-runtime-init-docker-dry-run-clean.md) | 846 |
-| [ux-runtime-init-dry-run-clean.md](./ux-runtime-init-dry-run-clean.md) | 847 |
+| [ux-runner-sync-without-runtime-silently-accepted.md](./ux-runner-sync-without-runtime-silently-accepted.md) | 528 |
+| [ux-runtime-build-host-message-good.md](./ux-runtime-build-host-message-good.md) | 849 |
+| [ux-runtime-init-docker-dry-run-clean.md](./ux-runtime-init-docker-dry-run-clean.md) | 850 |
+| [ux-runtime-init-dry-run-clean.md](./ux-runtime-init-dry-run-clean.md) | 851 |
 | [ux-runtime-init-non-tty-poe-no-prompt.md](./ux-runtime-init-non-tty-poe-no-prompt.md) | 229 |
-| [ux-runtime-job-missing-see-logs.md](./ux-runtime-job-missing-see-logs.md) | 528 |
-| [ux-runtime-jobs-attach-missing-see-logs.md](./ux-runtime-jobs-attach-missing-see-logs.md) | 529 |
-| [ux-runtime-jobs-list-unbounded-opaque-statuses.md](./ux-runtime-jobs-list-unbounded-opaque-statuses.md) | 530 |
+| [ux-runtime-job-missing-see-logs.md](./ux-runtime-job-missing-see-logs.md) | 529 |
+| [ux-runtime-jobs-attach-missing-see-logs.md](./ux-runtime-jobs-attach-missing-see-logs.md) | 530 |
+| [ux-runtime-jobs-list-unbounded-opaque-statuses.md](./ux-runtime-jobs-list-unbounded-opaque-statuses.md) | 531 |
 | [ux-runtime-jobs-logs-ambiguous-lists-many-including-running.md](./ux-runtime-jobs-logs-ambiguous-lists-many-including-running.md) | 230 |
-| [ux-runtime-jobs-logs-stop-missing-see-logs.md](./ux-runtime-jobs-logs-stop-missing-see-logs.md) | 531 |
-| [ux-runtime-jobs-ls-help-no-limit-reconfirmed.md](./ux-runtime-jobs-ls-help-no-limit-reconfirmed.md) | 532 |
-| [ux-runtime-jobs-ls-inconsistent-with-list.md](./ux-runtime-jobs-ls-inconsistent-with-list.md) | 848 |
+| [ux-runtime-jobs-logs-stop-missing-see-logs.md](./ux-runtime-jobs-logs-stop-missing-see-logs.md) | 532 |
+| [ux-runtime-jobs-ls-help-no-limit-reconfirmed.md](./ux-runtime-jobs-ls-help-no-limit-reconfirmed.md) | 533 |
+| [ux-runtime-jobs-ls-inconsistent-with-list.md](./ux-runtime-jobs-ls-inconsistent-with-list.md) | 852 |
 | [ux-runtime-jobs-ls-unbounded-may-era-reconfirmed.md](./ux-runtime-jobs-ls-unbounded-may-era-reconfirmed.md) | 231 |
 | [ux-runtime-jobs-ls-unbounded-stale-from-may.md](./ux-runtime-jobs-ls-unbounded-stale-from-may.md) | 232 |
-| [ux-runtime-jobs-show-unknown-suggests-stop.md](./ux-runtime-jobs-show-unknown-suggests-stop.md) | 533 |
+| [ux-runtime-jobs-show-unknown-suggests-stop.md](./ux-runtime-jobs-show-unknown-suggests-stop.md) | 534 |
 | [ux-runtime-jobs-stale-running-zombies.md](./ux-runtime-jobs-stale-running-zombies.md) | 315 |
 | [ux-runtime-jobs-stop-lists-many-stale-running.md](./ux-runtime-jobs-stop-lists-many-stale-running.md) | 233 |
-| [ux-runtime-missing-deps-good-message-system-chrome.md](./ux-runtime-missing-deps-good-message-system-chrome.md) | 534 |
-| [ux-runtime-templates-clear-no-yes-needed-good.md](./ux-runtime-templates-clear-no-yes-needed-good.md) | 849 |
+| [ux-runtime-missing-deps-good-message-system-chrome.md](./ux-runtime-missing-deps-good-message-system-chrome.md) | 535 |
+| [ux-runtime-templates-clear-no-yes-needed-good.md](./ux-runtime-templates-clear-no-yes-needed-good.md) | 853 |
 | [ux-runtime-templates-clear-no-yes-or-dry-run.md](./ux-runtime-templates-clear-no-yes-or-dry-run.md) | 234 |
 | [ux-runtime-templates-clear-poe-no-prompt-not-yes.md](./ux-runtime-templates-clear-poe-no-prompt-not-yes.md) | 235 |
-| [ux-runtime-templates-ls-empty-rows.md](./ux-runtime-templates-ls-empty-rows.md) | 535 |
-| [ux-runtime-templates-ls-shows-empty-docker-row.md](./ux-runtime-templates-ls-shows-empty-docker-row.md) | 683 |
-| [ux-runtime-templates-ls-unbounded-noise.md](./ux-runtime-templates-ls-unbounded-noise.md) | 684 |
+| [ux-runtime-templates-ls-empty-rows.md](./ux-runtime-templates-ls-empty-rows.md) | 536 |
+| [ux-runtime-templates-ls-shows-empty-docker-row.md](./ux-runtime-templates-ls-shows-empty-docker-row.md) | 686 |
+| [ux-runtime-templates-ls-unbounded-noise.md](./ux-runtime-templates-ls-unbounded-noise.md) | 687 |
 | [ux-runtime-templates-ls-unbounded-stale.md](./ux-runtime-templates-ls-unbounded-stale.md) | 236 |
-| [ux-runtime-templates-parent-no-default-subcommand.md](./ux-runtime-templates-parent-no-default-subcommand.md) | 685 |
+| [ux-runtime-templates-parent-no-default-subcommand.md](./ux-runtime-templates-parent-no-default-subcommand.md) | 688 |
 | [ux-sdk-cli-mode-default-mismatch.md](./ux-sdk-cli-mode-default-mismatch.md) | 237 |
-| [ux-sdk-getpoeapikey-throws-generic-error.md](./ux-sdk-getpoeapikey-throws-generic-error.md) | 536 |
-| [ux-shape-base-url-error-good-message-system-prefix.md](./ux-shape-base-url-error-good-message-system-prefix.md) | 686 |
-| [ux-shape-base-url-invalid-format-validation-good.md](./ux-shape-base-url-invalid-format-validation-good.md) | 850 |
-| [ux-shape-base-url-invalid-validation-good.md](./ux-shape-base-url-invalid-validation-good.md) | 851 |
-| [ux-shape-base-url-unknown-shape-lists-exposed-good.md](./ux-shape-base-url-unknown-shape-lists-exposed-good.md) | 852 |
-| [ux-skill-and-skills-flags-undocumented-relationship.md](./ux-skill-and-skills-flags-undocumented-relationship.md) | 687 |
-| [ux-skill-bridge-failure-lists-paths-good.md](./ux-skill-bridge-failure-lists-paths-good.md) | 853 |
-| [ux-skill-bridge-failure-system-chrome.md](./ux-skill-bridge-failure-system-chrome.md) | 537 |
-| [ux-skill-configure-agent-list-differs-from-configure.md](./ux-skill-configure-agent-list-differs-from-configure.md) | 538 |
-| [ux-skill-configure-agent-list-subset-reconfirmed.md](./ux-skill-configure-agent-list-subset-reconfirmed.md) | 539 |
+| [ux-sdk-getpoeapikey-throws-generic-error.md](./ux-sdk-getpoeapikey-throws-generic-error.md) | 537 |
+| [ux-shape-base-url-error-good-message-system-prefix.md](./ux-shape-base-url-error-good-message-system-prefix.md) | 689 |
+| [ux-shape-base-url-invalid-format-validation-good.md](./ux-shape-base-url-invalid-format-validation-good.md) | 854 |
+| [ux-shape-base-url-invalid-validation-good.md](./ux-shape-base-url-invalid-validation-good.md) | 855 |
+| [ux-shape-base-url-unknown-shape-lists-exposed-good.md](./ux-shape-base-url-unknown-shape-lists-exposed-good.md) | 856 |
+| [ux-skill-and-skills-flags-undocumented-relationship.md](./ux-skill-and-skills-flags-undocumented-relationship.md) | 690 |
+| [ux-skill-bridge-failure-lists-paths-good.md](./ux-skill-bridge-failure-lists-paths-good.md) | 857 |
+| [ux-skill-bridge-failure-system-chrome.md](./ux-skill-bridge-failure-system-chrome.md) | 538 |
+| [ux-skill-configure-agent-list-differs-from-configure.md](./ux-skill-configure-agent-list-differs-from-configure.md) | 539 |
+| [ux-skill-configure-agent-list-subset-reconfirmed.md](./ux-skill-configure-agent-list-subset-reconfirmed.md) | 540 |
 | [ux-skill-configure-exists-system-chrome.md](./ux-skill-configure-exists-system-chrome.md) | 238 |
-| [ux-skill-configure-goose-local-success.md](./ux-skill-configure-goose-local-success.md) | 854 |
-| [ux-skill-configure-goose-writes-dot-agents-skills.md](./ux-skill-configure-goose-writes-dot-agents-skills.md) | 688 |
-| [ux-skill-configure-kimi-unsupported-abrupt.md](./ux-skill-configure-kimi-unsupported-abrupt.md) | 540 |
-| [ux-skill-configure-pi-poe-agent-not-supported-clear.md](./ux-skill-configure-pi-poe-agent-not-supported-clear.md) | 855 |
-| [ux-skill-configure-yes-defaults-agent-silently.md](./ux-skill-configure-yes-defaults-agent-silently.md) | 541 |
-| [ux-skill-configure-yes-defaults-to-claude-already-exists.md](./ux-skill-configure-yes-defaults-to-claude-already-exists.md) | 542 |
+| [ux-skill-configure-goose-local-success.md](./ux-skill-configure-goose-local-success.md) | 858 |
+| [ux-skill-configure-goose-writes-dot-agents-skills.md](./ux-skill-configure-goose-writes-dot-agents-skills.md) | 691 |
+| [ux-skill-configure-kimi-unsupported-abrupt.md](./ux-skill-configure-kimi-unsupported-abrupt.md) | 541 |
+| [ux-skill-configure-pi-poe-agent-not-supported-clear.md](./ux-skill-configure-pi-poe-agent-not-supported-clear.md) | 859 |
+| [ux-skill-configure-yes-defaults-agent-silently.md](./ux-skill-configure-yes-defaults-agent-silently.md) | 542 |
+| [ux-skill-configure-yes-defaults-to-claude-already-exists.md](./ux-skill-configure-yes-defaults-to-claude-already-exists.md) | 543 |
 | [ux-skill-configure-yes-silent-default-agent.md](./ux-skill-configure-yes-silent-default-agent.md) | 239 |
-| [ux-skill-empty-string-malformed-reference.md](./ux-skill-empty-string-malformed-reference.md) | 689 |
+| [ux-skill-empty-string-malformed-reference.md](./ux-skill-empty-string-malformed-reference.md) | 692 |
 | [ux-skill-help-hides-from-root-reconfirmed.md](./ux-skill-help-hides-from-root-reconfirmed.md) | 240 |
-| [ux-skill-help-usage-says-options-not-command.md](./ux-skill-help-usage-says-options-not-command.md) | 856 |
-| [ux-skill-install-file-required-before-name.md](./ux-skill-install-file-required-before-name.md) | 543 |
-| [ux-skill-install-from-file-works-well.md](./ux-skill-install-from-file-works-well.md) | 857 |
+| [ux-skill-help-usage-says-options-not-command.md](./ux-skill-help-usage-says-options-not-command.md) | 860 |
+| [ux-skill-install-file-required-before-name.md](./ux-skill-install-file-required-before-name.md) | 544 |
+| [ux-skill-install-from-file-works-well.md](./ux-skill-install-from-file-works-well.md) | 861 |
 | [ux-skill-install-help-omits-force.md](./ux-skill-install-help-omits-force.md) | 241 |
-| [ux-skill-install-missing-file-enoent-see-logs.md](./ux-skill-install-missing-file-enoent-see-logs.md) | 544 |
-| [ux-skill-install-missing-file-enoent.md](./ux-skill-install-missing-file-enoent.md) | 545 |
+| [ux-skill-install-missing-file-enoent-see-logs.md](./ux-skill-install-missing-file-enoent-see-logs.md) | 545 |
+| [ux-skill-install-missing-file-enoent.md](./ux-skill-install-missing-file-enoent.md) | 546 |
 | [ux-skill-install-name-and-file-both-required-reconfirmed.md](./ux-skill-install-name-and-file-both-required-reconfirmed.md) | 242 |
-| [ux-skill-install-name-and-file-both-required.md](./ux-skill-install-name-and-file-both-required.md) | 546 |
+| [ux-skill-install-name-and-file-both-required.md](./ux-skill-install-name-and-file-both-required.md) | 547 |
 | [ux-skill-list-command-missing.md](./ux-skill-list-command-missing.md) | 243 |
 | [ux-skill-memory-absent-from-root-help.md](./ux-skill-memory-absent-from-root-help.md) | 244 |
-| [ux-skill-naming-collisions.md](./ux-skill-naming-collisions.md) | 547 |
+| [ux-skill-naming-collisions.md](./ux-skill-naming-collisions.md) | 548 |
 | [ux-skill-no-list-or-bridge-subcommands.md](./ux-skill-no-list-or-bridge-subcommands.md) | 245 |
-| [ux-skill-parent-no-next-step-guidance.md](./ux-skill-parent-no-next-step-guidance.md) | 548 |
-| [ux-skill-unconfigure-defaults-agent-and-soft-blocks.md](./ux-skill-unconfigure-defaults-agent-and-soft-blocks.md) | 549 |
+| [ux-skill-parent-no-next-step-guidance.md](./ux-skill-parent-no-next-step-guidance.md) | 549 |
+| [ux-skill-unconfigure-defaults-agent-and-soft-blocks.md](./ux-skill-unconfigure-defaults-agent-and-soft-blocks.md) | 550 |
 | [ux-skill-unconfigure-dry-run-path-inconsistent.md](./ux-skill-unconfigure-dry-run-path-inconsistent.md) | 246 |
 | [ux-skill-unconfigure-force-deletes-entire-skills-dir.md](./ux-skill-unconfigure-force-deletes-entire-skills-dir.md) | 17 |
-| [ux-skill-unconfigure-goose-no-dir-good.md](./ux-skill-unconfigure-goose-no-dir-good.md) | 858 |
-| [ux-skill-unconfigure-refuses-nonempty-without-force-good.md](./ux-skill-unconfigure-refuses-nonempty-without-force-good.md) | 859 |
-| [ux-skills-empty-string-silently-ignored.md](./ux-skills-empty-string-silently-ignored.md) | 550 |
-| [ux-skills-flag-without-value-is-noop-or-unclear.md](./ux-skills-flag-without-value-is-noop-or-unclear.md) | 551 |
+| [ux-skill-unconfigure-goose-no-dir-good.md](./ux-skill-unconfigure-goose-no-dir-good.md) | 862 |
+| [ux-skill-unconfigure-refuses-nonempty-without-force-good.md](./ux-skill-unconfigure-refuses-nonempty-without-force-good.md) | 863 |
+| [ux-skill-unknown-subcommand-npm-run-dev.md](./ux-skill-unknown-subcommand-npm-run-dev.md) | 551 |
+| [ux-skills-empty-string-silently-ignored.md](./ux-skills-empty-string-silently-ignored.md) | 552 |
+| [ux-skills-flag-without-value-is-noop-or-unclear.md](./ux-skills-flag-without-value-is-noop-or-unclear.md) | 553 |
+| [ux-skip-if-configured-cursor-already-configured-dry-run-good.md](./ux-skip-if-configured-cursor-already-configured-dry-run-good.md) | 864 |
 | [ux-skip-if-configured-dry-run-shows-dead-sonnet-5-default.md](./ux-skip-if-configured-dry-run-shows-dead-sonnet-5-default.md) | 13 |
 | [ux-skip-if-configured-dry-run-still-plans-full-rewrite.md](./ux-skip-if-configured-dry-run-still-plans-full-rewrite.md) | 247 |
 | [ux-skip-if-configured-help-text-lies.md](./ux-skip-if-configured-help-text-lies.md) | 12 |
 | [ux-skip-if-configured-matching-model-still-plans-full-rewrite.md](./ux-skip-if-configured-matching-model-still-plans-full-rewrite.md) | 248 |
 | [ux-skip-if-configured-matching-sonnet-4-6-still-full-rewrite-reconfirm.md](./ux-skip-if-configured-matching-sonnet-4-6-still-full-rewrite-reconfirm.md) | 249 |
 | [ux-skip-if-configured-shows-stale-default-model.md](./ux-skip-if-configured-shows-stale-default-model.md) | 250 |
-| [ux-skip-if-configured-still-noises-dry-run.md](./ux-skip-if-configured-still-noises-dry-run.md) | 690 |
-| [ux-skip-if-configured-still-writes-when-model-differs.md](./ux-skip-if-configured-still-writes-when-model-differs.md) | 552 |
+| [ux-skip-if-configured-still-noises-dry-run.md](./ux-skip-if-configured-still-noises-dry-run.md) | 693 |
+| [ux-skip-if-configured-still-writes-when-model-differs.md](./ux-skip-if-configured-still-writes-when-model-differs.md) | 554 |
 | [ux-skip-if-configured-yes-rewrote-dead-sonnet-5.md](./ux-skip-if-configured-yes-rewrote-dead-sonnet-5.md) | 11 |
 | [ux-sonnet-4-6-output-effort-has-no-xhigh.md](./ux-sonnet-4-6-output-effort-has-no-xhigh.md) | 251 |
 | [ux-sonnet-5-still-absent-from-catalog.md](./ux-sonnet-5-still-absent-from-catalog.md) | 252 |
-| [ux-spawn-advanced-flags-undifferentiated.md](./ux-spawn-advanced-flags-undifferentiated.md) | 553 |
-| [ux-spawn-at-file-missing-validation-good.md](./ux-spawn-at-file-missing-validation-good.md) | 860 |
-| [ux-spawn-at-file-works.md](./ux-spawn-at-file-works.md) | 861 |
-| [ux-spawn-codex-reads-stdin-message-on-tty-less-success.md](./ux-spawn-codex-reads-stdin-message-on-tty-less-success.md) | 554 |
-| [ux-spawn-codex-works-with-frontier-model.md](./ux-spawn-codex-works-with-frontier-model.md) | 862 |
+| [ux-spawn-advanced-flags-undifferentiated.md](./ux-spawn-advanced-flags-undifferentiated.md) | 555 |
+| [ux-spawn-at-file-missing-validation-good.md](./ux-spawn-at-file-missing-validation-good.md) | 865 |
+| [ux-spawn-at-file-works.md](./ux-spawn-at-file-works.md) | 866 |
+| [ux-spawn-codex-reads-stdin-message-on-tty-less-success.md](./ux-spawn-codex-reads-stdin-message-on-tty-less-success.md) | 556 |
+| [ux-spawn-codex-works-with-frontier-model.md](./ux-spawn-codex-works-with-frontier-model.md) | 867 |
 | [ux-spawn-configure-help-still-no-examples-reconfirmed.md](./ux-spawn-configure-help-still-no-examples-reconfirmed.md) | 253 |
-| [ux-spawn-cursor-with-model-works.md](./ux-spawn-cursor-with-model-works.md) | 863 |
-| [ux-spawn-cwd-file-not-directory-see-logs.md](./ux-spawn-cwd-file-not-directory-see-logs.md) | 555 |
-| [ux-spawn-cwd-missing-see-logs.md](./ux-spawn-cwd-missing-see-logs.md) | 556 |
-| [ux-spawn-cwd-missing-system-chrome.md](./ux-spawn-cwd-missing-system-chrome.md) | 557 |
-| [ux-spawn-cwd-tmp-works.md](./ux-spawn-cwd-tmp-works.md) | 864 |
-| [ux-spawn-detach-ignored-on-failure-path.md](./ux-spawn-detach-ignored-on-failure-path.md) | 558 |
+| [ux-spawn-cursor-with-model-works.md](./ux-spawn-cursor-with-model-works.md) | 868 |
+| [ux-spawn-cwd-file-not-directory-see-logs.md](./ux-spawn-cwd-file-not-directory-see-logs.md) | 557 |
+| [ux-spawn-cwd-missing-see-logs.md](./ux-spawn-cwd-missing-see-logs.md) | 558 |
+| [ux-spawn-cwd-missing-system-chrome.md](./ux-spawn-cwd-missing-system-chrome.md) | 559 |
+| [ux-spawn-cwd-tmp-works.md](./ux-spawn-cwd-tmp-works.md) | 869 |
+| [ux-spawn-detach-ignored-on-failure-path.md](./ux-spawn-detach-ignored-on-failure-path.md) | 560 |
 | [ux-spawn-detach-silently-ignored-without-runtime.md](./ux-spawn-detach-silently-ignored-without-runtime.md) | 254 |
 | [ux-spawn-empty-agent-validates-mode-first.md](./ux-spawn-empty-agent-validates-mode-first.md) | 255 |
-| [ux-spawn-empty-at-file-see-logs.md](./ux-spawn-empty-at-file-see-logs.md) | 559 |
+| [ux-spawn-empty-at-file-see-logs.md](./ux-spawn-empty-at-file-see-logs.md) | 561 |
 | [ux-spawn-gemini-provider-credential-missing.md](./ux-spawn-gemini-provider-credential-missing.md) | 256 |
 | [ux-spawn-gemini-provider-credential-opaque-error.md](./ux-spawn-gemini-provider-credential-opaque-error.md) | 257 |
 | [ux-spawn-help-still-no-examples.md](./ux-spawn-help-still-no-examples.md) | 258 |
 | [ux-spawn-hooks-auto-demands-yes-when-not-poe-configured-message.md](./ux-spawn-hooks-auto-demands-yes-when-not-poe-configured-message.md) | 259 |
-| [ux-spawn-interactive-bypasses-design-system-panel.md](./ux-spawn-interactive-bypasses-design-system-panel.md) | 560 |
+| [ux-spawn-interactive-bypasses-design-system-panel.md](./ux-spawn-interactive-bypasses-design-system-panel.md) | 562 |
 | [ux-spawn-interactive-non-tty-launches-agent-tui-copy.md](./ux-spawn-interactive-non-tty-launches-agent-tui-copy.md) | 260 |
-| [ux-spawn-interactive-non-tty-still-runs.md](./ux-spawn-interactive-non-tty-still-runs.md) | 561 |
+| [ux-spawn-interactive-non-tty-still-runs.md](./ux-spawn-interactive-non-tty-still-runs.md) | 563 |
 | [ux-spawn-interactive-raw-agent-error.md](./ux-spawn-interactive-raw-agent-error.md) | 261 |
 | [ux-spawn-interactive-still-uses-stale-model-bare-error.md](./ux-spawn-interactive-still-uses-stale-model-bare-error.md) | 262 |
-| [ux-spawn-invalid-mode-validation-good.md](./ux-spawn-invalid-mode-validation-good.md) | 865 |
+| [ux-spawn-invalid-mode-validation-good.md](./ux-spawn-invalid-mode-validation-good.md) | 870 |
 | [ux-spawn-invalid-model-shows-success-then-failure.md](./ux-spawn-invalid-model-shows-success-then-failure.md) | 263 |
 | [ux-spawn-kimi-acp-internal-error-stack.md](./ux-spawn-kimi-acp-internal-error-stack.md) | 264 |
 | [ux-spawn-kimi-not-configured-yes-message.md](./ux-spawn-kimi-not-configured-yes-message.md) | 265 |
-| [ux-spawn-log-content-help-underwarns-sensitive-data.md](./ux-spawn-log-content-help-underwarns-sensitive-data.md) | 562 |
-| [ux-spawn-log-default-redacts-agent-message-good.md](./ux-spawn-log-default-redacts-agent-message-good.md) | 866 |
-| [ux-spawn-missing-agent-raw-commander.md](./ux-spawn-missing-agent-raw-commander.md) | 563 |
+| [ux-spawn-log-content-help-underwarns-sensitive-data.md](./ux-spawn-log-content-help-underwarns-sensitive-data.md) | 564 |
+| [ux-spawn-log-default-redacts-agent-message-good.md](./ux-spawn-log-default-redacts-agent-message-good.md) | 871 |
+| [ux-spawn-missing-agent-raw-commander.md](./ux-spawn-missing-agent-raw-commander.md) | 565 |
 | [ux-spawn-missing-reasoning-effort-flag.md](./ux-spawn-missing-reasoning-effort-flag.md) | 266 |
 | [ux-spawn-missing-worktree-flag-reconfirmed.md](./ux-spawn-missing-worktree-flag-reconfirmed.md) | 267 |
 | [ux-spawn-mode-and-permission-copy.md](./ux-spawn-mode-and-permission-copy.md) | 268 |
-| [ux-spawn-mode-case-sensitive.md](./ux-spawn-mode-case-sensitive.md) | 691 |
-| [ux-spawn-no-prompt-system-chrome.md](./ux-spawn-no-prompt-system-chrome.md) | 564 |
+| [ux-spawn-mode-case-sensitive.md](./ux-spawn-mode-case-sensitive.md) | 694 |
+| [ux-spawn-no-prompt-system-chrome.md](./ux-spawn-no-prompt-system-chrome.md) | 566 |
 | [ux-spawn-pi-demands-openrouter-not-poe.md](./ux-spawn-pi-demands-openrouter-not-poe.md) | 269 |
-| [ux-spawn-pi-yes-works.md](./ux-spawn-pi-yes-works.md) | 867 |
+| [ux-spawn-pi-yes-works.md](./ux-spawn-pi-yes-works.md) | 872 |
 | [ux-spawn-poe-agent-crashes-fs-lstat.md](./ux-spawn-poe-agent-crashes-fs-lstat.md) | 20 |
 | [ux-spawn-poe-agent-lstat-reconfirmed-2026-07-08.md](./ux-spawn-poe-agent-lstat-reconfirmed-2026-07-08.md) | 270 |
 | [ux-spawn-poe-agent-lstat-reconfirmed.md](./ux-spawn-poe-agent-lstat-reconfirmed.md) | 271 |
-| [ux-spawn-runtime-docker-error-good-install-hints.md](./ux-spawn-runtime-docker-error-good-install-hints.md) | 868 |
-| [ux-spawn-runtime-host-works.md](./ux-spawn-runtime-host-works.md) | 869 |
-| [ux-spawn-skill-missing-lists-searched-paths-see-logs.md](./ux-spawn-skill-missing-lists-searched-paths-see-logs.md) | 565 |
-| [ux-spawn-stdin-empty-see-logs.md](./ux-spawn-stdin-empty-see-logs.md) | 566 |
-| [ux-spawn-stdin-pipe-works.md](./ux-spawn-stdin-pipe-works.md) | 870 |
-| [ux-spawn-success-still-problems-footer.md](./ux-spawn-success-still-problems-footer.md) | 692 |
-| [ux-spawn-test-cursor-works.md](./ux-spawn-test-cursor-works.md) | 871 |
-| [ux-spawn-test-goose-works.md](./ux-spawn-test-goose-works.md) | 872 |
-| [ux-spawn-test-sonnet-4-6-works.md](./ux-spawn-test-sonnet-4-6-works.md) | 873 |
-| [ux-spawn-validates-mode-before-agent-reconfirmed.md](./ux-spawn-validates-mode-before-agent-reconfirmed.md) | 567 |
-| [ux-spawn-validates-mode-before-agent.md](./ux-spawn-validates-mode-before-agent.md) | 568 |
+| [ux-spawn-runtime-docker-error-good-install-hints.md](./ux-spawn-runtime-docker-error-good-install-hints.md) | 873 |
+| [ux-spawn-runtime-host-works.md](./ux-spawn-runtime-host-works.md) | 874 |
+| [ux-spawn-skill-missing-lists-searched-paths-see-logs.md](./ux-spawn-skill-missing-lists-searched-paths-see-logs.md) | 567 |
+| [ux-spawn-stdin-empty-see-logs.md](./ux-spawn-stdin-empty-see-logs.md) | 568 |
+| [ux-spawn-stdin-pipe-works.md](./ux-spawn-stdin-pipe-works.md) | 875 |
+| [ux-spawn-success-still-problems-footer.md](./ux-spawn-success-still-problems-footer.md) | 695 |
+| [ux-spawn-test-cursor-works.md](./ux-spawn-test-cursor-works.md) | 876 |
+| [ux-spawn-test-goose-works.md](./ux-spawn-test-goose-works.md) | 877 |
+| [ux-spawn-test-sonnet-4-6-works.md](./ux-spawn-test-sonnet-4-6-works.md) | 878 |
+| [ux-spawn-validates-mode-before-agent-reconfirmed.md](./ux-spawn-validates-mode-before-agent-reconfirmed.md) | 569 |
+| [ux-spawn-validates-mode-before-agent.md](./ux-spawn-validates-mode-before-agent.md) | 570 |
 | [ux-spawn-worktree-flag-missing-on-spawn.md](./ux-spawn-worktree-flag-missing-on-spawn.md) | 272 |
 | [ux-spawn-yes-defaults-mode-to-yolo.md](./ux-spawn-yes-defaults-mode-to-yolo.md) | 16 |
 | [ux-spawn-yes-defaults-to-yolo-mode.md](./ux-spawn-yes-defaults-to-yolo-mode.md) | 273 |
-| [ux-spawn-yes-not-in-options.md](./ux-spawn-yes-not-in-options.md) | 569 |
-| [ux-spawn-yes-with-explicit-mode-read-works.md](./ux-spawn-yes-with-explicit-mode-read-works.md) | 874 |
+| [ux-spawn-yes-not-in-options.md](./ux-spawn-yes-not-in-options.md) | 571 |
+| [ux-spawn-yes-with-explicit-mode-read-works.md](./ux-spawn-yes-with-explicit-mode-read-works.md) | 879 |
 | [ux-stale-configured-model-fails-late.md](./ux-stale-configured-model-fails-late.md) | 274 |
-| [ux-success-and-info-share-magenta-glyphs.md](./ux-success-and-info-share-magenta-glyphs.md) | 693 |
-| [ux-successful-spawn-still-uses-checkmark-for-agent-text.md](./ux-successful-spawn-still-uses-checkmark-for-agent-text.md) | 570 |
-| [ux-superintendent-builder-inspector-npm-run-dev.md](./ux-superintendent-builder-inspector-npm-run-dev.md) | 571 |
+| [ux-success-and-info-share-magenta-glyphs.md](./ux-success-and-info-share-magenta-glyphs.md) | 696 |
+| [ux-successful-spawn-still-uses-checkmark-for-agent-text.md](./ux-successful-spawn-still-uses-checkmark-for-agent-text.md) | 572 |
+| [ux-superintendent-builder-inspector-npm-run-dev.md](./ux-superintendent-builder-inspector-npm-run-dev.md) | 573 |
 | [ux-superintendent-builder-inspector-toolcraft-help.md](./ux-superintendent-builder-inspector-toolcraft-help.md) | 275 |
-| [ux-superintendent-code-review-npm-run-dev-identity.md](./ux-superintendent-code-review-npm-run-dev-identity.md) | 572 |
-| [ux-superintendent-complete-missing-doc-good.md](./ux-superintendent-complete-missing-doc-good.md) | 875 |
-| [ux-superintendent-complete-wrong-kind-debug-tease.md](./ux-superintendent-complete-wrong-kind-debug-tease.md) | 573 |
+| [ux-superintendent-code-review-npm-run-dev-identity.md](./ux-superintendent-code-review-npm-run-dev-identity.md) | 574 |
+| [ux-superintendent-complete-missing-doc-good.md](./ux-superintendent-complete-missing-doc-good.md) | 880 |
+| [ux-superintendent-complete-wrong-kind-debug-tease.md](./ux-superintendent-complete-wrong-kind-debug-tease.md) | 575 |
 | [ux-superintendent-help-format-inconsistencies.md](./ux-superintendent-help-format-inconsistencies.md) | 276 |
-| [ux-superintendent-help-npm-run-dev-and-dense-run-options.md](./ux-superintendent-help-npm-run-dev-and-dense-run-options.md) | 574 |
+| [ux-superintendent-help-npm-run-dev-and-dense-run-options.md](./ux-superintendent-help-npm-run-dev-and-dense-run-options.md) | 576 |
 | [ux-superintendent-help-npm-run-dev-reconfirmed.md](./ux-superintendent-help-npm-run-dev-reconfirmed.md) | 277 |
 | [ux-superintendent-install-already-exists-debug-tease.md](./ux-superintendent-install-already-exists-debug-tease.md) | 278 |
 | [ux-superintendent-install-scope-vs-local-global.md](./ux-superintendent-install-scope-vs-local-global.md) | 279 |
 | [ux-superintendent-missing-path-double-error.md](./ux-superintendent-missing-path-double-error.md) | 280 |
-| [ux-superintendent-run-empty-good.md](./ux-superintendent-run-empty-good.md) | 876 |
+| [ux-superintendent-run-empty-good.md](./ux-superintendent-run-empty-good.md) | 881 |
 | [ux-superintendent-run-help-options-split.md](./ux-superintendent-run-help-options-split.md) | 281 |
 | [ux-superintendent-usage-shows-npm-run-dev.md](./ux-superintendent-usage-shows-npm-run-dev.md) | 27 |
-| [ux-superintendent-validate-unclosed-tag-opaque.md](./ux-superintendent-validate-unclosed-tag-opaque.md) | 575 |
+| [ux-superintendent-validate-unclosed-tag-opaque.md](./ux-superintendent-validate-unclosed-tag-opaque.md) | 577 |
 | [ux-superintendent-validate-unclosed-tag.md](./ux-superintendent-validate-unclosed-tag.md) | 282 |
 | [ux-superintendent-validate-wrong-kind-unclosed-tag.md](./ux-superintendent-validate-wrong-kind-unclosed-tag.md) | 283 |
-| [ux-tables-ignore-terminal-width.md](./ux-tables-ignore-terminal-width.md) | 576 |
+| [ux-tables-ignore-terminal-width.md](./ux-tables-ignore-terminal-width.md) | 578 |
 | [ux-tasks-get-github-401-raw-json-reconfirmed.md](./ux-tasks-get-github-401-raw-json-reconfirmed.md) | 284 |
 | [ux-tasks-get-github-401-raw-json.md](./ux-tasks-get-github-401-raw-json.md) | 285 |
 | [ux-tasks-github-401-raw-json-reconfirmed.md](./ux-tasks-github-401-raw-json-reconfirmed.md) | 286 |
-| [ux-tasks-github-auth-raw-error.md](./ux-tasks-github-auth-raw-error.md) | 577 |
+| [ux-tasks-github-auth-raw-error.md](./ux-tasks-github-auth-raw-error.md) | 579 |
 | [ux-tasks-import-delete-source-dangerous.md](./ux-tasks-import-delete-source-dangerous.md) | 287 |
-| [ux-tasks-import-dry-run-still-requires-to.md](./ux-tasks-import-dry-run-still-requires-to.md) | 578 |
+| [ux-tasks-import-dry-run-still-requires-to.md](./ux-tasks-import-dry-run-still-requires-to.md) | 580 |
 | [ux-tasks-move-delete-source-dangerous.md](./ux-tasks-move-delete-source-dangerous.md) | 288 |
 | [ux-tasks-next-github-401-raw-json.md](./ux-tasks-next-github-401-raw-json.md) | 289 |
-| [ux-tasks-verify-bad-list-format-good.md](./ux-tasks-verify-bad-list-format-good.md) | 877 |
-| [ux-tasks-verify-format-error-good.md](./ux-tasks-verify-format-error-good.md) | 878 |
+| [ux-tasks-verify-bad-list-format-good.md](./ux-tasks-verify-bad-list-format-good.md) | 882 |
+| [ux-tasks-verify-format-error-good.md](./ux-tasks-verify-format-error-good.md) | 883 |
 | [ux-test-and-install-reject-spawn-only-agents-as-unknown.md](./ux-test-and-install-reject-spawn-only-agents-as-unknown.md) | 290 |
-| [ux-test-codex-with-valid-model-succeeds.md](./ux-test-codex-with-valid-model-succeeds.md) | 879 |
+| [ux-test-codex-with-valid-model-succeeds.md](./ux-test-codex-with-valid-model-succeeds.md) | 884 |
 | [ux-test-failure-dumps-jsonl.md](./ux-test-failure-dumps-jsonl.md) | 291 |
 | [ux-test-gemini-requires-native-api-key-not-poe.md](./ux-test-gemini-requires-native-api-key-not-poe.md) | 292 |
-| [ux-test-goose-with-valid-model-succeeds.md](./ux-test-goose-with-valid-model-succeeds.md) | 880 |
-| [ux-test-help-omits-pi-poe-agent.md](./ux-test-help-omits-pi-poe-agent.md) | 579 |
+| [ux-test-goose-with-valid-model-succeeds.md](./ux-test-goose-with-valid-model-succeeds.md) | 885 |
+| [ux-test-help-omits-pi-poe-agent.md](./ux-test-help-omits-pi-poe-agent.md) | 581 |
 | [ux-test-kimi-invalid-config-provider-poe-not-found.md](./ux-test-kimi-invalid-config-provider-poe-not-found.md) | 293 |
 | [ux-test-kimi-provider-poe-not-found-reconfirmed.md](./ux-test-kimi-provider-poe-not-found-reconfirmed.md) | 294 |
 | [ux-test-kimi-yes-still-provider-poe-not-found.md](./ux-test-kimi-yes-still-provider-poe-not-found.md) | 295 |
 | [ux-test-nontty-demands-poe-no-prompt-not-yes.md](./ux-test-nontty-demands-poe-no-prompt-not-yes.md) | 296 |
 | [ux-test-opencode-model-mapping-still-broken.md](./ux-test-opencode-model-mapping-still-broken.md) | 297 |
 | [ux-test-opencode-model-not-found-dumps-stack.md](./ux-test-opencode-model-not-found-dumps-stack.md) | 298 |
-| [ux-test-with-valid-model-succeeds.md](./ux-test-with-valid-model-succeeds.md) | 881 |
+| [ux-test-with-valid-model-succeeds.md](./ux-test-with-valid-model-succeeds.md) | 886 |
 | [ux-test-yes-defaults-claude-dumps-jsonl-on-failure.md](./ux-test-yes-defaults-claude-dumps-jsonl-on-failure.md) | 299 |
-| [ux-timeout-errors-use-system-chrome.md](./ux-timeout-errors-use-system-chrome.md) | 580 |
-| [ux-toolcraft-has-suggestions-poe-code-root-does-not.md](./ux-toolcraft-has-suggestions-poe-code-root-does-not.md) | 581 |
-| [ux-toolcraft-heading-doubles-poe-code.md](./ux-toolcraft-heading-doubles-poe-code.md) | 582 |
+| [ux-timeout-errors-use-system-chrome.md](./ux-timeout-errors-use-system-chrome.md) | 582 |
+| [ux-toolcraft-has-suggestions-poe-code-root-does-not.md](./ux-toolcraft-has-suggestions-poe-code-root-does-not.md) | 583 |
+| [ux-toolcraft-heading-doubles-poe-code.md](./ux-toolcraft-heading-doubles-poe-code.md) | 584 |
 | [ux-toolcraft-help-points-at-npm-run-dev.md](./ux-toolcraft-help-points-at-npm-run-dev.md) | 300 |
 | [ux-toolcraft-suggests-options-but-still-npm-run-dev.md](./ux-toolcraft-suggests-options-but-still-npm-run-dev.md) | 301 |
-| [ux-traces-cwd-only-flag-removed-or-renamed.md](./ux-traces-cwd-only-flag-removed-or-renamed.md) | 694 |
-| [ux-traces-directory-path-eisdir-reconfirmed.md](./ux-traces-directory-path-eisdir-reconfirmed.md) | 583 |
-| [ux-traces-directory-path-eisdir.md](./ux-traces-directory-path-eisdir.md) | 584 |
+| [ux-traces-cwd-only-flag-removed-or-renamed.md](./ux-traces-cwd-only-flag-removed-or-renamed.md) | 697 |
+| [ux-traces-directory-path-eisdir-reconfirmed.md](./ux-traces-directory-path-eisdir-reconfirmed.md) | 585 |
+| [ux-traces-directory-path-eisdir.md](./ux-traces-directory-path-eisdir.md) | 586 |
 | [ux-traces-enoent-eisdir-still-system-errors.md](./ux-traces-enoent-eisdir-still-system-errors.md) | 302 |
-| [ux-traces-invalid-source-validation-good.md](./ux-traces-invalid-source-validation-good.md) | 882 |
+| [ux-traces-invalid-source-validation-good.md](./ux-traces-invalid-source-validation-good.md) | 887 |
 | [ux-traces-json-includes-full-prompt-titles.md](./ux-traces-json-includes-full-prompt-titles.md) | 316 |
-| [ux-traces-limit-3-works.md](./ux-traces-limit-3-works.md) | 883 |
-| [ux-traces-missing-file-enoent-system-chrome.md](./ux-traces-missing-file-enoent-system-chrome.md) | 585 |
-| [ux-traces-missing-file-system-error.md](./ux-traces-missing-file-system-error.md) | 586 |
-| [ux-traces-poe-code-source-titles-are-agent-names.md](./ux-traces-poe-code-source-titles-are-agent-names.md) | 587 |
-| [ux-traces-since-and-source-limit-work.md](./ux-traces-since-and-source-limit-work.md) | 884 |
-| [ux-traces-since-limit-works.md](./ux-traces-since-limit-works.md) | 885 |
+| [ux-traces-limit-3-works.md](./ux-traces-limit-3-works.md) | 888 |
+| [ux-traces-missing-file-enoent-system-chrome.md](./ux-traces-missing-file-enoent-system-chrome.md) | 587 |
+| [ux-traces-missing-file-system-error.md](./ux-traces-missing-file-system-error.md) | 588 |
+| [ux-traces-poe-code-source-titles-are-agent-names.md](./ux-traces-poe-code-source-titles-are-agent-names.md) | 589 |
+| [ux-traces-since-and-source-limit-work.md](./ux-traces-since-and-source-limit-work.md) | 889 |
+| [ux-traces-since-limit-works.md](./ux-traces-since-limit-works.md) | 890 |
 | [ux-traces-since-validation-cleaner-than-models.md](./ux-traces-since-validation-cleaner-than-models.md) | 303 |
-| [ux-traces-source-invalid-validation-good.md](./ux-traces-source-invalid-validation-good.md) | 886 |
-| [ux-traces-unsupported-source-validation-good.md](./ux-traces-unsupported-source-validation-good.md) | 887 |
+| [ux-traces-source-invalid-validation-good.md](./ux-traces-source-invalid-validation-good.md) | 891 |
+| [ux-traces-unsupported-source-validation-good.md](./ux-traces-unsupported-source-validation-good.md) | 892 |
 | [ux-unconfigure-claude-dry-run-full-settings-dump.md](./ux-unconfigure-claude-dry-run-full-settings-dump.md) | 304 |
-| [ux-unconfigure-goose-dry-run-full-config-dump.md](./ux-unconfigure-goose-dry-run-full-config-dump.md) | 588 |
+| [ux-unconfigure-goose-dry-run-full-config-dump.md](./ux-unconfigure-goose-dry-run-full-config-dump.md) | 590 |
 | [ux-unconfigure-goose-dry-run-still-prints-secrets.md](./ux-unconfigure-goose-dry-run-still-prints-secrets.md) | 305 |
-| [ux-unconfigure-help-missing-dry-run-and-yes.md](./ux-unconfigure-help-missing-dry-run-and-yes.md) | 589 |
-| [ux-unconfigure-help-no-dry-run-or-yes.md](./ux-unconfigure-help-no-dry-run-or-yes.md) | 590 |
+| [ux-unconfigure-help-missing-dry-run-and-yes.md](./ux-unconfigure-help-missing-dry-run-and-yes.md) | 591 |
+| [ux-unconfigure-help-no-dry-run-or-yes.md](./ux-unconfigure-help-no-dry-run-or-yes.md) | 592 |
 | [ux-unconfigure-help-omits-yes-and-dry-run.md](./ux-unconfigure-help-omits-yes-and-dry-run.md) | 306 |
-| [ux-unconfigure-missing-agent-raw-commander.md](./ux-unconfigure-missing-agent-raw-commander.md) | 591 |
-| [ux-unconfigure-no-confirmation.md](./ux-unconfigure-no-confirmation.md) | 592 |
-| [ux-unconfigure-nonconfigured-agent-still-plans-mutations.md](./ux-unconfigure-nonconfigured-agent-still-plans-mutations.md) | 593 |
+| [ux-unconfigure-missing-agent-raw-commander.md](./ux-unconfigure-missing-agent-raw-commander.md) | 593 |
+| [ux-unconfigure-no-confirmation.md](./ux-unconfigure-no-confirmation.md) | 594 |
+| [ux-unconfigure-nonconfigured-agent-still-plans-mutations.md](./ux-unconfigure-nonconfigured-agent-still-plans-mutations.md) | 595 |
 | [ux-unconfigure-pi-unknown-not-spawn-only.md](./ux-unconfigure-pi-unknown-not-spawn-only.md) | 307 |
-| [ux-unconfigure-rejects-spawn-only-agents.md](./ux-unconfigure-rejects-spawn-only-agents.md) | 594 |
+| [ux-unconfigure-rejects-spawn-only-agents.md](./ux-unconfigure-rejects-spawn-only-agents.md) | 596 |
 | [ux-unknown-agent-no-allow-list-or-suggestions.md](./ux-unknown-agent-no-allow-list-or-suggestions.md) | 308 |
 | [ux-unknown-command-error-suggests-npm-run-dev.md](./ux-unknown-command-error-suggests-npm-run-dev.md) | 28 |
-| [ux-update-always-suggests-npm-install-g.md](./ux-update-always-suggests-npm-install-g.md) | 595 |
-| [ux-update-dry-run-always-global-npm.md](./ux-update-dry-run-always-global-npm.md) | 888 |
-| [ux-update-dry-run-clean-good.md](./ux-update-dry-run-clean-good.md) | 889 |
-| [ux-update-help-omits-dry-run.md](./ux-update-help-omits-dry-run.md) | 695 |
-| [ux-update-package-manager-override-works.md](./ux-update-package-manager-override-works.md) | 890 |
-| [ux-update-package-manager-pnpm-dry-run-good.md](./ux-update-package-manager-pnpm-dry-run-good.md) | 891 |
-| [ux-update-pnpm-package-manager-works.md](./ux-update-pnpm-package-manager-works.md) | 892 |
-| [ux-usage-balance-default-good.md](./ux-usage-balance-default-good.md) | 893 |
-| [ux-usage-balance-presentation-good.md](./ux-usage-balance-presentation-good.md) | 894 |
-| [ux-usage-help-hides-default-balance-reconfirmed.md](./ux-usage-help-hides-default-balance-reconfirmed.md) | 596 |
-| [ux-usage-help-hides-default-balance.md](./ux-usage-help-hides-default-balance.md) | 696 |
-| [ux-usage-list-empty-filter-returns-all.md](./ux-usage-list-empty-filter-returns-all.md) | 697 |
-| [ux-usage-list-filter-works-well.md](./ux-usage-list-filter-works-well.md) | 895 |
-| [ux-usage-list-filter-works.md](./ux-usage-list-filter-works.md) | 896 |
-| [ux-usage-list-no-json-flag.md](./ux-usage-list-no-json-flag.md) | 597 |
-| [ux-usage-list-no-match-message-good.md](./ux-usage-list-no-match-message-good.md) | 897 |
-| [ux-usage-list-table-works.md](./ux-usage-list-table-works.md) | 898 |
-| [ux-usage-pages-1-still-shows-20-entries.md](./ux-usage-pages-1-still-shows-20-entries.md) | 598 |
-| [ux-usage-pages-invalid-raw-commander.md](./ux-usage-pages-invalid-raw-commander.md) | 599 |
+| [ux-update-always-suggests-npm-install-g.md](./ux-update-always-suggests-npm-install-g.md) | 597 |
+| [ux-update-dry-run-always-global-npm.md](./ux-update-dry-run-always-global-npm.md) | 893 |
+| [ux-update-dry-run-clean-good.md](./ux-update-dry-run-clean-good.md) | 894 |
+| [ux-update-help-omits-dry-run.md](./ux-update-help-omits-dry-run.md) | 698 |
+| [ux-update-package-manager-override-works.md](./ux-update-package-manager-override-works.md) | 895 |
+| [ux-update-package-manager-pnpm-dry-run-good.md](./ux-update-package-manager-pnpm-dry-run-good.md) | 896 |
+| [ux-update-pnpm-package-manager-works.md](./ux-update-pnpm-package-manager-works.md) | 897 |
+| [ux-usage-balance-default-good.md](./ux-usage-balance-default-good.md) | 898 |
+| [ux-usage-balance-presentation-good.md](./ux-usage-balance-presentation-good.md) | 899 |
+| [ux-usage-help-hides-default-balance-reconfirmed.md](./ux-usage-help-hides-default-balance-reconfirmed.md) | 598 |
+| [ux-usage-help-hides-default-balance.md](./ux-usage-help-hides-default-balance.md) | 699 |
+| [ux-usage-list-empty-filter-returns-all.md](./ux-usage-list-empty-filter-returns-all.md) | 700 |
+| [ux-usage-list-filter-works-well.md](./ux-usage-list-filter-works-well.md) | 900 |
+| [ux-usage-list-filter-works.md](./ux-usage-list-filter-works.md) | 901 |
+| [ux-usage-list-no-json-flag.md](./ux-usage-list-no-json-flag.md) | 599 |
+| [ux-usage-list-no-match-message-good.md](./ux-usage-list-no-match-message-good.md) | 902 |
+| [ux-usage-list-table-works.md](./ux-usage-list-table-works.md) | 903 |
+| [ux-usage-pages-1-still-shows-20-entries.md](./ux-usage-pages-1-still-shows-20-entries.md) | 600 |
+| [ux-usage-pages-invalid-raw-commander.md](./ux-usage-pages-invalid-raw-commander.md) | 601 |
 | [ux-user-errors-look-like-system-failures.md](./ux-user-errors-look-like-system-failures.md) | 309 |
-| [ux-utils-config-edit-missing-editor-system-chrome.md](./ux-utils-config-edit-missing-editor-system-chrome.md) | 600 |
-| [ux-utils-config-init-already-exists-is-info.md](./ux-utils-config-init-already-exists-is-info.md) | 899 |
-| [ux-utils-config-no-path-subcommand.md](./ux-utils-config-no-path-subcommand.md) | 698 |
-| [ux-utils-config-path-subcommand-missing.md](./ux-utils-config-path-subcommand-missing.md) | 601 |
-| [ux-utils-config-show-dumps-large-json.md](./ux-utils-config-show-dumps-large-json.md) | 602 |
-| [ux-utils-config-show-logged-out-clean-no-secrets.md](./ux-utils-config-show-logged-out-clean-no-secrets.md) | 900 |
-| [ux-utils-config-show-unframed-raw-json.md](./ux-utils-config-show-unframed-raw-json.md) | 603 |
-| [ux-utils-help-usage-says-options-not-command.md](./ux-utils-help-usage-says-options-not-command.md) | 901 |
-| [ux-utils-symlink-agents-already-linked-good.md](./ux-utils-symlink-agents-already-linked-good.md) | 902 |
-| [ux-utils-symlink-help-missing-design-system-colors.md](./ux-utils-symlink-help-missing-design-system-colors.md) | 604 |
-| [ux-utils-symlink-help-unformatted-white-text.md](./ux-utils-symlink-help-unformatted-white-text.md) | 605 |
-| [ux-utils-symlink-skills-both-exist-good-guidance.md](./ux-utils-symlink-skills-both-exist-good-guidance.md) | 903 |
-| [ux-utils-symlink-skills-is-nested-not-top-level.md](./ux-utils-symlink-skills-is-nested-not-top-level.md) | 699 |
-| [ux-utils-symlink-skills-scope-error-vs-agents.md](./ux-utils-symlink-skills-scope-error-vs-agents.md) | 700 |
-| [ux-utils-symlink-skills-yes-local-dry-run-works.md](./ux-utils-symlink-skills-yes-local-dry-run-works.md) | 904 |
+| [ux-utils-config-edit-missing-editor-system-chrome.md](./ux-utils-config-edit-missing-editor-system-chrome.md) | 602 |
+| [ux-utils-config-init-already-exists-is-info.md](./ux-utils-config-init-already-exists-is-info.md) | 904 |
+| [ux-utils-config-no-path-subcommand.md](./ux-utils-config-no-path-subcommand.md) | 701 |
+| [ux-utils-config-path-subcommand-missing.md](./ux-utils-config-path-subcommand-missing.md) | 603 |
+| [ux-utils-config-show-dumps-large-json.md](./ux-utils-config-show-dumps-large-json.md) | 604 |
+| [ux-utils-config-show-logged-out-clean-no-secrets.md](./ux-utils-config-show-logged-out-clean-no-secrets.md) | 905 |
+| [ux-utils-config-show-unframed-raw-json.md](./ux-utils-config-show-unframed-raw-json.md) | 605 |
+| [ux-utils-help-usage-says-options-not-command.md](./ux-utils-help-usage-says-options-not-command.md) | 906 |
+| [ux-utils-symlink-agents-already-linked-good.md](./ux-utils-symlink-agents-already-linked-good.md) | 907 |
+| [ux-utils-symlink-help-missing-design-system-colors.md](./ux-utils-symlink-help-missing-design-system-colors.md) | 606 |
+| [ux-utils-symlink-help-unformatted-white-text.md](./ux-utils-symlink-help-unformatted-white-text.md) | 607 |
+| [ux-utils-symlink-skills-both-exist-good-guidance.md](./ux-utils-symlink-skills-both-exist-good-guidance.md) | 908 |
+| [ux-utils-symlink-skills-is-nested-not-top-level.md](./ux-utils-symlink-skills-is-nested-not-top-level.md) | 702 |
+| [ux-utils-symlink-skills-scope-error-vs-agents.md](./ux-utils-symlink-skills-scope-error-vs-agents.md) | 703 |
+| [ux-utils-symlink-skills-yes-local-dry-run-works.md](./ux-utils-symlink-skills-yes-local-dry-run-works.md) | 909 |
 | [ux-validation-error-still-prints-stack.md](./ux-validation-error-still-prints-stack.md) | 310 |
-| [ux-verbose-prefixes-every-log-line.md](./ux-verbose-prefixes-every-log-line.md) | 701 |
-| [ux-verbose-spawn-prefix-minimal.md](./ux-verbose-spawn-prefix-minimal.md) | 905 |
-| [ux-version-nags-dev-to-major-jump.md](./ux-version-nags-dev-to-major-jump.md) | 606 |
-| [ux-version-still-nags-dev-to-4.0.0.md](./ux-version-still-nags-dev-to-4.0.0.md) | 607 |
-| [ux-version-subcommand-missing-use-flag.md](./ux-version-subcommand-missing-use-flag.md) | 608 |
-| [ux-version-update-nag-dev-to-4-0-1.md](./ux-version-update-nag-dev-to-4-0-1.md) | 609 |
-| [ux-version-update-nag-on-dev-builds.md](./ux-version-update-nag-on-dev-builds.md) | 702 |
-| [ux-whoami-root-missing-auth-only.md](./ux-whoami-root-missing-auth-only.md) | 610 |
-| [ux-wide-tables-truncate-critical-cells.md](./ux-wide-tables-truncate-critical-cells.md) | 611 |
-| [ux-worktree-list-empty-good.md](./ux-worktree-list-empty-good.md) | 906 |
-| [ux-worktree-list-empty-state-unframed.md](./ux-worktree-list-empty-state-unframed.md) | 907 |
-| [ux-worktree-reconcile-not-found-system-chrome.md](./ux-worktree-reconcile-not-found-system-chrome.md) | 612 |
-| [ux-worktree-reconcile-requires-agent-not-in-error-order.md](./ux-worktree-reconcile-requires-agent-not-in-error-order.md) | 703 |
-| [ux-worktree-reconcile-requires-agent-raw-commander.md](./ux-worktree-reconcile-requires-agent-raw-commander.md) | 613 |
-| [ux-worktree-reconcile-requires-agent-raw.md](./ux-worktree-reconcile-requires-agent-raw.md) | 614 |
-| [ux-worktree-remove-help-no-yes.md](./ux-worktree-remove-help-no-yes.md) | 615 |
-| [ux-worktree-remove-help-omits-yes.md](./ux-worktree-remove-help-omits-yes.md) | 616 |
-| [ux-worktree-remove-missing-see-logs.md](./ux-worktree-remove-missing-see-logs.md) | 617 |
-| [ux-worktree-remove-no-confirmation.md](./ux-worktree-remove-no-confirmation.md) | 618 |
-| [ux-worktree-remove-not-found-system-chrome.md](./ux-worktree-remove-not-found-system-chrome.md) | 619 |
-| [ux-wrap-command-still-missing.md](./ux-wrap-command-still-missing.md) | 620 |
-| [ux-wrap-dry-run-forwards-flag.md](./ux-wrap-dry-run-forwards-flag.md) | 621 |
-| [ux-wrap-resolves-alias-but-dry-run-lies.md](./ux-wrap-resolves-alias-but-dry-run-lies.md) | 622 |
+| [ux-verbose-prefixes-every-log-line.md](./ux-verbose-prefixes-every-log-line.md) | 704 |
+| [ux-verbose-spawn-prefix-minimal.md](./ux-verbose-spawn-prefix-minimal.md) | 910 |
+| [ux-version-nag-dev-to-4-0-1-reconfirmed.md](./ux-version-nag-dev-to-4-0-1-reconfirmed.md) | 608 |
+| [ux-version-nags-dev-to-major-jump.md](./ux-version-nags-dev-to-major-jump.md) | 609 |
+| [ux-version-still-nags-dev-to-4.0.0.md](./ux-version-still-nags-dev-to-4.0.0.md) | 610 |
+| [ux-version-subcommand-missing-use-flag.md](./ux-version-subcommand-missing-use-flag.md) | 611 |
+| [ux-version-update-nag-dev-to-4-0-1.md](./ux-version-update-nag-dev-to-4-0-1.md) | 612 |
+| [ux-version-update-nag-on-dev-builds.md](./ux-version-update-nag-on-dev-builds.md) | 705 |
+| [ux-whoami-root-missing-auth-only.md](./ux-whoami-root-missing-auth-only.md) | 613 |
+| [ux-wide-tables-truncate-critical-cells.md](./ux-wide-tables-truncate-critical-cells.md) | 614 |
+| [ux-worktree-list-empty-good.md](./ux-worktree-list-empty-good.md) | 911 |
+| [ux-worktree-list-empty-state-unframed.md](./ux-worktree-list-empty-state-unframed.md) | 912 |
+| [ux-worktree-reconcile-not-found-system-chrome.md](./ux-worktree-reconcile-not-found-system-chrome.md) | 615 |
+| [ux-worktree-reconcile-requires-agent-not-in-error-order.md](./ux-worktree-reconcile-requires-agent-not-in-error-order.md) | 706 |
+| [ux-worktree-reconcile-requires-agent-raw-commander.md](./ux-worktree-reconcile-requires-agent-raw-commander.md) | 616 |
+| [ux-worktree-reconcile-requires-agent-raw.md](./ux-worktree-reconcile-requires-agent-raw.md) | 617 |
+| [ux-worktree-remove-help-no-yes.md](./ux-worktree-remove-help-no-yes.md) | 618 |
+| [ux-worktree-remove-help-omits-yes.md](./ux-worktree-remove-help-omits-yes.md) | 619 |
+| [ux-worktree-remove-missing-see-logs.md](./ux-worktree-remove-missing-see-logs.md) | 620 |
+| [ux-worktree-remove-no-confirmation.md](./ux-worktree-remove-no-confirmation.md) | 621 |
+| [ux-worktree-remove-not-found-system-chrome.md](./ux-worktree-remove-not-found-system-chrome.md) | 622 |
+| [ux-wrap-command-still-missing.md](./ux-wrap-command-still-missing.md) | 623 |
+| [ux-wrap-dry-run-forwards-flag.md](./ux-wrap-dry-run-forwards-flag.md) | 624 |
+| [ux-wrap-resolves-alias-but-dry-run-lies.md](./ux-wrap-resolves-alias-but-dry-run-lies.md) | 625 |
 
 See [AUDIT_STATUS.md](./AUDIT_STATUS.md).

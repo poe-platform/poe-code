@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 907 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 912 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,7 +14,7 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 907. Continuously committed on main.
+Master == disk == 912. Continuously committed on main.
 Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
 Auth: **Not logged in** (mid-session). Catalog: sonnet-5 = 0 matches; opus-4.7 has xhigh; sonnet-4.6 does not.
 Source still has sonnet-5 in constants.ts + goose.ts context map. Root help still hides 13 working commands.
@@ -23,13 +23,13 @@ Restored docs/plans and .claude/skills after audit side effects. Removed audit p
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **907**. Critical 18 → **28**. Continuous commits on main (~57 commits this stretch).
+Started ~687 issues → **912**. Critical 18 → **28**. Continuous commits on main (~59 commits this stretch).
 
 ## Live reconfirms (still open)
 
 - auth api-key --dry-run still prints full secret (when logged in)
 - spawn poe-agent still fs.lstat crash
-- skip-if-configured matching sonnet-4.6 still full rewrite dry-run
+- skip-if-configured matching sonnet-4.6 still full rewrite dry-run (cursor skip path works)
 - configure --reasoning-effort still ignored (always high after restore; was always xhigh)
 - configure goose with haiku still embeds sonnet-5 in models list + goose.ts map
 - models --search sonnet-5 → 0 (catalog dead); constants.ts still has sonnet-5

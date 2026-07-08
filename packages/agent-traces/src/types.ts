@@ -1,4 +1,4 @@
-export type AgentTraceSource = "claude" | "codex" | "poe-code";
+export type AgentTraceSource = "claude" | "codex" | "pi" | "poe-code";
 
 export interface AgentTraceFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;

@@ -7,6 +7,7 @@ export { writeHumanPromptJsonl } from "./jsonl.js";
 export {
   claudeTraceReader,
   codexTraceReader,
+  piTraceReader,
   poeCodeTraceReader,
   traceReaders
 } from "./readers/index.js";

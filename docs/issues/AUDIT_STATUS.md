@@ -1,18 +1,18 @@
 # UX audit session status
 
-**Count:** 447 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 451 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
 Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
-## Critical (security + sonnet-5 cluster + crash + destructive)
+## Critical 1–14
 
-See MASTER #1–14. Minimal model default fix: constants.ts sonnet-5 → sonnet-4.6.
+See MASTER top 14 (secrets, sonnet-5 cluster, poe-agent crash, plan --yes, logout).
 
 ## Integrity
 
-Master == disk == 447. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 451. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

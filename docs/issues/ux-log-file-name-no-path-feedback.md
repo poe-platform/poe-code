@@ -2,11 +2,12 @@
 
 ## Summary
 
-spawn … --log-file-name ux-probe.jsonl succeeds but file not at ~/.poe-code/logs/ux-probe.jsonl — no path feedback; may write under cwd or agent log dir silently.
+spawn … --log-file-name ux-probe.jsonl succeeds but file not at ~/.poe-code/logs/ux-probe.jsonl — no path feedback; writes under ~/.poe-code/spawn-logs/ (found post-hoc) without telling the user.
 
 ## Evidence
 
-spawn with --log-file-name → success; ~/.poe-code/logs/ux-probe.jsonl missing.
+spawn with --log-file-name → success; file at ~/.poe-code/spawn-logs/ux-probe.jsonl
+(not under logs/, not printed).
 
 ## Why it matters
 

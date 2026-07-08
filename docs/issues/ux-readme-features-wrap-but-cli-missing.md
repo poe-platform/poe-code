@@ -23,7 +23,8 @@ Keep wrap removed if intentional. Add migration note in changelog/README FAQ: "w
 
 ## Severity
 
-Medium (was Critical; README fixed)
+Medium
+
 
 ## Area
 

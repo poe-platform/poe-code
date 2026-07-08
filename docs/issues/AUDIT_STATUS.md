@@ -6,7 +6,7 @@
 
 Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
-## Critical 1–7 (updated)
+## Critical 1–7
 
 1. Dry-run diffs print secrets  
 2–3. auth api-key reveal (+ dry-run)  
@@ -15,7 +15,7 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. plan archive/delete --yes arbitrary  
 7. logout factory-reset  
 
-**Resolved from Critical:** README wrap quickstart removed (wrap residual → Medium).
+**Demoted:** README wrap quickstart (README fixed) → Medium residual.
 
 ## Integrity
 

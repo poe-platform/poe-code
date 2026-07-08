@@ -1,0 +1,25 @@
+# UX: logout help omits danger blast radius and --yes
+
+## Summary
+
+logout and auth logout help: Remove all configuration and credentials — no --yes, no factory-reset blast radius (agents, configs).
+
+## Evidence
+
+logout Options: -h only. Description: Remove all configuration and credentials.
+
+## Why it matters
+
+Critical logout overclaims + destructive without documented --yes.
+
+## Suggested direction
+
+Document factory-reset scope; require --yes non-TTY; danger help.
+
+## Severity
+
+**High**
+
+## Area
+
+Auth / destructive

@@ -110,6 +110,79 @@ describe("terminal-pilot CLI entry point", () => {
     expect(process.argv).toEqual(originalArgv);
   });
 
+  it("maps pilot --json for create-session without rewriting child --json", async () => {
+    let argvDuringRun: string[] = [];
+    runCLIMock.mockImplementation(async () => {
+      argvDuringRun = [...process.argv];
+    });
+
+    const { main } = await import("./cli.js");
+
+    await main([
+      "node",
+      "terminal-pilot",
+      "create-session",
+      "--json",
+      "-s",
+      "s1",
+      "codex",
+      "exec",
+      "--json",
+      "/goal"
+    ]);
+
+    expect(argvDuringRun).toEqual([
+      "node",
+      "terminal-pilot",
+      "create-session",
+      "--output",
+      "json",
+      "-s",
+      "s1",
+      "codex",
+      "exec",
+      "--json",
+      "/goal"
+    ]);
+    expect(process.argv).toEqual(originalArgv);
+  });
+
+  it("preserves child --json after create-session -- separator", async () => {
+    let argvDuringRun: string[] = [];
+    runCLIMock.mockImplementation(async () => {
+      argvDuringRun = [...process.argv];
+    });
+
+    const { main } = await import("./cli.js");
+
+    await main([
+      "node",
+      "terminal-pilot",
+      "create-session",
+      "-s",
+      "s1",
+      "--",
+      "codex",
+      "exec",
+      "--json",
+      "/goal"
+    ]);
+
+    expect(argvDuringRun).toEqual([
+      "node",
+      "terminal-pilot",
+      "create-session",
+      "-s",
+      "s1",
+      "--",
+      "codex",
+      "exec",
+      "--json",
+      "/goal"
+    ]);
+    expect(process.argv).toEqual(originalArgv);
+  });
+
   it("does not execute the CLI as a side effect of importing the module", async () => {
     await import("./cli.js");
 

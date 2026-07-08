@@ -22,15 +22,97 @@ function getBundledPackageVersion(): string | undefined {
     : undefined;
 }
 
-function normalizeArgv(argv: string[]): string[] {
-  if (
-    argv.includes("--json") &&
-    !argv.some((argument) => argument === "--output" || argument.startsWith("--output="))
-  ) {
-    return argv.flatMap((argument) => (argument === "--json" ? ["--output", "json"] : [argument]));
+const pilotOptionsWithValues = new Set([
+  "--session",
+  "-s",
+  "--cwd",
+  "--cols",
+  "--rows",
+  "--timeout",
+  "-t",
+  "--last",
+  "-n",
+  "--output",
+  "-o",
+  "--scope",
+  "--padding",
+  "-p",
+  "--log-level",
+  "--preset",
+  "--signal"
+]);
+
+/**
+ * Rewrite pilot-level `--json` to toolcraft's `--output json`.
+ * Stop once create-session (and similar) child argv begins so nested tools keep their own `--json`.
+ */
+export function normalizeArgv(argv: string[]): string[] {
+  if (!argv.includes("--json")) {
+    return argv;
+  }
+  if (argv.some((argument) => argument === "--output" || argument.startsWith("--output="))) {
+    return argv;
   }
 
-  return argv;
+  const normalized: string[] = [];
+  let index = 0;
+  let bareTokenCount = 0;
+  let expectOptionValue = false;
+
+  while (index < argv.length) {
+    const token = argv[index];
+
+    if (index < 2) {
+      normalized.push(token);
+      index += 1;
+      continue;
+    }
+
+    if (token === "--") {
+      normalized.push(token, ...argv.slice(index + 1));
+      break;
+    }
+
+    if (expectOptionValue) {
+      normalized.push(token);
+      expectOptionValue = false;
+      index += 1;
+      continue;
+    }
+
+    if (token === "--json") {
+      normalized.push("--output", "json");
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("-") && token !== "-") {
+      normalized.push(token);
+      const optionName = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
+      if (
+        !token.includes("=") &&
+        (pilotOptionsWithValues.has(optionName) ||
+          (optionName === "--debug" && argv[index + 1] !== undefined && !argv[index + 1].startsWith("-")))
+      ) {
+        expectOptionValue = true;
+      }
+      index += 1;
+      continue;
+    }
+
+    bareTokenCount += 1;
+    // node/script are skipped above; first bare token is the pilot subcommand.
+    // The second bare token starts positionals (e.g. create-session <command> [args...]).
+    if (bareTokenCount >= 2) {
+      normalized.push(...argv.slice(index));
+      break;
+    }
+
+    normalized.push(token);
+    index += 1;
+  }
+
+  return normalized;
 }
 
 export async function main(

@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 865 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 874 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,15 +14,15 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 865. Continuously committed on main.
+Master == disk == 874. Continuously committed on main.
 Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
-Auth flipped to **Not logged in** mid-session without intentional logout (credentials missing).
+Auth: **Not logged in** (mid-session). Catalog proves sonnet-5 has 0 matches.
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **865**. Critical 18 → **26**. Continuous commits on main (~46 commits this stretch).
+Started ~687 issues → **874**. Critical 18 → **27**. Continuous commits on main (~47 commits this stretch).
 
 ## Live reconfirms (still open)
 
@@ -31,6 +31,7 @@ Started ~687 issues → **865**. Critical 18 → **26**. Continuous commits on m
 - skip-if-configured matching sonnet-4.6 still full rewrite dry-run
 - configure haiku still plans effortLevel xhigh
 - configure goose with haiku still embeds sonnet-5 in models list
+- models --search sonnet-5 → 0 (catalog dead)
 - configure --model sonnet writes literal sonnet
 - experiment install --force still Skill already exists
 - test kimi Provider poe not found

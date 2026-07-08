@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 230 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 233 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -16,9 +16,15 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 7. README wrap missing  
 8. logout factory-reset  
 
+## Positive live checks
+
+- spawn/test with valid models succeed  
+- usage balance card is good  
+- invalid --mode validation is good  
+
 ## Integrity
 
-Master == disk == 230. Continuously committed on main.
+Master == disk == 233. Continuously committed on main.
 
 ## Continue
 

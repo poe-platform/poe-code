@@ -1,0 +1,25 @@
+# UX: provider logout openai --dry-run is clean (positive)
+
+## Summary
+
+provider logout openai --dry-run only would log out + rm credentials.openai.enc — clean credential-only dry-run.
+
+## Evidence
+
+logout openai dry-run → rm credentials.openai.enc only.
+
+## Why it matters
+
+Positive pattern for provider logout.
+
+## Suggested direction
+
+Match poe logout dry-run to this style.
+
+## Severity
+
+Low
+
+## Area
+
+Providers / positive pattern

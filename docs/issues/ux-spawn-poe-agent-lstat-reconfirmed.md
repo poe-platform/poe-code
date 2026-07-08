@@ -2,7 +2,7 @@
 
 ## Summary
 
-Reconfirmed Critical: spawn poe-agent "hi" --mode read → fs.lstat is not a function + See logs.
+Live reconfirm: spawn poe-agent "hi" --mode read → fs.lstat is not a function + See logs.
 
 ## Evidence
 
@@ -22,7 +22,7 @@ Fix memfs/fs injection; or remove from spawn agent list until fixed.
 
 ## Severity
 
-**Critical**
+**High**
 
 ## Area
 

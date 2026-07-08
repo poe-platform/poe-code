@@ -329,7 +329,7 @@ describe("loadTrace", () => {
 });
 
 describe("detectTraceFile", () => {
-  it("detects poe-code, codex, and claude JSONL first lines", () => {
+  it("detects poe-code, codex, claude, and pi JSONL first lines", () => {
     expect(detectTraceFile(JSON.stringify({ event: "session_start" }))).toBe("poe-code");
     expect(detectTraceFile(JSON.stringify({ type: "session_meta" }))).toBe("codex");
     expect(detectTraceFile(JSON.stringify({ type: "response_item" }))).toBe("codex");
@@ -338,6 +338,11 @@ describe("detectTraceFile", () => {
     expect(detectTraceFile(JSON.stringify({ type: "user" }))).toBe("claude");
     expect(detectTraceFile(JSON.stringify({ type: "assistant" }))).toBe("claude");
     expect(detectTraceFile(JSON.stringify({ type: "system" }))).toBe("claude");
+    expect(
+      detectTraceFile(
+        JSON.stringify({ type: "session", version: 3, id: "session-one", cwd: "/repo" })
+      )
+    ).toBe("pi");
   });
 
   it("returns undefined for garbage", () => {

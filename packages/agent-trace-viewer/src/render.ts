@@ -49,6 +49,7 @@ const CATEGORY_COLORS = {
 const SOURCE_COLORS = {
   claude: (theme: ThemePalette) => theme.accent,
   codex: (theme: ThemePalette) => theme.info,
+  pi: (theme: ThemePalette) => theme.warning,
   "poe-code": (theme: ThemePalette) => theme.success
 } satisfies Record<AgentTraceSource, (theme: ThemePalette) => Styler>;
 

@@ -81,6 +81,7 @@ describe("traces command", () => {
       "/home/test/.claude/projects/session.jsonl",
       "--source",
       "claude",
+      "pi",
       "poe-code",
       "--all-workspaces",
       "--since",
@@ -97,7 +98,7 @@ describe("traces command", () => {
       fs,
       assumeYes: true,
       path: "/home/test/.claude/projects/session.jsonl",
-      sources: ["claude", "poe-code"],
+      sources: ["claude", "pi", "poe-code"],
       allWorkspaces: true,
       since: new Date("2026-07-01T10:00:00.000Z"),
       limit: 7,
@@ -141,7 +142,9 @@ describe("traces command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "traces", "--source", "claude", "gemini"])
-    ).rejects.toThrow('Unsupported trace source "gemini". Expected one of: claude, codex, poe-code.');
+    ).rejects.toThrow(
+      'Unsupported trace source "gemini". Expected one of: claude, codex, pi, poe-code.'
+    );
 
     expect(runTraceViewerMock).not.toHaveBeenCalled();
   });

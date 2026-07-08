@@ -10,7 +10,7 @@ import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { resolveCommandFlags } from "./shared.js";
 
-const TRACE_SOURCES = ["claude", "codex", "poe-code"] as const satisfies AgentTraceSource[];
+const TRACE_SOURCES = ["claude", "codex", "pi", "poe-code"] as const satisfies AgentTraceSource[];
 
 interface TracesCommandOptions {
   source?: string[];
@@ -73,9 +73,11 @@ function parseLimit(value: string | undefined): number | undefined {
 export function registerTracesCommand(program: Command, container: CliContainer): void {
   program
     .command("traces")
-    .description("Browse claude, codex and poe-code agent traces with context usage and breakdown.")
+    .description(
+      "Browse claude, codex, pi and poe-code agent traces with context usage and breakdown."
+    )
     .argument("[path]", "Path to a trace file")
-    .option("--source <sources...>", "Trace sources: claude, codex, poe-code")
+    .option("--source <sources...>", "Trace sources: claude, codex, pi, poe-code")
     .option("--all-workspaces", "Read traces from every workspace, not just cwd")
     .option("--since <duration>", "Only include recently updated traces")
     .option("--limit <n>", "Maximum traces listed")

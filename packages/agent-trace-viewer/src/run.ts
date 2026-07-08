@@ -122,6 +122,7 @@ function sourceCell(source: AgentTraceSource, theme: ReturnType<typeof getTheme>
   const colors = {
     claude: theme.accent,
     codex: theme.info,
+    pi: theme.warning,
     "poe-code": theme.success
   } satisfies Record<AgentTraceSource, (text: string) => string>;
 

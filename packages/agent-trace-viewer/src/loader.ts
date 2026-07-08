@@ -187,6 +187,14 @@ export function detectTraceFile(firstLine: string): AgentTraceSource | undefined
     return "claude";
   }
 
+  if (
+    value.type === "session" &&
+    typeof value.id === "string" &&
+    (typeof value.version === "number" || typeof value.cwd === "string")
+  ) {
+    return "pi";
+  }
+
   return undefined;
 }
 

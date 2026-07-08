@@ -1,0 +1,33 @@
+# UX: plan list table uses broken two-line-per-row layout
+
+## Summary
+
+`poe-code plan list` renders a table where each plan entry occupies two visual rows — the Kind value appears on the first row and the Updated date on the second, with no clear visual separator between entries. The result is a dense, hard-to-scan table.
+
+## Evidence
+
+```
+| Kind      | Updated    | Type  | Name                     | Detail                  |
+| plan      |            | Plan  | trace-browser-html-open.md | Trace browser HTML open |
+|           | 2026-07-08 |       |                          |                         |
+| plan      |            | Plan  | 32-agent-goal.md         | Agent goal — ...        |
+| with …    | 2026-07-08 |       |                          |                         |
+```
+
+Kind values that are long wrap to a second sub-row ("plan with ...", "plan del") making them look like status/action indicators rather than types. The Updated date appears on a separate sub-row below the Kind, detached from the content row.
+
+## Why it matters
+
+Users cannot quickly scan the table to find a specific plan. The two-line rows look like artifacts of a rendering bug, not intentional design. Long Kind values get truncated with ellipsis in misleading positions.
+
+## Suggested direction
+
+Merge Kind and Updated into a single row each; if the Kind string is long, truncate it with `...` in-cell rather than wrapping to a sub-row. Consider removing the Kind/Updated split and using a single "Updated" column with the date.
+
+## Severity
+
+Medium
+
+## Area
+
+Plan / list / table layout / visual

@@ -62,3 +62,19 @@ export interface SubagentSummary {
   context: ContextUsage;
   turnCount: number;
 }
+
+export interface TraceTreeNode {
+  view: TraceView;
+  children: TraceTreeNode[];
+  /** Present for child nodes (the reference used to load this node). */
+  reference?: TraceReference;
+  unavailable?: {
+    reference: TraceReference;
+    reason: string;
+  };
+}
+
+export interface LoadTraceTreeOptions extends LoadTraceOptions {
+  maxDepth?: number;
+  maxNodes?: number;
+}

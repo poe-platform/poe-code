@@ -294,6 +294,125 @@ describe("runTraceViewer", () => {
     expect(rendered).toContain("human › hello");
   });
 
+  it("writes HTML for a path with htmlOut and does not print terminal detail", async () => {
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async (reference: TraceReference) =>
+          createTrace({
+            source: "claude",
+            id: reference.id,
+            path: reference.path,
+            title: "HTML parent",
+            turns: [{ role: "human", text: "hello html" }]
+          })
+        )
+      })
+    );
+    const volume = Volume.fromJSON({
+      "/tmp/trace.jsonl": `${JSON.stringify({ sessionId: "abc" })}\n`
+    });
+    const fs = createFsFromVolume(volume).promises as AgentTraceFileSystem;
+    const output = new MemoryOutput();
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs,
+      path: "/tmp/trace.jsonl",
+      htmlOut: "/tmp/out.html",
+      output
+    });
+
+    expect(stripAnsi(output.value)).toContain("Wrote /tmp/out.html");
+    expect(stripAnsi(output.value)).not.toContain("human › hello html");
+    const html = await fs.readFile("/tmp/out.html", "utf8");
+    expect(html).toContain("<!doctype html>");
+    expect(html).toContain("HTML parent");
+  });
+
+  it("opens HTML for a path with open and does not print terminal detail", async () => {
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async (reference: TraceReference) =>
+          createTrace({
+            source: "claude",
+            id: reference.id,
+            path: reference.path,
+            title: "Open parent",
+            turns: [{ role: "human", text: "hello open" }]
+          })
+        )
+      })
+    );
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/tmp/trace.jsonl": `${JSON.stringify({ sessionId: "abc" })}\n`
+      })
+    ).promises as AgentTraceFileSystem;
+    const output = new MemoryOutput();
+    const openExternal = vi.fn(async () => undefined);
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs,
+      path: "/tmp/trace.jsonl",
+      open: true,
+      htmlOut: "/tmp/opened.html",
+      openExternal,
+      output
+    });
+
+    expect(stripAnsi(output.value)).toContain("Opened /tmp/opened.html");
+    expect(openExternal).toHaveBeenCalledOnce();
+    expect(String(openExternal.mock.calls[0]?.[0])).toContain("opened.html");
+    expect(stripAnsi(output.value)).not.toContain("human › hello open");
+  });
+
+  it("keeps the HTML file and reports Wrote when browser open fails", async () => {
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        read: vi.fn(async (reference: TraceReference) =>
+          createTrace({
+            source: "claude",
+            id: reference.id,
+            path: reference.path,
+            title: "Open fails",
+            turns: [{ role: "human", text: "hello" }]
+          })
+        )
+      })
+    );
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/tmp/trace.jsonl": `${JSON.stringify({ sessionId: "abc" })}\n`
+      })
+    ).promises as AgentTraceFileSystem;
+    const output = new MemoryOutput();
+    const openExternal = vi.fn(async () => {
+      throw new Error("Browser launcher exited with code 1");
+    });
+
+    await expect(
+      runTraceViewer({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        fs,
+        path: "/tmp/trace.jsonl",
+        open: true,
+        htmlOut: "/tmp/fail-open.html",
+        openExternal,
+        output
+      })
+    ).rejects.toThrow("Browser launcher exited with code 1");
+
+    expect(stripAnsi(output.value)).toContain("Wrote /tmp/fail-open.html");
+    await expect(fs.readFile("/tmp/fail-open.html", "utf8")).resolves.toContain("<!doctype html>");
+  });
+
   it("prints trace detail JSON with ISO dates and subagents", async () => {
     const read = vi.fn(async (reference: TraceReference) =>
       reference.id === "child"
@@ -336,6 +455,72 @@ describe("runTraceViewer", () => {
     expect(json.createdAt).toBe("2026-07-01T08:00:00.000Z");
     expect(json.subagents).toHaveLength(1);
     expect(json.subagents[0].reference.title).toBe("Child");
+  });
+
+  it("wires o to open the selected trace as HTML in the browser", async () => {
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        discover: vi.fn(async () => [
+          {
+            source: "claude",
+            id: "session",
+            path: "/tmp/session.jsonl",
+            title: "Browser open",
+            updatedAt: new Date("2026-07-01T10:00:00.000Z")
+          }
+        ]),
+        read: vi.fn(async (reference: TraceReference) =>
+          createTrace({
+            source: "claude",
+            id: reference.id,
+            path: reference.path,
+            title: "Browser open",
+            turns: [{ role: "human", text: "from explorer" }]
+          })
+        )
+      })
+    );
+    const fs = createFsFromVolume(new Volume()).promises as AgentTraceFileSystem;
+    const openExternal = vi.fn(async () => undefined);
+    const stdinIsTTY = process.stdin.isTTY;
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+
+    try {
+      await runTraceViewer({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        fs,
+        openExternal,
+        tmpDir: "/tmp-html",
+        output: new MemoryOutput()
+      });
+
+      const config = mocks.runExplorer.mock.calls[0]?.[0] as ExplorerConfig<void> | undefined;
+      expect(config).toBeDefined();
+      const openHtml = config!.actions.find((action) => action.id === "open-html");
+      expect(openHtml?.key).toBe("o");
+      expect(openHtml?.label).toBe("Open in browser");
+
+      const rows = await config!.rows();
+      const toast = vi.fn();
+      await openHtml!.handler({
+        row: rows[0]!,
+        selected: [rows[0]!],
+        signal: new AbortController().signal,
+        toast,
+        openModal: vi.fn(),
+        closeModal: vi.fn(),
+        refresh: vi.fn(),
+        exit: vi.fn(),
+        suspendAnd: vi.fn(async (fn) => fn())
+      } as unknown as ActionContext<void>);
+
+      expect(openExternal).toHaveBeenCalledOnce();
+      expect(toast).toHaveBeenCalledWith("Opened in browser", "success");
+    } finally {
+      Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: stdinIsTTY });
+    }
   });
 
   it("wires Enter to open the selected trace detail in a modal", async () => {

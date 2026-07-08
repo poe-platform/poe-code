@@ -18,6 +18,8 @@ interface TracesCommandOptions {
   since?: string;
   limit?: string;
   json?: boolean;
+  open?: boolean;
+  htmlOut?: string;
 }
 
 function parseTraceSources(values: string[] | undefined): AgentTraceSource[] | undefined {
@@ -82,10 +84,30 @@ export function registerTracesCommand(program: Command, container: CliContainer)
     .option("--since <duration>", "Only include recently updated traces")
     .option("--limit <n>", "Maximum traces listed")
     .option("--json", "Machine-readable output")
+    .option("--open", "Generate HTML for a trace path and open it in the browser")
+    .option("--html-out <file>", "Write HTML for a trace path without opening")
     .action(async function (this: Command, pathArg: string | undefined) {
       const options = this.opts<TracesCommandOptions>();
       const flags = resolveCommandFlags(program);
       const json = options.json === true;
+      const open = options.open === true;
+      const htmlOut = options.htmlOut;
+
+      if ((open || htmlOut !== undefined) && pathArg === undefined) {
+        throw new ValidationError(
+          open
+            ? "--open requires a trace path."
+            : "--html-out requires a trace path."
+        );
+      }
+
+      if ((open || htmlOut !== undefined) && json) {
+        throw new ValidationError(
+          open
+            ? "--open cannot be used with --json."
+            : "--html-out cannot be used with --json."
+        );
+      }
 
       if (!json) {
         intro("traces");
@@ -101,7 +123,9 @@ export function registerTracesCommand(program: Command, container: CliContainer)
         allWorkspaces: true,
         since: parseSince(options.since),
         limit: parseLimit(options.limit),
-        json
+        json,
+        open,
+        htmlOut
       });
     });
 }

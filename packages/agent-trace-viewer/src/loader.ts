@@ -16,9 +16,14 @@ import type {
   ContextBreakdown,
   ListTracesOptions,
   LoadTraceOptions,
+  LoadTraceTreeOptions,
   SubagentSummary,
+  TraceTreeNode,
   TraceView
 } from "./types.js";
+
+const DEFAULT_TREE_MAX_DEPTH = 8;
+const DEFAULT_TREE_MAX_NODES = 50;
 
 export async function listTraces(options: ListTracesOptions): Promise<TraceReference[]> {
   const readers =
@@ -152,6 +157,122 @@ export async function loadSubagentSummaries(
   }
 
   return summaries;
+}
+
+export async function loadTraceTree(
+  root: TraceView,
+  options: LoadTraceTreeOptions
+): Promise<TraceTreeNode> {
+  const maxDepth = options.maxDepth ?? DEFAULT_TREE_MAX_DEPTH;
+  const maxNodes = options.maxNodes ?? DEFAULT_TREE_MAX_NODES;
+  const seen = new Set<string>([treeNodeKey(root)]);
+  let remainingNodes = Math.max(0, maxNodes - 1);
+
+  return {
+    view: root,
+    children: await loadChildTreeNodes(root.children ?? [], options, {
+      depth: 1,
+      maxDepth,
+      seen,
+      takeNode: () => {
+        if (remainingNodes <= 0) {
+          return false;
+        }
+        remainingNodes -= 1;
+        return true;
+      }
+    })
+  };
+}
+
+async function loadChildTreeNodes(
+  references: TraceReference[],
+  options: LoadTraceTreeOptions,
+  state: {
+    depth: number;
+    maxDepth: number;
+    seen: Set<string>;
+    takeNode: () => boolean;
+  }
+): Promise<TraceTreeNode[]> {
+  if (references.length === 0 || state.depth > state.maxDepth) {
+    return [];
+  }
+
+  const children: TraceTreeNode[] = [];
+  for (const reference of references) {
+    if (!state.takeNode()) {
+      break;
+    }
+
+    const key = treeReferenceKey(reference);
+    if (state.seen.has(key)) {
+      children.push({
+        view: emptyTreeView(reference),
+        children: [],
+        reference,
+        unavailable: {
+          reference,
+          reason: "already included"
+        }
+      });
+      continue;
+    }
+    state.seen.add(key);
+
+    try {
+      const view = await loadTrace(reference, options);
+      children.push({
+        view,
+        reference,
+        children: await loadChildTreeNodes(view.children ?? [], options, {
+          depth: state.depth + 1,
+          maxDepth: state.maxDepth,
+          seen: state.seen,
+          takeNode: state.takeNode
+        })
+      });
+    } catch (error) {
+      children.push({
+        view: emptyTreeView(reference),
+        children: [],
+        reference,
+        unavailable: {
+          reference,
+          reason: error instanceof Error ? error.message : "failed to load"
+        }
+      });
+    }
+  }
+
+  return children;
+}
+
+function emptyTreeView(reference: TraceReference): TraceView {
+  return {
+    source: reference.source,
+    id: reference.id,
+    path: reference.path,
+    cwd: reference.cwd,
+    title: reference.title,
+    turns: [],
+    context: { tokens: 0, window: 0, percent: 0, source: "estimated" },
+    breakdown: { measuredTokens: 0, categories: [], source: "exact" }
+  };
+}
+
+function treeNodeKey(view: Pick<TraceView, "source" | "id" | "path">): string {
+  return treeReferenceKey({
+    source: view.source,
+    id: view.id,
+    path: view.path
+  });
+}
+
+function treeReferenceKey(reference: Pick<TraceReference, "source" | "id" | "path">): string {
+  return reference.path === undefined
+    ? `${reference.source}:${reference.id}`
+    : `${reference.source}:${reference.id}:${reference.path}`;
 }
 
 export function detectTraceFile(firstLine: string): AgentTraceSource | undefined {

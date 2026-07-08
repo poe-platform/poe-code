@@ -29,8 +29,21 @@ import {
   loadSubagentSummaries,
   loadTrace,
   loadTraceFromFile,
-  listTraces
+  loadTraceTree,
+  listTraces,
+  openTraceHtml,
+  renderTraceHtml,
+  writeTraceHtml
 } from "./index.js";
+
+describe("package exports", () => {
+  it("exports HTML open helpers and loadTraceTree", () => {
+    expect(loadTraceTree).toBeTypeOf("function");
+    expect(renderTraceHtml).toBeTypeOf("function");
+    expect(writeTraceHtml).toBeTypeOf("function");
+    expect(openTraceHtml).toBeTypeOf("function");
+  });
+});
 
 function createTrace(overrides: Partial<NormalizedTrace> = {}): NormalizedTrace {
   return {
@@ -462,5 +475,130 @@ describe("loadSubagentSummaries", () => {
     await expect(
       loadSubagentSummaries(createTrace({ turns: [{ role: "human", text: "parent" }] }), { fs })
     ).resolves.toEqual([]);
+  });
+});
+
+describe("loadTraceTree", () => {
+  beforeEach(() => {
+    mocks.traceReaders.length = 0;
+    mocks.countTokens.mockReset();
+    mocks.countTokens.mockImplementation((text: string) => text.length);
+  });
+
+  it("loads children recursively, preserves order, and marks failures", async () => {
+    const read = vi.fn(async (reference: TraceReference) => {
+      if (reference.id === "child-one") {
+        return createTrace({
+          source: reference.source,
+          id: reference.id,
+          path: reference.path,
+          title: "Child one",
+          children: [{ source: "claude", id: "grand", path: "/grand.jsonl" }],
+          turns: [{ role: "assistant", text: "one" }]
+        });
+      }
+      if (reference.id === "grand") {
+        return createTrace({
+          source: reference.source,
+          id: reference.id,
+          path: reference.path,
+          title: "Grand",
+          turns: [{ role: "human", text: "g" }]
+        });
+      }
+      if (reference.id === "child-two") {
+        return createTrace({
+          source: reference.source,
+          id: reference.id,
+          path: reference.path,
+          title: "Child two",
+          turns: [{ role: "human", text: "two" }]
+        });
+      }
+      throw new Error("missing child file");
+    });
+    mocks.traceReaders.push(createReader({ id: "claude", read }));
+
+    const root = {
+      ...createTrace({
+        source: "claude",
+        id: "parent",
+        title: "Parent",
+        turns: [{ role: "human", text: "parent" }]
+      }),
+      context: { tokens: 1, window: 200000, percent: 0, source: "estimated" as const },
+      breakdown: { measuredTokens: 1, categories: [], source: "exact" as const },
+      children: [
+        { source: "claude" as const, id: "child-one", path: "/child-one.jsonl" },
+        { source: "claude" as const, id: "child-bad", path: "/child-bad.jsonl" },
+        { source: "claude" as const, id: "child-two", path: "/child-two.jsonl" }
+      ]
+    };
+
+    const tree = await loadTraceTree(root, { fs });
+
+    expect(tree.view.id).toBe("parent");
+    expect(tree.children.map((child) => child.view.id)).toEqual([
+      "child-one",
+      "child-bad",
+      "child-two"
+    ]);
+    expect(tree.children[0]?.children).toHaveLength(1);
+    expect(tree.children[0]?.children[0]?.view.id).toBe("grand");
+    expect(tree.children[1]?.unavailable?.reason).toContain("missing child file");
+    expect(tree.children[2]?.unavailable).toBeUndefined();
+  });
+
+  it("detects cycles and respects maxDepth / maxNodes", async () => {
+    const read = vi.fn(async (reference: TraceReference) =>
+      createTrace({
+        source: reference.source,
+        id: reference.id,
+        path: reference.path,
+        children:
+          reference.id === "a"
+            ? [{ source: "claude", id: "b", path: "/b.jsonl" }]
+            : reference.id === "b"
+              ? [{ source: "claude", id: "a", path: "/a.jsonl" }]
+              : [],
+        turns: [{ role: "human", text: reference.id }]
+      })
+    );
+    mocks.traceReaders.push(createReader({ id: "claude", read }));
+
+    const root = {
+      ...createTrace({
+        source: "claude",
+        id: "root",
+        path: "/root.jsonl",
+        children: [
+          { source: "claude" as const, id: "a", path: "/a.jsonl" },
+          { source: "claude" as const, id: "c", path: "/c.jsonl" },
+          { source: "claude" as const, id: "d", path: "/d.jsonl" }
+        ],
+        turns: [{ role: "human", text: "root" }]
+      }),
+      context: { tokens: 0, window: 200000, percent: 0, source: "estimated" as const },
+      breakdown: { measuredTokens: 0, categories: [], source: "exact" as const }
+    };
+
+    const cyclic = await loadTraceTree(root, { fs, maxDepth: 8, maxNodes: 50 });
+    expect(cyclic.children[0]?.view.id).toBe("a");
+    expect(cyclic.children[0]?.children[0]?.view.id).toBe("b");
+    expect(cyclic.children[0]?.children[0]?.children[0]?.unavailable?.reason).toBe(
+      "already included"
+    );
+
+    const capped = await loadTraceTree(root, { fs, maxNodes: 2 });
+    expect(capped.children).toHaveLength(1);
+
+    const shallow = await loadTraceTree(
+      {
+        ...root,
+        children: [{ source: "claude", id: "a", path: "/a.jsonl" }]
+      },
+      { fs, maxDepth: 0 }
+    );
+    expect(shallow.children).toEqual([]);
   });
 });

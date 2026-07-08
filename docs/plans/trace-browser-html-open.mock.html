@@ -1,0 +1,2028 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>poe-code traces · HTML mock</title>
+  <style>
+    :root {
+      --bg: #0c0d10;
+      --surface: #13151a;
+      --surface-2: #181b22;
+      --ink: #e7e9ef;
+      --muted: #9aa1b2;
+      --faint: #6b7280;
+      --line: #262a33;
+      --line-2: #323846;
+      --accent: #b57bff;
+      --accent-soft: rgba(181, 123, 255, 0.12);
+      --ok: #3ecf8e;
+      --ok-soft: rgba(62, 207, 142, 0.12);
+      --warn: #e6b84d;
+      --warn-soft: rgba(230, 184, 77, 0.12);
+      --bad: #f07178;
+      --bad-soft: rgba(240, 113, 120, 0.12);
+      --info: #6aa8ff;
+      --claude: #b57bff;
+      --codex: #6aa8ff;
+      --pi: #e6b84d;
+      --poe: #3ecf8e;
+      --radius: 10px;
+      --radius-sm: 8px;
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --max: 820px;
+      --chrome-max: 1080px;
+      --pad: clamp(16px, 3vw, 24px);
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: var(--sans);
+      font-size: 14.5px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-underline-offset: 2px; }
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      border: 0;
+      background: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .skip { position: absolute; left: -9999px; }
+    .skip:focus {
+      left: max(12px, env(safe-area-inset-left));
+      top: max(12px, env(safe-area-inset-top));
+      z-index: 100;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: #12081c;
+      border-radius: 6px;
+      font-weight: 650;
+    }
+
+    /* Mock chrome */
+    .mock-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(12, 13, 16, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding-top: env(safe-area-inset-top);
+    }
+    .mock-chrome-inner {
+      width: min(100% - (var(--pad) * 2), var(--chrome-max));
+      margin: 0 auto;
+      padding: 12px 0 10px;
+    }
+    .mock-label {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 14px;
+      margin-bottom: 10px;
+    }
+    .mock-label strong {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 650;
+      color: var(--muted);
+    }
+    .mock-label span {
+      color: var(--faint);
+      font-size: 12.5px;
+    }
+    .mock-tabs-wrap {
+      position: relative;
+      margin: 0 calc(var(--pad) * -0.25);
+    }
+    .mock-tabs-wrap::before,
+    .mock-tabs-wrap::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 8px;
+      width: 20px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .mock-tabs-wrap::before {
+      left: 0;
+      background: linear-gradient(90deg, var(--bg), transparent);
+    }
+    .mock-tabs-wrap::after {
+      right: 0;
+      background: linear-gradient(270deg, var(--bg), transparent);
+    }
+    .mock-tabs {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      padding: 0 calc(var(--pad) * 0.25) 8px;
+      scrollbar-width: none;
+    }
+    .mock-tabs::-webkit-scrollbar { display: none; }
+    .mock-tab {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--faint);
+      font-size: 12px;
+      font-family: var(--mono);
+      transition: color 0.15s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
+    }
+    .mock-tab:hover {
+      color: var(--ink);
+      background: var(--surface);
+    }
+    .mock-tab[aria-selected="true"] {
+      color: var(--ink);
+      background: var(--surface-2);
+      border-color: var(--line-2);
+    }
+    .mock-note {
+      margin: 0;
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 1.4;
+      min-height: 1.4em;
+    }
+
+    /* Page */
+    .page {
+      width: min(100% - (var(--pad) * 2), var(--max));
+      margin: 0 auto;
+      padding: 28px 0 72px;
+      animation: page-in 0.2s var(--ease);
+    }
+    .page[hidden] { display: none; }
+    @keyframes page-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 12px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      color: var(--faint);
+    }
+    .brand em {
+      font-style: normal;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .file-hint {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--faint);
+      max-width: min(42ch, 100%);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .title {
+      margin: 0 0 10px;
+      font-size: clamp(1.35rem, 1.15rem + 1.1vw, 1.7rem);
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      font-weight: 650;
+      max-width: 28ch;
+      text-wrap: balance;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 2px;
+      margin: 0 0 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .meta-row > span:not(.badge):not(.chip):not(.sep) {
+      padding: 0 6px;
+    }
+    .meta-row > span.sep {
+      color: var(--line-2);
+      padding: 0 1px;
+      user-select: none;
+    }
+    .meta-row.secondary {
+      margin-top: 6px;
+      color: var(--faint);
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+    .path-row {
+      margin: 12px 0 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--faint);
+      word-break: break-all;
+      line-height: 1.45;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.35;
+      border: 1px solid transparent;
+    }
+    .badge-claude { color: var(--claude); background: var(--accent-soft); border-color: rgba(181,123,255,.22); }
+    .badge-codex { color: var(--codex); background: rgba(106,168,255,.12); border-color: rgba(106,168,255,.22); }
+    .badge-pi { color: var(--pi); background: var(--warn-soft); border-color: rgba(230,184,77,.22); }
+    .badge-poe-code { color: var(--poe); background: var(--ok-soft); border-color: rgba(62,207,142,.22); }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--line);
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+    .chip-warn { color: var(--warn); border-color: rgba(230,184,77,.28); background: var(--warn-soft); }
+    .chip-danger { color: var(--bad); border-color: rgba(240,113,120,.28); background: var(--bad-soft); }
+    .chip-ok { color: var(--ok); border-color: rgba(62,207,142,.28); background: var(--ok-soft); }
+
+    .section { margin-top: 28px; }
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      margin: 0;
+      font-size: 11px;
+      font-family: var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      font-weight: 600;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 14px 16px;
+    }
+
+    /* Gauge */
+    .gauge-block { display: grid; gap: 10px; }
+    .gauge-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 14px;
+    }
+    .gauge {
+      display: inline-flex;
+      flex: 1 1 160px;
+      min-width: min(100%, 160px);
+      max-width: 240px;
+    }
+    .gauge-frame {
+      display: block;
+      height: 8px;
+      width: 100%;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: inherit;
+      transition: width 0.35s var(--ease);
+    }
+    .tone-ok .gauge-fill { background: var(--ok); }
+    .tone-warn .gauge-fill { background: var(--warn); }
+    .tone-danger .gauge-fill { background: var(--bad); }
+    .gauge-stats {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .gauge-stats .pct { font-weight: 700; }
+    .tone-ok .pct { color: var(--ok); }
+    .tone-warn .pct { color: var(--warn); }
+    .tone-danger .pct { color: var(--bad); }
+    .gauge-source {
+      color: var(--faint);
+      font-size: 12px;
+      font-family: var(--mono);
+      margin-left: auto;
+    }
+
+    /* Breakdown */
+    .segbar {
+      display: flex;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+    .seg { height: 100%; min-width: 2px; }
+    .seg-system-prompt { background: var(--info); }
+    .seg-skills { background: var(--ok); }
+    .seg-mcp { background: var(--accent); }
+    .seg-system-reminders { background: var(--warn); }
+    .seg-tools { background: var(--bad); }
+    .seg-reasoning { background: #8b93a7; }
+    .seg-messages { background: #5ec8f0; }
+    .seg-other { background: #5c6578; }
+
+    .cat-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+    .cat {
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr) auto auto;
+      gap: 4px 10px;
+      align-items: baseline;
+      font-size: 13px;
+      padding: 5px 6px;
+      margin: 0 -6px;
+      border-radius: 6px;
+    }
+    .cat:hover { background: rgba(255,255,255,0.02); }
+    .cat-swatch {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-top: 5px;
+    }
+    .cat-name { color: var(--ink); }
+    .cat-tokens,
+    .cat-pct {
+      font-family: var(--mono);
+      font-size: 12px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .cat-tokens { color: var(--muted); }
+    .cat-pct { color: var(--faint); min-width: 3.5ch; }
+    .cat-items {
+      grid-column: 2 / -1;
+      margin: 0;
+      padding: 1px 0 4px 10px;
+      list-style: none;
+      display: grid;
+      gap: 2px;
+      border-left: 1px solid var(--line);
+    }
+    .cat-items li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .cat-items .more { color: var(--faint); font-style: italic; }
+    .footnote {
+      margin: 12px 0 0;
+      font-size: 12px;
+      color: var(--faint);
+      line-height: 1.45;
+    }
+    .empty-soft {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      text-align: center;
+      padding: 28px 12px;
+    }
+
+    /* Timeline / turns */
+    .timeline,
+    .turns {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .timeline > .turn,
+    .timeline > .spawn-block { min-width: 0; }
+
+    .spawn-block {
+      display: grid;
+      gap: 6px;
+      padding-left: 0;
+    }
+    .spawn-block > .node {
+      margin-left: 12px;
+      border-left: 2px solid var(--line-2);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .node-body .timeline { gap: 8px; }
+    .unanchored-label {
+      margin: 2px 0 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .turn {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      overflow: hidden;
+      border-left-width: 2px;
+    }
+    .turn[data-role="human"] { border-left-color: var(--accent); }
+    .turn[data-role="assistant"] { border-left-color: var(--ok); }
+    .turn[data-role="tool"] { border-left-color: var(--info); }
+    .turn[data-role="system"] { border-left-color: var(--warn); }
+
+    .turn-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px 10px;
+      padding: 10px 12px 0;
+    }
+    .turn-role {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .turn[data-role="human"] .turn-role { color: var(--accent); }
+    .turn[data-role="assistant"] .turn-role { color: var(--ok); }
+    .turn[data-role="tool"] .turn-role { color: var(--info); }
+    .turn[data-role="system"] .turn-role { color: var(--warn); }
+    .turn-time {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--faint);
+      font-variant-numeric: tabular-nums;
+    }
+    .turn-body {
+      padding: 6px 12px 12px;
+      font-size: 14px;
+    }
+    .turn-body pre {
+      margin: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .turn-body .md { color: var(--ink); }
+    .turn-body .md > :first-child { margin-top: 0; }
+    .turn-body .md > :last-child { margin-bottom: 0; }
+    .turn-body .md h2 {
+      margin: 0.7em 0 0.35em;
+      font-size: 1.02em;
+      letter-spacing: -0.02em;
+      font-weight: 650;
+    }
+    .turn-body .md p { margin: 0.4em 0; }
+    .turn-body .md ol,
+    .turn-body .md ul { margin: 0.4em 0; padding-left: 1.2em; }
+    .turn-body .md li + li { margin-top: 0.15em; }
+    .turn-body .md code {
+      font-family: var(--mono);
+      font-size: 0.9em;
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+    }
+    .turn-body .md pre {
+      margin: 0.6em 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      overflow-x: auto;
+      color: #d5dbe8;
+      -webkit-overflow-scrolling: touch;
+    }
+    .turn-body .md pre code {
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+
+    .turn.is-collapsed .turn-full { display: none; }
+    .turn:not(.is-collapsed) .turn-preview { display: none; }
+    .turn:not(.is-collapsed) .turn-full {
+      display: block;
+      max-height: min(320px, 50vh);
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    .turn-full pre {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+    }
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 8px;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--mono);
+      transition: color 0.15s var(--ease), border-color 0.15s var(--ease), background 0.15s var(--ease);
+    }
+    .toggle:hover {
+      color: var(--ink);
+      border-color: var(--line-2);
+      background: var(--surface-2);
+    }
+    .muted-tail { color: var(--faint); }
+
+    .redacted {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px dashed var(--line-2);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .redacted-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    /* Nested nodes */
+    .subagents { display: grid; gap: 8px; }
+    .node {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .node[data-depth="1"] { --node-accent: var(--accent); }
+    .node[data-depth="2"] { --node-accent: var(--info); }
+    .node[data-depth="3"] { --node-accent: var(--ok); }
+    .spawn-block > .node {
+      border-left-color: var(--node-accent, var(--line-2));
+    }
+
+    .node-summary {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) auto;
+      gap: 8px 10px;
+      align-items: center;
+      width: 100%;
+      padding: 11px 12px;
+      text-align: left;
+      transition: background 0.12s var(--ease);
+    }
+    .node-summary:hover { background: rgba(255,255,255,0.02); }
+    .chev {
+      width: 16px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1;
+      transition: transform 0.15s var(--ease), color 0.15s var(--ease);
+    }
+    .node.is-expanded > .node-summary .chev {
+      transform: rotate(90deg);
+      color: var(--muted);
+    }
+    .node-title-block { min-width: 0; }
+    .node-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 8px;
+      font-weight: 600;
+      font-size: 13.5px;
+      line-height: 1.35;
+    }
+    .node-title .name {
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+    .node-sub {
+      margin-top: 4px;
+      font-size: 11.5px;
+      color: var(--faint);
+      font-family: var(--mono);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .mini-gauge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+    .mini-gauge .gauge-frame {
+      width: 44px;
+      height: 6px;
+      flex: 0 0 auto;
+    }
+
+    .node-body {
+      display: none;
+      padding: 0 12px 12px;
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .node.is-expanded > .node-body {
+      display: block;
+      padding-top: 12px;
+    }
+    .node-body .section { margin-top: 16px; }
+    .node-body .section:first-child { margin-top: 0; }
+    .node-body .card { background: var(--surface); }
+
+    .node.unavailable { border-style: dashed; }
+    .node.unavailable .node-summary { cursor: default; }
+    .node.unavailable .node-summary:hover { background: transparent; }
+    .node.unavailable .name { color: var(--warn); }
+    .node.unavailable .chev {
+      transform: none;
+      color: var(--warn);
+    }
+
+    .footer {
+      margin-top: 32px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--faint);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      justify-content: space-between;
+    }
+
+    .term {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.65;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      color: #c5cbd8;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .term .ok { color: var(--ok); }
+    .term .err { color: var(--bad); }
+    .term .dim { color: var(--faint); }
+    .term .cmd { color: #d8bfff; }
+
+    img { display: none !important; }
+
+    @media (max-width: 720px) {
+      .title { max-width: none; }
+      .gauge-source { margin-left: 0; width: 100%; }
+      .node-summary { grid-template-columns: 18px minmax(0, 1fr); }
+      .node-summary > .chip {
+        grid-column: 2;
+        justify-self: start;
+      }
+      .spawn-block > .node { margin-left: 8px; }
+    }
+
+    @media (max-width: 560px) {
+      body { font-size: 14px; }
+      .cat {
+        grid-template-columns: 10px minmax(0, 1fr) auto;
+      }
+      .cat-pct { display: none; }
+      .cat-items li { grid-template-columns: minmax(0, 1fr) auto; }
+      .cat-items li span:last-child { display: none; }
+      .turn-body { font-size: 13.5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .page, .gauge-fill, .chev, .mock-tab {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @media print {
+      .mock-chrome { display: none !important; }
+      body { background: white; color: black; }
+      .page { width: 100%; padding: 0; animation: none; }
+      .card, .turn, .node, .term {
+        background: white;
+        border-color: #ccc;
+        break-inside: avoid;
+      }
+      .badge, .chip, .turn-role, .section-title, .brand, .footer {
+        color: #333 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#mock-content">Skip to mock</a>
+
+  <header class="mock-chrome" aria-label="Mock state switcher">
+    <div class="mock-chrome-inner">
+      <div class="mock-label">
+        <strong>HTML mock</strong>
+        <span>trace-browser-html-open · every state · nested collapsible subagents</span>
+      </div>
+      <div class="mock-tabs-wrap">
+        <div class="mock-tabs" role="tablist" aria-label="Mock states">
+          <button class="mock-tab" role="tab" id="tab-m1" aria-controls="page-m1" aria-selected="true" data-page="m1">M1 full</button>
+          <button class="mock-tab" role="tab" id="tab-m2" aria-controls="page-m2" aria-selected="false" data-page="m2">M2 high</button>
+          <button class="mock-tab" role="tab" id="tab-m3" aria-controls="page-m3" aria-selected="false" data-page="m3">M3 warn</button>
+          <button class="mock-tab" role="tab" id="tab-m4" aria-controls="page-m4" aria-selected="false" data-page="m4">M4 estimated</button>
+          <button class="mock-tab" role="tab" id="tab-m5" aria-controls="page-m5" aria-selected="false" data-page="m5">M5 empty</button>
+          <button class="mock-tab" role="tab" id="tab-m6" aria-controls="page-m6" aria-selected="false" data-page="m6">M6 no children</button>
+          <button class="mock-tab" role="tab" id="tab-m7" aria-controls="page-m7" aria-selected="false" data-page="m7">M7 redacted</button>
+          <button class="mock-tab" role="tab" id="tab-m8" aria-controls="page-m8" aria-selected="false" data-page="m8">M8 sparse</button>
+          <button class="mock-tab" role="tab" id="tab-m9" aria-controls="page-m9" aria-selected="false" data-page="m9">M9 turns</button>
+          <button class="mock-tab" role="tab" id="tab-m9b" aria-controls="page-m9b" aria-selected="false" data-page="m9b">M9b nested</button>
+          <button class="mock-tab" role="tab" id="tab-m10" aria-controls="page-m10" aria-selected="false" data-page="m10">M10 markdown</button>
+          <button class="mock-tab" role="tab" id="tab-m11" aria-controls="page-m11" aria-selected="false" data-page="m11">M11 roles</button>
+          <button class="mock-tab" role="tab" id="tab-m12" aria-controls="page-m12" aria-selected="false" data-page="m12">M12 overflow</button>
+          <button class="mock-tab" role="tab" id="tab-m13" aria-controls="page-m13" aria-selected="false" data-page="m13">M13 zero</button>
+          <button class="mock-tab" role="tab" id="tab-m14" aria-controls="page-m14" aria-selected="false" data-page="m14">M14 CLI ok</button>
+          <button class="mock-tab" role="tab" id="tab-m15" aria-controls="page-m15" aria-selected="false" data-page="m15">M15 CLI err</button>
+        </div>
+      </div>
+      <p class="mock-note" id="mock-desc">M1 — Full healthy detail: exact breakdown, mid gauge, subagents inline under Task spawns.</p>
+    </div>
+  </header>
+
+  <div id="mock-content">
+
+    <!-- ═══════════════ M1 Full ═══════════════ -->
+    <article class="page" id="page-m1" data-page="m1" role="tabpanel" aria-labelledby="tab-m1">
+      <header class="topbar">
+        <div class="brand">poe-code <em>traces</em></div>
+        <div class="file-hint">file:///tmp/poe-code-traces/trace-19b4c123.html</div>
+      </header>
+
+      <h1 class="title">Implement HTML open for the trace browser</h1>
+      <div class="meta-row">
+        <span class="badge badge-claude">claude</span>
+        <span>model: claude-sonnet-4.5</span>
+        <span>·</span>
+        <span>48 turns</span>
+        <span class="chip chip-ok">42%</span>
+      </div>
+      <div class="meta-row secondary">
+        <span>started 2026-07-01T12:00:00.000Z</span>
+        <span>·</span>
+        <span>updated 2026-07-01T13:10:00.000Z</span>
+      </div>
+      <p class="path-row">~/.claude/projects/-Users-kjopek-Workspace-poe-code/19b4c123-1005-4e94-87fe-07525d9f02e5.jsonl</p>
+
+      <section class="section" aria-labelledby="ctx-m1">
+        <div class="section-head"><h2 class="section-title" id="ctx-m1">Context</h2></div>
+        <div class="card gauge-block tone-ok">
+          <div class="gauge-row">
+            <div class="gauge" aria-hidden="true">
+              <div class="gauge-frame"><div class="gauge-fill" style="width:42%"></div></div>
+            </div>
+            <div class="gauge-stats">84.2k / 200k · <span class="pct">42%</span></div>
+            <div class="gauge-source">reported</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="bd-m1">
+        <div class="section-head">
+          <h2 class="section-title" id="bd-m1">Breakdown</h2>
+          <span class="chip">exact</span>
+        </div>
+        <div class="card">
+          <div class="segbar" aria-hidden="true">
+            <div class="seg seg-system-prompt" style="width:14%"></div>
+            <div class="seg seg-skills" style="width:34%"></div>
+            <div class="seg seg-mcp" style="width:5%"></div>
+            <div class="seg seg-system-reminders" style="width:1%"></div>
+            <div class="seg seg-tools" style="width:21%"></div>
+            <div class="seg seg-reasoning" style="width:7%"></div>
+            <div class="seg seg-messages" style="width:18%"></div>
+          </div>
+          <ul class="cat-list">
+            <li class="cat"><span class="cat-swatch" style="background:var(--info)"></span><span class="cat-name">System prompt</span><span class="cat-tokens">12.1k</span><span class="cat-pct">14%</span></li>
+            <li class="cat">
+              <span class="cat-swatch" style="background:var(--success)"></span><span class="cat-name">Skills</span><span class="cat-tokens">28.4k</span><span class="cat-pct">34%</span>
+              <ul class="cat-items">
+                <li><span>plan</span><span>9.2k</span><span>×2</span></li>
+                <li><span>experiment</span><span>7.1k</span><span>×1</span></li>
+                <li><span>safejs</span><span>4.8k</span><span>×1</span></li>
+                <li class="more">… 3 more</li>
+              </ul>
+            </li>
+            <li class="cat">
+              <span class="cat-swatch" style="background:var(--accent)"></span><span class="cat-name">MCP</span><span class="cat-tokens">4.0k</span><span class="cat-pct">5%</span>
+              <ul class="cat-items"><li><span>github</span><span>4.0k</span><span>×6</span></li></ul>
+            </li>
+            <li class="cat"><span class="cat-swatch" style="background:var(--warning)"></span><span class="cat-name">System reminders</span><span class="cat-tokens">1.2k</span><span class="cat-pct">1%</span></li>
+            <li class="cat">
+              <span class="cat-swatch" style="background:var(--danger)"></span><span class="cat-name">Tools</span><span class="cat-tokens">18.0k</span><span class="cat-pct">21%</span>
+              <ul class="cat-items">
+                <li><span>Bash</span><span>10.1k</span><span>×12</span></li>
+                <li><span>Read</span><span>5.2k</span><span>×8</span></li>
+                <li><span>Edit</span><span>2.7k</span><span>×4</span></li>
+              </ul>
+            </li>
+            <li class="cat"><span class="cat-swatch" style="background:#94a3b8"></span><span class="cat-name">Reasoning</span><span class="cat-tokens">6.0k</span><span class="cat-pct">7%</span></li>
+            <li class="cat"><span class="cat-swatch" style="background:#38bdf8"></span><span class="cat-name">Messages</span><span class="cat-tokens">14.5k</span><span class="cat-pct">17%</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="conv-m1">
+        <div class="section-head">
+          <h2 class="section-title" id="conv-m1">Conversation</h2>
+          <span class="chip">subagents inline at spawn</span>
+        </div>
+        <div class="timeline">
+          <div class="turn" data-role="human">
+            <div class="turn-head">
+              <span class="turn-role">› human</span>
+              <span class="turn-time">12:00:01</span>
+            </div>
+            <div class="turn-body"><pre>Implement the open action for the trace browser. Generate a self-contained HTML page and open it via the standard platform open.</pre></div>
+          </div>
+
+          <div class="turn" data-role="assistant">
+            <div class="turn-head">
+              <span class="turn-role">✦ assistant</span>
+              <span class="turn-time">12:00:08</span>
+            </div>
+            <div class="turn-body">
+              <div class="md">
+                <p>I'll inspect the existing viewer and add HTML open. Subagents nest <strong>in this timeline</strong> under each Task spawn.</p>
+                <h2>Plan</h2>
+                <ol>
+                  <li><code>renderTraceHtml</code></li>
+                  <li><code>loadTraceTree</code> + attach children to spawn turns</li>
+                  <li>open via <code>openExternal</code></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spawn 1: Explore (collapsed child inline) -->
+          <div class="spawn-block">
+            <div class="turn is-collapsed" data-role="tool">
+              <div class="turn-head">
+                <span class="turn-role">⚙ tool · Task · Explore</span>
+                <span class="turn-time">12:00:09</span>
+              </div>
+              <div class="turn-body">
+                <div class="turn-preview">
+                  <pre>description: find callers of openExternal
+subagent_type: Explore
+<span class="muted-tail">… +4 lines</span></pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                </div>
+                <div class="turn-full">
+                  <pre>description: find callers of openExternal
+subagent_type: Explore
+prompt: Find all callers of openExternal in the monorepo.</pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                </div>
+              </div>
+            </div>
+            <div class="node" data-depth="1">
+              <button type="button" class="node-summary" data-toggle="node" aria-expanded="false">
+                <span class="chev" aria-hidden="true">▸</span>
+                <span class="node-title-block">
+                  <span class="node-title">
+                    <span class="badge badge-claude">claude</span>
+                    <span class="name">Explore · find callers of openExternal</span>
+                  </span>
+                  <span class="node-sub">
+                    <span class="mini-gauge tone-ok"><span class="gauge-frame"><span class="gauge-fill" style="width:6%"></span></span>12.1k · 6%</span>
+                    <span>14 turns</span>
+                    <span>1 nested child</span>
+                  </span>
+                </span>
+                <span class="chip">Expand</span>
+              </button>
+              <div class="node-body">
+                <div class="meta-row"><span>agentType: Explore</span><span class="sep">·</span><span>model: claude-sonnet-4.5</span></div>
+                <section class="section">
+                  <div class="section-head"><h3 class="section-title">Context</h3></div>
+                  <div class="card gauge-block tone-ok">
+                    <div class="gauge-row">
+                      <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:6%"></div></div></div>
+                      <div class="gauge-stats">12.1k / 200k · <span class="pct">6%</span></div>
+                      <div class="gauge-source">reported · not added to parent</div>
+                    </div>
+                  </div>
+                </section>
+                <section class="section">
+                  <div class="section-head"><h3 class="section-title">Conversation</h3></div>
+                  <div class="timeline">
+                    <div class="turn" data-role="human">
+                      <div class="turn-head"><span class="turn-role">› human</span></div>
+                      <div class="turn-body"><pre>Find all callers of openExternal in the monorepo.</pre></div>
+                    </div>
+                    <div class="turn" data-role="assistant">
+                      <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+                      <div class="turn-body"><div class="md"><p>Searching with ripgrep across packages.</p></div></div>
+                    </div>
+                    <div class="spawn-block">
+                      <div class="turn is-collapsed" data-role="tool">
+                        <div class="turn-head"><span class="turn-role">⚙ tool · Task · Bash</span></div>
+                        <div class="turn-body">
+                          <div class="turn-preview">
+                            <pre>description: rg openExternal
+<span class="muted-tail">…</span></pre>
+                            <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                          </div>
+                          <div class="turn-full">
+                            <pre>description: rg openExternal
+subagent_type: Bash</pre>
+                            <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="node" data-depth="2">
+                        <button type="button" class="node-summary" data-toggle="node" aria-expanded="false">
+                          <span class="chev" aria-hidden="true">▸</span>
+                          <span class="node-title-block">
+                            <span class="node-title">
+                              <span class="badge badge-claude">claude</span>
+                              <span class="name">Bash · rg openExternal</span>
+                            </span>
+                            <span class="node-sub">
+                              <span class="mini-gauge tone-ok"><span class="gauge-frame"><span class="gauge-fill" style="width:1%"></span></span>2.1k · 1%</span>
+                              <span>3 turns</span>
+                            </span>
+                          </span>
+                          <span class="chip">Expand</span>
+                        </button>
+                        <div class="node-body">
+                          <div class="timeline">
+                            <div class="turn" data-role="tool">
+                              <div class="turn-head"><span class="turn-role">⚙ tool · Bash</span></div>
+                              <div class="turn-body"><pre>$ rg -n openExternal packages --glob '!**/dist/**'</pre></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spawn 2: Plan (expanded to show nested inline) -->
+          <div class="spawn-block">
+            <div class="turn is-collapsed" data-role="tool">
+              <div class="turn-head">
+                <span class="turn-role">⚙ tool · Task · Plan</span>
+                <span class="turn-time">12:00:12</span>
+              </div>
+              <div class="turn-body">
+                <div class="turn-preview">
+                  <pre>description: draft HTML open approach
+subagent_type: Plan
+<span class="muted-tail">… +3 lines</span></pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                </div>
+                <div class="turn-full">
+                  <pre>description: draft HTML open approach
+subagent_type: Plan
+prompt: Draft the page structure for nested collapsible subagents.</pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                </div>
+              </div>
+            </div>
+            <div class="node is-expanded" data-depth="1">
+              <button type="button" class="node-summary" data-toggle="node" aria-expanded="true">
+                <span class="chev" aria-hidden="true">▸</span>
+                <span class="node-title-block">
+                  <span class="node-title">
+                    <span class="badge badge-claude">claude</span>
+                    <span class="name">Plan · draft HTML open approach</span>
+                  </span>
+                  <span class="node-sub">
+                    <span class="mini-gauge tone-ok"><span class="gauge-frame"><span class="gauge-fill" style="width:20%"></span></span>40.0k · 20%</span>
+                    <span>9 turns</span>
+                    <span>1 nested child</span>
+                  </span>
+                </span>
+                <span class="chip">Collapse</span>
+              </button>
+              <div class="node-body">
+                <div class="meta-row">
+                  <span class="badge badge-claude">claude</span>
+                  <span>model: claude-sonnet-4.5</span>
+                  <span class="sep">·</span>
+                  <span>9 turns</span>
+                </div>
+                <section class="section">
+                  <div class="section-head"><h3 class="section-title">Context</h3></div>
+                  <div class="card gauge-block tone-ok">
+                    <div class="gauge-row">
+                      <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:20%"></div></div></div>
+                      <div class="gauge-stats">40.0k / 200k · <span class="pct">20%</span></div>
+                      <div class="gauge-source">reported · not added to parent</div>
+                    </div>
+                  </div>
+                </section>
+                <section class="section">
+                  <div class="section-head"><h3 class="section-title">Breakdown</h3><span class="chip">exact</span></div>
+                  <div class="card">
+                    <div class="segbar" aria-hidden="true">
+                      <div class="seg seg-messages" style="width:55%"></div>
+                      <div class="seg seg-tools" style="width:30%"></div>
+                      <div class="seg seg-reasoning" style="width:15%"></div>
+                    </div>
+                    <ul class="cat-list">
+                      <li class="cat"><span class="cat-swatch" style="background:#38bdf8"></span><span class="cat-name">Messages</span><span class="cat-tokens">22.0k</span><span class="cat-pct">55%</span></li>
+                      <li class="cat"><span class="cat-swatch" style="background:var(--danger)"></span><span class="cat-name">Tools</span><span class="cat-tokens">12.0k</span><span class="cat-pct">30%</span></li>
+                      <li class="cat"><span class="cat-swatch" style="background:#94a3b8"></span><span class="cat-name">Reasoning</span><span class="cat-tokens">6.0k</span><span class="cat-pct">15%</span></li>
+                    </ul>
+                  </div>
+                </section>
+                <section class="section">
+                  <div class="section-head"><h3 class="section-title">Conversation</h3></div>
+                  <div class="timeline">
+                    <div class="turn" data-role="human">
+                      <div class="turn-head"><span class="turn-role">› human</span></div>
+                      <div class="turn-body"><pre>Draft the page structure for nested collapsible subagents on one HTML document.</pre></div>
+                    </div>
+                    <div class="turn" data-role="assistant">
+                      <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+                      <div class="turn-body"><div class="md"><p>Each child panel sits under its <code>Task</code>/<code>Agent</code> spawn turn in the parent timeline — not a trailing section.</p></div></div>
+                    </div>
+                    <div class="spawn-block">
+                      <div class="turn is-collapsed" data-role="tool">
+                        <div class="turn-head"><span class="turn-role">⚙ tool · Task · Bash</span></div>
+                        <div class="turn-body">
+                          <div class="turn-preview">
+                            <pre>description: run unit tests
+<span class="muted-tail">…</span></pre>
+                            <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                          </div>
+                          <div class="turn-full">
+                            <pre>description: run unit tests
+subagent_type: Bash</pre>
+                            <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="node" data-depth="2">
+                        <button type="button" class="node-summary" data-toggle="node" aria-expanded="false">
+                          <span class="chev" aria-hidden="true">▸</span>
+                          <span class="node-title-block">
+                            <span class="node-title">
+                              <span class="badge badge-claude">claude</span>
+                              <span class="name">Bash · run unit tests</span>
+                            </span>
+                            <span class="node-sub">
+                              <span class="mini-gauge tone-ok"><span class="gauge-frame"><span class="gauge-fill" style="width:1%"></span></span>2.1k · 1%</span>
+                              <span>3 turns</span>
+                            </span>
+                          </span>
+                          <span class="chip">Expand</span>
+                        </button>
+                        <div class="node-body">
+                          <div class="timeline">
+                            <div class="turn" data-role="tool">
+                              <div class="turn-head"><span class="turn-role">⚙ tool · Bash</span></div>
+                              <div class="turn-body"><pre>$ npm test -- packages/agent-trace-viewer
+ ✓ render-html.test.ts
+ ✓ open-html.test.ts</pre></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="turn is-collapsed" data-role="tool">
+                      <div class="turn-head"><span class="turn-role">⚙ tool · Read</span></div>
+                      <div class="turn-body">
+                        <div class="turn-preview">
+                          <pre>path: packages/agent-trace-viewer/src/run.ts
+<span class="muted-tail">… +40 lines</span></pre>
+                          <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                        </div>
+                        <div class="turn-full">
+                          <pre>path: packages/agent-trace-viewer/src/run.ts
+export async function runTraceViewer(options) {
+  // full file body in real export
+}</pre>
+                          <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <div class="turn is-collapsed" data-role="tool">
+            <div class="turn-head">
+              <span class="turn-role">⚙ tool · Bash</span>
+              <span class="turn-time">12:00:20</span>
+            </div>
+            <div class="turn-body">
+              <div class="turn-preview">
+                <pre>$ rg -n open packages/agent-trace-viewer
+packages/agent-trace-viewer/src/run.ts:175: id: "open",
+<span class="muted-tail">… +24 lines</span></pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+              </div>
+              <div class="turn-full">
+                <pre>$ rg -n open packages/agent-trace-viewer
+packages/agent-trace-viewer/src/run.ts:175: id: "open",
+packages/agent-trace-viewer/src/run.ts:183: ctx.openModal({ title: ctx.row.title, content: cached });
+exit 0</pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spawn 3: Bash smoke -->
+          <div class="spawn-block">
+            <div class="turn is-collapsed" data-role="tool">
+              <div class="turn-head">
+                <span class="turn-role">⚙ tool · Task · Bash</span>
+                <span class="turn-time">12:00:22</span>
+              </div>
+              <div class="turn-body">
+                <div class="turn-preview">
+                  <pre>description: smoke the open path
+<span class="muted-tail">…</span></pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                </div>
+                <div class="turn-full">
+                  <pre>description: smoke the open path
+subagent_type: Bash</pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                </div>
+              </div>
+            </div>
+            <div class="node" data-depth="1">
+              <button type="button" class="node-summary" data-toggle="node" aria-expanded="false">
+                <span class="chev" aria-hidden="true">▸</span>
+                <span class="node-title-block">
+                  <span class="node-title">
+                    <span class="badge badge-claude">claude</span>
+                    <span class="name">Bash · smoke the open path</span>
+                  </span>
+                  <span class="node-sub">
+                    <span class="mini-gauge tone-ok"><span class="gauge-frame"><span class="gauge-fill" style="width:1%"></span></span>2.1k · 1%</span>
+                    <span>3 turns</span>
+                  </span>
+                </span>
+                <span class="chip">Expand</span>
+              </button>
+              <div class="node-body">
+                <div class="timeline">
+                  <div class="turn" data-role="human">
+                    <div class="turn-head"><span class="turn-role">› human</span></div>
+                    <div class="turn-body"><pre>Open a sample HTML file with the platform launcher.</pre></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="turn is-collapsed" data-role="system">
+            <div class="turn-head">
+              <span class="turn-role">⚠ system · reminder</span>
+              <span class="turn-time">12:00:23</span>
+            </div>
+            <div class="turn-body">
+              <div class="turn-preview">
+                <pre>Keep going until the feature works. Subagents stay in the conversation timeline.
+<span class="muted-tail">… +2 lines</span></pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+              </div>
+              <div class="turn-full">
+                <pre>Keep going until the feature works. Subagents stay in the conversation timeline.
+Do not stop with only a plan.
+Verify with real browser open.</pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>generated by poe-code traces · 2026-07-08T18:00:00.000Z</span>
+        <span>source claude · id 19b4c123-1005-4e94-87fe-07525d9f02e5</span>
+      </footer>
+    </article>
+
+    <!-- ═══════════════ M2 High ═══════════════ -->
+    <article class="page" id="page-m2" data-page="m2" role="tabpanel" aria-labelledby="tab-m2" hidden>
+      <header class="topbar">
+        <div class="brand">poe-code <em>traces</em></div>
+        <div class="file-hint">file:///tmp/poe-code-traces/trace-high.html</div>
+      </header>
+      <h1 class="title">Long-running session near context limit</h1>
+      <div class="meta-row">
+        <span class="badge badge-claude">claude</span>
+        <span>model: claude-opus-4</span>
+        <span>·</span>
+        <span>210 turns</span>
+        <span class="chip chip-danger">high</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Context</h2></div>
+        <div class="card gauge-block tone-danger">
+          <div class="gauge-row">
+            <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:95%"></div></div></div>
+            <div class="gauge-stats">190k / 200k · <span class="pct">95%</span></div>
+            <div class="gauge-source">reported</div>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body"><div class="md"><p>Context is nearly full — mock shows danger gauge band (≥85%).</p></div></div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M2 · high context pressure</span></footer>
+    </article>
+
+    <!-- ═══════════════ M3 Warn ═══════════════ -->
+    <article class="page" id="page-m3" data-page="m3" role="tabpanel" aria-labelledby="tab-m3" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Mid-session warning band</h1>
+      <div class="meta-row">
+        <span class="badge badge-codex">codex</span>
+        <span>model: gpt-5.4</span>
+        <span>·</span>
+        <span>64 turns</span>
+        <span class="chip chip-warn">70%</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Context</h2></div>
+        <div class="card gauge-block tone-warn">
+          <div class="gauge-row">
+            <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:70%"></div></div></div>
+            <div class="gauge-stats">140k / 200k · <span class="pct">70%</span></div>
+            <div class="gauge-source">reported</div>
+          </div>
+        </div>
+      </section>
+      <footer class="footer"><span>M3 · warning band 60–84%</span></footer>
+    </article>
+
+    <!-- ═══════════════ M4 Estimated ═══════════════ -->
+    <article class="page" id="page-m4" data-page="m4" role="tabpanel" aria-labelledby="tab-m4" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">No reported usage · estimated snapshot</h1>
+      <div class="meta-row">
+        <span class="badge badge-pi">pi</span>
+        <span>22 turns</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Context</h2></div>
+        <div class="card gauge-block tone-ok">
+          <div class="gauge-row">
+            <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:31%"></div></div></div>
+            <div class="gauge-stats">62.0k / 200k · <span class="pct">31%</span></div>
+            <div class="gauge-source">estimated</div>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Breakdown</h2>
+          <span class="chip chip-warn">estimated</span>
+        </div>
+        <div class="card">
+          <div class="segbar" aria-hidden="true">
+            <div class="seg seg-messages" style="width:40%"></div>
+            <div class="seg seg-tools" style="width:35%"></div>
+            <div class="seg seg-skills" style="width:25%"></div>
+          </div>
+          <ul class="cat-list">
+            <li class="cat"><span class="cat-swatch" style="background:#38bdf8"></span><span class="cat-name">Messages</span><span class="cat-tokens">24.8k</span><span class="cat-pct">40%</span></li>
+            <li class="cat"><span class="cat-swatch" style="background:var(--danger)"></span><span class="cat-name">Tools</span><span class="cat-tokens">21.7k</span><span class="cat-pct">35%</span></li>
+            <li class="cat"><span class="cat-swatch" style="background:var(--success)"></span><span class="cat-name">Skills</span><span class="cat-tokens">15.5k</span><span class="cat-pct">25%</span></li>
+          </ul>
+          <p class="footnote">Token counts are estimated from character length. Exact tokens may differ.</p>
+        </div>
+      </section>
+      <footer class="footer"><span>M4 · estimated breakdown chip</span></footer>
+    </article>
+
+    <!-- ═══════════════ M5 Empty conversation ═══════════════ -->
+    <article class="page" id="page-m5" data-page="m5" role="tabpanel" aria-labelledby="tab-m5" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">session-empty-001</h1>
+      <div class="meta-row">
+        <span class="badge badge-codex">codex</span>
+        <span>0 turns</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Context</h2></div>
+        <div class="card gauge-block tone-ok">
+          <div class="gauge-row">
+            <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:0%"></div></div></div>
+            <div class="gauge-stats">0 / 200k · <span class="pct">0%</span></div>
+            <div class="gauge-source">estimated</div>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <div class="card"><p class="empty-soft">No turns recorded in this trace.</p></div>
+      </section>
+      <footer class="footer"><span>M5 · empty conversation · no inline child panels</span></footer>
+    </article>
+
+    <!-- ═══════════════ M6 No children ═══════════════ -->
+    <article class="page" id="page-m6" data-page="m6" role="tabpanel" aria-labelledby="tab-m6" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Simple single-agent session</h1>
+      <div class="meta-row">
+        <span class="badge badge-claude">claude</span>
+        <span>model: claude-haiku-4.5</span>
+        <span>·</span>
+        <span>6 turns</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="human">
+            <div class="turn-head"><span class="turn-role">› human</span></div>
+            <div class="turn-body"><pre>What time is it in UTC?</pre></div>
+          </li>
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body"><div class="md"><p>I don't have a live clock tool in this mock — and with no spawn turns there are no inline child panels.</p></div></div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M6 · conversation only · no spawn-anchored children</span></footer>
+    </article>
+
+    <!-- ═══════════════ M7 Redacted ═══════════════ -->
+    <article class="page" id="page-m7" data-page="m7" role="tabpanel" aria-labelledby="tab-m7" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">spawn · review-pr</h1>
+      <div class="meta-row">
+        <span class="badge badge-poe-code">poe-code</span>
+        <span>model: Claude-Sonnet-4.5</span>
+        <span>·</span>
+        <span>48 turns</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Breakdown</h2><span class="chip">exact</span></div>
+        <div class="card">
+          <div class="segbar" aria-hidden="true">
+            <div class="seg seg-tools" style="width:50%"></div>
+            <div class="seg seg-messages" style="width:50%"></div>
+          </div>
+          <ul class="cat-list">
+            <li class="cat">
+              <span class="cat-swatch" style="background:var(--danger)"></span>
+              <span class="cat-name">Tools</span>
+              <span class="cat-tokens">~0</span>
+              <span class="cat-pct">—</span>
+              <ul class="cat-items"><li><span>Spawn</span><span>~0</span><span>×12</span></li><li><span>Read</span><span>~0</span><span>×20</span></li></ul>
+            </li>
+            <li class="cat"><span class="cat-swatch" style="background:#38bdf8"></span><span class="cat-name">Messages</span><span class="cat-tokens">~0</span><span class="cat-pct">—</span></li>
+          </ul>
+          <p class="footnote">poe-code traces redact content; call counts remain, token bodies are near zero.</p>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="human">
+            <div class="turn-head"><span class="turn-role">› human</span></div>
+            <div class="turn-body">
+              <div class="redacted"><span class="redacted-icon" aria-hidden="true">⊘</span><span>Content redacted in poe-code traces.</span></div>
+            </div>
+          </li>
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body">
+              <div class="redacted"><span class="redacted-icon" aria-hidden="true">⊘</span><span>Content redacted in poe-code traces.</span></div>
+            </div>
+          </li>
+          <li class="turn" data-role="tool">
+            <div class="turn-head"><span class="turn-role">⚙ tool · Spawn</span></div>
+            <div class="turn-body">
+              <div class="redacted"><span class="redacted-icon" aria-hidden="true">⊘</span><span>Content redacted in poe-code traces. · toolName still shown</span></div>
+            </div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M7 · redacted poe-code placeholders</span></footer>
+    </article>
+
+    <!-- ═══════════════ M8 Sparse fields ═══════════════ -->
+    <article class="page" id="page-m8" data-page="m8" role="tabpanel" aria-labelledby="tab-m8" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">session-deadbeef</h1>
+      <div class="meta-row">
+        <span class="badge badge-codex">codex</span>
+        <span>12 turns</span>
+      </div>
+      <div class="meta-row secondary">
+        <span>updated 2026-07-02T09:00:00.000Z</span>
+      </div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body"><div class="md"><p>No model row · no started row · no path row · no cwd — optional fields omitted, not shown as “unknown”.</p></div></div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M8 · sparse metadata</span></footer>
+    </article>
+
+    <!-- ═══════════════ M9 Turn collapse ═══════════════ -->
+    <article class="page" id="page-m9" data-page="m9" role="tabpanel" aria-labelledby="tab-m9" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Tool / system collapse defaults</h1>
+      <div class="meta-row"><span class="badge badge-claude">claude</span><span>4 turns</span></div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="human">
+            <div class="turn-head"><span class="turn-role">› human</span></div>
+            <div class="turn-body"><pre>Human and assistant stay expanded.</pre></div>
+          </li>
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body"><div class="md"><p>Tool and system turns collapse by default.</p></div></div>
+          </li>
+          <li class="turn is-collapsed" data-role="tool">
+            <div class="turn-head"><span class="turn-role">⚙ tool · Read</span></div>
+            <div class="turn-body">
+              <div class="turn-preview">
+                <pre>path: packages/agent-trace-viewer/src/run.ts
+<span class="muted-tail">… +40 lines</span></pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+              </div>
+              <div class="turn-full">
+                <pre>path: packages/agent-trace-viewer/src/run.ts
+
+import path from "node:path";
+import { runExplorer } from "toolcraft-design";
+// … full body …</pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+              </div>
+            </div>
+          </li>
+          <li class="turn is-collapsed" data-role="system">
+            <div class="turn-head"><span class="turn-role">⚠ system · reminder</span></div>
+            <div class="turn-body">
+              <div class="turn-preview">
+                <pre>Collapsed system reminder preview.
+<span class="muted-tail">… +5 lines</span></pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+              </div>
+              <div class="turn-full">
+                <pre>Collapsed system reminder preview.
+Line 2
+Line 3
+Line 4
+Line 5
+Line 6</pre>
+                <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M9 · click Expand on tool/system turns</span></footer>
+    </article>
+
+    <!-- ═══════════════ M9b Nested focus ═══════════════ -->
+    <article class="page" id="page-m9b" data-page="m9b" role="tabpanel" aria-labelledby="tab-m9b" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Nested subagents · inline at spawn</h1>
+      <div class="meta-row">
+        <span class="badge badge-claude">claude</span>
+        <span>parent timeline · depth demo</span>
+      </div>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Conversation</h2>
+          <span class="chip">spawn-anchored</span>
+        </div>
+        <div class="timeline">
+          <div class="turn" data-role="human">
+            <div class="turn-head"><span class="turn-role">› human</span></div>
+            <div class="turn-body"><pre>Root conversation stays readable; children start collapsed under their Task turns.</pre></div>
+          </div>
+
+          <div class="spawn-block">
+            <div class="turn is-collapsed" data-role="tool">
+              <div class="turn-head"><span class="turn-role">⚙ tool · Task · Parent child</span></div>
+              <div class="turn-body">
+                <div class="turn-preview">
+                  <pre>description: parent child work
+<span class="muted-tail">…</span></pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                </div>
+                <div class="turn-full">
+                  <pre>description: parent child work
+subagent_type: Explore</pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                </div>
+              </div>
+            </div>
+            <div class="node" data-depth="1">
+              <button type="button" class="node-summary" data-toggle="node" aria-expanded="false">
+                <span class="chev" aria-hidden="true">▸</span>
+                <span class="node-title-block">
+                  <span class="node-title"><span class="badge badge-claude">claude</span><span class="name">Parent child</span></span>
+                  <span class="node-sub"><span>8 turns</span><span>1 nested child</span></span>
+                </span>
+                <span class="chip">Expand</span>
+              </button>
+              <div class="node-body">
+                <div class="timeline">
+                  <div class="turn" data-role="assistant">
+                    <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+                    <div class="turn-body"><div class="md"><p>Depth-1 panel expanded. Nested spawn is again inline below its Task turn.</p></div></div>
+                  </div>
+                  <div class="spawn-block">
+                    <div class="turn is-collapsed" data-role="tool">
+                      <div class="turn-head"><span class="turn-role">⚙ tool · Task · Nested grandchild</span></div>
+                      <div class="turn-body">
+                        <div class="turn-preview">
+                          <pre>description: nested grandchild
+<span class="muted-tail">…</span></pre>
+                          <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                        </div>
+                        <div class="turn-full">
+                          <pre>description: nested grandchild</pre>
+                          <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="node is-expanded" data-depth="2">
+                      <button type="button" class="node-summary" data-toggle="node" aria-expanded="true">
+                        <span class="chev" aria-hidden="true">▸</span>
+                        <span class="node-title-block">
+                          <span class="node-title"><span class="badge badge-claude">claude</span><span class="name">Nested grandchild</span></span>
+                          <span class="node-sub"><span>4 turns</span><span>1 nested child</span></span>
+                        </span>
+                        <span class="chip">Collapse</span>
+                      </button>
+                      <div class="node-body">
+                        <div class="timeline">
+                          <div class="turn" data-role="human">
+                            <div class="turn-head"><span class="turn-role">› human</span></div>
+                            <div class="turn-body"><pre>Grandchild body on the same document.</pre></div>
+                          </div>
+                          <div class="spawn-block">
+                            <div class="turn is-collapsed" data-role="tool">
+                              <div class="turn-head"><span class="turn-role">⚙ tool · Task · Great-grandchild</span></div>
+                              <div class="turn-body">
+                                <div class="turn-preview">
+                                  <pre>description: great-grandchild
+<span class="muted-tail">…</span></pre>
+                                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                                </div>
+                                <div class="turn-full">
+                                  <pre>description: great-grandchild</pre>
+                                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="node" data-depth="3">
+                              <button type="button" class="node-summary" data-toggle="node" aria-expanded="false">
+                                <span class="chev" aria-hidden="true">▸</span>
+                                <span class="node-title-block">
+                                  <span class="node-title"><span class="badge badge-claude">claude</span><span class="name">Great-grandchild</span></span>
+                                  <span class="node-sub"><span>2 turns</span></span>
+                                </span>
+                                <span class="chip">Expand</span>
+                              </button>
+                              <div class="node-body">
+                                <div class="timeline">
+                                  <div class="turn" data-role="assistant">
+                                    <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+                                    <div class="turn-body"><div class="md"><p>Depth 3 panel, still in the same HTML document.</p></div></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spawn-block">
+            <div class="turn is-collapsed" data-role="tool">
+              <div class="turn-head"><span class="turn-role">⚙ tool · Task · agent-orphan</span></div>
+              <div class="turn-body">
+                <div class="turn-preview">
+                  <pre>description: missing child file
+<span class="muted-tail">…</span></pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="false">Expand</button>
+                </div>
+                <div class="turn-full">
+                  <pre>description: missing child file
+subagent_type: Explore</pre>
+                  <button type="button" class="toggle" data-toggle="turn" aria-expanded="true">Collapse</button>
+                </div>
+              </div>
+            </div>
+            <div class="node unavailable" data-depth="1">
+              <div class="node-summary">
+                <span class="chev" aria-hidden="true">⚠</span>
+                <span class="node-title-block">
+                  <span class="node-title"><span class="name">unavailable · agent-orphan</span></span>
+                  <span class="node-sub"><span>child file missing or unreadable</span></span>
+                </span>
+                <span class="chip chip-warn">skipped</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer class="footer"><span>M9b · expand depth-1 Task to see nested depth-2/3 inline · unavailable after its spawn</span></footer>
+    </article>
+
+    <!-- ═══════════════ M10 Markdown ═══════════════ -->
+    <article class="page" id="page-m10" data-page="m10" role="tabpanel" aria-labelledby="tab-m10" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Long assistant markdown</h1>
+      <div class="meta-row"><span class="badge badge-claude">claude</span><span>2 turns</span></div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body">
+              <div class="md">
+                <h2>Design notes</h2>
+                <p>Assistant turns render markdown: headings, lists, fenced code, inline <code>code</code>.</p>
+                <ul>
+                  <li>No remote images loaded (<code>img { display: none }</code>)</li>
+                  <li>Links stay as text + href when present</li>
+                  <li>Highlighting only if available offline</li>
+                </ul>
+                <pre><code>export function renderTraceHtml(tree: TraceTreeNode): string {
+  return renderDocument(buildTraceHtmlModel(tree));
+}</code></pre>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M10 · assistant markdown</span></footer>
+    </article>
+
+    <!-- ═══════════════ M11 Roles ═══════════════ -->
+    <article class="page" id="page-m11" data-page="m11" role="tabpanel" aria-labelledby="tab-m11" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Role gallery</h1>
+      <div class="meta-row"><span class="badge badge-claude">claude</span><span>4 turns</span></div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Conversation</h2></div>
+        <ol class="turns">
+          <li class="turn" data-role="human">
+            <div class="turn-head"><span class="turn-role">› human</span></div>
+            <div class="turn-body"><pre>Accent left border · human label</pre></div>
+          </li>
+          <li class="turn" data-role="assistant">
+            <div class="turn-head"><span class="turn-role">✦ assistant</span></div>
+            <div class="turn-body"><div class="md"><p>Success left border · markdown body</p></div></div>
+          </li>
+          <li class="turn" data-role="tool">
+            <div class="turn-head"><span class="turn-role">⚙ tool · Edit</span></div>
+            <div class="turn-body"><pre>Info left border · mono body · toolName chip</pre></div>
+          </li>
+          <li class="turn" data-role="system">
+            <div class="turn-head"><span class="turn-role">⚠ system · base_instructions</span></div>
+            <div class="turn-body"><pre>Warning left border · muted body · sourceKind chip</pre></div>
+          </li>
+        </ol>
+      </section>
+      <footer class="footer"><span>M11 · four roles must be visually distinct</span></footer>
+    </article>
+
+    <!-- ═══════════════ M12 Overflow ═══════════════ -->
+    <article class="page" id="page-m12" data-page="m12" role="tabpanel" aria-labelledby="tab-m12" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Breakdown item overflow</h1>
+      <div class="meta-row"><span class="badge badge-claude">claude</span><span>30 turns</span></div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Breakdown</h2><span class="chip">exact</span></div>
+        <div class="card">
+          <ul class="cat-list">
+            <li class="cat">
+              <span class="cat-swatch" style="background:var(--success)"></span>
+              <span class="cat-name">Skills</span>
+              <span class="cat-tokens">48.0k</span>
+              <span class="cat-pct">40%</span>
+              <ul class="cat-items">
+                <li><span>plan</span><span>9.2k</span><span>×2</span></li>
+                <li><span>experiment</span><span>7.1k</span><span>×1</span></li>
+                <li><span>safejs</span><span>6.0k</span><span>×1</span></li>
+                <li><span>superintendent</span><span>5.4k</span><span>×1</span></li>
+                <li><span>pipeline</span><span>5.1k</span><span>×1</span></li>
+                <li class="more">… 4 more</li>
+              </ul>
+            </li>
+          </ul>
+          <p class="footnote">Top 5 items + remainder count — matches terminal renderBreakdown.</p>
+        </div>
+      </section>
+      <footer class="footer"><span>M12 · skills/MCP/tools overflow</span></footer>
+    </article>
+
+    <!-- ═══════════════ M13 Zero ═══════════════ -->
+    <article class="page" id="page-m13" data-page="m13" role="tabpanel" aria-labelledby="tab-m13" hidden>
+      <header class="topbar"><div class="brand">poe-code <em>traces</em></div></header>
+      <h1 class="title">Zero measured tokens</h1>
+      <div class="meta-row"><span class="badge badge-pi">pi</span><span>1 turn</span></div>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Context</h2></div>
+        <div class="card gauge-block tone-ok">
+          <div class="gauge-row">
+            <div class="gauge"><div class="gauge-frame"><div class="gauge-fill" style="width:0%"></div></div></div>
+            <div class="gauge-stats">0 / 200k · <span class="pct">0%</span></div>
+            <div class="gauge-source">estimated</div>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Breakdown</h2></div>
+        <div class="card"><p class="empty-soft">No context tokens measured</p></div>
+      </section>
+      <footer class="footer"><span>M13 · empty breakdown</span></footer>
+    </article>
+
+    <!-- ═══════════════ M14 CLI success ═══════════════ -->
+    <article class="page" id="page-m14" data-page="m14" role="tabpanel" aria-labelledby="tab-m14" hidden>
+      <header class="topbar"><div class="brand">terminal <em>side</em> · not HTML UI</div></header>
+      <h1 class="title">Write / open success signals</h1>
+      <div class="term"><span class="dim">$</span> <span class="cmd">poe-code traces ./session.jsonl --open</span>
+<span class="ok">Opened</span> /var/folders/…/poe-code-traces/trace-abc.html
+
+<span class="dim">$</span> <span class="cmd">poe-code traces ./session.jsonl --html-out ./trace.html</span>
+<span class="ok">Wrote</span> ./trace.html
+
+<span class="dim">explorer toast</span>
+<span class="ok">Opened in browser</span></div>
+      <footer class="footer"><span>M14 · CLI / explorer success copy</span></footer>
+    </article>
+
+    <!-- ═══════════════ M15 CLI errors ═══════════════ -->
+    <article class="page" id="page-m15" data-page="m15" role="tabpanel" aria-labelledby="tab-m15" hidden>
+      <header class="topbar"><div class="brand">terminal <em>side</em> · not HTML UI</div></header>
+      <h1 class="title">Failure signals</h1>
+      <div class="term"><span class="dim">$</span> <span class="cmd">poe-code traces ./session.jsonl --open</span>
+<span class="ok">Wrote</span> /tmp/…/trace-abc.html
+<span class="err">Error:</span> Browser launcher exited with code 1
+
+<span class="dim">$</span> <span class="cmd">poe-code traces --open</span>
+<span class="err">Error:</span> --open requires a trace path.
+
+<span class="dim">$</span> <span class="cmd">poe-code traces ./session.jsonl --open --json</span>
+<span class="err">Error:</span> --open cannot be used with --json.</div>
+      <footer class="footer"><span>M15 · validation + launcher failure</span></footer>
+    </article>
+
+  </div>
+
+  <script>
+    (function () {
+      var descriptions = {
+        m1: "M1 — Full healthy detail: exact breakdown, mid gauge, subagents inline under Task spawns.",
+        m2: "M2 — High context pressure (≥85%): danger gauge tone + high chip.",
+        m3: "M3 — Warning context pressure (60–84%): amber gauge.",
+        m4: "M4 — Estimated breakdown snapshot with footnote.",
+        m5: "M5 — Empty conversation card; no inline child panels.",
+        m6: "M6 — No spawn children: conversation turns only.",
+        m7: "M7 — Redacted poe-code placeholders with tool names retained.",
+        m8: "M8 — Sparse metadata: omit missing optional fields.",
+        m9: "M9 — Tool/system collapsed by default; Expand reveals full body.",
+        m9b: "M9b — Nested collapsible subagents inline at each spawn + unavailable row after its Task.",
+        m10: "M10 — Assistant markdown rendering (no remote images).",
+        m11: "M11 — Four roles visually distinct.",
+        m12: "M12 — Breakdown top-5 items + remainder count.",
+        m13: "M13 — Zero tokens / empty breakdown.",
+        m14: "M14 — Terminal success copy for --open / --html-out / toast.",
+        m15: "M15 — Terminal failure copy for validation and launcher errors."
+      };
+
+      var tabs = Array.prototype.slice.call(document.querySelectorAll(".mock-tab"));
+      var pages = Array.prototype.slice.call(document.querySelectorAll(".page"));
+      var desc = document.getElementById("mock-desc");
+
+      function show(id, opts) {
+        var options = opts || {};
+        var activeTab = null;
+        tabs.forEach(function (tab) {
+          var selected = tab.getAttribute("data-page") === id;
+          tab.setAttribute("aria-selected", selected ? "true" : "false");
+          tab.tabIndex = selected ? 0 : -1;
+          if (selected) {
+            activeTab = tab;
+          }
+        });
+        pages.forEach(function (page) {
+          var match = page.getAttribute("data-page") === id;
+          if (match) {
+            page.removeAttribute("hidden");
+          } else {
+            page.setAttribute("hidden", "");
+          }
+        });
+        if (desc) {
+          desc.textContent = descriptions[id] || "";
+        }
+        if (history.replaceState) {
+          history.replaceState(null, "", "#" + id);
+        }
+        if (activeTab && options.scrollTab !== false) {
+          activeTab.scrollIntoView({ inline: "nearest", block: "nearest", behavior: options.smooth === false ? "auto" : "smooth" });
+        }
+        if (options.focus && activeTab) {
+          activeTab.focus();
+        }
+        if (options.scrollTop !== false) {
+          window.scrollTo({ top: 0, behavior: options.smooth === false ? "auto" : "smooth" });
+        }
+      }
+
+      tabs.forEach(function (tab, index) {
+        tab.addEventListener("click", function () {
+          show(tab.getAttribute("data-page"));
+        });
+        tab.addEventListener("keydown", function (event) {
+          var next = null;
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+            next = tabs[(index + 1) % tabs.length];
+          } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+            next = tabs[(index - 1 + tabs.length) % tabs.length];
+          } else if (event.key === "Home") {
+            next = tabs[0];
+          } else if (event.key === "End") {
+            next = tabs[tabs.length - 1];
+          }
+          if (!next) {
+            return;
+          }
+          event.preventDefault();
+          show(next.getAttribute("data-page"), { focus: true });
+        });
+      });
+
+      document.addEventListener("click", function (event) {
+        var target = event.target;
+        if (!(target instanceof Element)) {
+          return;
+        }
+        var toggle = target.closest("[data-toggle]");
+        if (!toggle) {
+          return;
+        }
+        var kind = toggle.getAttribute("data-toggle");
+        if (kind === "turn") {
+          var turn = toggle.closest(".turn");
+          if (!turn) {
+            return;
+          }
+          var collapsed = turn.classList.toggle("is-collapsed");
+          turn.querySelectorAll('[data-toggle="turn"]').forEach(function (btn) {
+            btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+            btn.textContent = collapsed ? "Expand" : "Collapse";
+          });
+          return;
+        }
+        if (kind === "node") {
+          var node = toggle.closest(".node");
+          if (!node || node.classList.contains("unavailable")) {
+            return;
+          }
+          var expanded = node.classList.toggle("is-expanded");
+          toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+          var chip = toggle.querySelector(".chip");
+          if (chip) {
+            chip.textContent = expanded ? "Collapse" : "Expand";
+          }
+        }
+      });
+
+      var initial = (location.hash || "#m1").slice(1);
+      if (!descriptions[initial]) {
+        initial = "m1";
+      }
+      show(initial, { smooth: false, scrollTop: false });
+
+      window.addEventListener("hashchange", function () {
+        var id = (location.hash || "#m1").slice(1);
+        if (descriptions[id]) {
+          show(id, { smooth: false });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

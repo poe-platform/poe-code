@@ -102,8 +102,65 @@ describe("traces command", () => {
       allWorkspaces: true,
       since: new Date("2026-07-01T10:00:00.000Z"),
       limit: 7,
-      json: false
+      json: false,
+      open: false,
+      htmlOut: undefined
     });
+  });
+
+  it("forwards --open and --html-out for a path", async () => {
+    const { program } = createTracesProgram();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "traces",
+      "/tmp/session.jsonl",
+      "--open",
+      "--html-out",
+      "/tmp/out.html"
+    ]);
+
+    expect(runTraceViewerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: "/tmp/session.jsonl",
+        open: true,
+        htmlOut: "/tmp/out.html",
+        json: false
+      })
+    );
+  });
+
+  it("requires a path for --open and --html-out", async () => {
+    const { program } = createTracesProgram();
+
+    await expect(program.parseAsync(["node", "cli", "traces", "--open"])).rejects.toThrow(
+      "--open requires a trace path."
+    );
+    await expect(
+      program.parseAsync(["node", "cli", "traces", "--html-out", "/tmp/out.html"])
+    ).rejects.toThrow("--html-out requires a trace path.");
+    expect(runTraceViewerMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects --open/--html-out with --json", async () => {
+    const { program } = createTracesProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "traces", "/tmp/session.jsonl", "--open", "--json"])
+    ).rejects.toThrow("--open cannot be used with --json.");
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "traces",
+        "/tmp/session.jsonl",
+        "--html-out",
+        "/tmp/out.html",
+        "--json"
+      ])
+    ).rejects.toThrow("--html-out cannot be used with --json.");
+    expect(runTraceViewerMock).not.toHaveBeenCalled();
   });
 
   it("emits json without an intro", async () => {

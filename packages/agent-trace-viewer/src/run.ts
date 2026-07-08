@@ -1,8 +1,11 @@
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   getTheme,
+  openExternal,
   renderTable,
   runExplorer,
+  withSpinner,
   type Action,
   type DetailItem,
   type ExplorerConfig,
@@ -13,9 +16,11 @@ import type {
   AgentTraceSource,
   TraceReference
 } from "@poe-code/agent-traces";
-import { listTraces, loadSubagentSummaries, loadTrace, loadTraceFromFile } from "./loader.js";
+import { listTraces, loadSubagentSummaries, loadTrace, loadTraceFromFile, loadTraceTree } from "./loader.js";
+import { openTraceHtml } from "./open-html.js";
 import { renderTraceDetail, renderTraceLine } from "./render.js";
-import type { SubagentSummary, TraceView } from "./types.js";
+import type { SubagentSummary, TraceTreeNode, TraceView } from "./types.js";
+import { writeTraceHtml } from "./write-html.js";
 
 export interface RunTraceViewerOptions {
   cwd: string;
@@ -28,6 +33,10 @@ export interface RunTraceViewerOptions {
   limit?: number;
   json?: boolean;
   path?: string;
+  open?: boolean;
+  htmlOut?: string;
+  openExternal?: (target: string) => Promise<void>;
+  tmpDir?: string;
   output?: WritableOutput;
 }
 
@@ -49,6 +58,18 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
   const output = options.output ?? process.stdout;
 
   if (options.path !== undefined) {
+    if (options.open === true || options.htmlOut !== undefined) {
+      const tree = await withSpinner({
+        message: "Building trace HTML...",
+        fn: async () => {
+          const view = await loadTraceFromFile(options.path!, { fs: options.fs });
+          return loadTraceTree(view, { fs: options.fs });
+        }
+      });
+      await exportTraceHtml(tree, options, output);
+      return;
+    }
+
     const view = await loadTraceFromFile(options.path, { fs: options.fs });
     const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
     if (options.json) {
@@ -93,6 +114,8 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
       references,
       fs: options.fs,
       output,
+      openExternal: options.openExternal,
+      tmpDir: options.tmpDir,
       onRefresh: discover
     })
   );
@@ -156,6 +179,8 @@ function buildTraceExplorerConfig(options: {
   references: TraceReference[];
   fs: AgentTraceFileSystem;
   output: WritableOutput;
+  openExternal?: (target: string) => Promise<void>;
+  tmpDir?: string;
   onRefresh: () => Promise<TraceReference[]>;
 }): ExplorerConfig<void> {
   const state = createExplorerState(options.references);
@@ -200,6 +225,32 @@ function buildTraceExplorerConfig(options: {
       }
     },
     {
+      id: "open-html",
+      key: "o",
+      label: "Open in browser",
+      showInFooter: true,
+      handler: async (ctx) => {
+        try {
+          const reference = getReference(state.referenceByRowId, ctx.row.id);
+          await withSpinner({
+            message: "Opening trace in browser...",
+            fn: async () => {
+              const view = await loadTrace(reference, { fs: options.fs });
+              const tree = await loadTraceTree(view, { fs: options.fs });
+              await openTraceHtml(tree, {
+                fs: options.fs,
+                open: options.openExternal,
+                tmpDir: options.tmpDir
+              });
+            }
+          });
+          ctx.toast("Opened in browser", "success");
+        } catch (error) {
+          ctx.toast(error instanceof Error ? error.message : "Failed to open browser", "warning");
+        }
+      }
+    },
+    {
       id: "subagents",
       key: "s",
       label: "Subagents",
@@ -218,6 +269,8 @@ function buildTraceExplorerConfig(options: {
               references: children,
               fs: options.fs,
               output: options.output,
+              openExternal: options.openExternal,
+              tmpDir: options.tmpDir,
               onRefresh: async () => children
             })
           );
@@ -435,6 +488,32 @@ async function loadUnlessAborted<T>(
         signal.removeEventListener("abort", abort);
       });
   });
+}
+
+async function exportTraceHtml(
+  tree: TraceTreeNode,
+  options: RunTraceViewerOptions,
+  output: WritableOutput
+): Promise<void> {
+  const written = await writeTraceHtml(tree, {
+    fs: options.fs,
+    outPath: options.htmlOut,
+    tmpDir: options.tmpDir
+  });
+
+  if (options.open !== true) {
+    writeLine(output, `Wrote ${written.path}`);
+    return;
+  }
+
+  const open = options.openExternal ?? ((target: string) => openExternal(target));
+  try {
+    await open(pathToFileURL(written.path).href);
+    writeLine(output, `Opened ${written.path}`);
+  } catch (error) {
+    writeLine(output, `Wrote ${written.path}`);
+    throw error;
+  }
 }
 
 function writeLine(output: WritableOutput, value: string): void {

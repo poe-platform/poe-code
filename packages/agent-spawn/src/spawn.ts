@@ -131,7 +131,9 @@ function buildCliArgs(
     args.push(...mcpArgs);
   }
 
-  args.push(config.promptFlag);
+  if (config.promptFlag) {
+    args.push(config.promptFlag);
+  }
 
   const modelOverride = normalizeModelOverride(options.model);
   if (modelOverride && config.modelFlag) {

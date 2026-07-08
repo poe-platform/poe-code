@@ -26,4 +26,8 @@ describe("agent definition types", () => {
       | undefined
     >();
   });
+
+  it("allows spawn-only agents to omit configPath", () => {
+    expectTypeOf<AgentDefinition["configPath"]>().toEqualTypeOf<string | undefined>();
+  });
 });

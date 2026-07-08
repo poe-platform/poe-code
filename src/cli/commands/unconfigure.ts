@@ -19,7 +19,9 @@ export interface UnconfigureCommandOptions {
 }
 
 export function registerUnconfigureCommand(program: Command, container: CliContainer): Command {
-  const serviceNames = listServiceNames(container.registry.list());
+  const serviceNames = listServiceNames(
+    container.registry.list().filter((service) => service.supportsConfigure !== false)
+  );
   const serviceDescription = `Agent to unconfigure${formatServiceList(serviceNames)}`;
   return program
     .command("unconfigure")
@@ -38,6 +40,9 @@ export async function executeUnconfigure(
   options: UnconfigureCommandOptions
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
+  if (adapter.supportsConfigure === false) {
+    throw new Error(`${adapter.label} is spawn-only and does not support unconfigure.`);
+  }
   const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, `unconfigure:${canonicalService}`);

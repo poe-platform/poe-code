@@ -6,4 +6,5 @@ export { geminiCliAgent } from "./gemini-cli.js";
 export { openCodeAgent } from "./opencode.js";
 export { kimiAgent } from "./kimi.js";
 export { gooseAgent } from "./goose.js";
+export { piAgent } from "./pi.js";
 export { poeAgentAgent } from "./poe-agent.js";

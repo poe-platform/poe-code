@@ -19,7 +19,7 @@ export interface AgentDefinition {
   binaryName?: string;
   readonly apiShapes?: readonly ApiShapeId[];
   readonly otelCapture?: OtelCaptureDefinition;
-  configPath: string;
+  configPath?: string;
   readonly configPaths?: {
     readonly darwin: string;
     readonly linux: string;

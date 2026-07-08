@@ -230,7 +230,9 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     args.push(...mcpArgs);
   }
 
-  args.push(spawnConfig.promptFlag);
+  if (spawnConfig.promptFlag) {
+    args.push(spawnConfig.promptFlag);
+  }
 
   const modelOverride = normalizeModelOverride(options.model);
   if (modelOverride && spawnConfig.modelFlag) {

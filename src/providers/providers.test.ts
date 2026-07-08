@@ -105,6 +105,8 @@ describe("provider filtering", () => {
       logger: () => {}
     });
     const names = container.registry.list().map((adapter) => adapter.name);
+    expect(names).not.toContain("pi");
+    expect(container.registry.get("pi")).toBeUndefined();
     expect(names).not.toContain("roo-code");
     expect(names).not.toContain("tiny-http-mcp-server");
   });

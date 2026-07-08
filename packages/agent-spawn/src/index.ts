@@ -44,9 +44,12 @@ export {
   getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
+  listSpawnableAgents,
+  resolveSpawnableAgent,
   supportsMcpAtSpawn,
   supportsSpawnMode
 } from "./configs/index.js";
+export type { SpawnableAgent } from "./configs/index.js";
 export { serializeGooseMcpArgs, serializeOpenCodeMcpEnv, toJsonMcpServers } from "./configs/mcp.js";
 export {
   buildSpawnArgs,

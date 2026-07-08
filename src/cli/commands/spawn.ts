@@ -37,16 +37,19 @@ import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
   resolveCommandFlags,
-  resolveServiceAdapter,
+  resolveSpawnTarget,
+  listSpawnTargets,
   formatServiceList,
+  listServiceNames,
   buildResumeCommand,
   resolveMergedDocument,
   type CommandFlags,
-  type ExecutionResources
+  type ExecutionResources,
+  type SpawnTarget
 } from "./shared.js";
 import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
-import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
+import { formatSpawnDryRunMessage, resolveConfiguredModel } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
 import { ensurePoeApiKeyEnv } from "../../sdk/credentials.js";
@@ -83,17 +86,15 @@ export function registerSpawnCommand(
   container: CliContainer,
   options: RegisterSpawnCommandOptions = {}
 ): void {
-  const spawnServices = container.registry
-    .list()
-    .filter((service) => typeof service.spawn === "function" || getSpawnConfig(service.name));
   const extraServices = options.extraServices ?? [];
-  const serviceList = listSpawnServiceNames(spawnServices, extraServices);
+  const spawnTargets = listSpawnTargets(container, extraServices);
+  const serviceList = listServiceNames(spawnTargets);
   const serviceDescription = `Agent to spawn${formatServiceList(serviceList)}`;
 
   const spawnCommand = program
     .command("spawn")
     .alias("s")
-    .description("Run a single prompt through a configured agent CLI.")
+    .description("Run a single prompt through an agent CLI.")
     .option("--model <model>", "Model identifier override passed to the agent CLI")
     .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
@@ -239,13 +240,12 @@ export function registerSpawnCommand(
           await resolveMergedDocument(container, { readOnly: flags.dryRun })
         );
         if (commandOptions.interactive) {
-          const adapter = resolveServiceAdapter(container, service);
-          const canonicalService = adapter.name;
-          assertInteractiveSupport(adapter.label, canonicalService);
+          const target = resolveSpawnTarget(container, service);
+          const canonicalService = target.name;
+          assertInteractiveSupport(target.label, canonicalService);
           const proceed = await confirmUnconfiguredService(
             container,
-            canonicalService,
-            adapter.label,
+            target,
             flags
           );
           if (!proceed) {
@@ -257,7 +257,9 @@ export function registerSpawnCommand(
             commandOptions.model,
             { readOnly: flags.dryRun }
           );
-          await ensurePoeApiKeyEnv();
+          if (target.requiresProvider !== false && target.provider !== undefined) {
+            await ensurePoeApiKeyEnv();
+          }
           const result = await spawnInteractive(canonicalService, {
             prompt,
             args: forwardedArgs,
@@ -326,8 +328,8 @@ export function registerSpawnCommand(
           return;
         }
 
-        const adapter = resolveServiceAdapter(container, service);
-        const canonicalService = adapter.name;
+        const target = resolveSpawnTarget(container, service);
+        const canonicalService = target.name;
         const model = await resolveConfiguredModel(
           container,
           canonicalService,
@@ -362,32 +364,30 @@ export function registerSpawnCommand(
         }
 
         try {
-          assertSpawnSupport(adapter.label, canonicalService, typeof adapter.spawn === "function");
+          assertSpawnSupport(target);
 
           assertMcpSpawnSupport(
-            adapter.label,
+            target.label,
             canonicalService,
-            adapter.supportsMcpSpawn === true,
+            target.supportsMcpSpawn === true,
             mcpServers
           );
 
           if (flags.dryRun) {
             validateDryRunBridgeResources(canonicalService, container, spawnOptions);
-            await spawnCore(container, canonicalService, spawnOptions, {
-              dryRun: true,
-              verbose: flags.verbose
-            });
+            resources.logger.dryRun(formatSpawnDryRunMessage(target.label, spawnOptions));
             return;
           }
 
-          const proceed = await confirmUnconfiguredService(
-            container,
-            canonicalService,
-            adapter.label,
-            flags
-          );
+          const proceed = await confirmUnconfiguredService(container, target, flags);
           if (!proceed) {
             return;
+          }
+
+          if (spawnOptions.useStdin && target.supportsStdinPrompt !== true) {
+            throw new ValidationError(
+              `${target.label} does not support stdin prompts. Pass the prompt as an argument.`
+            );
           }
 
           const final = await traceSpawnRun(integrations, canonicalService, () =>
@@ -444,7 +444,7 @@ export function registerSpawnCommand(
             const detail = final.stderr.trim() || final.stdout.trim();
             const suffix = detail ? `: ${detail}` : "";
             throw new Error(
-              `${adapter.label} spawn failed with exit code ${final.exitCode}${suffix}`
+              `${target.label} spawn failed with exit code ${final.exitCode}${suffix}`
             );
           }
 
@@ -562,47 +562,22 @@ function formatDetachedJob(detached: { jobId: string; envId: string }): string {
   return `job started: ${detached.jobId}\nsandbox: ${detached.envId}\ndetached.`;
 }
 
-function listSpawnServiceNames(
-  services: Array<{ name: string; aliases?: string[] }>,
-  extraServices: string[]
-): string[] {
-  const names: string[] = [];
-
-  const add = (value: string | undefined): void => {
-    const normalized = value?.trim();
-    if (!normalized || names.includes(normalized)) {
-      return;
-    }
-    names.push(normalized);
-  };
-
-  for (const service of services) {
-    add(service.name);
-    for (const alias of service.aliases ?? []) {
-      add(alias);
-    }
-  }
-
-  for (const service of extraServices) {
-    add(service);
-  }
-
-  return names;
-}
-
 async function confirmUnconfiguredService(
   container: CliContainer,
-  service: string,
-  label: string,
+  target: SpawnTarget,
   flags: CommandFlags
 ): Promise<boolean> {
+  if (target.requiresProvider === false || target.provider === undefined) {
+    return true;
+  }
+
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: container.env.configPath,
     projectFilePath: container.env.projectConfigPath
   });
 
-  if (service in configuredServices) {
+  if (target.name in configuredServices) {
     return true;
   }
 
@@ -612,12 +587,12 @@ async function confirmUnconfiguredService(
 
   if (process.stdin.isTTY !== true) {
     throw new ValidationError(
-      `${label} is not configured via poe. Pass --yes to proceed without prompting.`
+      `${target.label} is not configured via poe. Pass --yes to proceed without prompting.`
     );
   }
 
   const shouldProceed = await confirm({
-    message: `${label} is not configured via poe. Do you want to proceed?`
+    message: `${target.label} is not configured via poe. Do you want to proceed?`
   });
 
   if (isCancel(shouldProceed)) {
@@ -785,14 +760,14 @@ function validateDryRunBridgeResources(
   }
 }
 
-function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {
-  if (providerSupportsSpawn) {
+function assertSpawnSupport(target: SpawnTarget): void {
+  if (typeof target.spawn === "function") {
     return;
   }
-  if (getSpawnConfig(service)) {
+  if (getSpawnConfig(target.name) || getSpawnConfig(target.id)) {
     return;
   }
-  throw new ValidationError(`${label} does not support spawn.`);
+  throw new ValidationError(`${target.label} does not support spawn.`);
 }
 
 function assertInteractiveSupport(label: string, service: string): void {

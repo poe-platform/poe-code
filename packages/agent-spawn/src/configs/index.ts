@@ -1,4 +1,4 @@
-import { resolveAgentId } from "@poe-code/agent-defs";
+import { allAgents, resolveAgentId, type AgentDefinition } from "@poe-code/agent-defs";
 import type { AcpSpawnConfig, SpawnConfig, SpawnMode } from "../types.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { codexSpawnConfig } from "./codex.js";
@@ -7,6 +7,20 @@ import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 import { cursorSpawnConfig } from "./cursor.js";
+import { piSpawnConfig } from "./pi.js";
+
+export interface SpawnableAgent {
+  id: string;
+  name: string;
+  label: string;
+  summary: string;
+  aliases: string[];
+  binaryName?: string;
+  supportsStdinPrompt: boolean;
+  supportsMcpSpawn: boolean;
+  config?: SpawnConfig;
+  acpConfig?: AcpSpawnConfig;
+}
 
 function freezeConfig<T extends SpawnConfig | AcpSpawnConfig>(config: T): T {
   freezeValue(config);
@@ -30,6 +44,7 @@ export const allSpawnConfigs: readonly SpawnConfig[] = Object.freeze([
   freezeConfig(claudeCodeSpawnConfig),
   freezeConfig(codexSpawnConfig),
   freezeConfig(cursorSpawnConfig),
+  freezeConfig(piSpawnConfig),
   freezeConfig(openCodeSpawnConfig),
   freezeConfig(kimiSpawnConfig),
   freezeConfig(gooseSpawnConfig)
@@ -102,4 +117,45 @@ export function listMcpSupportedAgents(): string[] {
   }
 
   return supported;
+}
+
+function agentSupportsStdinPrompt(config: SpawnConfig | undefined): boolean {
+  return config?.kind === "cli" && config.stdinMode !== undefined;
+}
+
+function toSpawnableAgent(agent: AgentDefinition): SpawnableAgent | undefined {
+  const config = lookup.get(agent.id);
+  const acpConfig = acpLookup.get(agent.id);
+  if (!config && !acpConfig) {
+    return undefined;
+  }
+
+  return {
+    id: agent.id,
+    name: agent.name,
+    label: agent.label,
+    summary: agent.summary,
+    aliases: [...(agent.aliases ?? [])],
+    ...(agent.binaryName !== undefined ? { binaryName: agent.binaryName } : {}),
+    supportsStdinPrompt: agentSupportsStdinPrompt(config),
+    supportsMcpSpawn: supportsMcpAtSpawn(agent.id),
+    ...(config ? { config } : {}),
+    ...(acpConfig ? { acpConfig } : {})
+  };
+}
+
+export function listSpawnableAgents(): readonly SpawnableAgent[] {
+  const agents: SpawnableAgent[] = [];
+  for (const agent of allAgents) {
+    const spawnable = toSpawnableAgent(agent);
+    if (spawnable) agents.push(spawnable);
+  }
+  return Object.freeze(agents);
+}
+
+export function resolveSpawnableAgent(input: string): SpawnableAgent | undefined {
+  const resolvedId = resolveAgentId(input);
+  if (!resolvedId) return undefined;
+  const agent = allAgents.find((candidate) => candidate.id === resolvedId);
+  return agent ? toSpawnableAgent(agent) : undefined;
 }

@@ -62,7 +62,9 @@ export interface ConfigureCommandOptions {
 }
 
 export function registerConfigureCommand(program: Command, container: CliContainer): Command {
-  const serviceNames = listServiceNames(container.registry.list());
+  const serviceNames = listServiceNames(
+    container.registry.list().filter((service) => service.supportsConfigure !== false)
+  );
   const serviceDescription = `Tool to configure${formatServiceList(serviceNames)}`;
   const configureCommand = program
     .command("configure")
@@ -106,6 +108,9 @@ export async function executeConfigure(
   options: ConfigureCommandOptions
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
+  if (adapter.supportsConfigure === false) {
+    throw new Error(`${adapter.label} is spawn-only and does not support configure.`);
+  }
   const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, `configure:${canonicalService}`);
@@ -1006,8 +1011,13 @@ export async function resolveServiceArgument(
     return provided;
   }
   const flags = resolveCommandFlags(program);
-  const services = container.registry.list();
   const action = selectionContext?.action ?? "configure";
+  const services = container.registry.list().filter((service) => {
+    if (action === "configure") return service.supportsConfigure !== false;
+    if (action === "install") return typeof service.install === "function";
+    if (action === "test") return typeof service.test === "function";
+    return true;
+  });
   if (services.length === 0) {
     throw new Error(`No agents available to ${action}.`);
   }

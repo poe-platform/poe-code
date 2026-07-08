@@ -210,7 +210,7 @@ export interface CliSpawnConfig {
   kind: "cli";
   agentId: string;
   adapter: AdapterType;
-  promptFlag: string;
+  promptFlag?: string;
   defaultArgs: string[];
   defaultArgsPosition?: "beforePrompt" | "afterPrompt";
   modes: SpawnModesConfig;

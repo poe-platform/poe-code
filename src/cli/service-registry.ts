@@ -81,6 +81,7 @@ export interface ProviderService<TConfigure = any, TUnconfigure = TConfigure, TS
   configurationLabel?: string;
   branding?: ProviderBranding;
   disabled?: boolean;
+  supportsConfigure?: boolean;
   supportsStdinPrompt?: boolean;
   supportsMcpSpawn?: boolean;
   requiresProvider?: boolean;

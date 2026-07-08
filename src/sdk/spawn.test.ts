@@ -193,6 +193,77 @@ async function collectEvents(events: AsyncIterable<unknown>): Promise<unknown[]>
 }
 
 describe("SDK spawn()", () => {
+  it("spawns Pi through the declarative streaming path without a provider registry entry", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "pi",
+      adapter: "pi",
+      interactive: { defaultArgs: [] }
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {
+        yield { event: "agent_message", text: "ok" };
+      })(),
+      done: Promise.resolve({
+        stdout: "ok",
+        stderr: "",
+        exitCode: 0,
+        threadId: "session-pi"
+      })
+    }));
+
+    const handle = spawn("pi", "hello from pi", { mode: "read" });
+    const events = await collectEvents(handle.events);
+    await expect(handle.result).resolves.toEqual({
+      stdout: "ok",
+      stderr: "",
+      exitCode: 0,
+      threadId: "session-pi"
+    });
+
+    expect(events).toEqual([{ event: "agent_message", text: "ok" }]);
+    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(spawnCore).not.toHaveBeenCalled();
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "pi",
+        prompt: "hello from pi",
+        mode: "read"
+      })
+    );
+  });
+
+  it("runs interactive Pi without loading Poe credentials", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "pi",
+      adapter: "pi",
+      interactive: { defaultArgs: [] }
+    } as any);
+    vi.mocked(spawnInteractive).mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    await expect(spawn("pi", "explore", { interactive: true }).result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
+    expect(spawnInteractive).toHaveBeenCalledWith(
+      "pi",
+      expect.objectContaining({ prompt: "explore" })
+    );
+  });
+
   it("forwards native OTel capture and trace sink middleware to streaming spawns", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -2227,6 +2298,25 @@ describe("spawn.autonomous()", () => {
   it("propagates a stored Poe API key into process.env so the runtime sandbox sees it", async () => {
     delete process.env.POE_API_KEY;
     getPoeApiKeyMock.mockResolvedValue("stored-key");
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {}
+      },
+      registry: {
+        get: vi.fn((name: string) =>
+          name === "codex"
+            ? {
+                name: "codex",
+                label: "Codex",
+                requiresProvider: true
+              }
+            : undefined
+        )
+      }
+    } as any);
 
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

@@ -9,6 +9,7 @@ export {
   openCodeAgent,
   kimiAgent,
   gooseAgent,
+  piAgent,
   poeAgentAgent
 } from "./agents/index.js";
 export { allAgents, resolveAgentId } from "./registry.js";

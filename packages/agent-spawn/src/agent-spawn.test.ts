@@ -10,6 +10,7 @@ import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
 import { kimiSpawnConfig } from "./configs/kimi.js";
 import { gooseSpawnConfig } from "./configs/goose.js";
+import { piSpawnConfig } from "./configs/pi.js";
 import * as agentSpawnApi from "@poe-code/agent-spawn";
 import { buildSpawnArgs } from "./spawn.js";
 import { getMcpArgs } from "./mcp-args.js";
@@ -166,6 +167,8 @@ describe("@poe-code/agent-spawn", () => {
     expect(typeof agentSpawnApi.getAdapter).toBe("function");
     expect(typeof agentSpawnApi.supportsMcpAtSpawn).toBe("function");
     expect(typeof agentSpawnApi.listMcpSupportedAgents).toBe("function");
+    expect(typeof agentSpawnApi.listSpawnableAgents).toBe("function");
+    expect(typeof agentSpawnApi.resolveSpawnableAgent).toBe("function");
   });
 
   it("does not export internal helpers", () => {
@@ -241,6 +244,100 @@ describe("buildSpawnArgs", () => {
       ...codexSpawnConfig.defaultArgs,
       "--dangerously-bypass-approvals-and-sandbox"
     ]);
+  });
+
+  it("builds Pi JSON print-mode args with a positional prompt and native model id", () => {
+    const result = buildSpawnArgs("pi", {
+      prompt: "Review this repository",
+      model: "anthropic/claude-sonnet-5",
+      mode: "read"
+    });
+
+    expect(result.binaryName).toBe("pi");
+    expect(result.args).toEqual([
+      "--mode",
+      "json",
+      "--print",
+      "Review this repository",
+      "--model",
+      "anthropic/claude-sonnet-5",
+      "--tools",
+      "read,grep,find,ls",
+      "--no-approve"
+    ]);
+    expect(result.args).toEqual([
+      ...piSpawnConfig.defaultArgs,
+      "Review this repository",
+      "--model",
+      "anthropic/claude-sonnet-5",
+      ...piSpawnConfig.modes.read
+    ]);
+  });
+
+  it("builds Pi yolo mode with full tools and project-file trust", () => {
+    expect(
+      buildSpawnArgs("pi", {
+        prompt: "Ship it",
+        mode: "yolo"
+      }).args
+    ).toEqual([
+      ...piSpawnConfig.defaultArgs,
+      "Ship it",
+      "--tools",
+      "read,bash,edit,write,grep,find,ls",
+      "--approve"
+    ]);
+  });
+
+  it("builds Pi edit mode without shell and without project-file trust", () => {
+    expect(
+      buildSpawnArgs("pi", {
+        prompt: "Edit files",
+        mode: "edit"
+      }).args
+    ).toEqual([
+      ...piSpawnConfig.defaultArgs,
+      "Edit files",
+      "--tools",
+      "read,edit,write,grep,find,ls",
+      "--no-approve"
+    ]);
+  });
+
+  it("rejects Pi auto mode because print mode has no approval channel", () => {
+    expect(() => buildSpawnArgs("pi", { prompt: "hello", mode: "auto" })).toThrow(
+      'Agent "pi" does not support mode "auto". Supported modes: yolo, edit, read.'
+    );
+  });
+
+  it("builds Pi resume args before its positional prompt", () => {
+    expect(
+      buildSpawnArgs("pi", {
+        prompt: "Continue",
+        resumeThreadId: "session-123",
+        mode: "yolo"
+      }).args
+    ).toEqual([
+      ...piSpawnConfig.defaultArgs,
+      "--session",
+      "session-123",
+      "Continue",
+      ...piSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("sends Pi prompts over stdin without adding a positional prompt", () => {
+    const result = buildSpawnArgs("pi", {
+      prompt: "secret prompt",
+      mode: "read",
+      useStdin: true
+    });
+
+    expect(result.args).toEqual([
+      ...piSpawnConfig.defaultArgs,
+      ...piSpawnConfig.modes.read
+    ]);
+    expect(result.args).not.toContain("secret prompt");
   });
 
   it("rejects modes the agent does not support before launching", () => {

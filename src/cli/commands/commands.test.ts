@@ -565,6 +565,21 @@ describe("install command", () => {
     return program;
   }
 
+  it("does not list spawn-only Pi in install help", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    const help = program.commands.find((command) => command.name() === "install")?.helpInformation() ?? "";
+    expect(help).not.toContain("pi");
+    expect(container.registry.get("pi")).toBeUndefined();
+  });
+
   it("installs a registered provider", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
@@ -1243,6 +1258,16 @@ describe("test command", () => {
 
     await expect(container.fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
     await expect(container.fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
+  it("does not list spawn-only Pi in test help", () => {
+    const container = createTestContainer();
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    const help = program.commands.find((command) => command.name() === "test")?.helpInformation() ?? "";
+    expect(help).not.toContain("pi");
+    expect(container.registry.get("pi")).toBeUndefined();
   });
 
   it("fails when the provider does not support the test command", async () => {

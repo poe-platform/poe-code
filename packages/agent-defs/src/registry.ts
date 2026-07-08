@@ -8,6 +8,7 @@ import {
   openCodeAgent,
   kimiAgent,
   gooseAgent,
+  piAgent,
   poeAgentAgent
 } from "./agents/index.js";
 
@@ -38,6 +39,7 @@ export const allAgents: readonly AgentDefinition[] = Object.freeze([
   freezeAgent(openCodeAgent),
   freezeAgent(kimiAgent),
   freezeAgent(gooseAgent),
+  freezeAgent(piAgent),
   freezeAgent(poeAgentAgent)
 ]);
 

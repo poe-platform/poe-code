@@ -155,6 +155,29 @@ describe("spawnInteractive", () => {
     });
   });
 
+  it("builds Pi interactive args without forcing print/json mode", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("pi", {
+      prompt: "explore",
+      model: "openai/gpt-4o",
+      mode: "read"
+    });
+
+    const [command, args] = spawnMock.mock.calls[0];
+    expect(command).toBe("pi");
+    expect(args).toEqual([
+      "explore",
+      "--model",
+      "openai/gpt-4o",
+      "--tools",
+      "read,grep,find,ls",
+      "--no-approve"
+    ]);
+    expect(args).not.toContain("--print");
+    expect(args).not.toContain("json");
+  });
+
   it("includes model flag when model is provided", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 

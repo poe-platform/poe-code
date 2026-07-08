@@ -64,12 +64,13 @@ exports[`runtime option help > snapshots spawn help 1`] = `
 
 Usage: poe-code spawn [options] <agent> [prompt] [agentArgs...]
 
-Run a single prompt through a configured agent CLI.
+Run a single prompt through an agent CLI.
 
 Arguments:
   agent                        Agent to spawn (claude-code | claude | codex |
                                cursor | cursor-agent | gemini-cli | gemini |
-                               goose | kimi | kimi-cli | opencode | poe-agent)
+                               goose | kimi | kimi-cli | opencode | pi |
+                               pi-agent | poe-agent)
   prompt                       Prompt text to send, '@path/to/file' to load from
                                a file, or '-' / stdin
   agentArgs                    Additional arguments forwarded to the agent CLI

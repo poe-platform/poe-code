@@ -54,6 +54,7 @@ interface CreateProviderOptions<
   summary: string;
   branding?: ProviderBranding;
   disabled?: boolean;
+  supportsConfigure?: boolean;
   supportsStdinPrompt?: boolean;
   supportsMcpSpawn?: boolean;
   requiresProvider?: boolean;
@@ -96,6 +97,7 @@ export function createProvider<
     configurationLabel: opts.configurationLabel,
     branding: opts.branding,
     disabled: opts.disabled,
+    supportsConfigure: opts.supportsConfigure ?? true,
     supportsStdinPrompt: opts.supportsStdinPrompt,
     supportsMcpSpawn: opts.supportsMcpSpawn,
     requiresProvider: opts.requiresProvider ?? true,

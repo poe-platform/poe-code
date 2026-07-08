@@ -69,7 +69,6 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   return {
     ...actual,
     getSpawnConfig: vi.fn(actual.getSpawnConfig),
-    supportsMcpAtSpawn: vi.fn(actual.supportsMcpAtSpawn),
     spawnInteractive: vi.fn()
   };
 });
@@ -85,7 +84,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 });
 
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { getSpawnConfig, spawnInteractive, supportsMcpAtSpawn } from "@poe-code/agent-spawn";
+import { getSpawnConfig, spawnInteractive } from "@poe-code/agent-spawn";
 import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
 const cwd = "/repo";
@@ -2290,7 +2289,6 @@ describe("spawn command", () => {
   });
 
   it("rejects --mcp-servers for agents without spawn-time MCP support", async () => {
-    vi.mocked(supportsMcpAtSpawn).mockReturnValueOnce(false);
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -2312,7 +2310,7 @@ describe("spawn command", () => {
             args: ["serve", "word-of-the-day"]
           }
         }),
-        "kimi",
+        "pi",
         "hello"
       ])
     ).rejects.toThrow("does not support MCP servers at spawn time.");
@@ -3078,6 +3076,81 @@ describe("spawn command", () => {
         runtimeConfigCwd: cwd
       });
     });
+  });
+
+  it("spawns Pi from declarative catalog without a provider registry entry", async () => {
+    const logs: string[] = [];
+    const { runner, calls } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "spawn", "pi", "hello from pi"]);
+
+    expect(calls).toHaveLength(0);
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(confirmMock).not.toHaveBeenCalled();
+    const dryRunLog = logs.find((line) => line.includes("Dry run: would spawn Pi."));
+    expect(dryRunLog).toBeTruthy();
+
+    const help = program.commands.find((command) => command.name() === "spawn")?.helpInformation() ?? "";
+    expect(help).toContain("pi");
+    expect(help).toContain("pi-agent");
+  });
+
+  it("runs Pi spawn without configure prompt or provider registration", async () => {
+    setProcessStdinIsTTY(false);
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "pi", "hello"]);
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "pi",
+      expect.objectContaining({
+        prompt: "hello",
+        mode: "read"
+      })
+    );
+  });
+
+  it("runs interactive Pi without loading Poe credentials", async () => {
+    delete process.env.POE_API_KEY;
+    ensurePoeApiKeyEnvMock.mockImplementationOnce(async () => {
+      process.env.POE_API_KEY = "should-not-be-set";
+    });
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "--interactive", "pi", "hello"]);
+
+    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
+    expect(spawnInteractive).toHaveBeenCalledWith(
+      "pi",
+      expect.objectContaining({
+        prompt: "hello"
+      })
+    );
+    expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
   describe("unconfigured service warning", () => {

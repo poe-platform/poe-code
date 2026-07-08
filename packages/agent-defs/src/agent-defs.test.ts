@@ -8,6 +8,7 @@ import {
   openCodeAgent,
   kimiAgent,
   gooseAgent,
+  piAgent,
   poeAgentAgent,
   allAgents,
   resolveAgentId,
@@ -25,6 +26,7 @@ const expectedAgents: AgentDefinition[] = [
   openCodeAgent,
   kimiAgent,
   gooseAgent,
+  piAgent,
   poeAgentAgent
 ];
 
@@ -85,12 +87,18 @@ describe("agent-defs package", () => {
     expect(agent.name).toBeTruthy();
     expect(agent.label).toBeTruthy();
     expect(agent.summary).toBeTruthy();
-    expect(agent.configPath).toBeTruthy();
     expect(agent.branding.colors.dark).toBeTruthy();
     expect(agent.branding.colors.light).toBeTruthy();
     if (agent.binaryName !== undefined) {
       expect(agent.binaryName).toBeTruthy();
     }
+    if (agent.configPath !== undefined) {
+      expect(agent.configPath).toBeTruthy();
+    }
+  });
+
+  it("omits configPath for spawn-only Pi metadata", () => {
+    expect(piAgent.configPath).toBeUndefined();
   });
 
   it("exports a canonical registry", () => {
@@ -114,9 +122,12 @@ describe("agent-defs package", () => {
     expect(uniqueIds.size).toBe(ids.length);
   });
 
-  it.each(allAgents)("$id configPath starts with ~/", (agent) => {
-    expect(agent.configPath.startsWith("~/")).toBe(true);
-  });
+  it.each(allAgents.filter((agent) => agent.configPath !== undefined))(
+    "$id configPath starts with ~/",
+    (agent) => {
+      expect(agent.configPath!.startsWith("~/")).toBe(true);
+    }
+  );
 
   it("exposes MCP config paths for agents managed by agent-mcp-config", () => {
     expect(claudeCodeAgent.configPath).toBe("~/.claude.json");
@@ -164,6 +175,7 @@ describe("agent-defs package", () => {
     expect(resolveAgentId("kimi-cli")).toBe("kimi");
     expect(resolveAgentId("GOOSE")).toBe("goose");
     expect(resolveAgentId("cursor-agent")).toBe("cursor");
+    expect(resolveAgentId("PI")).toBe("pi");
   });
 
   it("resolves aliases with surrounding whitespace", () => {

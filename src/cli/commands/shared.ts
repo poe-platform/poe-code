@@ -16,7 +16,12 @@ import type { CommandCheck } from "../../utils/command-checks.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import type { PromptForSecret } from "@poe-code/providers";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
-import { getSpawnConfig, type HookBridgeOptions } from "@poe-code/agent-spawn";
+import {
+  getSpawnConfig,
+  listSpawnableAgents,
+  resolveSpawnableAgent,
+  type HookBridgeOptions
+} from "@poe-code/agent-spawn";
 import {
   allAgents,
   formatAgentSpecifier,
@@ -486,6 +491,115 @@ export function resolveServiceAdapter(container: CliContainer, service: string):
     throw new Error(`Unknown agent "${service}".`);
   }
   return adapter;
+}
+
+export type SpawnTarget = {
+  id: string;
+  name: string;
+  label: string;
+  aliases?: string[];
+  supportsStdinPrompt?: boolean;
+  supportsMcpSpawn?: boolean;
+  requiresProvider?: boolean;
+  spawn?: ProviderService["spawn"];
+  provider?: ProviderService;
+};
+
+export function resolveSpawnTarget(container: CliContainer, service: string): SpawnTarget {
+  const spawnable = resolveSpawnableAgent(service);
+  if (spawnable) {
+    const provider = container.registry.get(spawnable.id) ?? container.registry.get(service);
+    return {
+      id: spawnable.id,
+      name: spawnable.name,
+      label: spawnable.label,
+      aliases: spawnable.aliases,
+      supportsStdinPrompt: spawnable.supportsStdinPrompt || provider?.supportsStdinPrompt === true,
+      supportsMcpSpawn: spawnable.supportsMcpSpawn || provider?.supportsMcpSpawn === true,
+      requiresProvider: provider?.requiresProvider,
+      spawn: provider?.spawn,
+      provider
+    };
+  }
+
+  const provider = container.registry.get(service);
+  if (provider && typeof provider.spawn === "function") {
+    return {
+      id: provider.id,
+      name: provider.name,
+      label: provider.label,
+      aliases: provider.aliases,
+      supportsStdinPrompt: provider.supportsStdinPrompt,
+      supportsMcpSpawn: provider.supportsMcpSpawn,
+      requiresProvider: provider.requiresProvider,
+      spawn: provider.spawn,
+      provider
+    };
+  }
+
+  throw new Error(`Unknown agent "${service}".`);
+}
+
+export function listSpawnTargets(
+  container: CliContainer,
+  extraServices: string[] = []
+): SpawnTarget[] {
+  const byName = new Map<string, SpawnTarget>();
+
+  for (const agent of listSpawnableAgents()) {
+    byName.set(agent.name, {
+      id: agent.id,
+      name: agent.name,
+      label: agent.label,
+      aliases: agent.aliases,
+      supportsStdinPrompt: agent.supportsStdinPrompt,
+      supportsMcpSpawn: agent.supportsMcpSpawn
+    });
+  }
+
+  for (const provider of container.registry.list()) {
+    if (typeof provider.spawn !== "function" && !getSpawnConfig(provider.name)) {
+      continue;
+    }
+    const existing = byName.get(provider.name);
+    if (existing) {
+      byName.set(provider.name, {
+        ...existing,
+        supportsStdinPrompt: existing.supportsStdinPrompt || provider.supportsStdinPrompt === true,
+        supportsMcpSpawn: existing.supportsMcpSpawn || provider.supportsMcpSpawn === true,
+        requiresProvider: provider.requiresProvider,
+        spawn: provider.spawn,
+        provider
+      });
+      continue;
+    }
+    byName.set(provider.name, {
+      id: provider.id,
+      name: provider.name,
+      label: provider.label,
+      aliases: provider.aliases,
+      supportsStdinPrompt: provider.supportsStdinPrompt,
+      supportsMcpSpawn: provider.supportsMcpSpawn,
+      requiresProvider: provider.requiresProvider,
+      spawn: provider.spawn,
+      provider
+    });
+  }
+
+  for (const service of extraServices) {
+    const normalized = service.trim();
+    if (!normalized || byName.has(normalized)) continue;
+    const resolved = resolveAgentId(normalized) ?? normalized;
+    const agent = allAgents.find((candidate) => candidate.id === resolved);
+    byName.set(normalized, {
+      id: resolved,
+      name: agent?.name ?? normalized,
+      label: agent?.label ?? normalized,
+      aliases: agent?.aliases
+    });
+  }
+
+  return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function createSecretPrompter(container: CliContainer): PromptForSecret {

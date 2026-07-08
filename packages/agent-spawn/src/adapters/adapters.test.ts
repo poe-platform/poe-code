@@ -6,6 +6,7 @@ import { adaptCursor } from "./cursor.js";
 import { adaptKimi } from "./kimi.js";
 import { adaptNative } from "./native.js";
 import { adaptOpenCode } from "./opencode.js";
+import { adaptPi } from "./pi.js";
 import { getAdapter } from "./index.js";
 import { extractThreadId, isNonEmptyString, truncate } from "./utils.js";
 import { fromArray, collect } from "./test-utils.js";
@@ -33,6 +34,346 @@ async function loadCodexSessionFixture(): Promise<string[]> {
   }
   return session;
 }
+
+describe("adaptPi", () => {
+  it("maps Pi JSON events to the internal streaming protocol", async () => {
+    const events = await collect(
+      adaptPi(
+        fromArray([
+          JSON.stringify({ type: "session", id: "session-123" }),
+          JSON.stringify({ type: "session", id: "session-123" }),
+          JSON.stringify({
+            type: "message_update",
+            assistantMessageEvent: { type: "thinking_delta", delta: "checking" }
+          }),
+          JSON.stringify({
+            type: "message_update",
+            assistantMessageEvent: { type: "text_delta", delta: "Done" }
+          }),
+          JSON.stringify({
+            type: "tool_execution_start",
+            toolCallId: "tool-1",
+            toolName: "bash",
+            args: { command: "pwd" }
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "tool-1",
+            toolName: "bash",
+            result: { content: [{ type: "text", text: "/repo" }] },
+            isError: false
+          }),
+          JSON.stringify({
+            type: "tool_execution_start",
+            toolCallId: "tool-2",
+            toolName: "read",
+            args: { path: "src/index.ts" }
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "tool-2",
+            toolName: "read",
+            result: { content: [{ type: "text", text: "export {}" }] },
+            isError: false
+          }),
+          JSON.stringify({
+            type: "tool_execution_start",
+            toolCallId: "tool-3",
+            toolName: "write",
+            args: { path: "out.txt" }
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "tool-3",
+            toolName: "write",
+            result: { content: [{ type: "text", text: "wrote out.txt" }] },
+            isError: true
+          }),
+          JSON.stringify({
+            type: "message_end",
+            message: {
+              role: "user",
+              usage: { input: 1, output: 2 }
+            }
+          }),
+          JSON.stringify({
+            type: "message_end",
+            message: {
+              role: "assistant",
+              usage: {
+                input: 93,
+                output: 5,
+                cacheRead: 3328,
+                cost: { total: 0.01 }
+              }
+            }
+          }),
+          JSON.stringify({
+            type: "message_update",
+            assistantMessageEvent: { type: "error", reason: "rate limited" }
+          }),
+          JSON.stringify({
+            type: "agent_end",
+            willRetry: false,
+            messages: []
+          })
+        ])
+      )
+    );
+
+    expect(events).toEqual([
+      { event: "session_start", threadId: "session-123" },
+      { event: "reasoning", text: "checking" },
+      { event: "agent_message", text: "Done" },
+      {
+        event: "tool_start",
+        id: "tool-1",
+        kind: "exec",
+        title: "pwd",
+        input: { command: "pwd" }
+      },
+      {
+        event: "tool_complete",
+        id: "tool-1",
+        kind: "exec",
+        path: "pwd"
+      },
+      {
+        event: "tool_start",
+        id: "tool-2",
+        kind: "read",
+        title: "src/index.ts",
+        input: { path: "src/index.ts" }
+      },
+      {
+        event: "tool_complete",
+        id: "tool-2",
+        kind: "read",
+        path: "src/index.ts"
+      },
+      {
+        event: "tool_start",
+        id: "tool-3",
+        kind: "edit",
+        title: "out.txt",
+        input: { path: "out.txt" }
+      },
+      {
+        event: "tool_complete",
+        id: "tool-3",
+        kind: "edit",
+        path: "out.txt",
+        _meta: { failed: true }
+      },
+      {
+        event: "usage",
+        inputTokens: 93,
+        outputTokens: 5,
+        cachedTokens: 3328,
+        costUsd: 0.01
+      },
+      { event: "error", message: "rate limited" },
+      {
+        event: "spawn_result",
+        exitCode: 1,
+        threadId: "session-123",
+        usage: {
+          inputTokens: 93,
+          outputTokens: 5,
+          cachedTokens: 3328,
+          costUsd: 0.01
+        }
+      }
+    ]);
+  });
+
+  it("marks spawn_result failed when Pi reports a stream error", async () => {
+    const events = await collect(
+      adaptPi(
+        fromArray([
+          JSON.stringify({ type: "session", id: "s-err" }),
+          JSON.stringify({
+            type: "message_update",
+            assistantMessageEvent: { type: "error", reason: "boom" }
+          }),
+          JSON.stringify({ type: "agent_end", willRetry: false })
+        ])
+      )
+    );
+
+    expect(events).toContainEqual({ event: "error", message: "boom" });
+    expect(events).toContainEqual({
+      event: "spawn_result",
+      exitCode: 1,
+      threadId: "s-err"
+    });
+  });
+
+  it("treats successful Pi tool runs without stream errors as success", async () => {
+    const events = await collect(
+      adaptPi(
+        fromArray([
+          JSON.stringify({ type: "session", id: "s-ok" }),
+          JSON.stringify({
+            type: "tool_execution_start",
+            toolCallId: "tool-1",
+            toolName: "bash",
+            args: { command: "echo ok" }
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "tool-1",
+            toolName: "bash",
+            result: { content: [{ type: "text", text: "ok\n" }] },
+            isError: false
+          }),
+          JSON.stringify({
+            type: "message_end",
+            message: { role: "assistant", usage: { input: 1, output: 1 } }
+          }),
+          JSON.stringify({ type: "agent_end", willRetry: false })
+        ])
+      )
+    );
+
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "tool-1",
+      kind: "exec",
+      path: "echo ok"
+    });
+    expect(events).toContainEqual({
+      event: "spawn_result",
+      exitCode: 0,
+      threadId: "s-ok",
+      usage: { inputTokens: 1, outputTokens: 1 }
+    });
+  });
+
+  it("surfaces malformed Pi JSON without crashing the stream", async () => {
+    const events = await collect(adaptPi(fromArray(["not-json"])));
+
+    expect(events).toEqual([
+      expect.objectContaining({
+        event: "error",
+        message: expect.stringContaining("[adaptPi] Malformed JSON line")
+      })
+    ]);
+  });
+
+  it("always emits a non-empty string tool_complete path for missing or empty results", async () => {
+    const events = await collect(
+      adaptPi(
+        fromArray([
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "missing-result",
+            toolName: "bash"
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "null-result",
+            toolName: "read",
+            result: null
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "empty-content",
+            toolName: "grep",
+            result: { content: [] }
+          }),
+          JSON.stringify({
+            type: "tool_execution_start",
+            toolCallId: "tracked-empty",
+            toolName: "write",
+            args: {}
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "tracked-empty",
+            toolName: "write"
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "object-result",
+            toolName: "bash",
+            result: { stdout: "ok", code: 0 }
+          }),
+          JSON.stringify({
+            type: "tool_execution_end",
+            toolCallId: "text-result",
+            toolName: "bash",
+            result: { content: [{ type: "text", text: "/tmp/out" }] }
+          })
+        ])
+      )
+    );
+
+    const completes = events.filter((item) => item.event === "tool_complete");
+    expect(completes).toHaveLength(6);
+    for (const event of completes) {
+      expect(typeof event.path).toBe("string");
+      expect(event.path.length).toBeGreaterThan(0);
+    }
+
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "missing-result",
+      kind: "exec",
+      path: "bash"
+    });
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "null-result",
+      kind: "read",
+      path: "read"
+    });
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "empty-content",
+      kind: "search",
+      path: "grep"
+    });
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "tracked-empty",
+      kind: "edit",
+      path: "write"
+    });
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "object-result",
+      kind: "exec",
+      path: "bash"
+    });
+    expect(events).toContainEqual({
+      event: "tool_complete",
+      id: "text-result",
+      kind: "exec",
+      path: "/tmp/out"
+    });
+  });
+
+  it("dedupes session_start and ignores unknown Pi event types", async () => {
+    const events = await collect(
+      adaptPi(
+        fromArray([
+          JSON.stringify({ type: "session", id: "sess-1" }),
+          JSON.stringify({ type: "agent_start" }),
+          JSON.stringify({ type: "turn_start" }),
+          JSON.stringify({ type: "session", id: "sess-1" }),
+          JSON.stringify({ type: "message_start", message: { role: "user" } }),
+          JSON.stringify({ type: "agent_end", willRetry: false })
+        ])
+      )
+    );
+
+    expect(events).toEqual([
+      { event: "session_start", threadId: "sess-1" },
+      { event: "spawn_result", exitCode: 0, threadId: "sess-1" }
+    ]);
+  });
+});
 
 describe("adaptClaude", () => {
   it("emits session_start once when sessionId is present", async () => {

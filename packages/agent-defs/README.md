@@ -23,7 +23,7 @@ const codex = allAgents.find((agent) => agent.id === "codex");
 - `parseAgentSpecifier(input)`: parses `agent` or `agent:model` input.
 - `formatAgentSpecifier(specifier)`: formats an agent specifier.
 - `normalizeAgentId(input)`: normalizes the agent part through the registry.
-- Agent definition exports such as `codexAgent`, `claudeCodeAgent`, and `geminiCliAgent`.
+- Agent definition exports such as `codexAgent`, `claudeCodeAgent`, `geminiCliAgent`, and `piAgent`.
 
 ## Config Options
 

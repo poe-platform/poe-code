@@ -2,7 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Command } from "commander";
-import { createOverlayFileSystem, executeConfigure, registerConfigureCommand } from "./configure.js";
+import {
+  createOverlayFileSystem,
+  executeConfigure,
+  registerConfigureCommand,
+  resolveServiceArgument
+} from "./configure.js";
+import { executeUnconfigure } from "./unconfigure.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { loadConfiguredServices } from "../../services/config.js";
@@ -213,6 +219,35 @@ describe("configure provider resolution", () => {
 
   beforeEach(() => {
     fs = createHomeFs(homeDir);
+  });
+
+  it("rejects Pi because it is not a configure service", async () => {
+    const container = createContainer(fs);
+
+    await expect(
+      executeConfigure(createTestProgram(), container, "pi", {})
+    ).rejects.toThrow('Unknown agent "pi".');
+
+    await expect(
+      executeUnconfigure(createTestProgram(), container, "pi", {})
+    ).rejects.toThrow('Unknown agent "pi".');
+  });
+
+  it("does not offer Pi in configure, install, or test selection", async () => {
+    for (const action of ["configure", "install", "test"] as const) {
+      let offeredValues: string[] = [];
+      const prompts = vi.fn(async (descriptor) => {
+        offeredValues = (descriptor.choices ?? []).map((choice) => choice.value);
+        return { [descriptor.name]: "codex" };
+      });
+      const container = createContainer(fs, {}, prompts);
+
+      await expect(
+        resolveServiceArgument(createBaseProgram(), container, undefined, { action })
+      ).resolves.toBe("codex");
+
+      expect(offeredValues).not.toContain("pi");
+    }
   });
 
   it("auto-selects the single logged-in provider", async () => {

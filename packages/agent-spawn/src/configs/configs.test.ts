@@ -4,6 +4,8 @@ import {
   getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
+  listSpawnableAgents,
+  resolveSpawnableAgent,
   supportsMcpAtSpawn,
   supportsSpawnMode
 } from "./index.js";
@@ -14,11 +16,50 @@ import { kimiSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 import { cursorSpawnConfig } from "./cursor.js";
+import { piSpawnConfig } from "./pi.js";
 import { serializeCodexMcpArgs, serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
 
 describe("configs/getSpawnConfig", () => {
   it("returns undefined for claude-desktop", () => {
     expect(getSpawnConfig("claude-desktop")).toBeUndefined();
+  });
+
+  it("registers Pi as a CLI-only spawn config with print JSON transport", () => {
+    expect(getSpawnConfig("pi")).toBe(piSpawnConfig);
+    expect(getAcpSpawnConfig("pi")).toBeUndefined();
+    expect(supportsMcpAtSpawn("pi")).toBe(false);
+    expect(piSpawnConfig.kind).toBe("cli");
+    expect(piSpawnConfig.adapter).toBe("pi");
+    expect(piSpawnConfig.promptFlag).toBeUndefined();
+    expect(piSpawnConfig.defaultArgs).toEqual(["--mode", "json", "--print"]);
+    expect(piSpawnConfig.modes.auto).toBeUndefined();
+    expect(piSpawnConfig.modelStripProviderPrefix).toBe(false);
+    expect(piSpawnConfig.stdinMode).toEqual({ omitPrompt: true, extraArgs: [] });
+  });
+
+  it("lists spawnable agents from agent definitions and spawn configs", () => {
+    const agents = listSpawnableAgents();
+    const ids = agents.map((agent) => agent.id);
+
+    expect(ids).toContain("pi");
+    expect(ids).toContain("codex");
+    expect(ids).toContain("gemini-cli");
+    expect(ids).not.toContain("claude-desktop");
+
+    const pi = resolveSpawnableAgent("pi-agent");
+    expect(pi).toMatchObject({
+      id: "pi",
+      name: "pi",
+      label: "Pi",
+      binaryName: "pi",
+      aliases: ["pi-agent"],
+      supportsStdinPrompt: true,
+      supportsMcpSpawn: false
+    });
+    expect(pi?.config).toBe(piSpawnConfig);
+    expect(resolveSpawnableAgent("claude-desktop")).toBeUndefined();
+    expect(resolveSpawnableAgent("pi")?.supportsMcpSpawn).toBe(false);
+    expect(resolveSpawnableAgent("kimi")?.supportsMcpSpawn).toBe(true);
   });
 
   it("does not allow returned config mutations to affect future spawns", () => {

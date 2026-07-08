@@ -22,6 +22,10 @@ console.log(result.exitCode, result.stdout);
 console.log(listMcpSupportedAgents());
 ```
 
+Pi is a spawn-only agent that streams its native NDJSON event mode (`--mode json --print`).
+It reuses the local Pi installation and auth/settings, supports model overrides and session
+resume, and intentionally has no Poe configure/unconfigure flow or ACP pretence.
+
 ## Spawn modes
 
 | Mode   | Purpose                                                                          |

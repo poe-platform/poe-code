@@ -197,10 +197,17 @@ export function spawn(
       const canUseAcpWithMcpServers =
         acpSpawnConfig?.supportsMcpServers !== false || resolvedMcpServers === undefined;
 
+      const requiresPoeCredentials =
+        registeredService !== undefined && registeredService.requiresProvider !== false;
+
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
-        if (spawnConfig?.kind === "cli" && spawnConfig.interactive !== undefined) {
+        if (
+          requiresPoeCredentials &&
+          spawnConfig?.kind === "cli" &&
+          spawnConfig.interactive !== undefined
+        ) {
           await ensurePoeApiKeyEnv();
         }
         const interactiveResult = await spawnInteractive(service, {
@@ -317,7 +324,9 @@ export function spawn(
 
       if (supportsStreaming) {
         const model = await resolveModel();
-        await ensurePoeApiKeyEnv();
+        if (requiresPoeCredentials) {
+          await ensurePoeApiKeyEnv();
+        }
         const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
@@ -386,7 +395,9 @@ export function spawn(
       if (spawnConfig && spawnConfig.kind === "cli") {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
-        await ensurePoeApiKeyEnv();
+        if (requiresPoeCredentials) {
+          await ensurePoeApiKeyEnv();
+        }
         return spawnNonStreaming(service, {
           prompt: options.prompt,
           cwd,

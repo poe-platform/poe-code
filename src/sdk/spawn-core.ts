@@ -170,7 +170,7 @@ export async function resolveConfiguredModel(
   return configuredModel || undefined;
 }
 
-function formatSpawnDryRunMessage(label: string, options: SpawnCommandOptions): string {
+export function formatSpawnDryRunMessage(label: string, options: SpawnCommandOptions): string {
   const lines: string[] = [`Dry run: would spawn ${label}.`];
   const details: string[] = [];
   const promptDetail = options.useStdin

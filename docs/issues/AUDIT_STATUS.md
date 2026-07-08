@@ -1,24 +1,24 @@
 # UX audit session status
 
-**Count:** 353 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 355 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
 Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
-## Critical (updated)
+## Critical 1–8
 
 1. Dry-run diffs print secrets  
-2–3. auth api-key reveal (+ dry-run) — reconfirmed  
+2–3. auth api-key reveal (+ dry-run)  
 4. Hard-coded dead `claude-sonnet-5` defaults  
-5. **`--skip-if-configured --yes` rewrote live config to sonnet-5** (audit incident; restored to sonnet-4.6)  
+5. `--skip-if-configured --yes` rewrote live config to sonnet-5  
 6. spawn poe-agent crash  
 7. plan archive/delete --yes arbitrary  
 8. logout factory-reset  
 
 ## Integrity
 
-Master == disk == 353. Continuously committed on main.
+Master == disk == 355. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

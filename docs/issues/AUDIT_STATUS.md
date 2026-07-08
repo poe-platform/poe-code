@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 874 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 880 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,7 +14,7 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 874. Continuously committed on main.
+Master == disk == 880. Continuously committed on main.
 Claude settings: model `claude-sonnet-4-6`, effortLevel `high`.
 Auth: **Not logged in** (mid-session). Catalog proves sonnet-5 has 0 matches.
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
@@ -22,7 +22,7 @@ Restored docs/plans and .claude/skills after audit side effects. Removed audit p
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **874**. Critical 18 → **27**. Continuous commits on main (~47 commits this stretch).
+Started ~687 issues → **880**. Critical 18 → **27**. Continuous commits on main (~49 commits this stretch).
 
 ## Live reconfirms (still open)
 
@@ -34,6 +34,7 @@ Started ~687 issues → **874**. Critical 18 → **27**. Continuous commits on m
 - models --search sonnet-5 → 0 (catalog dead)
 - configure --model sonnet writes literal sonnet
 - experiment install --force still Skill already exists
+- plan archive/delete help still omit --yes
 - test kimi Provider poe not found
 - doctor still missing
 - gaslight ingest non-TTY POE_NO_PROMPT

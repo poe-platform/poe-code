@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 216 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 218 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,6 +15,10 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. plan archive/delete --yes arbitrary  
 7. README wrap missing  
 8. logout factory-reset  
+
+## Integrity
+
+Master rows == disk files == 218. Continuously committed to main.
 
 ## Continue
 

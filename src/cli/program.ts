@@ -21,7 +21,6 @@ import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { createPoeAgentSpawnHandler } from "./commands/spawn-poe-agent.js";
-import { registerWrapCommand } from "./commands/wrap.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerLogoutCommand } from "./commands/logout.js";
 import { registerAuthCommand } from "./commands/auth.js";
@@ -90,7 +89,6 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["agent"] },
   { path: ["spawn"] },
   { path: ["gaslight"], args: "[plan-path]" },
-  { path: ["wrap"] },
   { path: ["test"] },
   { path: ["models"] },
   { path: ["pipeline"] },
@@ -876,7 +874,6 @@ function bootstrapProgram(container: CliContainer): Command {
     extraServices: ["poe-agent"]
   });
   registerGaslightCommand(program, container);
-  registerWrapCommand(program, container);
   registerTestCommand(program, container);
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);

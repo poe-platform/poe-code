@@ -1,7 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import { parse as parseYaml } from "yaml";
-import { deriveWrapBinaryAliases } from "./binary-aliases.js";
-import type { ProviderService } from "./service-registry.js";
 import {
   collectSpawnLabels,
   normalizeColor,
@@ -14,53 +11,14 @@ import { createMutationReporter } from "../services/mutation-events.js";
 import { createCliContainer } from "./container.js";
 import { listIsolatedServiceIds } from "./commands/shared.js";
 import type { FileSystem } from "../utils/file-system.js";
-import { createHomeFs, storeTestApiKey } from "../../tests/test-helpers.js";
+import { createHomeFs } from "../../tests/test-helpers.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliEnvironment, resolveSpawnLogDir } from "./environment.js";
+import type { ProviderService } from "./service-registry.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
-
-function provider(name: string, agentBinary?: string): ProviderService {
-  return {
-    id: name,
-    summary: name,
-    name,
-    label: name,
-    isolatedEnv: agentBinary
-      ? { agentBinary, configProbe: { kind: "isolatedDir" }, env: {} }
-      : undefined,
-    async configure() {},
-    async remove() {
-      return false;
-    }
-  };
-}
-
-// binary-aliases
-describe("deriveWrapBinaryAliases", () => {
-  it("derives poe-<agentBinary> for isolated providers", () => {
-    const aliases = deriveWrapBinaryAliases([
-      provider("claude-code", "claude"),
-      provider("codex", "codex"),
-      provider("opencode", "opencode"),
-      provider("kimi")
-    ]);
-
-    expect(aliases).toEqual([
-      { binName: "poe-claude", serviceName: "claude-code", agentBinary: "claude" },
-      { binName: "poe-codex", serviceName: "codex", agentBinary: "codex" },
-      { binName: "poe-opencode", serviceName: "opencode", agentBinary: "opencode" }
-    ]);
-  });
-
-  it("rejects duplicate derived names", () => {
-    expect(() => deriveWrapBinaryAliases([provider("a", "codex"), provider("b", "codex")])).toThrow(
-      /Duplicate wrapper binary name/
-    );
-  });
-});
 
 // label-generator
 describe("label generator", () => {
@@ -280,113 +238,6 @@ describe("listIsolatedServiceIds", () => {
       "opencode",
       "custom-isolated"
     ]);
-  });
-});
-
-// poe-code-command-runner
-describe("poe-code command runner", () => {
-  it("dispatches `poe-code wrap` to the isolated agent binary", async () => {
-    const fs = createHomeFs(homeDir);
-    const baseRunner = vi.fn(async () => ({
-      stdout: "OK\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir, variables: {} },
-      logger: () => {},
-      commandRunner: baseRunner
-    });
-
-    await storeTestApiKey(fs, homeDir, "sk-test");
-
-    const result = await container.commandRunner("poe-code", [
-      "wrap",
-      "claude-code",
-      "-p",
-      "Say hi"
-    ]);
-
-    expect(baseRunner).toHaveBeenCalledWith(
-      "claude",
-      expect.arrayContaining(["-p", "Say hi", "--settings"]),
-      expect.objectContaining({
-        env: expect.objectContaining({
-          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
-          ANTHROPIC_BASE_URL: "https://api.poe.com"
-        })
-      })
-    );
-
-    const callArgs = baseRunner.mock.calls[0][1] as string[];
-    const settingsIdx = callArgs.indexOf("--settings");
-    expect(settingsIdx).toBeGreaterThan(-1);
-    const settingsJson = JSON.parse(callArgs[settingsIdx + 1]);
-    expect(settingsJson).toEqual({
-      env: {
-        ANTHROPIC_BASE_URL: "https://api.poe.com"
-      }
-    });
-
-    expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });
-  });
-
-  it("routes Goose through its isolated home and config directories", async () => {
-    const fs = createHomeFs(homeDir);
-    const baseRunner = vi.fn(async () => ({
-      stdout: "OK\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir, variables: {} },
-      logger: () => {},
-      commandRunner: baseRunner,
-      httpClient: vi.fn(async () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [
-            { id: "claude-opus-4.7", context_window: { context_length: 983040 } },
-            { id: "claude-sonnet-5", context_window: { context_length: 983040 } },
-            { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
-            { id: "gpt-5.4-pro", context_window: { context_length: 1050000 } },
-            { id: "gemini-3.1-pro", context_window: { context_length: 1048576 } }
-          ]
-        })
-      }))
-    });
-
-    await storeTestApiKey(fs, homeDir, "sk-test");
-
-    const result = await container.commandRunner("poe-code", ["wrap", "goose", "run", "--help"]);
-
-    expect(baseRunner).toHaveBeenCalledWith(
-      "goose",
-      ["run", "--help"],
-      expect.objectContaining({
-        env: expect.objectContaining({
-          HOME: "/home/test/.poe-code/goose",
-          XDG_CONFIG_HOME: "/home/test/.poe-code/goose/.config"
-        })
-      })
-    );
-    expect(
-      (baseRunner.mock.calls[0]?.[2] as { env: Record<string, string> }).env.POE_CODE_API_KEY
-    ).toBe(undefined);
-
-    const secrets = parseYaml(
-      await fs.readFile("/home/test/.poe-code/goose/.config/goose/secrets.yaml", "utf8")
-    ) as Record<string, unknown>;
-    expect(secrets).toEqual({
-      CUSTOM_POE_API_KEY: "sk-test"
-    });
-
-    expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });
   });
 });
 

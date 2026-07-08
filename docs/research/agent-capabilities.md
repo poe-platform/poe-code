@@ -27,7 +27,7 @@ Authoritative sources:
 - **Spawn-time MCP**: `poe-code spawn --mcp-servers` can inject MCP servers for that run.
 - **Configure**: `poe-code configure <agent>` can write the agent's Poe/provider config.
 - **Isolated test/run**: the provider declares an isolated environment for `poe-code test --isolated` or equivalent isolated execution.
-- **Wrap**: `poe-code wrap <agent>` is used as the agent's runtime path.
+- **Isolated config / spawn**: agents with `isolatedEnv` run through configure + spawn using isolated Poe configuration.
 - **Persistent MCP config**: `poe-code mcp` can write the agent's normal MCP config file.
 - **Skills**: `poe-code skill` can install or bridge skills for the agent.
 

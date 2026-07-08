@@ -6,9 +6,8 @@ Kimi, Goose, and future agents without juggling provider accounts, API keys,
 or one-off configuration systems.
 
 The product should feel like a thin, reliable layer over tools people already
-use. A user can wrap an agent for one session, configure an agent once and keep
-using its normal CLI or desktop app, spawn agents from scripts, or expose Poe
-models through MCP.
+use. A user can configure an agent once and keep using its normal CLI or desktop
+app, spawn agents from scripts, or expose Poe models through MCP.
 
 Project overview and user docs: [`README.md`](README.md)
 Active direction: [`ROADMAP.md`](ROADMAP.md)

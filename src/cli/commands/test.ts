@@ -12,7 +12,12 @@ import {
 import { resolveServiceArgument } from "./configure.js";
 import { type CommandCheck } from "../../utils/command-checks.js";
 import { withSpinner } from "toolcraft-design";
-import { resolveProviderRuntimeEnv } from "../isolated-env.js";
+import {
+  resolveIsolatedEnvDetails,
+  resolveProviderRuntimeEnv,
+  resolveCliSettings
+} from "../isolated-env.js";
+import { buildArgsWithMergedSettings } from "../../utils/cli-settings-merge.js";
 import type { HookBridgeOptions } from "@poe-code/agent-spawn";
 
 export function registerTestCommand(program: Command, container: CliContainer): Command {
@@ -142,13 +147,45 @@ export async function executeTest(
               runCheck: async (check: CommandCheck) => {
                 await check.run({
                   isDryRun: providerContext.logger.context.dryRun,
-                  runCommand: (command: string, args: string[]) =>
-                    resources.context.runCommand("poe-code", [
-                      "wrap",
+                  runCommand: async (command: string, args: string[], runOptions) => {
+                    const activeProvider = await resolveActiveProviderForService(
+                      container,
                       canonicalService,
-                      "--",
-                      ...args
-                    ]),
+                      { readOnly: flags.dryRun }
+                    );
+                    const details = await resolveIsolatedEnvDetails(
+                      container.env,
+                      adapter.isolatedEnv!,
+                      canonicalService,
+                      activeProvider
+                    );
+                    const runtimeEnv = adapter.runtimeEnv
+                      ? await resolveProviderRuntimeEnv(
+                          container.env,
+                          adapter.runtimeEnv,
+                          canonicalService,
+                          activeProvider
+                        )
+                      : {};
+                    let forwarded = args;
+                    if (adapter.isolatedEnv?.cliSettings) {
+                      const resolvedSettings = await resolveCliSettings(
+                        adapter.isolatedEnv.cliSettings,
+                        container.env,
+                        activeProvider
+                      );
+                      forwarded = buildArgsWithMergedSettings(args, resolvedSettings);
+                    }
+                    return resources.context.runCommand(details.agentBinary, forwarded, {
+                      ...runOptions,
+                      env: {
+                        ...(activeProvider?.extraEnv ?? {}),
+                        ...details.env,
+                        ...runtimeEnv,
+                        ...(runOptions?.env ?? {})
+                      }
+                    });
+                  },
                   logDryRun: (message: string) => providerContext.logger.dryRun(message),
                   logWarning: (message: string) => providerContext.logger.warn(message)
                 });

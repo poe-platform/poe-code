@@ -708,7 +708,8 @@ describe("root command", () => {
     expect(plainOutput).toContain("configure, c");
     expect(plainOutput).toContain("unconfigure, uc");
     expect(plainOutput).toContain("spawn, s");
-    expect(plainOutput).toContain("wrap, w");
+    expect(plainOutput).not.toContain("wrap, w");
+    expect(plainOutput).not.toMatch(/\bwrap\b/);
     expect(plainOutput).toContain("models, m");
     expect(plainOutput).toContain("usage, u");
     expect(plainOutput).not.toContain("generate, g");

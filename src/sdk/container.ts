@@ -18,7 +18,6 @@ import {
   poeProvider,
   type AuthProvider
 } from "@poe-code/providers";
-import { createPoeCodeCommandRunner } from "../cli/poe-code-command-runner.js";
 import * as nodeFsSync from "node:fs";
 import { createSecretStore, MigratingSecretStore, type SecretStore } from "auth-store";
 import {
@@ -219,15 +218,6 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     registry.register(adapter);
   }
 
-  const baseRunner = runCommand;
-
-  // Create container with wrapped runner
-  let container: CliContainer = null as unknown as CliContainer;
-  const wrappedRunner = createPoeCodeCommandRunner({
-    getContainer: () => container,
-    baseRunner
-  });
-
   // HTTP client using global fetch
   const httpClient = async (url: string, init?: RequestInit) => {
     const response = await globalThis.fetch(url, init);
@@ -238,7 +228,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     };
   };
 
-  container = {
+  const container: CliContainer = {
     env: environment,
     fs: asyncFs,
     prompts: noopPrompts,
@@ -250,7 +240,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     registry,
     providerRegistry,
     httpClient,
-    commandRunner: wrappedRunner,
+    commandRunner: runCommand,
     providers,
     dependencies: {
       fs: asyncFs,

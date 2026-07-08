@@ -95,11 +95,7 @@ describe("update command", () => {
         fn: expect.any(Function)
       })
     );
-    expect(commandRunner).toHaveBeenCalledWith(
-      "bun",
-      ["install", "-g", "poe-code@latest"],
-      undefined
-    );
+    expect(commandRunner).toHaveBeenCalledWith("bun", ["install", "-g", "poe-code@latest"]);
     expect(logs).toContain("Updated poe-code to 99.0.0.");
   });
 
@@ -120,10 +116,6 @@ describe("update command", () => {
 
     await program.parseAsync(["node", "cli", "update", "--package-manager", "npm"]);
 
-    expect(commandRunner).toHaveBeenCalledWith(
-      "npm",
-      ["install", "-g", "poe-code@latest"],
-      undefined
-    );
+    expect(commandRunner).toHaveBeenCalledWith("npm", ["install", "-g", "poe-code@latest"]);
   });
 });

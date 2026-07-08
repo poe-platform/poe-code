@@ -103,7 +103,8 @@ describe("command help formatting", () => {
     expect(help).toContain("configure, c");
     expect(help).toContain("unconfigure, uc");
     expect(help).toContain("spawn, s");
-    expect(help).toContain("wrap, w");
+    expect(help).not.toContain("wrap, w");
+    expect(help).not.toContain("wrap");
     expect(help).toContain("models, m");
     expect(help).toContain("usage, u");
     expect(help).not.toContain("generate, g");
@@ -134,18 +135,12 @@ describe("command help formatting", () => {
     expect(stripAnsi(help)).toContain("Poe - plan browse");
   });
 
-  it("lists isolated agents in wrap help output", () => {
+  it("does not register a wrap command", () => {
     const program = createHelpProgram();
     const wrapCommand = program.commands.find(
-      (command) => command.name() === "wrap"
+      (command) => command.name() === "wrap" || command.aliases().includes("w")
     );
-    expect(wrapCommand).toBeDefined();
-
-    const help = stripAnsi(wrapCommand?.helpInformation() ?? "");
-    expect(help).toContain("claude-code");
-    expect(help).toContain("claude-code | claude");
-    expect(help).toContain("codex");
-    expect(help).toContain("opencode");
+    expect(wrapCommand).toBeUndefined();
   });
 
   it("uses live command descriptions in root help output", () => {

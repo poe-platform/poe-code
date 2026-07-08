@@ -10,7 +10,6 @@ Core setup:
 poe-code login
 poe-code configure [agent]
 poe-code unconfigure <agent>
-poe-code wrap <agent>
 poe-code test <agent>
 poe-code install <agent>
 ```

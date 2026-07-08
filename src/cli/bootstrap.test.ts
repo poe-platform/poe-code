@@ -230,9 +230,9 @@ describe("createCliMain", () => {
   });
 
   it("still persists diagnostics when dry-run is only a forwarded argument", async () => {
-    process.argv = ["node", "poe-code", "wrap", "opencode", "--", "--dry-run"];
+    process.argv = ["node", "poe-code", "spawn", "opencode", "--", "--dry-run"];
     const parseAsync = vi.fn(async () => {
-      throw new Error("wrapped command failed");
+      throw new Error("spawned command failed");
     });
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
       parseAsync,

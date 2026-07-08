@@ -1444,6 +1444,13 @@ describe("opencode service", () => {
         fs: mockFsObj
       },
       logger,
+      activeProvider: {
+        id: PROVIDER_NAME,
+        apiShape: "openai-chat-completions",
+        baseUrl: "https://api.poe.com/v1",
+        credential: "sk-test",
+        extraEnv: {}
+      },
       async runCheck(check) {
         await check.run({
           isDryRun: logger.context.dryRun,
@@ -1652,16 +1659,13 @@ describe("opencode service", () => {
       args: ["--format", "markdown"]
     });
 
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
+    expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      "--model",
-      DEFAULT_PROVIDER_MODEL,
-      "run",
-      "List all files",
-      "--format",
-      "markdown"
-    ]);
+      ["--model", DEFAULT_PROVIDER_MODEL, "run", "List all files", "--format", "markdown"],
+      expect.objectContaining({
+        env: expect.any(Object)
+      })
+    );
     expect(result).toEqual({
       stdout: "opencode-output\n",
       stderr: "",
@@ -1683,14 +1687,13 @@ describe("opencode service", () => {
       model: customModel
     });
 
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
+    expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      "--model",
-      withProviderPrefix(customModel),
-      "run",
-      "List all files"
-    ]);
+      ["--model", withProviderPrefix(customModel), "run", "List all files"],
+      expect.objectContaining({
+        env: expect.any(Object)
+      })
+    );
   });
 
   it("avoids duplicating the provider prefix for prefixed models", async () => {
@@ -1707,14 +1710,13 @@ describe("opencode service", () => {
       model: prefixed
     });
 
-    expect(runCommand).toHaveBeenCalledWith("poe-code", [
-      "wrap",
+    expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      "--model",
-      prefixed,
-      "run",
-      "Describe the change"
-    ]);
+      ["--model", prefixed, "run", "Describe the change"],
+      expect.objectContaining({
+        env: expect.any(Object)
+      })
+    );
   });
 
   it("passes MCP servers as OPENCODE_CONFIG_CONTENT env var", async () => {
@@ -1737,11 +1739,11 @@ describe("opencode service", () => {
     });
 
     expect(runCommand).toHaveBeenCalledWith(
-      "poe-code",
-      ["wrap", "opencode", "--model", DEFAULT_PROVIDER_MODEL, "run", "Refactor this"],
-      {
+      "opencode",
+      ["--model", DEFAULT_PROVIDER_MODEL, "run", "Refactor this"],
+      expect.objectContaining({
         cwd: undefined,
-        env: {
+        env: expect.objectContaining({
           OPENCODE_CONFIG_CONTENT: JSON.stringify({
             mcp: {
               "my-server": {
@@ -1751,8 +1753,8 @@ describe("opencode service", () => {
               }
             }
           })
-        }
-      }
+        })
+      })
     );
   });
 

@@ -20,6 +20,7 @@ import { openCodeAgent } from "@poe-code/agent-defs";
 import { serializeOpenCodeMcpEnv } from "@poe-code/agent-spawn";
 import type { ActiveProvider } from "../cli/commands/shared.js";
 import type { ProviderContext } from "../cli/service-registry.js";
+import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
 
 function providerModel(model?: string): string {
   const value = model ?? DEFAULT_FRONTIER_MODEL;
@@ -77,6 +78,18 @@ async function ensureHealthWorkspace(context: ProviderContext): Promise<string> 
 }
 
 
+const openCodeIsolatedEnv = {
+  agentBinary: openCodeAgent.binaryName!,
+  configProbe: {
+    kind: "isolatedFile" as const,
+    relativePath: ".config/opencode/config.json"
+  },
+  env: {
+    XDG_CONFIG_HOME: { kind: "isolatedDir" as const, relativePath: ".config" },
+    XDG_DATA_HOME: { kind: "isolatedDir" as const, relativePath: ".local/share" }
+  }
+};
+
 export const openCodeService = createProvider({
   ...openCodeAgent,
   configurationLabel: "OpenCode CLI",
@@ -92,17 +105,7 @@ export const openCodeService = createProvider({
       }))
     }
   },
-  isolatedEnv: {
-    agentBinary: openCodeAgent.binaryName!,
-    configProbe: {
-      kind: "isolatedFile",
-      relativePath: ".config/opencode/config.json"
-    },
-    env: {
-      XDG_CONFIG_HOME: { kind: "isolatedDir", relativePath: ".config" },
-      XDG_DATA_HOME: { kind: "isolatedDir", relativePath: ".local/share" }
-    }
-  },
+  isolatedEnv: openCodeIsolatedEnv,
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.config/opencode" }),
@@ -199,7 +202,7 @@ export const openCodeService = createProvider({
       })
     );
   },
-  spawn(context, options) {
+  async spawn(context, options) {
     const opts = (options ?? {}) as ProviderSpawnOptions;
     const args = [
       ...getModelArgs(opts.model),
@@ -207,12 +210,22 @@ export const openCodeService = createProvider({
       opts.prompt,
       ...(opts.args ?? [])
     ];
-    if (!opts.cwd && !opts.mcpServers) {
-      return context.command.runCommand("poe-code", ["wrap", "opencode", ...args]);
-    }
-    return context.command.runCommand("poe-code", ["wrap", "opencode", ...args], {
+    const activeProvider = context.activeProvider;
+    const details = await resolveIsolatedEnvDetails(
+      context.env,
+      openCodeIsolatedEnv,
+      openCodeAgent.id,
+      activeProvider
+    );
+    const mcpEnv = opts.mcpServers ? serializeOpenCodeMcpEnv(opts.mcpServers) : undefined;
+    return context.command.runCommand("opencode", args, {
       cwd: opts.cwd,
-      env: opts.mcpServers ? serializeOpenCodeMcpEnv(opts.mcpServers) : undefined
+      env: {
+        ...(activeProvider?.extraEnv ?? {}),
+        ...(details?.env ?? {}),
+        ...(mcpEnv ?? {}),
+        ...(opts.env ?? {})
+      }
     });
   }
 });

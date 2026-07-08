@@ -7,7 +7,7 @@ Use this as the concise map of Poe Code's public surfaces. For setup-first guida
 - Node.js `>=18.18`
 - npm `>=10`
 - A Poe-compatible API key or provider credential for the agent you configure
-- The target agent CLI installed when you use `wrap`, `spawn`, or `test`
+- The target agent CLI installed when you use `spawn` or `test`
 
 ## CLI
 
@@ -28,7 +28,6 @@ Execution:
 
 ```sh
 poe-code agent "Prompt"
-poe-code wrap <agent>
 poe-code spawn <agent> "Prompt"
 poe-code spawn <agent> --cwd github://owner/repo#ref:path "Prompt"
 ```

@@ -27,7 +27,6 @@ import {
   poeProvider,
   type AuthProvider
 } from "@poe-code/providers";
-import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
 import { OperationCancelledError } from "./errors.js";
 import { resolveApiKeyViaOAuth } from "./oauth-login.js";
 import {
@@ -253,13 +252,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     registry.register(adapter);
   }
 
-  let container: CliContainer = null as unknown as CliContainer;
-  const wrappedRunner = createPoeCodeCommandRunner({
-    getContainer: () => container,
-    baseRunner: commandRunner
-  });
-
-  container = {
+  return {
     env: environment,
     fs: dependencies.fs,
     prompts: dependencies.prompts,
@@ -271,7 +264,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     registry,
     providerRegistry,
     httpClient,
-    commandRunner: wrappedRunner,
+    commandRunner,
     providers,
     dependencies,
     readApiKey,
@@ -279,6 +272,4 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     deleteApiKey,
     createPreviewProviderStore
   };
-
-  return container;
 }

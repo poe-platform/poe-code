@@ -8,7 +8,7 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
 ## Critical 1–17
 
-See MASTER top 17 — includes memory INDEX show/ls broken after init.
+See MASTER top 17 — secrets, sonnet-5 cluster, poe-agent crash, plan --yes, logout, memory INDEX.
 
 ## Integrity
 

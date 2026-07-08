@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 164 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 167 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,9 +15,11 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. README wrap missing  
 7. logout factory-reset  
 
-## High note
+## Launch cluster (High)
 
-`launch status` can hard-fail on `.state-removed-*` tombstones after normal `launch rm` — ops surface bricked until manual filesystem cleanup.
+- Tombstone `.state-removed-*` breaks status  
+- Ghost rows with ID `-`  
+- npm run dev turbo noise on launch  
 
 ## Continue
 

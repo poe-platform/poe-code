@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 785 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 792 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,12 +14,12 @@ memory INDEX, root help hides half the product.
 
 ## Integrity
 
-Master == disk == 785. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 792. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 Restored docs/plans after gaslight/agent side effects. Removed audit probe dirs.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **785**. Critical 18 → **22**. Continuous commits on main.
+Started ~687 issues → **792**. Critical 18 → **22**. Continuous commits on main.
 New Criticals this stretch: gaslight read-mode plan mutation; configure effort always xhigh;
 root help hides half the product; spawn --yes→yolo.
 

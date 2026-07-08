@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 160 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 162 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -15,10 +15,9 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 6. README wrap missing  
 7. logout factory-reset  
 
-## Latest
+## Status
 
-- --reasoning-effort may be silently ignored for Claude  
-- --feature not repeatable (last-wins)  
+Backlog committed on main in this worktree. Continuous discovery ongoing.
 
 ## Continue
 

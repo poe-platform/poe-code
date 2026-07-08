@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 831 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 837 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,14 +14,14 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 831. Continuously committed on main.
-Claude model was found corrupted to `claude-fable-5[1m]` mid-session and **restored to claude-sonnet-4-6**.
+Master == disk == 837. Continuously committed on main.
+Claude model restored to claude-sonnet-4-6 after fable corruption incident.
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **831**. Critical 18 → **26**. Continuous commits on main.
+Started ~687 issues → **837**. Critical 18 → **26**. Continuous commits on main (~40 commits this stretch).
 
 ## Live reconfirms (still open)
 

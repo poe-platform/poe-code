@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 846 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 849 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -14,14 +14,14 @@ plan --yes, logout, memory INDEX, root help, superintendent help.
 
 ## Integrity
 
-Master == disk == 846. Continuously committed on main.
-Claude model restored to claude-sonnet-4-6 after fable corruption incident.
+Master == disk == 849. Continuously committed on main.
+Claude settings restored: model `claude-sonnet-4-6`, effortLevel `high` (was `sonnet` + `xhigh` mid-session; earlier `claude-fable-5[1m]`).
 Restored docs/plans and .claude/skills after audit side effects. Removed audit probe dirs.
 **Never commit live secrets**. Do not revert concurrent untracked work.
 
 ## Session progress (this stretch)
 
-Started ~687 issues → **846**. Critical 18 → **26**. Continuous commits on main.
+Started ~687 issues → **849**. Critical 18 → **26**. Continuous commits on main.
 
 ## Live reconfirms (still open)
 
@@ -29,10 +29,11 @@ Started ~687 issues → **846**. Critical 18 → **26**. Continuous commits on m
 - spawn poe-agent still fs.lstat crash
 - skip-if-configured matching sonnet-4.6 still full rewrite dry-run
 - configure haiku still plans effortLevel xhigh
-- configure --model sonnet writes literal sonnet
+- configure --model sonnet writes literal sonnet (left live config as sonnet)
 - experiment install --force still Skill already exists
 - test kimi Provider poe not found
+- doctor still missing
 
 ## Continue
 
-TTY interactive, dashboard, Windows, postinstall, residual edges. Prefer dry-run; never leave gaslight unattended; never print secrets into issue files; never skill unconfigure --force without backup; verify Claude model after probes.
+TTY interactive, dashboard, Windows, postinstall, residual edges. Prefer dry-run; never leave gaslight unattended; never print secrets into issue files; never skill unconfigure --force without backup; **verify Claude model after every configure probe**.

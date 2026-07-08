@@ -1,0 +1,25 @@
+# UX: configure --shape-base-url not visible in dry-run diff
+
+## Summary
+
+configure claude --shape-base-url anthropic-messages=https://example.invalid --yes --dry-run still shows ANTHROPIC_BASE_URL https://api.poe.com and dead sonnet-5 default when no --model — shape override not clearly reflected in intentional diff.
+
+## Evidence
+
+shape-base-url example.invalid dry-run still shows api.poe.com base URL; model sonnet-5.
+
+## Why it matters
+
+Users cannot verify shape URL override from dry-run.
+
+## Suggested direction
+
+Show shape/base URL overrides in intentional dry-run; require --model to avoid dead default noise.
+
+## Severity
+
+**High**
+
+## Area
+
+Configure / dry-run

@@ -1,24 +1,22 @@
 # UX audit session status
 
-**Count:** 439 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 441 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
 Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 
-## Critical 1–13
+## Critical cluster (sonnet-5)
 
-1. Dry-run diffs print secrets  
-2–3. auth api-key reveal (+ dry-run)  
-4. **constants.ts source of dead sonnet-5**  
-5–9. Related sonnet-5 / skip-if-configured cluster  
-10. spawn poe-agent crash  
-11. plan archive/delete --yes arbitrary  
-12. logout factory-reset  
+Only `anthropic/claude-sonnet-5` is dead among FRONTIER_MODELS; opus-4.7, gpt-5.3-codex, gpt-5.4-pro, gemini-3.1-pro resolve. Fix: constants + goose map sonnet-5 → sonnet-4.6.
+
+## Critical 1–N (security + defaults + crash + destructive)
+
+See MASTER top 14.
 
 ## Integrity
 
-Master == disk == 439. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
+Master == disk == 441. Continuously committed on main. Claude model restored to sonnet-4.6 after audit incident.
 
 ## Continue
 

@@ -1,6 +1,6 @@
 # UX audit session status
 
-**Count:** 185 · **Master:** [MASTER.md](./MASTER.md)
+**Count:** 188 · **Master:** [MASTER.md](./MASTER.md)
 
 ## Goal
 
@@ -16,11 +16,11 @@ Identify UX issues; maintain master 1–N; keep finding, triaging, prioritizing.
 7. README wrap missing  
 8. logout factory-reset  
 
-## Catalog notes
+## Positive live checks
 
-- `models --model anthropic/claude-opus-4.7` → 0 hits; bare id works (filter UX bug)  
-- `models --search sonnet-5` → 0; sonnet-4.6 exists  
-- Other FRONTIER_MODELS exist under search when using bare/search forms  
+- spawn claude/pi/goose with valid models succeed  
+- @file and - prompts work  
+- skill install --file success framing is good  
 
 ## Continue
 

@@ -144,7 +144,7 @@ export function formatColumns(opts: FormatColumnsOptions): string {
 export function formatCommandList(commands: CommandInfo[]): string {
   return formatColumns({
     rows: commands.map((cmd) => ({
-      left: cmd.name,
+      left: `${" ".repeat((cmd.depth ?? 0) * 2)}${cmd.name}`,
       right: cmd.description
     }))
   });

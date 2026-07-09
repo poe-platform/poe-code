@@ -3,6 +3,8 @@ import { text } from "./text.js";
 export interface CommandInfo {
   name: string;
   description: string;
+  /** Nesting depth relative to the help target. Depth 0 is a direct child. */
+  depth?: number;
 }
 
 export interface OptionInfo {
@@ -248,7 +250,7 @@ export function formatOption(flags: string, description: string): string {
 export function formatCommandList(commands: CommandInfo[]): string {
   return formatColumns({
     rows: commands.map((cmd) => ({
-      left: text.command(cmd.name),
+      left: `${" ".repeat((cmd.depth ?? 0) * 2)}${text.command(cmd.name)}`,
       right: cmd.description
     }))
   });

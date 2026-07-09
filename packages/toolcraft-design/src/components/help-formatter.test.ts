@@ -201,6 +201,19 @@ describe("help formatter lists", () => {
     expect(result).not.toContain("\n  forged --all");
   });
 
+  it("indents nested command rows by depth", () => {
+    const result = formatCommandList([
+      { name: "calendar", description: "Google Calendar events.", depth: 0 },
+      { name: "events", description: "", depth: 1 },
+      { name: "list", description: "List calendar events", depth: 2 }
+    ]);
+    const plain = result.replace(/\[[0-9;]*m/g, "");
+
+    expect(plain).toContain("  calendar");
+    expect(plain).toContain("    events");
+    expect(plain).toContain("      list");
+  });
+
   it("formats option lists through columns", () => {
     const result = withOutputFormat("markdown", () =>
       formatOptionList([

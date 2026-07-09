@@ -123,6 +123,19 @@ describe("plain help formatter", () => {
     expect(result).toBe("  configure   Set up provider credentials\n  run         Run an agent");
   });
 
+  it("indents nested command rows by depth without text styling", () => {
+    const result = formatCommandList([
+      { name: "calendar", description: "Google Calendar events.", depth: 0 },
+      { name: "events", description: "", depth: 1 },
+      { name: "list", description: "List calendar events", depth: 2 }
+    ]);
+
+    expect(ansiEscapePattern.test(result)).toBe(false);
+    expect(result).toContain("  calendar");
+    expect(result).toContain("    events");
+    expect(result).toContain("      list");
+  });
+
   it("formats option lists without text styling", () => {
     const result = formatOptionList([
       { flags: "--agent <name>", description: "Agent to configure" },

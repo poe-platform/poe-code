@@ -92,17 +92,27 @@ vi.mock("toolcraft-design", () => ({
     muted: (value: string) => value,
     usageCommand: (value: string) => value
   },
-  formatCommandList: (commands: Array<{ name: string; description: string }>) =>
+  formatCommandList: (
+    commands: Array<{ name: string; description: string; depth?: number }>
+  ) =>
     formatMockColumns(
-      commands.map((command) => ({ left: command.name, right: command.description }))
+      commands.map((command) => ({
+        left: `${" ".repeat((command.depth ?? 0) * 2)}${command.name}`,
+        right: command.description
+      }))
     ),
   formatOptionList: (options: Array<{ flags: string; description: string }>) =>
     formatMockColumns(options.map((option) => ({ left: option.flags, right: option.description }))),
   helpFormatterPlain: {
-    formatCommandList: (commands: Array<{ name: string; description: string }>) => {
+    formatCommandList: (
+      commands: Array<{ name: string; description: string; depth?: number }>
+    ) => {
       formatterState.plainCommandListCalls += 1;
       return formatMockColumns(
-        commands.map((command) => ({ left: command.name, right: command.description }))
+        commands.map((command) => ({
+          left: `${" ".repeat((command.depth ?? 0) * 2)}${command.name}`,
+          right: command.description
+        }))
       );
     },
     formatOptionList: (options: Array<{ flags: string; description: string }>) => {
@@ -1511,6 +1521,9 @@ describe("runCLI", () => {
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
+          list [--state <value>]  List queued approvals.
+          show --approval-id <id>  Show one approval.
+          run --approval-id <id>  Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
@@ -1631,6 +1644,9 @@ describe("runCLI", () => {
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
+          list [--state <value>]  List queued approvals.
+          show --approval-id <id>  Show one approval.
+          run --approval-id <id>  Run one queued approval.
 
       Options: --preset <path>  --yes  --output <rich|md|markdown|json>  -v, --verbose  --version
       "
@@ -2358,7 +2374,101 @@ describe("runCLI", () => {
       name: "toolcraft",
       usage: "toolcraft [command] [OPTIONS]"
     });
-    expect(help.commands).toContainEqual({ name: "deploy", description: "Deploy an app." });
+    expect(help.commands).toContainEqual({
+      name: "deploy",
+      description: "Deploy an app.",
+      kind: "command",
+      depth: 0
+    });
+  });
+
+  it("renders extended group help as JSON with kind and depth", async () => {
+    const listEvents = defineCommand({
+      name: "list",
+      description: "List calendar events",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const calendar = defineGroup({
+      name: "calendar",
+      description: "Google Calendar events.",
+      children: [
+        defineGroup({
+          name: "events",
+          children: [listEvents]
+        })
+      ]
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [calendar]
+    });
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "--help", "--output", "json"];
+    await runCLI(root);
+
+    const help = JSON.parse(readStdout(stdoutWrite)) as {
+      commands: Array<{ name: string; description: string; kind: string; depth: number }>;
+    };
+    expect(help.commands).toEqual(
+      expect.arrayContaining([
+        {
+          name: "calendar",
+          description: "Google Calendar events.",
+          kind: "group",
+          depth: 0
+        },
+        { name: "events", description: "", kind: "group", depth: 1 },
+        {
+          name: "list",
+          description: "List calendar events",
+          kind: "command",
+          depth: 2
+        }
+      ])
+    );
+  });
+
+  it("renders concise group help as JSON with depth 0 only", async () => {
+    const listEvents = defineCommand({
+      name: "list",
+      description: "List calendar events",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const calendar = defineGroup({
+      name: "calendar",
+      description: "Google Calendar events.",
+      children: [
+        defineGroup({
+          name: "events",
+          children: [listEvents]
+        })
+      ]
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [calendar]
+    });
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "--help", "--output", "json"];
+    await runCLI(root, {
+      controls: { debug: true, output: true, verbose: true, yes: true, help: "concise" }
+    });
+
+    const help = JSON.parse(readStdout(stdoutWrite)) as {
+      commands: Array<{ name: string; description: string; kind: string; depth: number }>;
+    };
+    expect(help.commands).toContainEqual({
+      name: "calendar",
+      description: "Google Calendar events.",
+      kind: "group",
+      depth: 0
+    });
+    expect(help.commands.some((row) => row.name === "events")).toBe(false);
+    expect(help.commands.some((row) => row.name === "list")).toBe(false);
   });
 
   it("renders leaf help as JSON with positional and option metadata", async () => {
@@ -4471,7 +4581,7 @@ describe("runCLI", () => {
     expect(output).toContain("Storage backend (values: sqlite, files)");
   });
 
-  it("renders nested command groups in root help", async () => {
+  it("renders nested command groups in root help as an extended tree by default", async () => {
     const listEvents = defineCommand({
       name: "list",
       description: "List calendar events",
@@ -4514,12 +4624,162 @@ describe("runCLI", () => {
     expect(output).toContain("Commands");
     expect(output).not.toContain("Commands:");
     expect(output).toContain("calendar");
+    expect(output).toContain("  events");
+    expect(output).toContain("    list");
+    expect(output).toContain("List calendar events");
+    expect(output).toContain("  meeting");
+    expect(output).toContain("    create");
+    expect(output).toContain("Create meeting");
+  });
+
+  it("keeps concise group help when controls.help is concise", async () => {
+    const listEvents = defineCommand({
+      name: "list",
+      description: "List calendar events",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const createMeeting = defineCommand({
+      name: "create",
+      description: "Create meeting",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const calendar = defineGroup({
+      name: "calendar",
+      description: "Google Calendar events.",
+      children: [
+        defineGroup({
+          name: "events",
+          children: [listEvents]
+        }),
+        defineGroup({
+          name: "meeting",
+          children: [createMeeting]
+        })
+      ]
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [calendar]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, {
+      controls: { debug: true, output: true, verbose: true, yes: true, help: "concise" }
+    });
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("calendar");
     expect(output).not.toContain("\n  events");
     expect(output).not.toContain("\n    list");
     expect(output).not.toContain("List calendar events");
     expect(output).not.toContain("\n  meeting");
     expect(output).not.toContain("\n    create");
     expect(output).not.toContain("Create meeting");
+  });
+
+  it("limits nested group help to that group's subtree", async () => {
+    const listEvents = defineCommand({
+      name: "list",
+      description: "List calendar events",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const createMeeting = defineCommand({
+      name: "create",
+      description: "Create meeting",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const calendar = defineGroup({
+      name: "calendar",
+      description: "Google Calendar events.",
+      children: [
+        defineGroup({
+          name: "events",
+          children: [listEvents]
+        }),
+        defineGroup({
+          name: "meeting",
+          children: [createMeeting]
+        })
+      ]
+    });
+    const asana = defineGroup({
+      name: "asana",
+      description: "Asana tasks.",
+      children: [
+        defineCommand({
+          name: "list-tasks",
+          description: "List tasks",
+          params: S.Object({}),
+          handler: async () => null
+        })
+      ]
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [calendar, asana]
+    });
+
+    process.argv = ["node", "toolcraft", "calendar", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("toolcraft calendar");
+    expect(output).toContain("events");
+    expect(output).toContain("list");
+    expect(output).toContain("List calendar events");
+    expect(output).toContain("meeting");
+    expect(output).toContain("create");
+    expect(output).not.toContain("asana");
+    expect(output).not.toContain("list-tasks");
+  });
+
+  it("omits hidden commands from extended help trees", async () => {
+    const visible = defineCommand({
+      name: "visible",
+      description: "Visible leaf",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const hidden = defineCommand({
+      name: "secret",
+      description: "Hidden leaf",
+      hidden: true,
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const group = defineGroup({
+      name: "tools",
+      description: "Tools group",
+      children: [visible, hidden]
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [group]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("tools");
+    expect(output).toContain("visible");
+    expect(output).not.toContain("secret");
+    expect(output).not.toContain("Hidden leaf");
   });
 
   it("resolves MCP proxy caches from the configured project root", async () => {
@@ -5235,7 +5495,7 @@ describe("runCLI", () => {
     expect(output).toContain("<url>");
     expect(output).toContain("init");
     expect(output).not.toContain("create");
-    expect(output).not.toContain("show");
+    expect(output).not.toContain("Show one registered resource.");
     expect(output).not.toContain("switch-db");
 
     process.argv = ["node", "wire", "https://example.com/source.md", "--yes"];
@@ -5617,7 +5877,10 @@ describe("runCLI", () => {
 
       Commands
         deploy
-        approvals   Inspect and execute queued approvals.
+        approvals                   Inspect and execute queued approvals.
+          list [--state <value>]    List queued approvals.
+          show --approval-id <id>   Show one approval.
+          run --approval-id <id>    Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
@@ -5744,7 +6007,7 @@ describe("runCLI", () => {
     expect(usageLine).not.toContain("--owner-handle");
   });
 
-  it("lists only direct children in a group commands section", async () => {
+  it("lists nested actions in a group commands section by default", async () => {
     setStdoutColumns(100);
     const grandchild = defineCommand({
       name: "grandchild",
@@ -5773,6 +6036,57 @@ describe("runCLI", () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
     await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
+      "toolcraft
+
+      Usage: toolcraft [command] [OPTIONS]
+
+      Commands
+        child                       Child group
+          grandchild                Nested leaf
+        sibling                     Sibling leaf
+        approvals                   Inspect and execute queued approvals.
+          list [--state <value>]    List queued approvals.
+          show --approval-id <id>   Show one approval.
+          run --approval-id <id>    Run one queued approval.
+
+      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      "
+    `);
+  });
+
+  it("lists only direct children when controls.help is concise", async () => {
+    setStdoutColumns(100);
+    const grandchild = defineCommand({
+      name: "grandchild",
+      description: "Nested leaf",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const child = defineGroup({
+      name: "child",
+      description: "Child group",
+      children: [grandchild]
+    });
+    const sibling = defineCommand({
+      name: "sibling",
+      description: "Sibling leaf",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [child, sibling]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, {
+      controls: { debug: true, output: true, verbose: true, yes: true, help: "concise" }
+    });
 
     expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
       "toolcraft
@@ -5855,6 +6169,9 @@ describe("runCLI", () => {
                                         summarize changes.
         approvals                       Inspect and execute queued
                                         approvals.
+          list [--state <value>]        List queued approvals.
+          show --approval-id <id>       Show one approval.
+          run --approval-id <id>        Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "
@@ -5889,8 +6206,11 @@ describe("runCLI", () => {
       Usage: toolcraft [command] [OPTIONS]
 
       Commands
-        deploy      Deploy a service
-        approvals   Inspect and execute queued approvals.
+        deploy                      Deploy a service
+        approvals                   Inspect and execute queued approvals.
+          list [--state <value>]    List queued approvals.
+          show --approval-id <id>   Show one approval.
+          run --approval-id <id>    Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
       "

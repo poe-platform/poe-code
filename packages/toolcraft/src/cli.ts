@@ -217,8 +217,12 @@ interface ResolvedHelpTarget<TServices extends object> {
   node: Command<TServices, any, any, any> | Group<TServices>;
 }
 
+export type CLIHelpDepth = "concise" | "extended";
+
 interface HelpCommandRow {
   description: string;
+  depth: number;
+  kind: "command" | "group";
   name: string;
 }
 
@@ -239,6 +243,11 @@ interface JsonHelpOption {
 
 export interface CLIControls {
   debug?: boolean;
+  /**
+   * Group `--help` depth. `extended` (default) lists every nested action under the
+   * help target; `concise` lists only direct children.
+   */
+  help?: CLIHelpDepth;
   logLevel?: boolean;
   output?: boolean | CLIOutputControl;
   verbose?: boolean;
@@ -1224,6 +1233,7 @@ function createOption(
 
 interface ResolvedCLIControls {
   debug: boolean;
+  help: CLIHelpDepth;
   logLevel: boolean;
   output: boolean;
   outputFormats: CLIOutputFormats;
@@ -1237,6 +1247,7 @@ function resolveCLIControls(controls: CLIControls | undefined): ResolvedCLIContr
   validateOutputFormats(outputFormats);
   return {
     debug: controls?.debug === true,
+    help: controls?.help === "concise" ? "concise" : "extended",
     logLevel: controls?.logLevel === true,
     output: controls?.output === true || typeof controls?.output === "object",
     outputFormats,
@@ -1958,12 +1969,34 @@ function formatCommandRows<TServices extends object>(
   group: Group<TServices>,
   scope: Scope,
   casing: Casing,
-  globalLongOptionFlags: ReadonlySet<string>
+  globalLongOptionFlags: ReadonlySet<string>,
+  help: CLIHelpDepth
 ): HelpCommandRow[] {
-  return getHelpChildren(group, scope).map((child) => ({
-    name: formatCommandRowName(child, casing, globalLongOptionFlags),
-    description: child.description ?? ""
-  }));
+  if (help === "concise") {
+    return getHelpChildren(group, scope).map((child) => ({
+      name: formatCommandRowName(child, casing, globalLongOptionFlags),
+      description: child.description ?? "",
+      kind: child.kind,
+      depth: 0
+    }));
+  }
+
+  const rows: HelpCommandRow[] = [];
+  const visit = (node: Group<TServices>, depth: number): void => {
+    for (const child of getHelpChildren(node, scope)) {
+      rows.push({
+        name: formatCommandRowName(child, casing, globalLongOptionFlags),
+        description: child.description ?? "",
+        kind: child.kind,
+        depth
+      });
+      if (child.kind === "group") {
+        visit(child, depth + 1);
+      }
+    }
+  };
+  visit(group, 0);
+  return rows;
 }
 
 function formatGlobalOptionsLine(ctx: {
@@ -2106,7 +2139,13 @@ function renderGroupHelp<TServices extends object>(
     globalOptions.showVersion,
     globalOptions.controls
   );
-  const commandRows = formatCommandRows(group, scope, casing, globalLongOptionFlags);
+  const commandRows = formatCommandRows(
+    group,
+    scope,
+    casing,
+    globalLongOptionFlags,
+    globalOptions.controls.help
+  );
 
   if (commandRows.length > 0) {
     sections.push(`${text.sectionHeader("Commands")}\n${formatHelpCommandList(commandRows)}`);
@@ -2228,7 +2267,13 @@ function renderJsonHelp<TServices extends object>(
   const node = target.node;
 
   if (node.kind === "group") {
-    const commandRows = formatCommandRows(node, "cli", casing, globalLongOptionFlags);
+    const commandRows = formatCommandRows(
+      node,
+      "cli",
+      casing,
+      globalLongOptionFlags,
+      globalOptions.controls.help
+    );
     const isRoot = node === root;
     return `${JSON.stringify(
       {
@@ -2242,7 +2287,12 @@ function renderJsonHelp<TServices extends object>(
           formatGroupUsageSuffix(node, "cli", casing, globalLongOptionFlags)
         ),
         ...(node.description === undefined ? {} : { description: node.description }),
-        commands: commandRows.map((row) => ({ name: row.name, description: row.description })),
+        commands: commandRows.map((row) => ({
+          name: row.name,
+          description: row.description,
+          kind: row.kind,
+          depth: row.depth
+        })),
         options: isRoot
           ? collectSchemaGlobalFieldRows(node, "cli", casing, globalLongOptionFlags).map((row) => ({
               name: row.flags.split(/[ ,]+/)[0]?.replace(/^--/, "") ?? row.flags,

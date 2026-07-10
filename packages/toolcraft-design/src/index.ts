@@ -22,10 +22,19 @@ export {
   formatUsage,
   formatOption,
   formatCommandList,
-  formatOptionList
+  formatOptionList,
+  styleHelpToken,
+  joinHelpTokens,
+  renderHelpTokens
 } from "./components/help-formatter.js";
 export * as helpFormatterPlain from "./components/help-formatter-plain.js";
-export type { CommandInfo, OptionInfo, FormatColumnsOptions } from "./components/help-formatter.js";
+export type {
+  CommandInfo,
+  OptionInfo,
+  FormatColumnsOptions,
+  HelpToken,
+  HelpTokenRole
+} from "./components/help-formatter.js";
 export { formatCommandNotFound } from "./components/command-errors.js";
 export { formatCommandNotFoundPanel } from "./components/command-errors.js";
 export { renderTable } from "./components/table.js";

@@ -1,7 +1,18 @@
+import { resolveOutputFormat } from "../internal/output-format.js";
+import { typography } from "../tokens/typography.js";
 import { text } from "./text.js";
+
+export type HelpTokenRole = "command" | "argument" | "option" | "literal" | "dim";
+
+export interface HelpToken {
+  text: string;
+  role: HelpTokenRole;
+}
 
 export interface CommandInfo {
   name: string;
+  /** Structured tokens for TTY/markdown styling. Plain `name` is used when absent. */
+  nameTokens?: HelpToken[];
   description: string;
   /** Nesting depth relative to the help target. Depth 0 is a direct child. */
   depth?: number;
@@ -9,6 +20,8 @@ export interface CommandInfo {
 
 export interface OptionInfo {
   flags: string;
+  /** Structured tokens for TTY/markdown styling. Plain `flags` is used when absent. */
+  flagTokens?: HelpToken[];
   description: string;
 }
 
@@ -149,31 +162,81 @@ function splitWords(value: string): string[] {
   return words;
 }
 
-function wrapWords(value: string, width: number): string[] {
-  const words = splitWords(value);
+function leadingWhitespaceWidth(value: string): { prefix: string; rest: string } {
+  let index = 0;
+  while (index < value.length && isWhitespace(value[index])) {
+    index += 1;
+  }
+  return { prefix: value.slice(0, index), rest: value.slice(index) };
+}
+
+function takeVisiblePrefix(value: string, width: number): { prefix: string; rest: string } {
+  let visible = 0;
+  let index = 0;
+
+  while (index < value.length) {
+    const controlEnd = readControlSequence(value, index);
+    if (controlEnd !== undefined) {
+      index = controlEnd;
+      continue;
+    }
+
+    const segment = graphemeSegmenter.segment(value.slice(index))[Symbol.iterator]().next().value as
+      | Intl.SegmentData
+      | undefined;
+    const cluster = segment?.segment ?? value[index] ?? "";
+    const nextWidth = clusterWidth(cluster);
+    if (visible > 0 && visible + nextWidth > width) {
+      break;
+    }
+    visible += nextWidth;
+    index += cluster.length || 1;
+  }
+
+  return { prefix: value.slice(0, index), rest: value.slice(index) };
+}
+
+function wrapWords(value: string, width: number, continuationWidth = width): string[] {
+  // Preserve leading whitespace only on the first wrapped line so hang-indented
+  // left cells (command depth prefixes) do not re-indent every continuation.
+  const { prefix, rest } = leadingWhitespaceWidth(value);
+  const prefixWidth = visibleWidth(prefix);
+  const firstContentWidth = Math.max(1, width - prefixWidth);
+  const words = splitWords(rest);
   if (words.length === 0) {
-    return [""];
+    return [prefix];
   }
 
   const lines: string[] = [];
   let line = "";
+  let isFirstLine = true;
 
   for (const word of words) {
-    if (!line) {
-      line = word;
-      continue;
-    }
-
-    if (visibleWidth(line) + 1 + visibleWidth(word) <= width) {
+    const limit = isFirstLine ? firstContentWidth : continuationWidth;
+    if (line && visibleWidth(line) + 1 + visibleWidth(word) <= limit) {
       line += ` ${word}`;
       continue;
     }
+    if (line) {
+      lines.push(isFirstLine ? `${prefix}${line}` : line);
+      isFirstLine = false;
+      line = "";
+    }
 
-    lines.push(line);
-    line = word;
+    let remaining = word;
+    while (visibleWidth(remaining) > (isFirstLine ? firstContentWidth : continuationWidth)) {
+      const chunk = takeVisiblePrefix(
+        remaining,
+        isFirstLine ? firstContentWidth : continuationWidth
+      );
+      lines.push(isFirstLine ? `${prefix}${chunk.prefix}` : chunk.prefix);
+      isFirstLine = false;
+      remaining = chunk.rest;
+    }
+    line = remaining;
   }
 
-  lines.push(line);
+  lines.push(isFirstLine ? `${prefix}${line}` : line);
   return lines;
 }
 
@@ -204,30 +267,91 @@ export function formatColumns(opts: FormatColumnsOptions): string {
   validateLayoutValue(indent, "indent");
   const maxLeftContentWidth = Math.max(...rows.map((row) => visibleWidth(row.left)));
   const leftWidth = clamp(maxLeftContentWidth + gap, minLeftWidth, maxLeftWidth);
-  const rightWidth = Math.max(20, totalWidth - leftWidth - indent);
+  const rightWidth = Math.max(1, totalWidth - leftWidth - indent);
+  const leftWrapWidth = Math.max(1, totalWidth - indent);
   const firstIndent = " ".repeat(indent);
   const continuationIndent = " ".repeat(indent + leftWidth);
 
   return rows
     .flatMap((row) => {
+      const leftLeading = leadingWhitespaceWidth(row.left).prefix;
+      // Continuations hang under the left cell start (including depth prefix) by +2.
+      const leftHangIndent = " ".repeat(indent + visibleWidth(leftLeading) + 2);
+      const leftLines = wrapWords(
+        row.left,
+        leftWrapWidth,
+        Math.max(1, totalWidth - visibleWidth(leftHangIndent))
+      );
+
       if (row.right.length === 0) {
-        return [`${firstIndent}${row.left}`];
+        return leftLines.map((line, index) =>
+          index === 0 ? `${firstIndent}${line}` : `${leftHangIndent}${line}`
+        );
       }
 
       const rightLines = wrapWords(row.right, rightWidth);
-      if (visibleWidth(row.left) >= leftWidth) {
-        return [
-          `${firstIndent}${row.left}`,
-          ...rightLines.map((line) => `${continuationIndent}${line}`)
-        ];
+      const leftFitsInColumn = visibleWidth(row.left) < leftWidth;
+
+      if (leftFitsInColumn && leftLines.length === 1) {
+        const firstLine = `${firstIndent}${padEndVisible(leftLines[0] ?? "", leftWidth)}${rightLines[0]}`;
+        const continuationLines = rightLines
+          .slice(1)
+          .map((line) => `${continuationIndent}${line}`);
+        return [firstLine, ...continuationLines];
       }
-      const firstLine = `${firstIndent}${padEndVisible(row.left, leftWidth)}${rightLines[0]}`;
-      const continuationLines = rightLines
-        .slice(1)
-        .map((line) => `${continuationIndent}${line}`);
-      return [firstLine, ...continuationLines];
+
+      const renderedLeft = leftLines.map((line, index) =>
+        index === 0 ? `${firstIndent}${line}` : `${leftHangIndent}${line}`
+      );
+      const renderedRight = rightLines.map((line) => `${continuationIndent}${line}`);
+      return [...renderedLeft, ...renderedRight];
     })
     .join("\n");
+}
+
+export function styleHelpToken(token: HelpToken): string {
+  switch (token.role) {
+    case "command":
+      return text.command(token.text);
+    case "argument":
+      return styleArgumentToken(token.text);
+    case "option":
+      return text.option(token.text);
+    case "dim":
+      return styleDim(token.text);
+    case "literal":
+      return token.text;
+  }
+}
+
+function styleArgumentToken(content: string): string {
+  // Token text already includes angle brackets. text.argument re-wraps in markdown,
+  // so strip first there; terminal/json keep the full `<value>` form.
+  const format = resolveOutputFormat();
+  if (format === "markdown" && content.startsWith("<") && content.endsWith(">")) {
+    return text.argument(content.slice(1, -1));
+  }
+  if (format === "json") {
+    return content;
+  }
+  return text.argument(content);
+}
+
+function styleDim(content: string): string {
+  // Structural brackets stay unstyled in markdown/json; italicizing them as muted is wrong.
+  const format = resolveOutputFormat();
+  if (format === "json" || format === "markdown") {
+    return content;
+  }
+  return typography.dim(content);
+}
+
+export function joinHelpTokens(tokens: HelpToken[]): string {
+  return tokens.map((token) => token.text).join("");
+}
+
+export function renderHelpTokens(tokens: HelpToken[]): string {
+  return tokens.map((token) => styleHelpToken(token)).join("");
 }
 
 export function formatCommand(name: string, description: string): string {
@@ -249,17 +373,27 @@ export function formatOption(flags: string, description: string): string {
 
 export function formatCommandList(commands: CommandInfo[]): string {
   return formatColumns({
-    rows: commands.map((cmd) => ({
-      left: `${" ".repeat((cmd.depth ?? 0) * 2)}${text.command(cmd.name)}`,
-      right: cmd.description
-    }))
+    rows: commands.map((cmd) => {
+      const depthPrefix = " ".repeat((cmd.depth ?? 0) * 2);
+      const styledName =
+        cmd.nameTokens !== undefined && cmd.nameTokens.length > 0
+          ? renderHelpTokens(cmd.nameTokens)
+          : text.command(cmd.name);
+      return {
+        left: `${depthPrefix}${styledName}`,
+        right: cmd.description
+      };
+    })
   });
 }
 
 export function formatOptionList(options: OptionInfo[]): string {
   return formatColumns({
     rows: options.map((opt) => ({
-      left: text.option(opt.flags),
+      left:
+        opt.flagTokens !== undefined && opt.flagTokens.length > 0
+          ? renderHelpTokens(opt.flagTokens)
+          : text.option(opt.flags),
       right: opt.description
     }))
   });
@@ -271,5 +405,8 @@ export const helpFormatter = {
   formatUsage,
   formatOption,
   formatCommandList,
-  formatOptionList
+  formatOptionList,
+  styleHelpToken,
+  joinHelpTokens,
+  renderHelpTokens
 } as const;

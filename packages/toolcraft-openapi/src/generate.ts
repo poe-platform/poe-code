@@ -61,6 +61,11 @@ const BINARY_OUTPUT_PARAM = {
   definition: { kind: "string" }
 } as const satisfies GeneratedParam;
 
+export interface OpenApiTagObject {
+  name: string;
+  description?: string;
+}
+
 export interface OpenApiDocument {
   openapi?: string;
   info?: {
@@ -69,6 +74,7 @@ export interface OpenApiDocument {
   };
   servers?: OpenApiServerObject[];
   security?: OpenApiSecurityRequirementObject[];
+  tags?: OpenApiTagObject[];
   paths?: Record<string, OpenApiPathItemObject | undefined>;
   components?: {
     securitySchemes?: Record<string, unknown>;
@@ -489,7 +495,7 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
       path: command.filePath,
       contents: createCommandFile(command)
     })),
-    createIndexFile(commands),
+    createIndexFile(commands, normalizedDocument),
     createClientFile(),
     createCliFile({ brand, label }),
     createMcpFile()
@@ -3193,8 +3199,25 @@ function resolveQueryObjectSerialization(
   );
 }
 
-function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
+function collectTagDescriptions(document: OpenApiDocument): Map<string, string> {
+  const descriptions = new Map<string, string>();
+
+  for (const tag of document.tags ?? []) {
+    if (typeof tag.name !== "string" || tag.name.length === 0) {
+      continue;
+    }
+    if (typeof tag.description !== "string" || tag.description.trim().length === 0) {
+      continue;
+    }
+    descriptions.set(normalizeNoun(tag.name), tag.description.trim());
+  }
+
+  return descriptions;
+}
+
+function createIndexFile(commands: GeneratedCommand[], document: OpenApiDocument): GeneratedFile {
   const groups = groupByNoun(commands);
+  const tagDescriptions = collectTagDescriptions(document);
 
   if (groups.length === 0) {
     return {
@@ -3219,8 +3242,12 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   }
 
   for (const { noun, commands: nounCommands } of groups) {
+    const description = tagDescriptions.get(noun);
     lines.push(`export const ${toCamelCase(noun)} = defineGroup({`);
     lines.push(`  name: ${JSON.stringify(noun)},`);
+    if (description !== undefined) {
+      lines.push(`  description: ${JSON.stringify(description)},`);
+    }
     lines.push(`  children: [${nounCommands.map((command) => command.exportName).join(", ")}],`);
     lines.push("});");
     lines.push("");

@@ -11,9 +11,18 @@ export {
   formatUsage,
   formatOption,
   formatCommandList,
-  formatOptionList
+  formatOptionList,
+  styleHelpToken,
+  joinHelpTokens,
+  renderHelpTokens
 } from "./help-formatter.js";
-export type { CommandInfo, OptionInfo, FormatColumnsOptions } from "./help-formatter.js";
+export type {
+  CommandInfo,
+  OptionInfo,
+  FormatColumnsOptions,
+  HelpToken,
+  HelpTokenRole
+} from "./help-formatter.js";
 export { formatCommandNotFound } from "./command-errors.js";
 export { formatCommandNotFoundPanel } from "./command-errors.js";
 export { renderTable } from "./table.js";

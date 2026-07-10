@@ -364,6 +364,42 @@ describe("generate", () => {
     `);
   });
 
+  it("maps OpenAPI tag descriptions onto generated group descriptions", () => {
+    const files = generate(
+      {
+        openapi: "3.0.3",
+        info: { title: "Internal Agent API", version: "1.0.0" },
+        tags: [
+          { name: "api-bots", description: "API bot management." },
+          { name: "handles", description: "  " }
+        ],
+        paths: {
+          "/api-bots": {
+            get: {
+              tags: ["api-bots"],
+              operationId: "listApiBots",
+              responses: { "200": { description: "Listed." } }
+            }
+          },
+          "/handles": {
+            get: {
+              tags: ["handles"],
+              operationId: "listHandles",
+              responses: { "200": { description: "Listed." } }
+            }
+          }
+        }
+      },
+      { specSha: "spec-sha-123" }
+    );
+
+    const index = files.find((file) => file.path === "index.ts")?.contents ?? "";
+    expect(index).toContain('name: "api-bots"');
+    expect(index).toContain('description: "API bot management."');
+    expect(index).toContain('name: "handles"');
+    expect(index).not.toMatch(/name: "handles",\s*description:/);
+  });
+
   it("emits a generated client factory and runnable entrypoints from the full generated surface", () => {
     const files = generate(
       createDocument({

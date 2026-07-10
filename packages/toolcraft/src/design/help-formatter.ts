@@ -1,2 +1,19 @@
-export { helpFormatter } from "toolcraft-design/help-formatter";
-export type { CommandInfo, FormatColumnsOptions, OptionInfo } from "toolcraft-design/help-formatter";
+export {
+  helpFormatter,
+  formatColumns,
+  formatCommand,
+  formatUsage,
+  formatOption,
+  formatCommandList,
+  formatOptionList,
+  styleHelpToken,
+  joinHelpTokens,
+  renderHelpTokens
+} from "toolcraft-design/help-formatter";
+export type {
+  CommandInfo,
+  FormatColumnsOptions,
+  OptionInfo,
+  HelpToken,
+  HelpTokenRole
+} from "toolcraft-design/help-formatter";

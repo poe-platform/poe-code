@@ -49,7 +49,7 @@ describe("formatColumns", () => {
     expect(result).toBe(" cmd one two three four\n     five");
   });
 
-  it("keeps long unbreakable tokens intact when they exceed right width", () => {
+  it("splits long unbreakable right tokens so no line exceeds totalWidth", () => {
     const result = formatColumns({
       rows: [{ left: "cmd", right: "short supercalifragilisticexpialidocious tail" }],
       totalWidth: 18,
@@ -59,7 +59,30 @@ describe("formatColumns", () => {
       indent: 0
     });
 
-    expect(result).toBe("cmd short\n    supercalifragilisticexpialidocious\n    tail");
+    for (const line of result.split("\n")) {
+      expect(line.length).toBeLessThanOrEqual(18);
+    }
+    expect(result.replaceAll("\n", "").replaceAll(" ", "")).toContain(
+      "supercalifragilisticexpialidocious"
+    );
+  });
+
+  it("splits long unbreakable left tokens so no line exceeds totalWidth", () => {
+    const result = formatColumns({
+      rows: [{ left: "--supercalifragilisticexpialidocious", right: "" }],
+      totalWidth: 18,
+      minLeftWidth: 1,
+      maxLeftWidth: 12,
+      gap: 1,
+      indent: 2
+    });
+
+    for (const line of result.split("\n")) {
+      expect(line.length).toBeLessThanOrEqual(18);
+    }
+    expect(result.replaceAll("\n", "").replaceAll(" ", "")).toContain(
+      "--supercalifragilisticexpialidocious"
+    );
   });
 
   it("puts overwide left cells on their own line before the description", () => {
@@ -73,6 +96,81 @@ describe("formatColumns", () => {
     });
 
     expect(result).toBe("  run [doc] [--agent <string>]\n              Run the full loop.");
+  });
+
+  it("wraps long left cells with a hanging indent of indent + 2", () => {
+    const result = formatColumns({
+      rows: [
+        {
+          left: "create-api-bot --plan.handle <value> --plan.display-name <name> [+46 options]",
+          right: "Create Api Bot"
+        }
+      ],
+      totalWidth: 40,
+      minLeftWidth: 1,
+      maxLeftWidth: 12,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe(
+      [
+        "  create-api-bot --plan.handle <value>",
+        "    --plan.display-name <name> [+46",
+        "    options]",
+        "              Create Api Bot"
+      ].join("\n")
+    );
+    for (const line of result.split("\n")) {
+      expect(line.length).toBeLessThanOrEqual(40);
+    }
+  });
+
+  it("wraps left cells without a description using hanging indent", () => {
+    const result = formatColumns({
+      rows: [
+        {
+          left: "create-api-bot --plan.handle <value> --plan.display-name <name> [+46 options]",
+          right: ""
+        }
+      ],
+      totalWidth: 40,
+      minLeftWidth: 1,
+      maxLeftWidth: 32,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe(
+      [
+        "  create-api-bot --plan.handle <value>",
+        "    --plan.display-name <name> [+46",
+        "    options]"
+      ].join("\n")
+    );
+  });
+
+  it("hangs nested left cells under the depth prefix by +2", () => {
+    const result = formatColumns({
+      rows: [
+        {
+          left: "  create-api-bot --required-handle <value> [+12 options]",
+          right: ""
+        }
+      ],
+      totalWidth: 40,
+      minLeftWidth: 1,
+      maxLeftWidth: 32,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe(
+      [
+        "    create-api-bot --required-handle",
+        "      <value> [+12 options]"
+      ].join("\n")
+    );
   });
 
   it("puts max-width left cells on their own line before the description", () => {
@@ -226,5 +324,38 @@ describe("help formatter lists", () => {
       "  \`--agent <name>\`   Agent to configure
         \`--yes\`            Accept defaults"
     `);
+  });
+
+  it("styles structured name and flag tokens by role", () => {
+    const commands = formatCommandList([
+      {
+        name: "deploy --service <value>",
+        nameTokens: [
+          { text: "deploy", role: "command" },
+          { text: " ", role: "literal" },
+          { text: "--service", role: "option" },
+          { text: " ", role: "literal" },
+          { text: "<value>", role: "argument" }
+        ],
+        description: "Deploy"
+      }
+    ]);
+    const options = formatOptionList([
+      {
+        flags: "--service <value>",
+        flagTokens: [
+          { text: "--service", role: "option" },
+          { text: " ", role: "literal" },
+          { text: "<value>", role: "argument" }
+        ],
+        description: "Service name"
+      }
+    ]);
+
+    expect(commands).toContain("deploy");
+    expect(commands).toContain("--service");
+    expect(commands).toContain("<value>");
+    expect(options).toContain("--service");
+    expect(options).toContain("<value>");
   });
 });

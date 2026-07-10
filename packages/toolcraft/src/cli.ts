@@ -29,10 +29,12 @@ import {
   isCancel,
   note,
   promptText,
+  renderHelpTokens,
   renderTable,
   resetOutputFormatCache,
   select,
-  text
+  text,
+  type HelpToken
 } from "toolcraft-design";
 import type {
   Command,
@@ -224,11 +226,13 @@ interface HelpCommandRow {
   depth: number;
   kind: "command" | "group";
   name: string;
+  nameTokens: HelpToken[];
 }
 
 interface HelpOptionRow {
   description: string;
   flags: string;
+  flagTokens: HelpToken[];
 }
 
 interface JsonHelpOption {
@@ -1528,14 +1532,44 @@ function appendHelpMetadata(description: string, metadata: string[]): string {
   }
 
   if (description.length === 0) {
-    return `(${metadata.join(", ")})`;
+    return metadata.map((entry) => `(${entry})`).join(" ");
   }
 
-  return `${description} (${metadata.join(", ")})`;
+  return `${description} ${metadata.map((entry) => `(${entry})`).join(" ")}`;
+}
+
+function normalizeHelpEchoKey(value: string): string {
+  let normalized = "";
+  for (const character of value.trim().toLowerCase()) {
+    if (
+      character !== " " &&
+      character !== "\t" &&
+      character !== "\n" &&
+      character !== "\r" &&
+      character !== "_" &&
+      character !== "." &&
+      character !== "-"
+    ) {
+      normalized += character;
+    }
+  }
+  return normalized;
+}
+
+function isEchoHelpDescription(description: string, name: string): boolean {
+  if (description.length === 0) {
+    return false;
+  }
+  return normalizeHelpEchoKey(description) === normalizeHelpEchoKey(name);
+}
+
+function suppressEchoHelpDescription(description: string, name: string): string {
+  return isEchoHelpDescription(description, name) ? "" : description;
 }
 
 function formatHelpFieldDescription(field: FieldDefinition): string {
-  const description = field.description ?? field.displayPath;
+  const rawDescription = field.description ?? field.displayPath;
+  const description = suppressEchoHelpDescription(rawDescription, field.displayPath);
   const metadata: string[] = [];
 
   if (field.schema.kind === "enum" && field.schema.values.length <= 8) {
@@ -1752,6 +1786,14 @@ function formatDynamicHelpMetadata(field: DynamicFieldDefinition): string[] {
   return metadata;
 }
 
+function createHelpOptionRow(flags: string, description: string): HelpOptionRow {
+  return {
+    flags,
+    flagTokens: tokenizeHelpFlags(flags),
+    description
+  };
+}
+
 function collectDynamicObjectHelpRows(
   schema: ObjectSchema<any>,
   casing: Casing,
@@ -1765,7 +1807,8 @@ function collectDynamicObjectHelpRows(
     const childSchema = unwrapOptional(rawChildSchema);
     const optionFlag = `${optionPrefix}.${formatSegment(key, casing)}`;
     const displayPath = `${displayPrefix}.${key}`;
-    const description = childSchema.description ?? displayPath;
+    const rawDescription = childSchema.description ?? displayPath;
+    const description = suppressEchoHelpDescription(rawDescription, displayPath);
 
     if (childSchema.kind === "object") {
       rows.push(
@@ -1775,24 +1818,26 @@ function collectDynamicObjectHelpRows(
     }
 
     if (childSchema.kind === "record") {
-      rows.push({
-        flags: `${optionFlag}.<key> <${describeDynamicFieldType({
-          ...({
-            id: displayPath,
-            path: [],
-            displayPath,
-            optionPath: [],
-            optionPathDisplay: `${displayPath}.<key>`,
-            optionFlag: `${optionFlag}.<key>`,
-            optional: false,
-            hasDefault: false,
-            defaultValue: undefined,
-            requiredWhenActive: false,
-            schema: childSchema
-          } satisfies DynamicFieldDefinition)
-        })}>`,
-        description: appendHelpMetadata(description, metadata)
-      });
+      rows.push(
+        createHelpOptionRow(
+          `${optionFlag}.<key> <${describeDynamicFieldType({
+            ...({
+              id: displayPath,
+              path: [],
+              displayPath,
+              optionPath: [],
+              optionPathDisplay: `${displayPath}.<key>`,
+              optionFlag: `${optionFlag}.<key>`,
+              optional: false,
+              hasDefault: false,
+              defaultValue: undefined,
+              requiredWhenActive: false,
+              schema: childSchema
+            } satisfies DynamicFieldDefinition)
+          })}>`,
+          appendHelpMetadata(description, metadata)
+        )
+      );
       continue;
     }
 
@@ -1809,8 +1854,8 @@ function collectDynamicObjectHelpRows(
       continue;
     }
 
-    rows.push({
-      flags:
+    rows.push(
+      createHelpOptionRow(
         childSchema.kind === "boolean"
           ? childSchema.default === true
             ? `--no-${optionFlag.slice(2)}`
@@ -1819,8 +1864,9 @@ function collectDynamicObjectHelpRows(
               displayPath,
               optionFlag
             })}>`,
-      description: appendHelpMetadata(description, metadata)
-    });
+        appendHelpMetadata(description, metadata)
+      )
+    );
   }
 
   return rows;
@@ -1856,18 +1902,23 @@ function formatDynamicHelpFields(field: DynamicFieldDefinition, casing: Casing):
   }
 
   return [
-    {
-      flags: `${field.optionFlag} <${describeDynamicFieldType(field)}>`,
-      description: appendHelpMetadata(field.description ?? field.optionPathDisplay, metadata)
-    }
+    createHelpOptionRow(
+      `${field.optionFlag} <${describeDynamicFieldType(field)}>`,
+      appendHelpMetadata(
+        suppressEchoHelpDescription(
+          field.description ?? field.optionPathDisplay,
+          field.optionPathDisplay
+        ),
+        metadata
+      )
+    )
   ];
 }
 
 function formatSecretRows(secrets: SecretDeclarations): HelpOptionRow[] {
-  return Object.values(secrets).map((secret) => ({
-    flags: secret.env,
-    description: formatSecretDescription(secret)
-  }));
+  return Object.values(secrets).map((secret) =>
+    createHelpOptionRow(secret.env, formatSecretDescription(secret))
+  );
 }
 
 function formatSecretDescription(secret: SecretDefinition): string {
@@ -1915,17 +1966,94 @@ function formatExampleRows(
   );
 }
 
-function wrapOptionalCommandParameterToken(token: string, optional: boolean): string {
-  return optional ? `[${token}]` : token;
+const MAX_INLINE_OPTIONAL_PARAMETER_TOKENS = 8;
+
+interface CommandParameterToken {
+  optional: boolean;
+  text: string;
+  tokens: HelpToken[];
+}
+
+function tokenizeHelpFlags(flags: string): HelpToken[] {
+  const tokens: HelpToken[] = [];
+  let index = 0;
+
+  while (index < flags.length) {
+    if (flags[index] === " ") {
+      let end = index + 1;
+      while (end < flags.length && flags[end] === " ") {
+        end += 1;
+      }
+      tokens.push({ text: flags.slice(index, end), role: "literal" });
+      index = end;
+      continue;
+    }
+
+    if (flags[index] === "[" || flags[index] === "]") {
+      tokens.push({ text: flags[index]!, role: "dim" });
+      index += 1;
+      continue;
+    }
+
+    if (flags[index] === "<") {
+      const close = flags.indexOf(">", index);
+      if (close === -1) {
+        tokens.push({ text: flags.slice(index), role: "literal" });
+        break;
+      }
+      tokens.push({ text: flags.slice(index, close + 1), role: "argument" });
+      index = close + 1;
+      continue;
+    }
+
+    if (flags.startsWith("--", index) || (flags[index] === "-" && flags[index + 1] !== undefined && flags[index + 1] !== "-")) {
+      let end = index + 1;
+      while (end < flags.length && flags[end] !== " " && flags[end] !== "[" && flags[end] !== "]" && flags[end] !== "<") {
+        end += 1;
+      }
+      tokens.push({ text: flags.slice(index, end), role: "option" });
+      index = end;
+      continue;
+    }
+
+    // Enum literals (a|b) or bare words after a flag.
+    let end = index + 1;
+    while (end < flags.length && flags[end] !== " " && flags[end] !== "[" && flags[end] !== "]" && flags[end] !== "<") {
+      end += 1;
+    }
+    const piece = flags.slice(index, end);
+    tokens.push({
+      text: piece,
+      role: piece.includes("|") ? "literal" : piece.startsWith("+") ? "dim" : "literal"
+    });
+    index = end;
+  }
+
+  return tokens;
+}
+
+function wrapOptionalParameterTokens(tokens: HelpToken[], optional: boolean): HelpToken[] {
+  if (!optional) {
+    return tokens;
+  }
+  return [{ text: "[", role: "dim" }, ...tokens, { text: "]", role: "dim" }];
+}
+
+function createCommandParameterToken(text: string, optional: boolean): CommandParameterToken {
+  return {
+    text: optional ? `[${text}]` : text,
+    optional,
+    tokens: wrapOptionalParameterTokens(tokenizeHelpFlags(text), optional)
+  };
 }
 
 function formatCommandDynamicParameterTokens(
   field: DynamicFieldDefinition,
   casing: Casing
-): string[] {
+): CommandParameterToken[] {
   const optional = field.optional || field.hasDefault;
   return formatDynamicHelpFields(field, casing).map((row) =>
-    wrapOptionalCommandParameterToken(row.flags, optional)
+    createCommandParameterToken(row.flags, optional)
   );
 }
 
@@ -1933,14 +2061,14 @@ function formatCommandParameterTokens<TServices extends object>(
   command: Command<TServices, any, any, any>,
   casing: Casing,
   globalLongOptionFlags: ReadonlySet<string>
-): string[] {
+): CommandParameterToken[] {
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
 
   return fields
     .filter((field) => field.global !== true)
     .map((field) =>
-      wrapOptionalCommandParameterToken(
+      createCommandParameterToken(
         formatCommandParameterFieldFlags(field, globalLongOptionFlags),
         field.positionalIndex === undefined && (field.optional || field.hasDefault)
       )
@@ -1950,19 +2078,54 @@ function formatCommandParameterTokens<TServices extends object>(
     );
 }
 
-function formatCommandRowName<TServices extends object>(
+function collapseOptionalParameterTokens(
+  parameterTokens: CommandParameterToken[]
+): CommandParameterToken[] {
+  const optionalCount = parameterTokens.filter((token) => token.optional).length;
+  if (optionalCount <= MAX_INLINE_OPTIONAL_PARAMETER_TOKENS) {
+    return parameterTokens;
+  }
+
+  const required = parameterTokens.filter((token) => !token.optional);
+  const collapsedText = `+${optionalCount} options`;
+  return [
+    ...required,
+    {
+      text: `[${collapsedText}]`,
+      optional: true,
+      tokens: [
+        { text: "[", role: "dim" },
+        { text: collapsedText, role: "dim" },
+        { text: "]", role: "dim" }
+      ]
+    }
+  ];
+}
+
+function formatCommandRowNameTokens<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>,
   casing: Casing,
   globalLongOptionFlags: ReadonlySet<string>
-): string {
+): { name: string; nameTokens: HelpToken[] } {
   const baseName =
     node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
+  const nameTokens: HelpToken[] = [{ text: baseName, role: "command" }];
   const parameterTokens =
     node.kind === "command"
-      ? formatCommandParameterTokens(node, casing, globalLongOptionFlags)
+      ? collapseOptionalParameterTokens(
+          formatCommandParameterTokens(node, casing, globalLongOptionFlags)
+        )
       : [];
-  const name = parameterTokens.length === 0 ? baseName : `${baseName} ${parameterTokens.join(" ")}`;
-  return name;
+
+  for (const token of parameterTokens) {
+    nameTokens.push({ text: " ", role: "literal" }, ...token.tokens);
+  }
+
+  const name =
+    parameterTokens.length === 0
+      ? baseName
+      : `${baseName} ${parameterTokens.map((token) => token.text).join(" ")}`;
+  return { name, nameTokens };
 }
 
 function formatCommandRows<TServices extends object>(
@@ -1972,24 +2135,28 @@ function formatCommandRows<TServices extends object>(
   globalLongOptionFlags: ReadonlySet<string>,
   help: CLIHelpDepth
 ): HelpCommandRow[] {
-  if (help === "concise") {
-    return getHelpChildren(group, scope).map((child) => ({
-      name: formatCommandRowName(child, casing, globalLongOptionFlags),
-      description: child.description ?? "",
+  const toRow = (
+    child: Command<TServices, any, any, any> | Group<TServices>,
+    depth: number
+  ): HelpCommandRow => {
+    const { name, nameTokens } = formatCommandRowNameTokens(child, casing, globalLongOptionFlags);
+    return {
+      name,
+      nameTokens,
+      description: suppressEchoHelpDescription(child.description ?? "", child.name),
       kind: child.kind,
-      depth: 0
-    }));
+      depth
+    };
+  };
+
+  if (help === "concise") {
+    return getHelpChildren(group, scope).map((child) => toRow(child, 0));
   }
 
   const rows: HelpCommandRow[] = [];
   const visit = (node: Group<TServices>, depth: number): void => {
     for (const child of getHelpChildren(node, scope)) {
-      rows.push({
-        name: formatCommandRowName(child, casing, globalLongOptionFlags),
-        description: child.description ?? "",
-        kind: child.kind,
-        depth
-      });
+      rows.push(toRow(child, depth));
       if (child.kind === "group") {
         visit(child, depth + 1);
       }
@@ -2056,10 +2223,13 @@ function collectSchemaGlobalFieldRows<TServices extends object>(
           continue;
         }
 
-        seen.set(dedupeKey, {
-          flags: formatHelpFieldFlags(field, globalLongOptionFlags),
-          description: formatHelpFieldDescription(field)
-        });
+        seen.set(
+          dedupeKey,
+          createHelpOptionRow(
+            formatHelpFieldFlags(field, globalLongOptionFlags),
+            formatHelpFieldDescription(field)
+          )
+        );
       }
       return;
     }
@@ -2089,6 +2259,26 @@ function formatHelpOptionList(rows: HelpOptionRow[]): string {
     : formatOptionList(rows);
 }
 
+function sortLeafHelpOptionFields(fields: FieldDefinition[]): FieldDefinition[] {
+  const positionals: FieldDefinition[] = [];
+  const required: FieldDefinition[] = [];
+  const optional: FieldDefinition[] = [];
+
+  for (const field of fields) {
+    if (field.positionalIndex !== undefined) {
+      positionals.push(field);
+      continue;
+    }
+    if (!field.optional && !field.hasDefault) {
+      required.push(field);
+      continue;
+    }
+    optional.push(field);
+  }
+
+  return [...positionals, ...required, ...optional];
+}
+
 function buildUsageLine(breadcrumb: string[], rootUsageName: string, suffix: string): string {
   const visibleBreadcrumb = breadcrumb.filter((segment) => segment.length > 0);
   const usageBreadcrumb =
@@ -2109,15 +2299,41 @@ function formatGroupUsageSuffix<TServices extends object>(
     group.default.hidden === true &&
     group.default.scope.includes(scope)
   ) {
-    const parameterTokens = formatCommandParameterTokens(
-      group.default,
-      casing,
-      globalLongOptionFlags
+    const parameterTokens = collapseOptionalParameterTokens(
+      formatCommandParameterTokens(group.default, casing, globalLongOptionFlags)
     );
-    return ["[command]", "[OPTIONS]", ...parameterTokens].join(" ");
+    return ["[command]", "[OPTIONS]", ...parameterTokens.map((token) => token.text)].join(" ");
   }
 
   return "[command] [OPTIONS]";
+}
+
+function formatHelpDrillDownFooter(rootUsageName: string): string {
+  return text.muted(`Run ${rootUsageName} <command> --help for full options.`);
+}
+
+function formatStyledUsageLine(usageLine: string): string {
+  const parts = usageLine.split(" ").filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return text.usageCommand(usageLine);
+  }
+
+  const commandEnd = parts.findIndex(
+    (part) => part.startsWith("-") || part.startsWith("[") || part.startsWith("<")
+  );
+  const commandParts = commandEnd === -1 ? parts : parts.slice(0, commandEnd);
+  const argParts = commandEnd === -1 ? [] : parts.slice(commandEnd);
+  const command = commandParts.join(" ");
+  if (argParts.length === 0) {
+    return text.usageCommand(command);
+  }
+
+  return `${text.usageCommand(command)} ${renderHelpTokens(
+    argParts.flatMap((part, index) => [
+      ...(index === 0 ? [] : [{ text: " ", role: "literal" as const }]),
+      ...tokenizeHelpFlags(part)
+    ])
+  )}`;
 }
 
 function renderGroupHelp<TServices extends object>(
@@ -2169,6 +2385,10 @@ function renderGroupHelp<TServices extends object>(
     }
   }
 
+  if (commandRows.length > 0) {
+    sections.push(formatHelpDrillDownFooter(rootUsageName));
+  }
+
   return renderHelpDocument({
     breadcrumb,
     rootUsageName,
@@ -2202,12 +2422,13 @@ function renderLeafHelp<TServices extends object>(
   );
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
-  const optionRows = fields
-    .filter((field) => field.global !== true)
-    .map((field) => ({
-      flags: formatHelpFieldFlags(field, globalLongOptionFlags),
-      description: formatHelpFieldDescription(field)
-    }))
+  const optionRows = sortLeafHelpOptionFields(fields.filter((field) => field.global !== true))
+    .map((field) =>
+      createHelpOptionRow(
+        formatHelpFieldFlags(field, globalLongOptionFlags),
+        formatHelpFieldDescription(field)
+      )
+    )
     .concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
 
   if (optionRows.length > 0) {
@@ -2394,7 +2615,7 @@ function renderHelpDocument(input: {
     lines.push(remainingDescription, "");
   }
 
-  lines.push(`Usage: ${text.usageCommand(input.usageLine)}`, "");
+  lines.push(`Usage: ${formatStyledUsageLine(input.usageLine)}`, "");
 
   if (input.requiresAuth) {
     lines.push("Requires: authentication");

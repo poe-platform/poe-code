@@ -84,6 +84,31 @@ describe("plain help formatter", () => {
     expect(result).toBe("  run [doc] [--agent <string>]\n              Run the full loop.");
   });
 
+  it("wraps long left cells with a hanging indent of indent + 2", () => {
+    const result = formatColumns({
+      rows: [
+        {
+          left: "create-api-bot --plan.handle <value> --plan.display-name <name> [+46 options]",
+          right: "Create Api Bot"
+        }
+      ],
+      totalWidth: 40,
+      minLeftWidth: 1,
+      maxLeftWidth: 12,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe(
+      [
+        "  create-api-bot --plan.handle <value>",
+        "    --plan.display-name <name> [+46",
+        "    options]",
+        "              Create Api Bot"
+      ].join("\n")
+    );
+  });
+
   it("puts max-width left cells on their own line before the description", () => {
     const result = formatColumns({
       rows: [{ left: "--plan.strict-value", right: "Enable strict mode." }],

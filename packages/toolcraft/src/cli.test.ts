@@ -93,32 +93,70 @@ vi.mock("toolcraft-design", () => ({
     usageCommand: (value: string) => value
   },
   formatCommandList: (
-    commands: Array<{ name: string; description: string; depth?: number }>
+    commands: Array<{
+      name: string;
+      nameTokens?: Array<{ text: string; role: string }>;
+      description: string;
+      depth?: number;
+    }>
   ) =>
     formatMockColumns(
       commands.map((command) => ({
-        left: `${" ".repeat((command.depth ?? 0) * 2)}${command.name}`,
+        left: `${" ".repeat((command.depth ?? 0) * 2)}${
+          command.nameTokens !== undefined && command.nameTokens.length > 0
+            ? command.nameTokens.map((token) => token.text).join("")
+            : command.name
+        }`,
         right: command.description
       }))
     ),
-  formatOptionList: (options: Array<{ flags: string; description: string }>) =>
-    formatMockColumns(options.map((option) => ({ left: option.flags, right: option.description }))),
+  formatOptionList: (
+    options: Array<{ flags: string; flagTokens?: Array<{ text: string; role: string }>; description: string }>
+  ) =>
+    formatMockColumns(
+      options.map((option) => ({
+        left:
+          option.flagTokens !== undefined && option.flagTokens.length > 0
+            ? option.flagTokens.map((token) => token.text).join("")
+            : option.flags,
+        right: option.description
+      }))
+    ),
+  renderHelpTokens: (tokens: Array<{ text: string; role: string }>) =>
+    tokens.map((token) => token.text).join(""),
   helpFormatterPlain: {
     formatCommandList: (
-      commands: Array<{ name: string; description: string; depth?: number }>
+      commands: Array<{
+        name: string;
+        nameTokens?: Array<{ text: string; role: string }>;
+        description: string;
+        depth?: number;
+      }>
     ) => {
       formatterState.plainCommandListCalls += 1;
       return formatMockColumns(
         commands.map((command) => ({
-          left: `${" ".repeat((command.depth ?? 0) * 2)}${command.name}`,
+          left: `${" ".repeat((command.depth ?? 0) * 2)}${
+            command.nameTokens !== undefined && command.nameTokens.length > 0
+              ? command.nameTokens.map((token) => token.text).join("")
+              : command.name
+          }`,
           right: command.description
         }))
       );
     },
-    formatOptionList: (options: Array<{ flags: string; description: string }>) => {
+    formatOptionList: (
+      options: Array<{ flags: string; flagTokens?: Array<{ text: string; role: string }>; description: string }>
+    ) => {
       formatterState.plainOptionListCalls += 1;
       return formatMockColumns(
-        options.map((option) => ({ left: option.flags, right: option.description }))
+        options.map((option) => ({
+          left:
+            option.flagTokens !== undefined && option.flagTokens.length > 0
+              ? option.flagTokens.map((token) => token.text).join("")
+              : option.flags,
+          right: option.description
+        }))
       );
     }
   },
@@ -284,6 +322,40 @@ const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 const originalOutputFormat = process.env.OUTPUT_FORMAT;
 const originalFixtureSelector = process.env.TOOLCRAFT_FIXTURE;
 
+function wrapMockWords(value: string, width: number): string[] {
+  let prefixEnd = 0;
+  while (prefixEnd < value.length && value[prefixEnd] === " ") {
+    prefixEnd += 1;
+  }
+  const prefix = value.slice(0, prefixEnd);
+  const rest = value.slice(prefixEnd);
+  const firstContentWidth = Math.max(1, width - prefix.length);
+  const words = rest.split(" ").filter((word) => word.length > 0);
+  if (words.length === 0) {
+    return [prefix];
+  }
+
+  const lines: string[] = [];
+  let line = "";
+  let isFirstLine = true;
+  for (const word of words) {
+    if (line.length === 0) {
+      line = word;
+      continue;
+    }
+    const limit = isFirstLine ? firstContentWidth : width;
+    if (line.length + 1 + word.length <= limit) {
+      line = `${line} ${word}`;
+      continue;
+    }
+    lines.push(isFirstLine ? `${prefix}${line}` : line);
+    isFirstLine = false;
+    line = word;
+  }
+  lines.push(isFirstLine ? `${prefix}${line}` : line);
+  return lines;
+}
+
 function formatMockColumns(rows: Array<{ left: string; right: string }>): string {
   if (typeof process.stdout.columns !== "number") {
     return rows
@@ -294,45 +366,35 @@ function formatMockColumns(rows: Array<{ left: string; right: string }>): string
   const maxLeftContentWidth = Math.max(...rows.map((row) => row.left.length), 0);
   const leftWidth = Math.min(Math.max(maxLeftContentWidth + 3, 12), 32);
   const rightWidth = Math.max(20, process.stdout.columns - leftWidth - 2);
+  const leftWrapWidth = Math.max(1, process.stdout.columns - 2);
+  const leftHangIndent = " ".repeat(4);
   const continuationIndent = " ".repeat(2 + leftWidth);
 
   return rows
     .flatMap((row) => {
+      const leftLines = wrapMockWords(row.left, leftWrapWidth);
+
       if (row.right.length === 0) {
-        return [`  ${row.left}`];
+        return leftLines.map((leftLine, index) =>
+          index === 0 ? `  ${leftLine}` : `${leftHangIndent}${leftLine}`
+        );
       }
 
-      const words = row.right.split(" ").filter((word) => word.length > 0);
-      const rightLines: string[] = [];
-      let line = "";
+      const rightLines = wrapMockWords(row.right, rightWidth);
+      const leftFitsInColumn = row.left.length < leftWidth;
 
-      for (const word of words) {
-        if (line.length === 0) {
-          line = word;
-          continue;
-        }
-
-        if (line.length + 1 + word.length <= rightWidth) {
-          line = `${line} ${word}`;
-          continue;
-        }
-
-        rightLines.push(line);
-        line = word;
-      }
-
-      rightLines.push(line);
-
-      if (row.left.length > leftWidth) {
+      if (leftFitsInColumn && leftLines.length === 1) {
         return [
-          `  ${row.left}`,
-          ...rightLines.map((rightLine) => `${continuationIndent}${rightLine}`)
+          `  ${row.left}${" ".repeat(leftWidth - row.left.length)}${rightLines[0] ?? ""}`,
+          ...rightLines.slice(1).map((rightLine) => `${continuationIndent}${rightLine}`)
         ];
       }
 
       return [
-        `  ${row.left}${" ".repeat(leftWidth - row.left.length)}${rightLines[0] ?? ""}`,
-        ...rightLines.slice(1).map((rightLine) => `${continuationIndent}${rightLine}`)
+        ...leftLines.map((leftLine, index) =>
+          index === 0 ? `  ${leftLine}` : `${leftHangIndent}${leftLine}`
+        ),
+        ...rightLines.map((rightLine) => `${continuationIndent}${rightLine}`)
       ];
     })
     .join("\n");
@@ -1526,6 +1588,8 @@ describe("runCLI", () => {
           run --approval-id <id>  Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+
+      Run toolcraft <command> --help for full options.
       "
     `);
     expect(output).toContain("Options");
@@ -1649,6 +1713,8 @@ describe("runCLI", () => {
           run --approval-id <id>  Run one queued approval.
 
       Options: --preset <path>  --yes  --output <rich|md|markdown|json>  -v, --verbose  --version
+
+      Run toolcraft <command> --help for full options.
       "
     `);
     expect(output).toContain("Options");
@@ -5646,13 +5712,17 @@ describe("runCLI", () => {
     expect(output).toContain("--no-enabled  Disable the enabled behavior (default: true)");
     expect(output).toContain("--date <YYYY-MM-DD>  Run date (required)");
     expect(output).toContain("--timestamp <YYYY-MM-DDTHH:MM:SS>  Run timestamp (required)");
-    expect(output).toContain("--callback-url <url>  Callback URL (required)");
-    expect(output).toContain("--user-email <email>  User email (required)");
-    expect(output).toContain("--report-files <path...>  reportFiles (required)");
-    expect(output).toContain("--config-path <path>  Config path (required)");
+    // Echo descriptions that restate the field name are suppressed.
+    expect(output).toContain("--callback-url <url>  (required)");
+    expect(output).toContain("--user-email <email>  (required)");
+    expect(output).toContain("--report-files <path...>  (required)");
+    expect(output).toContain("--config-path <path>  (required)");
     expect(output).toContain("--token <value>  Token value (required)");
     expect(output).toContain("--retries <value>  Retry count (required)");
     expect(output).not.toMatch(/<(string|number)>/u);
+    // Required flags are listed before optional ones.
+    expect(output.indexOf("--implied-flag")).toBeLessThan(output.indexOf("--flag"));
+    expect(output.indexOf("--retries")).toBeLessThan(output.indexOf("--no-enabled"));
   });
 
   it("renders field-name help tokens with snake casing", async () => {
@@ -5681,8 +5751,8 @@ describe("runCLI", () => {
     await runCLI(root, { casing: "snake" });
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("--config_path <path>  Config path (required)");
-    expect(output).toContain("--owner_email <email>  Owner email (required)");
+    expect(output).toContain("--config_path <path>  (required)");
+    expect(output).toContain("--owner_email <email>  (required)");
     expect(output).not.toMatch(/<(string|number)>/u);
   });
 
@@ -5883,6 +5953,8 @@ describe("runCLI", () => {
           run --approval-id <id>    Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+
+      Run poe-code <command> --help for full options.
       "
     `);
   });
@@ -6052,6 +6124,8 @@ describe("runCLI", () => {
           run --approval-id <id>    Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+
+      Run toolcraft <command> --help for full options.
       "
     `);
   });
@@ -6099,6 +6173,8 @@ describe("runCLI", () => {
         approvals   Inspect and execute queued approvals.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+
+      Run toolcraft <command> --help for full options.
       "
     `);
   });
@@ -6174,6 +6250,8 @@ describe("runCLI", () => {
           run --approval-id <id>        Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+
+      Run toolcraft <command> --help for full options.
       "
     `);
   });
@@ -6213,6 +6291,8 @@ describe("runCLI", () => {
           run --approval-id <id>    Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+
+      Run toolcraft <command> --help for full options.
       "
     `);
     expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
@@ -6310,5 +6390,91 @@ describe("runCLI", () => {
     expect(commandsLine).not.toContain("-v");
     expect(commandsLine).not.toContain("--verbose");
     expect(commandsLine).not.toContain("--debug");
+  });
+
+  it("collapses optional parameters in group rows when more than 8 optional tokens", async () => {
+    setStdoutColumns(200);
+    const shape: Record<string, ReturnType<typeof S.String> | ReturnType<typeof S.Optional>> = {
+      requiredHandle: S.String({ description: "Required handle" })
+    };
+    for (let index = 1; index <= 10; index += 1) {
+      shape[`opt${index}`] = S.Optional(S.String({ description: `Optional ${index}` }));
+    }
+    const create = defineCommand({
+      name: "create-api-bot",
+      description: "Create Api Bot",
+      params: S.Object(shape),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [create]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root);
+    const output = readStdout(stdoutWrite);
+
+    expect(output).toContain("create-api-bot --required-handle <value> [+10 options]");
+    expect(output).not.toContain("--opt1");
+    expect(output).toContain("Run toolcraft <command> --help for full options.");
+    // Echo description that restates the command name is suppressed.
+    expect(output).not.toContain("Create Api Bot");
+  });
+
+  it("keeps optional parameters inline when at most 8 optional tokens", async () => {
+    setStdoutColumns(200);
+    const shape: Record<string, ReturnType<typeof S.Optional>> = {};
+    for (let index = 1; index <= 8; index += 1) {
+      shape[`opt${index}`] = S.Optional(S.String());
+    }
+    const create = defineCommand({
+      name: "create",
+      params: S.Object(shape),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [create]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root);
+    const output = readStdout(stdoutWrite);
+
+    expect(output).toContain("--opt1");
+    expect(output).toContain("--opt8");
+    expect(output).not.toContain("[+8 options]");
+  });
+
+  it("renders enum values and required as separate parentheticals", async () => {
+    setStdoutColumns(120);
+    const create = defineCommand({
+      name: "create",
+      params: S.Object({
+        kind: S.Enum(["client_secret_supplied", "internal_keystore", "none"], {
+          description: "plan.api_bot_settings.api_key_reference.kind"
+        })
+      }),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [create]
+    });
+
+    process.argv = ["node", "toolcraft", "create", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root);
+    const output = readStdout(stdoutWrite);
+
+    expect(output).toMatch(
+      /\(values: client_secret_supplied, internal_keystore,\s*none\) \(required\)/
+    );
+    expect(output).not.toMatch(
+      /values: client_secret_supplied, internal_keystore, none, required/
+    );
   });
 });

@@ -267,7 +267,6 @@ describe("gaslight command", () => {
       "node",
       "cli",
       "gaslight",
-      "--plans",
       "docs/plans/a.md",
       "docs/plans/b.md",
       "--agent",
@@ -310,9 +309,7 @@ describe("gaslight command", () => {
 
   it("prints the last gaslight thread resume command", async () => {
     runGaslightMock.mockResolvedValue({
-      rounds: [
-        { prompt: "Implement docs/plans/a.md", summary: "done", threadId: "thread_abc123" }
-      ],
+      rounds: [{ prompt: "Implement docs/plans/a.md", summary: "done", threadId: "thread_abc123" }],
       plans: []
     });
     const program = createProgram();

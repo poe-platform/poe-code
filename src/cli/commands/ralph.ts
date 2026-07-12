@@ -530,7 +530,9 @@ async function resolveRunAgent(options: {
     const selectedAgent = await resolveLoopAgent({
       providedAgent: options.providedAgent,
       frontmatterAgent: configured,
-      configuredDefaultAgent: await resolveDefaultAgent(options.container, { readOnly: flags.dryRun }),
+      configuredDefaultAgent: await resolveDefaultAgent(options.container, {
+        readOnly: flags.dryRun
+      }),
       assumeYes: flags.assumeYes,
       fallbackAgent: DEFAULT_RALPH_AGENT,
       message: "Select agent to run Ralph with:",
@@ -698,7 +700,9 @@ export function registerRalphCommand(program: Command, container: CliContainer):
       resources.logger.intro("ralph init");
 
       try {
-        const commandConfig = await resolveRalphCommandConfig(container, { readOnly: flags.dryRun });
+        const commandConfig = await resolveRalphCommandConfig(container, {
+          readOnly: flags.dryRun
+        });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -763,7 +767,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
   const run = ralph
     .command("run")
     .description("Run the selected markdown doc through repeated agent iterations.")
-    .argument("[doc]", "Markdown doc path")
+    .argument("[docs...]", "Markdown doc paths to run sequentially")
     .option("--agent <name>", "Override the agent from frontmatter")
     .option("--iterations <n>", "Override iterations from frontmatter")
     .option("-C, --cwd <path>", "Working directory for the Ralph agent loop")
@@ -772,7 +776,10 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     .option("--tui", "Show a live dashboard while Ralph is running")
     .option("--no-tui", "Disable the live dashboard for this Ralph run");
 
-  addRuntimeOptions(addWorktreeOptions(run)).action(async function (this: Command, docArg?: string) {
+  addRuntimeOptions(addWorktreeOptions(run)).action(async function (
+    this: Command,
+    docArgs: string[]
+  ) {
     const flags = resolveCommandFlags(program);
     const resources = createExecutionResources(container, flags, "ralph:run");
     const options = this.opts<
@@ -791,100 +798,105 @@ export function registerRalphCommand(program: Command, container: CliContainer):
 
     try {
       const commandConfig = await resolveRalphCommandConfig(container, { readOnly: flags.dryRun });
-      const docPath = await resolveDocPath({
-        container,
-        program,
-        providedDoc: docArg,
-        planDirectory: commandConfig.planDirectory
-      });
-      if (!docPath) {
-        return;
-      }
+      const providedDocs: Array<string | undefined> = docArgs.length > 0 ? docArgs : [undefined];
+      for (const docArg of providedDocs) {
+        const docPath = await resolveDocPath({
+          container,
+          program,
+          providedDoc: docArg,
+          planDirectory: commandConfig.planDirectory
+        });
+        if (!docPath) {
+          return;
+        }
 
-      const doc = await readRalphDoc(container, docPath);
-      const agent = await resolveRunAgent({
-        container,
-        program,
-        providedAgent: options.agent,
-        frontmatterAgent: doc.data.agent
-      });
-      if (!agent) {
-        return;
-      }
+        const doc = await readRalphDoc(container, docPath);
+        const agent = await resolveRunAgent({
+          container,
+          program,
+          providedAgent: options.agent,
+          frontmatterAgent: doc.data.agent
+        });
+        if (!agent) {
+          return;
+        }
 
-      const maxIterations = await resolveRunIterations({
-        program,
-        providedIterations: options.iterations,
-        frontmatterIterations: doc.data.iterations
-      });
-      if (maxIterations == null) {
-        return;
-      }
+        const maxIterations = await resolveRunIterations({
+          program,
+          providedIterations: options.iterations,
+          frontmatterIterations: doc.data.iterations
+        });
+        if (maxIterations == null) {
+          return;
+        }
 
-      const runCwd = options.cwd ? path.resolve(container.env.cwd, options.cwd) : container.env.cwd;
+        const runCwd = options.cwd
+          ? path.resolve(container.env.cwd, options.cwd)
+          : container.env.cwd;
 
-      const runOptions: RalphRunOptions = {
-        agent,
-        cwd: runCwd,
-        homeDir: container.env.homeDir,
-        docPath,
-        maxIterations,
-        archive: options.archive ?? commandConfig.archive,
-        runtimeConfigCwd: container.env.cwd,
-        worktree: pickWorktreeOptions(options as Record<string, unknown>),
-        ...runtimeOptions
-      };
-      if (flags.dryRun) {
-        resources.logger.dryRun(
-          `Dry run: would run Ralph with ${formatRalphConfigSummary({ agent, docPath, cwd: runCwd, maxIterations })}.`
-        );
-        return;
-      }
-      const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-      const result = useDashboard
-        ? await runRalphWithDashboard({
-            agent,
-            docPath,
-            cwd: runCwd,
-            maxIterations,
-            runOptions,
-            runtimeOptions
-          })
-        : await sdkRunRalph({
-            ...runOptions,
-            onIterationStart(iteration, total, currentAgent) {
-              resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
-            },
-            onIterationComplete(iteration, durationMs, success) {
-              const status = success ? "done" : "failed";
-              resources.logger.info(
-                `Iteration ${iteration} ${status} in ${formatDashboardDuration(durationMs)}`
-              );
-            }
-          });
+        const runOptions: RalphRunOptions = {
+          agent,
+          cwd: runCwd,
+          homeDir: container.env.homeDir,
+          docPath,
+          maxIterations,
+          archive: options.archive ?? commandConfig.archive,
+          runtimeConfigCwd: container.env.cwd,
+          worktree: pickWorktreeOptions(options as Record<string, unknown>),
+          ...runtimeOptions
+        };
+        if (flags.dryRun) {
+          resources.logger.dryRun(
+            `Dry run: would run Ralph with ${formatRalphConfigSummary({ agent, docPath, cwd: runCwd, maxIterations })}.`
+          );
+          return;
+        }
+        const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+        const result = useDashboard
+          ? await runRalphWithDashboard({
+              agent,
+              docPath,
+              cwd: runCwd,
+              maxIterations,
+              runOptions,
+              runtimeOptions
+            })
+          : await sdkRunRalph({
+              ...runOptions,
+              onIterationStart(iteration, total, currentAgent) {
+                resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
+              },
+              onIterationComplete(iteration, durationMs, success) {
+                const status = success ? "done" : "failed";
+                resources.logger.info(
+                  `Iteration ${iteration} ${status} in ${formatDashboardDuration(durationMs)}`
+                );
+              }
+            });
 
-      const summary = [
-        `Iterations: ${result.iterationsCompleted}/${maxIterations}`,
-        `Doc: ${result.docPath}`,
-        `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
-      ].join("\n   ");
+        const summary = [
+          `Iterations: ${result.iterationsCompleted}/${maxIterations}`,
+          `Doc: ${result.docPath}`,
+          `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
+        ].join("\n   ");
 
-      if (result.stopReason === "cancelled") {
-        process.exitCode = 130;
-        resources.logger.warn("Ralph run cancelled.");
+        if (result.stopReason === "cancelled") {
+          process.exitCode = 130;
+          resources.logger.warn("Ralph run cancelled.");
+          resources.logger.resolved("Run summary", summary);
+          return;
+        }
+
+        if (result.stopReason === "failed") {
+          process.exitCode = 1;
+          resources.logger.error("Agent run failed.");
+          resources.logger.resolved("Run summary", summary);
+          return;
+        }
+
         resources.logger.resolved("Run summary", summary);
-        return;
+        resources.logger.success("Ralph run finished.");
       }
-
-      if (result.stopReason === "failed") {
-        process.exitCode = 1;
-        resources.logger.error("Agent run failed.");
-        resources.logger.resolved("Run summary", summary);
-        return;
-      }
-
-      resources.logger.resolved("Run summary", summary);
-      resources.logger.success("Ralph run finished.");
     } finally {
       resources.context.finalize();
     }

@@ -150,7 +150,10 @@ const expectedTimestamp = (() => {
   return `[${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}]`;
 })();
 
-function createStreamingResult(events: unknown[], result: SpawnResult): {
+function createStreamingResult(
+  events: unknown[],
+  result: SpawnResult
+): {
   events: AsyncIterable<unknown>;
   done: Promise<SpawnResult>;
 } {
@@ -171,9 +174,7 @@ describe("superintendent run command", () => {
     vi.useRealTimers();
   });
 
-  it(
-    "uses discovered defaults with --yes and skips the pre-dashboard prompts",
-    async () => {
+  it("uses discovered defaults with --yes and skips the pre-dashboard prompts", async () => {
     const fs = createFs({
       "/repo/docs/plans/b-plan.md": createDoc("codex"),
       "/repo/docs/plans/a-plan.md": createDoc("claude-code")
@@ -218,9 +219,7 @@ describe("superintendent run command", () => {
       builderAgent: "claude-code",
       stopReason: "completed"
     });
-    },
-    15_000
-  );
+  }, 15_000);
 
   it("prompts for a builder agent when flag and frontmatter are empty", async () => {
     const fs = createFs({
@@ -397,9 +396,7 @@ describe("superintendent run command", () => {
     const runLoopMock = vi.fn();
     vi.resetModules();
     vi.doMock("toolcraft-design", async () => {
-      const actual = await vi.importActual<typeof import("toolcraft-design")>(
-        "toolcraft-design"
-      );
+      const actual = await vi.importActual<typeof import("toolcraft-design")>("toolcraft-design");
       return {
         ...actual,
         isCancel: (value: unknown) => value === cancelled
@@ -586,7 +583,11 @@ describe("superintendent run command", () => {
   it("threads core.defaultAgent through runCommand", async () => {
     const volume = Volume.fromJSON(
       {
-        "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        "/repo/docs/plans/plan-a.md": createDocWithBuilderSection([
+          "  prompt: |",
+          "    Build {{plan.path}}"
+        ]),
+        "/repo/docs/plans/plan-b.md": createDocWithBuilderSection([
           "  prompt: |",
           "    Build {{plan.path}}"
         ]),
@@ -617,9 +618,8 @@ describe("superintendent run command", () => {
     vi.resetModules();
     vi.doMock("node:fs/promises", () => rawFs);
     vi.doMock("../runtime/loop.js", async () => {
-      const actual = await vi.importActual<typeof import("../runtime/loop.js")>(
-        "../runtime/loop.js"
-      );
+      const actual =
+        await vi.importActual<typeof import("../runtime/loop.js")>("../runtime/loop.js");
       return {
         ...actual,
         runLoop: runLoopMock
@@ -629,7 +629,7 @@ describe("superintendent run command", () => {
     try {
       const { runCommand } = await import("./run.js");
       const result = await runCommand.handler({
-        params: { doc: "/repo/docs/plans/plan.md" },
+        params: { docs: ["/repo/docs/plans/plan-a.md", "/repo/docs/plans/plan-b.md"] },
         secrets: {},
         fetch: globalThis.fetch,
         fs: rawFs as never,
@@ -640,7 +640,7 @@ describe("superintendent run command", () => {
       });
 
       expect(result.builderAgent).toBe("codex");
-      expect(runLoopMock).toHaveBeenCalledTimes(1);
+      expect(runLoopMock).toHaveBeenCalledTimes(2);
     } finally {
       vi.doUnmock("node:fs/promises");
       vi.doUnmock("../runtime/loop.js");
@@ -716,10 +716,7 @@ describe("superintendent run command", () => {
   });
 
   it("threads runnerSync through createRunMcpCommand", async () => {
-    const volume = Volume.fromJSON(
-      { "/repo/docs/plans/plan.md": createDoc("codex") },
-      "/"
-    );
+    const volume = Volume.fromJSON({ "/repo/docs/plans/plan.md": createDoc("codex") }, "/");
     const rawFs = createFsFromVolume(volume).promises;
     const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
     const originalHome = process.env.HOME;
@@ -733,9 +730,8 @@ describe("superintendent run command", () => {
     vi.resetModules();
     vi.doMock("node:fs/promises", () => rawFs);
     vi.doMock("@poe-code/agent-spawn", async () => {
-      const actual = await vi.importActual<typeof import("@poe-code/agent-spawn")>(
-        "@poe-code/agent-spawn"
-      );
+      const actual =
+        await vi.importActual<typeof import("@poe-code/agent-spawn")>("@poe-code/agent-spawn");
       return { ...actual, getSpawnConfig: () => undefined, spawn: spawnMock };
     });
 
@@ -805,14 +801,16 @@ describe("superintendent run command", () => {
 
     try {
       const { runCommand } = await import("./run.js");
-      await expect(runCommand.handler({
-        params: { doc: "/repo/docs/plans/plan.md", dryRun: true },
-        secrets: {},
-        fetch: globalThis.fetch,
-        fs: rawFs as never,
-        env: { get: vi.fn(() => undefined) },
-        progress: vi.fn()
-      })).rejects.toThrow(/config/i);
+      await expect(
+        runCommand.handler({
+          params: { doc: "/repo/docs/plans/plan.md", dryRun: true },
+          secrets: {},
+          fetch: globalThis.fetch,
+          fs: rawFs as never,
+          env: { get: vi.fn(() => undefined) },
+          progress: vi.fn()
+        })
+      ).rejects.toThrow(/config/i);
     } finally {
       vi.doUnmock("node:fs/promises");
       vi.resetModules();
@@ -824,10 +822,7 @@ describe("superintendent run command", () => {
   });
 
   it("preserves a completed CLI run when integration shutdown fails", async () => {
-    const volume = Volume.fromJSON(
-      { "/repo/docs/plans/plan.md": createDoc("codex") },
-      "/"
-    );
+    const volume = Volume.fromJSON({ "/repo/docs/plans/plan.md": createDoc("codex") }, "/");
     const rawFs = createFsFromVolume(volume).promises;
     const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
     const originalHome = process.env.HOME;
@@ -851,9 +846,8 @@ describe("superintendent run command", () => {
     vi.doMock("node:fs/promises", () => rawFs);
     vi.doMock("@poe-code/braintrust", () => ({ loadIntegrations: loadIntegrationsMock }));
     vi.doMock("../runtime/loop.js", async () => {
-      const actual = await vi.importActual<typeof import("../runtime/loop.js")>(
-        "../runtime/loop.js"
-      );
+      const actual =
+        await vi.importActual<typeof import("../runtime/loop.js")>("../runtime/loop.js");
       return { ...actual, runLoop: runLoopMock };
     });
 
@@ -881,10 +875,7 @@ describe("superintendent run command", () => {
   });
 
   it("preserves a completed MCP run when integration shutdown fails", async () => {
-    const volume = Volume.fromJSON(
-      { "/repo/docs/plans/plan.md": createDoc("codex") },
-      "/"
-    );
+    const volume = Volume.fromJSON({ "/repo/docs/plans/plan.md": createDoc("codex") }, "/");
     const rawFs = createFsFromVolume(volume).promises;
     const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
     const originalHome = process.env.HOME;
@@ -984,9 +975,8 @@ describe("superintendent run command", () => {
 
     vi.resetModules();
     vi.doMock("@poe-code/agent-spawn", async () => {
-      const actual = await vi.importActual<typeof import("@poe-code/agent-spawn")>(
-        "@poe-code/agent-spawn"
-      );
+      const actual =
+        await vi.importActual<typeof import("@poe-code/agent-spawn")>("@poe-code/agent-spawn");
       return {
         ...actual,
         spawnStreaming: spawnStreamingMock,
@@ -1363,31 +1353,36 @@ describe("superintendent run command", () => {
       };
     });
 
-    const executeAgentMock = vi.fn(async (agent: string, input: {
-      prompt: string;
-      cwd: string;
-      onStdout?: (chunk: string) => void;
-      onStderr?: (chunk: string) => void;
-      logPath?: string;
-    }) => {
-      expect(agent).toBe("poe-agent:openai/gpt-5.4");
-      expect(input.prompt).toBe("Build");
-      expect(input.cwd).toBe("/repo");
-      expect(input.logPath).toBe("/logs/builder.jsonl");
-      input.onStdout?.("thinking...\n");
-      return {
-        stdout: "thinking...",
-        stderr: "",
-        exitCode: 0,
-        logFile: "/logs/builder.jsonl",
-        usage: {
-          inputTokens: 12,
-          outputTokens: 4,
-          cachedTokens: 2
-        },
-        toolCalls: [{ title: "read_file", input: { preserved: true } }]
-      };
-    });
+    const executeAgentMock = vi.fn(
+      async (
+        agent: string,
+        input: {
+          prompt: string;
+          cwd: string;
+          onStdout?: (chunk: string) => void;
+          onStderr?: (chunk: string) => void;
+          logPath?: string;
+        }
+      ) => {
+        expect(agent).toBe("poe-agent:openai/gpt-5.4");
+        expect(input.prompt).toBe("Build");
+        expect(input.cwd).toBe("/repo");
+        expect(input.logPath).toBe("/logs/builder.jsonl");
+        input.onStdout?.("thinking...\n");
+        return {
+          stdout: "thinking...",
+          stderr: "",
+          exitCode: 0,
+          logFile: "/logs/builder.jsonl",
+          usage: {
+            inputTokens: 12,
+            outputTokens: 4,
+            cachedTokens: 2
+          },
+          toolCalls: [{ title: "read_file", input: { preserved: true } }]
+        };
+      }
+    );
 
     const { runSuperintendentCommand } = await import("./run.js");
     await runSuperintendentCommand({
@@ -1425,7 +1420,9 @@ describe("superintendent run command", () => {
     expect(builderComplete).toBeTypeOf("function");
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
-    expect(outputs.some((item: { text: string }) => item.text.includes("[builder] thinking..."))).toBe(true);
+    expect(
+      outputs.some((item: { text: string }) => item.text.includes("[builder] thinking..."))
+    ).toBe(true);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
         tokensIn: 12,

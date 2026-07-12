@@ -243,14 +243,7 @@ function ralphPlanDoc(name: string): string {
 }
 
 function experimentPlanDoc(name: string): string {
-  return [
-    "---",
-    "kind: experiment",
-    "version: 1",
-    "baseline: null",
-    "---",
-    `# ${name}`
-  ].join("\n");
+  return ["---", "kind: experiment", "version: 1", "baseline: null", "---", `# ${name}`].join("\n");
 }
 
 describe("experiment run command", () => {
@@ -435,11 +428,54 @@ describe("experiment run command", () => {
     registerExperimentCommand(program, container);
 
     await program.parseAsync([
-      "node", "cli", "--dry-run", "experiment", "run", "docs/loop.md", "--agent", "claude", "--max-experiments", "0"
+      "node",
+      "cli",
+      "--dry-run",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--max-experiments",
+      "0"
     ]);
 
     expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
-    expect(logs.join("\n")).toContain("Dry run: would run experiment doc docs/loop.md with claude-code for up to 0 experiments.");
+    expect(logs.join("\n")).toContain(
+      "Dry run: would run experiment doc docs/loop.md with claude-code for up to 0 experiments."
+    );
+  });
+
+  it("runs multiple positional experiment docs sequentially", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/a.md": "# A", "/repo/docs/b.md": "# B" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "run",
+      "docs/a.md",
+      "docs/b.md",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ docPath: "docs/a.md" })
+    );
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ docPath: "docs/b.md" })
+    );
   });
 
   it("discovers the first doc and default agent with --yes", async () => {
@@ -619,10 +655,9 @@ describe("experiment run command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await withMockedTerminal(
-      () => program.parseAsync(["node", "cli", "experiment", "run"]),
-      { stdin: true }
-    );
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "experiment", "run"]), {
+      stdin: true
+    });
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
@@ -1526,7 +1561,9 @@ describe("experiment journal command", () => {
       program.parseAsync(["node", "cli", "experiment", "journal", "docs/loop.md"])
     ).rejects.toThrow();
 
-    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe(
+      "{ invalid json\n"
+    );
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
@@ -1560,7 +1597,9 @@ describe("experiment journal command", () => {
       ])
     ).rejects.toThrow();
 
-    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe(
+      "{ invalid json\n"
+    );
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
@@ -1591,7 +1630,7 @@ describe("experiment journal command", () => {
         "--scores",
         '{"tests":"bad"}'
       ])
-    ).rejects.toThrow('--scores.tests must be a finite number.');
+    ).rejects.toThrow("--scores.tests must be a finite number.");
 
     expect(vi.mocked(sdkAppendExperimentJournalEntry)).not.toHaveBeenCalled();
   });
@@ -1721,7 +1760,9 @@ describe("experiment validate command", () => {
       program.parseAsync(["node", "cli", "--dry-run", "experiment", "validate", "docs/loop.md"])
     ).rejects.toThrow();
 
-    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe(
+      "{ invalid json\n"
+    );
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
@@ -1896,7 +1937,9 @@ describe("experiment plan-path command", () => {
     await expect(program.parseAsync(["node", "cli", "experiment", "plan-path"])).rejects.toThrow();
 
     expect(writeSpy).not.toHaveBeenCalled();
-    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe(
+      "{ invalid json\n"
+    );
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 });
@@ -2220,14 +2263,7 @@ describe("experiment install command", () => {
     await expect(
       withMockedTerminal(
         () =>
-          program.parseAsync([
-            "node",
-            "cli",
-            "experiment",
-            "install",
-            "--agent",
-            "claude-code"
-          ]),
+          program.parseAsync(["node", "cli", "experiment", "install", "--agent", "claude-code"]),
         { stdin: false }
       )
     ).rejects.toThrow(
@@ -2474,6 +2510,44 @@ describe("ralph run command", () => {
 
     expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
     expect(logs.join("\n")).toContain("Dry run: would run Ralph");
+  });
+
+  it("runs multiple positional Ralph docs sequentially", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/a.md": "# A",
+        "/repo/docs/b.md": "# B"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "ralph",
+      "run",
+      "docs/a.md",
+      "docs/b.md",
+      "--agent",
+      "codex",
+      "--iterations",
+      "1"
+    ]);
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ docPath: "docs/a.md" })
+    );
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ docPath: "docs/b.md" })
+    );
   });
 
   it("does not recover invalid global config during dry-run previews", async () => {
@@ -2805,10 +2879,9 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await withMockedTerminal(
-      () => program.parseAsync(["node", "cli", "ralph", "run"]),
-      { stdin: true }
-    );
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "ralph", "run"]), {
+      stdin: true
+    });
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
@@ -2930,15 +3003,7 @@ describe("ralph run command", () => {
     registerRalphCommand(program, container);
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "ralph",
-        "run",
-        "docs/loop.md",
-        "--iterations",
-        "2abc"
-      ])
+      program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md", "--iterations", "2abc"])
     ).rejects.toThrow('Invalid iterations "2abc". Expected a positive integer.');
 
     expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
@@ -2970,10 +3035,9 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await withMockedTerminal(
-      () => program.parseAsync(["node", "cli", "ralph", "run"]),
-      { stdin: true }
-    );
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "ralph", "run"]), {
+      stdin: true
+    });
 
     const call = selectMock.mock.calls[0]![0];
     expect(call.options[0].label).toContain("docs/plans/plan-a.md");
@@ -3890,10 +3954,9 @@ describe("ralph init command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await withMockedTerminal(
-      () => program.parseAsync(["node", "cli", "ralph", "init"]),
-      { stdin: true }
-    );
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "ralph", "init"]), {
+      stdin: true
+    });
 
     const updated = await fs.readFile("/repo/docs/plans/plan-a.md", "utf8");
     const parsed = parseFrontmatter(updated);
@@ -3976,15 +4039,7 @@ describe("ralph init command", () => {
     await expect(
       withMockedTerminal(
         () =>
-          program.parseAsync([
-            "node",
-            "cli",
-            "ralph",
-            "init",
-            "docs/loop.md",
-            "--agent",
-            "codex"
-          ]),
+          program.parseAsync(["node", "cli", "ralph", "init", "docs/loop.md", "--agent", "codex"]),
         { stdin: false }
       )
     ).rejects.toThrow(
@@ -4008,7 +4063,15 @@ describe("ralph init command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "ralph", "init", "docs/loop.md"]);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "ralph",
+      "init",
+      "docs/loop.md"
+    ]);
 
     await expect(fs.readFile("/repo/docs/loop.md", "utf8")).resolves.toBe(original);
     expect(logs.join("\n")).toContain("Dry run: would save Ralph config.");

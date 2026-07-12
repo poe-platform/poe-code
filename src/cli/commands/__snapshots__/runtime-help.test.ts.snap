@@ -3,12 +3,12 @@
 exports[`runtime option help > snapshots experiment help 1`] = `
 "Poe - experiment run
 
-Usage: poe-code experiment run [options] [doc]
+Usage: poe-code experiment run [options] [docs...]
 
 Run an experiment doc through the autonomous experiment loop.
 
 Arguments:
-  doc                      Experiment doc path
+  docs                     Experiment doc paths to run sequentially
 
 Options:
   --agent <agent>          Override the agent from frontmatter
@@ -31,12 +31,12 @@ Options:
 exports[`runtime option help > snapshots ralph help 1`] = `
 "Poe - ralph run
 
-Usage: poe-code ralph run [options] [doc]
+Usage: poe-code ralph run [options] [docs...]
 
 Run the selected markdown doc through repeated agent iterations.
 
 Arguments:
-  doc                      Markdown doc path
+  docs                     Markdown doc paths to run sequentially
 
 Options:
   --agent <name>           Override the agent from frontmatter
@@ -117,10 +117,11 @@ Options:
 exports[`runtime option help > snapshots superintendent help 1`] = `
 "Poe - poe-code superintendent run — Run the full superintendent loop.
 
-Usage: poe-code superintendent run [OPTIONS] [doc]
+Usage: poe-code superintendent run [OPTIONS] [docs...]
 
 OPTIONS
-  [doc]                        Path to the superintendent markdown document
+  [docs...]                    Paths to superintendent markdown documents to run sequentially
+  --doc <value>                Path to the superintendent markdown document
   --agent <value>              Override the builder agent for this run. Precedence: --agent > plan
                                frontmatter builder.agent.
   --runtime <value>            Override runtime backend: host, docker, or e2b (values: host, docker,

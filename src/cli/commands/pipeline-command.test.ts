@@ -1090,11 +1090,10 @@ describe("pipeline run command", () => {
       "--yes",
       "pipeline",
       "run",
-      "--agent",
-      "codex",
-      "--plans",
       "plan-a.yaml",
-      "plan-b.yaml"
+      "plan-b.yaml",
+      "--agent",
+      "codex"
     ]);
 
     expect(vi.mocked(sdkRunPipeline)).toHaveBeenNthCalledWith(

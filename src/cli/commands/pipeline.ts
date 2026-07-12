@@ -876,99 +876,58 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .description("Run a fixed-step task pipeline plan.")
     .addHelpCommand(false);
 
-  addWorktreeOptions(pipeline
-    .command("run")
-    .description(
-      "Run the selected pipeline plan until completion, failure, cancellation, or max runs."
-    )
-    .option("--agent <name>", "Agent to run each pipeline step with")
-    .option("--model <model>", "Model override passed to the agent")
-    .option("--tui", "Show a live dashboard while the pipeline is running")
-    .option("--no-tui", "Disable the live dashboard for this pipeline run")
-    .option("--archive", "Archive each plan after successful completion")
-    .option("--no-archive", "Leave completed plans in place")
-    .option("--task <id>", "Run only the specified task")
-    .option("--plan <path>", "Path to the pipeline plan file")
-    .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
-    .option("--max-runs <n>", "Maximum number of agent executions to perform"))
-    .action(async function (this: Command) {
-      const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "pipeline:run");
-      const options = this.opts<{
-        agent?: string;
-        model?: string;
-        tui?: boolean;
-        archive?: boolean;
-        task?: string;
-        plan?: string;
-        plans?: string[];
-        maxRuns?: string;
-      }>();
+  addWorktreeOptions(
+    pipeline
+      .command("run")
+      .description(
+        "Run the selected pipeline plan until completion, failure, cancellation, or max runs."
+      )
+      .argument("[plans...]", "Paths to pipeline plan files to run sequentially")
+      .option("--agent <name>", "Agent to run each pipeline step with")
+      .option("--model <model>", "Model override passed to the agent")
+      .option("--tui", "Show a live dashboard while the pipeline is running")
+      .option("--no-tui", "Disable the live dashboard for this pipeline run")
+      .option("--archive", "Archive each plan after successful completion")
+      .option("--no-archive", "Leave completed plans in place")
+      .option("--task <id>", "Run only the specified task")
+      .option("--plan <path>", "Path to the pipeline plan file")
+      .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
+      .option("--max-runs <n>", "Maximum number of agent executions to perform")
+  ).action(async function (this: Command, positionalPlans: string[]) {
+    const flags = resolveCommandFlags(program);
+    const resources = createExecutionResources(container, flags, "pipeline:run");
+    const options = this.opts<{
+      agent?: string;
+      model?: string;
+      tui?: boolean;
+      archive?: boolean;
+      task?: string;
+      plan?: string;
+      plans?: string[];
+      maxRuns?: string;
+    }>();
 
-      resources.logger.intro("pipeline run");
+    resources.logger.intro("pipeline run");
 
-      let integrations: Integrations | null = null;
-      try {
-        if (options.plan && options.plans && options.plans.length > 0) {
-          throw new ValidationError("Use either --plan or --plans, not both.");
-        }
-        const maxRuns = resolveMaxRuns(options.maxRuns);
+    let integrations: Integrations | null = null;
+    try {
+      const planSources = [
+        positionalPlans.length > 0 ? "positional plans" : undefined,
+        options.plan ? "--plan" : undefined,
+        options.plans && options.plans.length > 0 ? "--plans" : undefined
+      ].filter((source): source is string => source !== undefined);
+      if (planSources.length > 1) {
+        throw new ValidationError(`Use only one plan source: ${planSources.join(", ")}.`);
+      }
+      const maxRuns = resolveMaxRuns(options.maxRuns);
 
-        if (flags.dryRun) {
-          const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
-          const planPaths = await resolvePlanPaths({
-            cwd: container.env.cwd,
-            homeDir: container.env.homeDir,
-            planDirectory: commandConfig.planDirectory,
-            ...(options.plan ? { plan: options.plan } : {}),
-            ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
-            assumeYes: flags.assumeYes,
-            fs: container.fs,
-            ...createPipelinePlanPromptHandlers("Pipeline run cancelled.")
-          });
-
-          if (!planPaths || planPaths.length === 0) {
-            return;
-          }
-
-          await dryRunPipelinePlans({
-            container,
-            resources,
-            planPaths,
-            archive: options.archive ?? commandConfig.archive,
-            ...(maxRuns !== undefined ? { maxRuns } : {}),
-            ...(options.task ? { task: options.task } : {})
-          });
-          return;
-        }
-
-        if (!flags.assumeYes && !options.agent) {
-          requireInteractiveStdin(
-            "Pipeline run agent selection requires --agent or --yes when running without an interactive TTY."
-          );
-        }
-
-        const selectedAgent = await resolvePipelineLoopAgent({
-          providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
-          assumeYes: flags.assumeYes,
-          fallbackAgent: DEFAULT_PIPELINE_AGENT,
-          message: "Select agent to run pipeline steps with:",
-          select,
-          isCancel
-        });
-        if ("cancelled" in selectedAgent) {
-          cancel("Pipeline run cancelled.");
-          return;
-        }
-        const agent = resolvePipelineAgent(selectedAgent.agent);
-
-        const commandConfig = await resolvePipelineCommandConfig(container);
-        integrations = await loadIntegrations(commandConfig.configDoc);
+      if (flags.dryRun) {
+        const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
         const planPaths = await resolvePlanPaths({
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           planDirectory: commandConfig.planDirectory,
+          ...(positionalPlans.length > 0 ? { plans: positionalPlans } : {}),
           ...(options.plan ? { plan: options.plan } : {}),
           ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
           assumeYes: flags.assumeYes,
@@ -980,134 +939,180 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           return;
         }
 
-        const sequence = await runWithOptionalWorktree({
-          cwd: container.env.cwd,
-          selectedAgent: agent,
-          worktree: pickWorktreeOptions(options as Record<string, unknown>),
-          run: async ({ worktreeCwd }) => {
-            for (const [index, planPath] of planPaths.entries()) {
-              const totalPlans = planPaths.length;
-              if (totalPlans > 1) {
-                resources.logger.info(`Plan ${index + 1}/${totalPlans}: ${planPath}`);
-              }
+        await dryRunPipelinePlans({
+          container,
+          resources,
+          planPaths,
+          archive: options.archive ?? commandConfig.archive,
+          ...(maxRuns !== undefined ? { maxRuns } : {}),
+          ...(options.task ? { task: options.task } : {})
+        });
+        return;
+      }
 
-              const runPlanPath = mapSourcePathIntoWorktree(
-                container.env.cwd,
-                planPath,
-                worktreeCwd
-              );
-              const runPlanDirectory = mapSourcePathIntoWorktree(
-                container.env.cwd,
-                commandConfig.planDirectory,
-                worktreeCwd
-              );
-              const runOptions: PipelineRunOptions = {
-                agent,
-                cwd: worktreeCwd,
-                homeDir: container.env.homeDir,
-                planDirectory: runPlanDirectory,
-                ...(options.model ? { model: options.model } : {}),
-                ...(options.task ? { task: options.task } : {}),
-                plan: runPlanPath,
-                archive: options.archive ?? commandConfig.archive,
-                ...(maxRuns != null ? { maxRuns } : {}),
-                assumeYes: flags.assumeYes
-              };
-              if (integrations?.spawnMiddleware) {
-                runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
-              }
+      if (!flags.assumeYes && !options.agent) {
+        requireInteractiveStdin(
+          "Pipeline run agent selection requires --agent or --yes when running without an interactive TTY."
+        );
+      }
 
-              const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-              const result = useDashboard
-                ? await runPipelineWithDashboard({
-                    agent,
-                    ...(options.model ? { model: options.model } : {}),
-                    planPath: runPlanPath,
-                    planIndex: index,
-                    totalPlans,
-                    runOptions,
-                    ...(integrations ? { integrations } : {})
-                  })
-                : await runPipelineWithIntegrations(integrations, runPlanPath, {
-                    ...runOptions,
-                    onPlanReloadError(error: Error) {
-                      resources.logger.warn(
-                        `Plan reload failed, using last good state: ${error.message}`
-                      );
-                    },
-                    ...mergePipelineCallbacks(
-                      {
-                        onPlanResolved(summary: PlanSummary) {
-                          resources.logger.resolved(
-                            "Config",
-                            formatPipelineConfigSummary({
-                              agent,
-                              model: options.model,
-                              planPath: summary.planPath,
-                              planIndex: index,
-                              totalPlans
-                            }).replaceAll(" · ", "\n   ")
-                          );
-                          resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
-                        },
-                        onTaskStart(progress: TaskProgress) {
-                          resources.logger.info(formatTaskStartMessage(progress));
-                        },
-                        onTaskComplete(progress: TaskCompletion) {
-                          resources.logger.info(formatTaskCompleteMessage(progress));
-                        }
-                      },
-                      integrations?.pipelineCallbacks
-                    )
-                  });
+      const selectedAgent = await resolvePipelineLoopAgent({
+        providedAgent: options.agent,
+        configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
+        assumeYes: flags.assumeYes,
+        fallbackAgent: DEFAULT_PIPELINE_AGENT,
+        message: "Select agent to run pipeline steps with:",
+        select,
+        isCancel
+      });
+      if ("cancelled" in selectedAgent) {
+        cancel("Pipeline run cancelled.");
+        return;
+      }
+      const agent = resolvePipelineAgent(selectedAgent.agent);
 
-              const summary = formatRunSummary(result);
+      const commandConfig = await resolvePipelineCommandConfig(container);
+      integrations = await loadIntegrations(commandConfig.configDoc);
+      const planPaths = await resolvePlanPaths({
+        cwd: container.env.cwd,
+        homeDir: container.env.homeDir,
+        planDirectory: commandConfig.planDirectory,
+        ...(positionalPlans.length > 0 ? { plans: positionalPlans } : {}),
+        ...(options.plan ? { plan: options.plan } : {}),
+        ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
+        assumeYes: flags.assumeYes,
+        fs: container.fs,
+        ...createPipelinePlanPromptHandlers("Pipeline run cancelled.")
+      });
 
-              if (result.stopReason === "failed") {
-                process.exitCode = 1;
-                resources.logger.error(
-                  `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
-                );
-                resources.logger.resolved("Run summary", summary);
-                return "stopped";
-              }
+      if (!planPaths || planPaths.length === 0) {
+        return;
+      }
 
-              if (result.stopReason === "cancelled") {
-                process.exitCode = 130;
-                resources.logger.warn("Pipeline run cancelled.");
-                resources.logger.resolved("Run summary", summary);
-                return "stopped";
-              }
-
-              if (result.stopReason === "nothing_to_run") {
-                resources.logger.info("Nothing to run.");
-                resources.logger.resolved("Run summary", summary);
-                continue;
-              }
-
-              if (result.stopReason === "max_runs") {
-                resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
-                resources.logger.resolved("Run summary", summary);
-                return "stopped";
-              }
-
-              resources.logger.resolved("Run summary", summary);
+      const sequence = await runWithOptionalWorktree({
+        cwd: container.env.cwd,
+        selectedAgent: agent,
+        worktree: pickWorktreeOptions(options as Record<string, unknown>),
+        run: async ({ worktreeCwd }) => {
+          for (const [index, planPath] of planPaths.entries()) {
+            const totalPlans = planPaths.length;
+            if (totalPlans > 1) {
+              resources.logger.info(`Plan ${index + 1}/${totalPlans}: ${planPath}`);
             }
 
-            return "finished";
-          }
-        });
+            const runPlanPath = mapSourcePathIntoWorktree(container.env.cwd, planPath, worktreeCwd);
+            const runPlanDirectory = mapSourcePathIntoWorktree(
+              container.env.cwd,
+              commandConfig.planDirectory,
+              worktreeCwd
+            );
+            const runOptions: PipelineRunOptions = {
+              agent,
+              cwd: worktreeCwd,
+              homeDir: container.env.homeDir,
+              planDirectory: runPlanDirectory,
+              ...(options.model ? { model: options.model } : {}),
+              ...(options.task ? { task: options.task } : {}),
+              plan: runPlanPath,
+              archive: options.archive ?? commandConfig.archive,
+              ...(maxRuns != null ? { maxRuns } : {}),
+              assumeYes: flags.assumeYes
+            };
+            if (integrations?.spawnMiddleware) {
+              runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
+            }
 
-        if (sequence.value === "finished") {
-          resources.logger.success(
-            planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
-          );
+            const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+            const result = useDashboard
+              ? await runPipelineWithDashboard({
+                  agent,
+                  ...(options.model ? { model: options.model } : {}),
+                  planPath: runPlanPath,
+                  planIndex: index,
+                  totalPlans,
+                  runOptions,
+                  ...(integrations ? { integrations } : {})
+                })
+              : await runPipelineWithIntegrations(integrations, runPlanPath, {
+                  ...runOptions,
+                  onPlanReloadError(error: Error) {
+                    resources.logger.warn(
+                      `Plan reload failed, using last good state: ${error.message}`
+                    );
+                  },
+                  ...mergePipelineCallbacks(
+                    {
+                      onPlanResolved(summary: PlanSummary) {
+                        resources.logger.resolved(
+                          "Config",
+                          formatPipelineConfigSummary({
+                            agent,
+                            model: options.model,
+                            planPath: summary.planPath,
+                            planIndex: index,
+                            totalPlans
+                          }).replaceAll(" · ", "\n   ")
+                        );
+                        resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
+                      },
+                      onTaskStart(progress: TaskProgress) {
+                        resources.logger.info(formatTaskStartMessage(progress));
+                      },
+                      onTaskComplete(progress: TaskCompletion) {
+                        resources.logger.info(formatTaskCompleteMessage(progress));
+                      }
+                    },
+                    integrations?.pipelineCallbacks
+                  )
+                });
+
+            const summary = formatRunSummary(result);
+
+            if (result.stopReason === "failed") {
+              process.exitCode = 1;
+              resources.logger.error(
+                `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
+              );
+              resources.logger.resolved("Run summary", summary);
+              return "stopped";
+            }
+
+            if (result.stopReason === "cancelled") {
+              process.exitCode = 130;
+              resources.logger.warn("Pipeline run cancelled.");
+              resources.logger.resolved("Run summary", summary);
+              return "stopped";
+            }
+
+            if (result.stopReason === "nothing_to_run") {
+              resources.logger.info("Nothing to run.");
+              resources.logger.resolved("Run summary", summary);
+              continue;
+            }
+
+            if (result.stopReason === "max_runs") {
+              resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
+              resources.logger.resolved("Run summary", summary);
+              return "stopped";
+            }
+
+            resources.logger.resolved("Run summary", summary);
+          }
+
+          return "finished";
         }
-      } finally {
-        await integrations?.shutdown();
-        resources.context.finalize();
+      });
+
+      if (sequence.value === "finished") {
+        resources.logger.success(
+          planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
+        );
       }
-    });
+    } finally {
+      await integrations?.shutdown();
+      resources.context.finalize();
+    }
+  });
 
   pipeline
     .command("init")
@@ -1471,9 +1476,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           pipelinePaths.legacyDefaultStepsPath
         );
         const stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
-        const previousSteps = stepsExists && options.force
-          ? await container.fs.readFile(pipelinePaths.stepsPath, "utf8")
-          : undefined;
+        const previousSteps =
+          stepsExists && options.force
+            ? await container.fs.readFile(pipelinePaths.stepsPath, "utf8")
+            : undefined;
         let createdPlans = false;
         let createdSteps = false;
         let migratedSteps = false;

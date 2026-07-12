@@ -161,34 +161,51 @@ const coreDefaultAgentConfigSchema = {
 
 const runParams = S.Object({
   doc: S.Optional(S.String({ description: "Path to the superintendent markdown document" })),
-  agent: S.Optional(S.String({
-    description:
-      "Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent."
-  })),
-  runtime: S.Optional(S.Enum(["host", "docker", "e2b"] as const, {
-    description: "Override runtime backend: host, docker, or e2b"
-  })),
+  docs: S.Optional(
+    S.Array(S.String(), {
+      description: "Paths to superintendent markdown documents to run sequentially"
+    })
+  ),
+  agent: S.Optional(
+    S.String({
+      description:
+        "Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent."
+    })
+  ),
+  runtime: S.Optional(
+    S.Enum(["host", "docker", "e2b"] as const, {
+      description: "Override runtime backend: host, docker, or e2b"
+    })
+  ),
   runtimeImage: S.Optional(S.String({ description: "Override Docker runtime image" })),
   runtimeTemplate: S.Optional(S.String({ description: "Override E2B runtime template id" })),
   detach: S.Optional(S.Boolean({ description: "Run as a detached runtime job" })),
-  runnerSync: S.Optional(S.Enum(["both", "upload", "none"] as const, {
-    description: "Override runner workspace sync: both, upload, or none"
-  })),
-  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" })),
-  dryRun: S.Optional(S.Boolean({
-    description: "Preview the loop without launching agents or writing changes",
-    scope: ["cli", "sdk"],
-    global: true
-  })),
-  worktree: S.Optional(S.Boolean({
-    description: "Run in a managed git worktree and reconcile successful output"
-  }))
+  runnerSync: S.Optional(
+    S.Enum(["both", "upload", "none"] as const, {
+      description: "Override runner workspace sync: both, upload, or none"
+    })
+  ),
+  tui: S.Optional(
+    S.Boolean({ description: "Show a live dashboard while Superintendent is running" })
+  ),
+  dryRun: S.Optional(
+    S.Boolean({
+      description: "Preview the loop without launching agents or writing changes",
+      scope: ["cli", "sdk"],
+      global: true
+    })
+  ),
+  worktree: S.Optional(
+    S.Boolean({
+      description: "Run in a managed git worktree and reconcile successful output"
+    })
+  )
 });
 
 export const runCommand = defineCommand({
   name: "run",
   description: "Run the full superintendent loop.",
-  positional: ["doc"],
+  positional: ["docs"],
   params: runParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
@@ -199,31 +216,41 @@ export const runCommand = defineCommand({
     const tuiEnabled = params.tui ?? commandConfig.tui;
 
     try {
-      const runOptions: RunCommandOptions = {
-        cwd,
-        homeDir,
-        docPath: params.doc,
-        ...(params.agent ? { builderAgent: params.agent } : {}),
-        ...(params.runtime ? { runtime: params.runtime } : {}),
-        ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-        ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
-        ...(params.detach ? { detach: params.detach } : {}),
-        ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
-        configuredDefaultAgent: commandConfig.configuredDefaultAgent,
-        assumeYes: process.argv.includes("--yes"),
-        interactive: Boolean(process.stdin.isTTY),
-        useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
-        dryRun: params.dryRun === true,
-        worktree: pickWorktreeOptions(params),
-        env: process.env,
-        integrations,
-        ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
-      };
-      return integrations
-        ? await integrations.traceRun("superintendent", params.doc ?? "run", () =>
-            runSuperintendentCommand(runOptions)
-          )
-        : await runSuperintendentCommand(runOptions);
+      const docs: Array<string | undefined> =
+        params.docs && params.docs.length > 0 ? params.docs : [params.doc];
+      let result: Awaited<ReturnType<typeof runSuperintendentCommand>> | undefined;
+      for (const doc of docs) {
+        const runOptions: RunCommandOptions = {
+          cwd,
+          homeDir,
+          docPath: doc,
+          ...(params.agent ? { builderAgent: params.agent } : {}),
+          ...(params.runtime ? { runtime: params.runtime } : {}),
+          ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+          ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
+          ...(params.detach ? { detach: params.detach } : {}),
+          ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
+          configuredDefaultAgent: commandConfig.configuredDefaultAgent,
+          assumeYes: process.argv.includes("--yes"),
+          interactive: Boolean(process.stdin.isTTY),
+          useDashboard:
+            shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+          dryRun: params.dryRun === true,
+          worktree: pickWorktreeOptions(params),
+          env: process.env,
+          integrations,
+          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
+        };
+        result = integrations
+          ? await integrations.traceRun("superintendent", doc ?? "run", () =>
+              runSuperintendentCommand(runOptions)
+            )
+          : await runSuperintendentCommand(runOptions);
+      }
+      if (!result) {
+        throw new UserError("No superintendent plan was selected.");
+      }
+      return result;
     } finally {
       await integrations?.shutdown().catch(() => undefined);
     }
@@ -329,7 +356,11 @@ async function resolveSuperintendentCommandConfig(
     configPath,
     projectConfigPath
   );
-  const planDirectory = resolveScope(planConfigScope.schema, document.plan, env).plan_directory?.trim();
+  const planDirectory = resolveScope(
+    planConfigScope.schema,
+    document.plan,
+    env
+  ).plan_directory?.trim();
   const superintendentResolved = resolveScope(
     superintendentConfigScope.schema,
     document[superintendentConfigScope.scope],
@@ -524,38 +555,41 @@ export async function runSuperintendentCommand(
         ...(options.fs ? { fs } : {}),
         signal: headlessAbort.signal,
         logDir: runLogDir,
-        callbacks: mergeLoopCallbacks({
-          onBuilderStart: () => {
-            activeStage = "builder";
+        callbacks: mergeLoopCallbacks(
+          {
+            onBuilderStart: () => {
+              activeStage = "builder";
+            },
+            onBuilderComplete: () => {
+              activeStage = undefined;
+            },
+            onBuilderFailed: () => {
+              activeStage = undefined;
+            },
+            onInspectorStart: (name) => {
+              activeStage = { inspector: name };
+            },
+            onInspectorComplete: () => {
+              activeStage = undefined;
+            },
+            onInspectorFailed: () => {
+              activeStage = undefined;
+            },
+            onSuperintendentStart: () => {
+              activeStage = "superintendent";
+            },
+            onSuperintendentComplete: () => {
+              activeStage = undefined;
+            },
+            onOwnerStart: () => {
+              activeStage = "owner";
+            },
+            onOwnerComplete: () => {
+              activeStage = undefined;
+            }
           },
-          onBuilderComplete: () => {
-            activeStage = undefined;
-          },
-          onBuilderFailed: () => {
-            activeStage = undefined;
-          },
-          onInspectorStart: (name) => {
-            activeStage = { inspector: name };
-          },
-          onInspectorComplete: () => {
-            activeStage = undefined;
-          },
-          onInspectorFailed: () => {
-            activeStage = undefined;
-          },
-          onSuperintendentStart: () => {
-            activeStage = "superintendent";
-          },
-          onSuperintendentComplete: () => {
-            activeStage = undefined;
-          },
-          onOwnerStart: () => {
-            activeStage = "owner";
-          },
-          onOwnerComplete: () => {
-            activeStage = undefined;
-          }
-        }, integrations?.superintendentCallbacks),
+          integrations?.superintendentCallbacks
+        ),
         runAgent: createAgentRunner({
           session: undefined,
           executeAgent: options.executeAgent,
@@ -904,7 +938,10 @@ async function runSuperintendentInWorktree(input: {
   selectedDocPath: string;
   selectedBuilderAgent: string;
 }): Promise<SuperintendentRunCommandResult> {
-  const worktreeOptions = normalizeWorktreeOptions(input.options.cwd, input.options.worktree ?? false);
+  const worktreeOptions = normalizeWorktreeOptions(
+    input.options.cwd,
+    input.options.worktree ?? false
+  );
   const deps = input.options.worktreeDeps ?? createNodeWorktreeDeps();
   const worktree = await createWorktree({
     cwd: input.options.cwd,
@@ -974,12 +1011,16 @@ async function markFailedSuperintendentWorktree(input: {
   worktreeOptions: NormalizedWorktreeOptions;
   deps: WorktreeDeps;
 }): Promise<void> {
-  const worktreeHead = (await input.deps.exec("git rev-parse HEAD", {
-    cwd: input.worktree.path
-  })).stdout.trim();
-  const status = (await input.deps.exec("git status --porcelain=v1 -z", {
-    cwd: input.worktree.path
-  })).stdout;
+  const worktreeHead = (
+    await input.deps.exec("git rev-parse HEAD", {
+      cwd: input.worktree.path
+    })
+  ).stdout.trim();
+  const status = (
+    await input.deps.exec("git status --porcelain=v1 -z", {
+      cwd: input.worktree.path
+    })
+  ).stdout;
   const hasCommittedChanges =
     input.worktree.baseHead !== undefined && worktreeHead !== input.worktree.baseHead;
   const hasUncommittedChanges = status.length > 0;
@@ -1013,7 +1054,9 @@ async function markFailedSuperintendentWorktree(input: {
     mode: "auto",
     useStdin: true
   });
-  const removed = result.exitCode === 0 && !(await managedWorktreeExists(input.sourceCwd, input.worktree, input.deps));
+  const removed =
+    result.exitCode === 0 &&
+    !(await managedWorktreeExists(input.sourceCwd, input.worktree, input.deps));
   await updateWorktreeEntry(
     input.worktreeOptions.registryFile,
     input.worktree.name,
@@ -1066,7 +1109,11 @@ function defaultWorktreeDir(cwd: string): string {
   return path.join(cwd, ".poe-code", "worktrees");
 }
 
-function mapSourcePathIntoWorktree(sourceCwd: string, sourcePath: string, worktreeCwd: string): string {
+function mapSourcePathIntoWorktree(
+  sourceCwd: string,
+  sourcePath: string,
+  worktreeCwd: string
+): string {
   if (!path.isAbsolute(sourcePath)) {
     return sourcePath;
   }
@@ -1220,7 +1267,8 @@ function createAgentRunner(options: {
   return async (input) => {
     const activeStage = options.activeStage();
     const agent = activeStage === "builder" ? options.selectedBuilderAgent : input.agent;
-    const executeAgent = options.executeAgent ??
+    const executeAgent =
+      options.executeAgent ??
       ((nextAgent: string, nextInput: AgentRunInput) =>
         executeSpawnAgent(nextAgent, nextInput, options.integrations));
     const stageLabel = formatStageLabel(activeStage);
@@ -1413,7 +1461,9 @@ async function executeSpawnAgentStreaming(
     middlewareContext
   );
 
-  await acp.withAcpWriter(writer, () => renderAcpStream(middlewareContext.eventStream ?? rawEvents));
+  await acp.withAcpWriter(writer, () =>
+    renderAcpStream(middlewareContext.eventStream ?? rawEvents)
+  );
   const final = await done;
 
   const logFile = middlewareContext.logFile ?? final.logFile;
@@ -1424,7 +1474,9 @@ async function executeSpawnAgentStreaming(
     exitCode: final.exitCode,
     ...(logFile ? { logFile } : {}),
     ...(sessionResult?.output ? { summary: sessionResult.output } : {}),
-    ...(middlewareContext.usage.inputTokens > 0 || middlewareContext.usage.outputTokens > 0 || middlewareContext.usage.cachedTokens !== undefined
+    ...(middlewareContext.usage.inputTokens > 0 ||
+    middlewareContext.usage.outputTokens > 0 ||
+    middlewareContext.usage.cachedTokens !== undefined
       ? {
           usage: {
             inputTokens: middlewareContext.usage.inputTokens,
@@ -1439,7 +1491,12 @@ async function executeSpawnAgentStreaming(
       ? {
           toolCalls: sessionResult.toolCalls.flatMap((toolCall) =>
             typeof toolCall.title === "string"
-              ? [{ title: toolCall.title, ...(toolCall.input !== undefined ? { input: toolCall.input } : {}) }]
+              ? [
+                  {
+                    title: toolCall.title,
+                    ...(toolCall.input !== undefined ? { input: toolCall.input } : {})
+                  }
+                ]
               : []
           )
         }

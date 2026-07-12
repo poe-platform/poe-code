@@ -160,11 +160,13 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
 async function resolveGaslightPlanPaths(options: {
   container: CliContainer;
   assumeYes: boolean;
-  positionalPlanPath?: string;
+  positionalPlanPaths?: string[];
   optionPlanPaths?: string[];
 }): Promise<string[]> {
   const sources = [
-    options.positionalPlanPath ? "positional plan" : undefined,
+    options.positionalPlanPaths && options.positionalPlanPaths.length > 0
+      ? "positional plans"
+      : undefined,
     options.optionPlanPaths && options.optionPlanPaths.length > 0 ? "--plans" : undefined
   ].filter((source): source is string => source !== undefined);
 
@@ -175,8 +177,8 @@ async function resolveGaslightPlanPaths(options: {
   if (options.optionPlanPaths && options.optionPlanPaths.length > 0) {
     return options.optionPlanPaths;
   }
-  if (options.positionalPlanPath) {
-    return [options.positionalPlanPath];
+  if (options.positionalPlanPaths && options.positionalPlanPaths.length > 0) {
+    return options.positionalPlanPaths;
   }
   return selectPlans(options.container, options.assumeYes);
 }
@@ -319,10 +321,11 @@ async function scaffoldConfig(
 }
 
 export function registerGaslightCommand(program: Command, container: CliContainer): void {
-  const gaslight = addWorktreeOptions(program
+  const gaslight = addWorktreeOptions(
+    program
       .command("gaslight")
       .description("Run a plan through a resumable sequence of agent follow-ups.")
-      .argument("[plan-path]", "Markdown plan to implement")
+      .argument("[plan-paths...]", "Markdown plans to implement sequentially")
       .option("--agent <agent>", "Agent to run")
       .option("--archive", "Archive each plan after all gaslight rounds succeed")
       .option("--no-archive", "Leave plans in place after gaslight rounds succeed")
@@ -333,58 +336,54 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         new Option("--mode <mode>", "Spawn mode")
           .choices(["read", "edit", "yolo", "auto"])
           .default("auto")
-      ))
-    .action(async function (this: Command, providedPlanPath: string | undefined) {
-      const flags = resolveCommandFlags(program);
-      const options = this.opts<GaslightCommandOptions>();
-      const planPaths = await resolveGaslightPlanPaths({
-        container,
-        assumeYes: flags.assumeYes,
-        positionalPlanPath: providedPlanPath,
-        optionPlanPaths: options.plans
-      });
-      const commandConfig = await resolveGaslightCommandConfig(container);
-      const { agent, model } = await resolveAgentAndModel(program, container, options);
-      const logger = container.loggerFactory.create();
-
-      intro("gaslight");
-      const result = await runGaslight({
-        planPaths,
-        agent,
-        ...(model ? { model } : {}),
-        ...(options.config ? { configPath: options.config } : {}),
-        archive: options.archive ?? commandConfig.archive,
-        mode: options.mode ?? "auto",
-        cwd: container.env.cwd,
-        homeDir: container.env.homeDir,
-        worktree: pickWorktreeOptions(options as Record<string, unknown>),
-        fs: container.fs,
-        onEvent(event: GaslightEvent) {
-          if (event.type === "round.started") {
-            logger.resolved("Prompt", event.prompt);
-          }
-        },
-        spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
-          await sdkSpawn.pretty(spawnAgent, spawnOptions)
-      });
-      const finished =
-        planPaths.length > 1
-          ? `${planPaths.length} plans, ${result.rounds.length} rounds finished`
-          : `${result.rounds.length} rounds finished`;
-      const lastThreadId = result.rounds.at(-1)?.threadId;
-      const resumeCommand = lastThreadId
-        ? buildResumeCommand(agent, lastThreadId, container.env.cwd)
-        : undefined;
-      outro(
-        [
-          finished,
-          formatUsage(result.usage),
-          resumeCommand ? `Resume: ${resumeCommand}` : undefined
-        ]
-          .filter((line): line is string => line !== undefined)
-          .join("\n")
-      );
+      )
+  ).action(async function (this: Command, providedPlanPaths: string[]) {
+    const flags = resolveCommandFlags(program);
+    const options = this.opts<GaslightCommandOptions>();
+    const planPaths = await resolveGaslightPlanPaths({
+      container,
+      assumeYes: flags.assumeYes,
+      positionalPlanPaths: providedPlanPaths,
+      optionPlanPaths: options.plans
     });
+    const commandConfig = await resolveGaslightCommandConfig(container);
+    const { agent, model } = await resolveAgentAndModel(program, container, options);
+    const logger = container.loggerFactory.create();
+
+    intro("gaslight");
+    const result = await runGaslight({
+      planPaths,
+      agent,
+      ...(model ? { model } : {}),
+      ...(options.config ? { configPath: options.config } : {}),
+      archive: options.archive ?? commandConfig.archive,
+      mode: options.mode ?? "auto",
+      cwd: container.env.cwd,
+      homeDir: container.env.homeDir,
+      worktree: pickWorktreeOptions(options as Record<string, unknown>),
+      fs: container.fs,
+      onEvent(event: GaslightEvent) {
+        if (event.type === "round.started") {
+          logger.resolved("Prompt", event.prompt);
+        }
+      },
+      spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
+        await sdkSpawn.pretty(spawnAgent, spawnOptions)
+    });
+    const finished =
+      planPaths.length > 1
+        ? `${planPaths.length} plans, ${result.rounds.length} rounds finished`
+        : `${result.rounds.length} rounds finished`;
+    const lastThreadId = result.rounds.at(-1)?.threadId;
+    const resumeCommand = lastThreadId
+      ? buildResumeCommand(agent, lastThreadId, container.env.cwd)
+      : undefined;
+    outro(
+      [finished, formatUsage(result.usage), resumeCommand ? `Resume: ${resumeCommand}` : undefined]
+        .filter((line): line is string => line !== undefined)
+        .join("\n")
+    );
+  });
 
   gaslight
     .command("ingest")

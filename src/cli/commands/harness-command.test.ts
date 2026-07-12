@@ -255,15 +255,23 @@ describe("harness command", () => {
     );
   });
 
-  it("passes worktree flags through the SDK helper and runs the harness path inside the worktree", async () => {
-    await runHarnessCommand([
-      "harness",
-      "run",
-      "harness.md",
-      "--worktree",
-      "--agent",
-      "codex"
+  it("runs multiple positional harness paths sequentially", async () => {
+    vol.fromJSON({
+      "/repo/second.md": "---\nkind: test\nversion: 1\n---\n",
+      "/repo/second.ajs": "export default () => true;\n"
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md", "second.md"]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledTimes(2);
+    expect(harnessMocks.runHarnessPairMock.mock.calls.map(([path]) => path)).toEqual([
+      "/repo/harness.md",
+      "/repo/second.md"
     ]);
+  });
+
+  it("passes worktree flags through the SDK helper and runs the harness path inside the worktree", async () => {
+    await runHarnessCommand(["harness", "run", "harness.md", "--worktree", "--agent", "codex"]);
 
     expect(harnessMocks.runWithOptionalWorktreeMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -275,7 +283,8 @@ describe("harness command", () => {
     expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
       "/repo/.poe-code/worktrees/generated/harness.md",
       expect.objectContaining({
-        snapshotPath: "/repo/.poe-code/worktrees/generated/.poe-code/harnesses/harness/snapshot.json"
+        snapshotPath:
+          "/repo/.poe-code/worktrees/generated/.poe-code/harnesses/harness/snapshot.json"
       })
     );
   });
@@ -283,9 +292,9 @@ describe("harness command", () => {
   it("validates missing harness files before previewing a dry run", async () => {
     const logs: string[] = [];
 
-    await expect(runHarnessCommand(["--dry-run", "harness", "run", "missing.md"], logs)).rejects.toThrow(
-      "Missing harness md file: /repo/missing.md"
-    );
+    await expect(
+      runHarnessCommand(["--dry-run", "harness", "run", "missing.md"], logs)
+    ).rejects.toThrow("Missing harness md file: /repo/missing.md");
 
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
     expect(logs.join("\n")).not.toContain("Dry run");
@@ -297,9 +306,9 @@ describe("harness command", () => {
       "/repo/only-md.md": "---\nkind: test\nversion: 1\n---\n"
     });
 
-    await expect(runHarnessCommand(["--dry-run", "harness", "run", "only-md.md"], logs)).rejects.toThrow(
-      "Missing harness ajs file: /repo/only-md.ajs"
-    );
+    await expect(
+      runHarnessCommand(["--dry-run", "harness", "run", "only-md.md"], logs)
+    ).rejects.toThrow("Missing harness ajs file: /repo/only-md.ajs");
 
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
     expect(logs.join("\n")).not.toContain("Dry run");

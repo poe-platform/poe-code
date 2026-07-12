@@ -73,23 +73,27 @@ type HarnessPairWithLocation = HarnessPair & {
 export function registerHarnessCommand(program: Command, container: CliContainer): void {
   const harness = program.command("harness").description("Run and manage agent harness pairs.");
 
-  addWorktreeOptions(harness
-    .command("run")
-    .description("Run a harness pair.")
-    .argument("[md-path]", "Path to the harness .md file")
-    .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
-    .option("--snapshot-path <path>", "File to write/read harness snapshots.")
-    .option("--resume", "Resume from the snapshot file when it exists.")
-    .option("--agent <name>", "Override the agent id from the harness frontmatter agent block.")
-    .option("--model <name>", "Override the model from the harness frontmatter agent block.")
-    .option(
-      "--mode <mode>",
-      "Override the mode from the harness frontmatter agent block (read|edit|auto|yolo)."
-    )
-    .option("-y, --yes", "Accept defaults without prompting."))
-    .action(async (mdPath: string | undefined, options: HarnessRunOptions) => {
+  addWorktreeOptions(
+    harness
+      .command("run")
+      .description("Run a harness pair.")
+      .argument("[md-paths...]", "Paths to harness .md files to run sequentially")
+      .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
+      .option("--snapshot-path <path>", "File to write/read harness snapshots.")
+      .option("--resume", "Resume from the snapshot file when it exists.")
+      .option("--agent <name>", "Override the agent id from the harness frontmatter agent block.")
+      .option("--model <name>", "Override the model from the harness frontmatter agent block.")
+      .option(
+        "--mode <mode>",
+        "Override the mode from the harness frontmatter agent block (read|edit|auto|yolo)."
+      )
+      .option("-y, --yes", "Accept defaults without prompting.")
+  ).action(async (mdPaths: string[], options: HarnessRunOptions) => {
+    const selectedPaths: Array<string | undefined> = mdPaths.length > 0 ? mdPaths : [undefined];
+    for (const mdPath of selectedPaths) {
       await executeHarnessRun(program, container, mdPath, options);
-    });
+    }
+  });
 
   harness
     .command("new")
@@ -134,7 +138,7 @@ async function executeHarnessRun(
   const worktreeOptions = pickWorktreeOptions(options as Record<string, unknown>);
   const selectedAgent = isWorktreeRequested(options as Record<string, unknown>)
     ? await resolveHarnessWorktreeAgent(container, selectedPath, options)
-    : options.agent ?? "codex";
+    : (options.agent ?? "codex");
 
   resources.logger.intro("harness run");
 
@@ -225,7 +229,11 @@ async function resolveHarnessWorktreeAgent(
   );
 }
 
-function mapSourcePathIntoWorktree(sourceCwd: string, sourcePath: string, worktreeCwd: string): string {
+function mapSourcePathIntoWorktree(
+  sourceCwd: string,
+  sourcePath: string,
+  worktreeCwd: string
+): string {
   const relativePath = path.relative(sourceCwd, sourcePath);
   if (relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))) {
     return path.join(worktreeCwd, relativePath);

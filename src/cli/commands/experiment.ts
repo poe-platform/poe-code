@@ -64,7 +64,11 @@ import {
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
-import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
+import {
+  addRuntimeOptions,
+  pickRuntimeOptions,
+  type RuntimeCliOptions
+} from "./runtime-options.js";
 import {
   addWorktreeOptions,
   pickWorktreeOptions,
@@ -441,14 +445,10 @@ async function runExperimentWithDashboard(
         syncStats();
       }
     };
-    const result = await runExperimentWithIntegrations(
-      options.integrations,
-      options.docPath,
-      {
-        ...runOptions,
-        ...mergeExperimentCallbacks(runOptions, options.integrations?.experimentCallbacks)
-      }
-    );
+    const result = await runExperimentWithIntegrations(options.integrations, options.docPath, {
+      ...runOptions,
+      ...mergeExperimentCallbacks(runOptions, options.integrations?.experimentCallbacks)
+    });
 
     status = "done";
     iterations = result.experimentsCompleted;
@@ -473,8 +473,10 @@ async function runExperimentWithIntegrations(
   name: string,
   options: Parameters<typeof sdkRunExperiment>[0]
 ): Promise<Awaited<ReturnType<typeof sdkRunExperiment>>> {
-  return integrations?.traceRun("experiment", name, () => sdkRunExperiment(options)) ??
-    sdkRunExperiment(options);
+  return (
+    integrations?.traceRun("experiment", name, () => sdkRunExperiment(options)) ??
+    sdkRunExperiment(options)
+  );
 }
 
 function resolveExperimentAgent(value: string | undefined, sourceLabel = "agent"): string {
@@ -732,29 +734,40 @@ export function registerExperimentCommand(program: Command, container: CliContai
   const run = experiment
     .command("run")
     .description("Run an experiment doc through the autonomous experiment loop.")
-    .argument("[doc]", "Experiment doc path")
+    .argument("[docs...]", "Experiment doc paths to run sequentially")
     .option("--agent <agent>", "Override the agent from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
     .option("--tui", "Show a live dashboard while the experiment is running")
     .option("--no-tui", "Disable the live dashboard for this experiment run");
 
-  addRuntimeOptions(addWorktreeOptions(run))
-    .action(async function (this: Command, docArg?: string) {
-      const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "experiment:run");
-      const options = this.opts<{
+  addRuntimeOptions(addWorktreeOptions(run)).action(async function (
+    this: Command,
+    docArgs: string[]
+  ) {
+    const flags = resolveCommandFlags(program);
+    const resources = createExecutionResources(container, flags, "experiment:run");
+    const options = this.opts<
+      {
         agent?: string;
         maxExperiments?: string;
         tui?: boolean;
-      } & RuntimeCliOptions & WorktreeCliOptions>();
-      const runtimeOptions = pickRuntimeOptions(options);
-      const worktreeOptions = pickWorktreeOptions(options);
+      } & RuntimeCliOptions &
+        WorktreeCliOptions
+    >();
+    const runtimeOptions = pickRuntimeOptions(options);
+    const worktreeOptions = pickWorktreeOptions(options);
 
-      resources.logger.intro("experiment run");
+    resources.logger.intro("experiment run");
 
-      let integrations: Integrations | null = null;
-      try {
-        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
+    let integrations: Integrations | null = null;
+    try {
+      const commandConfig = await resolveExperimentCommandConfig(container, {
+        readonly: flags.dryRun
+      });
+      const providedDocs: Array<string | undefined> = docArgs.length > 0 ? docArgs : [undefined];
+      for (const docArg of providedDocs) {
+        await integrations?.shutdown();
+        integrations = null;
         const docPath = await resolveDocPath({
           container,
           program,
@@ -842,14 +855,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
               runtimeOptions,
               ...(integrations ? { integrations } : {})
             })
-          : await runExperimentWithIntegrations(
-              integrations,
-              docPath,
-              {
-                ...runOptions,
-                ...mergeExperimentCallbacks(runOptions, integrations?.experimentCallbacks)
-              }
-            );
+          : await runExperimentWithIntegrations(integrations, docPath, {
+              ...runOptions,
+              ...mergeExperimentCallbacks(runOptions, integrations?.experimentCallbacks)
+            });
 
         const summary = [
           `Experiments: ${result.experimentsCompleted}`,
@@ -867,11 +876,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
         resources.logger.resolved("Run summary", summary);
         resources.logger.success("Experiment run finished.");
-      } finally {
-        await integrations?.shutdown();
-        resources.context.finalize();
       }
-    });
+    } finally {
+      await integrations?.shutdown();
+      resources.context.finalize();
+    }
+  });
 
   const journalCommand = experiment
     .command("journal")
@@ -959,7 +969,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }>();
 
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
+        const commandConfig = await resolveExperimentCommandConfig(container, {
+          readonly: flags.dryRun
+        });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -1022,7 +1034,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         resources.logger.intro("experiment validate");
 
-        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
+        const commandConfig = await resolveExperimentCommandConfig(container, {
+          readonly: flags.dryRun
+        });
         const docPath = await resolveDocPath({
           container,
           program,

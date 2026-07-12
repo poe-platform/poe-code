@@ -5,7 +5,7 @@ export const geminiCliAgent: AgentDefinition = {
   name: "gemini-cli",
   aliases: ["gemini"],
   label: "Gemini CLI",
-  summary: "Configure Google's Gemini CLI to use a compatible Google generations API.",
+  summary: "Google's open-source AI agent for the terminal.",
   binaryName: "gemini",
   configPath: "~/.gemini/settings.json",
   apiShapes: ["google-generations"],

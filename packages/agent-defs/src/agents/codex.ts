@@ -4,7 +4,7 @@ export const codexAgent: AgentDefinition = {
   id: "codex",
   name: "codex",
   label: "Codex",
-  summary: "Configure Codex to use Poe as the model provider.",
+  summary: "OpenAI's coding agent for the terminal.",
   binaryName: "codex",
   apiShapes: ["openai-responses"],
   otelCapture: {

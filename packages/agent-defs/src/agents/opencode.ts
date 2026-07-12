@@ -4,7 +4,7 @@ export const openCodeAgent: AgentDefinition = {
   id: "opencode",
   name: "opencode",
   label: "OpenCode CLI",
-  summary: "Configure OpenCode CLI to use the Poe API.",
+  summary: "Open-source AI coding agent for the terminal.",
   binaryName: "opencode",
   apiShapes: ["openai-chat-completions"],
   otelCapture: {

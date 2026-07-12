@@ -178,6 +178,34 @@ describe("resolveLoopAgent", () => {
         })
       ])
     );
+    expect(receivedOptions?.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "claude-code",
+          hint: "Anthropic's agentic coding tool for the terminal."
+        }),
+        expect.objectContaining({
+          value: "codex",
+          hint: "OpenAI's coding agent for the terminal."
+        }),
+        expect.objectContaining({
+          value: "gemini-cli",
+          hint: "Google's open-source AI agent for the terminal."
+        }),
+        expect.objectContaining({
+          value: "opencode",
+          hint: "Open-source AI coding agent for the terminal."
+        }),
+        expect.objectContaining({
+          value: "kimi",
+          hint: "Moonshot AI's coding agent for the terminal."
+        }),
+        expect.objectContaining({
+          value: "pi",
+          hint: "Minimal AI coding agent for the terminal."
+        })
+      ])
+    );
   });
 
   it("rejects bare poe-agent specifiers because the loop runner requires a model", async () => {

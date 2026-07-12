@@ -4,7 +4,7 @@ export const claudeCodeAgent: AgentDefinition = {
   id: "claude-code",
   name: "claude-code",
   label: "Claude Code",
-  summary: "Configure Claude Code to route through Poe.",
+  summary: "Anthropic's agentic coding tool for the terminal.",
   aliases: ["claude"],
   binaryName: "claude",
   apiShapes: ["anthropic-messages"],

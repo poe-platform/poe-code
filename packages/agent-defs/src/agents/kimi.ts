@@ -4,7 +4,7 @@ export const kimiAgent: AgentDefinition = {
   id: "kimi",
   name: "kimi",
   label: "Kimi",
-  summary: "Configure Kimi CLI to use Poe API",
+  summary: "Moonshot AI's coding agent for the terminal.",
   aliases: ["kimi-cli"],
   binaryName: "kimi",
   apiShapes: ["openai-chat-completions"],

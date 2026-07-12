@@ -10,7 +10,6 @@ import {
 } from "@poe-code/agent-harness-tools";
 import { buildSpawnArgs } from "@poe-code/agent-spawn";
 import { spawn as sdkSpawn } from "./spawn.js";
-import { getPoeApiKey } from "./credentials.js";
 import { runWithOptionalWorktree } from "./worktree.js";
 import type { WorktreeExecutionOptions } from "./types.js";
 
@@ -119,8 +118,7 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
         model: input.model,
         mode: "yolo"
       });
-      const poeApiKey = process.env.POE_API_KEY?.trim() || await getPoeApiKey();
-      const processEnv = { ...process.env, ...spawnArgs.env, POE_API_KEY: poeApiKey };
+      const processEnv = { ...process.env, ...spawnArgs.env };
       const execution = resolvePoeCommandExecution({
         cwd: input.cwd,
         runtimeConfigCwd: options.runtimeConfigCwd,

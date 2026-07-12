@@ -27,13 +27,11 @@ import {
 } from "@poe-code/agent-hook-config";
 import {
   text,
-  confirm,
   select,
   isCancel,
   resolveOutputFormat,
   renderMarkdown
 } from "toolcraft-design";
-import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
   resolveCommandFlags,
@@ -52,7 +50,6 @@ import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { formatSpawnDryRunMessage, resolveConfiguredModel } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
-import { ensurePoeApiKeyEnv } from "../../sdk/credentials.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
@@ -243,23 +240,12 @@ export function registerSpawnCommand(
           const target = resolveSpawnTarget(container, service);
           const canonicalService = target.name;
           assertInteractiveSupport(target.label, canonicalService);
-          const proceed = await confirmUnconfiguredService(
-            container,
-            target,
-            flags
-          );
-          if (!proceed) {
-            return;
-          }
           const model = await resolveConfiguredModel(
             container,
             canonicalService,
             commandOptions.model,
             { readOnly: flags.dryRun }
           );
-          if (target.requiresProvider !== false && target.provider !== undefined) {
-            await ensurePoeApiKeyEnv();
-          }
           const result = await spawnInteractive(canonicalService, {
             prompt,
             args: forwardedArgs,
@@ -376,11 +362,6 @@ export function registerSpawnCommand(
           if (flags.dryRun) {
             validateDryRunBridgeResources(canonicalService, container, spawnOptions);
             resources.logger.dryRun(formatSpawnDryRunMessage(target.label, spawnOptions));
-            return;
-          }
-
-          const proceed = await confirmUnconfiguredService(container, target, flags);
-          if (!proceed) {
             return;
           }
 
@@ -560,46 +541,6 @@ function isSpawnMode(input: string): input is SpawnMode {
 
 function formatDetachedJob(detached: { jobId: string; envId: string }): string {
   return `job started: ${detached.jobId}\nsandbox: ${detached.envId}\ndetached.`;
-}
-
-async function confirmUnconfiguredService(
-  container: CliContainer,
-  target: SpawnTarget,
-  flags: CommandFlags
-): Promise<boolean> {
-  if (target.requiresProvider === false || target.provider === undefined) {
-    return true;
-  }
-
-  const configuredServices = await loadConfiguredServices({
-    fs: container.fs,
-    filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
-  });
-
-  if (target.name in configuredServices) {
-    return true;
-  }
-
-  if (flags.assumeYes) {
-    return true;
-  }
-
-  if (process.stdin.isTTY !== true) {
-    throw new ValidationError(
-      `${target.label} is not configured via poe. Pass --yes to proceed without prompting.`
-    );
-  }
-
-  const shouldProceed = await confirm({
-    message: `${target.label} is not configured via poe. Do you want to proceed?`
-  });
-
-  if (isCancel(shouldProceed)) {
-    throw new OperationCancelledError();
-  }
-
-  return shouldProceed === true;
 }
 
 async function resolvePromptInput(input: string, fs: FileSystem, baseDir: string): Promise<string> {

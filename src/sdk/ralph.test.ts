@@ -6,7 +6,6 @@ const spawnAutonomousMock = vi.hoisted(() => vi.fn());
 const buildSpawnArgsMock = vi.hoisted(() => vi.fn());
 const createPoeCommandSessionMock = vi.hoisted(() => vi.fn());
 const resolvePoeCommandExecutionMock = vi.hoisted(() => vi.fn());
-const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
 const runWithOptionalWorktreeMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/ralph", async (importOriginal) => {
@@ -32,9 +31,6 @@ vi.mock("@poe-code/agent-harness-tools", () => ({
   resolvePoeCommandExecution: resolvePoeCommandExecutionMock
 }));
 
-vi.mock("./credentials.js", () => ({
-  getPoeApiKey: getPoeApiKeyMock
-}));
 
 vi.mock("./worktree.js", () => ({
   runWithOptionalWorktree: runWithOptionalWorktreeMock
@@ -49,9 +45,7 @@ describe("SDK ralph", () => {
     buildSpawnArgsMock.mockReset();
     createPoeCommandSessionMock.mockReset();
     resolvePoeCommandExecutionMock.mockReset();
-    getPoeApiKeyMock.mockReset();
     runWithOptionalWorktreeMock.mockReset();
-    getPoeApiKeyMock.mockResolvedValue("stored-key");
     runWithOptionalWorktreeMock.mockImplementation(async (input) => {
       const value = await input.run({
         sourceCwd: input.cwd,
@@ -308,7 +302,7 @@ describe("SDK ralph", () => {
     let capturedOptions: RalphRunOptions | undefined;
     const originalPoeApiKey = process.env.POE_API_KEY;
 
-    process.env.POE_API_KEY = "sk-test";
+    delete process.env.POE_API_KEY;
     buildSpawnArgsMock
       .mockReturnValueOnce({ binaryName: "claude", args: ["-p", "first"] })
       .mockReturnValueOnce({ binaryName: "claude", args: ["-p", "second"] });
@@ -424,7 +418,6 @@ describe("SDK ralph", () => {
     try {
       await expect(runRalph({ cwd: "/repo", homeDir: "/home/test", docPath: "/repo/plan.md", runtime: "e2b" }))
         .rejects.toThrow("Unknown agent");
-      expect(getPoeApiKeyMock).not.toHaveBeenCalled();
       expect(process.env.POE_API_KEY).toBeUndefined();
     } finally {
       if (priorKey === undefined) delete process.env.POE_API_KEY;

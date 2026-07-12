@@ -10,7 +10,6 @@ import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
 import type { FileSystem } from "../utils/file-system.js";
-import { OperationCancelledError } from "../errors.js";
 import type {
   CommandRunner,
   CommandRunnerOptions,
@@ -31,11 +30,6 @@ vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
 }));
 
-const ensurePoeApiKeyEnvMock = vi.hoisted(() => vi.fn());
-
-vi.mock("../../sdk/credentials.js", () => ({
-  ensurePoeApiKeyEnv: ensurePoeApiKeyEnvMock
-}));
 
 const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
   vi.fn(() => ({
@@ -232,8 +226,6 @@ describe("spawn command", () => {
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
-    ensurePoeApiKeyEnvMock.mockReset();
-    ensurePoeApiKeyEnvMock.mockResolvedValue(undefined);
     vi.mocked(resolveWorkspace).mockReset();
     vi.mocked(resolveWorkspace).mockImplementation(async (input, options) => ({
       cwd: path.isAbsolute(input) ? input : path.join(options.baseDir, input),
@@ -2812,13 +2804,10 @@ describe("spawn command", () => {
       expect(sdkSpawn).not.toHaveBeenCalled();
     });
 
-    it("exports stored Poe credentials before interactive spawns", async () => {
+    it("runs interactive spawns without consulting Poe credentials", async () => {
       delete process.env.POE_API_KEY;
-      ensurePoeApiKeyEnvMock.mockImplementationOnce(async () => {
-        process.env.POE_API_KEY = "stored-key";
-      });
       vi.mocked(spawnInteractive).mockImplementation(async () => {
-        expect(process.env.POE_API_KEY).toBe("stored-key");
+        expect(process.env.POE_API_KEY).toBeUndefined();
         return {
           stdout: "",
           stderr: "",
@@ -2837,7 +2826,6 @@ describe("spawn command", () => {
 
       await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
 
-      expect(ensurePoeApiKeyEnvMock).toHaveBeenCalledTimes(1);
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
         args: [],
@@ -3116,7 +3104,6 @@ describe("spawn command", () => {
     await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "pi", "hello"]);
 
     expect(confirmMock).not.toHaveBeenCalled();
-    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
     expect(sdkSpawn).toHaveBeenCalledWith(
       "pi",
       expect.objectContaining({
@@ -3128,9 +3115,6 @@ describe("spawn command", () => {
 
   it("runs interactive Pi without loading Poe credentials", async () => {
     delete process.env.POE_API_KEY;
-    ensurePoeApiKeyEnvMock.mockImplementationOnce(async () => {
-      process.env.POE_API_KEY = "should-not-be-set";
-    });
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -3142,7 +3126,6 @@ describe("spawn command", () => {
 
     await program.parseAsync(["node", "cli", "spawn", "--interactive", "pi", "hello"]);
 
-    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
     expect(process.env.POE_API_KEY).toBeUndefined();
     expect(spawnInteractive).toHaveBeenCalledWith(
       "pi",
@@ -3153,23 +3136,8 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
-  describe("unconfigured service warning", () => {
-    const configPath = resolveConfigPath(homeDir);
-
-    async function writeConfiguredServices(
-      fileSystem: FileSystem,
-      services: Record<string, { files: string[] }>
-    ): Promise<void> {
-      await fileSystem.writeFile(configPath, JSON.stringify({ configured_services: services }), {
-        encoding: "utf8"
-      });
-    }
-
-    it("skips prompt when service is configured", async () => {
-      await writeConfiguredServices(fs, {
-        "claude-code": { files: [] }
-      });
-
+  describe("unconfigured services", () => {
+    it("spawns without checking provider configuration", async () => {
       const { runner } = createCommandRunnerStub();
       const program = createProgram({
         fs,
@@ -3185,103 +3153,7 @@ describe("spawn command", () => {
       expect(sdkSpawn).toHaveBeenCalled();
     });
 
-    it("prompts and proceeds when user confirms", async () => {
-      confirmMock.mockResolvedValueOnce(true);
-
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: () => {}
-      });
-
-      await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"]);
-
-      expect(confirmMock).toHaveBeenCalled();
-      expect(sdkSpawn).toHaveBeenCalled();
-    });
-
-    it("cancels spawn when user declines", async () => {
-      confirmMock.mockResolvedValueOnce(false);
-
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: () => {}
-      });
-
-      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
-
-      expect(confirmMock).toHaveBeenCalled();
-      expect(sdkSpawn).not.toHaveBeenCalled();
-    });
-
-    it("aborts spawn when confirmation is cancelled", async () => {
-      confirmMock.mockResolvedValueOnce(Symbol("cancelled"));
-      isCancelMock.mockReturnValue(true);
-
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: () => {}
-      });
-
-      await expect(
-        program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"])
-      ).rejects.toBeInstanceOf(OperationCancelledError);
-
-      expect(confirmMock).toHaveBeenCalled();
-      expect(sdkSpawn).not.toHaveBeenCalled();
-    });
-
-    it("rejects non-interactive unconfigured services without --yes", async () => {
-      setProcessStdinIsTTY(false);
-
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: () => {}
-      });
-
-      await expect(
-        program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"])
-      ).rejects.toThrow(
-        "Claude Code is not configured via poe. Pass --yes to proceed without prompting."
-      );
-
-      expect(confirmMock).not.toHaveBeenCalled();
-      expect(sdkSpawn).not.toHaveBeenCalled();
-    });
-
-    it("skips prompt with --yes when not configured", async () => {
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: () => {}
-      });
-
-      await program.parseAsync(["node", "cli", "--yes", "spawn", "claude-code", "hello"]);
-
-      expect(confirmMock).not.toHaveBeenCalled();
-      expect(sdkSpawn).toHaveBeenCalled();
-    });
-
-    it("prompts in interactive mode when not configured", async () => {
-      confirmMock.mockResolvedValueOnce(true);
+    it("spawns interactively without checking provider configuration", async () => {
       vi.mocked(spawnInteractive).mockResolvedValue({
         stdout: "",
         stderr: "",
@@ -3308,40 +3180,8 @@ describe("spawn command", () => {
         "hello"
       ]);
 
-      expect(confirmMock).toHaveBeenCalled();
+      expect(confirmMock).not.toHaveBeenCalled();
       expect(spawnInteractive).toHaveBeenCalled();
-    });
-
-    it("cancels interactive spawn when user declines", async () => {
-      confirmMock.mockResolvedValueOnce(false);
-      vi.mocked(spawnInteractive).mockResolvedValue({
-        stdout: "",
-        stderr: "",
-        exitCode: 0
-      });
-
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: () => {}
-      });
-
-      await program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--interactive",
-        "--mode",
-        "read",
-        "claude-code",
-        "hello"
-      ]);
-
-      expect(confirmMock).toHaveBeenCalled();
-      expect(spawnInteractive).not.toHaveBeenCalled();
     });
   });
 });

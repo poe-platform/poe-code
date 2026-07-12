@@ -1,6 +1,5 @@
 import * as nodeFs from "node:fs/promises";
 import os from "node:os";
-import { ensurePoeApiKeyEnv } from "./credentials.js";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 import { spawnAutonomous, type AutonomousSpawnOptions } from "./autonomous.js";
@@ -197,19 +196,9 @@ export function spawn(
       const canUseAcpWithMcpServers =
         acpSpawnConfig?.supportsMcpServers !== false || resolvedMcpServers === undefined;
 
-      const requiresPoeCredentials =
-        registeredService !== undefined && registeredService.requiresProvider !== false;
-
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
-        if (
-          requiresPoeCredentials &&
-          spawnConfig?.kind === "cli" &&
-          spawnConfig.interactive !== undefined
-        ) {
-          await ensurePoeApiKeyEnv();
-        }
         const interactiveResult = await spawnInteractive(service, {
           prompt: options.prompt,
           cwd,
@@ -255,9 +244,6 @@ export function spawn(
               activeProvider
             ).then((details) => ({ ...activeProvider?.extraEnv, ...details.env }))
           : undefined;
-        if (activeProvider === undefined || activeProvider.id === "poe") {
-          await ensurePoeApiKeyEnv();
-        }
         const acpSpawn = spawnAcp({
           agentId: service,
           prompt: options.prompt,
@@ -324,9 +310,6 @@ export function spawn(
 
       if (supportsStreaming) {
         const model = await resolveModel();
-        if (requiresPoeCredentials) {
-          await ensurePoeApiKeyEnv();
-        }
         const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
@@ -395,9 +378,6 @@ export function spawn(
       if (spawnConfig && spawnConfig.kind === "cli") {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
-        if (requiresPoeCredentials) {
-          await ensurePoeApiKeyEnv();
-        }
         return spawnNonStreaming(service, {
           prompt: options.prompt,
           cwd,

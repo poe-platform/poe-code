@@ -49,14 +49,6 @@ vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
   };
 });
 
-const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
-const ensurePoeApiKeyEnvMock = vi.hoisted(() => vi.fn());
-
-vi.mock("./credentials.js", () => ({
-  ensurePoeApiKeyEnv: ensurePoeApiKeyEnvMock,
-  getPoeApiKey: getPoeApiKeyMock
-}));
-
 const loadIntegrationsMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/braintrust", () => ({
@@ -101,16 +93,6 @@ function createMemFs(): FileSystem {
 
 beforeEach(() => {
   process.env = { ...originalEnv, POE_API_KEY: "test-key" };
-  getPoeApiKeyMock.mockReset();
-  getPoeApiKeyMock.mockResolvedValue("test-key");
-  ensurePoeApiKeyEnvMock.mockReset();
-  ensurePoeApiKeyEnvMock.mockImplementation(async () => {
-    const envKey = process.env.POE_API_KEY;
-    if (typeof envKey === "string" && envKey.trim().length > 0) {
-      return;
-    }
-    process.env.POE_API_KEY = await getPoeApiKeyMock();
-  });
   vi.mocked(spawnStreaming).mockReset();
   vi.mocked(spawnInteractive).mockReset();
   vi.mocked(agentSpawn).mockReset();
@@ -195,7 +177,6 @@ async function collectEvents(events: AsyncIterable<unknown>): Promise<unknown[]>
 describe("SDK spawn()", () => {
   it("spawns Pi through the declarative streaming path without a provider registry entry", async () => {
     delete process.env.POE_API_KEY;
-    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
       agentId: "pi",
@@ -224,8 +205,6 @@ describe("SDK spawn()", () => {
     });
 
     expect(events).toEqual([{ event: "agent_message", text: "ok" }]);
-    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
-    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
     expect(spawnCore).not.toHaveBeenCalled();
     expect(spawnStreaming).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -238,7 +217,6 @@ describe("SDK spawn()", () => {
 
   it("runs interactive Pi without loading Poe credentials", async () => {
     delete process.env.POE_API_KEY;
-    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
       agentId: "pi",
@@ -257,7 +235,6 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
     expect(spawnInteractive).toHaveBeenCalledWith(
       "pi",
       expect.objectContaining({ prompt: "explore" })
@@ -1415,7 +1392,6 @@ describe("SDK spawn()", () => {
 
   it("does not require Poe credentials before resolving a non-Poe ACP provider", async () => {
     delete process.env.POE_API_KEY;
-    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
     const variables: Record<string, string> = {
       CF_AIG_TOKEN: "cf-token",
       CF_AIG_BASE_URL: "https://gateway.example.test"
@@ -1478,8 +1454,6 @@ describe("SDK spawn()", () => {
       exitCode: 0
     });
 
-    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
-    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
     expect(process.env.POE_API_KEY).toBeUndefined();
     expect(providerRegistry.resolveCredential).toHaveBeenCalledWith(
       "cloudflare",
@@ -2295,9 +2269,8 @@ describe("spawn.autonomous()", () => {
     );
   });
 
-  it("propagates a stored Poe API key into process.env so the runtime sandbox sees it", async () => {
+  it("spawns provider-capable agents without consulting Poe credentials", async () => {
     delete process.env.POE_API_KEY;
-    getPoeApiKeyMock.mockResolvedValue("stored-key");
     vi.mocked(createSdkContainer).mockReturnValue({
       fs: createMemFs(),
       env: {
@@ -2329,14 +2302,13 @@ describe("spawn.autonomous()", () => {
     }));
 
     const { result } = spawn("codex", "test prompt");
-    await result;
+    await expect(result).resolves.toEqual({ stdout: "", stderr: "", exitCode: 0 });
 
-    expect(process.env.POE_API_KEY).toBe("stored-key");
+    expect(process.env.POE_API_KEY).toBeUndefined();
   });
 
   it("does not overwrite POE_API_KEY when it is already exported", async () => {
     process.env.POE_API_KEY = "exported-key";
-    getPoeApiKeyMock.mockResolvedValue("exported-key");
 
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -2356,19 +2328,16 @@ describe("spawn.autonomous()", () => {
 
   it("does not export stored credentials when the service is unknown", async () => {
     delete process.env.POE_API_KEY;
-    getPoeApiKeyMock.mockResolvedValue("stored-key");
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
 
     const { result } = spawn("unknown", "test prompt");
 
     await expect(result).rejects.toThrow('Unknown service "unknown".');
-    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
     expect(process.env.POE_API_KEY).toBeUndefined();
   });
 
   it("does not export stored credentials when interactive service validation fails", async () => {
     delete process.env.POE_API_KEY;
-    getPoeApiKeyMock.mockResolvedValue("stored-key");
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(spawnInteractive).mockRejectedValue(
       new Error('Agent "unknown" has no spawn config.')
@@ -2377,7 +2346,6 @@ describe("spawn.autonomous()", () => {
     const { result } = spawn("unknown", "test prompt", { interactive: true });
 
     await expect(result).rejects.toThrow('Agent "unknown" has no spawn config.');
-    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
     expect(process.env.POE_API_KEY).toBeUndefined();
   });
 });

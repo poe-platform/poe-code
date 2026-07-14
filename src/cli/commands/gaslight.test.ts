@@ -392,12 +392,9 @@ describe("gaslight command", () => {
     expect(runGaslightMock).not.toHaveBeenCalled();
   });
 
-  it("prompts for plan, agent, and model when omitted", async () => {
+  it("prompts for plan and agent but never model when omitted", async () => {
     multiselectMock.mockResolvedValue(["docs/plans/b.md"]);
-    const prompts = vi
-      .fn()
-      .mockResolvedValueOnce({ serviceSelection: "codex" })
-      .mockResolvedValueOnce({ model: "gpt-5" });
+    const prompts = vi.fn().mockResolvedValueOnce({ serviceSelection: "codex" });
     const program = createProgram();
     registerGaslightCommand(program, createContainer(prompts));
 
@@ -415,18 +412,39 @@ describe("gaslight command", () => {
         required: true
       })
     );
-    expect(prompts).toHaveBeenCalledTimes(2);
+    expect(prompts).toHaveBeenCalledTimes(1);
     expect(runGaslightMock).toHaveBeenCalledWith(
-      expect.objectContaining({ planPaths: ["docs/plans/b.md"], agent: "codex", model: "gpt-5" })
+      expect.objectContaining({ planPaths: ["docs/plans/b.md"], agent: "codex" })
+    );
+    expect(runGaslightMock.mock.calls[0]?.[0]).not.toHaveProperty("model");
+  });
+
+  it("passes the configured default agent model through without prompting with --yes", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(prompts, vi.fn(), {
+        "/repo/docs/plans/a.md": "# A",
+        "/repo/.poe-code/config.json": `${JSON.stringify(
+          { core: { defaultAgent: "codex:openai/gpt-5.4" } },
+          null,
+          2
+        )}\n`
+      })
+    );
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+
+    expect(prompts).not.toHaveBeenCalled();
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "codex", model: "openai/gpt-5.4" })
     );
   });
 
   it("uses multiselect-selected plans in order when omitted interactively", async () => {
     multiselectMock.mockResolvedValue(["docs/plans/a.md", "docs/plans/b.md"]);
-    const prompts = vi
-      .fn()
-      .mockResolvedValueOnce({ serviceSelection: "codex" })
-      .mockResolvedValueOnce({ model: "gpt-5" });
+    const prompts = vi.fn().mockResolvedValueOnce({ serviceSelection: "codex" });
     const program = createProgram();
     registerGaslightCommand(program, createContainer(prompts));
 
@@ -441,8 +459,7 @@ describe("gaslight command", () => {
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({
         planPaths: ["docs/plans/a.md", "docs/plans/b.md"],
-        agent: "codex",
-        model: "gpt-5"
+        agent: "codex"
       })
     );
   });
@@ -464,6 +481,7 @@ describe("gaslight command", () => {
         mode: "auto"
       })
     );
+    expect(runGaslightMock.mock.calls[0]?.[0]).not.toHaveProperty("model");
   });
 
   it("reports configured and resolved plan directories when the default directory is missing", async () => {

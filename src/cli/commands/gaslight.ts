@@ -196,26 +196,10 @@ async function resolveAgentAndModel(
     (flags.assumeYes
       ? (configuredSpecifier?.agent ?? DEFAULT_AGENT)
       : await resolveServiceArgument(program, container, undefined, { action: "gaslight" }));
-  if (options.model) {
-    return { agent, model: options.model };
-  }
-
-  const adapter = container.registry.get(agent);
-  const defaultModel =
-    configuredSpecifier?.agent === agent && configuredSpecifier.model
-      ? configuredSpecifier.model
-      : adapter?.configurePrompts?.model?.defaultValue;
-  if (flags.assumeYes) {
-    return { agent, ...(defaultModel ? { model: defaultModel } : {}) };
-  }
-  const model = await container.options.resolveModel({
-    label: `${adapter?.label ?? agent} model`,
-    defaultValue: defaultModel ?? "",
-    choices: Array.isArray(adapter?.configurePrompts?.model?.choices)
-      ? adapter.configurePrompts.model.choices
-      : []
-  });
-  return { agent, model };
+  const model =
+    options.model ??
+    (configuredSpecifier?.agent === agent ? configuredSpecifier.model : undefined);
+  return { agent, ...(model ? { model } : {}) };
 }
 
 function formatUsage(usage: Awaited<ReturnType<typeof runGaslight>>["usage"]): string {

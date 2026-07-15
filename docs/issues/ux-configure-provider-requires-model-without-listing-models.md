@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Valid: the error correctly identifies what is missing but leaves the user no way to find the answer - the recurring 'right diagnosis, no recovery' shape in this audit. Cheap, and the precedent already exists in the same command: ux-configure-unknown-api-shape-lists-exposed.md shows configure listing valid shapes on error, so mirror that and list candidate models or point at models --provider."
+---
+
 # UX: configure --provider cloudflare requires --model without listing candidates
 
 ## Summary

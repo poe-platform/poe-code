@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Best filing in the effort cluster and the right canonical: it sweeps every value (low..max), proves the flag is a complete no-op, and lands the key insight that the written value tracks the live settings file rather than the flag - reframing the bug from 'wrong constant' to 'the flag never reaches the write and existing settings are echoed back'. That also explains why an earlier session saw always-xhigh and this one always-high. Correctly Critical. Absorbs ux-configure-reasoning-effort-ignored-for-claude.md, ux-configure-claude-ignores-reasoning-effort-always-xhigh.md and ux-configure-haiku-still-plans-effortlevel-xhigh.md. Cross-check the misattribution artefact in ux-configure-dry-run-shows-full-existing-settings-as-create.md first, since some of what looks written may be echoed existing state."
+---
+
 # UX: configure --reasoning-effort still ignored; always plans effortLevel high
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate of ux-configure-claude-ignores-reasoning-effort-always-xhigh.md with haiku substituted for sonnet; retire into it. Its value is coverage - it proves the hard-coded xhigh is not sonnet-specific but hits every non-opus model - so carry that generalisation into the canonical rather than keeping a per-model file."
+---
+
 # UX: configure haiku still plans effortLevel xhigh (reconfirm)
 
 ## Summary

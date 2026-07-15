@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Valid and nasty: configure gemini fails demanding a cloudflare base URL although the user never mentioned cloudflare, so the error names a provider drawn from residual or default state and the recovery points somewhere the user has no reason to go. Same misdiagnosis family as ux-code-review-run-invalid-url-wrong-error.md. Fix by defaulting to the poe provider when available and, when a provider does come from ambient state, saying where it came from."
+---
+
 # UX: configure gemini fails needing cloudflare base URL when logged out
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Member of the Critical sonnet-5 dead-default cluster seen through the dry-run lens. Its distinct point is worth preserving: dry-run is the last checkpoint before a bad write, so previewing a known-invalid id without complaint is a missed catch - dry-run should validate, not just render. Otherwise merge into the sonnet-5 cluster; the fix is configure-time catalog validation (ux-configure-accepts-any-string-as-model-no-catalog-check.md)."
+---
+
 # UX: configure dry-run still plans to write known-stale model id
 
 ## Summary

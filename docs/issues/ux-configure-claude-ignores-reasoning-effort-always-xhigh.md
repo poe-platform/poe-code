@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Strong filing, correctly Critical: the flag is accepted, silently ignored, and the hard-coded value written (xhigh) is not even in sonnet-4.6's catalog effort list, so the write is invalid rather than merely wrong. Two defects to separate: (a) --reasoning-effort is never honoured, (b) effortLevel is hard-coded instead of model-aware. Note the constant drifts across the audit - ux-configure-reasoning-effort-still-ignored-always-high.md reports 'always high' later - so merge that pair while preserving the timeline; (a) is the durable bug regardless of which constant is baked in."
+---
+
 # UX: configure claude ignores --reasoning-effort and always plans effortLevel xhigh
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Weak positive: it praises gemini's dry-run as quieter while admitting mkdir noise and a wrong default model id, and the quietness may simply be the cursor problem (nothing rendered) rather than a virtue. Do not treat it as the reference for the intentional-only diff - ux-configure-api-key-dry-run-redacts-bearer.md and ux-code-review-prompt-preview-good.md are the sound precedents. Its default-model concern belongs with ux-configure-gemini-requires-cloudflare-base-url-when-provider-set.md."
+---
+
 # UX: configure gemini --yes --dry-run is relatively minimal (positive-ish)
 
 ## Summary

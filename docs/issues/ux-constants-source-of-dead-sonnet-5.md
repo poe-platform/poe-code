@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "The most valuable file in the audit: it pins the single source of the entire Critical dead-default cluster to src/cli/constants.ts and traces every downstream consumer (FRONTIER_MODELS, CLAUDE_CODE_VARIANTS.sonnet, DEFAULT_CLAUDE_CODE_MODEL, GOOSE_MODELS, and the goose.ts context map). Fix here and roughly a dozen Critical/High symptom files close together. Keep as canonical root cause; the CI check that FRONTIER_MODELS resolve against the live catalog is what stops this recurring and should ship with the id change."
+---
+
 # UX: src/cli/constants.ts is the source of dead sonnet-5 defaults
 
 ## Summary

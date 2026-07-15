@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Keep as canonical of the alias trio: it covers both aliases in one place and carries the detail that matters - CLAUDE_CODE_VARIANTS.sonnet points at the dead sonnet-5, so resolving the alias correctly is not sufficient because the target is also wrong. Two coupled fixes: resolve aliases through CLAUDE_CODE_VARIANTS before the namespace strip, and correct the variant target (ux-constants-source-of-dead-sonnet-5.md). Show the resolved id either way."
+---
+
 # UX: configure --model sonnet/haiku writes literal "sonnet"/"haiku" not resolved ids
 
 ## Summary

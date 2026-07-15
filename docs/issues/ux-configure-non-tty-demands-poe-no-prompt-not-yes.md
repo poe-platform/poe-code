@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Valid and cheap: --yes works, yet the error names only POE_NO_PROMPT=1, so the flag users already know from other commands goes unmentioned and they are pushed toward an obscure env var. Same message-vs-reality gap as ux-test-nontty-demands-poe-no-prompt-not-yes.md and ux-runtime-init-non-tty-poe-no-prompt.md; one shared non-TTY message should name --yes first and mention the env var only as the CI alternative."
+---
+
 # UX: configure without --yes non-TTY demands POE_NO_PROMPT not --yes
 
 ## Summary

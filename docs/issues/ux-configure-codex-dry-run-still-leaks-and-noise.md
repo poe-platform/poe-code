@@ -1,3 +1,9 @@
+---
+severity: high
+impact: security
+comment: "Third codex flood filing, rated High only because it fuses the secret leak with the noise - which is precisely why it sits at High while its Medium twins describe the same flood. Split them: the leak belongs to the Critical cluster (ux-dry-run-diffs-print-secrets.md), the noise to the flood cluster. Retire after splitting."
+---
+
 # UX: configure codex --model … dry-run still floods and can leak tokens
 
 ## Summary

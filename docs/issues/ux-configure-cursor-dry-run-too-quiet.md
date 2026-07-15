@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate of ux-configure-cursor-dry-run-no-filesystem-changes.md; retire into it. Carry over its one memorable contribution: cursor is the exact opposite failure mode from codex - one dry-run shows nothing, the other shows everything - and both miss the same target, an intentional-only plan. That pairing is the right framing for fixing dry-run once across agents."
+---
+
 # UX: configure cursor --dry-run is nearly empty (like gemini)
 
 ## Summary

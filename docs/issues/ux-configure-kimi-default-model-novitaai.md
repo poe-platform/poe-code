@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: maintenance
+comment: "Unresolved by construction: it asks whether novitaai/kimi-k2.5 is still in the catalog without answering, so there is no established defect here - only an unverified suspicion. Settle it with one models --search and either close it or fold it into the dead-default cluster. The durable ask it gestures at deserves its own issue: a CI check that every default model id in constants resolves against the live catalog, which would have caught sonnet-5 before it shipped. The dry-run flood half duplicates the flood cluster."
+---
+
 # UX: configure kimi defaults to novitaai/kimi-k2.5 (catalog check)
 
 ## Summary

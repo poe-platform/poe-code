@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of four filings of the codex dry-run flood; all describe one defect - the dry-run renders a whole-file rewrite instead of the intentional change set. Consolidate into ux-configure-dry-run-dumps-entire-existing-agent-config.md, which is the strongest of the set."
+---
+
 # UX: configure codex --dry-run floods full multi-profile config
 
 ## Summary

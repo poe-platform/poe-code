@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Third filing of the ignored --reasoning-effort bug; retire into ux-configure-reasoning-effort-still-ignored-always-high.md, the most complete. Its distinct hypothesis is worth carrying over and testing rather than discarding: that codex honours the flag while claude does not, which would make this agent-specific rather than global - though ux-configure-codex-reasoning-effort-medium-partial.md suggests the codex path is also unreliable."
+---
+
 # UX: configure --reasoning-effort ignored for claude (still writes xhigh)
 
 ## Summary

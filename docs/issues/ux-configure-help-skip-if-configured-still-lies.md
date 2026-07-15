@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm of Critical #12 (ux-skip-if-configured-help-text-lies.md); retire into it. This is the documentation-side symptom of a behavioral bug: help promises 'exit without writes when current config already matches' while the behavior rewrites anyway. Fix the behavior and the help becomes true - do not 'fix' it by weakening the help text, which would ratify the bug."
+---
+
 # UX: configure --help still claims skip-if-configured exits without writes (reconfirmed)
 
 ## Summary

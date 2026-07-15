@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Bundles two already-filed defects (empty flag silently ignored; dead sonnet-5 default) and adds no new observation about either - the empty --api-key is incidental to the default it happens to reveal. Retire into ux-agent-empty-api-key-silently-uses-stored.md and the sonnet-5 cluster. This is issue-count inflation from combinatorial flag probing, not a distinct defect."
+---
+
 # UX: configure with empty --api-key still defaults dead sonnet-5
 
 ## Summary

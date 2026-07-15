@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Same unresolved ambiguity as the --base-url pair (flag ignored versus dry-run not rendering it); merge with ux-configure-base-url-not-visible-in-dry-run.md into one issue covering both flags. The sonnet-5 default it also shows is incidental noise from omitting --model, not part of this defect. Resolve by configuring for real and inspecting the written value before scheduling."
+---
+
 # UX: configure --shape-base-url not visible in dry-run diff
 
 ## Summary

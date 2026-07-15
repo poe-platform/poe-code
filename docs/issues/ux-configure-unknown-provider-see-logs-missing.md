@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "The only member of the Unknown-provider quartet with an actionable ask (list the valid providers), so keep this and retire the two positives into it. The precedent for the fix exists in the same command - ux-configure-unknown-api-shape-lists-exposed.md lists exposed shapes on error - making this an inconsistency to close rather than a feature to design. Note the title is misleading: there is no 'See logs' problem here."
+---
+
 # UX: configure unknown provider is clear but no recovery list
 
 ## Summary

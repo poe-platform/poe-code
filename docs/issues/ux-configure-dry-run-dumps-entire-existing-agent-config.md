@@ -1,3 +1,9 @@
+---
+severity: high
+impact: security
+comment: "Keep as canonical for the dry-run flood: strongest evidence and the only filing that names the privacy dimension - the diff reprints unrelated project paths, plugins and marketplaces from the user's machine, so the output is not merely noisy, it discloses filesystem layout, and it carries secrets too. Absorbs the three codex flood files and ux-configure-dry-run-floods-diff.md. Its 'N project entries preserved' suggestion is the right shape for the fix."
+---
+
 # UX: configure/unconfigure dry-run dumps entire existing agent config including unrelated projects
 
 ## Summary

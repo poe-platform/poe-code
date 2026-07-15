@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Genuinely distinct from the flood cluster despite sharing its noise, and worth keeping: mixed model_reasoning_effort values (high and medium) across profile blocks in a single dry-run suggests --reasoning-effort lands on some profiles but not others - a different defect from the claude 'always ignored' bug. It is unproven though, because the flood makes the output unreadable. Blocked on the intentional-only diff; re-check immediately after."
+---
+
 # UX: configure codex --reasoning-effort medium appears in some profiles only
 
 ## Summary

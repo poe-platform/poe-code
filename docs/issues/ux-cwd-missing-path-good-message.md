@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; twin of ux-cwd-file-path-not-directory-good.md - keep one covering both cases. Worth citing as the precedent in ux-spawn-cwd-missing-see-logs.md and ux-spawn-cwd-file-not-directory-see-logs.md, which file these same commands as defects purely for the 'See logs' chrome: the message is right, only the chrome is wrong."
+---
+
 # UX: --cwd missing path error is good (positive)
 
 ## Summary

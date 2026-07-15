@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Most valuable positive in the configure set: in-product proof that this codebase already does the right thing on invalid input - reject, name the bad value, list the valid ones. Cite it as the reference from every 'no recovery list' filing (ux-configure-unknown-provider-see-logs-missing.md, ux-configure-provider-requires-model-without-listing-models.md, ux-approvals-invalid-state-silent-empty-reconfirmed.md). No change needed."
+---
+
 # UX: configure unknown API shape lists exposed shapes (positive)
 
 ## Summary

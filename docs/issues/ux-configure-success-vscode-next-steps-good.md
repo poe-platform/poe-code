@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern with a genuinely reusable idea: post-configure Next steps carrying an actionable deep link, framed in the design system. Its 'mirror for other agents' suggestion is the actionable half and pairs directly with ux-configure-cursor-dry-run-no-filesystem-changes.md, where users are left guessing what configure even did. Keep as the precedent; no fix needed here."
+---
+
 # UX: configure success Next steps for VSCode is good (positive)
 
 ## Summary

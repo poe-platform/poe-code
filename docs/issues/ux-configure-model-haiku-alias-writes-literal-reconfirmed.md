@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Reconfirm duplicate of the haiku half of ux-configure-model-alias-sonnet-haiku-written-literally.md; retire into it. One incidental observation deserves separate attention: the dry-run also shows claude-sonnet-4-6 in another block while the planned model is 'haiku' - that is the misattribution artefact described in ux-configure-dry-run-shows-full-existing-settings-as-create.md, not a second model bug."
+---
+
 # UX: configure --model haiku writes literal haiku (reconfirmed)
 
 ## Summary

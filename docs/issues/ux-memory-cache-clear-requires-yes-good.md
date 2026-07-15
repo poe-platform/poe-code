@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Keep as canonical of the cache clear trio: it establishes the important fact - the --yes guard is real and enforced - which corrects the help-derived assumption elsewhere in the memory cluster that destructive commands are ungated. Its 'See logs' residue is the systemic UserError issue; the help gap is the only genuine ask."
+---
+
 # UX: memory cache clear requires --yes (positive destructive guard)
 
 ## Summary

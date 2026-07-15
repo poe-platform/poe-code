@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-memory-install-no-force-already-exists.md; consolidate. Both are instances of the installer-idempotency umbrella (ux-experiment-install-already-exists-vs-pipeline-skip.md): 'already exists' should be idempotent success or offer --force, never a system error. Its framing is the clearer of the two and matches the rule in ux-config-init-already-exists-good.md."
+---
+
 # UX: memory install "Skill already exists" uses system-error chrome
 
 ## Summary

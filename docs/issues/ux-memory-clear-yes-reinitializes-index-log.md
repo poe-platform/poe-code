@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive-ish, and its incidental observation is more interesting than its headline: after clear --yes, INDEX.md and LOG.md remain because clear re-initialises them - the same pair that ux-memory-index-still-broken-after-init-reconfirmed.md shows cannot be read back by show/ls. So this quietly confirms the files exist on disk while the Critical says they are unreachable, strengthening that filing. Consolidate with ux-memory-clear-yes-works-when-initialized.md."
+---
+
 # UX: memory clear --yes clears and re-inits INDEX/LOG (positive-ish)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate within the --mcp-servers positive set; retire into ux-mcp-servers-file-and-json-validation-good.md. Its field-level message ('entry \"x\" must include a non-empty string \"command\"') is the strongest example in the set and should survive as the quoted reference - it names the entry, the field and the constraint."
+---
+
 # UX: --mcp-servers invalid entry validation is good (positive)
 
 ## Summary

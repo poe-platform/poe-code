@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Small but genuinely bad and correctly High: the recovery hint names 'read-markdown', a command that does not exist - the real one is 'plan markdown-read' - so the one line meant to unblock the user routes them into an Unknown command error, compounded by the missing did-you-mean (ux-command-not-found-no-suggestions.md). A wrong recovery is worse than none. Trivial fix, high embarrassment value; the 'See logs' half belongs to the systemic UserError issue."
+---
+
 # UX: markdown-read-section miss suggests read-markdown not markdown-read
 
 ## Summary

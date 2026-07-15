@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; another member of the numeric-validation positive family. Consolidate that family into one reference note. Mild tension worth resolving with ux-markdown-read-depth-zero-empty-sections.md: -1 is rejected as invalid while 0 is silently accepted and returns nothing, so the boundary is inconsistent."
+---
+
 # UX: plan markdown-read negative depth validation is good (positive)
 
 ## Summary

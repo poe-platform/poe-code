@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep of this pair, since it demonstrates the real annoyance: supplying --task then reveals --transition is also required, so users discover requirements one failure at a time. That argues for validating and reporting all missing required options together - a better fix than reskinning Commander's message. Otherwise part of ux-raw-commander-missing-args.md."
+---
+
 # UX: maestro tick missing --transition is raw Commander
 
 ## Summary

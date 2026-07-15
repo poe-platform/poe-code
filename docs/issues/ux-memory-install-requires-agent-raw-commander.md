@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Instance of the raw-Commander required-option gap; retire into ux-raw-commander-missing-args.md. Its distinct ask is worth keeping: list the valid agents in the error, which the capability-matrix work would supply for free. Note --yes does not help here either, the same observation as ux-maestro-tick-missing-task-raw-commander.md."
+---
+
 # UX: memory install requires --agent via raw commander error
 
 ## Summary

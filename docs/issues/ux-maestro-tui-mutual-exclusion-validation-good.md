@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, and the honest counterpart to the duplicate-flag complaints: the mutual-exclusion message is clear and well-framed, so the runtime behavior is sound - the flaw is that two flags exist for one concept at all, as its own suggestion concedes ('reduce to one flag long-term'). Keep as evidence that the validation need not change when the flags are consolidated."
+---
+
 # UX: maestro tui mutual exclusion of config/workflow is good (positive)
 
 ## Summary

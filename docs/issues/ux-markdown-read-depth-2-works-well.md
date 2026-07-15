@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and useful as the control case: depth 2 produces exactly the TOC users want on the same document where depth 1 is empty, pinning the problem to depth semantics rather than the reader. Near-duplicate of ux-markdown-read-unlimited-depth-works.md; consolidate. Its --output json evidence is worth keeping - the structured section array is a good machine contract."
+---
+
 # UX: plan markdown-read --depth 2 shows TOC well (positive)
 
 ## Summary

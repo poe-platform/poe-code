@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Duplicate within the depth cluster; retire into ux-markdown-read-depth-1-empty-for-h1-only-structure.md. Its question deserves an explicit answer in the survivor: depth 0 is arguably a user error (asking for zero heading levels), so either reject it or define it as 'titles only' - silently returning an empty TOC is the worst of the three options."
+---
+
 # UX: plan markdown-read --depth 0 yields empty sections
 
 ## Summary

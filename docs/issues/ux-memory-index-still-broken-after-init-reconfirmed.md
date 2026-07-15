@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "Strong filing and the clearest statement of the Critical memory contract break: init creates INDEX.md and LOG.md, then ls reports 'No memory pages yet' and show INDEX / show INDEX.md both answer 'Page not found' while the files demonstrably exist on disk. The product denies the existence of what it just created - the same shape as ux-harness-list-only-cwd-not-created-dir.md but worse, because these are the files the whole memory model is built on. Its diagnosis is likely right: the page namespace excludes the root files. Corroborated incidentally by ux-memory-clear-yes-reinitializes-index-log.md."
+---
+
 # UX: memory INDEX still not showable after init (Critical reconfirm)
 
 ## Summary

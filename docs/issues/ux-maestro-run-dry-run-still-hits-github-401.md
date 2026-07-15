@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Fifth filing of the maestro dry-run network dependency, this time on the run subcommand; retire into ux-maestro-dry-run-path-vs-flag-confusion.md. Its coverage detail matters: the behavior is identical on maestro and maestro run, so the fix belongs in the shared dry-run path. Its '--online for candidate inspect' idea is the cleanest suggestion in the cluster - keep dry-run offline by default and make the network call opt-in."
+---
+
 # UX: maestro run --dry-run still hits GitHub 401 (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "The only non-positive in the --mcp-servers set and the one worth keeping: '{}' is valid JSON and silently configures nothing, so a user who mis-serialised their config gets a successful run with no servers. Same empty-input family as ux-empty-model-flag-behavior-inconsistent.md - the shared rule (an explicitly passed flag must not resolve to a no-op) covers it. Note the contrast the positives establish: this flag validates shape meticulously and then accepts a semantically empty value."
+---
+
 # UX: --mcp-servers {} is accepted as no-op
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Keep as canonical of the memory clear cluster: the only filing pairing both facts - the --yes guard is enforced non-TTY and help documents neither --yes nor the blast radius - which is the accurate framing the other five miss. It also settles the contradiction with ux-memory-clear-no-yes-no-dry-run.md in favour of the guard existing. Remaining asks: a help fix and --dry-run."
+---
+
 # UX: memory clear requires --yes non-TTY but help omits --yes
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, no action; its value is bounding ux-markdown-read-section-wrong-recovery-command.md - the section lookup works, so only the miss path is broken. Keep as the control case for that fix."
+---
+
 # UX: plan markdown-read-section by number works (positive)
 
 ## Summary

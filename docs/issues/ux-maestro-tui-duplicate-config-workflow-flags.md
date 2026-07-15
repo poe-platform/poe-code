@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate within the maestro --config/--workflow trio; retire into ux-maestro-config-vs-workflow-flags-duplicated.md, which additionally notes the root/tui divergence. No distinct content."
+---
+
 # UX: maestro tui has both --config and --workflow for same path
 
 ## Summary

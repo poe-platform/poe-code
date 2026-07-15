@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "The most consequential wrong filing in the audit: it reasons entirely from the help panel ('Options: -h, --help') to conclude memory clear 'immediately destroys all memory without any confirmation prompt' and rates it High on that basis - but ux-memory-clear-requires-yes-non-tty-good.md and ux-memory-clear-requires-yes-help-omits-yes.md show the command refuses without --yes. The premise is false, so the High is unearned. Re-rate to the real defects (help gap plus a genuinely missing --dry-run) and treat this as the cautionary case for the audit's help-derived inferences."
+---
+
 # UX: memory clear deletes all memory content with no --yes or --dry-run
 
 ## Summary

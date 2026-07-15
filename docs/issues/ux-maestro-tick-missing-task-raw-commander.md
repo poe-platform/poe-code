@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate in substance of ux-maestro-tick-missing-transition-raw-commander.md; consolidate - both are instances of the raw-Commander required-option gap (ux-raw-commander-missing-args.md). Its distinct observation is worth keeping: --yes does not suppress a required-option error, which is correct but surprising enough that the two files together argue tick should list all its requirements at once."
+---
+
 # UX: maestro tick missing --task is raw commander error
 
 ## Summary

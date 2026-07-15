@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate within the --mcp-servers positive set; retire into ux-mcp-servers-file-and-json-validation-good.md."
+---
+
 # UX: invalid --mcp-servers JSON validation is good (positive)
 
 ## Summary

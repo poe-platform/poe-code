@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, no action; one of many small 'empty state is clear' positives across the memory group. Consolidate them (cache status, lint, ingest not-init) into a single note - individually they carry no decision, collectively they establish that the memory group's copy is its strong point, a useful counterweight to its Critical functional bug."
+---
+
 # UX: memory lint clean is clear (positive)
 
 ## Summary

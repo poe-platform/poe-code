@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep as canonical of the bare-group family and retire ux-group-commands-print-help-only.md into it: this enumerates the full set (skill, memory, provider, runtime, launch, worktree, utils, braintrust, tasks) and, more usefully, names the in-product counterexamples - auth defaults to status, usage to balance. That turns the ask from a design question into propagating an existing convention. Its 'Most common: ...' next-step line is a cheap alternative where a default action would be presumptuous."
+---
+
 # UX: Many parent groups only dump help with no default or next-step (expanded set)
 
 ## Summary

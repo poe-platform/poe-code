@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; near-duplicate of ux-markdown-read-depth-2-works-well.md - consolidate. Together they make the case that unlimited should be the default, since it produces the nested TOC users expect without requiring them to know the document's heading levels."
+---
+
 # UX: plan markdown-read unlimited depth TOC works (positive)
 
 ## Summary

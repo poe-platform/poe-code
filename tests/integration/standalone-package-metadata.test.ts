@@ -36,6 +36,10 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
+  it("does not pin poe-code to one 0.0.x Toolcraft release", () => {
+    expect(readPackageJson("package.json").dependencies?.toolcraft).toBe("*");
+  });
+
   it("bundles unpublished workspace dependencies for standalone toolcraft packages", () => {
     const packagesToCheck = [
       "packages/toolcraft/package.json",

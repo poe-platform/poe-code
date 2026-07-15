@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate within the namespaced-id cluster (parameters view); retire into ux-models-exact-id-filter-rejects-namespaced-ids.md. Coverage only."
+---
+
 # UX: models --view parameters --model anthropic/… returns empty
 
 ## Summary

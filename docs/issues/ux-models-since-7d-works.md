@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; consolidate into the models filter-composition note. Its incidental check is the useful part - --since 1s returns 0 - showing the window arithmetic is honoured at the extremes, and it pairs with ux-models-since-1d-empty-today.md: a correct zero presented as a filter failure."
+---
+
 # UX: models --since 7d works (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Duplicate of ux-models-no-limit-flag-confirmed.md; retire into it. Its concrete proposal is the best-specified in the family and should survive: --limit defaulting to 50 with --all for the full catalog."
+---
+
 # UX: models has no --limit for large catalog tables
 
 ## Summary

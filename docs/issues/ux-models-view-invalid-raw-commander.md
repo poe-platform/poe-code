@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Duplicate of ux-models-view-invalid-uses-raw-commander.md; consolidate. Both are instances of ux-raw-commander-invalid-option-choices.md and both note the sharper irony: within the same command, --endpoint produces a design-system error listing valid values while --view falls through to Commander, so models validates two enums two different ways."
+---
+
 # UX: invalid --view is raw commander error
 
 ## Summary

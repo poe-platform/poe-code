@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models filter-composition/pricing positives. Retire into the consolidated note; its '--limit' aside belongs to ux-models-no-limit-flag-confirmed.md."
+---
+
 # UX: models --view pricing --provider anthropic --search sonnet works (positive)
 
 ## Summary

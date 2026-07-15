@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Same unbounded-output problem as ux-models-dumps-full-catalog.md but worse for this view, since parameters emits a block per model rather than a row. Its suggestion is right and more specific than a global --limit: require --model or --search for parameters, because an unfiltered parameters dump has no plausible use. Consolidate with the --limit work (ux-models-no-limit-flag-confirmed.md)."
+---
+
 # UX: models --view parameters without filter floods all models
 
 ## Summary

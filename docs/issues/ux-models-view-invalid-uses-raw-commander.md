@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep of this pair. Its framing is the accurate one - the inconsistency lives inside a single command's validation, which makes it cheaper to justify than a cross-CLI reskin. Otherwise part of ux-raw-commander-invalid-option-choices.md."
+---
+
 # UX: models --view invalid uses raw Commander choice error
 
 ## Summary

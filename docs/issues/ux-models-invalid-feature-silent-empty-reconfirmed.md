@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Reconfirm duplicate within the silent-filter-validation cluster; retire into ux-models-feature-bogus-silent-empty.md. Four files now report that --feature does not validate; one is enough."
+---
+
 # UX: models --feature bogus silently empties (reconfirmed)
 
 ## Summary

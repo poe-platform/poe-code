@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models filter-composition positives. Retire into the consolidated note - a provider filter returning that provider's models is the baseline expectation, not a finding."
+---
+
 # UX: models --provider xai works (positive)
 
 ## Summary

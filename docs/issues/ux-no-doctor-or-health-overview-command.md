@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Keep as the canonical doctor issue rather than the four 'doctor still missing' reconfirms: the only one that specifies what doctor should do (auth, agents, stale models, provider logins, runtime in one screen with next actions) and why it matters. The audit itself is the best argument for it - the sonnet-5, effort and settings-corruption clusters were all found by hand-checking exactly these things. Consolidate the reconfirms into it."
+---
+
 # UX: No doctor/health overview command for setup diagnostics
 
 ## Summary

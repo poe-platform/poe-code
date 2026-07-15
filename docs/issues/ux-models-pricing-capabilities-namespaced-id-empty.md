@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate within the namespaced-id cluster (pricing and capabilities views); retire into ux-models-exact-id-filter-rejects-namespaced-ids.md. Its suggested implementation is the most concrete in the cluster and should survive: strip the provider prefix when matching, which accepts both forms without changing the display id."
+---
+
 # UX: models pricing/capabilities empty for namespaced anthropic/ ids
 
 ## Summary

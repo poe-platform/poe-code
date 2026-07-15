@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: capability-gap
+comment: "Duplicate of ux-completion-command-missing.md, which has the better evidence (it shows the specific invocations rejected); retire into it. Rated Low-Medium against that file's Medium; normalise. Its argument is the stronger one though and should survive: completion matters in proportion to surface size, and this CLI's flag surface is large."
+---
+
 # UX: No shell completion install command
 
 ## Summary

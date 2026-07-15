@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, thin: redundant equivalent flags composing without error is unremarkable. Consolidate into the models filter-composition note. Its 'warn on redundancy' suggestion is not worth doing - warning about a harmless no-op adds noise."
+---
+
 # UX: --tools and --feature tools together work (positive)
 
 ## Summary

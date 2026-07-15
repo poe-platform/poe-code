@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the --since stack pair. Same defect as the endpoint stack cluster on a different flag: the message is excellent and names a valid duration, then an ERROR log and a full ValidationError stack undo it. Two flags in one command both leaking stacks points at the models error path rather than either flag - consolidate all four into one issue about ValidationError not printing stacks."
+---
+
 # UX: models --since invalid duration prints stack
 
 ## Summary

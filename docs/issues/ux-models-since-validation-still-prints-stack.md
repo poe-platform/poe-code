@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Reconfirm of ux-models-since-invalid-prints-stack.md; retire into it. Its framing is the most useful and should survive: this is an instance of the general rule in ux-validation-error-still-prints-stack.md - no stack for a ValidationError unless --verbose - which is the one fix that closes the whole stack-leak family."
+---
+
 # UX: models --since invalid still prints stack (reconfirmed ValidationError stack)
 
 ## Summary

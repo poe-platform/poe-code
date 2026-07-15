@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Third filing of the raw-view framing observation, and the one that resolves it correctly: keep raw bare for scripts and document the contract. Keep as the survivor of the trio and close the question rather than reframing raw output."
+---
+
 # UX: models --view raw still bare YAML (reconfirmed)
 
 ## Summary

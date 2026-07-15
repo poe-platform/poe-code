@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models pricing/filter positives. Retire into the consolidated note. Its 'use in help examples' idea is already satisfied - ux-models-help-examples-are-excellent.md shows these compositions are in the Examples block."
+---
+
 # UX: models --search + --view pricing combo works well (positive)
 
 ## Summary

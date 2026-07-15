@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern worth keeping alongside ux-models-feature-tools-case-insensitive-good.md rather than merging into the generic filter positives: together they establish that models is consistently case-insensitive across two independent filters, which makes ux-spawn-mode-case-sensitive.md a clear outlier rather than a matter of taste. Cite both from there."
+---
+
 # UX: models --provider is case-insensitive (positive)
 
 ## Summary

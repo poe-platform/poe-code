@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "The best filing in the models cluster and correctly High: --output collides with the near-universal CLI meaning of 'output format', so '--output json' is silently interpreted as a modality filter and returns an empty catalog - a mistake the flag name actively invites - and there is no --format json to fall back on. Two defects at once: a naming collision and the silent-invalid-value gap. Distinct from the other modality filings because the name is the cause, not merely the validation. Its fix list is right: validate modalities and provide a real machine-format flag."
+---
+
 # UX: models --output json silently empties results (invalid modality)
 
 ## Summary

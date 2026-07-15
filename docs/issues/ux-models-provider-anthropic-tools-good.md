@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models filter-composition positives. Retire into the consolidated note."
+---
+
 # UX: models --feature tools --provider anthropic works (positive)
 
 ## Summary

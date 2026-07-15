@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate of ux-models-search-confirms-sonnet-5-absent-from-catalog.md; retire into it or fold both into the sonnet-5 root-cause issue as evidence. Its extra check is worth keeping: both 'sonnet-5' and 'claude-sonnet-5' return zero, which rules out a search-token artefact and confirms the id is genuinely absent."
+---
+
 # UX: models --search sonnet-5 returns 0 (catalog proves dead id)
 
 ## Summary

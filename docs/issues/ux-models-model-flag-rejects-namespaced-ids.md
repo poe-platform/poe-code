@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-models-exact-id-filter-rejects-namespaced-ids.md; retire into it. Its distinct detail is worth carrying: help says 'exact model id' and its examples only ever use bare ids, so the documentation quietly encodes the limitation instead of resolving it - which is why users never learn the rule until a filter returns zero."
+---
+
 # UX: models --model rejects namespaced ids (anthropic/… → 0 hits)
 
 ## Summary

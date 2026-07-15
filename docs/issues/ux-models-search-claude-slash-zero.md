@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Same root as the namespaced-id cluster seen through --search rather than --model: substring matching runs against a string where the slash does not appear as users expect, so pasting a namespace prefix returns zero. Consolidate with ux-models-search-quoted-catalog-display-name-fails.md, the sharper version, and treat both as evidence that the id shown, the id searched and the id stored are three different strings."
+---
+
 # UX: models --search "claude/" returns 0 (namespace slash footgun)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the large models filter-composition positive family. Retire into the consolidated note - this family now holds roughly ten near-identical files establishing one fact (filters compose correctly), the single clearest source of count inflation in the audit."
+---
+
 # UX: models --provider openai --tools capabilities works (positive)
 
 ## Summary

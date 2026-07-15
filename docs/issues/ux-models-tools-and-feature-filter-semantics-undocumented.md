@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "The most careful of the three --feature semantics filings and it supplies the evidence the contradictory pair lacks: --tools with --feature web_search returns models with both columns checked, so filters AND. That supports ux-models-double-feature-flag-uses-last-or-and.md over ux-models-feature-flag-not-repeatable.md. Keep as the documentation ask (state AND explicitly) and use its evidence to settle the repeatability question."
+---
+
 # UX: Combining --tools with --feature semantics undocumented
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate of ux-models-pricing-search-combo-good.md and ux-models-pricing-sonnet-4-6-good.md - the same pricing view filed three times with different filters. Retire into the consolidated note."
+---
+
 # UX: models --view pricing --search haiku works (positive)
 
 ## Summary

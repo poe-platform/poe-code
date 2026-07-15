@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Excellent and the most damning of the id-namespace filings: the catalog displays 'novita ai/kimi-k2.5' with a space, searching that exact displayed string returns zero, and constants use a third form (novitaai/) - so one model carries three incompatible identities across display, search and source. Copying what the tool prints is the most natural user action and it fails. Keep as canonical for id normalisation and pair with ux-kimi-default-model-id-mismatches-catalog-namespace.md; the display name containing a space is the specific bug to fix first."
+---
+
 # UX: models --search "novita ai/kimi-k2.5" returns 0
 
 ## Summary

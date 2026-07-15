@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: security
+comment: "Duplicate reconfirm in the four-file auth api-key --dry-run cluster; contributes only a second live sighting and no new evidence. Retire into ux-auth-api-key-dry-run-still-prints-secret.md."
+---
+
 # UX: auth api-key --dry-run still prints full secret (live reconfirm)
 
 ## Summary

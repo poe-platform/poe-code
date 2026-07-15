@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Another instance of npm run dev recovery on a toolcraft-hosted command; belongs to the CLI-wide identity cluster rather than to code-review. Its one distinct and worthwhile ask is listing the valid --spawn choices in the error, a real usability gain independent of the identity fix. Keep that, merge the rest."
+---
+
 # UX: code-review prompt-preview missing spawn uses npm run dev
 
 ## Summary

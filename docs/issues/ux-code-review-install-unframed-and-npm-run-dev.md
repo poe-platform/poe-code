@@ -1,3 +1,9 @@
+---
+severity: high
+impact: polish
+comment: "Third filing of the same install output, bundling wrapping, the missing panel and the npm run dev usage line. Retire into ux-code-review-install-output-unframed-wrapped.md (presentation) and ux-code-review-install-no-dry-run-force-writes.md (--dry-run); the npm run dev half belongs to the CLI-wide identity cluster. Its High rating is out of line with the Medium twins for identical output; normalise."
+---
+
 # UX: code-review install is unframed + npm run dev help
 
 ## Summary

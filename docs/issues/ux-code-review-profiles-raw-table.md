@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Third filing of the profiles table; its only advantage is the actual rendered table in the evidence, which is worth carrying into the survivor. Otherwise a duplicate - retire."
+---
+
 # UX: code-review profiles prints raw table without design-system panel
 
 ## Summary

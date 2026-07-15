@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Concrete and well-evidenced: the 'Checking authentication...' progress line renders at column 0 outside the panel bracket while the result is indented inside it. Cosmetic but systemic - the same spinner-to-panel ordering will hit every command that shows progress before a framed result, so fix it in the design system lifecycle rather than in the auth command. Given how fast status resolves, suppressing the line is the simpler option."
+---
+
 # UX: auth status "Checking authentication..." leaks before panel bracket
 
 ## Summary

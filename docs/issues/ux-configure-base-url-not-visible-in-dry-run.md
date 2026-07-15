@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Twin of ux-configure-base-url-may-be-ignored.md framed as a dry-run fidelity gap rather than a functional one; merge and resolve the hypothesis first. If dry-run simply is not rendering the override, this is the more accurate framing and the fix is to show the effective base URL. Related to ux-configure-shape-base-url-not-visible-in-dry-run.md, which reports the same for --shape-base-url; one fix should cover both."
+---
+
 # UX: configure --base-url override not visible in dry-run
 
 ## Summary

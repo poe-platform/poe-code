@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Incident report for the same event investigated in ux-claude-fable-appears-in-trace-fixtures-not-product-defaults.md; merge into one issue. Evidence is strong on symptom and explicitly unproven on cause. The '[1m]' suffix is the sharpest clue and worth chasing: it looks like an ANSI sequence captured into a value, which suggests something parsed rendered output instead of data. Keep High for the write-validation gap it proves, but do not schedule a fix until the writer is identified."
+---
+
 # UX: live Claude settings model found corrupted to claude-fable-5[1m] (restored)
 
 ## Summary

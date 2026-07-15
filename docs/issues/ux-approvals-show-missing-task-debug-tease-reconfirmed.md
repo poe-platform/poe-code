@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Third duplicate of the approvals-not-found observation; retire into ux-approvals-missing-id-says-task-not-found-double.md. Note it is rated Medium while the other two are High for identical behavior - the cluster needs one severity, not three."
+---
+
 # UX: approvals show missing uses Task not found + --debug tease (reconfirmed)
 
 ## Summary

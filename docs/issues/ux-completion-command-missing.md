@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Genuine capability gap, well evidenced (completion, completion bash and --completion all rejected), and distinct from the discoverability cluster because nothing exists to discover. Note the dependency: completion output is only maintainable if the command registry is the single source of truth, which is the same underlying problem behind root help hiding commands - sequence it after that."
+---
+
 # UX: shell completion command missing
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "The most useful positive in the security set: it proves redaction already exists in the configure dry-run path, which reframes the Critical secret-leak cluster (ux-dry-run-diffs-print-secrets.md, ux-logout-dry-run-still-prints-secrets-reconfirmed.md) from 'build redaction' to 'apply the existing redaction consistently' - a much cheaper fix with a known-good reference. Link it from those files; do not retire."
+---
+
 # UX: configure dry-run redacts Bearer in ANTHROPIC_CUSTOM_HEADERS (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-approvals-missing-id-says-task-not-found-double.md, which has the same string plus the double emission this one misses; retire into it. One detail worth carrying over: the 'Task' noun leaks because approvals are built on the task subsystem, so the fix is mapping task-layer errors to approval-domain copy at the boundary, not rewording a single string."
+---
+
 # UX: approvals show missing id says Task not found (wrong domain)
 
 ## Summary

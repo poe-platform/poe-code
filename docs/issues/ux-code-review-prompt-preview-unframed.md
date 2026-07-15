@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Same output that ux-code-review-prompt-preview-good.md praises; reconcile the two rather than keeping both - the preview behavior is right, the presentation is unframed. The ask worth keeping is --json for a multi-screen text dump, which makes the output consumable rather than merely prettier."
+---
+
 # UX: code-review prompt-preview is unframed long text (toolcraft)
 
 ## Summary

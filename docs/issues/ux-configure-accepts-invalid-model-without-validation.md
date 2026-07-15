@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate of ux-configure-accepts-any-string-as-model-no-catalog-check.md; retire into it, carrying over its two better-specified fix details which the canonical lacks: behave sensibly offline (warn rather than block) and point at 'models --search' in the refusal. Its High rating conflicts with the twin's Critical; normalise."
+---
+
 # UX: configure --model accepts inventable invalid model ids
 
 ## Summary

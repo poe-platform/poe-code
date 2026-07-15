@@ -1,3 +1,9 @@
+---
+severity: high
+impact: security
+comment: "One of four filings of the same defect (auth api-key ignores --dry-run and prints the key). Adds only a date and the detail that ~50 chars of output confirms a full key. Retire into ux-auth-api-key-dry-run-still-prints-secret.md. Its High severity contradicts the three Critical siblings - normalise to Critical."
+---
+
 # UX: auth api-key --dry-run still prints full secret (2026-07-08 reconfirm)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: security
+comment: "Duplicate reconfirm; restates that dry-run is ignored and adds nothing further. Retire into ux-auth-api-key-dry-run-still-prints-secret.md."
+---
+
 # UX: auth api-key --dry-run still prints secret (reconfirmed)
 
 ## Summary

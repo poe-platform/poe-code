@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Duplicate of ux-capture-otel-alone-silent-success.md; retire into it, carrying over its one extra idea - warn when the flag is unsupported for the selected agent - which is the more useful half of the fix. Rated Low-Medium against the twin's Medium for identical behavior; normalise."
+---
+
 # UX: --capture-otel succeeds with no visible confirmation of capture
 
 ## Summary

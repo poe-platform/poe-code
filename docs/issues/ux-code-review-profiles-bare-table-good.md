@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Filed as positive-ish yet it still asks for a design-system frame, so it is the same observation as ux-code-review-profiles-bare-table.md rated Low instead of Medium - a direct contradiction on identical output. Four files report this one table. Consolidate and settle whether a bare table here is acceptable or a defect; it cannot be both."
+---
+
 # UX: code-review profiles bare table is readable (positive-ish)
 
 ## Summary

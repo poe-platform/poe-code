@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Distinct from the double-error cluster and valid: 'no draft found for URL' is an expected empty state, so offering a stack trace is wrong twice over - it implies a crash and it sends users somewhere useless. Same '--debug tease on a not-found' pattern as ux-approvals-missing-id-says-task-not-found-double.md and ux-superintendent-complete-wrong-kind-debug-tease.md; make it a central rule (never offer --debug for an expected not-found) rather than fixing per command."
+---
+
 # UX: code-review drafts not found uses --debug stack tease
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate in the help-warning sub-cluster with no new evidence; retire into the consolidated help issue."
+---
+
 # UX: auth api-key help still no danger warning (reconfirmed)
 
 ## Summary

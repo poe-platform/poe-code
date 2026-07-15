@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, no code change; genuinely distinct from the two field-shape positives because it praises the help text rather than the payload. Its 'add status --json for parity' suggestion contradicts the cheaper cross-link direction preferred in ux-auth-status-no-json-flag.md - resolve the human-vs-machine convention once CLI-wide instead of in two files."
+---
+
 # UX: auth whoami help documents JSON output (positive)
 
 ## Summary

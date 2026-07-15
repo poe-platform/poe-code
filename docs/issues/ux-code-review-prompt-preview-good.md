@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; the useful half is the principle - prompt-preview shows what would happen with no side effects, which is exactly the dry-run shape ux-code-review-install-no-dry-run-force-writes.md lacks. Cite it there as the in-product precedent. Note it contradicts ux-code-review-prompt-preview-unframed.md, which calls the same output hard to scan: reconcile as behavior good, framing not."
+---
+
 # UX: code-review prompt-preview is useful (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Keep as canonical of this pair - better evidence, showing the bad id surviving the strip and being planned into settings. This is the root cause beneath the whole sonnet-5 family and ux-claude-settings-model-corrupted-to-fable-restored.md: nothing validates model ids on write, so dead defaults, typos and garbage all reach live config and fail late at spawn. Fix here and much of the late-failure cluster collapses. Note ux-configure-accepts-invalid-model-without-validation.md rates identical behavior High against this Critical - normalise."
+---
+
 # UX: configure --model accepts any string without catalog validation
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate within the help-warning sub-cluster; retire into a single consolidated help issue. Its one distinct argument - that users discover the leak only by running the command - is the strongest point in the sub-cluster and should survive the merge."
+---
+
 # UX: auth api-key --help does not warn that output is a secret
 
 ## Summary

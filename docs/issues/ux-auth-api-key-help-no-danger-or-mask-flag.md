@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "One of four filings that auth api-key help carries no secret warning. Consolidate to one. Important sequencing note for the whole sub-cluster: it is dependent on ux-auth-api-key-prints-secret.md - if masking plus --reveal lands, 'help does not warn that it prints a secret' largely evaporates. Schedule after that fix and keep only the residue: mark the command sensitive and document --reveal."
+---
+
 # UX: auth api-key --help has no danger note or mask flag
 
 ## Summary

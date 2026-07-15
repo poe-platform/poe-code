@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the code-review missing-prUrl cluster; retire into ux-code-review-drafts-missing-arg-double-error.md. Its one added detail is coverage - the same break occurs on run and commit, not just drafts - which supports fixing at the Commander/toolcraft integration layer rather than per subcommand."
+---
+
 # UX: code-review run/commit missing prUrl uses npm run dev recovery
 
 ## Summary

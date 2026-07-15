@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-utils-config-edit-missing-editor-system-chrome.md (same command, message and complaint); consolidate. Valid but small - the message is already correct, so this is one more instance of the systemic UserError-vs-system-chrome issue (ux-user-errors-look-like-system-failures.md). Only local value-add: suggest 'export EDITOR=vim' as the next step."
+---
+
 # UX: utils config edit missing $EDITOR has See logs
 
 ## Summary

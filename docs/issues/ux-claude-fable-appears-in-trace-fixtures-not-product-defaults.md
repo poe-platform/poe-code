@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Investigation note paired with ux-claude-settings-model-corrupted-to-fable-restored.md; together they are the useful half of the fable incident and should merge. The finding that clears product code matters: claude-fable-5 exists only in agent-traces fixtures and archived plans, not in FRONTIER_MODELS, so this is not a shipped bad default. But the cause of the live write is unproven, so the residue is defensive rather than corrective - validate model ids against the catalog on settings write, plus a doctor check. Do not close as 'fixtures only'; the corruption was real."
+---
+
 # UX: claude-fable-* appears in agent-traces test fixtures (note)
 
 ## Summary

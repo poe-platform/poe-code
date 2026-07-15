@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of three filings of the code-review install output; bundles three asks (--dry-run, path wrapping, displayBinaryName). Its distinct and most valuable contribution is the missing --dry-run on a command that writes files - a capability gap rather than cosmetics. Split that out and keep it; the wrapping half duplicates ux-code-review-install-output-unframed-wrapped.md."
+---
+
 # UX: code-review install --force writes with no dry-run and wraps paths poorly
 
 ## Summary

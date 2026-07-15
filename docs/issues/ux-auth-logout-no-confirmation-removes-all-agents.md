@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: data-loss
+comment: "Strongest filing in the destructive-command set: a real transcript proving auth logout removes every agent configuration with no prompt, no --yes and no --dry-run. Critical is right. Two issues are bundled - (a) no confirmation gate on the most destructive command in the CLI, (b) the 'Problems?' footer repeating once per sub-operation; split (b) out as it duplicates ux-problems-footer-on-every-success.md. Overlaps ux-logout-overclaims-scope.md and ux-auth-logout-same-as-logout-help.md, which show the copy also understates the blast radius: one change should land gate, copy and --dry-run together."
+---
+
 # UX: auth logout runs immediately without confirmation, silently removes all agent configs
 
 ## Summary

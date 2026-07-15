@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Best evidence of the three install filings - the pasted output shows absolute paths hard-wrapped mid-filename, which reads as corrupted output rather than success. Keep as canonical for the presentation half (one path per line, no mid-path wrapping); let ux-code-review-install-no-dry-run-force-writes.md carry the missing --dry-run and retire ux-code-review-install-unframed-and-npm-run-dev.md into the two."
+---
+
 # UX: code-review install success is unframed and path-wrapped badly
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: security
+comment: "Keep as canonical for the base defect: auth api-key prints the full key unmasked with no opt-in. Correctly Critical, and it is the decision point the rest of the auth cluster hangs off - the four dry-run files and the four help-warning files all resolve once masking plus explicit --reveal exists. Absorbs ux-auth-api-key-displays-secret-to-stdout.md, whose command-substitution use case the fix must preserve via --reveal."
+---
+
 # UX: auth api-key prints the full secret to the terminal
 
 ## Summary

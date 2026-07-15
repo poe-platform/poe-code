@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-code-review-drafts-missing-arg-double-error.md on the run subcommand instead of drafts; identical output, identical fix. Retire into it."
+---
+
 # UX: code-review run missing prUrl double error + npm run dev
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Keep of this pair and treat it as effectively resolved: bare stdout is correct for a command whose entire output is a path meant for command substitution, and the file concedes it. The only residue is documenting the contract. Its coverage detail is worth keeping - pipeline, experiment and superintendent all behave identically, showing this is a deliberate convention rather than an oversight."
+---
+
 # UX: plan-path commands still bare stdout (reconfirmed multi-group)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Important and correctly High: auth status reports logged in while provider login poe --yes says 'No API key found', so two credential stores disagree about the same account and neither explains itself. Users cannot tell which one governs a given command, which makes every auth-related failure ambiguous - plausibly including ux-auth-status-became-not-logged-in-mid-session.md, where credentials appeared to vanish. Its fix is right: unify resolution, or if the split is intentional, say so in both surfaces."
+---
+
 # UX: provider login poe --yes fails despite auth status showing logged in
 
 ## Summary

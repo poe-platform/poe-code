@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Member of the --json inconsistency family; retire into ux-json-flag-inconsistent-across-commands.md. Its case is strengthened by the table problems though: since the Agents and API shapes columns truncate (ux-provider-list-table-layout-broken.md), --json is currently the only way to see the full data - making it a workaround for a rendering bug as well as a scripting gap."
+---
+
 # UX: provider list has no --json flag
 
 ## Summary

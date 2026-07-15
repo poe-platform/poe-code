@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Two factual problems make this the least reliable filing in the destructive cluster. It asserts provider logout has no --dry-run, which ux-provider-logout-anthropic-dry-run-good.md disproves; and its Context section states memory clear 'deletes all memory without confirmation', which ux-memory-clear-requires-yes-non-tty-good.md disproves - the guard exists. Both errors come from reading the help panel rather than running the commands, the same method that produced ux-memory-clear-no-yes-no-dry-run.md. The residual question is legitimate - whether provider logout enforces --yes non-TTY - but it must be tested, not inferred. Note this file is also absent from MASTER.md."
+---
+
 # UX: provider logout runs immediately without confirmation or --yes flag
 
 ## Summary

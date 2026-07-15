@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate of ux-provider-list-agents-column-truncated.md - same cell, same ellipsis, near-identical title; retire. Its 'truncated agents hide install/configure targets' framing is the useful half: the truncation removes exactly the information the column exists to convey. Its --json ask belongs to ux-provider-list-no-json-flag.md."
+---
+
 # UX: provider list Agents column truncates with ellipsis
 
 ## Summary

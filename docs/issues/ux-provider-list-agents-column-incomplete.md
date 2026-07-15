@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Distinct from the truncation filings and the more interesting of the two: it claims the Agents column omits spawn-only agents, which would be a data problem rather than a rendering one - the same capability-matrix gap as ux-agent-capability-matrix-spawn-vs-configure-vs-install.md seen from the provider side. Too thin to action as filed (no evidence beyond 'provider list'), so verify against the matrix work; if agent lists were derived from one source this would resolve automatically."
+---
+
 # UX: provider Agents column incomplete
 
 ## Summary

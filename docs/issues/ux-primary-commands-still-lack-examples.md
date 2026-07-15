@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep as canonical of this pair and of the missing-examples family (with ux-configure-help-missing-examples.md and the spawn variants). Its argument is the right one: the highest-traffic commands are the hardest to learn from help alone. Copy the models structure - but note ux-models-help-duplicate-sections-unstyled.md: copy the content, not the unstyled rendering."
+---
+
 # UX: spawn/configure/gaslight still lack Examples sections (vs models)
 
 ## Summary

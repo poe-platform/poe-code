@@ -1,3 +1,9 @@
+---
+severity: medium-high
+impact: usability
+comment: "Legitimate and well characterised: a postinstall that syncs skills runs on every user install - a classic npm footgun with unexpected filesystem side effects and slower installs. Its own evidence is also the mitigation: CI and SKIP_SYNC_SKILLS already skip it, so the guard exists and the question is whether the default should be opt-in. Its 'never fail install hard' point is the most important line and worth verifying - a postinstall that can fail is worse than one that is merely surprising."
+---
+
 # UX: postinstall sync-skills runs on user npm install (side effect)
 
 ## Summary

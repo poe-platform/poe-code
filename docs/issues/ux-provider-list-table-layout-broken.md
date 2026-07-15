@@ -1,3 +1,9 @@
+---
+severity: medium-high
+impact: polish
+comment: "Keep as canonical of the provider list table cluster: best evidence and three distinct findings, of which the first is genuinely serious - 'generations' wraps onto its own line and reads as a standalone provider, so the table asserts something false rather than merely looking untidy. The Agents header sitting a row below the others and the API shapes cell cut off mid-list with a trailing comma are the other two. Likely the same root as ux-tables-ignore-terminal-width.md; fix the renderer rather than this table."
+---
+
 # UX: provider list table renders cloudflare as two phantom rows
 
 ## Summary

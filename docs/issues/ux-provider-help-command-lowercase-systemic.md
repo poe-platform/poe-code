@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Keep as canonical over ux-harness-help-command-lowercase-description.md: same Commander-generated 'help [command]' entry, but this file identifies the systemic scope (provider, runtime, harness) and spots the better fix - auth and configure already suppress the meta-subcommand, so the correct pattern exists in-product. Suppressing beats capitalising: it removes clutter rather than tidying it."
+---
+
 # UX: "help [command]" subcommand description lowercase across multiple commands
 
 ## Summary

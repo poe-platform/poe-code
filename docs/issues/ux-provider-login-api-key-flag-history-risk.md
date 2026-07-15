@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: security
+comment: "Member of the four-surface --api-key argv class; retire into the umbrella ux-auth-login-api-key-shell-history-risk.md. Its fallback suggestion is the pragmatic one and worth carrying: if the flag must stay, warn at runtime that the key will land in shell history - a one-line mitigation that does not require removing the flag."
+---
+
 # UX: provider login --api-key flag encourages shell history leak
 
 ## Summary

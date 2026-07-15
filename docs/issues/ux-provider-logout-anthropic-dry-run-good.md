@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Valuable positive and the direct refutation of part of ux-provider-logout-no-confirmation.md, which asserts provider logout has no --dry-run: this shows --dry-run works and prints exactly the right thing - the credential file it would remove, nothing more. Keep and link. Its contrast with the poe logout flood again shows the blast radius is provider-specific."
+---
+
 # UX: provider logout anthropic --dry-run is clean (positive)
 
 ## Summary

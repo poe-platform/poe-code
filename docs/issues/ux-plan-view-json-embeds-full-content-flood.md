@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the plan view JSON trio, though High overstates it: nothing breaks, and the content field is arguably correct for a 'view' command - the real complaint is that there is no metadata-only mode, a capability gap rather than a defect. Its proposed default (path/title/status/tasks summary with --include-content for the body) is the right shape. The three filings span Low-Medium to High for identical behavior; normalise."
+---
+
 # UX: plan view --output json embeds entire plan content flood
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Third filing of the wrong recovery hint ('read-markdown' does not exist); retire into ux-markdown-read-section-wrong-recovery-command.md. No new evidence beyond a second section name."
+---
+
 # UX: markdown-read-section still suggests read-markdown (reconfirmed)
 
 ## Summary

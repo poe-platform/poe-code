@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Important small positive: 'Plan selection requires a path or --yes when running without an interactive TTY' is the exact message plan browse and bare plan should emit instead of dumping an arbitrary plan body. Its own suggestion says so. Keep and link from the non-TTY dump cluster - it proves the fix is reuse rather than design, the same shape as the login hang and its --yes counterpart."
+---
+
 # UX: plan view non-TTY requires path or --yes (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Contentless twin of ux-primary-commands-still-lack-examples.md; retire into it. The ask is legitimate and the answer already exists in-product - ux-models-help-examples-are-excellent.md is the template - so this is propagation rather than design."
+---
+
 # UX: Primary commands lack Examples
 
 ## Summary

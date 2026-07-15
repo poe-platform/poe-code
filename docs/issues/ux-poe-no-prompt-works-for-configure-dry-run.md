@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Useful counterweight to the POE_NO_PROMPT cluster: it confirms the env var genuinely works, so the complaint in ux-non-tty-prompt-wrong-guidance.md is purely about which mechanism the error advertises, not about broken behavior. Its conclusion is the right resolution for the whole family - keep the env var as a CI escape hatch, prefer --yes in user-facing copy. Link it there."
+---
+
 # UX: POE_NO_PROMPT=1 accepts configure defaults (positive/obscure)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Duplicate within the plan view JSON trio; retire. Its framing is the fairest of the three - the content field is genuinely useful for tooling, so the ask is documentation plus a metadata-only mode rather than removing it - and that nuance should survive the merge."
+---
+
 # UX: plan view --output json dumps entire markdown content field
 
 ## Summary

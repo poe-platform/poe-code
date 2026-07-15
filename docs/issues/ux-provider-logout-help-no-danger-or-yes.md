@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Partly wrong and needs correcting before scheduling: it asserts there is no --dry-run, but ux-provider-logout-anthropic-dry-run-good.md shows --dry-run working. So the real defect is narrower than claimed - the flags exist and help does not document them, which is the global-flags rendering problem plus a missing danger note. Keep the danger-note ask, drop the missing-capability claim."
+---
+
 # UX: provider logout --help only shows -h — no --yes, --dry-run, or danger warning
 
 ## Summary

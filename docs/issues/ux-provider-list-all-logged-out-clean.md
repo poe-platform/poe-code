@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and a useful boundary case for the secrets cluster: the logged-out provider list shows status without leaking anything, as ux-utils-config-show-logged-out-clean-no-secrets.md also confirms. Both are weak reassurance though - the leaks appear when credentials exist, so read these as 'clean when empty' rather than 'clean'."
+---
+
 # UX: provider list all logged out is clean (positive)
 
 ## Summary

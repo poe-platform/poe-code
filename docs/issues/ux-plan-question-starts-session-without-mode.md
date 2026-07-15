@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep of this pair as the more concrete filing. Two findings: unquoted multi-word input fails with 'too many arguments' (a real papercut with an obvious fix - suggest quoting), and the non-TTY draft contract is undocumented. The quoting hint is the cheap win; the contract half overlaps ux-plan-question-non-tty-may-hang.md, whose hang claim conflicts with the session start seen here."
+---
+
 # UX: plan "question" starts agent session with unclear non-TTY contract
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of three filings of the plan view JSON content flood; consolidate into ux-plan-view-json-embeds-full-content-flood.md. All three agree on the fix shape: metadata by default, body behind an opt-in flag."
+---
+
 # UX: plan view --output json dumps full markdown content
 
 ## Summary

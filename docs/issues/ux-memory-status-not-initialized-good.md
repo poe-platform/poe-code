@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Third filing of the same not-initialized positive; consolidate with ux-memory-ingest-not-init-good.md and ux-memory-search-not-initialized-good.md into one note. Its parenthetical contrast is apt and worth keeping: the group's not-initialized copy is exemplary while its initialized state is Critically broken."
+---
+
 # UX: memory status not initialized is clear (positive)
 
 ## Summary

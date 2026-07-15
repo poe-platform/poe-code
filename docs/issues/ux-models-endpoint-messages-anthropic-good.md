@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; one of several models multi-filter positives. Consolidate the family into one note: filter composition works well across the board, which is the actual finding and a useful counterweight to the models cluster's validation gaps. Its incidental detail is worth keeping - opus-4.8 is in the catalog, relevant to the pin-policy question in ux-agent-default-opus-4-7-not-latest-opus-4-8.md."
+---
+
 # UX: models --endpoint /v1/messages --provider anthropic works (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Correct and correctly Low, and its cross-reference is the valuable part: the same white-instead-of-pink title appears on utils symlink --help (ux-utils-symlink-help-missing-design-system-colors.md), so this is a shared code path rather than a memory bug. Merge the two and fix once; alone it reads as a one-off cosmetic nit and would be under-prioritised."
+---
+
 # UX: memory status panel title renders in white instead of design-system pink
 
 ## Summary

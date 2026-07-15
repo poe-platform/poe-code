@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "Duplicate within the INDEX cluster; retire into ux-memory-show-cannot-open-root-index-file.md. No distinct evidence beyond the other reconfirms."
+---
+
 # UX: memory show INDEX.md not found right after init
 
 ## Summary

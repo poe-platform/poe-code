@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Keep as canonical of the models empty-filter trio (covers --search and --provider together). Its argument is the strongest in the empty-flag family: scripts passing an unset env var get the whole catalog rather than an error, so the failure is silent and entirely plausible in CI. Otherwise part of ux-empty-model-flag-behavior-inconsistent.md."
+---
+
 # UX: models --search "" and --provider "" return all 341 models
 
 ## Summary

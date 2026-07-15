@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Duplicate in substance of ux-models-feature-bogus-silent-empty.md with --input instead of --feature; consolidate into one 'validate filter values against their allow-lists' issue. Both prove the same thing: the valid sets are known and documented, none are enforced, so every typo becomes a false empty result."
+---
+
 # UX: models --input notamodality silently returns empty
 
 ## Summary

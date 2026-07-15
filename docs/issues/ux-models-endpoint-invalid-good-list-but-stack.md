@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate within the endpoint-stack cluster; retire into ux-models-endpoint-bogus-double-error-and-stack.md. Its framing is the most useful line in the cluster and should survive: 'recovery content is excellent; stack ruins it' - the fix is subtractive, not additive."
+---
+
 # UX: models --endpoint invalid lists available endpoints but still prints stack
 
 ## Summary

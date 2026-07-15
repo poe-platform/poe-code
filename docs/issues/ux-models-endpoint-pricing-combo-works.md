@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models filter-composition positives. Consolidate - four separate files praising that filters combine correctly is count inflation with no decision attached."
+---
+
 # UX: models --endpoint + --view pricing works (positive)
 
 ## Summary

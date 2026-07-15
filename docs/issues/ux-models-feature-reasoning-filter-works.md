@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models filter-composition positives - consolidate. Its parenthetical is the useful half and recurs across the family: the filter works when the name is valid and fails silently when it is not (ux-models-feature-bogus-silent-empty.md), so the positives and that defect are two halves of one story."
+---
+
 # UX: models --feature reasoning works (positive)
 
 ## Summary

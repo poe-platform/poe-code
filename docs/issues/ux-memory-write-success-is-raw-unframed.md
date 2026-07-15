@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate within the memory write bare-output cluster; retire into ux-memory-ls-search-show-raw-unframed.md. Its evidence is the most detailed of the four - the write echoes the path, the frontmatter, the body and a path:line snippet, which is more dump than success line - and its suggested card (path, reason, bytes) is the best-specified fix in the cluster."
+---
+
 # UX: memory write success output is raw unframed text
 
 ## Summary

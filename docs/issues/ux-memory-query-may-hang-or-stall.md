@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: crash
+comment: "Explicitly inconclusive by its own admission ('probe did not complete in batch window') and should not be scheduled as filed - it needs a bounded re-run. Its likely explanation is already documented: ux-memory-agent-commands-invalid-json-opaque.md shows the memory agent path failing, plausibly on the dead default model, so the 'hang' may be an agent spawn stuck behind a bad model rather than a memory bug. Its ask is sound regardless: fail fast non-TTY and bound the wait."
+---
+
 # UX: memory query after init may hang (probe inconclusive)
 
 ## Summary

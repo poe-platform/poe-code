@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "The most analytically useful member of the INDEX cluster: it isolates the fault by showing that show works for pages/hello.md and fails for INDEX, proving the store and the reader are both fine and the defect is specifically the root-file namespace. That bisection is what the canonical needs. Retire into ux-memory-show-cannot-open-root-index-file.md, carrying this evidence."
+---
+
 # UX: memory show works for user pages but not INDEX (contrast)
 
 ## Summary

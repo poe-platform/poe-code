@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Reconfirm duplicate of ux-models-help-examples-are-excellent.md; retire into it. Its enumerated example list (provider, feature, endpoint, view, search, model, since) is the concrete inventory worth carrying into the template work."
+---
+
 # UX: models --help Examples remain best-in-class (positive reconfirm)
 
 ## Summary

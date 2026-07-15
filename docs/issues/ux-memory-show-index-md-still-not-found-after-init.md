@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "The most thorough of the INDEX reconfirms - it tries INDEX, INDEX.md and the full .poe-code/memory/INDEX.md path, all failing, and confirms cat works outside the CLI. That triangulation is the evidence the canonical should carry, since it rules out a path-format mistake by the user. Retire into ux-memory-show-cannot-open-root-index-file.md; rated High against that Critical for identical behavior, so normalise."
+---
+
 # UX: memory show INDEX.md still not found after init (critical reconfirm)
 
 ## Summary

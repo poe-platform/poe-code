@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Genuinely valuable positive: it identifies the template the rest of the CLI needs, and its suggestion (copy the Filters/Views/Examples shape to spawn/configure) is the answer to the whole missing-examples cluster (ux-primary-commands-lack-examples-in-help.md, ux-configure-help-missing-examples.md). Keep as the reference; near-duplicate of ux-models-help-examples-still-best-in-class.md, so consolidate. Note the tension with ux-models-help-duplicate-sections-unstyled.md: copy the content, not the unstyled rendering."
+---
+
 # UX: models --help examples and filter docs are excellent (positive)
 
 ## Summary

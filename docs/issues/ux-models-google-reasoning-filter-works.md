@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate within the models filter-composition positives - consolidate. Its incidental evidence is worth carrying: gemini-3.1-pro is live in the catalog, and its suggestion to align DEFAULT_GEMINI with namespaced catalog ids is the same ask as ux-gemini-default-model-unnamespaced-and-stale-vs-frontier.md - route it there."
+---
+
 # UX: models --provider google --feature reasoning works (positive)
 
 ## Summary

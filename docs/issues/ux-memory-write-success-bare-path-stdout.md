@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Duplicate within the memory write bare-output cluster; retire into ux-memory-ls-search-show-raw-unframed.md. Its incidental evidence is useful though: write then show pages/hello.md works end to end, corroborating ux-memory-user-page-show-works-index-does-not.md that the pages path is sound and only INDEX is broken."
+---
+
 # UX: memory write success is bare path on stdout
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Contradicts ux-models-double-feature-flag-uses-last-or-and.md: this claims last-wins from Commander's option shape, that one measures 44/341 and infers AND. The measured number is the stronger evidence, so this file's premise is probably wrong - verify before acting. Its ask survives either way: make --feature collectable or reject duplicates rather than silently resolving them."
+---
+
 # UX: --feature is not repeatable; second --feature replaces the first
 
 ## Summary

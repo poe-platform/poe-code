@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Honest and self-hedging ('stale docs?'): memory mcp / mcp-print / print-config are all unknown while the capability exists as install --mcp-only. So this is a naming/discoverability gap rather than a missing feature, and the fix is likely documentation plus perhaps one alias. Check its unverified premise first - if nothing advertises those names, there is no defect."
+---
+
 # UX: memory print-config/mcp-print commands missing (stale docs?)
 
 ## Summary

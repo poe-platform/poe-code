@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "One of four filings of the same memory write bare-stdout observation; consolidate into ux-memory-ls-search-show-raw-unframed.md. Its framing is the fairest of the four: a bare path is genuinely useful for scripting, so the ask is a design-system success on TTY rather than removing the machine-friendly output."
+---
+
 # UX: memory write success is bare path on stdout
 
 ## Summary

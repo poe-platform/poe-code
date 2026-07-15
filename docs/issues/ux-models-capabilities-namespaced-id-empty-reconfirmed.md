@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "One of several filings of the namespaced-id filter gap across views; retire into ux-models-exact-id-filter-rejects-namespaced-ids.md, which states it best. Its coverage contribution matters: the failure repeats on capabilities, pricing, parameters and raw, so the defect is in the shared --model matcher rather than any view - fix once."
+---
+
 # UX: models --view capabilities --model anthropic/… returns empty (reconfirmed)
 
 ## Summary

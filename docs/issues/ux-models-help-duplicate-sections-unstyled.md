@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Careful filing and an interesting tension with the two positives calling this same help best-in-class: both readings are right, and that is the finding. The Filters/Views/Examples content is the best in the CLI and it is rendered outside the design system, duplicating flag names already in Options. So the fix is not to remove the depth the positives praise but to render it consistently - keep Examples, fold Filters into Options descriptions. Read alongside ux-dual-help-systems.md: this is that split visible inside one command's help."
+---
+
 # UX: models --help mixes styled Options section with unstyled Filters/Views/Examples sections
 
 ## Summary

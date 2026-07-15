@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; consolidate into the memory empty-state note with the ls/lint/cache-status positives. Its parenthetical is the useful part and recurs across the group: every memory positive quietly notes INDEX remains unshowable, a good signal that the Critical (ux-memory-show-cannot-open-root-index-file.md) dominates this group's real problems."
+---
+
 # UX: memory search no matches is clear after init (positive)
 
 ## Summary

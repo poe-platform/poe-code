@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: correctness
+comment: "Duplicate within the models empty-filter trio; retire into ux-models-empty-search-returns-all.md. No distinct content."
+---
+
 # UX: models --provider "" returns all 341 models
 
 ## Summary

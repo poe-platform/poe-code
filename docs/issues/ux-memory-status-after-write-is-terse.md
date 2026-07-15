@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Duplicate in substance of ux-memory-ls-search-show-raw-unframed.md (unframed memory output); consolidate. Its distinct and worthwhile point is the ratio line: 'Tokens: memory=2, sources=0, ratio=0.00x' exposes a metric with no explanation - the same unexplained-internals problem as --budget, where the memory group surfaces LLM plumbing without glossing it."
+---
+
 # UX: memory status is a terse multi-line dump
 
 ## Summary

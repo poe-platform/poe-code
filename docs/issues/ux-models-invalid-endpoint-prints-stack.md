@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Third duplicate within the endpoint-stack cluster; retire into ux-models-endpoint-bogus-double-error-and-stack.md. No distinct content beyond confirming the stack trace reaches stderr."
+---
+
 # UX: models invalid --endpoint prints ValidationError stack
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the --interactive non-TTY quartet: best evidence (the agent's greeting 'Hey! What would you like to work on today?' appearing in a non-TTY run), which proves the flag is honoured into an interactive path that cannot possibly work. Its fix is right and matches the in-product precedent - plan view refuses non-TTY cleanly (ux-plan-view-non-tty-requires-path-good.md). Absorbs the other three."
+---
+
 # UX: spawn --interactive non-TTY still launches agent interactive greeting
 
 ## Summary

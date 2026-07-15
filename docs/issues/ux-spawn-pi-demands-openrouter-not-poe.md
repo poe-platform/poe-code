@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Strong filing and worse than it looks: spawn pi fails demanding an openrouter key and points users at pi-coding-agent's own docs inside node_modules, so poe-code advertises an agent it has not wired to Poe auth and hands the user a foreign recovery path (/login for a different tool). A capability gap dressed as an error. Note the tension with ux-spawn-pi-yes-works.md, which reports spawn pi succeeding - resolve whether pi works only when it finds an unrelated openrouter key in the environment, which would make that positive misleading."
+---
+
 # UX: spawn pi fails No API key for openrouter (not Poe)
 
 ## Summary

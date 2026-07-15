@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Real and confusing: the message claims Claude Code 'is not configured via poe' when the user supplied both model and mode explicitly, so it reports a configuration problem for a request that needed no configuration. The likely truth is that the hooks bridge wants confirmation, which is what its suggested rewording says. Same misdiagnosis family as the gemini credential error and ux-code-review-run-invalid-url-wrong-error.md - the message names the wrong cause."
+---
+
 # UX: spawn --hooks-from with auto demands --yes with not configured via poe message
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the gemini credential trio for the error-copy half: 'Cannot resolve providerCredential: no active provider on context' is internal resolution jargon presented as a crash, and its suggested replacement is right. But the copy fix is secondary to the question its sibling raises (whether gemini can use poe credentials at all) - answer that before rewording, since the correct message depends on the answer."
+---
+
 # UX: spawn gemini fails with opaque "no active provider on context"
 
 ## Summary

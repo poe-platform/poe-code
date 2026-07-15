@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate within the missing-examples family; retire into ux-primary-commands-still-lack-examples.md. Its concrete example list (read-mode one-shot, @file, --yes) is the most useful in the family and should survive - notably @file is otherwise undiscoverable (ux-spawn-at-file-works.md)."
+---
+
 # UX: spawn --help still has no Examples section
 
 ## Summary

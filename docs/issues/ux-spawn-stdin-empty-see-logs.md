@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Instance of the systemic UserError chrome issue; retire into ux-user-errors-look-like-system-failures.md. Same message as the no-prompt and empty-@file filings - one condition, three files, one chrome fix."
+---
+
 # UX: empty --stdin prompt has See logs
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Contentless duplicate within the validation-order trio; retire into ux-spawn-validates-mode-before-agent-reconfirmed.md. Its four-word framing is accurate ('Wrong recovery path') and captures why order matters: the error decides where the user looks next."
+---
+
 # UX: spawn validates mode before agent
 
 ## Summary

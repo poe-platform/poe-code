@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Fair: 'Kimi is not configured via poe. Pass --yes to proceed without prompting' answers a configuration problem with a flag that suppresses prompting, which does not obviously address the stated cause - and ux-spawn-kimi-acp-internal-error-stack.md shows that following the advice produces an internal error, so the recovery actively leads users into a worse failure. That connection is the important one: the message is not merely unclear, it is wrong. Its suggested replacement (point at configure kimi) is right."
+---
+
 # UX: spawn kimi not configured message mentions --yes oddly
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "Third filing of the poe-agent crash; retire into ux-spawn-poe-agent-crashes-fs-lstat.md. Its 'memfs/fs injection' hypothesis is the most specific guess at the cause across the trio and is worth carrying into the canonical as a starting point."
+---
+
 # UX: spawn poe-agent still crashes fs.lstat (reconfirmed live)
 
 ## Summary

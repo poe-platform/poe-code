@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; consolidate with ux-spawn-at-file-works.md into one note about spawn's prompt input forms. Its 'document in Examples' suggestion is the actionable half and matters more than the positive: argument, @file and stdin are three undocumented input forms, exactly what the missing-examples work should cover."
+---
+
 # UX: spawn --stdin from pipe works (positive)
 
 ## Summary

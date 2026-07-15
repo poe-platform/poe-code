@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Keep of this positive pair as the canonical (a bogus value is the more natural case than empty). Its 'apply across all mode flags' direction is the actionable half and connects to ux-permission-mode-sets-differ-across-commands.md: the validation is good here while the enum itself differs per command, so propagating this message without unifying the enum would spread the inconsistency."
+---
+
 # UX: spawn invalid --mode validation is good (positive)
 
 ## Summary

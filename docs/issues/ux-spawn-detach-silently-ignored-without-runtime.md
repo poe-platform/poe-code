@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate of ux-detach-without-runtime-still-inline-reconfirmed.md; consolidate into the single detach-semantics issue. Its framing is the best of the four and should survive: users believe work is backgrounded when it is not, which for CI means a script that waits or exits on the wrong assumption. Same flag-dependency family as --runner-sync and --capture-otel-content."
+---
+
 # UX: spawn --detach appears silently ignored without --runtime
 
 ## Summary

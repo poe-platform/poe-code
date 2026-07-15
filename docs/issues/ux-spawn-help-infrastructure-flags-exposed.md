@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "The best-argued of the spawn help filings and it supersedes the contentless ux-spawn-advanced-flags-undifferentiated.md: it groups the offenders precisely (ACP JSONL logging, OpenTelemetry, the raw MCP JSON schema in a description) and explains why each is inappropriate for the product's most-used command - 'ACP JSONL' and 'OpenTelemetry' are internal vocabulary in user-facing help. Its fix is right and pairs with the examples ask: group advanced flags, show one MCP example instead of the schema. Consolidate the spawn help cluster here."
+---
+
 # UX: spawn --help exposes internal infrastructure flags at the user level
 
 ## Summary

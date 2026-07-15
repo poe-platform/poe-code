@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "Reconfirm duplicate of ux-spawn-poe-agent-crashes-fs-lstat.md; retire into it. Rated High against that Critical for identical behavior; normalise. Its only addition is confirming the crash persists with an explicit model, which rules out the dead-default explanation - worth one line in the canonical."
+---
+
 # UX: spawn poe-agent still crashes fs.lstat (2026-07-08 reconfirm)
 
 ## Summary

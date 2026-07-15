@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-skill-bridge-failure-lists-paths-good.md (same output, filed as defect rather than positive); consolidate. Both agree: the searched-paths list is exemplary and the See logs is wrong. Its 'suggest skill install --name' recovery is a good addition - the error tells users where it looked but not how to put a skill there."
+---
+
 # UX: spawn --skill missing lists searched paths but See logs
 
 ## Summary

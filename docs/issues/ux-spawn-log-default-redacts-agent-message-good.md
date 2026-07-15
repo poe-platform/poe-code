@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "The most valuable positive in the logging set: it proves the default redacts agent_message to '[redacted]', so the privacy default is correct and --log-content is an informed opt-out rather than a leak. That fact caps the severity of the whole --log-content warning cluster - the gap is a missing warning, not exposure. Keep and link there; its 'warn once when --log-content set' suggestion is the right fix."
+---
+
 # UX: spawn default JSONL log redacts agent_message (positive)
 
 ## Summary

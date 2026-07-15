@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "The clearest instance of the success-glyph problem and worth keeping alongside the umbrella (ux-failure-shown-as-success-markers.md): two check-marks appear - one on the API error itself and one on a '0 in, 0 out' token line - so the output asserts success twice for a run that did nothing and then failed. The token line is the more damning detail: zeroes prove no work happened, yet it is still marked done. Its secondary ask (validate the model before spawn) is the catalog-validation fix from ux-configure-accepts-any-string-as-model-no-catalog-check.md."
+---
+
 # UX: spawn invalid model shows success glyphs then failure
 
 ## Summary

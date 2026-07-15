@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Duplicate within the detach family; consolidate into one issue about detach semantics. Its distinct contribution is the preflight argument: whatever detach means, failing on a bad model in the foreground after being asked to background is the wrong order. The underlying failure is the dead sonnet-5 default, so re-check after the constants fix."
+---
+
 # UX: spawn --detach still runs foreground failure path for model errors
 
 ## Summary

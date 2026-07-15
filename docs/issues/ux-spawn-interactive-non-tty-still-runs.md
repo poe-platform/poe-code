@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the --interactive quartet; retire into ux-spawn-interactive-non-tty-launches-agent-tui-copy.md. Its 'flag ignored or partially applied' hedge is honest and is the real question: whether --interactive is silently dropped or partially honoured decides between the empty-flag family and the non-TTY family."
+---
+
 # UX: spawn --interactive non-TTY still runs non-interactively
 
 ## Summary

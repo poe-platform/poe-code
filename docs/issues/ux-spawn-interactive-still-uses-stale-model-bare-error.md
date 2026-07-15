@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate within the --interactive quartet, compounded by the dead sonnet-5 default; retire into the quartet's canonical and the constants cluster. Nothing here needs its own fix - refusing -i non-TTY and fixing the default both independently remove it. Its value is only as evidence of how the two defects stack."
+---
+
 # UX: spawn -i with prompt still hits stale model as bare API error
 
 ## Summary

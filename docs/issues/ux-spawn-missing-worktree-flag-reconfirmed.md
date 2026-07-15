@@ -1,3 +1,9 @@
+---
+severity: high
+impact: capability-gap
+comment: "Duplicate within the worktree parity trio; retire into ux-gaslight-has-worktree-spawn-does-not.md, which proves the capability exists on a sibling command. Its extra data point is useful: superintendent has --worktree too, so spawn is the outlier among three commands rather than one."
+---
+
 # UX: spawn missing --worktree flag (reconfirmed)
 
 ## Summary

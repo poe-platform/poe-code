@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: security
+comment: "Fourth filing of the --log-content warning gap; retire into ux-log-content-flag-no-danger-warning.md. Same ask, no new evidence."
+---
+
 # UX: spawn --log-content help underwarns sensitive data risk
 
 ## Summary

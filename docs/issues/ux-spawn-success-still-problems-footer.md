@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Instance of ux-problems-footer-on-every-success.md; retire into it. Its multi-agent evidence (pi, claude, goose all ending the same way) usefully confirms the footer is unconditional in finalize rather than per-command, which is what makes the fix a single change."
+---
+
 # UX: Successful spawn still ends with Problems? footer
 
 ## Summary

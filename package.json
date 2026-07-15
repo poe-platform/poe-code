@@ -199,7 +199,6 @@
     "mustache": "^4.2.0",
     "openai": "^6.34.0",
     "parse-duration": "^2.1.5",
-    "poe-code": "^3.0.410",
     "semver": "^7.7.4",
     "shell-quote": "^1.8.4",
     "simple-git": "^3.36.0",

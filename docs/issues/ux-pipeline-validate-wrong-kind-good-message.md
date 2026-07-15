@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "The most useful positive in the pipeline set because of the contrast it draws: pipeline validate says 'Invalid plan YAML: \"kind\" must be \"pipeline\"' for a wrong-kind file while experiment validate says 'Experiment doc not found' for the same file (ux-experiment-validate-wrong-kind-says-not-found.md). Same situation, one correct diagnosis and one misdiagnosis - proving the kind-aware message is achievable and should be the template. Keep and link from the experiment/ralph wrong-kind cluster."
+---
+
 # UX: pipeline validate wrong kind message is good (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-pipeline-validate-good-plan-positive.md; retire into it. One of the two should survive as the validate-output reference."
+---
+
 # UX: pipeline validate success panel is good (positive)
 
 ## Summary

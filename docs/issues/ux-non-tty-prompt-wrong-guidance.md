@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as the umbrella for the POE_NO_PROMPT-versus---yes family (configure, install, test, runtime init and gaslight ingest each file it per command). Its one-line framing is the whole issue: the error names an env var while the product contract is --yes, so the message contradicts the documented interface. Retire the per-command instances into it; ux-experiment-install-requires-agent-or-yes-good.md is the in-product counterexample proving the right wording already exists."
+---
+
 # UX: Non-TTY prompts recommend POE_NO_PROMPT not --yes
 
 ## Summary

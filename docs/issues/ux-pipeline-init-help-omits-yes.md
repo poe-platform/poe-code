@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Instance of the global-flags-not-listed family (ux-global-flags-hidden-on-subcommand-help.md); retire into it. Note the irony that --yes has real semantics here beyond accepting defaults: ux-pipeline-init-yes-requires-source-good.md shows it changes what is required, which argues for documenting it per command rather than only globally."
+---
+
 # UX: pipeline init --help omits --yes
 
 ## Summary

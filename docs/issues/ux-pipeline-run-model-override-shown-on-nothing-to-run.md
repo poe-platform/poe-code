@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive worth keeping for one reason: it establishes that pipeline echoes the resolved model in its Config block - exactly the 'show the resolved value' affordance the configure cluster keeps asking for (ux-configure-haiku-full-id-rewrites-to-haiku-4-5.md, ux-configure-cursor-model-flag-silent-noop.md). Cite it there as the in-product precedent. Its nothing-to-run caveat belongs to ux-pipeline-nothing-to-run-success-framing.md."
+---
+
 # UX: pipeline run shows model override even when Nothing to run (positive-ish)
 
 ## Summary

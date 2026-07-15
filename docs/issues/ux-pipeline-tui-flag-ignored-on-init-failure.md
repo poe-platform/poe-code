@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Reasonable but its premise needs care: --tui is not ignored so much as never reached, because the model failure happens during init before any dashboard could open. That makes preflight the real ask - validate the model before entering the TUI path - which is its own suggestion and is sound. Note the underlying failure is the dead sonnet-5 default, so this may largely evaporate with the constants fix; the success-marker half belongs to ux-failure-shown-as-success-markers.md."
+---
+
 # UX: pipeline --tui does not change failure UX when init fails immediately
 
 ## Summary

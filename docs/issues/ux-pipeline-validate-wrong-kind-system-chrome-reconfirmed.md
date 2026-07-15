@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Reconfirm duplicate within the wrong-kind-chrome quartet; retire. Four files for one 'See logs' line on one command is count inflation."
+---
+
 # UX: pipeline validate wrong kind still system chrome (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-pipeline-max-runs-zero-good-validation.md (same observation, transposed filename); retire. The numeric-validation positive family now spans activity-timeout, gaslight ingest limit, markdown-read depth and this - one note covers them all."
+---
+
 # UX: pipeline --max-runs 0 validation is good (positive)
 
 ## Summary

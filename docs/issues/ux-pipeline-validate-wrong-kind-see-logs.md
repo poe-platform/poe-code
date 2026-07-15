@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of four filings of the same wrong-kind-plus-See-logs observation; consolidate. All four agree the message is right and only the chrome is wrong, so they collapse into ux-user-errors-look-like-system-failures.md. Its suggested wording ('Expected pipeline plan, got kind=plan') is the clearest of the four and worth carrying."
+---
+
 # UX: pipeline validate wrong kind has See logs
 
 ## Summary

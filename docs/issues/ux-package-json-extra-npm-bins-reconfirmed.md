@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Fourth filing of the identical bin list, essentially word-for-word with its sibling; retire into ux-extra-npm-bins-still-published-reconfirmed.md. The strongest argument in the family remains that test servers land on the user's PATH."
+---
+
 # UX: package.json publishes extra npm bins (reconfirmed)
 
 ## Summary

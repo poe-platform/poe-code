@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Good catch, correctly High: the JSON says skipped:true and confirmationRequired:true with no reason field, so neither a human nor a script can tell whether the path was invalid, needed --yes, was already archived, or is protected. For a machine contract on a destructive command, an unexplained skip is worse than an error. Its suggested reason enum is exactly right. It is also the best evidence on whether README is protected (ux-plan-archive-allows-readme.md) - the skip may be the protection."
+---
+
 # UX: plan archive --output json can skip with confirmationRequired without human reason
 
 ## Summary

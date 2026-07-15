@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Reconfirm duplicate of ux-opencode-model-triple-namespace.md; retire into it. Its contribution is worth carrying: passing an explicit --model does not avoid the rewrite, which rules out the default path as the cause and confirms the mapping is unconditional."
+---
+
 # UX: configure opencode --model still writes poe/anthropic/… triple namespace
 
 ## Summary

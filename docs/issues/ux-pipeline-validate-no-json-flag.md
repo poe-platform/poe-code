@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Member of the --json inconsistency family (ux-json-flag-inconsistent-across-commands.md); retire into it. Its case is among the strongest in that family: validate exists to be run in CI, so a machine-readable verdict is closer to a core requirement than a nicety - and plan archive already returns JSON (ux-plan-archive-json-output-good.md), so the convention exists."
+---
+
 # UX: pipeline validate has no --json flag
 
 ## Summary

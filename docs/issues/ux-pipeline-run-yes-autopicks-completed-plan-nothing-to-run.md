@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Duplicate in substance of ux-pipeline-run-autopicks-plan-and-ignores-missing-task-context.md; consolidate into one autopick issue. Its evidence is the better of the two because it names the plan silently chosen, showing the selection is real rather than inferred. Benign here only because that plan was already complete - the same autopick with pending tasks would run an agent against a plan the user never named. Its exit-code question (0 or 2 when nothing is pending) is worth answering in the survivor."
+---
+
 # UX: pipeline run --yes autopicks a plan and reports Nothing to run
 
 ## Summary

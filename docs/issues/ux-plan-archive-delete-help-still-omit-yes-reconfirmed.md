@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "One of three filings of the plan archive/delete help gap; consolidate. This is the best of them because it covers both commands and names all three asks: require a path non-TTY, document --yes, and forbid --yes without a path. That last one is the Critical (ux-plan-archive-delete-yes-picks-arbitrary-plan.md), so the help gap is secondary to the behavior fix - sequence it after."
+---
+
 # UX: plan archive/delete help still omit --yes and non-TTY contract (reconfirmed)
 
 ## Summary

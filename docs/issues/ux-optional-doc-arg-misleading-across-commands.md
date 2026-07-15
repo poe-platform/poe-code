@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Honest about its own weakness and should be verified before scheduling: it explicitly reasons by analogy ('Based on the established pattern with experiment journal') rather than running the three commands, so the claim that [doc] is really required is inferred, not tested. The convention point is sound though - square brackets mean optional, and if omitting reliably errors the help is lying. Cheap to confirm: run ralph init, ralph run and experiment run with no doc. Note this file is absent from MASTER.md."
+---
+
 # UX: [doc] marked optional in ralph init/run, experiment run — but likely required
 
 ## Summary

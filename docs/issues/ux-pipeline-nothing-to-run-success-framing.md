@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Fair and well observed: 'Nothing to run' followed by 'Pipeline run finished' plus the Problems footer reads as success when no work occurred, and there is no path forward (re-open tasks, archive). The 21/21 done line is the genuinely useful information and it is buried. Its fix is right: make it an informational outcome with next steps. The Problems-footer half belongs to ux-problems-footer-on-every-success.md."
+---
+
 # UX: pipeline Nothing to run uses success framing with Problems footer
 
 ## Summary

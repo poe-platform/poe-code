@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate within the plan archive help trio; retire. No new evidence."
+---
+
 # UX: plan archive --help still omits --yes (reconfirmed)
 
 ## Summary

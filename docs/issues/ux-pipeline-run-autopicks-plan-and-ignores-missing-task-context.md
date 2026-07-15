@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Correctly High and part of the most important safety pattern in the audit: --task without --plan silently selects some plan, so the command acts on an object the user never named. Same defect as ux-gaslight-no-plan-autopicks-and-hits-stale-model.md and ux-plan-archive-delete-yes-picks-arbitrary-plan.md - autopicking under --yes. One rule closes all three: never infer the target of an action; require it explicitly and list candidates on failure. Its secondary ask (list valid task ids) is the recovery the error should carry."
+---
+
 # UX: pipeline run --task without --plan auto-picks plan
 
 ## Summary

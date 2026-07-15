@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Instance of ux-problems-footer-on-every-success.md; retire into it. Its example is the most pointed in that family and worth quoting: a validation that succeeds ends by asking whether you have problems, which is where the footer's noise becomes self-parody."
+---
+
 # UX: pipeline validate success still ends with Problems? footer
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "One of four filings of the same package.json bin list; consolidate into ux-extra-npm-bins-still-published-reconfirmed.md. Four reconfirms of one static file's contents adds nothing - a single check would settle it."
+---
+
 # UX: package.json still publishes extra npm bins (reconfirmed)
 
 ## Summary

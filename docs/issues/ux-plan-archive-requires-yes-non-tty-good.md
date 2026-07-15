@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Small positive that is decisive for the Critical: it proves the non-TTY --yes guard works when a path is supplied and the file is left untouched. Read with ux-plan-archive-delete-yes-picks-arbitrary-plan.md it isolates the bug precisely - the guard is on the confirmation, not on target selection, so --yes without a path skips straight past it to an autopicked victim. Keep and link; it turns a vague 'add confirmation' into a specific fix."
+---
+
 # UX: plan archive non-TTY requires --yes when path given (positive)
 
 ## Summary

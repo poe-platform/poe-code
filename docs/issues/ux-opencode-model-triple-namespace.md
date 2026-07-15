@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Keep of this pair. Real and part of the id-namespace family: opencode gets a third id shape (poe/owner/model) alongside the catalog's owner/model and claude's bare form - four id languages counting kimi's. Individually each rewrite is probably correct for its agent; collectively there is no documented mapping and no resolved-id echo, which is the actual defect. Consolidate the namespace filings (kimi, gemini, opencode, claude) into one id-normalisation issue."
+---
+
 # UX: OpenCode configure writes poe/anthropic/claude-opus-4.7 triple namespace
 
 ## Summary

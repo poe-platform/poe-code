@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Duplicate within the poe logout scope trio; retire into ux-provider-logout-dry-run-unconfigures-agents.md. Its framing is the clearest of the three and should survive: separate credential logout from agent unconfigure. The rm of both credentials.poe.enc and credentials.enc is worth noting - two credential stores again, echoing ux-provider-login-poe-yes-fails-despite-auth-status-logged-in.md."
+---
+
 # UX: provider logout poe --dry-run also rewrites agent configs
 
 ## Summary

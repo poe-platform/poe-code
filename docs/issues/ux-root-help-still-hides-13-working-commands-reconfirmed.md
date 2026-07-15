@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate of ux-root-help-hides-skill-memory-runtime-eval-and-more.md, near word-for-word; retire. Its only addition is the exit-0 confirmation for each hidden command, worth folding into the canonical as proof these are working surfaces rather than stubs."
+---
+
 # UX: root --help still hides 13+ working commands (reconfirmed)
 
 ## Summary

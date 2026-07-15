@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Instance of the raw-Commander invalid-choice family; retire into ux-raw-commander-invalid-option-choices.md. Its evidence is the strongest in that family and worth carrying: two flags on the same command as --mode fall through to Commander while --mode gets design-system framing, so the inconsistency lives within a single command's own option set."
+---
+
 # UX: invalid --runner-sync/--runtime use raw Commander choice errors
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "One of two filings of ralph run's wrong-kind message; consolidate. Its framing is the better one and names the shared pattern explicitly, which is the argument for fixing kind resolution once across ralph, experiment and superintendent. Its suggestion to point at ralph init is right in principle but blocked by ux-ralph-init-requires-existing-ralph-doc-circular.md - the recommended recovery does not currently work. Sequence the init fix first."
+---
+
 # UX: ralph run on plan-kind doc says Ralph doc not found
 
 ## Summary

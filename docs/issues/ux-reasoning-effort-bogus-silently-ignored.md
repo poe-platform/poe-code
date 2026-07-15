@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "A distinct and useful member of the effort cluster: an invalid level is accepted silently, which means the flag is not merely unapplied (ux-configure-reasoning-effort-still-ignored-always-high.md) but unvalidated - so nothing in the pipeline ever inspects the value. That is corroborating evidence for the 'flag never reaches the write' hypothesis. Its fix pairs with ux-models-parameters-view-good-for-filtered.md: the catalog already exposes each model's valid effort enum, so validation has a data source."
+---
+
 # UX: configure --reasoning-effort bogus is silently ignored
 
 ## Summary

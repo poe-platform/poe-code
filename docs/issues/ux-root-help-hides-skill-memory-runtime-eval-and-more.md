@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: discoverability
+comment: "Keep as canonical of the root help discoverability cluster and correctly Critical: it enumerates thirteen working commands absent from root help and proves each responds to --help, so this is a registration gap rather than a curation choice - half the product is unreachable from the only place users look. Best evidence in the cluster. Its 'group Advanced' suggestion resolves the curation-versus-completeness tension that presumably caused the omission, and ux-important-commands-absent-from-root-help.md contributes the 'more commands' footer idea. The npm run dev half belongs to the identity cluster; keep them separate."
+---
+
 # UX: root --help hides skill, memory, runtime, eval, provider, and more
 
 ## Summary

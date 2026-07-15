@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Third filing of the raw agent resume error; retire into ux-resume-thread-invalid-agent-raw-error.md. Its distinct suggestion is the most useful in the trio and worth carrying: point users at traces to find valid session ids, which turns the error from a rejection into a recovery. Rated High against its Medium twins for identical behavior; normalise."
+---
+
 # UX: invalid --resume-thread-id surfaces raw agent --resume usage text
 
 ## Summary

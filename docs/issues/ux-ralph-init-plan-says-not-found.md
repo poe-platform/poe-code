@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "One of two filings of the ralph init bootstrap problem; consolidate with ux-ralph-init-requires-existing-ralph-doc-circular.md, which names the contradiction more sharply. The finding is real and worth High: init cannot initialise anything, since it requires the doc to already be a ralph doc."
+---
+
 # UX: ralph init on existing plan says Ralph doc not found
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate within the effort cluster; retire into ux-configure-reasoning-effort-still-ignored-always-high.md. It does isolate the cleanest single case - explicit high produces xhigh, so the value is not merely ignored but replaced - though the later sweep found always-high rather than always-xhigh, so this snapshot predates a change in the baked-in constant. Preserve that timeline when merging."
+---
+
 # UX: configure --reasoning-effort high still plans effortLevel xhigh
 
 ## Summary

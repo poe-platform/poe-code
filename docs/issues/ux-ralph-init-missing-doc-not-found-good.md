@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and the necessary control for the ralph cluster: 'Ralph doc not found' is correct here because the path genuinely does not exist. That is precisely what makes the same message wrong in ux-ralph-init-plan-says-not-found.md, where the file exists - one message serving two conditions. Keep as the reference case."
+---
+
 # UX: ralph init missing doc is clear (positive)
 
 ## Summary

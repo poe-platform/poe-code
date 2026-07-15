@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate within the root help footer trio; retire. No new evidence."
+---
+
 # UX: root help footer still says Run npm run dev -- <command> --help
 
 ## Summary

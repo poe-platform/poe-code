@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate within the root help discoverability cluster; retire into ux-root-help-hides-skill-memory-runtime-eval-and-more.md. Its list is longer (it adds braintrust and gh) but it hedges with 'some may be elsewhere', so the canonical's verified per-command evidence is stronger. Carry the extra command names across."
+---
+
 # UX: root help lists ~19 commands but many more exist (skill, memory, …)
 
 ## Summary

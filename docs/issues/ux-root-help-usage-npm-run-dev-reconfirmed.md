@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate within the root usage-line trio; retire. It does usefully separate the two root help problems (identity leak versus hidden commands), which the cluster otherwise keeps conflating - keep them as distinct issues with distinct fixes."
+---
+
 # UX: root --help Usage still npm run dev (reconfirmed)
 
 ## Summary

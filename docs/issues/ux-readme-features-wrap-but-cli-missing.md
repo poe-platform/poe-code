@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Model filing and the only one in the audit that tracks its own resolution: it records the original Critical (README led with a wrap command the CLI lacks), the concurrent commit that fixed the README, the residual risk (external references), and downgrades its own severity accordingly. That discipline is exactly what the reconfirm-heavy clusters lack. Remaining asks are small and sensible: a changelog/FAQ migration note and a did-you-mean for wrap. Its Status note convention is worth adopting across the audit."
+---
+
 # UX: README wrap quickstart removed; wrap command still absent (partially resolved)
 
 ## Summary

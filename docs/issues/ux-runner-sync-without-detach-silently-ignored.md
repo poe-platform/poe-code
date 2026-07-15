@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "One of two filings of the same silent no-op; consolidate with ux-runner-sync-without-runtime-silently-accepted.md. Real and part of the flag-dependency family with ux-detach-runtime-host-still-inline.md and ux-capture-otel-content-without-capture-silent.md: spawn accepts several flags whose preconditions are unmet and does nothing about it. One rule closes the family - reject a flag whose dependency is unsatisfied. Its error wording is the best-specified in the family."
+---
+
 # UX: --runner-sync without --detach is silently ignored
 
 ## Summary

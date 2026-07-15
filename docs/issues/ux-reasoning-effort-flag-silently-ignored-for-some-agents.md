@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "One of the more analytically useful effort filings: it contrasts claude (flag not reflected) with codex (model_reasoning_effort visibly changes), suggesting the defect is claude-specific rather than global - the opposite conclusion to ux-configure-reasoning-effort-still-ignored-always-high.md, whose sweep found the value tracking existing settings. Resolve the two before fixing. Its 'always print resolved effort' ask is the right general answer either way, since it makes the failure visible."
+---
+
 # UX: --reasoning-effort may be silently ignored or not reflected for Claude configure
 
 ## Summary

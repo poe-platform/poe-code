@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Instance of the global-flags-not-listed family; retire into ux-global-flags-hidden-on-subcommand-help.md. Its option list is incidentally useful evidence for ux-gaslight-no-activity-timeout-flag.md: ralph run has runtime, detach and worktree but no activity timeout, confirming the runner flag surfaces diverge."
+---
+
 # UX: ralph run --help omits --yes
 
 ## Summary

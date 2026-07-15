@@ -1,3 +1,9 @@
+---
+severity: high
+impact: security
+comment: "One of three filings of the poe provider-logout scope problem; consolidate into ux-provider-logout-dry-run-unconfigures-agents.md. Its distinct detail is the most damning: the agent diffs include effortLevel and backup deletes, so a credential logout plans to mutate agent settings and remove backups - which is also where the secret leak originates (ux-logout-dry-run-still-prints-secrets-reconfirmed.md). Fix the scope and the leak surface shrinks."
+---
+
 # UX: provider logout poe --dry-run still plans agent config mutations
 
 ## Summary

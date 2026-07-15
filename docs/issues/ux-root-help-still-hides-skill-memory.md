@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Narrow duplicate within the root help discoverability cluster (skill and memory only); retire into the canonical. Its framing is the sharpest small version of the argument: root help lists plan and gaslight while omitting skill and memory, so the curation is not obviously principled - a reader cannot infer why one made the cut."
+---
+
 # UX: root help still lists plan/gaslight but not skill/memory (reconfirmed)
 
 ## Summary

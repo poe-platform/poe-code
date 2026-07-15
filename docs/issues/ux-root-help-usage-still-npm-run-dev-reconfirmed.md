@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Third duplicate within the root usage-line trio; retire. Like its sibling it qualifies the finding with 'when run via tsx', the caveat the whole identity cluster needs: verify against an installed binary before treating six or seven High filings as real user-facing defects."
+---
+
 # UX: root help Usage still npm run dev (reconfirmed)
 
 ## Summary

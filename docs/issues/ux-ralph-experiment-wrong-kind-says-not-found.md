@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Contentless but it correctly identifies the cross-command scope: the wrong-kind-as-missing bug spans ralph and experiment, so the fix belongs in shared kind resolution. Retire into ux-experiment-ralph-no-doc-wrong-message.md and the wrong-kind canonical; its value is confirming the pattern is not per-command."
+---
+
 # UX: Ralph/experiment wrong kind not found
 
 ## Summary

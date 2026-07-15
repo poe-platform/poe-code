@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Third duplicate within the did-you-mean quartet; retire. Rated High against its Medium twins for identical behavior; normalise on merge."
+---
+
 # UX: root typos still have no Did you mean (reconfirmed)
 
 ## Summary

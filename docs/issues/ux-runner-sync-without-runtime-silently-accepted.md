@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Duplicate of ux-runner-sync-without-detach-silently-ignored.md; retire into it. Rated Medium against that file's High for identical behavior; normalise. Its own note that this is 'similar to --detach without runtime' is the useful observation - these should be one flag-dependency issue rather than four."
+---
+
 # UX: --runner-sync without --runtime/--detach is silently accepted
 
 ## Summary

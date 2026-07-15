@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Valid and distinct from the empty-message cluster: this is the wrong-kind case, where a file that exists is reported as not found because its frontmatter kind is plan rather than experiment. 'Not found' for an existing file is a misdiagnosis that sends users hunting a path problem. Merge with ux-experiment-validate-wrong-kind-says-not-found.md and ux-experiment-journal-wrong-doc-type-message.md; same family as the ralph wrong-kind filings. One rule: distinguish missing from wrong-kind and name the kind found."
+---
+
 # UX: experiment journal on plan-kind doc says Experiment doc not found
 
 ## Summary

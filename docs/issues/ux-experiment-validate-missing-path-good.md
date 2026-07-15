@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, useful precisely for the contrast it draws: the same 'Experiment doc not found' message is correct here (the path genuinely does not exist) and wrong in ux-experiment-validate-wrong-kind-says-not-found.md (the file exists but is the wrong kind). That pairing proves the two conditions need distinct messages rather than that the message is bad. Keep as the reference case."
+---
+
 # UX: experiment validate missing path is clear (positive)
 
 ## Summary

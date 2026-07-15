@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: data-loss
+comment: "One of the two or three most important files in the audit and correctly Critical: --mode read plus --no-archive both promised safety and the plans directory was still mutated (a plan moved into archive/), caught only because the auditor checked git status. The evidence is strong and specific - including the underlying invocation (claude -p Implement ... --permission-mode plan), which reveals the mechanism: read mode is forwarded to the agent as a permission mode while gaslight itself still issues an Implement prompt and performs its own archiving, so the safety flags never governed gaslight's own filesystem actions. Fix at that level, not by tweaking copy. Ties to ux-gaslight-help-says-plan-to-implement.md and the Implement-default cluster."
+---
+
 # UX: gaslight --mode read --no-archive still mutated plans/ (agent archive)
 
 ## Summary

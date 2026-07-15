@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical for the ingest problems (fullest transcript). Of the three asks it bundles, the missing --dry-run matters most because ingest is high-cost: users cannot preview how many traces/prompts would be analysed before paying for it. It also reveals something the title understates - --dry-run is not merely absent, it falls through to a TTY prompt error, so the global flag silently does not apply here. Split: (a) --dry-run support, (b) UserError instead of JSONL dump, (c) the non-TTY message, which duplicates its sibling."
+---
+
 # UX: gaslight ingest has no --dry-run; failures dump JSONL; non-TTY POE_NO_PROMPT obscure
 
 ## Summary

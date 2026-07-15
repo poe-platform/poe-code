@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of this pair. Sharper than it looks: the copy is not merely awkward, it accurately documents the destructive default that ux-gaslight-mode-read-still-mutated-plans-dir.md proves is real - so help is describing a behavior that should not exist. Do not fix the copy alone; that would ratify the default. Settle the behavior question (should a bare plan path imply Implement?) and let the copy follow."
+---
+
 # UX: gaslight help says plan-path is Markdown plan to implement
 
 ## Summary

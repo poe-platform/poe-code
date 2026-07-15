@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-experiment-journal-wrong-kind-says-not-found.md on validate rather than journal; merge. Its added coverage is worth keeping: both an agent-goal plan and a pipeline plan produce the same false 'not found', so the defect sits in shared kind resolution rather than one command's error path."
+---
+
 # UX: experiment validate on non-experiment plan says not found (reconfirm class)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of the experiment --force trio; retire into ux-experiment-install-force-still-fails-already-exists.md. Its one useful nuance is the alternative reading it offers: if --force only scaffolds other files and was never meant to touch the skill, the help is the bug rather than the behavior - settle that before implementing an overwrite."
+---
+
 # UX: experiment install --force still errors Skill already exists
 
 ## Summary

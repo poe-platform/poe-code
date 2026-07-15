@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Keep as canonical for the Implement-by-default problem: passing a path alone launches an implementation run against a large plan with no preview or confirmation, and --mode read does not prevent it because the Implement intent lives in gaslight's own prompt. This is the behavioral statement of what ux-gaslight-help-says-plan-to-implement.md sees in the copy and what ux-gaslight-mode-read-still-mutated-plans-dir.md proves has consequences. Its 'dry-run shows prompt only' suggestion is the cheapest safe fix."
+---
+
 # UX: gaslight <plan.md> starts Implement without confirmation
 
 ## Summary

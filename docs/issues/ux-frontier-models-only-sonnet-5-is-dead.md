@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Excellent diagnostic work and the most immediately actionable file in the sonnet-5 cluster: it checks every FRONTIER_MODELS entry against the catalog and proves only sonnet-5 is dead (0/341) while the rest resolve, narrowing the Critical fix to one string plus the goose context map. Keep alongside ux-constants-source-of-dead-sonnet-5.md - that names the location, this bounds the change. Together they reduce the fix to a few lines plus the CI check that prevents recurrence."
+---
+
 # UX: FRONTIER_MODELS only sonnet-5 is dead; others resolve in catalog
 
 ## Summary

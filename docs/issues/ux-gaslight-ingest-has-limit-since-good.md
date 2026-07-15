@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Valuable positive: --since 30d and --limit 200 defaults are exactly the bounded-output pattern the unbounded commands lack. Cite it as the in-product precedent from ux-runtime-jobs-ls-help-no-limit-or-since.md, ux-models-dumps-full-catalog.md and ux-runtime-templates-ls-unbounded-noise.md - it proves the convention exists and only needs propagating. Its own 'apply elsewhere' suggestion is the actionable half."
+---
+
 # UX: gaslight ingest has --limit and --since (positive)
 
 ## Summary

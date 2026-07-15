@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Critical is defensible only as a collision, not as a new defect: it stacks three already-filed bugs (empty flag ignored, dead sonnet-5 default, success glyph on failure) into one transcript. Nothing here needs its own fix - the empty-flag policy (ux-empty-model-flag-behavior-inconsistent.md), the constants change (ux-constants-source-of-dead-sonnet-5.md) and the glyph fix (ux-failure-shown-as-success-markers.md) close it entirely. Its value is as evidence of how the three compound; retire into those rather than scheduling separately."
+---
+
 # UX: gaslight --model "" falls back to dead claude-sonnet-5
 
 ## Summary

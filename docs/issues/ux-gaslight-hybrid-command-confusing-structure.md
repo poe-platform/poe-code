@@ -1,3 +1,9 @@
+---
+severity: low
+impact: discoverability
+comment: "Thoughtful structural observation, correctly Low: gaslight is both an action and a group, which no other command in the CLI does, making it hard to document and hard to tab-complete. Not urgent, but this kind of shape gets more expensive to change later, and it interacts with ux-completion-command-missing.md, which needs a consistent command shape to generate from. Note this file is absent from MASTER.md - untracked by the master list."
+---
+
 # UX: gaslight is a hybrid command — both runs directly and has subcommands
 
 ## Summary

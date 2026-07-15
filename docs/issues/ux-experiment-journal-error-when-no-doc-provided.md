@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Sharpest filing in the kind-unaware cluster and genuinely distinct: it identifies a contract contradiction the others miss - help advertises [doc] as optional, so omitting it should do something sensible, yet it errors and then instructs the user to supply the argument help called optional. That reframes the fix as a choice: implement the discovery the optional arg implies (list experiment journals, as plan list does) or mark it required. Keep as canonical for the [doc] contract; the wrong-message half belongs to ux-experiment-ralph-no-doc-wrong-message.md."
+---
+
 # UX: experiment journal shows confusing error when [doc] arg is omitted
 
 ## Summary

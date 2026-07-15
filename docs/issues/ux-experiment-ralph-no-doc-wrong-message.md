@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the kind-unaware empty-message cluster: the only filing spanning both experiment and ralph, which proves the defect lives in the shared doc-discovery layer rather than one command, and it carries the ls evidence showing the message is factually false. Absorbs the experiment journal/run/validate twins. Fix once: name the kind that was filtered for and how to create such a doc."
+---
+
 # UX: experiment/ralph no-doc says no markdown under docs/plans despite many plans
 
 ## Summary

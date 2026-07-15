@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate within the kind-unaware cluster (experiment run rather than journal); retire into ux-experiment-ralph-no-doc-wrong-message.md. Its suggested wording - naming 'kind=experiment' explicitly in the message - is the clearest in the cluster and should survive."
+---
+
 # UX: experiment run empty says no markdown under docs/plans
 
 ## Summary

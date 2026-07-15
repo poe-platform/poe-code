@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Another instance of the systemic UserError-vs-system-chrome issue: the message ('Plan file not found') is already right and only the 'See logs' tease is wrong. Retire into ux-user-errors-look-like-system-failures.md; the gaslight-specific residue is just the 'suggest gaslight install' recovery."
+---
+
 # UX: gaslight missing plan still system chrome (reconfirmed)
 
 ## Summary

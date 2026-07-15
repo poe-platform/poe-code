@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of the non-TTY half of ux-gaslight-ingest-no-dry-run-and-jsonl-dump.md; retire into it or into the shared non-TTY message issue (ux-configure-non-tty-demands-poe-no-prompt-not-yes.md). Its distinct observation should survive though: the global --dry-run is not honoured at all here, which is a stronger claim than 'the message names the wrong flag' - a global flag that silently does nothing is a correctness problem."
+---
+
 # UX: gaslight ingest non-TTY demands POE_NO_PROMPT not --yes/--dry-run
 
 ## Summary

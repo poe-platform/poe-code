@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate of ux-extra-npm-bins-still-published-reconfirmed.md; retire into it. Its 'global install pollutes PATH with test servers' framing is the sharpest statement of why this matters and should be the wording that survives."
+---
+
 # UX: package still ships many extra npm bins (reconfirmed)
 
 ## Summary

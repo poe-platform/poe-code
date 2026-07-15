@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the eval empty-source cluster; retire into ux-eval-empty-source-message-inconsistent-skins.md. Its suggested replacement ('No evals found. Run eval init <name>.') is the best-worded recovery in the cluster and should be the text that survives."
+---
+
 # UX: eval report empty source uses --debug stack tease
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Small but genuinely interesting, and it complicates the did-you-mean cluster: suggestions already exist here and produce a semantically useless answer ('list' -> 'lint'), which is evidence that simply propagating edit-distance suggestions to the root command (ux-command-not-found-no-suggestions.md, ux-toolcraft-has-suggestions-poe-code-root-does-not.md) is not sufficient. Read together, distance matching needs an alias map (list -> report) and a floor for meaningless matches. Keep as the counterexample."
+---
+
 # UX: eval list unknown command suggests lint (odd Did you mean)
 
 ## Summary

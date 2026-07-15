@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Per-command npm run dev filing with no distinct content; retire into ux-development-mode-usage-intentional-but-leaks.md. The eval group alone contributes four of these (eval, eval run, eval init, eval report) - all one fix."
+---
+
 # UX: eval init help Usage npm run dev
 
 ## Summary

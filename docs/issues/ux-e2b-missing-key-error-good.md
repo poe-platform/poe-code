@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and a good model for recovery copy: it names the env var and the config path, so the user can act without searching. Cite it from ux-configure-provider-requires-model-without-listing-models.md and ux-braintrust-status-disabled-no-next-step.md, which fail exactly where this succeeds. Its 'See logs' residue is the systemic UserError issue, not an E2B problem."
+---
+
 # UX: E2B missing API key error is good (positive)
 
 ## Summary

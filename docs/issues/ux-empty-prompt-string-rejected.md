@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern that quietly documents a real inconsistency: spawn says 'No prompt provided via argument or stdin' while agent says 'Prompt must not be empty' for the same user error. Both behaviors are correct, so the residue is wording unification - fold into the empty-flag policy work (ux-empty-model-flag-behavior-inconsistent.md), where identical inputs should produce consistent messages across commands."
+---
+
 # UX: empty prompt string rejected (positive for spawn/agent)
 
 ## Summary

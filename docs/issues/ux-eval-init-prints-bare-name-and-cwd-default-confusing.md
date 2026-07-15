@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the four eval init filings: it is the only one that catches the behavioral half - the eval is created in cwd rather than under evals/, so the scaffold lands where the rest of the tooling does not look. That is a real surprise and it explains the stray untracked directories other filings noticed. Absorbs the three framing-only twins; the bare-stdout and npm run dev halves belong to the design-system and identity clusters."
+---
+
 # UX: eval init prints bare name and creates cwd folder not under evals/
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Third filing of the missing-EDITOR complaint and contentless; retire into the consolidated issue. The underlying point is the systemic UserError chrome problem rather than anything specific to the editor."
+---
+
 # UX: Missing EDITOR system chrome
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the eval empty-source cluster; retire into ux-eval-empty-source-message-inconsistent-skins.md. Its 'suggest eval init' direction is the correct recovery and should survive the merge."
+---
+
 # UX: eval lint/check empty source same bare message
 
 ## Summary

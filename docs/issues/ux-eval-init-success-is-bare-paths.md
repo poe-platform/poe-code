@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Fourth filing of the eval init bare-success observation; retire into ux-eval-init-prints-bare-name-and-cwd-default-confusing.md. Its 'confirm what was created' framing is the right ask and should survive: the current output names the eval but never lists the files, so users cannot tell what the scaffold produced."
+---
+
 # UX: eval init success is bare path lines without design-system framing
 
 ## Summary

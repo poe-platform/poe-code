@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Second of four eval init filings; retire into ux-eval-init-prints-bare-name-and-cwd-default-confusing.md. Its incidental observation is worth carrying: repeated eval init runs during the audit left untracked directories behind - a process note about probe pollution rather than a product defect."
+---
+
 # UX: eval init creates folder in cwd with bare success lines (reconfirm)
 
 ## Summary

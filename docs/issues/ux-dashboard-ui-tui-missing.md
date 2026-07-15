@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "Duplicate of ux-dashboard-command-missing.md; keep one. Its added value is breadth - dashboard, ui and tui are all rejected - which argues the fix should cover the obvious synonyms rather than a single exact word. The npm run dev half belongs to the identity cluster."
+---
+
 # UX: dashboard/ui/tui commands missing (product surface gap)
 
 ## Summary

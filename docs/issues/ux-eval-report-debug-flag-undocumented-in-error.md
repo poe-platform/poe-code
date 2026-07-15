@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Duplicate within the eval empty-source cluster; retire into ux-eval-empty-source-message-inconsistent-skins.md. Its distinct angle is thin but fair - the error advertises --debug, a flag users have no other exposure to - which argues for dropping the tease rather than documenting it."
+---
+
 # UX: eval report error mentions --debug but may be undocumented
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Distinct from the two 'dashboard missing' files and legitimate: q and Ctrl+C exist in the toolcraft-design keymap, but --tui help documents neither, so users cannot know graceful exit exists and may kill the process instead. Cheap with real value, and printing the legend on dashboard start beats help text because it appears where it is needed. Applies to every --tui surface (pipeline, experiment, ralph) - fix once."
+---
+
 # UX: Dashboard quit keybindings undocumented on pipeline/experiment/ralph help
 
 ## Summary

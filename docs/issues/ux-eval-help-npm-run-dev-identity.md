@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "One of many per-command npm run dev filings with no distinct content; retire into the root cause ux-development-mode-usage-intentional-but-leaks.md."
+---
+
 # UX: eval help Usage still npm run dev
 
 ## Summary

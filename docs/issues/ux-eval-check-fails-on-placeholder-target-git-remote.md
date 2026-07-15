@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "The most serious eval filing and the only one about broken behavior rather than presentation: the scaffold produced by eval init cannot survive its own suggested next command, and it fails with a git remote-helper error that says nothing about the real cause (a placeholder target URL). Two fixes, both needed: scaffold a runnable target, and validate the target with a UserError instead of letting git fail raw. Prioritise over the eval help/framing cluster - this breaks the documented first-run path."
+---
+
 # UX: eval check fails with opaque git remote-helper error on scaffolded eval
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Per-command npm run dev filing with no distinct content; retire into ux-development-mode-usage-intentional-but-leaks.md."
+---
+
 # UX: eval run missing params uses npm run dev in recovery
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Reconfirm of the empty --api-key issue on configure; retire into ux-empty-api-key-login-good-but-configure-ignores.md, which covers the same behavior with the decisive login contrast. Its one useful detail is that the existing Bearer still appears in the plan, confirming the empty flag is dropped rather than merely unused."
+---
+
 # UX: --api-key "" still silently ignored on configure (reconfirmed)
 
 ## Summary

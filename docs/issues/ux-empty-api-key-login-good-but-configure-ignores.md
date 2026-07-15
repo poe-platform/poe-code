@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Best filing of the empty --api-key family and the right canonical: it proves login already rejects an empty key with a clear message while configure silently proceeds, turning this from 'add validation' into 'apply the validation that already exists' - much cheaper, with an in-repo reference. Absorbs ux-empty-api-key-flag-silently-ignored.md and ux-empty-api-key-flag-still-silently-ignored.md. The same argument shape resolves ux-empty-model-flag-behavior-inconsistent.md."
+---
+
 # UX: login rejects empty API key; configure --api-key "" still proceeds
 
 ## Summary

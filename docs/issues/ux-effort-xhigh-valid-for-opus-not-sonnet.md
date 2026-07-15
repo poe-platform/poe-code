@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Valuable and distinct from the 'flag ignored' effort files: it establishes with catalog evidence that xhigh is valid for opus-4.7 but not sonnet-4.6, proving a hard-coded effort value cannot be correct for all models regardless of whether the flag is honoured. Keep as the model-aware-defaults requirement. Key sequencing insight: it survives the sonnet-5 to 4.6 fix, so the constants change will not close it and it needs its own work."
+---
+
 # UX: effortLevel xhigh is valid for opus-4.7 but not sonnet-4.6
 
 ## Summary

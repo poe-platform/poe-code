@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Near-duplicate of ux-eval-lint-missing-eval-structured-table-good.md (same lint table, warnings rather than errors); consolidate. Worth carrying over: the W004 warning about pinning target.ref to a full SHA shows lint already reasons about eval targets, which is directly relevant to the broken placeholder target in ux-eval-check-fails-on-placeholder-target-git-remote.md - lint may already be capable of catching that scaffold problem."
+---
+
 # UX: eval lint warning table is good (positive)
 
 ## Summary

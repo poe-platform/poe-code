@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "One of the strongest filings in the audit: it runs --model \"\" through agent, spawn and configure in one place and gets three different behaviors - a clean error, a fall-through to the dead sonnet-5 default producing a 400 at runtime, and a silent ignore that still plans a write. That comparison is an argument no single-command file can make, and the spawn case shows how empty-flag tolerance and the dead default compound into a late, confusing failure. Keep as canonical for the empty-flag policy; resolve as one rule - an explicit empty flag is always a ValidationError and never falls back."
+---
+
 # UX: Empty --model behavior differs across agent/spawn/configure
 
 ## Summary

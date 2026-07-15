@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Contentless ('Some eval plain text.', 'Toolcraft errors.'); retire into ux-eval-empty-source-message-inconsistent-skins.md, which demonstrates the same point with evidence. No independent value."
+---
+
 # UX: eval bare plain errors
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Valid, tiny, correctly Low: '/experiment' in the description is an internal skill-path reference that reads like a stray CLI fragment, and the --agent description ends mid-sentence. Both are one-line copy fixes. Note this file is absent from MASTER.md, so it is untracked by the master list - add it, or accept that the master count understates the backlog."
+---
+
 # UX: experiment install description embeds internal path "/experiment"
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Distinct from the bare-success cluster and reasonable: the kebab-case rule is stated correctly but unframed and without an example, and the trigger is a realistic mistake (passing a path where a name is expected). The better fix is to detect the path-like input specifically and say so, rather than restating the naming rule - that is what the user actually got wrong. Precedent for the shape: ux-configure-unknown-api-shape-lists-exposed.md."
+---
+
 # UX: eval init invalid name is bare text without design-system
 
 ## Summary

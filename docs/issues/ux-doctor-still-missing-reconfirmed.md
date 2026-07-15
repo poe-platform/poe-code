@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Reconfirm duplicate with no argument beyond 'still missing'; retire into ux-doctor-still-missing-reconfirmed-2026-07-08.md. Recording the absence of one command four times at two different severities adds nothing."
+---
+
 # UX: doctor still missing (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Real and well evidenced: --detach --runtime host runs inline and returns no job id, so the flag silently does nothing. Pairs with ux-detach-without-runtime-still-inline-reconfirmed.md - together they show detach is a no-op both with and without a runtime, which suggests the flag is unwired rather than misconfigured. Answer the product question first: is host detach meaningful at all? If not, error; if yes, return a job id. Same silent-no-op family as ux-runner-sync-without-detach-silently-ignored.md."
+---
+
 # UX: --detach --runtime host still runs inline without job id
 
 ## Summary

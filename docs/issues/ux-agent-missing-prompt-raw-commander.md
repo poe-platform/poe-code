@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-agent-spawn-missing-args-raw-commander.md, which reports the same raw-Commander gap for both agent and spawn and is the better filing. Retire into it."
+---
+
 # UX: agent missing prompt is raw commander error
 
 ## Summary

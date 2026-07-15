@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Canonical filing for timeout-as-system-error. Valid: an activity timeout is an expected user condition, so system error chrome plus a 'See logs' tease sends users to logs that explain nothing. Fix is UserError plus an actionable hint to raise --activity-timeout-ms. Absorbs ux-activity-timeout-1ms-works-but-chrome.md."
+---
+
 # UX: --activity-timeout-ms timeout uses system error chrome
 
 ## Summary

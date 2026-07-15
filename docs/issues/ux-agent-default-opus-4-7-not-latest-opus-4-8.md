@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: maintenance
+comment: "Not a defect: 4.7 resolves and works, so this is a currency/pin-policy question rather than a bug, and it should not be swept into the Critical sonnet-5 cluster where the default is genuinely dead. Absorbs the contentless ux-agent-default-model-hardcoded.md. Resolve by picking one policy and writing it down: either track the latest frontier automatically or state that DEFAULT_FRONTIER_MODEL is pinned deliberately for stability."
+---
+
 # UX: agent default is opus-4.7 while catalog has newer opus-4.8
 
 ## Summary

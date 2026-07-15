@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Keep as the canonical positive of this pair: it has the live run plus the constants and it names the real insight - a split brain where DEFAULT_FRONTIER_MODEL is live while DEFAULT_CLAUDE_CODE_MODEL is dead sonnet-5. Its value is as supporting evidence for the Critical sonnet-5 cluster, not as a standalone issue. Retire ux-agent-default-model-is-opus-4-7-good.md into it."
+---
+
 # UX: agent default model (opus-4.7) works (positive contrast to sonnet-5)
 
 ## Summary

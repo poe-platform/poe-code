@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, no code change. Keep this as the canonical of the three duplicate 0/-1 validation filings: it has the fullest repro and is the only one that states the reusable rule (apply this ValidationError style to all numeric/enum flags), which is the actual value here. Retire the other two."
+---
+
 # UX: activity-timeout-ms 0 validates well (positive pattern)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: usability
+comment: "Mis-filed as a positive pattern: the only complaint here (timeout rendered with 'See logs' system chrome) is exactly what ux-activity-timeout-ms-uses-system-chrome.md files at Medium. Not an independent issue. Fold into that one and keep this only as evidence that 1ms timeout enforcement works."
+---
+
 # UX: activity-timeout-ms 1 kills spawn correctly but system chrome
 
 ## Summary

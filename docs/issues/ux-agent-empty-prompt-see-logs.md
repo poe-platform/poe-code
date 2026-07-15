@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "The message itself is already correct; only the 'See logs' tease is wrong. So this carries no independent design decision - it is the systemic UserError-classification issue (ux-user-errors-look-like-system-failures.md) observed on 'agent \"\"'. Keep as one instance, fix centrally."
+---
+
 # UX: agent empty prompt has See logs on ValidationError
 
 ## Summary

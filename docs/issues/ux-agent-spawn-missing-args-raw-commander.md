@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep as canonical for raw-Commander missing-argument errors: it covers both agent and spawn and absorbs ux-agent-missing-prompt-raw-commander.md and ux-spawn-missing-agent-raw-commander.md. The fix belongs at the Commander integration layer (exitOverride / showHelpAfterError mapped into a design-system ValidationError with an example), not per command, because ux-raw-commander-missing-args.md reports the identical skin break elsewhere."
+---
+
 # UX: agent/spawn missing required args still raw Commander
 
 ## Summary

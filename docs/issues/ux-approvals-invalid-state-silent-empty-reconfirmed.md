@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Keep as canonical of this pair (it has the repro). Valid and worth fixing: an unvalidated --state silently returns 'No approvals found', which is indistinguishable from a genuinely empty queue, so a user can conclude nothing is pending when their filter was simply misspelled. Validate the enum and list valid states. Same silent-empty-filter class as ux-models-search-empty-returns-all.md and ux-usage-list-empty-filter-returns-all.md - fix as a family."
+---
+
 # UX: approvals list --state bogus still silent empty (reconfirmed)
 
 ## Summary

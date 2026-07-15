@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, no code change; duplicate of ux-approvals-list-empty-good.md differing only by --state pending. Retire into that one."
+---
+
 # UX: approvals list --state pending empty is clear (positive)
 
 ## Summary

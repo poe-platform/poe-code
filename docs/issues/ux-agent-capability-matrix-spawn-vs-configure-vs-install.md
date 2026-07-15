@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Root-cause filing worth keeping. The error is actively wrong, not just unhelpful: pi IS known, it is spawn-only, so 'Unknown agent' misdiagnoses the situation and sends users looking for a typo. Two fixes: (1) per-agent capability metadata as the single source so spawn/configure/install lists derive from it and cannot drift; (2) spawn-only agents answer 'pi is spawn-only, not configurable'. Same root cause as ux-test-and-install-reject-spawn-only-agents-as-unknown.md, ux-unconfigure-pi-unknown-not-spawn-only.md and ux-unknown-agent-no-allow-list-or-suggestions.md - fix once, close all four."
+---
+
 # UX: spawn/configure/install agent lists disagree (capability matrix)
 
 ## Summary

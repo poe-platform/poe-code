@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, no code change. Third duplicate of the --activity-timeout-ms 0 validation observation; adds only the -1 case and a note to reuse the style for gaslight timeouts. Merge that detail into ux-activity-timeout-zero-good-validation.md and retire this file."
+---
+
 # UX: --activity-timeout-ms 0/-1 validates cleanly (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Duplicate of ux-approvals-invalid-state-silent-empty-reconfirmed.md with thinner evidence; retire into it. No independent value beyond confirming the behavior a second time."
+---
+
 # UX: approvals bad --state empty
 
 ## Summary

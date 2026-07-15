@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: security
+comment: "Two unrelated defects bundled in one file; split before scheduling. (a) agent --help advertises --api-key, the same shell-history/ps exposure class as configure and provider login - duplicates ux-agent-api-key-flag-on-help.md. (b) help hard-codes a stale default model (opus-4.7), a help-accuracy bug with a different owner and fix. The Medium severity also understates (a) relative to the High/Critical secrets filings; re-rate after the split."
+---
+
 # UX: agent --help exposes --api-key flag and shows potentially stale default model
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the runtime-jobs not-found trio (attach variant); retire. Filing the same message once per subcommand is mechanical duplication - the message comes from one lookup."
+---
+
 # UX: runtime jobs attach missing id has See logs
 
 ## Summary

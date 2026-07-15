@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Best evidence in the runtime jobs cluster: dozens of jobs reported 'running' with dates spanning weeks, listed as candidates when stop/attach is called without an id. Consolidate with ux-runtime-jobs-logs-ambiguous-lists-many-including-running.md. The zombie state is the root (ux-runtime-jobs-stale-running-zombies.md) and its 'prune dead PIDs' suggestion is the concrete fix - liveness can be checked cheaply on host. Its 'jobs stop --all-stale' idea is a good escape hatch."
+---
+
 # UX: runtime jobs stop without id lists many stale "running" jobs from June
 
 ## Summary

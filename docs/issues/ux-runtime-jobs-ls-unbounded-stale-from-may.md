@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-runtime-jobs-ls-unbounded-may-era-reconfirmed.md; retire into it. Its --json ask is worth carrying to the --json family since an unbounded table is exactly where machine output helps most."
+---
+
 # UX: runtime jobs ls is unbounded with jobs from May (reconfirmed)
 
 ## Summary

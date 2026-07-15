@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "Keep of this pair as the one with the actionable ask. Correctly diagnosed: the per-agent paths (.agents/skills for goose, .claude/skills for claude) are right and undocumented, so users cannot find their skills without trial and error. A table of skill directories per agent is the fix, and it belongs with the capability-matrix work since it is the same 'per-agent facts live nowhere' problem."
+---
+
 # UX: skill configure goose writes ./.agents/skills without explaining layout
 
 ## Summary

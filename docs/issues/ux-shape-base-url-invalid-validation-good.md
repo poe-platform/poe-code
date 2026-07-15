@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-shape-base-url-invalid-format-validation-good.md; retire into it. One of the two should survive as part of the consolidated 'configure validates its own flags well' note, alongside the unknown-shape and unknown-provider positives."
+---
+
 # UX: --shape-base-url invalid format validates cleanly (positive)
 
 ## Summary

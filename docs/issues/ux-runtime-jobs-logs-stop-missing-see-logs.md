@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Third duplicate within the runtime-jobs not-found trio; retire into the consolidated issue. No distinct content."
+---
+
 # UX: runtime jobs logs/stop missing id has See logs
 
 ## Summary

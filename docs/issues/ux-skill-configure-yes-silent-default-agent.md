@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Third duplicate within the skill configure silent-default trio; retire. Rated High against its Medium twins for identical behavior; normalise. Its aggravating detail is worth carrying: the silent default writes project files, so the consequence is a filesystem change rather than a config value - the same escalation as ux-plan-install-yes-defaults-claude-writes-skill.md."
+---
+
 # UX: skill configure --yes without agent silently defaults to claude-code
 
 ## Summary

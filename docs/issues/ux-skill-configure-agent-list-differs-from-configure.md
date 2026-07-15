@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep as canonical of this pair: the only filing with both lists side by side, correctly naming all five missing agents. Its scenario is the concrete cost - a user who ran 'configure claude' will try 'skill configure claude' and fail on an alias the sibling command accepts. Its first suggestion is right and matches the capability-matrix cluster: derive both lists from one source. If some agents genuinely lack skill support, say so rather than omitting them silently - ux-skill-configure-kimi-not-supported-clear.md shows the good wording already exists."
+---
+
 # UX: skill configure --help agent list is a subset of configure --help agent list
 
 ## Summary

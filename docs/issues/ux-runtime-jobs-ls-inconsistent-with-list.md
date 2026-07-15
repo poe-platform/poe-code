@@ -1,3 +1,9 @@
+---
+severity: low
+impact: discoverability
+comment: "Careful and correct: harness/worktree/provider/plan all use 'list' while runtime jobs and memory use 'ls', so the pattern users learn fails on two commands. Its own aside is the giveaway - it lists 'memory ls' among the list-style commands then notes memory is also inconsistent, showing how easily the exception is overlooked. An alias is the cheap fix and costs nothing. Same naming-consistency family as the plan-path noun problem."
+---
+
 # UX: runtime jobs uses "ls" subcommand instead of "list" like all other commands
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Instance of the POE_NO_PROMPT-versus---yes family; retire into ux-non-tty-prompt-wrong-guidance.md. Its own question is worth keeping and is sharper than the family's usual complaint: --type host|docker|e2b already supplies the only value the prompt would ask for, so it is unclear why it prompts at all - that may be a genuine bug rather than a message problem. Verify before merging."
+---
+
 # UX: runtime init non-TTY demands POE_NO_PROMPT not --yes
 
 ## Summary

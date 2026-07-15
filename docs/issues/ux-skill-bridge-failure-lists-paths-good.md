@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Strong positive and the best not-found recovery in the product: it names the unresolved reference and lists every path searched, so the user can see exactly where to put the file. That is the shape the memory INDEX and harness discovery failures need (ux-memory-show-cannot-open-root-index-file.md, ux-harness-list-only-cwd-not-created-dir.md), where 'not found' is asserted without saying where the tool looked. Cite as the reference; its See logs residue is the systemic issue."
+---
+
 # UX: skill bridge failure lists searched paths (positive with chrome)
 
 ## Summary

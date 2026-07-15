@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Fair and honest: the empty value is correctly rejected, so this is presentation only - the error lists the offending reference as a bare dash, which reads as a rendering artefact rather than 'you passed an empty string'. Its fix is right and belongs with the empty-flag family: validate the empty string at the flag before it reaches the bridge, and the awkward rendering disappears with it."
+---
+
 # UX: --skill "" fails as Malformed skill reference with empty dash
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Fair-minded and useful: the Docker/E2B missing-dependency messages are the best recovery copy in the product (install links, env var, config path) and they are dressed as crashes with a useless log pointer. Its framing is the sharpest statement of the systemic UserError issue - 'chrome trains crash response' - and it makes the case that classification matters most precisely where the content is already good. Retire into ux-user-errors-look-like-system-failures.md, keeping this as the exemplar."
+---
+
 # UX: Missing Docker/E2B deps have excellent recovery text but system-error chrome
 
 ## Summary

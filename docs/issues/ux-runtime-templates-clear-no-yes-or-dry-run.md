@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Keep as canonical of this pair and the more serious half: templates clear deletes cached entries (21 in the sibling's evidence) with no --dry-run to preview and no documented --yes, and --dry-run itself fails with the POE_NO_PROMPT error - so the safe-preview path is unreachable. That combination is worse than either flag being absent alone. Its fix is right: --yes plus a --dry-run that lists entries."
+---
+
 # UX: runtime templates clear has no --yes/--dry-run; demands POE_NO_PROMPT
 
 ## Summary

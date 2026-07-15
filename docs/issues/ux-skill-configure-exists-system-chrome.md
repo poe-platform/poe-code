@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of this trio (best evidence: the global path fails on an existing skill while --local succeeds). Three problems compound: already-exists is treated as a system error rather than idempotent success, there is no --force, and global and local behave differently for the same command. Part of the installer-idempotency umbrella, and the rule from ux-config-init-already-exists-good.md settles it. Note the target is 'poe-generate.md', a skill the audit never mentions elsewhere - worth checking the default skill set is what users expect."
+---
+
 # UX: skill configure fails Skill already exists with system chrome
 
 ## Summary

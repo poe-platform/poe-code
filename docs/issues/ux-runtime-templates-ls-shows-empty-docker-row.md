@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: polish
+comment: "Duplicate of ux-runtime-templates-ls-empty-rows.md; retire into it. Its distinct observation is worth keeping: the empty docker row is ambiguous about whether docker is configured at all, so the placeholder does not merely look odd - it misleads about state."
+---
+
 # UX: runtime templates ls shows empty docker placeholder row
 
 ## Summary

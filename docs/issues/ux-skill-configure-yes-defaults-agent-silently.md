@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of three filings of the same silent-default-agent observation on skill configure; consolidate. All belong to the silent-defaults family whose rule is single: --yes announces every default it resolves. Its 'refuse without agent in CI' alternative is worth considering for commands that write project files."
+---
+
 # UX: skill configure --yes silently defaults agent
 
 ## Summary

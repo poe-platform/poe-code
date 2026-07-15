@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Reconfirm duplicate; retire into ux-runtime-jobs-ls-help-no-limit-or-since.md. It adds --status to the wish list, worth carrying: given the zombie-running problem, filtering by status is how users would find live jobs."
+---
+
 # UX: runtime jobs ls --help has no filters (reconfirmed)
 
 ## Summary

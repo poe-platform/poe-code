@@ -190,6 +190,7 @@ export interface GeneratedSkill {
 export interface GeneratedCommand {
   noun: string;
   verb: string;
+  topLevel: boolean;
   exportName: string;
   filePath: string;
   operationId: string;
@@ -568,6 +569,7 @@ function applyConfiguredCommandShape(
 
     command.noun = createSafeGeneratedNoun(match.noun);
     command.verb = createSafeGeneratedVerb(match.verb);
+    command.topLevel = false;
     command.examples = config?.readme?.examples?.[match.exampleKey];
     applyConfiguredRawResponse(command);
     applyConfiguredIdempotency(command, match.method, config);
@@ -663,8 +665,12 @@ function createSafeGeneratedVerb(value: string): string {
 }
 
 function refreshGeneratedCommandNames(command: GeneratedCommand): void {
-  command.exportName = `${toCamelCase(command.noun)}${toPascalCase(command.verb)}Command`;
-  command.filePath = `${command.noun}/${command.verb}.ts`;
+  command.exportName = command.topLevel
+    ? `${toCamelCase(command.verb)}Command`
+    : `${toCamelCase(command.noun)}${toPascalCase(command.verb)}Command`;
+  command.filePath = command.topLevel
+    ? `${command.verb}.ts`
+    : `${command.noun}/${command.verb}.ts`;
 }
 
 export function collectGeneratedCommand(
@@ -724,16 +730,26 @@ function createGeneratedCommand(
   const auth = getOperationAuthMode(document, operation, operationId);
   const response = resolveSuccessResponse(document, operation, operationId);
   const noun = createSafeGeneratedNoun(deriveNoun(operation, entry.path, operationId));
-  const verb = deriveVerb(entry.method, entry.path, operation, operationId, noun);
+  const derivedVerb = deriveVerb(entry.method, entry.path, operation, operationId, noun);
   const collected = collectParams(document, entry, operation, operationId, auth, response.mode);
   const positional = collectPathPositionals(entry.path, collected.params, operationId);
+  const topLevel =
+    entry.method === "get" &&
+    operation.tags?.some((tag) => tag.length > 0) !== true &&
+    positional.length === 0 &&
+    derivedVerb === METHOD_DEFAULTS.get?.collection &&
+    normalizeNoun(operationId) === noun;
+  const verb = topLevel ? noun : derivedVerb;
   const methodDefaults = METHOD_DEFAULTS[entry.method];
-  const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
-  const filePath = `${noun}/${verb}.ts`;
+  const exportName = topLevel
+    ? `${toCamelCase(verb)}Command`
+    : `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
+  const filePath = topLevel ? `${verb}.ts` : `${noun}/${verb}.ts`;
 
   return {
     noun,
     verb,
+    topLevel,
     exportName,
     filePath,
     operationId,
@@ -3217,9 +3233,10 @@ function collectTagDescriptions(document: OpenApiDocument): Map<string, string> 
 
 function createIndexFile(commands: GeneratedCommand[], document: OpenApiDocument): GeneratedFile {
   const groups = groupByNoun(commands);
+  const topLevelCommands = commands.filter((command) => command.topLevel);
   const tagDescriptions = collectTagDescriptions(document);
 
-  if (groups.length === 0) {
+  if (commands.length === 0) {
     return {
       path: "index.ts",
       contents: createGeneratedTypeScriptFile(["export const generatedCommands = [] as const;", ""])
@@ -3227,14 +3244,14 @@ function createIndexFile(commands: GeneratedCommand[], document: OpenApiDocument
   }
 
   const lines = createGeneratedTypeScriptFileLines();
-  lines.push('import { defineGroup } from "toolcraft";');
+  if (groups.length > 0) {
+    lines.push('import { defineGroup } from "toolcraft";');
+  }
 
-  for (const { commands: nounCommands } of groups) {
-    for (const command of nounCommands) {
-      lines.push(
-        `import { ${command.exportName} } from ${JSON.stringify(`./${command.filePath.replace(/\.ts$/, ".js")}`)};`
-      );
-    }
+  for (const command of [...topLevelCommands, ...groups.flatMap(({ commands }) => commands)]) {
+    lines.push(
+      `import { ${command.exportName} } from ${JSON.stringify(`./${command.filePath.replace(/\.ts$/, ".js")}`)};`
+    );
   }
 
   if (lines.length > 1) {
@@ -3254,7 +3271,10 @@ function createIndexFile(commands: GeneratedCommand[], document: OpenApiDocument
   }
 
   lines.push(
-    `export const generatedCommands = [${groups.map(({ noun }) => toCamelCase(noun)).join(", ")}] as const;`
+    `export const generatedCommands = [${[
+      ...topLevelCommands.map((command) => command.exportName),
+      ...groups.map(({ noun }) => toCamelCase(noun))
+    ].join(", ")}] as const;`
   );
   lines.push("");
 
@@ -3489,8 +3509,7 @@ function renderSkillCommandCatalogLine(commandName: string, command: GeneratedCo
 function renderSkillCommandLine(commandName: string, command: GeneratedCommand): string {
   const parts = [
     commandName,
-    command.noun,
-    command.verb,
+    ...(command.topLevel ? [command.verb] : [command.noun, command.verb]),
     ...command.positional.map((paramName) => `<${paramName}>`)
   ];
   const requiredFlags = command.params.filter(

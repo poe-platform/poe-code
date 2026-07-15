@@ -11,6 +11,9 @@ export function groupByNoun(
   const groups = new Map<string, GeneratedCommand[]>();
 
   for (const command of commands) {
+    if (command.topLevel) {
+      continue;
+    }
     const current = groups.get(command.noun);
 
     if (current === undefined) {

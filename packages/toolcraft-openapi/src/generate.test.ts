@@ -2201,6 +2201,46 @@ describe("generate", () => {
     expect(files.map((file) => file.path)).toContain("agent/whoami.ts");
   });
 
+  it("emits untagged singleton GET endpoints as top-level commands", () => {
+    const files = generate(
+      createDocument({
+        "/v1/whoami": {
+          get: {
+            operationId: "whoami",
+            summary: "Whoami",
+            responses: {
+              "200": {
+                description: "Viewed."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toContain("whoami.ts");
+    expect(files.find((file) => file.path === "whoami.ts")?.contents).toContain(
+      'name: "whoami"'
+    );
+    expect(files.find((file) => file.path === "index.ts")?.contents).toContain(
+      "export const generatedCommands = [whoamiCommand] as const;"
+    );
+    const skill = generateSkill(
+        createDocument({
+          "/v1/whoami": {
+            get: {
+              operationId: "whoami",
+              responses: { "200": { description: "Viewed." } }
+            }
+          }
+        }),
+        { commandName: "poe-agent-tools" }
+      ).contents;
+    expect(skill).toContain("poe-agent-tools whoami");
+    expect(skill).not.toContain("poe-agent-tools whoami whoami");
+  });
+
   it("drops duplicated tag prefixes from slash-delimited operationIds", () => {
     const files = generate(
       createDocument({

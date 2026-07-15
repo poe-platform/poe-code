@@ -122,7 +122,7 @@ function createSupportedOperation(
   return {
     ...metadata,
     status: "supported",
-    commandPath: `${command.noun} ${command.verb}`
+    commandPath: command.topLevel ? command.verb : `${command.noun} ${command.verb}`
   };
 }
 

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate of ux-superintendent-builder-inspector-npm-run-dev.md; retire. Rated High against that file's Medium for identical output; normalise. Its 'displayBinaryName for all toolcraft groups' framing is the correct scope and matches the root cause."
+---
+
 # UX: superintendent builder/inspector help uses toolcraft npm run dev identity
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Reconfirm duplicate within the Unclosed-tag trio; retire into ux-superintendent-validate-unclosed-tag.md. Its suggested wording ('Expected superintendent kind, found plan') is the best in the trio and matches what complete already emits."
+---
+
 # UX: superintendent validate wrong kind reports Unclosed tag
 
 ## Summary

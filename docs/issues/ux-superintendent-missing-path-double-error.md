@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate in shape of ux-code-review-drafts-missing-arg-double-error.md; consolidate into one issue about the toolcraft double-error. Its contribution is the pattern claim - superintendent and code-review both double-render and both misidentify the binary - which localises the fix to the shared toolcraft Commander integration rather than either command. With ux-models-endpoint-bogus-double-error-and-stack.md and ux-runtime-templates-parent-no-default-subcommand.md that makes four double-render sightings; worth checking they share one cause."
+---
+
 # UX: superintendent validate/complete missing path double-errors with npm run dev
 
 ## Summary

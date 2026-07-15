@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate within the capability-matrix family; retire into ux-agent-capability-matrix-spawn-vs-configure-vs-install.md. Its contribution is scope: test's agent list also diverges from spawn's, so the matrix spans spawn/configure/install/test/skill/wrap - six commands with six lists, which is the argument for deriving them all from one source."
+---
+
 # UX: test --help omits pi and poe-agent (spawn-only agents)
 
 ## Summary

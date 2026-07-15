@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; consolidate with the other test-works positives into one note. Collectively they are the control the sonnet-5 cluster needs - every agent's health check passes with a live model - which is worth stating once rather than per agent."
+---
+
 # UX: test goose with valid model succeeds (positive)
 
 ## Summary

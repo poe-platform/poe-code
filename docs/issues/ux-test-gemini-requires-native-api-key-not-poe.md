@@ -1,3 +1,9 @@
+---
+severity: high
+impact: capability-gap
+comment: "The clearest statement of the gemini problem and it reframes the whole gemini cluster: test demands GEMINI_API_KEY, so gemini-cli is not wired to Poe credentials at all - which means ux-spawn-gemini-provider-credential-opaque-error.md is a capability gap wearing an error message, not a copy defect. Consolidate the gemini filings under this reading and answer the product question first: is gemini meant to work via Poe? The correct error text depends entirely on the answer."
+---
+
 # UX: test gemini demands GEMINI_API_KEY not Poe credential
 
 ## Summary

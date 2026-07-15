@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate within the superintendent identity group; retire into the root cause. No new evidence."
+---
+
 # UX: superintendent help still npm run dev (reconfirmed)
 
 ## Summary

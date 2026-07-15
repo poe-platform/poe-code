@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Useful small positive: it proves an explicit --mode overrides the --yes yolo default, so the escape hatch works and the Critical is about the default rather than broken precedence. That bounds the fix - only the fallback needs changing. Keep and link from ux-spawn-yes-defaults-mode-to-yolo.md."
+---
+
 # UX: spawn --yes --mode read works (positive override of yolo default)
 
 ## Summary

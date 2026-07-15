@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Contentless duplicate within the Unclosed-tag trio; retire into ux-superintendent-validate-unclosed-tag.md. Its distinct ask is the useful half and survives the merge: if a parse error is genuinely the right answer, it must carry a line and column - 'Unclosed tag' with no location is unactionable even for a real superintendent doc."
+---
+
 # UX: superintendent validate Unclosed tag
 
 ## Summary

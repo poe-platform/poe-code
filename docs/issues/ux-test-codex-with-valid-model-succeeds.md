@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; consolidate with the test-works positives (goose, cursor, sonnet-4.6). Its suggested direction is the actionable half and is the sonnet-5 fix restated: default test models should be catalog-valid per agent, which is exactly what ux-constants-source-of-dead-sonnet-5.md addresses."
+---
+
 # UX: test codex with valid model succeeds (positive)
 
 ## Summary

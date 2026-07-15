@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Duplicate of ux-spawn-yes-defaults-mode-to-yolo.md; retire into it. Its fairness is worth carrying - it concedes the help does document the behavior - but that concession is undercut by ux-spawn-yes-not-in-options.md: the documentation lives inside another flag's parenthetical, which is not where anyone looks for the semantics of --yes."
+---
+
 # UX: spawn --yes defaults to yolo mode (help says so; verify awareness)
 
 ## Summary

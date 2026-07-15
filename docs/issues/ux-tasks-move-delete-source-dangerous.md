@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Duplicate of ux-tasks-import-delete-source-dangerous.md (same flag on the sibling command); consolidate into one --delete-source safety issue. Same caveat: the claim is inferred from help text rather than tested, so verify whether --yes is already enforced before scheduling."
+---
+
 # UX: tasks move --delete-source is dangerous without --yes requirement in help
 
 ## Summary

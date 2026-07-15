@@ -1,3 +1,9 @@
+---
+severity: high
+impact: capability-gap
+comment: "Third filing of the worktree parity gap; retire into ux-gaslight-has-worktree-spawn-does-not.md. Its list is the broadest (gaslight, ralph, pipeline, experiment all have it), which strengthens the case: spawn is the only runner without it, so the omission looks accidental rather than principled."
+---
+
 # UX: --worktree missing on spawn (present on gaslight/ralph/etc)
 
 ## Summary

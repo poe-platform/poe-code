@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Good catch, and the second finding is the actionable one: [doc] is listed inside OPTIONS despite being positional, so users will try --doc <path> and fail - the help actively teaches a wrong invocation. That is worse than the duplicated section header, though the split OPTIONS/Options: blocks are themselves evidence of the two-help-systems problem rendering both formats in one panel. Its fix is right: one Options section, [doc] under Arguments."
+---
+
 # UX: superintendent run --help splits into two option sections; [doc] listed as option
 
 ## Summary

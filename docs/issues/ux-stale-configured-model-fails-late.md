@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Good framing of the cost the sonnet-5 cluster imposes: a bad model id is accepted at configure and only surfaces mid-run as an API 400 dressed in success glyphs, so users pay setup time before learning anything. Its two fixes are the ones the cluster converges on - validate on configure (ux-configure-accepts-any-string-as-model-no-catalog-check.md) and preflight before spawn. Retire into those, keeping the late-failure argument as the justification."
+---
+
 # UX: Stale configured models fail only at run time
 
 ## Summary

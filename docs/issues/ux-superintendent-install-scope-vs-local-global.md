@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate within the installer-flags family; retire into ux-install-skill-flags-inconsistent-across-commands.md, which documents all five contracts including this one. Its alias suggestion is the pragmatic fix - keep --scope working while standardising on --local/--global."
+---
+
 # UX: superintendent install uses --scope while others use --local/--global
 
 ## Summary

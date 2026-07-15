@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Reconfirm duplicate within the GitHub 401 cluster; retire. Its 'secrets-adjacent noise' note is worth a glance though: raw API error payloads can echo request context, so redaction is worth checking while mapping the error - the same concern as the dry-run secrets cluster."
+---
+
 # UX: tasks GitHub 401 still dumps raw GraphQL JSON (reconfirmed)
 
 ## Summary

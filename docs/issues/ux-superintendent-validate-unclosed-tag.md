@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of the Unclosed-tag trio. Real and worth High: validate is handed a plan-kind file and reports a parse error rather than a kind mismatch, so the user hunts a malformed tag in a document that is simply the wrong type. Its diagnosis is right - kind should be checked before parsing. The decisive evidence is in-product: ux-superintendent-complete-wrong-kind-debug-tease.md shows complete already reports 'kind must be superintendent' for the same input, so validate is the outlier and the correct check already exists."
+---
+
 # UX: superintendent validate on plan says Unclosed tag
 
 ## Summary

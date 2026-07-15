@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Notable because it is the good outcome for the wrong-kind case: 'frontmatter kind must be superintendent' correctly diagnoses the problem, unlike validate's 'Unclosed tag' on the same class of input. So the residue is only the --debug tease, which belongs to the debug-tease family. Worth linking from ux-superintendent-validate-wrong-kind-unclosed-tag.md: complete already does what validate should."
+---
+
 # UX: superintendent complete wrong kind uses --debug stack tease
 
 ## Summary

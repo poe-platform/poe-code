@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Careful filing with three findings, of which the third is substantive: the run row dumps every flag inline so the line runs off-screen at normal widths, making the Commands list unreadable rather than merely inconsistent. The all-caps COMMANDS header and doubled 'poe-code' in the title are cosmetic. Consolidate with ux-eval-help-npm-run-dev-and-inline-flags.md, which reports the identical shape for eval - and note its own conclusion there: the two share a command-registration pattern, so fix at the source."
+---
+
 # UX: superintendent --help uses all-caps headers, inline flag dump, wrong title prefix
 
 ## Summary

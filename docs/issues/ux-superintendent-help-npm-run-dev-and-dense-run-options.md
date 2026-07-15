@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate combining the identity leak with the dense options dump; split and retire - the identity half into ux-development-mode-usage-intentional-but-leaks.md, the options half into ux-superintendent-help-format-inconsistencies.md, which states it better."
+---
+
 # UX: superintendent help is npm run dev with dense run option dump
 
 ## Summary

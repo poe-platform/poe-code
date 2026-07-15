@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep of this pair (better evidence: it shows the default working and the help omitting it). Real and slightly ironic: the one group that gets the default-action question right is the one that never documents it, so users cannot discover the behavior the rest of the CLI should copy. Fix is small - list balance as a command or state the default."
+---
+
 # UX: usage --help hides default balance behavior (reconfirmed)
 
 ## Summary

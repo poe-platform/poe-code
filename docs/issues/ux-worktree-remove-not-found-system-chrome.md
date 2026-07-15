@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Fifth filing within the worktree not-found chrome cluster; retire into ux-user-errors-look-like-system-failures.md. Five files for one message on two subcommands is count inflation."
+---
+
 # UX: worktree remove not found uses system chrome
 
 ## Summary

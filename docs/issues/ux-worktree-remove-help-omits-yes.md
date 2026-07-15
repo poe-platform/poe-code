@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep of this pair (covers both the help omission and the not-found chrome, with evidence that --yes is accepted despite being undocumented - the classic help/behavior mismatch of the global-flags family). Its two halves route to ux-global-flags-hidden-on-subcommand-help.md and ux-user-errors-look-like-system-failures.md respectively."
+---
+
 # UX: worktree remove --help omits --yes but accepts it; missing not-found has See logs
 
 ## Summary

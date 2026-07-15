@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate of ux-utils-symlink-help-unformatted-white-text.md, which documents the same unstyled help more completely; consolidate. Its distinct finding is worth carrying and is not cosmetic: the Options section is missing entirely, so users cannot see that -h is valid - a help-content gap rather than a colour issue."
+---
+
 # UX: utils symlink --help title renders in white, missing design-system pink color
 
 ## Summary

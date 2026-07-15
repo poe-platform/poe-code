@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: capability-gap
+comment: "Duplicate of ux-utils-config-path-subcommand-missing.md; consolidate. Its own hedge is worth noting - show already prints the paths in its header - so the gap is only that scripts must scrape them, a smaller problem than a missing capability. Same machine-output question as the --json family."
+---
+
 # UX: utils config has no path subcommand (show/init/edit only)
 
 ## Summary

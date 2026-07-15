@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate of ux-usage-list-filter-works.md (same flag, different search term). Consolidate. Its --json aside belongs to ux-usage-list-no-json-flag.md."
+---
+
 # UX: usage list --filter works well (positive)
 
 ## Summary

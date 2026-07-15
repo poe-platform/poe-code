@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Duplicate of ux-group-commands-usage-shows-options-not-command.md, which catches the same pattern across six groups including utils; retire into it. Its own note says as much ('same issue documented for poe-code skill')."
+---
+
 # UX: utils --help Usage line says [options] instead of [command]
 
 ## Summary

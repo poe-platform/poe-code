@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and a genuinely good dry-run: it names both filesystem operations (rename then symlink) so the user can see exactly what would happen. Its own suggestion is the useful residue and pairs with ux-utils-symlink-skills-scope-error-vs-agents.md: a dry-run should not require --yes, since previewing is the safe operation. A small real inconsistency - --yes gating a command that changes nothing."
+---
+
 # UX: utils symlink skills --yes --local --dry-run works (positive after scope flags)
 
 ## Summary

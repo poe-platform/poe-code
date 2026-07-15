@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate in substance of ux-utils-config-show-dumps-large-json.md (same output, framing rather than volume); consolidate. Its '---' divider observation is the useful detail: the command invents its own section style rather than using the design system - another instance of the two-output-languages problem."
+---
+
 # UX: utils config show dumps raw JSON with --- section headers, no design-system panel
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "One of five filings of the dev-build version nag; consolidate into ux-version-nags-dev-to-major-jump.md. Worth noting the cluster disagrees on the target version (4.0.0 versus 4.0.1), which is expected drift over the audit window but confirms the files were written at different times rather than duplicated blindly."
+---
+
 # UX: version nag 0.0.0-dev → 4.0.1 still present (reconfirmed)
 
 ## Summary

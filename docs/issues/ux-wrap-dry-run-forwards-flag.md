@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Predates the wrap removal and is now moot: ux-readme-features-wrap-but-cli-missing.md and ux-wrap-command-still-missing.md both confirm 'poe-code wrap' returns Unknown command, so this transcript describes a command that no longer exists. Close as obsolete rather than merging. Its observation was good though and worth remembering if wrap ever returns: forwarding --dry-run into the agent's argv invents a flag the user never passed and misrepresents what would run."
+---
+
 # UX: wrap --dry-run invents agent --dry-run
 
 ## Summary

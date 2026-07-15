@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: correctness
+comment: "Instance of the empty-flag family; retire into ux-empty-model-flag-behavior-inconsistent.md, whose single rule covers it. Worth noting the irony it exposes: usage list has the best no-match message in the product (ux-usage-list-no-match-message-good.md) and still cannot tell an empty filter from no filter."
+---
+
 # UX: usage list --filter "" returns all entries
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Keep as canonical of this pair (most complete: title, commands, usage line and section headers all unstyled). Its claim that this is the only completely unstyled help in the CLI makes it a useful probe rather than a nit - a single command bypassing the design system entirely suggests a different render path, and ux-memory-status-title-not-pink.md reports the same white title elsewhere, so the two may share a cause. Investigate together."
+---
+
 # UX: utils symlink --help renders entirely in white — design system not applied
 
 ## Summary

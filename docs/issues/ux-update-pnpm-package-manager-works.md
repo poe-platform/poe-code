@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-update-package-manager-pnpm-dry-run-good.md - same command, same output, near-identical title; retire. The pair is the clearest example of the audit filing one observation twice under transposed names."
+---
+
 # UX: update --package-manager pnpm works (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-usage-list-filter-works-well.md; retire. Filing the same filter twice with different arguments is the audit's most common duplication pattern, visible across models, traces and usage."
+---
+
 # UX: usage list --filter works (positive)
 
 ## Summary

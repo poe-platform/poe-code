@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Part of the missing-root-verb trio with 'version' and 'help'; consolidate into one aliasing change. Its case is the strongest of the three: whoami is a standard identity verb, auth whoami already works and returns clean JSON (ux-auth-whoami-field-shape-good.md), so a root alias is trivial. Its npm run dev half belongs to the identity cluster."
+---
+
 # UX: whoami only under auth, root whoami missing
 
 ## Summary

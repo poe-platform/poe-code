@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Keep of this pair (better-specified ask: 'utils config path [--global|--project]' printing absolute paths). Modest but real and cheap: the paths exist inside show's output, so exposing them alone is trivial and serves both scripting and documentation. Precedent already exists - the plan-path commands print a bare path for exactly this purpose."
+---
+
 # UX: utils config path is not a subcommand
 
 ## Summary

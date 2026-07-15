@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Keep as the canonical already-exists positive and cite it widely: it is the reference the installer-idempotency cluster needs, where the same condition produces a hard error (experiment), a system error with a debug tease (superintendent, memory, skill) or a false success (pipeline). Its own suggestion says it: mirror this for skill and memory installs. One small file settling a five-command inconsistency."
+---
+
 # UX: utils config init already exists is calm info (positive)
 
 ## Summary

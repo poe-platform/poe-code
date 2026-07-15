@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of five worktree not-found/chrome filings; consolidate. All are instances of ux-user-errors-look-like-system-failures.md where the message is already correct. The shared residue - suggest worktree list - is worth keeping since the registry is otherwise invisible."
+---
+
 # UX: worktree reconcile not found uses system chrome
 
 ## Summary

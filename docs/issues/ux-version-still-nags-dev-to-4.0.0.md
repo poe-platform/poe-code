@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Reconfirm duplicate within the version-nag cluster; retire into ux-version-nags-dev-to-major-jump.md. No new evidence."
+---
+
 # UX: version still nags 0.0.0-dev → 4.0.0 (reconfirmed)
 
 ## Summary

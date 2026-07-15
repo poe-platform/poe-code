@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Member of the --json inconsistency family; retire into ux-json-flag-inconsistent-across-commands.md. Its case is among the better ones and worth carrying: usage is cost data, so CI cost reporting is a real scripting need, and it correctly notes traces/tasks/plan already have machine output - making this the odd one out rather than a new feature."
+---
+
 # UX: usage list has no --json while other list commands do
 
 ## Summary

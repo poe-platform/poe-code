@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Keep of this positive pair as the reference status card: it names the value, the breakdown, the next grant and a next-step link - the shape ux-memory-status-after-write-is-terse.md and ux-braintrust-status-minimal-disabled.md both lack. Cite as the template for status output across the CLI."
+---
+
 # UX: usage balance presentation is good (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the worktree reconcile trio; retire into ux-raw-commander-missing-args.md and the ordering issue above. No distinct content."
+---
+
 # UX: worktree reconcile missing --agent is raw commander error
 
 ## Summary

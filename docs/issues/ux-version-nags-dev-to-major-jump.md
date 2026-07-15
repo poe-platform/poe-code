@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Keep as canonical of the five-file version-nag cluster: best framing (a 0.0.0-dev build compared against a published major is meaningless, and the suggested npm install -g would replace the contributor's local build). Correctly diagnosed as contributor noise rather than a user-facing defect - which caps its priority. Its fix is right: skip the update check for dev/local builds entirely rather than tuning the comparison."
+---
+
 # UX: version nags 0.0.0-dev → 4.0.0 major jump
 
 ## Summary

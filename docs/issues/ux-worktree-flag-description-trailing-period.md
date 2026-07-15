@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "The smallest finding in the audit and correctly rated 'Low (systemic)': one flag description ends with a period where no other does, across four commands. Its own diagnosis is the interesting part - the shared description was written outside the flag convention - which makes it a one-line fix in one place. Worth doing only inside a broader copy pass; alone it is not worth a commit. Note this file is absent from MASTER.md."
+---
+
 # UX: --worktree flag description ends with period across all run commands
 
 ## Summary

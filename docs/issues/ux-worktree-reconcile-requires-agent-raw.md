@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Third duplicate within the worktree reconcile trio; retire. Its --yes-not-in-help aside belongs to the global-flags family."
+---
+
 # UX: worktree reconcile requires --agent via raw commander
 
 ## Summary

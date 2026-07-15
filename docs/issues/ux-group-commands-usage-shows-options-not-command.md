@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Careful systemic filing with a real diagnosis: six group commands advertise [options] when they require [command], while memory/runtime/provider/auth/pipeline/experiment get it right - so this is a registration inconsistency rather than copy, and the correct pattern already dominates. One internal error to fix on merge: the summary says 'Four group commands' while the table lists six. Its 'Low (systemic)' rating is the honest one: individually trivial, collectively a coherent single-pass fix."
+---
+
 # UX: Multiple group commands show [options] instead of [command] in Usage line
 
 ## Summary

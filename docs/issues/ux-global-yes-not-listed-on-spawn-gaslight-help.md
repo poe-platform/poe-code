@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Best-evidenced member of the global-flags family: spawn mentions --yes only obliquely inside the --mode description while gaslight omits it entirely, which is exactly how a global flag becomes invisible. Merge with ux-global-flags-hidden-on-subcommand-help.md and treat this as its evidence. The spawn detail matters beyond discoverability: the only mention of --yes is the one warning that it implies yolo (ux-spawn-yes-defaults-mode-to-yolo.md)."
+---
+
 # UX: global --yes not listed on spawn/gaslight command help (reconfirmed via files)
 
 ## Summary

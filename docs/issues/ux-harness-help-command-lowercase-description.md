@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Correct and trivially fixable, and notably this is Commander's own auto-generated 'help [command]' entry rather than repo copy - meaning the same lowercase description appears on every command group, not just harness. Fix once in the Commander configuration and it closes CLI-wide; same family as ux-provider-help-command-lowercase-systemic.md, which spotted the systemic scope. Merge the two."
+---
+
 # UX: harness --help lists "help [command]" with lowercase description
 
 ## Summary

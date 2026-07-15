@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Careful observation with two findings, the second being the more substantive: the Commands: section under 'gaslight run --help' lists ingest and install, which are siblings rather than children, so the help asserts a hierarchy that does not exist. That is a consequence of the hybrid shape in ux-gaslight-hybrid-command-confusing-structure.md and should be fixed with it. The title breadcrumb half is cosmetic. Note this file is absent from MASTER.md."
+---
+
 # UX: gaslight run --help title shows "Poe - gaslight" instead of "Poe - gaslight run"
 
 ## Summary

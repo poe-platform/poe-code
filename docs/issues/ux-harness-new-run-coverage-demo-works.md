@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate of ux-harness-run-coverage-demo-works.md (same new+run end-to-end check, same kind). Consolidate. Worth keeping in the survivor: the end-to-end path works once the kind is known, which isolates the harness problem to discoverability rather than function."
+---
+
 # UX: harness new+run coverage-demo works (positive)
 
 ## Summary

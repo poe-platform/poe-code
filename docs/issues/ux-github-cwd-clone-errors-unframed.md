@@ -1,3 +1,9 @@
+---
+severity: medium-high
+impact: usability
+comment: "Thinner twin of ux-github-cwd-clone-errors-still-raw-git.md; retire into it. Its one useful contribution is the argument that raises severity: this is a featured README capability, so a raw-git first impression matters more here than the same defect would elsewhere. Rated Medium-High against the twin's High for identical behavior; normalise."
+---
+
 # UX: github:// clone errors unframed
 
 ## Summary

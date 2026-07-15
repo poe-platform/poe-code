@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep as canonical of this pair. Standard instance of the systemic UserError chrome issue - message right, 'See logs' wrong - so retire into ux-user-errors-look-like-system-failures.md. The harness-specific residue worth keeping is the recovery: suggest harness list or harness new, which is more valuable here than elsewhere because both kinds and paths are hard to discover."
+---
+
 # UX: harness run missing md uses system chrome
 
 ## Summary

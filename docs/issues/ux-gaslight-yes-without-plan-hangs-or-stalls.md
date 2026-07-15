@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "Apparent contradiction with ux-gaslight-no-plan-autopicks-and-hits-stale-model.md, which reports that --yes without a plan autopicks and runs rather than stalling - same invocation shape, different outcome, with the model as the only obvious difference. Resolve before scheduling: a 45s stall with no output is either the autopick path being slow or a genuine hang, and the two files disagree about which. Either way both propose the same sound fix: require an explicit plan non-TTY and fail fast."
+---
+
 # UX: gaslight --yes without plan path stalls non-TTY
 
 ## Summary

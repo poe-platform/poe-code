@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Two things tangled. The valid part is the opaque error: 'Cannot resolve providerCredential: no active provider on context' leaks internal resolution vocabulary with no recovery steps - same class as ux-spawn-gemini-provider-credential-opaque-error.md, so consolidate. The invalid part is the framing: --dry-run is not supposed to establish readiness, so 'dry-run does not help readiness' is expected rather than a defect. Keep the error-copy ask, drop the dry-run complaint."
+---
+
 # UX: spawn gemini still fails providerCredential after configure dry-run only
 
 ## Summary

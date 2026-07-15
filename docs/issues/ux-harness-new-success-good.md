@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, but its 'add next-step run command' suggestion is the important half and is not cosmetic: because harness list cannot see --dir output (ux-harness-list-only-cwd-not-created-dir.md), the success line is the user's only pointer to what was created. Printing 'next: harness run <path>' is what makes the created pair reachable at all. Fold into that issue."
+---
+
 # UX: harness new success is good (positive)
 
 ## Summary

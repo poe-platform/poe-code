@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Keep as the one with an actionable ask, but note it directly contradicts the two positives praising this same output - and the contradiction is informative: plan list is criticised for drawing a bordered empty table while harness list is criticised for not drawing a panel. Both cannot be right. Settle the empty-state convention once (ux-worktree-list-empty-state-unframed.md reports the same for worktree) and apply it everywhere."
+---
+
 # UX: harness list empty state renders as bare bullet, not a panel
 
 ## Summary

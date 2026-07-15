@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate within the kinds cluster; retire into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. It does correctly identify the two places the list must appear - help and the unknown-kind error - which is the fix shape."
+---
+
 # UX: harness new unknown kind does not list templates
 
 ## Summary

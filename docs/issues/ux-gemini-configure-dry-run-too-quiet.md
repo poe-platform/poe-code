@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate in shape of the cursor 'too quiet' dry-run pair with gemini substituted; consolidate into one cross-agent dry-run fidelity issue rather than one per agent. Its framing is the most useful in the family and should survive: 'too quiet is as bad as too noisy' - the codex flood and this silence are the same missing capability, an intentional-only plan. Note it contradicts ux-configure-gemini-dry-run-minimal-good.md, which praises this same output."
+---
+
 # UX: configure gemini --dry-run is almost silent about what changes
 
 ## Summary

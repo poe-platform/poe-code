@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Third Critical filing of the sonnet-5 root cause, overlapping ux-constants-source-of-dead-sonnet-5.md (which pins the file and every consumer) and ux-frontier-models-only-sonnet-5-is-dead.md (which bounds the fix to one string). Its distinct contribution is the runtime blast radius - gaslight, pipeline and spawn all failing with 400 - which is the best argument for the severity. Consolidate the three into one root-cause issue carrying all three angles: location, minimal diff, and impact."
+---
+
 # UX: Product defaults still hard-code anthropic/claude-sonnet-5 which API rejects
 
 ## Summary

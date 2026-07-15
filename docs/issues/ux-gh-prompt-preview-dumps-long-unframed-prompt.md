@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate in shape of ux-code-review-prompt-preview-unframed.md - same toolcraft-hosted prompt-preview, same unframed multi-screen dump, same --json ask; consolidate into one prompt-preview presentation issue. The --json half is the useful part: these outputs are long enough that a machine mode beats nicer framing."
+---
+
 # UX: gh prompt-preview dumps long unframed prompt text
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Legitimate docs-versus-product drift: docs/plans describes a goal CLI that is not registered, and chat/acp are absent. The fix is to align the two rather than necessarily build the commands. Worth naming the audit's own bias here: plans are design documents, not promises, so 'plans mention it' is weak evidence of a user-facing gap unless README or help also advertise it - check that before scheduling. ux-plan-docs-advertise-goal-and-chat-commands-missing.md covers the same ground."
+---
+
 # UX: goal/chat/acp commands missing despite product plans
 
 ## Summary

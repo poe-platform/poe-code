@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "One of five filings about undiscoverable harness kinds; consolidate into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. Its distinct contribution is the in-product precedent that makes the fix trivial: runtime init --type already renders '(choices: host, docker, e2b)' inline, so Commander can do this today. Carry that into the survivor."
+---
+
 # UX: harness new --help does not list available template kinds
 
 ## Summary

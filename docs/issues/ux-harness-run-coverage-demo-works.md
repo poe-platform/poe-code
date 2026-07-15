@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate of ux-harness-new-run-coverage-demo-works.md - consolidate. Its detail that the run reports '0 spawns' is mildly important: the demo completes without invoking an agent, so this positive proves the harness plumbing works but does not exercise a real spawn. State that plainly rather than implying broader coverage."
+---
+
 # UX: harness run coverage-demo scaffold works (positive)
 
 ## Summary

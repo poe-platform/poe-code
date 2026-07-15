@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and another instance of the good validation shape (reject, name the bad value, list the valid ones) already shipping in toolcraft-hosted commands - with ux-configure-unknown-api-shape-lists-exposed.md and the eval format validation, these three prove the convention is established, which makes the 'no allow-list' filings inconsistencies rather than missing features. Its npm run dev residue belongs to the identity cluster."
+---
+
 # UX: gh uninstall invalid name lists valid workflows (positive)
 
 ## Summary

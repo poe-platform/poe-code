@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Worse than a framing nit and worth keeping: the output is unlabelled, so users cannot tell a dry-run from a real write - and for a command that writes workflow files into .github/, that is a safety concern rather than cosmetics. Overlaps ux-gh-install-preview-without-dry-run-flag.md, which notes --dry-run is not even in help. Merge and fix as one: label the preview explicitly and document the flag."
+---
+
 # UX: gh install --dry-run lists paths without design-system panel
 
 ## Summary

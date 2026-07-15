@@ -1,3 +1,9 @@
+---
+severity: low
+impact: discoverability
+comment: "Two fair, small points, correctly Low. The '(default: [])' noise is trivial. The opaque model name is more interesting and its suggested direction is the right instinct: rather than explaining 'google/nano-banana-pro' in help, point at models --output image so the answer stays correct as the catalog changes - the same 'derive, do not hard-code' principle as ux-agent-default-model-hardcoded.md."
+---
+
 # UX: generate image --help shows opaque internal model ID as default
 
 ## Summary

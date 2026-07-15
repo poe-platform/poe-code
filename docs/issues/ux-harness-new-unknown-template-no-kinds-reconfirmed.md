@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Reconfirm duplicate within the kinds cluster with no new evidence; retire. Five filings of one missing list, spanning Medium and High, is count inflation: the cluster needs one issue at one severity."
+---
+
 # UX: harness new unknown template still no kinds list (reconfirmed)
 
 ## Summary

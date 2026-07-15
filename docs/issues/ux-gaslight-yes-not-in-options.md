@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate of ux-global-yes-not-listed-on-spawn-gaslight-help.md, which covers both spawn and gaslight and correctly frames this as a global-flag inheritance problem rather than a gaslight one; retire into it. Also overlaps ux-global-flags-hidden-on-subcommand-help.md, the general statement."
+---
+
 # UX: gaslight --yes flag not listed in Options section
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep as canonical of this pair - it shows the actual consequence: harness new reports success at /tmp/h4 and harness list immediately answers 'No harness pairs found', so the product denies the existence of what it just created. That reads as a failed creation and is worse than the missing flag it stems from; understated at Medium. Fix: --dir on list/run discovery plus a next-step line printed by new."
+---
+
 # UX: harness list only scans cwd; newly created --dir harnesses invisible
 
 ## Summary

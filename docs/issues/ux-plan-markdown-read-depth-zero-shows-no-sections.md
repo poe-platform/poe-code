@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the markdown-read depth cluster; retire into ux-markdown-read-depth-1-empty-for-h1-only-structure.md, which identifies the heading-level mechanism. Its evidence is the sharpest in the cluster though and should be carried: the same file returns '(none)' from markdown-read --depth 1 while markdown-read-section successfully returns section 1's content, proving the sections exist and only the depth filter hides them. Its 'warn when the filter empties the TOC' idea is a good mitigation for the whole silent-empty-filter family."
+---
+
 # UX: plan markdown-read --depth 0/1 can show sections (none) incorrectly
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Valuable small positive: 'Unsupported agent: pi' is the correct wording that install and test get wrong with 'Unknown agent' (ux-install-test-pi-unknown-not-spawn-only.md), so the right message already exists in-product and only needs propagating. Cite it from the capability-matrix work as the wording to adopt. Its residual ask (list the supported agents) is covered by ux-plan-install-unsupported-agent-pi-kimi.md."
+---
+
 # UX: plan install Unsupported agent is clearer than Unknown agent (positive-ish)
 
 ## Summary

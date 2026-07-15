@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Correct and neatly reasoned: an interactive keymap line ('e edit, a archive, d delete, n new') dangling at the end of a non-interactive help page reads as debug output, and its argument that UI hints belong in the UI is the better resolution. Note the keys it documents are destructive shortcuts (a archive, d delete) with no confirmation mentioned - worth checking against the archive/delete Critical while touching this."
+---
+
 # UX: plan --help keymap hint rendered outside any section or panel
 
 ## Summary

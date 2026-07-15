@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern: 'Create: <path>' then 'Installed plan skill for claude-code (local)' names the file, the agent and the scope - which is what the overclaiming installers lack (ux-pipeline-install-claims-success-when-all-skipped.md, ux-install-always-success-reconfirmed.md). Cite as the installer success template; consolidate with ux-plan-install-dry-run-clean-good.md, since the pair shows one command doing preview and real correctly."
+---
+
 # UX: plan install success path is good (positive)
 
 ## Summary

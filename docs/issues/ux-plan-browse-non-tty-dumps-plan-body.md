@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate within the plan browse non-TTY trio; retire into ux-plan-browse-non-tty-dumps-arbitrary-plan-body.md. Its extra observation is worth carrying: bare 'poe-code plan' does the same thing, so the parent group also dumps a plan - linking this to ux-plan-root-non-tty-dumps-arbitrary-body.md and the group-command shape question."
+---
+
 # UX: plan browse non-TTY dumps plan body instead of failing or listing
 
 ## Summary

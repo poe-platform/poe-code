@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Careful filing with two independent findings, the second being the more valuable: markdown-read, markdown-read-section and markdown-reader-mcp are internal utilities listed beside browse/list/edit/delete, so the plan group's actual commands compete with plumbing. That is a real IA problem and its 'Advanced:' section idea is a reasonable fix. The stacked-layout half is another manifestation of ux-dual-help-systems.md - two help renderers in one binary. Split the two."
+---
+
 # UX: plan --help uses stacked single-column layout; exposes internal markdown commands
 
 ## Summary

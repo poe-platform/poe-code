@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Duplicate within the README-in-plan-list quintet (md variant); retire into ux-plan-list-includes-readme-reconfirmed.md."
+---
+
 # UX: plan list --output md still includes README.md as a plan
 
 ## Summary

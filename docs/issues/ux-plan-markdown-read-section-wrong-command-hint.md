@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-markdown-read-section-wrong-recovery-command.md; consolidate. Same genuinely bad small bug: the hint names 'read-markdown', which does not exist, so the recovery line routes users into an Unknown command error. Its extra suggestion is the better fix and should survive: list close section titles rather than pointing at the TOC command at all - a fuzzy match on 'What' would have found 'What we're building' directly."
+---
+
 # UX: plan markdown-read-section error suggests wrong command name
 
 ## Summary

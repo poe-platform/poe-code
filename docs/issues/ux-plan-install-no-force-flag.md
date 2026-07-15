@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: capability-gap
+comment: "Another data point for ux-install-skill-flags-inconsistent-across-commands.md: plan install has no --force while experiment and pipeline do (and memory has none either). Retire into that umbrella. Its alternative is worth keeping in the survivor: if plan install is deliberately create-only, say so - the inconsistency may be intentional and merely undocumented."
+---
+
 # UX: plan install has no --force (unlike pipeline/experiment)
 
 ## Summary

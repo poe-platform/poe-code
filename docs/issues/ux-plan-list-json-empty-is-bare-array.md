@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Correctly self-resolving: a bare [] is the right JSON contract and the file says so - the only real ask is the terminal empty message, which duplicates ux-plan-list-empty-table-no-message.md. Retire into that; the JSON half needs no change beyond documentation."
+---
+
 # UX: plan list --kind experiment --output json is bare []
 
 ## Summary

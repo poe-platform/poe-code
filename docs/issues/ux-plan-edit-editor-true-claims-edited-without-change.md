@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Genuinely good catch and distinct from the framing nit: 'Edited <path>' prints whether or not anything changed, so the message asserts an outcome the command never verified - EDITOR=true proves it by making a no-op editor look successful. That matters because a failed or stubbed editor becomes indistinguishable from a real edit. Its fix is right: compare mtime/content and say 'No changes' when unchanged. Same false-success family as ux-install-always-success-reconfirmed.md and ux-launch-start-claims-running-then-status-stopped.md."
+---
+
 # UX: plan edit with EDITOR=true claims Edited without real edit
 
 ## Summary

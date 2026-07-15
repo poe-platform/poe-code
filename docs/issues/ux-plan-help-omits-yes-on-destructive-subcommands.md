@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Fourth filing of the plan destructive help gap; retire into ux-plan-archive-delete-help-still-omit-yes-reconfirmed.md. Its distinct half is the explorer keymap's non-TTY story, which overlaps ux-plan-help-keymap-hint-unframed.md - route it there."
+---
+
 # UX: plan --help omits --yes on archive/delete and non-TTY browse policy
 
 ## Summary

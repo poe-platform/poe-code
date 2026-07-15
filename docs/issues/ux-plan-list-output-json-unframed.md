@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "Answers itself: raw JSON on stdout is correct for scripting and the file concedes it. The genuinely useful half is the consistency question it raises - plan list uses --output json while traces and tasks use --json, so the machine-output convention differs across commands. Route that to ux-json-flag-inconsistent-across-commands.md, which should own the CLI-wide decision."
+---
+
 # UX: plan list --output json dumps raw JSON array without framing
 
 ## Summary

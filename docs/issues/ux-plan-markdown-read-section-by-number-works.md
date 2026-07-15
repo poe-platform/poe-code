@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; duplicate of ux-markdown-read-section-by-number-works.md (same command, different section number). Consolidate. Its value is bounding the wrong-hint bug: lookup by number works, so only the miss path is broken."
+---
+
 # UX: plan markdown-read-section by number works (positive)
 
 ## Summary

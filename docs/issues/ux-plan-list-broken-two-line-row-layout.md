@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Careful and well evidenced: each entry spans two visual rows with the Updated date detached from its content row, so long Kind values wrap and read as status indicators rather than types. It looks like a rendering bug rather than a layout choice, which is the strongest argument here. Related to ux-tables-ignore-terminal-width.md, which may be the underlying cause - check that first."
+---
+
 # UX: plan list table uses broken two-line-per-row layout
 
 ## Summary

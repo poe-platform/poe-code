@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "One of three filings of the non-TTY plan browse dump; consolidate. Keep this framing as canonical because 'arbitrary' is the accurate word - the plan shown is not chosen by the user, the same autopick problem as the archive/delete Critical, only read-only here so the consequence is confusion rather than loss. Its fix is right: require a path or print the list."
+---
+
 # UX: plan browse non-TTY dumps arbitrary plan body without selection
 
 ## Summary

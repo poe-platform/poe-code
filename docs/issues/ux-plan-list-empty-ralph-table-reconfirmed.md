@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate within the empty-table quintet (ralph variant); retire into ux-empty-plan-kind-lists-still-draw-empty-tables.md."
+---
+
 # UX: empty ralph plan list still empty table (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Instance of the global-flags-not-listed family; retire into ux-global-flags-hidden-on-subcommand-help.md. Its phrasing captures the family precisely - help/behavior mismatch, not a missing feature - which is why the fix is rendering global flags on subcommand help rather than adding anything."
+---
+
 # UX: plan install --help omits --yes but --yes works
 
 ## Summary

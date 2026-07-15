@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; part of the install dry-run positive family with the gaslight ones - consolidate. It is a useful counterweight in the installer cluster: plan install's dry-run does exactly what the codex flood and cursor silence fail to do - names the file, states the action, confirms no changes. Cite it as the dry-run template."
+---
+
 # UX: plan install --yes --dry-run is clean (positive)
 
 ## Summary

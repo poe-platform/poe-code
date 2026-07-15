@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: polish
+comment: "Duplicate within the empty-table quintet (superintendent variant); retire into ux-empty-plan-kind-lists-still-draw-empty-tables.md."
+---
+
 # UX: empty plan kind list still draws empty table (reconfirmed)
 
 ## Summary

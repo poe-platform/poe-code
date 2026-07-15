@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate of ux-goal-chat-acp-commands-missing.md; consolidate. This is the better-argued of the two and its framing is right: the defect is docs/plans running ahead of the product without 'planned' markers, so the fix is marking them rather than building commands. Worth tempering though - plans are design documents by nature and their readers are contributors rather than end users, so the false-expectation risk is smaller than for README or help."
+---
+
 # UX: Plan docs advertise goal/chat commands that do not exist yet
 
 ## Summary

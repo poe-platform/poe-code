@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate within the plan archive/delete help cluster; retire into ux-plan-archive-delete-help-still-omit-yes-reconfirmed.md, which covers both commands. No new evidence."
+---
+
 # UX: plan delete --help still omits --yes (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Fifth filing of the README-in-plan-list observation, differing from ux-plan-list-md-includes-readme-noise.md only in title; retire. Two near-identical files for the same output mode of the same command is duplicate filing inside a duplicate cluster."
+---
+
 # UX: plan list --output md includes README.md (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep as the allow-list ask for plan install and pair with ux-plan-install-pi-clearer-than-unknown.md: the noun is already right ('Unsupported'), only the list of supported agents is missing. Its kimi observation is the interesting one - kimi is configurable elsewhere but unsupported here, exactly the per-command divergence ux-agent-capability-matrix-spawn-vs-configure-vs-install.md wants a single source for."
+---
+
 # UX: plan install rejects pi and kimi as Unsupported agent
 
 ## Summary

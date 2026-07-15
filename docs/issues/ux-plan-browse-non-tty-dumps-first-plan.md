@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the plan browse non-TTY trio; retire. Its title claims 'first plan' while its siblings say arbitrary/selected - a small but real discrepancy about whether the selection is deterministic, worth settling since it decides whether this is a picker fallback or a genuine autopick."
+---
+
 # UX: plan browse non-TTY dumps a full plan body without browser chrome
 
 ## Summary

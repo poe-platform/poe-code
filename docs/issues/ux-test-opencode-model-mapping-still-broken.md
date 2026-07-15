@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Reconfirm duplicate; retire into ux-test-opencode-model-not-found-dumps-stack.md. Its 'Did you mean: opencode?' detail is worth carrying as an example of a genuinely absurd suggestion - the agent proposes its own name as a model id, the same edit-distance nonsense as 'list' to 'lint' and 'show' to 'stop'."
+---
+
 # UX: test opencode still fails model mapping poe/anthropic/… (reconfirm)
 
 ## Summary

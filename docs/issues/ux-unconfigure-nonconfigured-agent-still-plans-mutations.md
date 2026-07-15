@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Good observation and distinct from the flood filings: unconfigure plans large mutations for an agent the user never configured via poe-code, so nothing distinguishes 'poe-code owns these keys' from 'this is your file'. That is the same ownership question behind the skills wipe (ux-skill-unconfigure-force-deletes-entire-skills-dir.md), where poe-code deleted skills it did not install. Its 'detect managed vs unmanaged' fix is the general answer to both, and the more valuable framing."
+---
+
 # UX: unconfigure on seemingly unconfigured agent still plans large mutations
 
 ## Summary

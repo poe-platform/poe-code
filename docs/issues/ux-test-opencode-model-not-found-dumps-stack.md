@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Keep as canonical of this pair. Real and correctly High: poe-code rewrites anthropic/claude-haiku-4.5 into poe/anthropic/claude-haiku-4.5 and opencode rejects it, so our own namespace mapping produces an id the target agent cannot resolve - a correctness bug in the mapping, not a user error. Same triple-namespace defect as ux-opencode-model-triple-namespace.md, here proved to break at runtime rather than only looking odd. The effect/bun stack dump is secondary but confirms the raw agent error passes through unmapped."
+---
+
 # UX: test opencode fails with Model not found and agent stack dump
 
 ## Summary

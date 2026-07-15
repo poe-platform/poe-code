@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate within the spawn-only messaging family; retire into ux-install-test-pi-unknown-not-spawn-only.md or the capability-matrix canonical. Coverage only - it adds unconfigure as the fourth command giving the same wrong answer."
+---
+
 # UX: unconfigure pi says Unknown agent not spawn-only
 
 ## Summary

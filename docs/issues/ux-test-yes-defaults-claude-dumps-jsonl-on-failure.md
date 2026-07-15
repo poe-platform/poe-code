@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Two known families in one transcript: the silent default agent (--yes picks claude) and the JSONL flood on failure. Retire into ux-test-failure-dumps-jsonl.md and the silent-defaults rule. Its evidence is the best in the test cluster though - hook_started JSONL dumped as the failure output - and worth carrying: the flood is not the agent's stderr but its structured event stream, which nobody would want as an error message."
+---
+
 # UX: test --yes defaults to claude and dumps JSONL on failure
 
 ## Summary

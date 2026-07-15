@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Excellent filing and the best kind of comparison in this audit: the same --since concept produces a clean one-line ValidationError in traces and a stack trace plus ERROR log in models, so identical flags have different error quality within one CLI. That makes it an inconsistency to close rather than a behavior to design, and its fix names the mechanism precisely - share parseSinceDuration's error path. Keep and link from ux-models-since-invalid-prints-stack.md, which sees only the bad half."
+---
+
 # UX: traces --since invalid is cleaner than models --since (inconsistency)
 
 ## Summary

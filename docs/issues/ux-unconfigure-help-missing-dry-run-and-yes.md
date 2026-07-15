@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "One of three near-identical filings of the unconfigure help gap; consolidate into ux-unconfigure-help-omits-yes-and-dry-run.md. All three make the same fair point: the most destructive per-agent command documents nothing but -h, so users cannot learn --dry-run exists before running it - and the dry-run is exactly what would show them the blast radius."
+---
+
 # UX: unconfigure --help missing --dry-run and --yes
 
 ## Summary

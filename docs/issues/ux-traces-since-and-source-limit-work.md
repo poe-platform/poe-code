@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Keep of this positive pair (covers --since, --source and --limit composing). Its value is as the reference for the bounded-output work: traces already demonstrates the full filter set that models and runtime jobs ls lack, so those fixes have a working in-product model to copy rather than a design to invent."
+---
+
 # UX: traces --since and --source with --limit work (positive)
 
 ## Summary

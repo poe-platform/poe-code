@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: discoverability
+comment: "The best-argued file in the identity cluster and its reasoning earns the Critical rating better than any sibling: every typo routes users to a recovery command that cannot work for an installed user, so the error's only actionable line is a dead end. Retire into ux-development-mode-usage-intentional-but-leaks.md, which names the mechanism, but carry this argument - it is the clearest statement of user impact in the cluster. Same caveat as the rest: verify against an installed binary, since the leak may be a tsx-only artefact."
+---
+
 # UX: unknown command error tells users to run "npm run dev -- --help"
 
 ## Summary

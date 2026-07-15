@@ -1,3 +1,9 @@
+---
+severity: high
+impact: security
+comment: "Duplicate in substance of ux-configure-dry-run-dumps-entire-existing-agent-config.md (same whole-file rewrite rendering, unconfigure instead of configure); consolidate into the dry-run flood canonical. Its distinct detail is worth carrying: the dump includes the user's hooks, permissions and plugins - content poe-code never wrote - which is the privacy dimension and also why secrets appear in these diffs."
+---
+
 # UX: unconfigure claude --dry-run dumps full settings including hooks
 
 ## Summary

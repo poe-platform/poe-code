@@ -1,3 +1,9 @@
+---
+severity: high
+impact: security
+comment: "Fresh live evidence for the Critical secret leak on the unconfigure path; retire into ux-dry-run-diffs-print-secrets.md, the umbrella that already names unconfigure. Its value is confirming the leak spans configure, unconfigure, logout and provider logout - four commands, one unredacted diff formatter. Rated High against that Critical; normalise."
+---
+
 # UX: unconfigure goose --dry-run still prints full API keys (reconfirm)
 
 ## Summary

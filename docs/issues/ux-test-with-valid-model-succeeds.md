@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; consolidate with the other test-works positives. Its framing is the useful one and states the sonnet-5 conclusion precisely: the health check works once the model is valid, so the default is the only defect."
+---
+
 # UX: test with valid --model succeeds (positive after stale model)
 
 ## Summary

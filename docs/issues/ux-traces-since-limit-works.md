@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Third filing of the traces filter-composition positive; retire into ux-traces-since-and-source-limit-work.md. Coverage only."
+---
+
 # UX: traces --since 1h --limit 3 works (positive)
 
 ## Summary

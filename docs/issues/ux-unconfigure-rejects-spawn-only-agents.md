@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate within the spawn-only family; retire. Its fairness is worth carrying: it concedes the rejection is correct behavior - pi genuinely is not configurable - so the only defect is the wording, which ux-skill-configure-pi-poe-agent-not-supported-clear.md already solves ('Skills not supported for pi'). Adopt that phrasing here."
+---
+
 # UX: unconfigure rejects spawn-only agents pi/poe-agent as unknown
 
 ## Summary

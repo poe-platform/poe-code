@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Instance of the POE_NO_PROMPT-versus---yes family; retire into ux-non-tty-prompt-wrong-guidance.md. Its extra ask is worth carrying: list the available agents rather than merely demanding a prompt mode - the capability matrix would supply that content."
+---
+
 # UX: bare test non-TTY demands POE_NO_PROMPT not --yes
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "Honest and self-resolving: it establishes that --all-workspaces is the real flag, cwd-only is the default, and --cwd-only never existed in current builds - so the defect is drift in the audit's own notes rather than the product. Its conclusion is right: document the default and the expansion flag. Check its compatibility suggestion before acting - do not add an alias for a flag that was never public."
+---
+
 # UX: traces workspace filter is --all-workspaces; --cwd-only no longer exists
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-update-dry-run-always-global-npm.md; retire into it. Its aside about version-nag noise belongs to the version-nag cluster."
+---
+
 # UX: update --dry-run is clean (positive)
 
 ## Summary

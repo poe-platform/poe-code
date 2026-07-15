@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Two known families: raw-Commander missing argument (ux-raw-commander-missing-args.md) and the unknown-agent message without an allow-list (ux-unknown-agent-no-allow-list-or-suggestions.md). Retire into those. Its point that a destructive command in particular should list valid agents is fair - the cost of guessing is higher here."
+---
+
 # UX: unconfigure without agent is raw commander error
 
 ## Summary

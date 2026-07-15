@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Third filing within the kimi provider-config cluster; retire into ux-test-kimi-invalid-config-provider-poe-not-found.md. Its contribution is ruling out an explanation: --yes does not help, so the failure is not a prompt or confirmation issue but a genuinely malformed config that configure wrote."
+---
+
 # UX: test kimi --yes still Provider poe not found (reconfirm)
 
 ## Summary

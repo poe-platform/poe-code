@@ -111,6 +111,13 @@ function resolveModel(value: string | undefined): string | undefined {
   return trimmed;
 }
 
+function resolveOptionalPrompt(value: string | undefined, label: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  return requireNonEmptyString(value, label);
+}
+
 function resolvePlanPaths(options: GaslightOptions, cwd: string, homeDir: string): string[] {
   if (options.planPaths.length === 0) {
     throw new Error("Provide at least one plan path.");
@@ -140,15 +147,28 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const spawn = options.spawn ?? defaultSpawn;
   const agent = requireNonEmptyString(options.agent, "agent");
   const model = resolveModel(options.model);
+  const inlineSetup = resolveOptionalPrompt(options.setup, "setup");
+  const inlineTeardown = resolveOptionalPrompt(options.teardown, "teardown");
   validateInlineConfig(options.prompt, options.followups);
   const planPaths = resolvePlanPaths(options, cwd, homeDir);
   for (const planPath of planPaths) {
     await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
   }
 
-  const config: { prompt: string; followups: string[]; archive?: boolean } =
+  const config: {
+    setup?: string;
+    prompt: string;
+    followups: string[];
+    teardown?: string;
+    archive?: boolean;
+  } =
     options.prompt !== undefined && options.followups !== undefined
-      ? { prompt: options.prompt.trim(), followups: options.followups.map((value) => value.trim()) }
+      ? {
+          ...(inlineSetup ? { setup: inlineSetup } : {}),
+          prompt: options.prompt.trim(),
+          followups: options.followups.map((value) => value.trim()),
+          ...(inlineTeardown ? { teardown: inlineTeardown } : {})
+        }
       : await loadGaslightConfig(cwd, homeDir, fs, options.configPath);
   const shouldArchive = options.archive ?? config.archive ?? false;
   const rounds: GaslightRound[] = [];
@@ -156,7 +176,12 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   let usage: SpawnUsage | undefined;
 
   for (const [planIndex, planPath] of planPaths.entries()) {
-    const prompts = [`${config.prompt} ${planPath}`, ...config.followups];
+    const prompts = [
+      ...(config.setup ? [config.setup] : []),
+      `${config.prompt} ${planPath}`,
+      ...config.followups,
+      ...(config.teardown ? [config.teardown] : [])
+    ];
     const planRounds: GaslightRound[] = [];
     let planUsage: SpawnUsage | undefined;
     let resumeThreadId: string | undefined;

@@ -45,6 +45,22 @@ describe("loadGaslightConfig", () => {
     });
   });
 
+  it("loads optional setup and teardown prompts from config", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/.poe-code/gaslight.yaml":
+          "setup: Prepare the workspace\nprompt: Implement\nfollowups:\n  - Test it\nteardown: Clean up the workspace\n"
+      })
+    ).promises;
+
+    await expect(loadGaslightConfig("/repo", "/home/me", fs)).resolves.toMatchObject({
+      setup: "Prepare the workspace",
+      prompt: "Implement",
+      followups: ["Test it"],
+      teardown: "Clean up the workspace"
+    });
+  });
+
   it("loads an explicit config path instead of searching defaults", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({
@@ -74,7 +90,9 @@ describe("loadGaslightConfig", () => {
     "followups:\n  - Test it\n",
     "prompt: Implement\nfollowups: []\n",
     "prompt: Implement\nfollowups:\n  - 42\n",
-    "prompt: Implement\narchive: 1\nfollowups:\n  - Test it\n"
+    "prompt: Implement\narchive: 1\nfollowups:\n  - Test it\n",
+    "setup: 42\nprompt: Implement\nfollowups:\n  - Test it\n",
+    "prompt: Implement\nfollowups:\n  - Test it\nteardown: '   '\n"
   ])("names invalid config files", async (content) => {
     const fs = createFsFromVolume(
       Volume.fromJSON({ "/repo/.poe-code/gaslight.yaml": content })

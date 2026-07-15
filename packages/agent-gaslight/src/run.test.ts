@@ -3,6 +3,43 @@ import { describe, expect, it, vi } from "vitest";
 import { runGaslight } from "./run.js";
 
 describe("runGaslight", () => {
+  it("runs setup before the plan and teardown after its follow-ups in the same conversation", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/repo/docs/plans/work.md": "# Work" })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "setup", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "main", stderr: "", threadId: "two" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "followup", stderr: "", threadId: "three" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "teardown", stderr: "", threadId: "four" });
+
+    await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/work.md"],
+      agent: "codex",
+      setup: "Prepare workspace",
+      prompt: "Implement",
+      followups: ["Test it"],
+      teardown: "Clean up workspace",
+      fs,
+      spawn
+    });
+
+    expect(spawn.mock.calls.map(([, options]) => options.prompt)).toEqual([
+      "Prepare workspace",
+      "Implement docs/plans/work.md",
+      "Test it",
+      "Clean up workspace"
+    ]);
+    expect(spawn.mock.calls.map(([, options]) => options.resumeThreadId)).toEqual([
+      undefined,
+      "one",
+      "two",
+      "three"
+    ]);
+  });
+
   it("starts with the plan path and chains the newest thread id", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({ "/repo/docs/plans/work.md": "# Work" })

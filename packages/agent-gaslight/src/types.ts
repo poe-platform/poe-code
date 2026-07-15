@@ -64,8 +64,10 @@ export interface GaslightOptions {
   cwd?: string;
   homeDir?: string;
   configPath?: string;
+  setup?: string;
   prompt?: string;
   followups?: string[];
+  teardown?: string;
   onEvent?: (event: GaslightEvent) => void;
   signal?: AbortSignal;
   fs?: GaslightFileSystem;
@@ -73,8 +75,10 @@ export interface GaslightOptions {
 }
 
 export interface GaslightConfig {
+  setup?: string;
   prompt: string;
   followups: string[];
+  teardown?: string;
   archive?: boolean;
   path: string;
 }

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "One of three filings about sparse install help; consolidate with ux-install-help-no-force-or-options.md and ux-install-unconfigure-help-still-sparse-reconfirmed.md. Its distinct ask is the useful one: there is no way to list installable agents, and since that list only exists in the argument description, the capability-matrix work (ux-agent-capability-matrix-spawn-vs-configure-vs-install.md) would give install --list its content for free."
+---
+
 # UX: install --help missing --yes and cannot list agents
 
 ## Summary

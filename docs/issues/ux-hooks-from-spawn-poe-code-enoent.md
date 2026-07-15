@@ -1,3 +1,9 @@
+---
+severity: high
+impact: crash
+comment: "Distinct from the rest of the hooks cluster and the most serious of it: --hooks-from re-execs 'poe-code' from PATH, which fails with a bare ENOENT when the CLI runs from a tsx entry - so the feature breaks precisely in the dev/test context and the error blames a missing binary rather than the miswiring. Its fix is right and worth doing regardless of the hooks matrix work: resolve the host binary from argv rather than assuming PATH. Same host-identity root as ux-development-mode-usage-intentional-but-leaks.md - the CLI does not reliably know how it was invoked."
+---
+
 # UX: --hooks-from can fail with spawn poe-code ENOENT
 
 ## Summary

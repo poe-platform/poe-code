@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Real but scoped to the dev workflow rather than the shipped product: this is what npm run dev does by design (predev runs turbo build), so an installed user never sees it. Its value is as further evidence for ux-development-mode-usage-intentional-but-leaks.md - the audit was conducted through npm run dev, which is precisely why the identity cluster exists. Keep as a dev-UX note; do not schedule as a product defect."
+---
+
 # UX: launch commands trigger full turbo monorepo rebuild via npm run dev
 
 ## Summary

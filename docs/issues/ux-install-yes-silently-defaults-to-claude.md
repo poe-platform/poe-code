@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep of this pair (better evidence: it contrasts the non-TTY refusal with --yes silently succeeding). The juxtaposition is the insight - without --yes the command refuses for lack of an agent, with --yes it invents one and never says so, which means --yes is doing more than 'accept defaults'. Fold into the silent-defaults rule; High is defensible here because installing the wrong agent has real side effects."
+---
+
 # UX: install --yes without agent silently installs claude-code
 
 ## Summary

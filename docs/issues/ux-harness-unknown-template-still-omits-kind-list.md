@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Seventh filing of the kinds gap; retire into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. Its one useful detail is the source pointer - listBuiltinTemplates already returns the five kinds - which proves the error and help can enumerate them today with no new data. Carry that into the survivor."
+---
+
 # UX: harness unknown template still omits valid kind list (reconfirmed)
 
 ## Summary

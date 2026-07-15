@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; keep as canonical of this pair (cleaner framing) and retire ux-hooks-from-pi-unsupported-lists-supported.md into it. Its 'use for all agent allow-lists' suggestion is the actionable half and directly serves ux-unknown-agent-no-allow-list-or-suggestions.md and ux-gaslight-unknown-agent-says-service.md: the good pattern already exists here and only needs propagating."
+---
+
 # UX: hooks-from unknown agent lists supported agents (positive)
 
 ## Summary

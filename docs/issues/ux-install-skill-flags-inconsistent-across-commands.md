@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Excellent systemic filing, correctly High: five installers implement one concept with five flag contracts (--local/--global/--yes; --global/--skill-only/--mcp-only; --local/--global/--force; --scope local|global; --local/--global), so no CI script can share flags and no user can transfer knowledge between them. Evidence is concrete and complete. Keep as the umbrella for installer flag consistency alongside ux-experiment-install-already-exists-vs-pipeline-skip.md for idempotency: one settles the flags, the other the semantics."
+---
+
 # UX: skill install flags differ across skill/memory/pipeline/experiment/plan/superintendent
 
 ## Summary

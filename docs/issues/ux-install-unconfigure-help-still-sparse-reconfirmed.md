@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Third of the sparse-help trio, but it carries the one argument justifying a higher severity and that should survive the merge: unconfigure is destructive and its help documents nothing but -h, so users cannot learn a --dry-run exists before running it. Split the unconfigure half into the destructive-command work (ux-unconfigure-help-omits-yes-and-dry-run.md) and merge the install half into the install help issue."
+---
+
 # UX: install and unconfigure --help still sparse (reconfirmed)
 
 ## Summary

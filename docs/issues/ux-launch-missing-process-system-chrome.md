@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep of this trio (covers both logs and restart). Standard systemic UserError chrome instance - the message is already correct and only 'See logs' is wrong - so retire into ux-user-errors-look-like-system-failures.md, keeping the 'suggest launch status' recovery. Note it contradicts ux-launch-logs-missing-says-runtime-job.md on the actual message text; settle that first."
+---
+
 # UX: launch logs/restart missing process uses system chrome
 
 ## Summary

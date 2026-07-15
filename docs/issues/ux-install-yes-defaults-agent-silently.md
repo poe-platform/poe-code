@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-install-yes-silently-defaults-to-claude.md; retire into it. Both belong to the silent-defaults family (ux-configure-yes-silent-default-agent.md, ux-skill-configure-yes-defaults-agent-silently.md) - one rule closes them all: --yes announces every default it resolves."
+---
+
 # UX: install --yes silently defaults to claude-code
 
 ## Summary

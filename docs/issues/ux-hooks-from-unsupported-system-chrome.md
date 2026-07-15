@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Contentless third filing of the same allow-list-plus-See-logs observation; retire into ux-hooks-from-unknown-lists-supported-good.md. The residual 'See logs' complaint belongs to ux-user-errors-look-like-system-failures.md."
+---
+
 # UX: hooks-from unsupported system chrome
 
 ## Summary

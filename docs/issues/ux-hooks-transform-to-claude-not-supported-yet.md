@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-hooks-strategy-transform-unsupported-opaque.md (same target-side transform refusal); retire into it. The cluster now holds four filings of one capability-matrix gap seen from source and target sides - consolidate to a single issue: filter choices by what is implemented and reject unsupported pairs at parse."
+---
+
 # UX: hooks-strategy transform to claude-code not supported yet
 
 ## Summary

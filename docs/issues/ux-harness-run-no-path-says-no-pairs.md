@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Keep of this pair (it has the actionable ask). The message is accurate but dead-ends, and its 'list search paths' suggestion matters more than it appears: because ux-harness-list-only-cwd-not-created-dir.md shows discovery ignores --dir, 'no pairs found' can be false rather than merely unhelpful. Naming the searched paths would expose that."
+---
+
 # UX: harness run without path says No harness pairs found
 
 ## Summary

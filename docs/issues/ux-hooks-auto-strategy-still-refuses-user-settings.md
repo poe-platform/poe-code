@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "The sharpest of the four 'refuse to replace' filings and the one to keep: the others report symlink and project scope hitting the refusal, which is arguably correct safety, but this shows auto hits it too - and auto is the strategy whose name promises it will choose a working path. That makes it a real defect rather than a recovery-copy gap. Fix: auto should merge or skip with a warning and never hard-fail. The three siblings then reduce to documentation."
+---
+
 # UX: --hooks-strategy auto still refuses user-authored settings
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Real and worth keeping alongside the codex-source twin: help lists transform as a valid --hooks-strategy choice, users pick it, and it fails with 'only codex-hook targets can be written' - informative but too late, and wearing system chrome. Consolidate with ux-hooks-from-codex-to-claude-transform-unsupported.md into one capability-matrix issue: both are the same defect from the target and source sides, where choice lists are not filtered by what is implemented."
+---
+
 # UX: hooks-strategy transform unsupported message is good but system chrome
 
 ## Summary

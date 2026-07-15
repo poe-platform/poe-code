@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Third of the four 'refuse to replace' filings; retire into ux-hooks-auto-strategy-still-refuses-user-settings.md. Its useful observation: --hooks-scope project looks like the natural workaround and fails identically, so users try scope, then strategy, and dead-end twice - an argument for the refusal message naming what actually works."
+---
+
 # UX: --hooks-scope project still refuses user settings (recovery gap)
 
 ## Summary

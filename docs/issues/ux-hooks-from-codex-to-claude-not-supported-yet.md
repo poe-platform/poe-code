@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-hooks-from-codex-to-claude-transform-unsupported.md; retire into it. Both make the same correct and important point: --hooks-from accepts codex, so the unsupported pair is only discovered after the run starts. Validate the source/target matrix at parse time."
+---
+
 # UX: hooks-from codex→claude still not supported yet
 
 ## Summary

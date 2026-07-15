@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Keep of this pair with ux-hooks-scope-invalid-raw-commander.md; both are instances of ux-raw-commander-invalid-option-choices.md. Its contrast is the useful part: plan list produces a design-system validation error for the same class of mistake, so the inconsistency is internal and the good pattern already exists in-product."
+---
+
 # UX: invalid --hooks-strategy is raw commander error
 
 ## Summary

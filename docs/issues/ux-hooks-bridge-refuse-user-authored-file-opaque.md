@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of four 'refuse to replace' filings; retire into ux-hooks-auto-strategy-still-refuses-user-settings.md, which identifies the actual bug. Its distinct contribution is the best statement of the recovery gap - the refusal is safe but terminal, never saying why it refused or what to try - and that copy fix is still needed after auto is corrected."
+---
+
 # UX: Hook bridge “Refuse to replace user-authored hook file” is opaque
 
 ## Summary

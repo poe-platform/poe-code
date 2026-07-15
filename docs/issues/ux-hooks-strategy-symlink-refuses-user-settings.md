@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Fourth 'refuse to replace' filing; retire into ux-hooks-auto-strategy-still-refuses-user-settings.md. It is the fairest of the group in conceding the refusal is good safety and the recovery is the weak part, and it names the two missing pieces precisely: no --force and no pointer to auto. Keep that framing - while noting auto does not work either, which is why the auto file is canonical."
+---
+
 # UX: hooks-strategy symlink refuses user-authored settings without recovery path
 
 ## Summary

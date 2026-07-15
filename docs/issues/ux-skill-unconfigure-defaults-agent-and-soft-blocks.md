@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Two known issues combined: the silent default agent (the silent-defaults family) and the non-empty-dir refusal, which ux-skill-unconfigure-refuses-nonempty-without-force-good.md correctly reads as good safety. Its fair point is the interaction - a silent default plus a two-step force is easy to get wrong in scripts, and getting it wrong is how the Critical (ux-skill-unconfigure-force-deletes-entire-skills-dir.md) fires. Retire into those two, keeping that observation."
+---
+
 # UX: skill unconfigure --yes defaults agent and soft-blocks on non-empty dir
 
 ## Summary

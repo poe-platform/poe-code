@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Third filing of the sonnet-5 catalog proof; retire into the constants root-cause issue with the other two. The evidence is decisive and needed exactly once. Its CI ask is the durable part and is now stated in four separate files - it belongs in the root cause as an acceptance criterion rather than a recurring wish."
+---
+
 # UX: models --search sonnet-5 still 0 hits (reconfirmed catalog evidence)
 
 ## Summary

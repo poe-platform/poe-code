@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "One of two identical filings of the raw ENOENT on a missing --file; consolidate, then retire into the shared path-validation issue (ux-mcp-servers-missing-file-almost-good.md proposes the helper). Same bare-throw family as gaslight --config, harness run, memory ingest and pipeline validate - five commands, one missing helper."
+---
+
 # UX: skill install missing --file is ENOENT + See logs
 
 ## Summary

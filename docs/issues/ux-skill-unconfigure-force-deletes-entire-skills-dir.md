@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: data-loss
+comment: "One of the two or three most serious files in the audit and correctly Critical: --force removed the entire .claude/skills tree, destroying four unrelated skills (experiment-plan, pipeline-plan, superintendent-plan, terminal-pilot) that poe-code did not install, restored only because the audit checked git. The help says 'Remove skill directories', which is technically true and catastrophically under-specific. Its fix list is exactly right and the first item is key: only remove poe-code-managed skills. Read with ux-skill-unconfigure-dry-run-path-inconsistent.md, which suggests the same command may also reach into the home directory - together they are the strongest argument in the audit for a blast-radius summary before destructive writes."
+---
+
 # UX: skill unconfigure --force deletes entire .claude/skills tree
 
 ## Summary

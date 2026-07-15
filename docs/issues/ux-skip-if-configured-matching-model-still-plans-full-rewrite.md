@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate within the skip-never-short-circuits quartet; retire into ux-skip-if-configured-help-text-lies.md. Its evidence is the tightest of the four (explicit model matching live config, still a full plan), which rules out the mismatch explanation - carry that into the canonical."
+---
+
 # UX: configure --skip-if-configured with matching model still plans full rewrite
 
 ## Summary

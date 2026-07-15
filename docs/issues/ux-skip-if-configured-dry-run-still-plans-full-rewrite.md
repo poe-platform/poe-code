@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "One of four filings that the skip path never short-circuits the dry-run; consolidate into ux-skip-if-configured-help-text-lies.md, the Critical that owns the behavior/help mismatch. Its suggested output is the best-specified in the cluster and should survive: 'would skip: already configured (hash match)' versus 'would update: <diffs>'."
+---
+
 # UX: configure --skip-if-configured --dry-run still plans full settings rewrite
 
 ## Summary

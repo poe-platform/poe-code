@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate within the --cwd chrome trio; retire into ux-user-errors-look-like-system-failures.md. Its recovery suggestion (create the directory or pick an existing path) is a reasonable garnish but the message already tells users what is wrong."
+---
+
 # UX: missing --cwd path has See logs on ValidationError
 
 ## Summary

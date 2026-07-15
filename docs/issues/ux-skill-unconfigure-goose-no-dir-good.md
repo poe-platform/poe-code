@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern and a useful boundary case: the missing-directory path is a clean no-op naming the agent and the path it checked. Its parenthetical contrast is the point - the same command with --force on an existing directory wipes everything (ux-skill-unconfigure-force-deletes-entire-skills-dir.md), so this proves the safe path is reachable and the destructive one is the outlier."
+---
+
 # UX: skill unconfigure goose when no dir is clear (positive)
 
 ## Summary

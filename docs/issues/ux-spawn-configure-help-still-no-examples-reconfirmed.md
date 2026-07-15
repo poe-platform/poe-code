@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Reconfirm duplicate within the missing-examples family; retire into ux-primary-commands-still-lack-examples.md. Rated High against that file's Medium for the same observation; normalise."
+---
+
 # UX: spawn and configure help still lack Examples (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Keep as canonical of this trio (best evidence: both directions tested, proving neither flag can be omitted). Its insight goes beyond error framing and is the valuable one: --name could be derived from the file's basename, so the second required flag is unnecessary rather than merely awkward. That reframes the fix from 'better error' to 'remove the requirement'. Its alternative (a single path argument) is cleaner still."
+---
+
 # UX: skill install still requires both --name and --file (reconfirmed)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Instance of the bare-group family; retire into ux-many-parent-groups-only-dump-help.md, which enumerates all nine affected groups and names the in-product counterexamples. Its specific suggestion is good and worth carrying: the onboarding path here is configure-then-skill-configure, which nothing states."
+---
+
 # UX: bare `skill` only dumps help with no next-step guidance
 
 ## Summary

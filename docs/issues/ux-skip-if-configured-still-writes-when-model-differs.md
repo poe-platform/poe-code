@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "The most thoughtful file in the skip cluster and the one that questions the premise: when --model differs from stored config, writing is arguably correct - 'already configured' plausibly means matching, not merely present. So the real defect here is that the match criteria are undefined, which is why the rest of the cluster disagrees about what the flag should do. Its ask is right and should shape the fix: document the criteria (file hash? model? provider?) and print 'would skip' versus 'would update' with the reason. Keep as the semantics question alongside the Critical."
+---
+
 # UX: configure --skip-if-configured still writes when --model differs
 
 ## Summary

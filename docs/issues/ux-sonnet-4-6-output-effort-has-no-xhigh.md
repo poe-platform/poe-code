@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate of ux-effort-xhigh-valid-for-opus-not-sonnet.md and ux-opus-4-7-catalog-supports-xhigh-sonnet-does-not.md; consolidate the three. Its distinct and useful addition is the catalog default - output_effort defaults to medium for sonnet-4.6 - which answers the question the others leave open: what should be written instead of xhigh. Carry that into the survivor."
+---
+
 # UX: sonnet-4.6 output_effort has no xhigh but configure still writes xhigh
 
 ## Summary

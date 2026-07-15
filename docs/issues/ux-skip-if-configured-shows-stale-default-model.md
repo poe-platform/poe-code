@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Duplicate in substance of ux-skip-if-configured-dry-run-shows-dead-sonnet-5-default.md; retire into it. Its one-line framing is the sharpest in the cluster and should survive: the command 'celebrates configured while advertising broken model' - success framing over a dead value is worse than a plain error."
+---
+
 # UX: configure --skip-if-configured shows stale model as default
 
 ## Summary

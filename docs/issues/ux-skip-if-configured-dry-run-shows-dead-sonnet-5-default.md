@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Two Criticals compounding, and worth keeping for the specific interaction: the skip path resolves the default model before comparing against live config, so it both surfaces the dead sonnet-5 and plans a rewrite over a working sonnet-4.6. Its key insight is the ordering - skip should read the current config first rather than resolving a default it may not need. That framing distinguishes it from the other skip filings; the sonnet-5 half belongs to the constants cluster."
+---
+
 # UX: configure --skip-if-configured --dry-run still shows default model sonnet-5
 
 ## Summary

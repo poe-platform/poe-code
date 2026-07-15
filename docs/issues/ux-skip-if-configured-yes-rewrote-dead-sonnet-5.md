@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: data-loss
+comment: "The most consequential file in the skip cluster and correctly Critical: a flag named --skip-if-configured performed a real write that replaced a working sonnet-4.6 config with the dead sonnet-5, and the audit had to restore it by hand. Data loss caused by a safety flag is the worst possible failure mode for one. It also demonstrates the compounding this audit keeps finding: the skip bug supplies the write and the dead default supplies the payload. Its fix list is right; the first item ('never write when any config exists') is the safe default until the semantics in ux-skip-if-configured-still-writes-when-model-differs.md are settled."
+---
+
 # UX: configure --skip-if-configured --yes rewrote live config to dead sonnet-5
 
 ## Summary

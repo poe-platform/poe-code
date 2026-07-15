@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Contentless duplicate within the trio; retire into ux-skill-install-name-and-file-both-required-reconfirmed.md. Its 'derive name' suggestion matches the canonical's and its 'onboarding dead end' framing is fair."
+---
+
 # UX: skill install name then file
 
 ## Summary

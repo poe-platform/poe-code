@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Good catch and genuinely confusing: 'Reading additional input from stdin...' printed after a successful result makes CI logs look hung, and it appears even though the prompt came from an argument. Its diagnosis is likely right - the message is unconditional rather than emitted when stdin is actually read. Same false-signal family as ux-failure-shown-as-success-markers.md: status output that does not reflect what happened. Cheap fix, real payoff in log readability."
+---
+
 # UX: successful codex spawn prints "Reading additional input from stdin..."
 
 ## Summary

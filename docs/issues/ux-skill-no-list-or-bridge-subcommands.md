@@ -1,3 +1,9 @@
+---
+severity: high
+impact: capability-gap
+comment: "Keep as canonical of this pair (covers list and bridge). The list gap is the substantive one; the bridge gap is weaker, since bridging happens automatically during spawn (ux-skill-bridge-failure-lists-paths-good.md) and may not need a command at all - verify before scheduling. Its own hedge ('bridge may exist elsewhere') is appropriately honest."
+---
+
 # UX: skill has no list/bridge subcommands (users expect inventory)
 
 ## Summary

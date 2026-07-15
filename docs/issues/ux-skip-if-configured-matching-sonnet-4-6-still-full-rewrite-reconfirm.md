@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Reconfirm duplicate within the skip quartet, near word-for-word with its sibling; retire. Four filings for one behavior is count inflation, and the cluster's real content is already carried by the Critical plus the cursor positive."
+---
+
 # UX: skip-if-configured with matching sonnet-4.6 still full rewrite (reconfirm)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Consolidate with ux-skills-empty-string-silently-ignored.md - same flag, same silent no-op, one from an empty string and one from a missing value. Its hypothesis is worth testing: if --skills without a value parses as a boolean, the flag's declaration is wrong rather than its validation, which would be a smaller and more precise fix than the empty-flag rule."
+---
+
 # UX: --skills without value appears accepted as no-op
 
 ## Summary

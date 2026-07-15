@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate of ux-skill-install-missing-file-enoent-see-logs.md; retire. Its suggested wording ('Skill file not found') is the right shape for the shared helper."
+---
+
 # UX: skill install missing --file is raw ENOENT
 
 ## Summary

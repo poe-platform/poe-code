@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate in substance of ux-skill-install-name-and-file-both-required-reconfirmed.md; consolidate. Its distinct angle is the ordering - --file is demanded before the missing --name is mentioned - the same one-error-at-a-time problem as ux-memory-write-requires-reason-before-path.md and ux-maestro-tick-missing-transition-raw-commander.md. One fix: report all missing required inputs together."
+---
+
 # UX: skill install requires --file before reporting missing name/path set
 
 ## Summary

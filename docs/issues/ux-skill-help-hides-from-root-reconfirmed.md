@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate within the root help discoverability cluster; retire into ux-root-help-hides-skill-memory-runtime-eval-and-more.md, which enumerates all thirteen hidden commands. Coverage only."
+---
+
 # UX: skill still hidden from root help (reconfirmed via skill surface probe)
 
 ## Summary

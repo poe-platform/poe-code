@@ -1,3 +1,9 @@
+---
+severity: high
+impact: data-loss
+comment: "Important and under-rated: with --local the dry-run announces it would remove both ~/.claude/skills and .claude/skills, so a scope flag appears to reach outside its scope. Either the dry-run is wrong (a fidelity bug) or the behavior is (a data-loss bug touching the user's home directory) - and given ux-skill-unconfigure-force-deletes-entire-skills-dir.md proves this command really does delete whole trees, the second reading cannot be dismissed. Resolve urgently: run it with --local and check whether the home path is touched. The highest-value unanswered question in the skills cluster."
+---
+
 # UX: skill unconfigure dry-run shows both ~/.claude/skills and .claude/skills
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Per-command npm run dev filing; retire into ux-development-mode-usage-intentional-but-leaks.md. Its typo-suggestions ask belongs to the did-you-mean cluster."
+---
+
 # UX: skill unknown subcommand uses npm run dev recovery
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Decisive positive for the skip-if-configured cluster: it proves the truthful skip path exists and works for cursor ('Dry run: Cursor is already configured; no filesystem changes'), which makes the claude path's failure to short-circuit an inconsistency rather than an unimplemented feature. That materially lowers the cost of the Critical fixes - the behavior only needs propagating. Keep and link from ux-skip-if-configured-help-text-lies.md."
+---
+
 # UX: configure cursor --skip-if-configured dry-run says already configured (positive)
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern, and a useful counterweight to ux-configure-cursor-model-flag-silent-noop.md: spawn cursor honours an explicit --model while configure cursor's dry-run shows no sign of it, suggesting the flag works and the dry-run is what fails to render it. That narrows the cursor ambiguity - worth linking there."
+---
+
 # UX: spawn cursor with explicit model works (positive)
 
 ## Summary

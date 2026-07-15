@@ -1,3 +1,9 @@
+---
+severity: low
+impact: polish
+comment: "Duplicate of ux-group-commands-usage-shows-options-not-command.md, which catches the same pattern across six group commands including skill; retire into it. Its own reasoning is the clearest statement of why it matters - [command] is the affordance signalling a subcommand is required - and is worth carrying into the systemic filing."
+---
+
 # UX: skill --help Usage line says [options] instead of [command]
 
 ## Summary

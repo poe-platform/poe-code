@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: correctness
+comment: "Keep as canonical of the skip-if-configured cluster and correctly Critical: help promises 'Exit without writes when current config already matches' and the flag both rewrites live config (ux-skip-if-configured-yes-rewrote-dead-sonnet-5.md) and plans full rewrites on match. A safety flag that does the opposite of its documentation is worse than an absent one, because users rely on it. The fix is cheaper than it looks - ux-skip-if-configured-cursor-already-configured-dry-run-good.md proves the correct short-circuit already ships for cursor. Do not resolve by weakening the help text."
+---
+
 # UX: --skip-if-configured help says exit without writes when config matches but behavior differs
 
 ## Summary

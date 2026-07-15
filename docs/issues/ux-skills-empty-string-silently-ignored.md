@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: correctness
+comment: "Good catch and the sharpest empty-flag comparison in the audit: --skill \"\" is rejected as malformed while --skills \"\" succeeds silently, so two flags for the same concept disagree about the same input within one command. That internal contradiction is stronger evidence than any single-flag filing. Consolidate with ux-skills-flag-without-value-is-noop-or-unclear.md and route to the empty-flag rule; the --skill behavior is the correct one to propagate."
+---
+
 # UX: --skills "" is silently ignored (spawn succeeds)
 
 ## Summary

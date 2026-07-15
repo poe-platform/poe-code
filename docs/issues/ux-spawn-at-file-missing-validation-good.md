@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive pattern; near-duplicate of ux-spawn-at-file-works.md (failure and success halves of the same feature). Consolidate. The message is good because it names the flag, the path and the underlying cause - the shape the raw ENOENT cluster lacks, and worth citing there as proof the product can do this well."
+---
+
 # UX: spawn @missing-file validation is good (positive)
 
 ## Summary

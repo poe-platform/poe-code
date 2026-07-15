@@ -42,6 +42,13 @@ describe("standalone package publish metadata", () => {
     expect(dependencies).not.toHaveProperty("poe-code");
   });
 
+  it("does not publish removed cloud-runtime dependencies", () => {
+    expect(readPackageJson("package.json").dependencies).not.toHaveProperty("e2b");
+    expect(readPackageJson("package.json").devDependencies).not.toHaveProperty(
+      "@poe-code/runner-e2b"
+    );
+  });
+
   it("bundles unpublished workspace dependencies for standalone toolcraft packages", () => {
     const packagesToCheck = [
       "packages/toolcraft/package.json",

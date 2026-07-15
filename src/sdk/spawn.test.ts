@@ -1572,7 +1572,7 @@ describe("SDK spawn()", () => {
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
 
     const { result } = spawn("gemini-cli", "test prompt", {
-      runtime: "e2b",
+      runtime: "docker",
       detach: true
     });
 

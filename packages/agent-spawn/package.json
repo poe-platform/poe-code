@@ -47,7 +47,6 @@
     "toolcraft-design": "*",
     "@poe-code/poe-acp-client": "*",
     "@poe-code/poe-code-config": "*",
-    "@poe-code/process-runner": "*",
-    "@poe-code/runner-e2b": "*"
+    "@poe-code/process-runner": "*"
   }
 }

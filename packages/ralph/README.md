@@ -109,10 +109,6 @@ POE_PLAN_DIRECTORY=docs/ralph-plans poe-code ralph run
 poe-code ralph run docs/plans/refactor-auth.md
 ```
 
-## Runtime Workspaces
-
-When validating Ralph against a remote runtime such as E2B, create a fresh temporary workspace with `mkdtemp`, put only the Ralph plan and intended test files in that directory, pass the plan path directly, and run with `--cwd <tmpdir>`. Do not aim Ralph runtime tests at the poe-code checkout or a parent repository; Ralph agents are expected to edit their working directory across iterations, and remote runtime downloads overwrite the tmpdir copy after each iteration so the next iteration sees the prior edits.
-
 ## Dashboard Configuration
 
 Ralph runs can render the live dashboard in terminal TTY mode.
@@ -137,7 +133,7 @@ Ralph archives completed docs by default. Disable this with `poe-code ralph run 
 
 ```bash
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
-poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--runtime host|docker|e2b] [--worktree]
+poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--runtime host|docker] [--worktree]
 ```
 
 ## Package API

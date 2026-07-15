@@ -19,7 +19,7 @@ describe("execution env registry", () => {
     return import("./execution-env.js");
   }
 
-  it.each(["host", "docker", "e2b"] as const)(
+  it.each(["host", "docker"] as const)(
     "selects a registered %s factory by runtime type",
     async (type) => {
       const { registerExecutionEnvFactory, selectExecutionEnv } = await freshRegistry();
@@ -46,14 +46,6 @@ describe("execution env registry", () => {
     registerExecutionEnvFactory(second);
 
     expect(selectExecutionEnv(runtime("docker"))).toBe(second);
-  });
-
-  it("throws a clear error when no factory is registered for the runtime type", async () => {
-    const { selectExecutionEnv } = await freshRegistry();
-
-    expect(() => selectExecutionEnv(runtime("e2b"))).toThrow(
-      'No execution environment factory registered for runtime type "e2b".'
-    );
   });
 
   it("keeps runtime.type branching inside selectExecutionEnv", async () => {

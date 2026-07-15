@@ -46,7 +46,7 @@ describe("runtime config", () => {
     expect(() => parseRuntime(null)).toThrow("runtime: expected an object.");
     expect(() => parseRuntime("docker")).toThrow("runtime: expected an object.");
     expect(() => parseRuntime({ type: "container" })).toThrow(
-      'type: expected "host", "docker", or "e2b".'
+      'type: expected "host" or "docker".'
     );
   });
 
@@ -239,14 +239,7 @@ describe("runtime config", () => {
         build_context: "..",
         engine: "podman",
         network: "host",
-        extra_args: ["--polluted"],
-        template_id: "tmpl_polluted",
-        from_template: "polluted-template",
-        workspace_dir: "/polluted",
-        cpu: 1,
-        memory_mb: 128,
-        timeout_minutes: 1,
-        preserve_after_exit_hours: 1
+        extra_args: ["--polluted"]
       },
       () => {
         expect(parseRuntime({})).toEqual({
@@ -261,61 +254,8 @@ describe("runtime config", () => {
           mounts: []
         });
 
-        expect(parseRuntime({ type: "e2b" })).toEqual({
-          type: "e2b",
-          build_args: {},
-          mounts: [],
-          workspace_dir: "/workspace",
-          preserve_after_exit_hours: 24
-        });
       }
     );
-  });
-
-  it("applies e2b defaults and validates preserve range", () => {
-    expect(parseRuntime({ type: "e2b", template_id: "tmpl_123" })).toEqual({
-      type: "e2b",
-      template_id: "tmpl_123",
-      build_args: {},
-      mounts: [],
-      workspace_dir: "/workspace",
-      preserve_after_exit_hours: 24
-    });
-
-    expect(
-      parseRuntime({
-        type: "e2b",
-        template_id: "tmpl_123",
-        cpu: 4,
-        memory_mb: 8192,
-        timeout_minutes: 60,
-        workspace_dir: "/sandbox/workspace/../project/",
-        preserve_after_exit_hours: 168
-      })
-    ).toMatchObject({
-      type: "e2b",
-      cpu: 4,
-      memory_mb: 8192,
-      timeout_minutes: 60,
-      workspace_dir: "/sandbox/project",
-      preserve_after_exit_hours: 168
-    });
-
-    expect(() =>
-      parseRuntime({ type: "e2b", template_id: "tmpl_123", preserve_after_exit_hours: 169 })
-    ).toThrow("preserve_after_exit_hours: expected a number from 0 to 168");
-    expect(() => parseRuntime({ type: "e2b", template_id: "tmpl_123", timeout_minutes: -1 })).toThrow(
-      "timeout_minutes: expected a non-negative finite number."
-    );
-    expect(() => parseRuntime({ type: "e2b", template_id: "tmpl_123", cpu: -1 })).toThrow(
-      "cpu: expected a positive finite number."
-    );
-    expect(() => parseRuntime({ type: "e2b", template_id: "tmpl_123", memory_mb: -128 })).toThrow(
-      "memory_mb: expected a positive finite number."
-    );
-    expect(() =>
-      parseRuntime({ type: "e2b", template_id: "tmpl_123", workspace_dir: "workspace" })
-    ).toThrow("workspace_dir: expected an absolute sandbox path");
   });
 
   it("rejects empty docker mount sources", () => {
@@ -365,9 +305,6 @@ describe("runtime config", () => {
   it("rejects whitespace-only prebuilt runtime identifiers", () => {
     expect(() => parseRuntime({ type: "docker", image: "   " })).toThrow(
       "image: expected a non-empty string."
-    );
-    expect(() => parseRuntime({ type: "e2b", template_id: "\t" })).toThrow(
-      "template_id: expected a non-empty string."
     );
   });
 
@@ -420,11 +357,8 @@ describe("runtime config", () => {
   it("resolves custom dockerfile and build context paths inside the runtime cwd", () => {
     withTempProject(({ cwd }) => {
       const dockerfilePath = path.join(cwd, "containers", "Dockerfile");
-      const e2bDockerfilePath = path.join(cwd, "runtimes", "e2b", "Dockerfile");
       mkdirSync(path.dirname(dockerfilePath), { recursive: true });
-      mkdirSync(path.dirname(e2bDockerfilePath), { recursive: true });
       writeFileSync(dockerfilePath, "FROM scratch\n");
-      writeFileSync(e2bDockerfilePath, "FROM scratch\n");
 
       expect(
         resolveRuntime({
@@ -441,23 +375,6 @@ describe("runtime config", () => {
         runner: "docker",
         dockerfilePath,
         buildContext: path.join(cwd, "containers")
-      });
-
-      expect(
-        resolveRuntime({
-          cwd,
-          config: {
-            runtime: parseRuntime({
-              type: "e2b",
-              dockerfile: "runtimes/e2b/Dockerfile",
-              build_context: "runtimes/e2b"
-            })
-          }
-        })
-      ).toMatchObject({
-        runner: "e2b",
-        dockerfilePath: e2bDockerfilePath,
-        buildContext: path.join(cwd, "runtimes", "e2b")
       });
     });
   });
@@ -519,7 +436,7 @@ describe("runtime config", () => {
     });
   });
 
-  it("uses prebuilt docker and e2b artifacts without requiring a Dockerfile", () => {
+  it("uses a prebuilt docker artifact without requiring a Dockerfile", () => {
     expect(
       resolveRuntime({
         cwd: "/repo",
@@ -530,31 +447,14 @@ describe("runtime config", () => {
       dockerfilePath: null,
       buildContext: null
     });
-
-    expect(
-      resolveRuntime({
-        cwd: "/repo",
-        config: { runtime: parseRuntime({ type: "e2b", template_id: "tmpl_123" }) }
-      })
-    ).toMatchObject({
-      runner: "e2b",
-      dockerfilePath: null,
-      buildContext: null
-    });
   });
 
-  it("hard-errors when docker or e2b has neither a prebuilt artifact nor Dockerfile", () => {
+  it("hard-errors when docker has neither a prebuilt artifact nor Dockerfile", () => {
     withTempProject(({ cwd }) => {
       expect(() =>
         resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })
       ).toThrow(
         `Docker runtime requires image or a Dockerfile at ${path.join(cwd, ".poe-code", "Dockerfile")}.`
-      );
-
-      expect(() =>
-        resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "e2b" }) } })
-      ).toThrow(
-        `E2B runtime requires template_id or a Dockerfile at ${path.join(cwd, ".poe-code", "Dockerfile")}.`
       );
     });
   });
@@ -565,21 +465,17 @@ describe("runtime config", () => {
         resolveScope(
           runtimeConfigScope.schema,
           {
-            type: "e2b",
-            template_id: "tmpl_123",
-            workspace_dir: "/sandbox/workspace",
-            preserve_after_exit_hours: 0
+            type: "docker",
+            image: "node:22"
           },
           {}
         )
       )
     ).toEqual({
-      type: "e2b",
-      template_id: "tmpl_123",
+      type: "docker",
+      image: "node:22",
       build_args: {},
-      mounts: [],
-      workspace_dir: "/sandbox/workspace",
-      preserve_after_exit_hours: 0
+      mounts: []
     });
   });
 

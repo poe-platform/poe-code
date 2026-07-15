@@ -815,8 +815,7 @@ describe("SDK experiment", () => {
       docPath: "docs/loop.md",
       agent: "codex",
       model: "gpt-5.2",
-      runtime: "e2b",
-      runtimeTemplate: "tpl_123",
+      runtime: "docker",
       mountPoeCode: true,
       maxExperiments: 3,
       onExperimentStart,
@@ -850,8 +849,7 @@ describe("SDK experiment", () => {
       cwd: "/repo",
       model: "gpt-5.2",
       mode: "yolo",
-      runtime: "e2b",
-      runtimeTemplate: "tpl_123",
+      runtime: "docker",
       mountPoeCode: true,
       worktree: false
     });

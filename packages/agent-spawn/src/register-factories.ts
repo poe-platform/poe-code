@@ -3,11 +3,9 @@ import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { registerExecutionEnvFactory } from "@poe-code/agent-harness-tools";
 import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "@poe-code/agent-harness-tools";
 import { dockerExecutionEnvFactory, hostExecutionEnvFactory } from "@poe-code/process-runner";
-import { e2bExecutionEnvFactory } from "@poe-code/runner-e2b";
 
 registerExecutionEnvFactory(hostExecutionEnvFactory);
 registerExecutionEnvFactory(dockerExecutionEnvFactory);
-registerExecutionEnvFactory(e2bExecutionEnvFactory);
 
 if (isVitest()) {
   registerExecutionEnvFactory(createTestHostExecutionEnvFactory());

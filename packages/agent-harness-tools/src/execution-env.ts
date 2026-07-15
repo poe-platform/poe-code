@@ -5,7 +5,7 @@ import type { StateManager } from "@poe-code/poe-code-config";
 export type { RuntimeConfig } from "@poe-code/poe-code-config";
 export type { RunHandle, RunSpec } from "@poe-code/process-runner";
 
-export type ExecutionEnvType = "host" | "docker" | "e2b";
+export type ExecutionEnvType = "host" | "docker";
 export type JobStatus = "running" | "exited" | "killed" | "lost";
 
 export interface ExecutionEnvFactory {

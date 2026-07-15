@@ -8,7 +8,7 @@ import {
 } from "./fs.js";
 import { hasOwnErrorCode } from "../errors.js";
 
-export type TemplateBackend = "docker" | "e2b";
+export type TemplateBackend = "docker";
 
 export interface TemplateEntry {
   hash: string;
@@ -115,10 +115,7 @@ export function createTemplateRegistry(
 
   async function list(backend?: TemplateBackend): Promise<TemplateEntry[]> {
     const state = await readState();
-    const entries =
-      backend === undefined
-        ? [...Object.values(state.docker), ...Object.values(state.e2b)]
-        : Object.values(state[backend]);
+    const entries = Object.values(state[backend ?? "docker"]);
 
     return entries.sort((left, right) => left.hash.localeCompare(right.hash));
   }
@@ -133,8 +130,7 @@ export function createTemplateRegistry(
 
 function createEmptyState(): TemplateState {
   return {
-    docker: Object.create(null) as Record<string, TemplateEntry>,
-    e2b: Object.create(null) as Record<string, TemplateEntry>
+    docker: Object.create(null) as Record<string, TemplateEntry>
   };
 }
 
@@ -144,8 +140,7 @@ function normalizeTemplateState(value: unknown): TemplateState {
   }
 
   return {
-    docker: normalizeTemplateEntries(value.docker),
-    e2b: normalizeTemplateEntries(value.e2b)
+    docker: normalizeTemplateEntries(value.docker)
   };
 }
 

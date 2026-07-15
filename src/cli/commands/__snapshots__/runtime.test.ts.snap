@@ -26,6 +26,5 @@ exports[`runtime command > snapshots runtime templates ls output grouped by back
 │ Backend    │ Hash             │ Artifact                         │ Dockerfile                           │ Built                    │
 ├────────────┼──────────────────┼──────────────────────────────────┼──────────────────────────────────────┼──────────────────────────┤
 │ docker     │ abc123           │ poe-code/local:abc123            │ /repo/.poe-code/Dockerfile           │ 2026-05-03T10:00:00.000Z │
-│ e2b        │ def456           │ tmpl_def456                      │ /repo/.poe-code/Dockerfile           │ 2026-05-03T11:00:00.000Z │
 └────────────┴──────────────────┴──────────────────────────────────┴──────────────────────────────────────┴──────────────────────────┘"
 `;

@@ -344,13 +344,13 @@ describe("runtime command", () => {
     const program = createBaseProgram();
     registerRuntimeCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "runtime", "init", "--type", "e2b", "--yes"]);
+    await program.parseAsync(["node", "cli", "runtime", "init", "--type", "host", "--yes"]);
 
     await expect(fs.readFile(dockerfilePath, "utf8")).resolves.toBe("FROM custom\n");
     await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toMatchInlineSnapshot(`
       "{
         "runtime": {
-          "type": "e2b",
+          "type": "host",
           "build_args": {
             "NODE_ENV": "test"
           },
@@ -378,15 +378,6 @@ describe("runtime command", () => {
               runtime_type: "docker",
               dockerfile_path: "/repo/.poe-code/Dockerfile",
               built_at: "2026-05-03T10:00:00.000Z"
-            }
-          },
-          e2b: {
-            def456: {
-              hash: "def456",
-              template_id: "tmpl_def456",
-              runtime_type: "e2b",
-              dockerfile_path: "/repo/.poe-code/Dockerfile",
-              built_at: "2026-05-03T11:00:00.000Z"
             }
           }
         },
@@ -416,8 +407,7 @@ describe("runtime command", () => {
               dockerfile_path: "/repo/.poe-code/Dockerfile",
               built_at: "2026-05-03T10:00:00.000Z"
             }
-          },
-          e2b: {}
+          }
         },
         null,
         2
@@ -433,8 +423,7 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
     await expect(fs.readFile(statePath, "utf8")).resolves.toMatchInlineSnapshot(`
       "{
-        "docker": {},
-        "e2b": {}
+        "docker": {}
       }
       "
     `);
@@ -1364,24 +1353,6 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toContain(
       "Docker runtime uses pinned image ghcr.io/example/poe-runtime:1."
     );
-  });
-
-  it("does not load the e2b builder when a template id is pinned in config", async () => {
-    const fs = createMemFs({
-      [projectConfigPath]: `${JSON.stringify(
-        { runtime: { type: "e2b", template_id: "tmpl_pinned" } },
-        null,
-        2
-      )}\n`
-    });
-    const logs: string[] = [];
-    const container = createContainer(fs, logs);
-    const program = createBaseProgram();
-    registerRuntimeCommand(program, container);
-
-    await program.parseAsync(["node", "cli", "runtime", "build"]);
-
-    expect(stripAnsi(logs.join("\n"))).toContain("E2B runtime uses pinned template tmpl_pinned.");
   });
 
   it("does not recover malformed project config while previewing a runtime build", async () => {

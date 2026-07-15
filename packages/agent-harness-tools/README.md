@@ -20,14 +20,14 @@ execution.
 
 `ExecutionEnvFactory` is the runtime backend boundary used by Poe Code command runners.
 
-- `type`: runtime backend id, currently `host`, `docker`, or `e2b`.
+- `type`: runtime backend id, currently `host` or `docker`.
 - `supportsDetach`: true when the backend can leave an addressable environment running.
 - `open(spec)`: creates a fresh `OpenedEnv`.
 - `attach(envId, context)`: reconnects to an existing runtime environment.
 
 `OpenedEnv` owns one command environment lifecycle:
 
-- `id`: backend environment id, such as a Docker container id or E2B sandbox id.
+- `id`: backend environment id, such as a Docker container id.
 - `job`: attached job handle when reconnecting to an existing job, otherwise `null`.
 - `uploadWorkspace()`: transfers the caller workspace into the environment.
 - `downloadWorkspace({ conflictPolicy })`: syncs the environment workspace back to the caller.

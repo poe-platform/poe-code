@@ -1575,7 +1575,7 @@ describe("createRalphSimulation", () => {
       homeDir: "/home/test",
       docPath: "/repo/docs/plan.md",
       maxIterations: 1,
-      runtime: "e2b",
+      runtime: "docker",
       runtimeConfigCwd: "/repo",
       fs,
       runAgent
@@ -1584,7 +1584,7 @@ describe("createRalphSimulation", () => {
     expect(runAgent).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: "/tmp/ralph-work",
-        runtime: "e2b",
+        runtime: "docker",
         runtimeConfigCwd: "/repo"
       })
     );

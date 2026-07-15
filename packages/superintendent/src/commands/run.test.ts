@@ -302,8 +302,7 @@ describe("superintendent run command", () => {
       fs,
       runLoop: runLoopMock,
       executeAgent,
-      runtime: "e2b",
-      runtimeTemplate: "tpl_123",
+      runtime: "docker",
       detach: true,
       mountPoeCode: true,
       runnerSync: "none",
@@ -313,8 +312,7 @@ describe("superintendent run command", () => {
     expect(executeAgent).toHaveBeenCalledWith(
       "claude-code",
       expect.objectContaining({
-        runtime: "e2b",
-        runtimeTemplate: "tpl_123",
+        runtime: "docker",
         detach: true,
         mountPoeCode: true,
         runnerSync: "none"

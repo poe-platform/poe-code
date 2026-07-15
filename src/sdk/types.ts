@@ -1,5 +1,5 @@
 export type SpawnMode = "yolo" | "auto" | "edit" | "read";
-export type Runtime = "host" | "docker" | "e2b";
+export type Runtime = "host" | "docker";
 export type RunnerSync = "both" | "upload" | "none";
 
 export interface McpSpawnServer {
@@ -130,12 +130,10 @@ export interface SpawnOptions {
    * Disabled when undefined.
    */
   activityTimeoutMs?: number;
-  /** Runtime backend override: host, docker, or e2b */
+  /** Runtime backend override: host or docker */
   runtime?: Runtime;
   /** Docker image override for docker runtime */
   runtimeImage?: string;
-  /** E2B template id override for e2b runtime */
-  runtimeTemplate?: string;
   /** Directory used to load runtime config/templates when different from cwd */
   runtimeConfigCwd?: string;
   /** Run as a detached runtime job when supported */

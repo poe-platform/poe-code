@@ -92,9 +92,8 @@ export type RunCommandOptions = {
   homeDir: string;
   docPath?: string;
   builderAgent?: string;
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
@@ -173,12 +172,11 @@ const runParams = S.Object({
     })
   ),
   runtime: S.Optional(
-    S.Enum(["host", "docker", "e2b"] as const, {
-      description: "Override runtime backend: host, docker, or e2b"
+    S.Enum(["host", "docker"] as const, {
+      description: "Override runtime backend: host or docker"
     })
   ),
   runtimeImage: S.Optional(S.String({ description: "Override Docker runtime image" })),
-  runtimeTemplate: S.Optional(S.String({ description: "Override E2B runtime template id" })),
   detach: S.Optional(S.Boolean({ description: "Run as a detached runtime job" })),
   runnerSync: S.Optional(
     S.Enum(["both", "upload", "none"] as const, {
@@ -227,7 +225,6 @@ export const runCommand = defineCommand({
           ...(params.agent ? { builderAgent: params.agent } : {}),
           ...(params.runtime ? { runtime: params.runtime } : {}),
           ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-          ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
           ...(params.detach ? { detach: params.detach } : {}),
           ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
           configuredDefaultAgent: commandConfig.configuredDefaultAgent,
@@ -310,7 +307,6 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
           ...(params.agent ? { builderAgent: params.agent } : {}),
           ...(params.runtime ? { runtime: params.runtime } : {}),
           ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-          ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
           ...(params.detach ? { detach: params.detach } : {}),
           ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
           configuredDefaultAgent: commandConfig.configuredDefaultAgent,
@@ -598,7 +594,6 @@ export async function runSuperintendentCommand(
           runtime: {
             runtime: options.runtime,
             runtimeImage: options.runtimeImage,
-            runtimeTemplate: options.runtimeTemplate,
             detach: options.detach,
             mountPoeCode: options.mountPoeCode,
             runnerSync: options.runnerSync
@@ -869,7 +864,6 @@ export async function runSuperintendentCommand(
           runtime: {
             runtime: options.runtime,
             runtimeImage: options.runtimeImage,
-            runtimeTemplate: options.runtimeTemplate,
             detach: options.detach,
             mountPoeCode: options.mountPoeCode,
             runnerSync: options.runnerSync
@@ -1258,7 +1252,7 @@ function createAgentRunner(options: {
   integrations: Integrations | null;
   runtime: Pick<
     RunCommandOptions,
-    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode" | "runnerSync"
+    "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync"
   >;
   activeStage: () => RunSession["activeStage"];
   now: () => number;
@@ -1387,7 +1381,6 @@ async function executeSpawnAgent(
     ...(input.logPath ? { logPath: input.logPath } : {}),
     ...(input.runtime ? { runtime: input.runtime } : {}),
     ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
-    ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
     ...(input.detach ? { detach: input.detach } : {}),
     ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
     ...(input.runnerSync ? { runnerSync: input.runnerSync } : {}),
@@ -1431,7 +1424,6 @@ async function executeSpawnAgentStreaming(
     ...(input.signal ? { signal: input.signal } : {}),
     ...(input.runtime ? { runtime: input.runtime } : {}),
     ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
-    ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
     ...(input.detach ? { detach: input.detach } : {}),
     ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
     ...(input.runnerSync ? { runnerSync: input.runnerSync } : {}),

@@ -109,7 +109,6 @@ export async function spawnInteractive(
     runtime: {
       runtime: options.runtime,
       runtimeImage: options.runtimeImage,
-      runtimeTemplate: options.runtimeTemplate,
       detach: options.detach,
       mountPoeCode: options.mountPoeCode,
       runnerSync: options.runnerSync

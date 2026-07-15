@@ -337,9 +337,7 @@ describe("experiment run command", () => {
       "--agent",
       "claude",
       "--runtime",
-      "e2b",
-      "--runtime-template",
-      "tpl_123",
+      "docker",
       "--detach",
       "--runner-sync",
       "none"
@@ -347,8 +345,7 @@ describe("experiment run command", () => {
 
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
-        runtime: "e2b",
-        runtimeTemplate: "tpl_123",
+        runtime: "docker",
         detach: true,
         runnerSync: "none"
       })

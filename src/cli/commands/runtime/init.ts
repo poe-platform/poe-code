@@ -20,7 +20,7 @@ export function registerRuntimeInitCommand(
   runtime
     .command("init")
     .description("Initialize project runtime configuration.")
-    .addOption(new Option("--type <type>", "Runtime backend").choices(["host", "docker", "e2b"]))
+    .addOption(new Option("--type <type>", "Runtime backend").choices(["host", "docker"]))
     .option("--no-dockerfile", "Do not create .poe-code/Dockerfile.")
     .action(async (options: RuntimeInitOptions) => {
       await executeRuntimeInit(root, container, options);

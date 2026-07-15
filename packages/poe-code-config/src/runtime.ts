@@ -38,20 +38,7 @@ export interface DockerRuntime extends SharedRuntimeFields {
   extra_args?: string[];
 }
 
-export interface E2bRuntime extends SharedRuntimeFields {
-  type: "e2b";
-  template_id?: string;
-  from_template?: string;
-  dockerfile?: string;
-  build_context?: string;
-  workspace_dir?: string;
-  cpu?: number;
-  memory_mb?: number;
-  timeout_minutes?: number;
-  preserve_after_exit_hours?: number;
-}
-
-export type RuntimeConfig = HostRuntime | DockerRuntime | E2bRuntime;
+export type RuntimeConfig = HostRuntime | DockerRuntime;
 export type RuntimeRunner = RuntimeConfig["type"];
 
 const defaultWorkspaceExclude = [
@@ -78,7 +65,7 @@ export const runtimeConfigScope = deepFreeze({
     type: {
       type: "string",
       default: "host",
-      doc: "Runtime backend: host, docker, or e2b"
+      doc: "Runtime backend: host or docker"
     },
     build_args: {
       type: "json",
@@ -111,17 +98,12 @@ export const runtimeConfigScope = deepFreeze({
     dockerfile: {
       type: "string",
       default: "",
-      doc: "Path to the Dockerfile used for docker or e2b builds"
+      doc: "Path to the Dockerfile used for Docker builds"
     },
     build_context: {
       type: "string",
       default: "",
       doc: "Path to the Docker build context"
-    },
-    workspace_dir: {
-      type: "string",
-      default: "/workspace",
-      doc: "Sandbox-local workspace directory for E2B runtime upload, execution, and download"
     },
     engine: {
       type: "string",
@@ -138,40 +120,6 @@ export const runtimeConfigScope = deepFreeze({
       default: undefined as string[] | undefined,
       parse: parseOptionalStringArray,
       doc: "Extra Docker runtime arguments"
-    },
-    template_id: {
-      type: "string",
-      default: "",
-      doc: "Prebuilt E2B template id"
-    },
-    from_template: {
-      type: "string",
-      default: "",
-      doc: "Existing E2B template alias to extend instead of using the Dockerfile FROM image"
-    },
-    cpu: {
-      type: "json",
-      default: undefined as number | undefined,
-      parse: parseOptionalNumber,
-      doc: "E2B CPU count"
-    },
-    memory_mb: {
-      type: "json",
-      default: undefined as number | undefined,
-      parse: parseOptionalNumber,
-      doc: "E2B memory in megabytes"
-    },
-    timeout_minutes: {
-      type: "json",
-      default: undefined as number | undefined,
-      parse: parseOptionalNumber,
-      doc: "E2B timeout in minutes"
-    },
-    preserve_after_exit_hours: {
-      type: "json",
-      default: undefined as number | undefined,
-      parse: parseOptionalNumber,
-      doc: "Hours to keep an E2B sandbox alive after job exit"
     }
   }
 } satisfies ScopeDefinition<Record<string, SchemaField>>);
@@ -226,40 +174,6 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
       engine: parseEngine(getOwnEntry(record, "engine")),
       network: parseOptionalString(getOwnEntry(record, "network")),
       extra_args: parseOptionalStringArray(getOwnEntry(record, "extra_args"))
-    });
-  }
-
-  if (type === "e2b") {
-    const preserveAfterExitHours =
-      parseOptionalNumber(getOwnEntry(record, "preserve_after_exit_hours")) ?? 24;
-    if (preserveAfterExitHours < 0 || preserveAfterExitHours > 168) {
-      throw new Error("preserve_after_exit_hours: expected a number from 0 to 168.");
-    }
-    const cpu = parseOptionalNumber(getOwnEntry(record, "cpu"));
-    if (cpu !== undefined && cpu <= 0) {
-      throw new Error("cpu: expected a positive finite number.");
-    }
-    const memoryMb = parseOptionalNumber(getOwnEntry(record, "memory_mb"));
-    if (memoryMb !== undefined && memoryMb <= 0) {
-      throw new Error("memory_mb: expected a positive finite number.");
-    }
-    const timeoutMinutes = parseOptionalNumber(getOwnEntry(record, "timeout_minutes"));
-    if (timeoutMinutes !== undefined && timeoutMinutes < 0) {
-      throw new Error("timeout_minutes: expected a non-negative finite number.");
-    }
-
-    return omitUndefined({
-      ...shared,
-      type,
-      template_id: parseOptionalNonEmptyString(getOwnEntry(record, "template_id"), "template_id"),
-      from_template: parseOptionalString(getOwnEntry(record, "from_template")),
-      dockerfile: parseOptionalString(getOwnEntry(record, "dockerfile")),
-      build_context: parseOptionalString(getOwnEntry(record, "build_context")),
-      workspace_dir: parseWorkspaceDir(getOwnEntry(record, "workspace_dir")),
-      cpu,
-      memory_mb: memoryMb,
-      timeout_minutes: timeoutMinutes,
-      preserve_after_exit_hours: preserveAfterExitHours
     });
   }
 
@@ -319,39 +233,12 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
       dockerfilePath,
       buildContext
     };
-  },
-  e2b({ cwd, runtime }) {
-    const e2bRuntime = runtime as E2bRuntime;
-    if (getOptionalRuntimeString(e2bRuntime, "template_id") !== undefined) {
-      return {
-        runtime: e2bRuntime,
-        runner: "e2b",
-        dockerfilePath: null,
-        buildContext: null
-      };
-    }
-
-    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, e2bRuntime);
-    if (!existsSync(dockerfilePath)) {
-      throw new Error(`E2B runtime requires template_id or a Dockerfile at ${dockerfilePath}.`);
-    }
-    if (!existsSync(buildContext)) {
-      throw new Error(`runtime.build_context does not exist: ${buildContext}.`);
-    }
-    assertRuntimePathInsideCwd(cwd, dockerfilePath, "runtime.dockerfile");
-    assertRuntimePathInsideCwd(cwd, buildContext, "runtime.build_context");
-    return {
-      runtime: e2bRuntime,
-      runner: "e2b",
-      dockerfilePath,
-      buildContext
-    };
   }
 };
 
 function resolveRuntimeBuildPaths(
   cwd: string,
-  runtime: DockerRuntime | E2bRuntime
+  runtime: DockerRuntime
 ): { dockerfilePath: string; buildContext: string } {
   return {
     dockerfilePath: path.resolve(
@@ -387,22 +274,10 @@ function parseRuntimeType(value: unknown): RuntimeConfig["type"] {
   if (value === undefined) {
     return "host";
   }
-  if (value === "host" || value === "docker" || value === "e2b") {
+  if (value === "host" || value === "docker") {
     return value;
   }
-  throw new Error('type: expected "host", "docker", or "e2b".');
-}
-
-function parseWorkspaceDir(value: unknown): string {
-  const workspaceDir = parseOptionalString(value) ?? "/workspace";
-  if (!path.posix.isAbsolute(workspaceDir)) {
-    throw new Error("workspace_dir: expected an absolute sandbox path.");
-  }
-  let normalized = path.posix.normalize(workspaceDir);
-  while (normalized.length > 1 && normalized.endsWith("/")) {
-    normalized = normalized.slice(0, -1);
-  }
-  return normalized;
+  throw new Error('type: expected "host" or "docker".');
 }
 
 function createDefaultRunnerScope(): RunnerScope {
@@ -635,15 +510,15 @@ function isRuntimeConfig(value: unknown): value is RuntimeConfig {
 
 function getRuntimeType(runtime: RuntimeConfig): RuntimeConfig["type"] {
   const type = getOwnEntry(runtime as unknown as Record<string, unknown>, "type");
-  if (type === "host" || type === "docker" || type === "e2b") {
+  if (type === "host" || type === "docker") {
     return type;
   }
-  throw new Error('runtime.type: expected "host", "docker", or "e2b".');
+  throw new Error('runtime.type: expected "host" or "docker".');
 }
 
 function getOptionalRuntimeString(
-  runtime: DockerRuntime | E2bRuntime,
-  key: "build_context" | "dockerfile" | "image" | "template_id"
+  runtime: DockerRuntime,
+  key: "build_context" | "dockerfile" | "image"
 ): string | undefined {
   const value = getOwnEntry(runtime as unknown as Record<string, unknown>, key);
   return typeof value === "string" ? value : undefined;

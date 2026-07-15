@@ -36,7 +36,7 @@ export interface HostRunnerOptions {
   detached?: boolean;
 }
 
-export type ExecutionEnvType = "host" | "docker" | "e2b";
+export type ExecutionEnvType = "host" | "docker";
 export type JobStatus = "running" | "exited" | "killed" | "lost";
 
 export interface ExecutionEnvFactory {
@@ -73,8 +73,8 @@ export interface OpenSpec {
 
 export interface ExecutionState {
   templates: {
-    get(backend: "docker" | "e2b", hash: string): Promise<TemplateEntry | null>;
-    put(backend: "docker" | "e2b", entry: TemplateEntry): Promise<void>;
+    get(backend: "docker", hash: string): Promise<TemplateEntry | null>;
+    put(backend: "docker", entry: TemplateEntry): Promise<void>;
   };
 }
 

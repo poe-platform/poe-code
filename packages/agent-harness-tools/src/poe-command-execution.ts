@@ -19,9 +19,8 @@ import {
 import { selectExecutionEnv, type OpenSpec } from "./execution-env.js";
 
 export type RuntimeOverrideOptions = {
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: RunnerScope["sync"];
@@ -98,9 +97,6 @@ export function applyRuntimeOverrides(
     ...base,
     ...(overrides.runtime !== undefined ? { type: overrides.runtime } : {}),
     ...(overrides.runtimeImage !== undefined ? { image: overrides.runtimeImage } : {}),
-    ...(overrides.runtimeTemplate !== undefined
-      ? { template_id: overrides.runtimeTemplate }
-      : {}),
     ...(overrides.mountPoeCode === true
       ? { mounts: [...config.runtime.mounts, createPoeCodeMount(cwd)] }
       : {})

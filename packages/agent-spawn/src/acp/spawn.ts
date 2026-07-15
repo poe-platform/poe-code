@@ -446,7 +446,6 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
               runtime: {
                 runtime: options.runtime,
                 runtimeImage: options.runtimeImage,
-                runtimeTemplate: options.runtimeTemplate,
                 detach: options.detach,
                 mountPoeCode: options.mountPoeCode,
                 runnerSync: options.runnerSync
@@ -616,7 +615,7 @@ function normalizeSpawnStreamingOptions(options: SpawnStreamingOptions): SpawnSt
     "cwd", "model", "mode", "args", "mcpServers", "skills", "hooks", "resumeThreadId",
     "useStdin", "interactive", "signal", "otelSink", "captureOtel", "captureOtelContent", "env",
     "middlewares", "tee", "activityTimeoutMs", "logPath", "logDir", "logFileName", "runtime",
-    "runtimeImage", "runtimeTemplate", "runtimeConfigCwd", "detach", "mountPoeCode", "runnerSync"
+    "runtimeImage", "runtimeConfigCwd", "detach", "mountPoeCode", "runnerSync"
   ];
   for (const name of optionalNames) {
     const value = getOwnProperty(options, name);

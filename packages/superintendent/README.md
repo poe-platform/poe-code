@@ -49,7 +49,7 @@ poe-code superintendent inspector run <doc> [name]
 
 Behavior notes:
 
-- `run` starts the full loop and uses the live dashboard in terminal output. It also accepts shared runtime flags: `--runtime host|docker|e2b`, `--runtime-image`, `--runtime-template`, `--detach`, `--runner-sync`, `--tui`, and `--worktree`. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
+- `run` starts the full loop and uses the live dashboard in terminal output. It also accepts shared runtime flags: `--runtime host|docker`, `--runtime-image`, `--detach`, `--runner-sync`, `--tui`, and `--worktree`. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
 - `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
 - `install` installs the Superintendent skill and scaffolds the shared plan directory.

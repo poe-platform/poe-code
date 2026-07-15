@@ -6,47 +6,17 @@ import {
   readMergedDocument,
   readMergedDocumentReadonly,
   runtimeConfigScope,
-  resolveScope,
-  type E2bRuntime
+  resolveScope
 } from "@poe-code/poe-code-config";
 import { pathExists } from "@poe-code/config-mutations";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
-import type { ExecutionState } from "@poe-code/process-runner";
-import { withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "../runtime-options.js";
 import { ValidationError } from "../../errors.js";
-import { hasOwnErrorCode } from "../../../utils/error-codes.js";
-
-interface BuildLogEntry {
-  level: "debug" | "info" | "warn" | "error";
-  message: string;
-  timestamp: Date;
-}
 
 export interface RuntimeBuildOptions extends RuntimeCliOptions {
   force?: boolean;
-}
-
-interface BuildE2bRuntimeTemplateResult {
-  backend: "e2b";
-  hash: string;
-  templateId: string;
-  cached: boolean;
-}
-
-interface E2bRunnerModule {
-  buildE2bRuntimeTemplate: (input: {
-    runtime: E2bRuntime;
-    dockerfilePath: string;
-    buildContext: string;
-    state?: ExecutionState;
-    apiKey: string;
-    force?: boolean;
-    onLog?: (entry: BuildLogEntry) => void;
-  }) => Promise<BuildE2bRuntimeTemplateResult>;
-  resolveE2bApiKey: (input: { cwd: string }) => Promise<string>;
 }
 
 export function registerRuntimeBuildCommand(
@@ -89,10 +59,7 @@ async function executeRuntimeBuild(
   const runtimeConfig = parseRuntime({
     ...runtimeScope,
     ...(runtimeOverrides.runtime !== undefined ? { type: runtimeOverrides.runtime } : {}),
-    ...(runtimeOverrides.runtimeImage !== undefined ? { image: runtimeOverrides.runtimeImage } : {}),
-    ...(runtimeOverrides.runtimeTemplate !== undefined
-      ? { template_id: runtimeOverrides.runtimeTemplate }
-      : {})
+    ...(runtimeOverrides.runtimeImage !== undefined ? { image: runtimeOverrides.runtimeImage } : {})
   });
 
   resources.logger.intro("runtime build");
@@ -100,67 +67,31 @@ async function executeRuntimeBuild(
   if (runtimeConfig.type === "host") {
     throw new ValidationError(
       "Host runtime has no template to build. " +
-        "Pass --runtime e2b or --runtime docker, " +
+        "Pass --runtime docker, " +
         'or set "runtime": { "type": "..." } in .poe-code/config.json.'
     );
   }
 
-  if (runtimeConfig.type === "docker") {
-    if (runtimeConfig.image !== undefined) {
-      resources.logger.info(`Docker runtime uses pinned image ${runtimeConfig.image}.`);
-      return;
-    }
-    await requireRuntimeBuildPaths(container, runtimeConfig, "Docker");
-    if (flags.dryRun) {
-      resources.logger.dryRun("Dry run: would build docker runtime template.");
-      return;
-    }
-    const result = await buildDockerRuntimeTemplate({
-      cwd: container.env.cwd,
-      runtime: runtimeConfig,
-      state,
-      force: options.force === true
-    });
-    resources.logger.success(
-      result.cached
-        ? `Using cached Docker image ${result.image}`
-        : `Built Docker image ${result.image}`
-    );
+  if (runtimeConfig.image !== undefined) {
+    resources.logger.info(`Docker runtime uses pinned image ${runtimeConfig.image}.`);
     return;
   }
-
-  if (runtimeConfig.template_id !== undefined) {
-    resources.logger.info(`E2B runtime uses pinned template ${runtimeConfig.template_id}.`);
-    return;
-  }
+  await requireRuntimeBuildPaths(container, runtimeConfig, "Docker");
   if (flags.dryRun) {
-    resources.logger.dryRun("Dry run: would build e2b runtime template.");
+    resources.logger.dryRun("Dry run: would build docker runtime template.");
     return;
   }
-  const paths = await requireRuntimeBuildPaths(container, runtimeConfig, "E2B");
-  const e2bModule = await loadE2bRunnerModule();
-  const apiKey = await e2bModule.resolveE2bApiKey({ cwd: container.env.cwd });
-  await withSpinner({
-    message: "Building E2B template",
-    fn: () =>
-      e2bModule.buildE2bRuntimeTemplate({
-        runtime: runtimeConfig,
-        dockerfilePath: paths.dockerfilePath,
-        buildContext: paths.buildContext,
-        state,
-        apiKey,
-        force: options.force === true,
-        onLog: (entry) => {
-          if (entry.level === "warn" || entry.level === "error") {
-            resources.logger.info(`[${entry.level}] ${entry.message}`);
-          }
-        }
-      }),
-    stopMessage: (r) =>
-      r.cached
-        ? `Using cached E2B template ${r.templateId}`
-        : `Built E2B template ${r.templateId}`
+  const result = await buildDockerRuntimeTemplate({
+    cwd: container.env.cwd,
+    runtime: runtimeConfig,
+    state,
+    force: options.force === true
   });
+  resources.logger.success(
+    result.cached
+      ? `Using cached Docker image ${result.image}`
+      : `Built Docker image ${result.image}`
+  );
 }
 
 async function requireRuntimeBuildPaths(
@@ -197,39 +128,4 @@ function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: 
 function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
   const relativePath = path.relative(rootPath, targetPath);
   return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
-}
-
-async function loadE2bRunnerModule(): Promise<E2bRunnerModule> {
-  const dynamicImport = new Function("specifier", "return import(specifier)") as (
-    specifier: string
-  ) => Promise<unknown>;
-
-  try {
-    const module = await dynamicImport("@poe-code/runner-e2b");
-    if (
-      module &&
-      typeof module === "object" &&
-      "buildE2bRuntimeTemplate" in module &&
-      typeof module.buildE2bRuntimeTemplate === "function" &&
-      "resolveE2bApiKey" in module &&
-      typeof module.resolveE2bApiKey === "function"
-    ) {
-      return module as unknown as E2bRunnerModule;
-    }
-  } catch (error) {
-    if (isModuleNotFound(error)) {
-      throw new Error(
-        "E2B runtime builds require @poe-code/runner-e2b. The E2B runner package is not installed in this checkout."
-      );
-    }
-    throw error;
-  }
-
-  throw new Error(
-    "E2B runtime builds require @poe-code/runner-e2b to export buildE2bRuntimeTemplate and resolveE2bApiKey."
-  );
-}
-
-function isModuleNotFound(error: unknown): boolean {
-  return hasOwnErrorCode(error, "ERR_MODULE_NOT_FOUND");
 }

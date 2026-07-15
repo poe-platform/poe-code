@@ -28,9 +28,8 @@ export interface SpawnAcpOptions {
   skills?: string[];
   hooks?: HookBridgeOptions;
   resumeThreadId?: string;
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";
@@ -120,7 +119,6 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
   if (
     options.runtime !== undefined ||
     options.runtimeImage !== undefined ||
-    options.runtimeTemplate !== undefined ||
     options.detach !== undefined ||
     options.mountPoeCode !== undefined ||
     options.runnerSync !== undefined
@@ -465,7 +463,7 @@ function normalizeSpawnAcpOptions(options: SpawnAcpOptions): SpawnAcpOptions {
   });
   const optionalNames: readonly (keyof SpawnAcpOptions)[] = [
     "cwd", "model", "mode", "mcpServers", "skills", "hooks", "resumeThreadId", "runtime",
-    "runtimeImage", "runtimeTemplate", "detach", "mountPoeCode", "runnerSync", "signal",
+    "runtimeImage", "detach", "mountPoeCode", "runnerSync", "signal",
     "otelSink", "middlewares", "env"
   ];
   for (const name of optionalNames) {

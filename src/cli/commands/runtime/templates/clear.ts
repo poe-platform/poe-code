@@ -5,7 +5,7 @@ import { OperationCancelledError } from "../../../errors.js";
 import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";
 
-const backends: TemplateBackend[] = ["docker", "e2b"];
+const backends: TemplateBackend[] = ["docker"];
 
 export function registerRuntimeTemplatesClearCommand(
   templates: Command,

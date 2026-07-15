@@ -33,9 +33,8 @@ export interface AgentRunInput {
   model?: string;
   skills?: string[];
   hooks?: RalphHooks;
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   runtimeConfigCwd?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
@@ -67,9 +66,8 @@ export interface RalphRunOptions {
   docPath: string;
   maxIterations?: number;
   archive?: boolean;
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   runtimeConfigCwd?: string;
   detach?: boolean;
   mountPoeCode?: boolean;

@@ -110,21 +110,15 @@ describe("TemplateRegistry", () => {
     await expect(registry.list("docker")).resolves.toEqual(entries);
   });
 
-  it("lists all backends or one backend", async () => {
+  it("lists Docker templates with or without an explicit backend", async () => {
     const fs = createMemFs();
     const registry = createTemplateRegistry("/home/tester", fs);
     const docker = createTemplate("docker-hash");
-    const e2b = createTemplate("e2b-hash", {
-      runtime_type: "e2b",
-      template_id: "tpl_123",
-      image: undefined
-    });
 
     await registry.put("docker", docker);
-    await registry.put("e2b", e2b);
 
     await expect(registry.list("docker")).resolves.toEqual([docker]);
-    await expect(registry.list()).resolves.toEqual([docker, e2b]);
+    await expect(registry.list()).resolves.toEqual([docker]);
   });
 
   it("removes a template by backend and hash", async () => {
@@ -141,7 +135,7 @@ describe("TemplateRegistry", () => {
     const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
     const original = createTemplate("alpha");
     const base = createMemFs({
-      [templatesPath]: `${JSON.stringify({ docker: { alpha: original }, e2b: {} }, null, 2)}\n`
+      [templatesPath]: `${JSON.stringify({ docker: { alpha: original } }, null, 2)}\n`
     });
     let tempPath: string | undefined;
     const fs: StateFileSystem = {
@@ -230,7 +224,6 @@ describe("TemplateRegistry", () => {
           docker: {
             alpha: createTemplate("bravo")
           },
-          e2b: {}
         },
         null,
         2
@@ -259,7 +252,7 @@ describe("TemplateRegistry", () => {
     const outsidePath = "/outside/templates.json";
     const volume = Volume.fromJSON(
       {
-        [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
+        [outsidePath]: `${JSON.stringify({ docker: {} }, null, 2)}\n`
       },
       "/"
     );
@@ -281,7 +274,7 @@ describe("TemplateRegistry", () => {
     const outsideDir = "/outside/state";
     const outsidePath = path.join(outsideDir, "templates.json");
     const fs = createMemFs({
-      [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
+      [outsidePath]: `${JSON.stringify({ docker: {} }, null, 2)}\n`
     });
     await fs.mkdir(path.dirname(stateDir), { recursive: true });
     await symlink(fs, outsideDir, stateDir);
@@ -323,7 +316,7 @@ describe("TemplateRegistry", () => {
     const original = createTemplate("alpha");
     const volume = Volume.fromJSON(
       {
-        [templatesPath]: `${JSON.stringify({ docker: { alpha: original }, e2b: {} }, null, 2)}\n`,
+        [templatesPath]: `${JSON.stringify({ docker: { alpha: original } }, null, 2)}\n`,
         [outsidePath]: "outside-state\n"
       },
       "/"
@@ -530,7 +523,7 @@ describe("JobRegistry", () => {
     const runningNode = createJob("running-node", {
       status: "running",
       tool: "node",
-      env_kind: "e2b",
+      env_kind: "docker",
       env_id: "env-special"
     });
 
@@ -542,7 +535,7 @@ describe("JobRegistry", () => {
     await expect(registry.list({ status: "running", tool: "node" })).resolves.toEqual([
       runningNode
     ]);
-    await expect(registry.list({ env_kind: "e2b", env_id: "env-special" })).resolves.toEqual([
+    await expect(registry.list({ env_kind: "docker", env_id: "env-special" })).resolves.toEqual([
       runningNode
     ]);
   });

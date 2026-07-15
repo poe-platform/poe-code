@@ -1,9 +1,7 @@
 import { randomBytes } from "node:crypto";
-import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
 import type { StateManager } from "@poe-code/poe-code-config";
 import type { RunHandle } from "@poe-code/process-runner";
 import type { Readable } from "node:stream";
-import { createBinaryExistsDetectors } from "./binary-exists.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { DownloadResult, ExecutionEnvFactory, OpenedEnv, OpenSpec } from "./execution-env.js";
 import { waitForExit, wrapForLogTee, type LogStreamEnv } from "./log-stream.js";
@@ -54,11 +52,6 @@ export async function runPoeCommand(opts: {
     shouldClose = true;
     const upload = env.uploadWorkspace();
     await Promise.all([pendingJob, upload]);
-    await configureE2bSpawnAgentIfAvailable({
-      env,
-      openSpec: opts.openSpec,
-      factoryType: opts.factory.type
-    });
     const argv = wrapCommand
       ? wrapForLogTee(opts.openSpec.jobLabel.argv, jobId)
       : opts.openSpec.jobLabel.argv;
@@ -213,11 +206,6 @@ export function createPoeCommandSession(opts: {
       });
       const currentEnv = await getEnv(openSpec);
       await pendingJob;
-      await configureE2bSpawnAgentIfAvailable({
-        env: currentEnv,
-        openSpec,
-        factoryType: opts.factory.type
-      });
       const wrapCommand = openSpec.execution?.wrapForLogTee !== false;
       const argv = wrapCommand
         ? wrapForLogTee(openSpec.jobLabel.argv, jobId)
@@ -297,119 +285,8 @@ function validateActivityTimeout(activityTimeoutMs: number | undefined): void {
   }
 }
 
-async function configureE2bSpawnAgentIfAvailable(opts: {
-  env: OpenedEnv;
-  openSpec: OpenSpec;
-  factoryType: string;
-}): Promise<void> {
-  if (opts.factoryType !== "e2b") {
-    return;
-  }
-
-  const agentId = resolveAgentId(opts.openSpec.jobLabel.tool);
-  const agent = allAgents.find((candidate) => candidate.id === agentId);
-  const binaryName = agent?.binaryName;
-  if (!agentId || !binaryName) {
-    return;
-  }
-
-  const commandEnv = resolveExecutionEnv(opts.openSpec);
-  const exists = await binaryExists(opts.env, {
-    binaryName,
-    cwd: opts.openSpec.cwd,
-    env: commandEnv
-  });
-  if (!exists) {
-    return;
-  }
-
-  const result = await runProbeCommand(opts.env, {
-    command: "poe-code",
-    args: ["configure", "--yes", "--provider", "poe", agentId],
-    cwd: opts.openSpec.cwd,
-    env: commandEnv
-  });
-  if (result.exitCode !== 0) {
-    throw new Error(
-      `Failed to configure ${agentId} for Poe inside E2B sandbox.\n${formatProbeResult(result)}`
-    );
-  }
-}
-
-async function binaryExists(
-  env: OpenedEnv,
-  opts: { binaryName: string; cwd: string; env: Record<string, string> | undefined }
-): Promise<boolean> {
-  for (const detector of createBinaryExistsDetectors(opts.binaryName)) {
-    const result = await runProbeCommand(env, {
-      ...detector,
-      cwd: opts.cwd,
-      env: opts.env
-    });
-    if (detector.validate(result)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 function resolveExecutionEnv(openSpec: OpenSpec): Record<string, string> | undefined {
-  const execution = openSpec.execution;
-  return execution?.env ?? openSpec.env;
-}
-
-async function runProbeCommand(
-  env: OpenedEnv,
-  spec: {
-    command: string;
-    args?: string[];
-    cwd: string;
-    env: Record<string, string> | undefined;
-  }
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const handle = env.exec({
-    command: spec.command,
-    args: spec.args,
-    cwd: spec.cwd,
-    env: spec.env,
-    stdin: "ignore",
-    stdout: "pipe",
-    stderr: "pipe"
-  });
-  const stdout = readStream(handle.stdout);
-  const stderr = readStream(handle.stderr);
-  const result = await handle.result;
-  return {
-    exitCode: result.exitCode,
-    stdout: await stdout,
-    stderr: await stderr
-  };
-}
-
-function readStream(stream: Readable | null): Promise<string> {
-  if (!stream) {
-    return Promise.resolve("");
-  }
-  return new Promise((resolve, reject) => {
-    let output = "";
-    stream.setEncoding("utf8");
-    stream.on("data", (chunk) => {
-      output += chunk.toString();
-    });
-    stream.on("error", reject);
-    stream.on("end", () => resolve(output));
-  });
-}
-
-function formatProbeResult(result: { exitCode: number; stdout: string; stderr: string }): string {
-  return [
-    `Exit code: ${result.exitCode}`,
-    result.stdout.trim() ? `stdout:\n${result.stdout.trim()}` : "",
-    result.stderr.trim() ? `stderr:\n${result.stderr.trim()}` : ""
-  ]
-    .filter(Boolean)
-    .join("\n");
+  return openSpec.execution?.env ?? openSpec.env;
 }
 
 async function runSync(opts: {

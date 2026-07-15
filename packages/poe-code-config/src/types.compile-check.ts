@@ -100,7 +100,7 @@ type ignoredResolvedConfigRuntime = AssertAssignable<
   ResolvedConfig,
   {
     runtime: {
-      type: "host" | "docker" | "e2b";
+      type: "host" | "docker";
       build_args: Record<string, string>;
       mounts: Array<{ source: string; target: string; readonly?: boolean }>;
       link?: string;

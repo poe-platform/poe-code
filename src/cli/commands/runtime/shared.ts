@@ -6,7 +6,7 @@ import { OperationCancelledError } from "../../errors.js";
 import type { CliContainer } from "../../container.js";
 import { hasOwnErrorCode } from "../../../utils/error-codes.js";
 
-export const runtimeTypes = ["host", "docker", "e2b"] as const;
+export const runtimeTypes = ["host", "docker"] as const;
 export type RuntimeType = (typeof runtimeTypes)[number];
 
 export const defaultRuntimeType: RuntimeType = "docker";
@@ -42,8 +42,7 @@ export async function resolveRuntimeType(input: {
     initialValue: defaultRuntimeType,
     options: [
       { value: "docker", label: "Docker", hint: "Build from .poe-code/Dockerfile" },
-      { value: "host", label: "Host", hint: "Run commands on this machine" },
-      { value: "e2b", label: "E2B", hint: "Use a cloud sandbox template" }
+      { value: "host", label: "Host", hint: "Run commands on this machine" }
     ]
   });
 
@@ -101,7 +100,7 @@ export function parseRuntimeType(value: string): RuntimeType {
   if (runtimeTypes.includes(value as RuntimeType)) {
     return value as RuntimeType;
   }
-  throw new Error(`Invalid runtime type "${value}". Expected host, docker, or e2b.`);
+  throw new Error(`Invalid runtime type "${value}". Expected host or docker.`);
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

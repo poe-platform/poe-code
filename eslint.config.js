@@ -68,22 +68,5 @@ export default tseslint.config(
         },
       ],
     },
-  },
-  {
-    files: ['packages/runner-e2b/src/**/*.ts'],
-    ignores: ['packages/runner-e2b/src/sdk.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'e2b',
-              message: 'Import the E2B SDK only from packages/runner-e2b/src/sdk.ts.',
-            },
-          ],
-        },
-      ],
-    },
   }
 );

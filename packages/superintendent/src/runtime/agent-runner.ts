@@ -24,7 +24,6 @@ export type AutonomousInput = {
   signal?: AbortSignal;
   runtime?: RuntimeOverrideOptions["runtime"];
   runtimeImage?: string;
-  runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
@@ -74,7 +73,6 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       ...(input.signal ? { signal: input.signal } : {}),
       ...(input.runtime ? { runtime: input.runtime } : {}),
       ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
-      ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
       ...(input.detach ? { detach: input.detach } : {}),
       ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
       ...(input.runnerSync ? { runnerSync: input.runnerSync } : {})
@@ -97,7 +95,6 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
     runtime: {
       runtime: input.runtime,
       runtimeImage: input.runtimeImage,
-      runtimeTemplate: input.runtimeTemplate,
       detach: input.detach,
       mountPoeCode: input.mountPoeCode,
       runnerSync: input.runnerSync

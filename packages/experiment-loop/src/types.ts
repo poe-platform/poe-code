@@ -51,9 +51,8 @@ export interface AgentRunInput {
   prompt: string;
   cwd: string;
   model?: string;
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";
@@ -75,9 +74,8 @@ export interface ExperimentRunOptions {
   homeDir: string;
   docPath: string;
   agent?: string | string[];
-  runtime?: "host" | "docker" | "e2b";
+  runtime?: "host" | "docker";
   runtimeImage?: string;
-  runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";

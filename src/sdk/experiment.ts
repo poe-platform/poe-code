@@ -102,7 +102,7 @@ export async function runExperiment(options: ExperimentRunOptions): Promise<Expe
 }
 
 async function runExperimentDirect(options: ExperimentRunOptions): Promise<ExperimentRunResult> {
-  const { worktree: _worktree, ...workspaceOptions } = options;
+  const { worktree: ignoredWorktree, ...workspaceOptions } = options;
   return await runWorkspaceExperimentLoop({
     ...workspaceOptions,
     runAgent: options.runAgent ?? (async (input: Parameters<NonNullable<ExperimentRunOptions["runAgent"]>>[0]) => {
@@ -115,7 +115,6 @@ async function runExperimentDirect(options: ExperimentRunOptions): Promise<Exper
         ...(input.logFileName ? { logFileName: input.logFileName } : {}),
         ...(options.runtime ? { runtime: options.runtime } : {}),
         ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
-        ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
         ...(options.detach ? { detach: options.detach } : {}),
         ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
         ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),

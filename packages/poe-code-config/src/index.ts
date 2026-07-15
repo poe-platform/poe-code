@@ -31,7 +31,6 @@ export {
   resolveRuntime,
   runtimeConfigScope,
   type DockerRuntime,
-  type E2bRuntime,
   type HostRuntime,
   type RunnerScope,
   type RuntimeConfig,

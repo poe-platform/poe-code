@@ -8,23 +8,22 @@ Usage: poe-code experiment run [options] [docs...]
 Run an experiment doc through the autonomous experiment loop.
 
 Arguments:
-  docs                     Experiment doc paths to run sequentially
+  docs                   Experiment doc paths to run sequentially
 
 Options:
-  --agent <agent>          Override the agent from frontmatter
-  --max-experiments <n>    Limit the number of experiments to run
-  --tui                    Show a live dashboard while the experiment is running
-  --no-tui                 Disable the live dashboard for this experiment run
-  --worktree               Run in a managed git worktree and reconcile
-                           successful output.
-  --runtime <runtime>      Override runtime backend: host | docker | e2b
-                           (choices: "host", "docker", "e2b")
-  --runtime-image <ref>    Override Docker runtime image
-  --runtime-template <id>  Override E2B runtime template id
-  --detach                 Run as a detached runtime job
-  --runner-sync <mode>     Override runner workspace sync: both | upload | none
-                           (choices: "both", "upload", "none")
-  -h, --help               Display help for command
+  --agent <agent>        Override the agent from frontmatter
+  --max-experiments <n>  Limit the number of experiments to run
+  --tui                  Show a live dashboard while the experiment is running
+  --no-tui               Disable the live dashboard for this experiment run
+  --worktree             Run in a managed git worktree and reconcile successful
+                         output.
+  --runtime <runtime>    Override runtime backend: host | docker (choices:
+                         "host", "docker")
+  --runtime-image <ref>  Override Docker runtime image
+  --detach               Run as a detached runtime job
+  --runner-sync <mode>   Override runner workspace sync: both | upload | none
+                         (choices: "both", "upload", "none")
+  -h, --help             Display help for command
 "
 `;
 
@@ -36,26 +35,25 @@ Usage: poe-code ralph run [options] [docs...]
 Run the selected markdown doc through repeated agent iterations.
 
 Arguments:
-  docs                     Markdown doc paths to run sequentially
+  docs                   Markdown doc paths to run sequentially
 
 Options:
-  --agent <name>           Override the agent from frontmatter
-  --iterations <n>         Override iterations from frontmatter
-  -C, --cwd <path>         Working directory for the Ralph agent loop
-  --archive                Archive the doc after successful completion
-  --no-archive             Leave the completed doc in place
-  --tui                    Show a live dashboard while Ralph is running
-  --no-tui                 Disable the live dashboard for this Ralph run
-  --worktree               Run in a managed git worktree and reconcile
-                           successful output.
-  --runtime <runtime>      Override runtime backend: host | docker | e2b
-                           (choices: "host", "docker", "e2b")
-  --runtime-image <ref>    Override Docker runtime image
-  --runtime-template <id>  Override E2B runtime template id
-  --detach                 Run as a detached runtime job
-  --runner-sync <mode>     Override runner workspace sync: both | upload | none
-                           (choices: "both", "upload", "none")
-  -h, --help               Display help for command
+  --agent <name>         Override the agent from frontmatter
+  --iterations <n>       Override iterations from frontmatter
+  -C, --cwd <path>       Working directory for the Ralph agent loop
+  --archive              Archive the doc after successful completion
+  --no-archive           Leave the completed doc in place
+  --tui                  Show a live dashboard while Ralph is running
+  --no-tui               Disable the live dashboard for this Ralph run
+  --worktree             Run in a managed git worktree and reconcile successful
+                         output.
+  --runtime <runtime>    Override runtime backend: host | docker (choices:
+                         "host", "docker")
+  --runtime-image <ref>  Override Docker runtime image
+  --detach               Run as a detached runtime job
+  --runner-sync <mode>   Override runner workspace sync: both | upload | none
+                         (choices: "both", "upload", "none")
+  -h, --help             Display help for command
 "
 `;
 
@@ -103,10 +101,9 @@ Options:
   --capture-otel-content       Include prompt and tool content in native
                                OpenTelemetry
   --activity-timeout-ms <ms>   Kill the agent after N ms of inactivity
-  --runtime <runtime>          Override runtime backend: host | docker | e2b
-                               (choices: "host", "docker", "e2b")
+  --runtime <runtime>          Override runtime backend: host | docker (choices:
+                               "host", "docker")
   --runtime-image <ref>        Override Docker runtime image
-  --runtime-template <id>      Override E2B runtime template id
   --detach                     Run as a detached runtime job
   --runner-sync <mode>         Override runner workspace sync: both | upload |
                                none (choices: "both", "upload", "none")
@@ -120,19 +117,17 @@ exports[`runtime option help > snapshots superintendent help 1`] = `
 Usage: poe-code superintendent run [OPTIONS] [docs...]
 
 OPTIONS
-  [docs...]                    Paths to superintendent markdown documents to run sequentially
-  --doc <value>                Path to the superintendent markdown document
-  --agent <value>              Override the builder agent for this run. Precedence: --agent > plan
-                               frontmatter builder.agent.
-  --runtime <value>            Override runtime backend: host, docker, or e2b (values: host, docker,
-                               e2b)
-  --runtime-image <value>      Override Docker runtime image
-  --runtime-template <value>   Override E2B runtime template id
-  --detach                     Run as a detached runtime job
-  --runner-sync <value>        Override runner workspace sync: both, upload, or none (values: both,
-                               upload, none)
-  --tui                        Show a live dashboard while Superintendent is running
-  --worktree                   Run in a managed git worktree and reconcile successful output
+  [docs...]                 Paths to superintendent markdown documents to run sequentially
+  --doc <value>             Path to the superintendent markdown document
+  --agent <value>           Override the builder agent for this run. Precedence: --agent > plan
+                            frontmatter builder.agent.
+  --runtime <value>         Override runtime backend: host or docker (values: host, docker)
+  --runtime-image <value>   Override Docker runtime image
+  --detach                  Run as a detached runtime job
+  --runner-sync <value>     Override runner workspace sync: both, upload, or none (values: both,
+                            upload, none)
+  --tui                     Show a live dashboard while Superintendent is running
+  --worktree                Run in a managed git worktree and reconcile successful output
 
 Options: -v, --verbose
 "

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Two things bundled and only one is real. The turbo build is a dev-mode artefact (npm run dev predev), not a product defect - retire that half. The genuine finding is the failure it reveals: 'launch start foo -- echo hi' fails with 'Managed process failed to start' and never surfaces the command's own stderr, so a legitimate-looking command fails opaquely. Keep that, merged with ux-launch-start-opaque-failure.md; note 'echo hi' exiting immediately may itself be the liveness-check bug from the false-success pair rather than a start failure."
+---
+
 # UX: launch start triggers full monorepo turbo build then fails
 
 ## Summary

@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "One of four filings of the same maestro dry-run finding; consolidate into ux-maestro-dry-run-path-vs-flag-confusion.md, the most complete. The shared point is correct and the more interesting half: --dry-run performs a network call and fails on GitHub auth before validating the local workflow, so dry-run is neither offline nor local-first and users cannot preview anything without credentials. The raw GraphQL 401 JSON is the secondary defect."
+---
+
 # UX: maestro --dry-run hits GitHub 401 without local workflow check first
 
 ## Summary

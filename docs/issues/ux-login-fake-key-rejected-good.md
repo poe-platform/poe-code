@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Duplicate of ux-login-api-key-rejected-good.md with weaker evidence (no post-check that the session survived); retire into it. Its 'do not leave partial credentials' framing is the right rule to carry forward."
+---
+
 # UX: login --api-key sk-fake --yes rejected clearly (positive)
 
 ## Summary

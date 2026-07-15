@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "One of two filings of the same false-success race; consolidate with ux-launch-start-success-then-status-shows-stopped.md. The core finding is real and worth High: start reports 'is running' while status immediately shows stopped, so success is claimed without verifying the process survived. Its turbo-noise and blank-ID halves belong to the dev-mode and tombstone clusters - split them out so the race is tracked alone."
+---
+
 # UX: launch start claims running but launch status shows stopped zombies
 
 ## Summary

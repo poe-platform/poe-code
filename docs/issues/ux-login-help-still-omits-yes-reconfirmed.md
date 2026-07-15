@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: discoverability
+comment: "Reconfirm duplicate within the login help cluster with no new evidence; retire. Five filings of one sparse help panel, spanning Low-Medium and Medium, is count inflation."
+---
+
 # UX: login --help still omits --yes (reconfirmed)
 
 ## Summary

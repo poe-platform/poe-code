@@ -1,3 +1,9 @@
+---
+severity: low-medium
+impact: usability
+comment: "Positive-with-a-gap that duplicates the real point of ux-log-file-name-no-path-feedback.md: logging works and never says where it wrote. Consolidate the two into one 'print the log path' issue. The relative-path confirmation here is useful evidence, not a defect."
+---
+
 # UX: --log-dir relative path works but still no path printed
 
 ## Summary

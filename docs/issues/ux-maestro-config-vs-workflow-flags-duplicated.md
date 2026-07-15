@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Real and well evidenced: --config and --workflow are documented identically ('Path to WORKFLOW.md') and are mutually exclusive at runtime, while root maestro rejects --config entirely - so one concept has two names on one subcommand and one name on its parent. Alias one to the other and use it consistently. Same flag-inconsistency family as ux-install-skill-flags-inconsistent-across-commands.md."
+---
+
 # UX: maestro tui has both --config and --workflow for same path
 
 ## Summary

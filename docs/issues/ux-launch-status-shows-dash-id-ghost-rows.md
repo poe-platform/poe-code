@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Third filing of the blank-ID rows; retire into the consolidated blank-ID issue. Its detail that '-' cannot easily be removed is the practical sting and connects to ux-launch-status-crashes-on-tombstone-dirs.md, where rm leaves state that breaks listing - the two may share one root."
+---
+
 # UX: launch status can show ghost rows with ID "-"
 
 ## Summary

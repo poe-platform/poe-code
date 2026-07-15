@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Reconfirm duplicate within the maestro dry-run cluster with no new evidence; retire into ux-maestro-dry-run-path-vs-flag-confusion.md."
+---
+
 # UX: maestro --dry-run hits GitHub 401 without workflow (reconfirmed)
 
 ## Summary

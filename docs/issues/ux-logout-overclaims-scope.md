@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: data-loss
+comment: "Correctly Critical and the sharpest of the logout cluster: the copy says 'remove configuration and credentials' while the implementation logs out providers, unconfigures every agent and deletes config files - and the detail that makes it worse is the inverse gap it spots, that POE_API_KEY in the environment may survive. The command over-reaches on what users did not ask for and under-delivers on the one thing they did. That asymmetry is the argument for splitting logout from reset. Keep as canonical for the scope decision; the gate belongs to ux-auth-logout-no-confirmation-removes-all-agents.md and the copy to ux-logout-help-no-danger-or-scope-detail.md."
+---
+
 # UX: logout copy overpromises and overreaches user intent
 
 ## Summary

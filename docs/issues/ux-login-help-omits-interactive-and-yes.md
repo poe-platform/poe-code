@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Keep as canonical of the five-file login help cluster: the most complete, naming all three gaps (interactive OAuth flow, non-TTY requirements, --yes). The strongest point is the first - login's primary path is the browser OAuth flow and help documents only --api-key, so the default behavior is invisible. Retire the other four into it."
+---
+
 # UX: login --help omits interactive OAuth and --yes behavior
 
 ## Summary

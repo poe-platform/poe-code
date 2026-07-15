@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: security
+comment: "Contentless duplicate within the --log-content trio; retire into ux-log-content-flag-no-danger-warning.md."
+---
+
 # UX: log-content under-warns secrets
 
 ## Summary

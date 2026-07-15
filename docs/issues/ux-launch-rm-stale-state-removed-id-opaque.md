@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Duplicate in substance of ux-launch-status-crashes-on-tombstone-dirs.md, which covers the same .state-removed-* tombstones with better evidence and the wider blast radius; retire into it. Shared root: tombstone directories are read back as process ids."
+---
+
 # UX: launch rm on stale removed id is opaque Invalid managed process
 
 ## Summary

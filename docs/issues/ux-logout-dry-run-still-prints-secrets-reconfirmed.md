@@ -1,3 +1,9 @@
+---
+severity: critical
+impact: security
+comment: "Correctly Critical and the freshest live evidence for the #1 issue: logout --dry-run emits CUSTOM_POE_API_KEY: sk-poe- and experimental_bearer_token values from goose secrets.yaml. Pairs with ux-dry-run-diffs-print-secrets.md - keep both, this as the reconfirm with concrete file and key names, that as the umbrella. Same fix: route every dry-run diff through the redactor that ux-configure-api-key-dry-run-redacts-bearer.md proves already exists."
+---
+
 # UX: logout --dry-run still prints full API keys and bearer tokens (reconfirmed)
 
 ## Summary

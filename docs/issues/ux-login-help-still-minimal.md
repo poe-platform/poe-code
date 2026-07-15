@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Duplicate within the login help cluster; retire into ux-login-help-omits-interactive-and-yes.md. Its distinct contribution is worth carrying: it links the help gap to the actual hang (ux-login-non-tty-hangs-reconfirmed.md), making documented non-TTY behavior a mitigation for a real defect rather than a docs nicety."
+---
+
 # UX: login --help still minimal (no --yes, no non-TTY guidance)
 
 ## Summary

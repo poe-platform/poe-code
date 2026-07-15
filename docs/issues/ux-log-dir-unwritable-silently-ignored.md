@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "The real defect in the logging set and correctly High: --log-dir pointing at an uncreatable path succeeds silently and no logs are written, so users believe they have a record of a run and do not. Worse than the missing-path-echo issue because the failure is invisible rather than merely unhelpful - and it is discovered only when the logs are actually needed. Fail or warn when the directory cannot be created; combined with printing the path (ux-log-file-name-no-path-feedback.md) the whole class disappears."
+---
+
 # UX: --log-dir unwritable may be silently ignored
 
 ## Summary

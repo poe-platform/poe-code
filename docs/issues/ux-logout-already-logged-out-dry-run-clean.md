@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Positive but narrow, and it should not be read as reassurance: logout --dry-run is clean only because there is nothing to remove when logged out. The same command with credentials present is the Critical secret leak (ux-logout-dry-run-still-prints-secrets-reconfirmed.md), which the file itself concedes. Its value is as a boundary case for the regression tests that fix should ship: dry-run must stay clean in both states."
+---
+
 # UX: logout --dry-run when already logged out is clean (positive)
 
 ## Summary

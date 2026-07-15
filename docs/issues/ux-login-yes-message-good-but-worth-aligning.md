@@ -1,3 +1,9 @@
+---
+severity: low
+impact: none
+comment: "Contentless duplicate of ux-login-yes-without-key-message-good.md; retire into it. It does state the key insight in one line - --yes fails fast while bare login hangs - which is the argument that makes the hang fix trivial: the good behavior already exists on the adjacent path."
+---
+
 # UX: login --yes good; bare hangs
 
 ## Summary

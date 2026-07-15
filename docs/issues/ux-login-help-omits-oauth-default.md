@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: discoverability
+comment: "Contentless duplicate within the login help cluster; retire into ux-login-help-omits-interactive-and-yes.md. Its framing 'primary path hidden' is the crispest statement of why this matters and should survive."
+---
+
 # UX: login help omits OAuth default
 
 ## Summary

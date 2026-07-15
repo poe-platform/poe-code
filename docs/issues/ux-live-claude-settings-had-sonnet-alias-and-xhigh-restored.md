@@ -1,3 +1,9 @@
+---
+severity: high
+impact: correctness
+comment: "Important incident evidence and the strongest support for the configure-write cluster: live settings contained model 'sonnet' - an unresolved alias, exactly what ux-configure-model-alias-sonnet-haiku-written-literally.md predicts a real configure run would write - together with effortLevel xhigh, which ux-effort-xhigh-valid-for-opus-not-sonnet.md shows is invalid for sonnet. Two dry-run-only findings appear here as actual live corruption, which raises their credibility considerably. Cause is admitted as unproven; pair with ux-claude-settings-model-corrupted-to-fable-restored.md and treat both as the argument for validate-on-write plus a doctor check."
+---
+
 # UX: live Claude settings had model sonnet + effortLevel xhigh (restored)
 
 ## Summary

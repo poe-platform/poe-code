@@ -1,3 +1,9 @@
+---
+severity: high
+impact: usability
+comment: "Duplicate of ux-launch-start-triggers-turbo-monorepo-build.md; retire into it. Same split applies: the turbo half is a dev-mode artefact, the 'surface the command's stderr' half is the real ask."
+---
+
 # UX: launch start triggers monorepo turbo build noise then opaque failed to start
 
 ## Summary

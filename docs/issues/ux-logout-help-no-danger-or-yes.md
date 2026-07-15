@@ -1,3 +1,9 @@
+---
+severity: high
+impact: discoverability
+comment: "Duplicate of ux-logout-help-no-danger-or-scope-detail.md; retire into it. Its added coverage is worth carrying: auth logout shares the same help text, so the alias has the same undocumented blast radius (ux-auth-logout-same-as-logout-help.md)."
+---
+
 # UX: logout help omits danger blast radius and --yes
 
 ## Summary

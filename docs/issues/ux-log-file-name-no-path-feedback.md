@@ -1,3 +1,9 @@
+---
+severity: medium
+impact: usability
+comment: "Keep as canonical for the log-path feedback gap and absorb ux-log-dir-relative-works-with-path-feedback-gap.md. Its concrete finding is better than the title suggests: the file lands in ~/.poe-code/spawn-logs/ rather than the ~/.poe-code/logs/ the user expected, and nothing prints the location - so the flag appears to have failed. Printing the resolved path fixes the discoverability and would also have exposed ux-log-dir-unwritable-silently-ignored.md."
+---
+
 # UX: --log-file-name succeeds without showing written path
 
 ## Summary

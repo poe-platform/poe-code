@@ -206,7 +206,7 @@
     "smol-toml": "^1.6.0",
     "tiktoken": "^1.0.22",
     "tiny-stdio-mcp-server": "^0.1.0",
-    "toolcraft": "*",
+    "toolcraft": ">=0.0.51 <0.1.0",
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
     "yaml": "^2.8.2"

@@ -4,11 +4,28 @@ vi.mock("node:child_process", () => ({
   execFile: vi.fn()
 }));
 
-vi.mock("node:fs/promises", () => ({
-  mkdir: vi.fn(async () => undefined),
-  realpath: vi.fn(async (path: string) => path),
-  rm: vi.fn(async () => undefined)
-}));
+vi.mock("node:fs/promises", () => {
+  // Distinct paths are distinct files: the containment check reads an identity
+  // only to tell one path from another, so a per-path inode is enough.
+  const inodes = new Map<string, number>();
+  const identify = (path: string): number => {
+    const known = inodes.get(path);
+
+    if (known !== undefined) {
+      return known;
+    }
+
+    inodes.set(path, inodes.size + 1);
+    return inodes.size;
+  };
+
+  return {
+    mkdir: vi.fn(async () => undefined),
+    realpath: vi.fn(async (path: string) => path),
+    rm: vi.fn(async () => undefined),
+    stat: vi.fn(async (path: string) => ({ dev: 1, ino: identify(path) }))
+  };
+});
 
 import { execFile } from "node:child_process";
 import { mkdir, realpath, rm } from "node:fs/promises";

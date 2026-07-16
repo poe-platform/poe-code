@@ -1,10 +1,10 @@
 import { constants as nodeFsConstants, type Dirent, type PathLike, type Stats } from "node:fs";
 import * as nodeFsPromises from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
-import { getSystemErrorMap } from "node:util";
+import { getSystemErrorMap, inspect } from "node:util";
 
 import { declareHostOperation } from "../interp/host-bridge.js";
-import { containsPath, type Realpath, resolveCanonicalPath } from "./canonical-path.js";
+import { containsPath, type Realpath, resolveCanonicalPath, type Stat } from "./canonical-path.js";
 import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
 
 type FsOperationName =
@@ -100,12 +100,39 @@ const FS_SYSCALLS = {
   writeFile: "open"
 } as const satisfies Record<FsOperationName, string>;
 
-// The operations that take a second path at argument 1. node reports these with a
-// dest field beside path, and reports the pair in argument order. symlink also
-// takes two, but resolves them differently — see resolvePathArguments.
-const TWO_PATH_OPERATIONS: readonly FsOperationName[] = ["copyFile", "link", "rename"];
+// The name node blames when an operation's path argument is invalid, read back
+// from node itself: several do not match the fs function name — readlink blames
+// oldPath and mkdtemp blames prefix. Listed in node's own argument order, so the
+// length also says how many leading arguments are paths: the two-path operations
+// are the ones node reports with a dest field beside path.
+const FS_PATH_ARGUMENTS = {
+  access: ["path"],
+  appendFile: ["path"],
+  chmod: ["path"],
+  copyFile: ["src", "dest"],
+  link: ["existingPath", "newPath"],
+  lstat: ["path"],
+  mkdir: ["path"],
+  mkdtemp: ["prefix"],
+  readFile: ["path"],
+  readdir: ["path"],
+  readlink: ["oldPath"],
+  realpath: ["path"],
+  rename: ["oldPath", "newPath"],
+  rm: ["path"],
+  rmdir: ["path"],
+  stat: ["path"],
+  symlink: ["target", "path"],
+  truncate: ["path"],
+  utimes: ["path"],
+  writeFile: ["path"]
+} as const satisfies Record<FsOperationName, readonly string[]>;
 
 const ACCESS_DENIED_CODE = "EACCES";
+
+const INVALID_ARGUMENT_CODE = "ERR_INVALID_ARG_VALUE";
+
+const NULL_BYTE = "\u0000";
 
 // libuv numbers errno differently per platform, so the errno and message paired
 // with EACCES come from node's own table rather than a hardcoded -13.
@@ -281,6 +308,12 @@ async function resolvePathArguments(
   name: FsOperationName,
   args: readonly unknown[]
 ): Promise<readonly unknown[]> {
+  // node rejects a malformed argument before it touches the filesystem, so
+  // validation runs ahead of any resolution and in node's argument order: a path
+  // carrying a NUL is blamed as written rather than resolved against root and
+  // refused for escaping.
+  FS_PATH_ARGUMENTS[name].forEach((argument, index) => assertNoNullByte(argument, args[index]));
+
   const canonicalRoot = await resolveCanonicalPath(readRealpath(fs), resolve(root));
   const resolved = [...args];
 
@@ -297,8 +330,7 @@ async function resolvePathArguments(
     return resolved;
   }
 
-  const indexes = TWO_PATH_OPERATIONS.includes(name) ? [0, 1] : [0];
-  const paths = indexes.map((index) => {
+  const paths = FS_PATH_ARGUMENTS[name].map((_, index) => {
     const path = readPath(name, canonicalRoot, args[index]);
     resolved[index] = path;
     return path;
@@ -328,7 +360,9 @@ async function escapesRoot(
   canonicalRoot: string,
   path: string
 ): Promise<boolean> {
-  return !containsPath(canonicalRoot, await resolveCanonicalPath(readRealpath(fs), path));
+  const canonicalPath = await resolveCanonicalPath(readRealpath(fs), path);
+
+  return !(await containsPath(readStat(fs), canonicalRoot, canonicalPath));
 }
 
 // realpath is handed over as a bound call: the injected implementation may be a
@@ -336,6 +370,29 @@ async function escapesRoot(
 // Buffer, which only the no-encoding call used here can never return.
 function readRealpath(fs: FsImplementation): Realpath {
   return async (path) => (await invoke(fs, "realpath", [path])) as string;
+}
+
+// Bound for the same reason as realpath above. Only dev and ino are read: they are
+// the filesystem's own answer for which file a path names.
+function readStat(fs: FsImplementation): Stat {
+  return async (path) => (await invoke(fs, "stat", [path])) as Stats;
+}
+
+function assertNoNullByte(argument: string, value: unknown): void {
+  if (typeof value === "string" && value.includes(NULL_BYTE)) {
+    throw createNullByteError(argument, value);
+  }
+}
+
+// Shaped exactly like node's own ERR_INVALID_ARG_VALUE for a NUL-bearing path,
+// down to inspecting the offending value the way node does.
+function createNullByteError(argument: string, value: string): TypeError {
+  const error: NodeJS.ErrnoException = new TypeError(
+    `The argument '${argument}' must be a string, Uint8Array, or URL without null bytes. Received ${inspect(value)}`
+  );
+
+  error.code = INVALID_ARGUMENT_CODE;
+  return error;
 }
 
 function readPath(name: FsOperationName, base: string, value: unknown): string {

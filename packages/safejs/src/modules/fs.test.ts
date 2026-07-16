@@ -1,5 +1,5 @@
 import { constants as nodeFsConstants } from "node:fs";
-import { getSystemErrorName } from "node:util";
+import { getSystemErrorMap, getSystemErrorName } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 
@@ -8,6 +8,8 @@ import { run } from "../run.js";
 import { makeFsModule, type FsImplementation } from "./fs.js";
 
 const SAMPLE_TEXT = "héllo ✓";
+
+const NUL_BYTE = "\u0000";
 
 // Every string encoding node accepts, including its aliases.
 const STRING_ENCODINGS = [
@@ -60,19 +62,75 @@ const BIGINT_MESSAGE = (operation: string): string =>
 
 function createFs(
   files: Record<string, string> = {},
-  root?: string
+  root?: string,
+  wrap: (base: FsImplementation) => FsImplementation = (base) => base
 ): {
   fs: ReturnType<typeof makeFsModule>;
   volume: Volume;
 } {
   const volume = Volume.fromJSON(files, "/");
-  return {
-    volume,
-    fs: makeFsModule({
-      root,
-      fs: createFsFromVolume(volume).promises as unknown as FsImplementation
-    })
-  };
+  const base = createFsFromVolume(volume).promises as unknown as FsImplementation;
+  return { volume, fs: makeFsModule({ root, fs: wrap(base) }) };
+}
+
+// memfs keeps its operations on a prototype and reads its own receiver, so an
+// override is layered on rather than spread into a copy.
+function withRealpath(base: FsImplementation, realpath: FsImplementation["realpath"]): FsImplementation {
+  return new Proxy(base, {
+    get: (target, property) =>
+      property === "realpath" ? realpath : Reflect.get(target, property, target)
+  });
+}
+
+// Mimics darwin's default filesystem: a lookup folds case, but realpath answers
+// in the spelling it was handed rather than the on-disk one — recorded from
+// darwin, where realpath('/tmp/CASEPROBE') answers '/private/tmp/CASEPROBE'.
+// The volume stores every path in lower case, so both spellings of a path reach
+// the same inode. Only the first argument is folded, which is the path for every
+// operation these tests drive.
+function createCaseInsensitiveFs(files: Record<string, string>): FsImplementation {
+  const volume = Volume.fromJSON(
+    Object.fromEntries(Object.entries(files).map(([path, data]) => [path.toLowerCase(), data])),
+    "/"
+  );
+  const base = createFsFromVolume(volume).promises as unknown as FsImplementation;
+
+  return new Proxy(base, {
+    get(target, property) {
+      const operation = Reflect.get(target, property, target);
+
+      if (typeof operation !== "function") {
+        return operation;
+      }
+
+      return async (...args: readonly unknown[]): Promise<unknown> => {
+        const [path, ...rest] = args;
+        const folded = typeof path === "string" ? path.toLowerCase() : path;
+        const result = await (operation as (...call: readonly unknown[]) => Promise<unknown>).call(
+          target,
+          folded,
+          ...rest
+        );
+
+        return property === "realpath" && result === folded ? path : result;
+      };
+    }
+  });
+}
+
+function createLoopError(path: string): NodeJS.ErrnoException {
+  const [errno] =
+    [...getSystemErrorMap()].find(([, [name]]) => name === "ELOOP") ??
+    /* c8 ignore next */ [-62];
+  const error: NodeJS.ErrnoException = new Error(
+    `ELOOP: too many symbolic links encountered, realpath '${path}'`
+  );
+
+  error.code = "ELOOP";
+  error.errno = errno as number;
+  error.syscall = "realpath";
+  error.path = path;
+  return error;
 }
 
 // The sandbox calls this module from untyped script code, so the runtime guards
@@ -1012,6 +1070,261 @@ describe("makeFsModule", () => {
           dest: "/repo/sub/link.txt"
         });
         expect(volume.existsSync("/repo/sub/link.txt")).toBe(false);
+      });
+    });
+
+    // Ugly spellings that still resolve inside root: each one is a path the
+    // sandbox is entitled to reach, so a denial here would be a false denial.
+    describe("spellings that stay inside root", () => {
+      it("allows root spelled with a trailing separator", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect((await fs.stat(`${ROOT}/`)).isDirectory()).toBe(true);
+        expect(await fs.readFile(`${ROOT}/sub/../file.txt`, "utf8")).toBe("contents");
+      });
+
+      it("allows '.' and './'", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect((await fs.stat(".")).isDirectory()).toBe(true);
+        expect((await fs.stat("./")).isDirectory()).toBe(true);
+      });
+
+      it("allows a path that walks out of root and back in", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(await fs.readFile("sub/../../repo/file.txt", "utf8")).toBe("contents");
+        expect(await fs.readFile("../repo/file.txt", "utf8")).toBe("contents");
+      });
+
+      it("allows a relative symlink inside root pointing at another path inside root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("../file.txt", "/repo/sub/rel-link.txt");
+
+        expect(await fs.readFile("/repo/sub/rel-link.txt", "utf8")).toBe("contents");
+        expect(await fs.readlink("/repo/sub/rel-link.txt")).toBe("../file.txt");
+      });
+
+      // A write-then-read flow names segments that do not exist yet, so
+      // canonicalization has to answer for a path realpath cannot resolve.
+      it("allows a path whose intermediate segments do not exist yet", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        await fs.mkdir("fresh/deep", { recursive: true });
+        await fs.writeFile("fresh/deep/created.txt", "written");
+
+        expect(volume.readFileSync("/repo/fresh/deep/created.txt", "utf8")).toBe("written");
+        expect(await fs.readFile("fresh/deep/created.txt", "utf8")).toBe("written");
+      });
+    });
+
+    describe("escapes a prefix check misses", () => {
+      it("denies a bare '..' and '../x'", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.readdir(".."))).toMatchObject({
+          code: "EACCES",
+          syscall: "scandir",
+          path: "/"
+        });
+        expect(await readDenial(fs.readdir("../outside"))).toMatchObject({
+          code: "EACCES",
+          path: "/outside"
+        });
+      });
+
+      // A hardlink keeps no target to re-check later, so an escaping source has
+      // to be refused at creation or the contents leak in through newPath.
+      it("denies link when the existing path escapes root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.link("../outside/secret.txt", "hard.txt"))).toEqual({
+          code: "EACCES",
+          errno: "EACCES",
+          syscall: "link",
+          path: "/outside/secret.txt",
+          dest: "/repo/hard.txt"
+        });
+        expect(volume.existsSync("/repo/hard.txt")).toBe(false);
+      });
+
+      it("denies copyFile and rename when only the source escapes root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.copyFile("../outside/secret.txt", "copy.txt"))).toEqual({
+          code: "EACCES",
+          errno: "EACCES",
+          syscall: "copyfile",
+          path: "/outside/secret.txt",
+          dest: "/repo/copy.txt"
+        });
+        expect(await readDenial(fs.rename("../outside/secret.txt", "moved.txt"))).toEqual({
+          code: "EACCES",
+          errno: "EACCES",
+          syscall: "rename",
+          path: "/outside/secret.txt",
+          dest: "/repo/moved.txt"
+        });
+        expect(volume.existsSync("/repo/copy.txt")).toBe(false);
+        expect(volume.readFileSync("/outside/secret.txt", "utf8")).toBe("secret");
+      });
+
+      // node appends XXXXXX to the prefix rather than treating it as a
+      // directory, so the prefix escapes as soon as its resolved form leaves
+      // root — including a prefix carrying no separator at all.
+      it("denies mkdtemp when the prefix resolves outside root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.mkdtemp(".."))).toMatchObject({
+          code: "EACCES",
+          syscall: "mkdtemp",
+          path: "/"
+        });
+        expect(await readDenial(fs.mkdtemp("../outside/tmp-"))).toMatchObject({
+          code: "EACCES",
+          path: "/outside/tmp-"
+        });
+        expect(volume.toJSON()).toEqual(Volume.fromJSON(TREE, "/").toJSON());
+      });
+
+      it("denies a path escaping through a symlinked parent directory", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.mkdirSync("/repo/nest", { recursive: true });
+        volume.symlinkSync("/outside", "/repo/nest/parent-link");
+
+        expect(
+          await readDenial(fs.readFile("/repo/nest/parent-link/secret.txt", "utf8"))
+        ).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: "/repo/nest/parent-link/secret.txt"
+        });
+      });
+    });
+
+    // node rejects a NUL-bearing argument before it reaches the filesystem, so
+    // argument validation has to win over confinement: the script sees node's
+    // TypeError rather than an EACCES that would blame the wrong thing.
+    describe("paths carrying a NUL byte", () => {
+      const NUL_PATH = `${NUL_BYTE}outside/secret.txt`;
+      // node inspects the offending value, so the NUL arrives escaped.
+      const NUL_PATH_INSPECTED = String.raw`'\x00outside/secret.txt'`;
+
+      const cases: Record<
+        string,
+        { call: (fs: ReturnType<typeof makeFsModule>) => Promise<unknown>; argument: string }
+      > = {
+        access: { call: (fs) => fs.access(NUL_PATH), argument: "path" },
+        copyFileSrc: { call: (fs) => fs.copyFile(NUL_PATH, "copy.txt"), argument: "src" },
+        copyFileDest: { call: (fs) => fs.copyFile("file.txt", NUL_PATH), argument: "dest" },
+        linkExisting: { call: (fs) => fs.link(NUL_PATH, "hard.txt"), argument: "existingPath" },
+        linkNew: { call: (fs) => fs.link("file.txt", NUL_PATH), argument: "newPath" },
+        mkdtemp: { call: (fs) => fs.mkdtemp(NUL_PATH), argument: "prefix" },
+        readFile: { call: (fs) => fs.readFile(NUL_PATH, "utf8"), argument: "path" },
+        readlink: { call: (fs) => fs.readlink(NUL_PATH), argument: "oldPath" },
+        renameOld: { call: (fs) => fs.rename(NUL_PATH, "moved.txt"), argument: "oldPath" },
+        renameNew: { call: (fs) => fs.rename("file.txt", NUL_PATH), argument: "newPath" },
+        symlinkTarget: { call: (fs) => fs.symlink(NUL_PATH, "link.txt"), argument: "target" },
+        symlinkPath: { call: (fs) => fs.symlink("file.txt", NUL_PATH), argument: "path" },
+        writeFile: { call: (fs) => fs.writeFile(NUL_PATH, "x"), argument: "path" }
+      };
+
+      for (const [name, { call, argument }] of Object.entries(cases)) {
+        it(`${name} rejects with node's ERR_INVALID_ARG_VALUE naming ${argument}`, async () => {
+          const { fs } = createFs(TREE, ROOT);
+
+          expect(await readRejection(call(fs))).toEqual({
+            name: "TypeError",
+            message: `The argument '${argument}' must be a string, Uint8Array, or URL without null bytes. Received ${NUL_PATH_INSPECTED}`
+          });
+        });
+      }
+
+      it("carries node's ERR_INVALID_ARG_VALUE code", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        await expect(fs.readFile(NUL_PATH, "utf8")).rejects.toMatchObject({
+          code: "ERR_INVALID_ARG_VALUE"
+        });
+      });
+
+      // The NUL sits in the argument node blames, so validation must fire before
+      // resolution rewrites the path into something else to complain about.
+      it("blames the argument as written rather than its resolved form", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        const { message } = await readRejection(fs.readFile(`sub${NUL_BYTE}nested.txt`, "utf8"));
+
+        expect(message).toContain("Received 'sub\\x00nested.txt'");
+        expect(message).not.toContain(ROOT);
+      });
+    });
+
+    // On a case-insensitive filesystem two spellings denote the same directory,
+    // and darwin's realpath echoes the spelling it was handed rather than the
+    // on-disk one, so a case difference must not read as an escape.
+    describe("on a case-insensitive filesystem", () => {
+      const CASE_TREE = {
+        "/repo/file.txt": "contents",
+        "/outside/secret.txt": "secret"
+      };
+
+      it("allows root and its contents spelled in a different case", async () => {
+        const fs = makeFsModule({ root: ROOT, fs: createCaseInsensitiveFs(CASE_TREE) });
+
+        expect(await fs.readFile("/REPO/file.txt", "utf8")).toBe("contents");
+        expect(await fs.readFile("/Repo/FILE.TXT", "utf8")).toBe("contents");
+        expect((await fs.stat("/REPO")).isDirectory()).toBe(true);
+      });
+
+      it("allows a differently cased root spelling for a path that does not exist yet", async () => {
+        const fs = makeFsModule({ root: ROOT, fs: createCaseInsensitiveFs(CASE_TREE) });
+
+        await fs.writeFile("/REPO/created.txt", "written");
+
+        expect(await fs.readFile("/repo/created.txt", "utf8")).toBe("written");
+      });
+
+      it("still denies a path outside root whatever its case", async () => {
+        const fs = makeFsModule({ root: ROOT, fs: createCaseInsensitiveFs(CASE_TREE) });
+
+        expect(await readDenial(fs.readFile("/OUTSIDE/secret.txt", "utf8"))).toMatchObject({
+          code: "EACCES",
+          path: "/OUTSIDE/secret.txt"
+        });
+      });
+
+      // Folding case on a case-sensitive filesystem would be a hole: there
+      // /REPO and /repo are different directories, and memfs is case-sensitive.
+      it("keeps denying a differently cased root on a case-sensitive filesystem", async () => {
+        const { fs } = createFs({ ...CASE_TREE, "/REPO/planted.txt": "planted" }, ROOT);
+
+        expect(await readDenial(fs.readFile("/REPO/planted.txt", "utf8"))).toMatchObject({
+          code: "EACCES",
+          path: "/REPO/planted.txt"
+        });
+      });
+    });
+
+    // A symlink loop is node's own failure, not an escape: swallowing its errno
+    // would tell the script the path was refused rather than cyclic.
+    describe("symlink loops inside root", () => {
+      // memfs spins forever on a real symlink cycle instead of answering ELOOP,
+      // so the loop is staged on realpath itself, which is where the confinement
+      // check meets it.
+      it("surfaces node's ELOOP untouched", async () => {
+        const loop = createLoopError("/repo/loop");
+        const { fs } = createFs(TREE, ROOT, (base) =>
+          withRealpath(base, async (path) => {
+            if (path === "/repo/loop") {
+              throw loop;
+            }
+
+            return (await base.realpath(path)) as string;
+          })
+        );
+
+        await expect(fs.readFile("loop", "utf8")).rejects.toBe(loop);
       });
     });
 

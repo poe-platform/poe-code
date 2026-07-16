@@ -167,10 +167,10 @@ tasks:
 
       TDD with memfs; no real files.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-arg-validation
     title: Match node's argument validation errors exactly

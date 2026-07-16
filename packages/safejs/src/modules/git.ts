@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
-import { mkdir, realpath, rm } from "node:fs/promises";
+import { mkdir, realpath, rm, stat } from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
-import { containsPath, resolveCanonicalPath } from "./canonical-path.js";
+import { containsPath, isSamePath, resolveCanonicalPath } from "./canonical-path.js";
 
 export type GitSavepoint = {
   head: string;
@@ -322,8 +322,15 @@ async function resolveWorktreePath(repoRoot: string, path: string, label: string
   const canonicalPath = await resolveCanonicalPath(realpath, resolvedPath);
 
   // A worktree lives somewhere under the repository, never at the repository root
-  // itself, so root-itself is rejected alongside anything outside it.
-  if (!containsPath(canonicalRoot, canonicalPath) || canonicalPath === canonicalRoot) {
+  // itself, so root-itself is rejected alongside anything outside it. Both answers
+  // come from the filesystem rather than the spelling: on a case-insensitive
+  // filesystem a differently cased path still names the repository root.
+  const [inside, isRootItself] = await Promise.all([
+    containsPath(stat, canonicalRoot, canonicalPath),
+    isSamePath(stat, canonicalPath, canonicalRoot)
+  ]);
+
+  if (!inside || isRootItself) {
     throw new Error(`${label} must be inside the git repository.`);
   }
 

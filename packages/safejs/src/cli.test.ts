@@ -3,6 +3,8 @@ import { EventEmitter } from "node:events";
 import { fs, vol } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createBrokenPipeSink, createSink } from "../test/sinks.js";
+
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return fs.promises;
@@ -10,39 +12,6 @@ vi.mock("node:fs/promises", async () => {
 
 const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
 const { runCli } = await import("./cli.js");
-
-function createSink(): {
-  output: () => string;
-  write: (chunk: string) => void;
-} {
-  const chunks: string[] = [];
-
-  return {
-    output: () => chunks.join(""),
-    write: (chunk) => {
-      chunks.push(chunk);
-    }
-  };
-}
-
-function createBrokenPipeSink(options: { failAfterWrites: number }): {
-  output: () => string;
-  write: (chunk: string) => void;
-} {
-  const sink = createSink();
-  let writes = 0;
-
-  return {
-    output: sink.output,
-    write(chunk) {
-      if (writes >= options.failAfterWrites) {
-        throw Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
-      }
-      writes += 1;
-      sink.write(chunk);
-    }
-  };
-}
 
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,

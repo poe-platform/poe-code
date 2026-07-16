@@ -1,5 +1,12 @@
+import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 
+import { createSink } from "../test/sinks.js";
+import { runCli } from "./cli.js";
+import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
+import { lint } from "./lint/index.js";
+import { makeFsModule, type FsImplementation } from "./modules/fs.js";
+import { makeTimeModule } from "./modules/time.js";
 import { run } from "./run.js";
 
 describe("sandbox integrity at the run boundary", () => {
@@ -257,5 +264,120 @@ describe("sandbox integrity at the run boundary", () => {
     await expect(run("return input;", { bindings: { input: hostile } })).rejects.toThrow(
       "Unsupported sandbox value at <root>.secret: accessor property"
     );
+  });
+});
+
+// A sandbox has no filesystem until an embedder registers one, so `fs` is only ever as reachable
+// as any other unregistered module: nothing names it, and nothing has to. These drive the one
+// source both ways around that single registration to keep the unregistered answer a property of
+// the empty registry rather than of a rule that knows the word "fs".
+describe("filesystem access at the sandbox boundary", () => {
+  function readFileSource(moduleName: string): string {
+    return `import { readFile } from "${moduleName}";\nreturn await readFile("/repo/file.txt", "utf8");`;
+  }
+
+  function createMemoryFs(): FsImplementation {
+    const volume = Volume.fromJSON({ "/repo/file.txt": "contents" }, "/");
+    return createFsFromVolume(volume).promises as unknown as FsImplementation;
+  }
+
+  it("leaves a default run() without an 'fs' module", async () => {
+    await expect(run(readFileSource("fs"))).rejects.toThrow(
+      "Unknown module 'fs'. No modules are registered."
+    );
+  });
+
+  it("names the registered modules and not 'fs' when a registry omits it", async () => {
+    await expect(run(readFileSource("fs"), { modules: { time: makeTimeModule() } })).rejects.toThrow(
+      "Unknown module 'fs'. Available modules: time."
+    );
+  });
+
+  it("reports 'fs' from the runtime registry through the generic unknown-module rule", () => {
+    expect(
+      lint(readFileSource("fs"), {
+        modules: createLintModulesFromRuntimeRegistry({ time: makeTimeModule() })
+      })
+    ).toMatchObject([
+      {
+        code: "AS004",
+        severity: "error",
+        message: "Unknown module 'fs'. Available modules: time."
+      }
+    ]);
+  });
+
+  // The CLI's own registry is the default an embedder gets without asking for one, and it feeds
+  // both the lint pass and the run, so a script naming fs is refused before it ever evaluates.
+  it("leaves the default poe-safejs registry without an 'fs' module", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["script.ajs"], {
+      cwd: "/repo",
+      readFile: async () => readFileSource("fs"),
+      stat: async () => ({ isFile: () => true }),
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stderr.output()).toContain(
+      "Unknown module 'fs'. Available modules: agent, fail, git, log, metric."
+    );
+    expect(stdout.output()).toBe("");
+  });
+
+  // 'node:fs' never reaches a registry lookup at all: only bare specifiers parse, so the prefix is
+  // refused a layer earlier than the unknown-module diagnostic. lint() surfaces that as the parse
+  // error thrown rather than a diagnostic, since no rule parses specifiers itself.
+  it("refuses a 'node:fs' specifier before any registry lookup", async () => {
+    await expect(run(readFileSource("node:fs"))).rejects.toThrow(
+      "Invalid import specifier 'node:fs' at line 1, column 26."
+    );
+    expect(() =>
+      lint(readFileSource("node:fs"), {
+        modules: createLintModulesFromRuntimeRegistry({ time: makeTimeModule() })
+      })
+    ).toThrow("Invalid import specifier 'node:fs' at line 1, column 26.");
+  });
+
+  it("refuses a 'node:fs' specifier through the default poe-safejs registry", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["script.ajs"], {
+      cwd: "/repo",
+      readFile: async () => readFileSource("node:fs"),
+      stat: async () => ({ isFile: () => true }),
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(2);
+    expect(stderr.output()).toContain("Invalid import specifier 'node:fs' at line 1, column 26.");
+    expect(stdout.output()).toBe("");
+  });
+
+  // The prefix is not a way around the registry either: registering fs under 'node:fs' still
+  // leaves the specifier unparseable, so the mirror case below has to use the bare name.
+  it("keeps a 'node:fs' specifier refused even when an embedder registers that name", async () => {
+    const modules = { "node:fs": makeFsModule({ fs: createMemoryFs() }) };
+
+    await expect(run(readFileSource("node:fs"), { modules })).rejects.toThrow(
+      "Invalid import specifier 'node:fs' at line 1, column 26."
+    );
+  });
+
+  it("lints and runs the same 'fs' import once makeFsModule is registered", async () => {
+    const modules = { fs: makeFsModule({ fs: createMemoryFs() }) };
+
+    expect(
+      lint(readFileSource("fs"), { modules: createLintModulesFromRuntimeRegistry(modules) })
+    ).toEqual([]);
+    await expect(run(readFileSource("fs"), { modules })).resolves.toMatchObject({
+      ok: true,
+      returnValue: "contents"
+    });
   });
 });

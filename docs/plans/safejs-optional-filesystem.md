@@ -780,11 +780,40 @@ tasks:
       case: when `makeFsModule` is registered, the same import lints and runs.
 
       Do not add fs to any default registry. Tests use memfs for the enabled case; no real files.
+
+      Implementation notes from the completed task:
+
+      No source change was needed: fs is absent from every default registry already, and the lint
+      surface already derives from the runtime one. The work was the assertions, and both headline
+      claims were mutation-checked rather than assumed — leaking an `fs` export into `cli.ts`'s
+      registry fails the default-registry case (the script exits 0 because the read lands), and
+      making `createLintModulesFromRuntimeRegistry` drop `fs` fails the mirror case. So the pair
+      brackets the single registration from both sides, and an fs-specific lint carve-out cannot
+      ship silently.
+
+      `node:fs` does *not* fail "the same way" as the bare name, as this task's prompt assumed. Only
+      bare specifiers parse, so the prefix is refused a layer earlier — `Invalid import specifier
+      'node:fs'` — and never reaches a registry lookup or the unknown-module diagnostic at all.
+      Three consequences the cases now pin: `lint()` surfaces it as a *thrown* parse error rather
+      than a diagnostic, since no rule parses specifiers itself; the CLI answers it with exit 2
+      (usage) where an unknown module is exit 1; and the prefix is not a way *around* the registry
+      either — registering `makeFsModule` under the name `node:fs` leaves the specifier equally
+      unparseable, which is why the mirror case has to use the bare name. The registry is therefore
+      not the only thing keeping `node:fs` out, and a future change to the specifier grammar would
+      be the thing to re-check.
+
+      Refactor: `createSink` was triplicated (cli.test.ts, example-runner.test.ts, and this task's
+      third copy) and `createBrokenPipeSink` duplicated, so both now live in
+      packages/safejs/test/sinks.ts. It sits outside src/ deliberately: tsconfig builds src/ minus
+      *.test.ts, so a test-only helper added as a src/ sibling would ship in dist — which is why
+      fs.conformance-cases.ts is *not* the precedent to follow here, being a non-test file only
+      because scripts/record-fs-conformance.ts imports it too. `withObjectPrototypeProperties` is
+      duplicated across the same two files and was left alone as unrelated to this task.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: harness-run-fs-flag
     title: Gate the fs module behind poe-code harness run --fs

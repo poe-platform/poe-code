@@ -1,39 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { createBrokenPipeSink, createSink } from "../test/sinks.js";
 import { runExampleFile } from "./example-runner.js";
-
-function createSink(): {
-  output: () => string;
-  write: (chunk: string) => void;
-} {
-  const chunks: string[] = [];
-
-  return {
-    output: () => chunks.join(""),
-    write: (chunk) => {
-      chunks.push(chunk);
-    }
-  };
-}
-
-function createBrokenPipeSink(options: { failAfterWrites: number }): {
-  output: () => string;
-  write: (chunk: string) => void;
-} {
-  const sink = createSink();
-  let writes = 0;
-
-  return {
-    output: sink.output,
-    write(chunk) {
-      if (writes >= options.failAfterWrites) {
-        throw Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
-      }
-      writes += 1;
-      sink.write(chunk);
-    }
-  };
-}
 
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,

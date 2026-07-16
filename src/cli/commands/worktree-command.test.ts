@@ -69,6 +69,16 @@ describe("worktree command", () => {
     worktreeMocks.removeManagedWorktree.mockResolvedValue(undefined);
   });
 
+  it("lists managed worktrees when invoked bare, without printing help", async () => {
+    const logs: string[] = [];
+    worktreeMocks.listManagedWorktrees.mockResolvedValue([]);
+
+    await runWorktreeCommand(["worktree"], logs);
+
+    expect(worktreeMocks.listManagedWorktrees).toHaveBeenCalledWith({ cwd });
+    expect(logs.join("\n")).not.toContain("Usage: poe-code worktree");
+  });
+
   it("lists managed worktrees", async () => {
     const logs: string[] = [];
     worktreeMocks.listManagedWorktrees.mockResolvedValue([

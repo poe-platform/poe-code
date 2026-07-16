@@ -19,7 +19,10 @@ type WorktreeRemoveOptions = {
 export function registerWorktreeCommand(program: Command, container: CliContainer): void {
   const worktree = program
     .command("worktree")
-    .description("Manage poe-code worktree runs.");
+    .description("Manage poe-code worktree runs.")
+    .action(async () => {
+      await executeWorktreeList(program, container);
+    });
 
   worktree
     .command("list")

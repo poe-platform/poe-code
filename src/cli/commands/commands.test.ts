@@ -1221,7 +1221,7 @@ describe("skill command", () => {
     }
 
     try {
-      await program.parseAsync(["node", "cli", "skill"]);
+      await program.parseAsync(["node", "cli", "skill", "--help"]);
     } catch {
       // Commander exits after displaying help text.
     }

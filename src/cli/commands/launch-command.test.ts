@@ -451,6 +451,25 @@ describe("launch command", () => {
     expect(logs).toContain("Dry run: would remove managed process api.");
   });
 
+  it("renders launch status when invoked bare, without printing help", async () => {
+    listLaunchesMock.mockResolvedValue([]);
+
+    let loggerOutput = "";
+    const program = createBaseProgram();
+    registerLaunchCommand(
+      program,
+      createContainer((message) => {
+        loggerOutput += `${message}\n`;
+      })
+    );
+
+    await program.parseAsync(["node", "cli", "launch"]);
+
+    expect(listLaunchesMock).toHaveBeenCalled();
+    expect(loggerOutput).toContain("No managed processes.");
+    expect(loggerOutput).not.toContain("Usage: poe-code launch");
+  });
+
   it("renders launch status as a table", async () => {
     listLaunchesMock.mockResolvedValue([
       {

@@ -43,7 +43,10 @@ export interface ProviderLoginOptions {
 export function registerProviderCommand(program: Command, container: CliContainer): void {
   const providerCmd = program
     .command("provider")
-    .description("Manage auth providers for coding agents.");
+    .description("Manage auth providers for coding agents.")
+    .action(async () => {
+      await executeProviderList(program, container, {});
+    });
 
   providerCmd
     .command("list")

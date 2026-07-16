@@ -788,6 +788,31 @@ describe("skill list command", () => {
     cancelMock.mockReset();
   });
 
+  it("lists installed skills when invoked bare, without printing help", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${cwd}/.claude/skills/project-skill`, { recursive: true });
+    vol.writeFileSync(`${cwd}/.claude/skills/project-skill/SKILL.md`, "# project\n");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("claude-code/project-skill");
+    expect(output).not.toContain("Usage: poe-code skill");
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
   it("lists installed skills for an agent in both scopes", async () => {
     const { fs, vol } = createMemFs();
     const logs: string[] = [];

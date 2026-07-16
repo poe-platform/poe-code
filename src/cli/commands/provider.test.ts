@@ -92,6 +92,21 @@ describe("provider list", () => {
     fs = createHomeFs(homeDir);
   });
 
+  it("renders the provider list when invoked bare, without printing help", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("poe");
+    expect(output).not.toContain("Usage: poe-code provider");
+  });
+
   it("renders provider rows with logged-in status when logged in", async () => {
     const logs: string[] = [];
     const container = createContainer(fs, logs);

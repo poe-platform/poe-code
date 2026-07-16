@@ -1,4 +1,5 @@
 import path from "node:path";
+import { stripVTControlCharacters } from "node:util";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
@@ -6,7 +7,7 @@ import { createCliContainer } from "../container.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerPipelineCommand } from "./pipeline.js";
-import { ValidationError } from "../errors.js";
+import { ValidationError, SilentError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
 import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
@@ -268,6 +269,31 @@ describe("pipeline run command", () => {
     vi.clearAllMocks();
     process.exitCode = undefined;
     vi.useRealTimers();
+  });
+
+  it("asks for a subcommand and exits non-zero when invoked bare", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "pipeline"])).rejects.toBeInstanceOf(
+      SilentError
+    );
+
+    const plain = stripVTControlCharacters(loggerOutput);
+    expect(plain).toMatch(/pick a subcommand/i);
+    expect(plain).toContain("run");
+    expect(plain).toContain("init");
+    expect(process.exitCode).toBe(1);
+    expect(sdkRunPipeline).not.toHaveBeenCalled();
   });
 
   it("documents that plans are archived by default", () => {

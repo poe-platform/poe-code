@@ -92,6 +92,50 @@ function assertInteractivePromptAvailable(message: string): void {
   }
 }
 
+async function executeSkillList(
+  program: Command,
+  container: CliContainer,
+  agentArg: string | undefined,
+  options: SkillCommandOptions
+): Promise<void> {
+  const flags = resolveCommandFlags(program);
+  const resources = createExecutionResources(container, flags, "skill:list");
+  const scopes = resolveScopes(options);
+  const agentIds = agentArg ? [requireSkillAgentId(agentArg)] : [...supportedAgents];
+
+  resources.logger.intro("skill list");
+
+  const { skills, searchedDirs } = await collectInstalledSkills(container, agentIds, scopes);
+
+  if (skills.length === 0) {
+    resources.logger.info(
+      [
+        `No skills installed for ${agentIds.join(", ")}. Searched:`,
+        ...searchedDirs.map((dir) => `- ${formatSkillPath(container, dir)}`),
+        "Install one with poe-code skill install <agent> --name <name> --file <path>."
+      ].join("\n")
+    );
+    return;
+  }
+
+  const theme = getTheme();
+  resources.logger.info(
+    renderTable({
+      theme,
+      columns: [
+        { name: "Skill", title: "Skill", alignment: "left", maxLen: 36 },
+        { name: "Scope", title: "Scope", alignment: "left", maxLen: 8 },
+        { name: "Path", title: "Path", alignment: "left", maxLen: 44 }
+      ],
+      rows: skills.map((installed) => ({
+        Skill: theme.accent(installed.ref),
+        Scope: installed.scope,
+        Path: formatSkillPath(container, installed.skillPath)
+      }))
+    })
+  );
+}
+
 function formatSkillPath(container: CliContainer, filePath: string): string {
   const relative = path.relative(container.env.cwd, filePath);
   return relative.length > 0 && !relative.startsWith("..") && !path.isAbsolute(relative)
@@ -190,7 +234,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
     .alias("skills")
     .description("Skill directory commands.")
     .allowExcessArguments()
-    .action(function (this: Command) {
+    .action(async function (this: Command) {
       if (this.args.length > 0) {
         throwCommandNotFound({
           container,
@@ -200,7 +244,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
           moduleUrl: import.meta.url
         });
       }
-      this.help();
+      await executeSkillList(program, container, undefined, {});
     });
 
   skill
@@ -319,42 +363,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
     .action(async (agentArg: string | undefined, options: SkillCommandOptions) => {
-      const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "skill:list");
-      const scopes = resolveScopes(options);
-      const agentIds = agentArg ? [requireSkillAgentId(agentArg)] : [...supportedAgents];
-
-      resources.logger.intro("skill list");
-
-      const { skills, searchedDirs } = await collectInstalledSkills(container, agentIds, scopes);
-
-      if (skills.length === 0) {
-        resources.logger.info(
-          [
-            `No skills installed for ${agentIds.join(", ")}. Searched:`,
-            ...searchedDirs.map((dir) => `- ${formatSkillPath(container, dir)}`),
-            "Install one with poe-code skill install <agent> --name <name> --file <path>."
-          ].join("\n")
-        );
-        return;
-      }
-
-      const theme = getTheme();
-      resources.logger.info(
-        renderTable({
-          theme,
-          columns: [
-            { name: "Skill", title: "Skill", alignment: "left", maxLen: 36 },
-            { name: "Scope", title: "Scope", alignment: "left", maxLen: 8 },
-            { name: "Path", title: "Path", alignment: "left", maxLen: 44 }
-          ],
-          rows: skills.map((installed) => ({
-            Skill: theme.accent(installed.ref),
-            Scope: installed.scope,
-            Path: formatSkillPath(container, installed.skillPath)
-          }))
-        })
-      );
+      await executeSkillList(program, container, agentArg, options);
     });
 
   skill

@@ -42,7 +42,10 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
   const launch = program
     .command("launch")
     .description("Manage long-running host and Docker processes.")
-    .addHelpCommand(false);
+    .addHelpCommand(false)
+    .action(async () => {
+      await executeLaunchStatus(program, container);
+    });
 
   launch
     .command("start")
@@ -134,30 +137,9 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
 
   launch
     .command("status")
-    .description("List managed processes.")
-    .action(async function () {
-      const records = await listLaunches({ homeDir: container.env.homeDir });
-      const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "launch:status");
-
-      if (records.length === 0) {
-        resources.logger.info("No managed processes.");
-        return;
-      }
-
-      resources.logger.info(renderTable({
-        columns: [
-          { name: "ID", title: "ID", alignment: "left", maxLen: 24 },
-          { name: "RUNTIME", title: "RUNTIME", alignment: "left", maxLen: 8 },
-          { name: "STATUS", title: "STATUS", alignment: "left", maxLen: 12 },
-          { name: "PID", title: "PID", alignment: "right", maxLen: 8 },
-          { name: "RESTARTS", title: "RESTARTS", alignment: "right", maxLen: 10 },
-          { name: "UPTIME", title: "UPTIME", alignment: "right", maxLen: 12 },
-          { name: "LAST EXIT", title: "LAST EXIT", alignment: "right", maxLen: 10 }
-        ],
-        rows: records.map(formatStatusRow),
-        theme: getTheme()
-      }));
+    .description("List managed processes (default).")
+    .action(async () => {
+      await executeLaunchStatus(program, container);
     });
 
   launch
@@ -232,6 +214,31 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     });
 
   return launch;
+}
+
+async function executeLaunchStatus(program: Command, container: CliContainer): Promise<void> {
+  const records = await listLaunches({ homeDir: container.env.homeDir });
+  const flags = resolveCommandFlags(program);
+  const resources = createExecutionResources(container, flags, "launch:status");
+
+  if (records.length === 0) {
+    resources.logger.info("No managed processes.");
+    return;
+  }
+
+  resources.logger.info(renderTable({
+    columns: [
+      { name: "ID", title: "ID", alignment: "left", maxLen: 24 },
+      { name: "RUNTIME", title: "RUNTIME", alignment: "left", maxLen: 8 },
+      { name: "STATUS", title: "STATUS", alignment: "left", maxLen: 12 },
+      { name: "PID", title: "PID", alignment: "right", maxLen: 8 },
+      { name: "RESTARTS", title: "RESTARTS", alignment: "right", maxLen: 10 },
+      { name: "UPTIME", title: "UPTIME", alignment: "right", maxLen: 12 },
+      { name: "LAST EXIT", title: "LAST EXIT", alignment: "right", maxLen: 10 }
+    ],
+    rows: records.map(formatStatusRow),
+    theme: getTheme()
+  }));
 }
 
 async function resolveStartSpec(options: {

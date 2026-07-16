@@ -4,6 +4,8 @@ import {
   resolve as resolveConfigExtends
 } from "@poe-code/config-extends";
 import { FrontmatterParseError, parseFrontmatterDocument } from "@poe-code/frontmatter";
+import { UserError } from "toolcraft";
+import { TemplateParseError, getTemplatePartialNames } from "toolcraft-design";
 export type { TaskBoard, TaskItem } from "./tasks.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -290,6 +292,7 @@ export async function resolveSuperintendentDoc(
 ): Promise<ResolvedSuperintendentDoc> {
   const resolvedFilePath = path.resolve(filePath);
   const { body } = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
+  assertBodyTemplateParses(resolvedFilePath, content, body);
   const resolved = await resolveConfigExtends(
     [
       {
@@ -422,6 +425,24 @@ function parseSuperintendentFrontmatterDocument(
     }
 
     throw error;
+  }
+}
+
+function assertBodyTemplateParses(filePath: string, content: string, body: string): void {
+  try {
+    getTemplatePartialNames(body);
+  } catch (error) {
+    if (!(error instanceof TemplateParseError)) {
+      throw error;
+    }
+
+    const bodyStartLine = content.slice(0, content.length - body.length).split("\n").length;
+
+    throw new UserError(
+      `${filePath}:${bodyStartLine + error.line - 1}:${error.column}: ${error.description}\n` +
+        "Hint: close the tag, or remove the stray braces if this is not a prompt variable - " +
+        "the document body is rendered as a prompt template."
+    );
   }
 }
 

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { UserError } from "toolcraft";
 import { describe, expect, it } from "vitest";
 import { parseSuperintendentDoc, resolveSuperintendentDoc } from "./parse.js";
 
@@ -312,6 +313,45 @@ max_rounds: 25
     });
     expect(result.frontmatter.inspectors).not.toHaveProperty("testing");
     expect(result.body).toBe("# Feature plan\n\n## Task Board\n\n- [ ] Build it\n");
+  });
+
+  it("reports an unclosed body tag as a user error with file, location and hint", async () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+# Feature plan
+
+greps the output for \`{{\`
+`;
+    const fs = {
+      readFile: async () => {
+        throw new Error("readFile should not be called");
+      }
+    };
+
+    const error = await resolveSuperintendentDoc("docs/plans/feature.md", content, fs).catch(
+      (thrown: unknown) => thrown
+    );
+
+    expect(error).toBeInstanceOf(UserError);
+    expect((error as Error).message).toContain(`${path.resolve("docs/plans/feature.md")}:20:23:`);
+    expect((error as Error).message).toContain('Unclosed tag "{{`"');
+    expect((error as Error).message).toContain('expected "}}"');
+    expect((error as Error).message).toMatch(/hint/i);
   });
 
   it.each([

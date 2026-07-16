@@ -74,6 +74,7 @@ export type {
   ResourceBrowserItem
 } from "./components/resource-browser.js";
 export {
+  TemplateParseError,
   getTemplatePartialNames,
   renderTemplate,
   resolveTemplatePartials

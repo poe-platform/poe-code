@@ -154,6 +154,10 @@ export async function validateSuperintendentDocumentWithExtends(
           }
     );
   } catch (error) {
+    if (error instanceof UserError) {
+      throw error;
+    }
+
     return toValidationResult([
       {
         level: "error",

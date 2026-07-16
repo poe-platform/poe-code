@@ -119,6 +119,15 @@ describe("unit", () => {
     );
   });
 
+  it("reports the tag, location and expected closing form for an unclosed tag", () => {
+    expect(() => renderTemplate("line one\nhello {{ name\n", {})).toThrow(
+      'Unclosed tag "{{ name": expected "}}" at line 2, column 7'
+    );
+    expect(() => renderTemplate("{{{ raw", {})).toThrow(
+      'Unclosed tag "{{{ raw": expected "}}}" at line 1, column 1'
+    );
+  });
+
   it("does not render inherited view properties", () => {
     const inherited = Object.assign(Object.create({ secret: { value: "leaked" } }), {
       nested: {}

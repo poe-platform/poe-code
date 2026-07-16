@@ -41,6 +41,22 @@ interface RenderState {
 
 const MAX_PARTIAL_DEPTH = 100;
 
+const MAX_TAG_EXCERPT_LENGTH = 40;
+
+export class TemplateParseError extends Error {
+  readonly description: string;
+  readonly line: number;
+  readonly column: number;
+
+  constructor(description: string, position: { line: number; column: number }) {
+    super(`${description} at line ${position.line}, column ${position.column}`);
+    this.name = "TemplateParseError";
+    this.description = description;
+    this.line = position.line;
+    this.column = position.column;
+  }
+}
+
 const HTML_ESCAPE: Record<string, string> = {
   "&": "&amp;",
   "<": "&lt;",
@@ -197,14 +213,14 @@ function parseTag(
   if (template.startsWith("{{{", open)) {
     const close = template.indexOf("}}}", open + 3);
     if (close === -1) {
-      throw new Error("Unclosed unescaped tag");
+      throw unclosedTagError(template, open, "}}}");
     }
     return { kind: "unescaped", name: template.slice(open + 3, close).trim(), end: close + 3 };
   }
 
   const close = template.indexOf("}}", open + 2);
   if (close === -1) {
-    throw new Error("Unclosed tag");
+    throw unclosedTagError(template, open, "}}");
   }
 
   const raw = template.slice(open + 2, close).trim();
@@ -221,6 +237,21 @@ function parseTag(
   if (sigil === "=" && raw.endsWith("=")) return { kind: "delimiter", name, end };
 
   return { kind: "name", name: raw, end };
+}
+
+function unclosedTagError(template: string, open: number, expected: string): TemplateParseError {
+  const before = template.slice(0, open);
+  const lineEnd = template.indexOf("\n", open);
+  const opened = template.slice(open, lineEnd === -1 ? template.length : lineEnd).trimEnd();
+  const tag =
+    opened.length > MAX_TAG_EXCERPT_LENGTH
+      ? `${opened.slice(0, MAX_TAG_EXCERPT_LENGTH)}...`
+      : opened;
+
+  return new TemplateParseError(`Unclosed tag "${tag}": expected "${expected}"`, {
+    line: before.split("\n").length,
+    column: open - (before.lastIndexOf("\n") + 1) + 1
+  });
 }
 
 function getStandalone(

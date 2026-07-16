@@ -1,3 +1,4 @@
+import { UserError } from "toolcraft";
 import { describe, expect, it, vi } from "vitest";
 import { type ValidationResult, validateCommand } from "./superintendent-group.js";
 
@@ -204,6 +205,19 @@ owner:
       level: "warning",
       message: expect.stringContaining('Unknown prompt variable "builder.unknown"')
     });
+  });
+
+  it("raises an unclosed body tag as a located user error instead of a bare bullet", async () => {
+    const document = validDocument.replace(
+      "- [ ] Ship the validate command",
+      "- [ ] Ship the validate command with {{ broken"
+    );
+
+    const error = await runValidate(document).catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(UserError);
+    expect((error as Error).message).toContain('Unclosed tag "{{ broken"');
+    expect((error as Error).message).toContain('expected "}}"');
   });
 
   it("returns a structured result suitable for JSON output", async () => {

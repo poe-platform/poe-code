@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { simpleGit, type SimpleGit } from "simple-git";
+import { assertClonableTargetRepo } from "../target-repo.js";
 
 export interface CloneTargetInput {
   repo: string;
@@ -13,6 +14,7 @@ export interface CloneTargetInput {
 
 export async function cloneTarget(input: CloneTargetInput): Promise<{ resolvedSha: string }> {
   throwIfAborted(input.signal);
+  assertClonableTargetRepo(input.repo);
 
   const destExisted = await exists(input.dest);
 

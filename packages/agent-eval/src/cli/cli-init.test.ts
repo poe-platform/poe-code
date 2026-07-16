@@ -57,10 +57,10 @@ describe("runInitCli", () => {
     );
   });
 
-  it("prints the relative eval path and next command hint", async () => {
+  it("prints the resolved eval directory and next command hint", async () => {
     await runInitCli({ name: "smoke-task" });
 
-    expect(stdout()).toContain("smoke-task");
+    expect(stdout()).toContain("/repo/evals/smoke-task");
     expect(stdout()).toContain("next: poe-code eval check smoke-task");
   });
 

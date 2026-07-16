@@ -122,11 +122,39 @@ describe("evalInit", () => {
     await expect(read("smoke-task/starter/.gitkeep")).resolves.toBe("");
   });
 
+  it("requires a target repo instead of scaffolding a default that cannot be cloned", async () => {
+    await expect(
+      evalInit({ sourceDir: "/repo/evals", name: "no-target-task", kind: "plan" })
+    ).rejects.toThrow(
+      "Target repository is required. Pass --target-repo <git-url>, for example --target-repo https://github.com/owner/repo.git."
+    );
+    await expect(mocks.fs.stat("/repo/evals/no-target-task")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("rejects a target repo git cannot clone before scaffolding", async () => {
+    await expect(
+      evalInit({
+        sourceDir: "/repo/evals",
+        name: "bad-target-task",
+        kind: "plan",
+        targetRepo: "git+https://github.com/poe-platform/poe-code.git"
+      })
+    ).rejects.toThrow(
+      'target.repo "git+https://github.com/poe-platform/poe-code.git" uses unsupported scheme "git+https".'
+    );
+    await expect(mocks.fs.stat("/repo/evals/bad-target-task")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("writes eval.yaml that passes schema validation without a scorer block", async () => {
     await evalInit({
       sourceDir: "/repo/evals",
       name: "schema-task",
-      kind: "plan"
+      kind: "plan",
+      targetRepo: "https://github.com/owner/repo.git"
     });
 
     const parsed = parseYaml(await read("schema-task/eval.yaml")) as Record<string, unknown>;
@@ -137,7 +165,7 @@ describe("evalInit", () => {
       id: "schema-task",
       title: "Schema Task",
       target: {
-        repo: "git+https://github.com/poe-platform/poe-code.git",
+        repo: "https://github.com/owner/repo.git",
         ref: "main",
         plan_dest: "docs/plans/eval-task.md"
       },
@@ -171,7 +199,8 @@ describe("evalInit", () => {
     await evalInit({
       sourceDir: "/repo/evals",
       name: "super-task",
-      kind: "superintendent"
+      kind: "superintendent",
+      targetRepo: "https://github.com/owner/repo.git"
     });
 
     await expect(
@@ -195,7 +224,8 @@ describe("evalInit", () => {
       evalInit({
         sourceDir: "/repo/evals",
         name: "existing-task",
-        kind: "plan"
+        kind: "plan",
+        targetRepo: "https://github.com/owner/repo.git"
       })
     ).rejects.toThrow("Eval folder already exists: /repo/evals/existing-task");
   });
@@ -205,7 +235,12 @@ describe("evalInit", () => {
 
     await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
       await expect(
-        evalInit({ sourceDir: "/repo/evals", name: "blocked-task", kind: "plan" })
+        evalInit({
+          sourceDir: "/repo/evals",
+          name: "blocked-task",
+          kind: "plan",
+          targetRepo: "https://github.com/owner/repo.git"
+        })
       ).rejects.toThrow("mkdir denied");
     });
   });
@@ -214,13 +249,23 @@ describe("evalInit", () => {
     mocks.failedWriteSuffix = "/plan.md";
 
     await expect(
-      evalInit({ sourceDir: "/repo/evals", name: "partial-task", kind: "plan" })
+      evalInit({
+        sourceDir: "/repo/evals",
+        name: "partial-task",
+        kind: "plan",
+        targetRepo: "https://github.com/owner/repo.git"
+      })
     ).rejects.toThrow("scaffold write failed");
     await expect(mocks.fs.stat("/repo/evals/partial-task")).rejects.toMatchObject({ code: "ENOENT" });
 
     mocks.failedWriteSuffix = undefined;
     await expect(
-      evalInit({ sourceDir: "/repo/evals", name: "partial-task", kind: "plan" })
+      evalInit({
+        sourceDir: "/repo/evals",
+        name: "partial-task",
+        kind: "plan",
+        targetRepo: "https://github.com/owner/repo.git"
+      })
     ).resolves.toMatchObject({ evalDir: "/repo/evals/partial-task" });
   });
 
@@ -229,7 +274,12 @@ describe("evalInit", () => {
 
     await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
       await expect(
-        evalInit({ sourceDir: "/repo/evals", name: "denied-task", kind: "plan" })
+        evalInit({
+          sourceDir: "/repo/evals",
+          name: "denied-task",
+          kind: "plan",
+          targetRepo: "https://github.com/owner/repo.git"
+        })
       ).rejects.toThrow("source lstat denied");
     });
 
@@ -243,7 +293,12 @@ describe("evalInit", () => {
     await mocks.fs.symlink("/outside", "/repo/evals");
 
     await expect(
-      evalInit({ sourceDir: "/repo/evals", name: "escaped-task", kind: "plan" })
+      evalInit({
+        sourceDir: "/repo/evals",
+        name: "escaped-task",
+        kind: "plan",
+        targetRepo: "https://github.com/owner/repo.git"
+      })
     ).rejects.toThrow("Eval source directory must not be a symbolic link.");
     await expect(mocks.fs.readFile("/outside/escaped-task/eval.yaml", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
@@ -257,7 +312,12 @@ describe("evalInit", () => {
     mocks.racedWriteSuffix = "/eval.yaml";
 
     await expect(
-      evalInit({ sourceDir: "/repo/evals", name: "raced-task", kind: "plan" })
+      evalInit({
+        sourceDir: "/repo/evals",
+        name: "raced-task",
+        kind: "plan",
+        targetRepo: "https://github.com/owner/repo.git"
+      })
     ).rejects.toMatchObject({ code: "EEXIST" });
     await expect(mocks.fs.readFile("/outside/secret.txt", "utf8")).resolves.toBe("keep\n");
     await expect(mocks.fs.stat("/repo/evals/raced-task")).rejects.toMatchObject({ code: "ENOENT" });

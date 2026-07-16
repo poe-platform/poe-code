@@ -2,6 +2,7 @@ import { lstat, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stringify as stringifyYaml } from "yaml";
 import { hasOwnErrorCode } from "../error-codes.js";
+import { assertClonableTargetRepo } from "../target-repo.js";
 import type { PlanKind } from "../types.js";
 
 export interface InitOptions {
@@ -17,7 +18,6 @@ export interface InitResult {
   files: readonly string[];
 }
 
-const defaultTargetRepo = "git+https://github.com/poe-platform/poe-code.git";
 const defaultTargetRef = "main";
 const initFiles = [
   "eval.yaml",
@@ -31,6 +31,7 @@ const invalidNameMessage =
 
 export async function evalInit(opts: InitOptions): Promise<InitResult> {
   validateInitName(opts.name);
+  const targetRepo = requireClonableTargetRepo(opts.targetRepo);
 
   if (!path.isAbsolute(opts.sourceDir)) {
     throw new Error("sourceDir must be absolute.");
@@ -54,7 +55,7 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     await mkdir(path.join(evalDir, "oracle", "solution"), { recursive: true });
     await mkdir(path.join(evalDir, "starter"), { recursive: true });
     const writes = await Promise.allSettled([
-      writeNewFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
+      writeNewFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts, targetRepo)),
       writeNewFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
       writeNewFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
       writeNewFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
@@ -98,13 +99,25 @@ export function validateInitName(name: string): void {
   }
 }
 
-function renderEvalYaml(opts: InitOptions): string {
+function requireClonableTargetRepo(targetRepo: string | undefined): string {
+  const repo = targetRepo?.trim() ?? "";
+  if (repo.length === 0) {
+    throw new Error(
+      "Target repository is required. Pass --target-repo <git-url>, for example --target-repo https://github.com/owner/repo.git."
+    );
+  }
+
+  assertClonableTargetRepo(repo);
+  return repo;
+}
+
+function renderEvalYaml(opts: InitOptions, targetRepo: string): string {
   return stringifyYaml(
     {
       id: opts.name,
       title: titleFromName(opts.name),
       target: {
-        repo: opts.targetRepo ?? defaultTargetRepo,
+        repo: targetRepo,
         ref: opts.targetRef ?? defaultTargetRef,
         plan_dest: "docs/plans/eval-task.md"
       },

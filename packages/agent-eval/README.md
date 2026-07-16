@@ -46,7 +46,7 @@ Use [qa/run-one.md](qa/run-one.md) for a throwaway single-eval validation pass.
 Start from the CLI template, then edit the generated task prompt and oracle:
 
 ```sh
-poe-code eval init my-task
+poe-code eval init my-task --target-repo https://github.com/owner/repo.git
 cd my-task
 # edit plan.md, oracle/tests/, oracle/solution/
 poe-code eval check .

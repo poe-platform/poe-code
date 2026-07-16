@@ -22,7 +22,7 @@ export async function runInitCli(input: InitCliInput): Promise<number> {
       targetRef: input.targetRef
     });
 
-    process.stdout.write(`${path.relative(sourceDir, result.evalDir)}\n`);
+    process.stdout.write(`created ${result.evalDir}\n`);
     process.stdout.write(`next: poe-code eval check ${input.name}\n`);
     return 0;
   } catch (error) {

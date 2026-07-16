@@ -38,6 +38,19 @@ describe("cloneTarget cleanup", () => {
     mocks.revparse.mockReset().mockResolvedValue("sha\n");
   });
 
+  it("names the unclonable target repo instead of letting git fail raw", async () => {
+    await expect(
+      cloneTarget({
+        repo: "git+https://github.com/poe-platform/poe-code.git",
+        ref: "main",
+        dest: "/runs/placeholder-clone"
+      })
+    ).rejects.toThrow(
+      'target.repo "git+https://github.com/poe-platform/poe-code.git" uses unsupported scheme "git+https".'
+    );
+    expect(mocks.clone).not.toHaveBeenCalled();
+  });
+
   it("removes a newly created destination after clone failure", async () => {
     mocks.clone.mockImplementation(async () => {
       mocks.destinationExists = true;

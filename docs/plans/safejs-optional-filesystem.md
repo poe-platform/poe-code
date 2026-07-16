@@ -647,10 +647,10 @@ tasks:
       root-confinement EACCES. Never assert `readdir` order. Tests must be fast and must not touch
       the real disk.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-node-truth-fixture
     title: Ground the conformance suite in real node behavior, not memfs behavior

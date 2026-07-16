@@ -1,34 +1,41 @@
 import { constants as nodeFsConstants } from "node:fs";
 import * as nodeFsPromises from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { getSystemErrorMap, getSystemErrorName } from "node:util";
+import { getSystemErrorName } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 
 import { digestHostCallArguments } from "../interp/host-call.js";
 import { readHostOperationPolicy } from "../interp/host-bridge.js";
 import { run } from "../run.js";
+import {
+  COPY_RENAME_CASES,
+  createNodeTruthFs,
+  driveCase,
+  encode,
+  type FsCaseDriver,
+  type FsConformanceCase,
+  HANGS,
+  LOOP_HANGS,
+  MKDIR_RM_RMDIR_CASES,
+  READ_AND_SHAPE_CASES,
+  readObserved,
+  readRecordedOutcome,
+  readSystemError,
+  stageLoop,
+  STRING_ENCODINGS,
+  SYMLINK_CASES,
+  SYSTEM_ERROR_CASES,
+  systemErrorMessage,
+  toConformanceCase,
+  toObserved,
+  WRITE_CASES
+} from "./fs.conformance-cases.js";
 import { makeFsModule, type FsImplementation } from "./fs.js";
 
 const SAMPLE_TEXT = "héllo ✓";
 
 const NUL_BYTE = "\u0000";
-
-// Every string encoding node accepts, including its aliases.
-const STRING_ENCODINGS = [
-  "utf8",
-  "utf-8",
-  "utf16le",
-  "utf-16le",
-  "ucs2",
-  "ucs-2",
-  "latin1",
-  "binary",
-  "ascii",
-  "base64",
-  "base64url",
-  "hex"
-] as const;
 
 const STAT_NUMBER_FIELDS = [
   "dev",
@@ -136,35 +143,6 @@ function createCaseInsensitiveFs(files: Record<string, string>): FsImplementatio
   });
 }
 
-// node pairs an errno name with the errno number and the description libuv gave it,
-// and every system error it raises is composed from that one table. Reading the pair
-// back from the table is what keeps an expectation the platform's answer rather than
-// the darwin numbers and wording this suite happened to be written on.
-function readSystemError(code: string): { errno: number; description: string } {
-  const entry = [...getSystemErrorMap()].find(([, [name]]) => name === code);
-
-  /* c8 ignore next 3 -- every code this suite names is one node defines. */
-  if (entry === undefined) {
-    throw new Error(`node does not define the ${code} system error.`);
-  }
-
-  const [errno, [, description]] = entry;
-  return { errno, description };
-}
-
-// The exact text node gives a system error, composed the way node's own uvException
-// does: the errno name, the description, the syscall, and the paths it was handed.
-// A path is quoted only when the error carries one — an error the read syscall
-// raised is blamed on a descriptor and names no path — and a second path is appended
-// for the operations node reports a dest for.
-function systemErrorMessage(code: string, syscall: string, path?: string, dest?: string): string {
-  const { description } = readSystemError(code);
-  const target = path === undefined ? "" : ` '${path}'`;
-  const destination = dest === undefined ? "" : ` -> '${dest}'`;
-
-  return `${code}: ${description}, ${syscall}${target}${destination}`;
-}
-
 function createLoopError(path: string): NodeJS.ErrnoException {
   const error: NodeJS.ErrnoException = new Error(systemErrorMessage("ELOOP", "realpath", path));
 
@@ -181,10 +159,6 @@ function untyped(
   fs: ReturnType<typeof makeFsModule>
 ): Record<string, (...args: readonly unknown[]) => Promise<unknown>> {
   return fs as unknown as Record<string, (...args: readonly unknown[]) => Promise<unknown>>;
-}
-
-function encode(text: string, encoding: (typeof STRING_ENCODINGS)[number]): string {
-  return Buffer.from(text, "utf8").toString(encoding);
 }
 
 async function readCode(operation: Promise<unknown>): Promise<unknown> {
@@ -231,9 +205,11 @@ async function readRejection(operation: Promise<unknown>): Promise<{
   throw new Error("Expected the operation to reject.");
 }
 
-// The recorded-node-truth harness the node-semantics blocks below share. memfs is the test
-// filesystem but it is not node, so each case records what real node answered and this proves
-// as much of that truth as an in-memory run can:
+// The recorded-node-truth harness the node-semantics blocks below share. The cases themselves
+// are the shared table in fs.conformance-cases.js, which fs.conformance.test.ts drives against
+// memfs as its reference; what this asks them is the other half of the question. memfs is the
+// test filesystem but it is not node, so each case records what real node answered and this
+// proves as much of that truth as an in-memory run can:
 //
 //   - every case is driven over a stub answering exactly what node answered, which is what
 //     makes node's full truth — errno, syscall, and dest included — assertable with no real
@@ -248,148 +224,38 @@ async function readRejection(operation: Promise<unknown>): Promise<{
 // scripts/record-fs-conformance.ts once fs-node-truth-fixture lands; until then a memfs
 // upgrade that closes a gap fails the divergence assertion rather than passing silently.
 
-// The error fields memfs models. It sets no errno, syscall, or dest on any error — each block
-// proves that for the operations it covers — so those three live in the recorded node truth
-// alone and are unassertable over memfs.
-type ObservedFailure = {
-  readonly name: string;
-  readonly message: string;
-  readonly code: string;
-  readonly path?: string;
-};
-
-type Observed = { readonly result: unknown } | ObservedFailure;
-
-// dest is optional because node's cp is its own JavaScript layer rather than a syscall
-// wrapper: its ERR_FS_CP_* errors carry a path alone, where the syscall-backed operations
-// report both.
-type RecordedTruth =
-  | { readonly result: unknown }
-  | (ObservedFailure & {
-      readonly errno: number;
-      readonly syscall: string;
-      readonly dest?: string;
-    });
-
-// A case memfs cannot answer at all rather than answering differently: a real symlink cycle
-// recurses inside memfs with the event loop blocked, so driving it would hang the suite rather
-// than fail it. Those cases are proven against the recorded replay alone.
-const HANGS = "hangs";
-
-type NodeSemanticsCase<TDriver> = {
-  readonly title: string;
-  readonly setup?: (volume: Volume) => void;
-  readonly invoke: (fs: TDriver) => Promise<unknown>;
-  readonly node: RecordedTruth;
-  // Why memfs cannot reproduce node, and what it answers instead.
-  readonly gap?: { readonly reason: string; readonly memfs: Observed | typeof HANGS };
-};
-
-// Answers exactly what real node answered for the case. Every operation name is stubbed with
-// the same answer rather than a per-case list: only the operation the case invokes is reached,
-// because with no root the module calls nothing else, so answering every name cannot let a
-// case pass through an operation it did not name.
-function createNodeTruthFs(truth: RecordedTruth): FsImplementation {
-  const answer = async (): Promise<unknown> => {
-    if ("result" in truth) {
-      return truth.result;
-    }
-
-    const error: NodeJS.ErrnoException & { dest?: string } = new Error(truth.message);
-    error.name = truth.name;
-    error.code = truth.code;
-    error.errno = truth.errno;
-    error.syscall = truth.syscall;
-    error.path = truth.path;
-
-    if (truth.dest !== undefined) {
-      error.dest = truth.dest;
-    }
-
-    throw error;
-  };
-
-  return new Proxy({} as FsImplementation, { get: () => answer });
-}
-
-// Reads every field node carries, so the replay proves errno, syscall, and dest cross
-// unchanged rather than only the message.
-async function readRecordedOutcome(operation: Promise<unknown>): Promise<RecordedTruth> {
-  try {
-    return { result: await operation };
-  } catch (error) {
-    const rejection = error as NodeJS.ErrnoException & { dest?: string };
-    return {
-      name: rejection.name,
-      message: rejection.message,
-      code: rejection.code as string,
-      errno: rejection.errno as number,
-      syscall: rejection.syscall as string,
-      path: rejection.path,
-      dest: rejection.dest
-    };
-  }
-}
-
-// Reads back only what memfs models, so a comparison never pretends memfs answered an errno,
-// a syscall, or a dest.
-async function readObserved(operation: Promise<unknown>): Promise<Observed> {
-  try {
-    return { result: await operation };
-  } catch (error) {
-    const rejection = error as NodeJS.ErrnoException;
-    return {
-      name: rejection.name,
-      message: rejection.message,
-      code: rejection.code as string,
-      path: rejection.path
-    };
-  }
-}
-
-// Projects a recorded truth down to the fields memfs models, which is what makes the two
-// comparable.
-function toObserved(truth: RecordedTruth): Observed {
-  if ("result" in truth) {
-    return { result: truth.result };
-  }
-
-  const { name, message, code, path } = truth;
-  return { name, message, code, path };
-}
-
-function driveCase<TDriver>(testCase: NodeSemanticsCase<TDriver>): {
-  fs: TDriver;
-  reference: TDriver;
-} {
-  const { fs, volume } = createFs({ "/repo/keep.txt": "" });
-  testCase.setup?.(volume);
-
-  const referenceVolume = Volume.fromJSON({ "/repo/keep.txt": "" }, "/");
-  testCase.setup?.(referenceVolume);
-
-  return {
-    fs: fs as unknown as TDriver,
-    reference: createFsFromVolume(referenceVolume).promises as unknown as TDriver
-  };
-}
-
 // Registers every assertion a node-semantics case carries. expectedGaps is asserted whole
 // rather than per case, so closing a gap in memfs or adding a case forces the reason list to
 // be re-read.
-function driveNodeSemantics<TDriver>(
-  cases: readonly NodeSemanticsCase<TDriver>[],
+function driveNodeSemantics(
+  cases: readonly FsConformanceCase[],
   expectedGaps: readonly string[]
 ): void {
-  // Every case, gap or not: node's return value and each error field it carries reach the
-  // caller unchanged.
-  for (const testCase of cases) {
+  // Every case whose answer is its own: node's return value and each error field it carries
+  // reach the caller unchanged. A case that reads fields off its answer is left out — the stub
+  // replays a recorded truth verbatim, and a reading is not something a predicate can be called
+  // on — so the invariant below holds those to the memfs drive instead.
+  for (const testCase of cases.filter((entry) => entry.readsAnswer !== true)) {
     it(`surfaces node's recorded outcome: ${testCase.title}`, async () => {
-      const fs = makeFsModule({ fs: createNodeTruthFs(testCase.node) }) as unknown as TDriver;
+      const fs = makeFsModule({
+        fs: createNodeTruthFs(testCase.node)
+      }) as unknown as FsCaseDriver;
 
       expect(await readRecordedOutcome(testCase.invoke(fs))).toEqual(testCase.node);
     });
   }
+
+  // The one way a case could end up proven against node nowhere: the replay cannot reach it and
+  // memfs answers something else, which would leave its recorded truth asserted by neither
+  // drive. Asserted as the rule rather than as a list, since it is the rule that makes a case
+  // readable as covered.
+  it("proves every case the recorded replay cannot reach over memfs instead", () => {
+    const unproven = cases
+      .filter((entry) => entry.readsAnswer === true && entry.gap !== undefined)
+      .map((entry) => entry.title);
+
+    expect(unproven).toEqual([]);
+  });
 
   // The cases memfs models the same way node does, driven over a volume so the operation's
   // effect is exercised rather than replayed.
@@ -629,262 +495,7 @@ describe("makeFsModule", () => {
   // first, so a bad path is blamed on the open, and unlink is reached only through rm.
   // fs.ts's own FS_SYSCALLS table is the module's copy of the operation-level answers.
   describe("system error message text", () => {
-    type Driver = {
-      access(path: string): Promise<void>;
-      chmod(path: string, mode: number): Promise<void>;
-      copyFile(src: string, dest: string, mode?: number): Promise<void>;
-      link(existingPath: string, newPath: string): Promise<void>;
-      lstat(path: string): Promise<unknown>;
-      mkdir(path: string): Promise<string | undefined>;
-      readFile(path: string, options: string): Promise<string>;
-      readdir(path: string): Promise<unknown>;
-      readlink(path: string): Promise<string>;
-      realpath(path: string): Promise<string>;
-      rename(oldPath: string, newPath: string): Promise<void>;
-      rm(path: string): Promise<void>;
-      rmdir(path: string): Promise<void>;
-      stat(path: string): Promise<unknown>;
-      symlink(target: string, path: string): Promise<void>;
-      truncate(path: string, length: number): Promise<void>;
-      utimes(path: string, atime: number, mtime: number): Promise<void>;
-    };
-
-    // The message, the errno, and the name are derived rather than carried: a case names
-    // only what node blamed and for which paths, which is the whole of what distinguishes
-    // one system error's text from another's.
-    type SystemErrorCase = {
-      readonly title: string;
-      readonly syscall: string;
-      readonly code: string;
-      readonly path?: string;
-      readonly dest?: string;
-      readonly setup?: (volume: Volume) => void;
-      readonly invoke: (fs: Driver) => Promise<unknown>;
-      readonly gap?: NodeSemanticsCase<Driver>["gap"];
-    };
-
-    // name is "Error" for every case: node raises a system error as a plain Error, never as
-    // a TypeError. That is the line an argument error sits on the other side of, and the
-    // argument validation block below holds it there by asserting TypeError/RangeError.
-    // memfs names each of these Error on its own, so the claim is measured over a real
-    // filesystem for every case memfs models rather than only replayed.
-    function toSemanticsCase(entry: SystemErrorCase): NodeSemanticsCase<Driver> {
-      return {
-        title: entry.title,
-        setup: entry.setup,
-        invoke: entry.invoke,
-        node: {
-          name: "Error",
-          message: systemErrorMessage(entry.code, entry.syscall, entry.path, entry.dest),
-          code: entry.code,
-          errno: readSystemError(entry.code).errno,
-          syscall: entry.syscall,
-          path: entry.path,
-          ...(entry.dest === undefined ? {} : { dest: entry.dest })
-        },
-        gap: entry.gap
-      };
-    }
-
-    const CASES: readonly SystemErrorCase[] = [
-      {
-        title: "readFile on a missing path is blamed on open",
-        syscall: "open",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.readFile("/repo/missing.txt", "utf8")
-      },
-      {
-        // The one syscall in the table node names no path for: by the time the read fails
-        // node holds a descriptor rather than a path, so the message stops at the syscall
-        // and the error carries no path field either. A format that always quoted a path
-        // would spell this ", read ''" or ", read 'undefined'".
-        title: "readFile on a directory is blamed on read, which names no path",
-        syscall: "read",
-        code: "EISDIR",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.readFile("/repo/d", "utf8"),
-        gap: {
-          reason: "memfs blames the open rather than the read and names the path node omits",
-          memfs: {
-            name: "Error",
-            message: systemErrorMessage("EISDIR", "open", "/repo/d"),
-            code: "EISDIR",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "readdir on a missing path is blamed on scandir",
-        syscall: "scandir",
-        code: "ENOENT",
-        path: "/repo/missing",
-        invoke: (fs) => fs.readdir("/repo/missing")
-      },
-      {
-        title: "mkdir on an existing directory is blamed on mkdir",
-        syscall: "mkdir",
-        code: "EEXIST",
-        path: "/repo/d",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.mkdir("/repo/d")
-      },
-      {
-        title: "rmdir on a non-empty directory is blamed on rmdir",
-        syscall: "rmdir",
-        code: "ENOTEMPTY",
-        path: "/repo/d",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d");
-          volume.writeFileSync("/repo/d/child.txt", "child");
-        },
-        invoke: (fs) => fs.rmdir("/repo/d")
-      },
-      {
-        // The module exports no unlink, so the only way to reach the syscall is rm, which
-        // node implements as an lstat and then an unlink: the lstat of a file inside a
-        // directory that denies writes succeeds and the unlink is what the mode refuses.
-        title: "rm of a file in a write-denied directory is blamed on unlink",
-        syscall: "unlink",
-        code: "EACCES",
-        path: "/repo/ro/child.txt",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/ro");
-          volume.writeFileSync("/repo/ro/child.txt", "child");
-          volume.chmodSync("/repo/ro", 0o500);
-        },
-        invoke: (fs) => fs.rm("/repo/ro/child.txt"),
-        gap: {
-          reason: "memfs blames rm, the fs function, where node blames the unlink it refused",
-          memfs: {
-            name: "Error",
-            message: systemErrorMessage("EACCES", "rm", "/repo/ro/child.txt"),
-            code: "EACCES",
-            path: "/repo/ro/child.txt"
-          }
-        }
-      },
-      {
-        title: "rename of a missing source is blamed on rename and names both paths",
-        syscall: "rename",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        dest: "/repo/renamed.txt",
-        invoke: (fs) => fs.rename("/repo/missing.txt", "/repo/renamed.txt")
-      },
-      {
-        // node lower-cases the syscall it blames, which is not how the fs function is
-        // spelled: a message derived from the function name would say 'copyFile'.
-        title: "copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile",
-        syscall: "copyfile",
-        code: "EEXIST",
-        path: "/repo/keep.txt",
-        dest: "/repo/taken.txt",
-        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "taken"),
-        invoke: (fs) =>
-          fs.copyFile("/repo/keep.txt", "/repo/taken.txt", nodeFsConstants.COPYFILE_EXCL),
-        gap: {
-          reason:
-            "memfs blames copyFile, the fs function, where node blames the lower-cased syscall",
-          memfs: {
-            name: "Error",
-            message: systemErrorMessage("EEXIST", "copyFile", "/repo/keep.txt", "/repo/taken.txt"),
-            code: "EEXIST",
-            path: "/repo/keep.txt"
-          }
-        }
-      },
-      {
-        title: "link onto an existing path is blamed on link and names both paths",
-        syscall: "link",
-        code: "EEXIST",
-        path: "/repo/keep.txt",
-        dest: "/repo/taken.txt",
-        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "taken"),
-        invoke: (fs) => fs.link("/repo/keep.txt", "/repo/taken.txt")
-      },
-      {
-        title: "symlink onto an existing path is blamed on symlink and names both paths",
-        syscall: "symlink",
-        code: "EEXIST",
-        path: "/repo/keep.txt",
-        dest: "/repo/taken.txt",
-        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "taken"),
-        invoke: (fs) => fs.symlink("/repo/keep.txt", "/repo/taken.txt")
-      },
-      {
-        title: "readlink on a regular file is blamed on readlink",
-        syscall: "readlink",
-        code: "EINVAL",
-        path: "/repo/keep.txt",
-        invoke: (fs) => fs.readlink("/repo/keep.txt")
-      },
-      {
-        title: "realpath on a missing path is blamed on realpath",
-        syscall: "realpath",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.realpath("/repo/missing.txt")
-      },
-      {
-        title: "stat on a missing path is blamed on stat",
-        syscall: "stat",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.stat("/repo/missing.txt")
-      },
-      {
-        title: "lstat on a missing path is blamed on lstat",
-        syscall: "lstat",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.lstat("/repo/missing.txt")
-      },
-      {
-        title: "access on a missing path is blamed on access",
-        syscall: "access",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.access("/repo/missing.txt")
-      },
-      {
-        title: "chmod on a missing path is blamed on chmod",
-        syscall: "chmod",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.chmod("/repo/missing.txt", 0o600)
-      },
-      {
-        // node blames the utime syscall, which is the fs function's name without its s.
-        title: "utimes on a missing path is blamed on utime",
-        syscall: "utime",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.utimes("/repo/missing.txt", 0, 0),
-        gap: {
-          reason: "memfs blames utimes, the fs function, where node blames the utime syscall",
-          memfs: {
-            name: "Error",
-            message: systemErrorMessage("ENOENT", "utimes", "/repo/missing.txt"),
-            code: "ENOENT",
-            path: "/repo/missing.txt"
-          }
-        }
-      },
-      {
-        // fs/promises has no truncate syscall to blame: it opens the path and ftruncates
-        // the descriptor, so a path it cannot open is blamed on the open. The syscall
-        // truncate is unreachable through the module, and ftruncate with it — the
-        // descriptor the module would need to reach one is FileHandle, which SafeJS refuses.
-        title: "truncate on a missing path is blamed on the open it opens the path with",
-        syscall: "open",
-        code: "ENOENT",
-        path: "/repo/missing.txt",
-        invoke: (fs) => fs.truncate("/repo/missing.txt", 0)
-      }
-    ];
-
-    driveNodeSemantics(CASES.map(toSemanticsCase), [
+    driveNodeSemantics(SYSTEM_ERROR_CASES.map(toConformanceCase), [
       "readFile on a directory is blamed on read, which names no path: memfs blames the open rather than the read and names the path node omits",
       "rm of a file in a write-denied directory is blamed on unlink: memfs blames rm, the fs function, where node blames the unlink it refused",
       "copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile: memfs blames copyFile, the fs function, where node blames the lower-cased syscall",
@@ -916,7 +527,7 @@ describe("makeFsModule", () => {
     // answers it is meant to check. What this holds is the table's coverage — a case dropped
     // from it, or a syscall the module later reaches, has to be answered for here.
     it("blames every syscall reachable through the module's surface", () => {
-      const blamed = [...new Set(CASES.map((entry) => entry.syscall))].sort();
+      const blamed = [...new Set(SYSTEM_ERROR_CASES.map((entry) => entry.syscall))].sort();
 
       // The operations absent are the ones no case can reach a syscall error through: node's
       // cp is a JavaScript layer raising ERR_FS_CP_* rather than a syscall error, mkdtemp
@@ -2303,378 +1914,7 @@ describe("makeFsModule", () => {
   // memfs already answers the requested path, so over memfs alone a module that returned the
   // requested path rather than the first directory created would pass.
   describe("mkdir, rm, and rmdir node semantics", () => {
-    type Driver = {
-      mkdir(
-        path: string,
-        options?: { recursive?: boolean; mode?: number }
-      ): Promise<string | undefined>;
-      rm(path: string, options?: { force?: boolean; recursive?: boolean }): Promise<void>;
-      rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
-    };
-
-    type SemanticsCase = NodeSemanticsCase<Driver>;
-
-    const CASES: readonly SemanticsCase[] = [
-      {
-        title: "mkdir recursive returns the first directory it created",
-        invoke: (fs) => fs.mkdir("/repo/a/b/c", { recursive: true }),
-        node: { result: "/repo/a" },
-        gap: {
-          reason: "memfs returns the requested path rather than the first directory created",
-          memfs: { result: "/repo/a/b/c" }
-        }
-      },
-      {
-        title: "mkdir recursive returns the first directory created below an existing parent",
-        setup: (volume) => volume.mkdirSync("/repo/a"),
-        invoke: (fs) => fs.mkdir("/repo/a/b/c", { recursive: true }),
-        node: { result: "/repo/a/b" },
-        gap: {
-          reason: "memfs returns the requested path rather than the first directory created",
-          memfs: { result: "/repo/a/b/c" }
-        }
-      },
-      {
-        // node builds the answer from the path it was handed rather than a normalised
-        // one, so './' survives in the result. Recorded from node, which answers
-        // '/repo/./d1' here and 'repo/x' for a relative 'repo/x/y'.
-        title: "mkdir recursive returns the first directory it created as the path was spelled",
-        invoke: (fs) => fs.mkdir("/repo/./d1/../d1/d2", { recursive: true }),
-        node: { result: "/repo/./d1" },
-        gap: {
-          reason: "memfs returns the requested path rather than the first directory created",
-          memfs: { result: "/repo/./d1/../d1/d2" }
-        }
-      },
-      {
-        title: "mkdir recursive on an existing directory creates nothing and returns undefined",
-        setup: (volume) => volume.mkdirSync("/repo/a"),
-        invoke: (fs) => fs.mkdir("/repo/a", { recursive: true }),
-        node: { result: undefined }
-      },
-      {
-        title: "mkdir non-recursive with a missing parent rejects with ENOENT",
-        invoke: (fs) => fs.mkdir("/repo/missing/leaf"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, mkdir '/repo/missing/leaf'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "mkdir",
-          path: "/repo/missing/leaf"
-        },
-        gap: {
-          reason: "memfs blames the missing parent rather than the path mkdir was given",
-          memfs: {
-            name: "Error",
-            message: "ENOENT: no such file or directory, mkdir '/repo/missing'",
-            code: "ENOENT",
-            path: "/repo/missing"
-          }
-        }
-      },
-      {
-        title: "mkdir non-recursive on an existing directory rejects with EEXIST",
-        setup: (volume) => volume.mkdirSync("/repo/a"),
-        invoke: (fs) => fs.mkdir("/repo/a"),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, mkdir '/repo/a'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "mkdir",
-          path: "/repo/a"
-        }
-      },
-      {
-        title: "mkdir non-recursive through a file segment rejects with ENOTDIR",
-        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
-        invoke: (fs) => fs.mkdir("/repo/f/leaf"),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, mkdir '/repo/f/leaf'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "mkdir",
-          path: "/repo/f/leaf"
-        },
-        gap: {
-          reason: "memfs blames the file segment rather than the path mkdir was given",
-          memfs: {
-            name: "Error",
-            message: "ENOTDIR: not a directory, mkdir '/repo/f'",
-            code: "ENOTDIR",
-            path: "/repo/f"
-          }
-        }
-      },
-      {
-        title: "mkdir recursive through a file segment rejects with ENOTDIR",
-        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
-        invoke: (fs) => fs.mkdir("/repo/f/leaf", { recursive: true }),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, mkdir '/repo/f/leaf'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "mkdir",
-          path: "/repo/f/leaf"
-        }
-      },
-      {
-        title: "mkdir non-recursive on an existing file rejects with EEXIST",
-        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
-        invoke: (fs) => fs.mkdir("/repo/f"),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, mkdir '/repo/f'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "mkdir",
-          path: "/repo/f"
-        }
-      },
-      {
-        title: "mkdir recursive on an existing file rejects with EEXIST",
-        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
-        invoke: (fs) => fs.mkdir("/repo/f", { recursive: true }),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, mkdir '/repo/f'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "mkdir",
-          path: "/repo/f"
-        },
-        gap: {
-          reason: "memfs forgives an existing file when mkdir is recursive and resolves",
-          memfs: { result: undefined }
-        }
-      },
-      {
-        title: "rm on a missing path without force rejects with ENOENT",
-        invoke: (fs) => fs.rm("/repo/nope"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, lstat '/repo/nope'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "lstat",
-          path: "/repo/nope"
-        },
-        gap: {
-          reason: "memfs blames stat where node's rm lstats the path first",
-          memfs: {
-            name: "Error",
-            message: "ENOENT: no such file or directory, stat '/repo/nope'",
-            code: "ENOENT",
-            path: "/repo/nope"
-          }
-        }
-      },
-      {
-        title: "rm on a missing path with force resolves",
-        invoke: (fs) => fs.rm("/repo/nope", { force: true }),
-        node: { result: undefined }
-      },
-      {
-        // force forgives a missing path and nothing else: the lstat that fails here
-        // fails with ENOTDIR, so force does not swallow it.
-        title: "rm force through a file segment still rejects with ENOTDIR",
-        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
-        invoke: (fs) => fs.rm("/repo/f/leaf", { force: true }),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, lstat '/repo/f/leaf'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "lstat",
-          path: "/repo/f/leaf"
-        },
-        gap: {
-          reason: "memfs blames stat where node's rm lstats the path first",
-          memfs: {
-            name: "Error",
-            message: "ENOTDIR: not a directory, stat '/repo/f/leaf'",
-            code: "ENOTDIR",
-            path: "/repo/f/leaf"
-          }
-        }
-      },
-      {
-        title: "rm on a directory without recursive rejects with ERR_FS_EISDIR",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.rm("/repo/d"),
-        node: {
-          name: "SystemError",
-          message: "Path is a directory: rm returned EISDIR (is a directory) /repo/d",
-          code: "ERR_FS_EISDIR",
-          errno: 21,
-          syscall: "rm",
-          path: "/repo/d"
-        },
-        gap: {
-          reason: "memfs raises a plain Error and prefixes the code to node's message",
-          memfs: {
-            name: "Error",
-            message:
-              "[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /repo/d",
-            code: "ERR_FS_EISDIR",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "rm force on a directory without recursive still rejects with ERR_FS_EISDIR",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.rm("/repo/d", { force: true }),
-        node: {
-          name: "SystemError",
-          message: "Path is a directory: rm returned EISDIR (is a directory) /repo/d",
-          code: "ERR_FS_EISDIR",
-          errno: 21,
-          syscall: "rm",
-          path: "/repo/d"
-        },
-        gap: {
-          reason: "memfs raises a plain Error and prefixes the code to node's message",
-          memfs: {
-            name: "Error",
-            message:
-              "[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /repo/d",
-            code: "ERR_FS_EISDIR",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "rm recursive on a non-empty directory resolves",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d/e", { recursive: true });
-          volume.writeFileSync("/repo/d/e/f", "x");
-        },
-        invoke: (fs) => fs.rm("/repo/d", { recursive: true }),
-        node: { result: undefined }
-      },
-      {
-        title: "rm on a symlink to a directory unlinks the link",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d");
-          volume.symlinkSync("/repo/d", "/repo/link");
-        },
-        invoke: (fs) => fs.rm("/repo/link"),
-        node: { result: undefined },
-        gap: {
-          reason: "memfs follows the link and refuses it as a directory instead of unlinking it",
-          memfs: {
-            name: "Error",
-            message:
-              "[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /repo/link",
-            code: "ERR_FS_EISDIR",
-            path: "/repo/link"
-          }
-        }
-      },
-      {
-        // node's rm lstats the path, so a link whose target is gone is still a link to
-        // unlink. force is not needed for that.
-        title: "rm on a dangling symlink without force unlinks the link",
-        setup: (volume) => volume.symlinkSync("/repo/ghost", "/repo/dangle"),
-        invoke: (fs) => fs.rm("/repo/dangle"),
-        node: { result: undefined },
-        gap: {
-          reason: "memfs stats through the link and reports the missing target as ENOENT",
-          memfs: {
-            name: "Error",
-            message: "ENOENT: no such file or directory, stat '/repo/dangle'",
-            code: "ENOENT",
-            path: "/repo/dangle"
-          }
-        }
-      },
-      {
-        title: "rmdir on a non-empty directory rejects with ENOTEMPTY",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d");
-          volume.writeFileSync("/repo/d/f", "x");
-        },
-        invoke: (fs) => fs.rmdir("/repo/d"),
-        node: {
-          name: "Error",
-          message: "ENOTEMPTY: directory not empty, rmdir '/repo/d'",
-          code: "ENOTEMPTY",
-          errno: -66,
-          syscall: "rmdir",
-          path: "/repo/d"
-        }
-      },
-      {
-        title: "rmdir on a file rejects with ENOTDIR",
-        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
-        invoke: (fs) => fs.rmdir("/repo/f"),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, rmdir '/repo/f'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "rmdir",
-          path: "/repo/f"
-        }
-      },
-      {
-        title: "rmdir on a missing path rejects with ENOENT",
-        invoke: (fs) => fs.rmdir("/repo/nope"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, rmdir '/repo/nope'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "rmdir",
-          path: "/repo/nope"
-        }
-      },
-      {
-        title: "rmdir on a symlink to a directory rejects with ENOTDIR rather than following it",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d");
-          volume.symlinkSync("/repo/d", "/repo/link");
-        },
-        invoke: (fs) => fs.rmdir("/repo/link"),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, rmdir '/repo/link'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "rmdir",
-          path: "/repo/link"
-        }
-      },
-      {
-        // rmdir does not lstat the way rm does; it hands the link to the rmdir syscall,
-        // which refuses a non-directory.
-        title: "rmdir on a dangling symlink rejects with ENOTDIR",
-        setup: (volume) => volume.symlinkSync("/repo/ghost", "/repo/dangle"),
-        invoke: (fs) => fs.rmdir("/repo/dangle"),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, rmdir '/repo/dangle'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "rmdir",
-          path: "/repo/dangle"
-        }
-      },
-      {
-        // node still honours rmdir's deprecated recursive option on v22 (it warns via
-        // DEP0147), so the module forwards it rather than refusing it.
-        title: "rmdir recursive on a non-empty directory resolves",
-        setup: (volume) => volume.mkdirSync("/repo/d/e", { recursive: true }),
-        invoke: (fs) => fs.rmdir("/repo/d", { recursive: true }),
-        node: { result: undefined }
-      }
-    ];
-
-    driveNodeSemantics(CASES, [
+    driveNodeSemantics(MKDIR_RM_RMDIR_CASES, [
       "mkdir recursive returns the first directory it created: memfs returns the requested path rather than the first directory created",
       "mkdir recursive returns the first directory created below an existing parent: memfs returns the requested path rather than the first directory created",
       "mkdir recursive returns the first directory it created as the path was spelled: memfs returns the requested path rather than the first directory created",
@@ -2786,98 +2026,7 @@ describe("makeFsModule", () => {
   // rather than writeFile, appendFile, or truncate for every failure below but one, the
   // exception being a write that the open allowed and the descriptor did not.
   describe("writeFile, appendFile, and truncate node semantics", () => {
-    type Driver = Pick<ReturnType<typeof makeFsModule>, "appendFile" | "truncate" | "writeFile">;
-
-    type SemanticsCase = NodeSemanticsCase<Driver>;
-
-    const CASES: readonly SemanticsCase[] = [
-      {
-        title: "writeFile with flag wx onto an existing path rejects with EEXIST",
-        setup: (volume) => volume.writeFileSync("/repo/f.txt", "original"),
-        invoke: (fs) => fs.writeFile("/repo/f.txt", "next", { flag: "wx" }),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, open '/repo/f.txt'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "open",
-          path: "/repo/f.txt"
-        }
-      },
-      {
-        // r+ opens for writing without creating, so the flag that makes writeFile
-        // non-creating is also the one that makes a missing path an error.
-        title: "writeFile with flag r+ onto a missing path rejects with ENOENT",
-        invoke: (fs) => fs.writeFile("/repo/missing.txt", "next", { flag: "r+" }),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, open '/repo/missing.txt'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "open",
-          path: "/repo/missing.txt"
-        }
-      },
-      {
-        title: "writeFile onto a directory rejects with EISDIR",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.writeFile("/repo/d", "x"),
-        node: {
-          name: "Error",
-          message: "EISDIR: illegal operation on a directory, open '/repo/d'",
-          code: "EISDIR",
-          errno: -21,
-          syscall: "open",
-          path: "/repo/d"
-        }
-      },
-      {
-        // The one write-side failure node does not blame on the open: r opens
-        // read-only and succeeds, so it is the write against that descriptor that
-        // fails, and node reports it with no path at all.
-        title: "appendFile with flag r rejects with EBADF",
-        setup: (volume) => volume.writeFileSync("/repo/log.txt", "first"),
-        invoke: (fs) => fs.appendFile("/repo/log.txt", "-second", { flag: "r" }),
-        node: {
-          name: "Error",
-          message: "EBADF: bad file descriptor, write",
-          code: "EBADF",
-          errno: -9,
-          syscall: "write"
-        },
-        gap: {
-          reason: "memfs ignores the read-only flag and appends where node refuses the write",
-          memfs: { result: undefined }
-        }
-      },
-      {
-        title: "truncate on a missing path rejects with ENOENT",
-        invoke: (fs) => fs.truncate("/repo/nope.txt", 0),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, open '/repo/nope.txt'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "open",
-          path: "/repo/nope.txt"
-        }
-      },
-      {
-        title: "truncate on a directory rejects with EISDIR",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.truncate("/repo/d", 0),
-        node: {
-          name: "Error",
-          message: "EISDIR: illegal operation on a directory, open '/repo/d'",
-          code: "EISDIR",
-          errno: -21,
-          syscall: "open",
-          path: "/repo/d"
-        }
-      }
-    ];
-
-    driveNodeSemantics(CASES, [
+    driveNodeSemantics(WRITE_CASES, [
       "appendFile with flag r rejects with EBADF: memfs ignores the read-only flag and appends where node refuses the write"
     ]);
 
@@ -3084,189 +2233,9 @@ describe("makeFsModule", () => {
   // cycle — the three ELOOP cases are the only ones in the file the recorded replay is the
   // sole cover for.
   describe("symlink node semantics", () => {
-    type Driver = Pick<
-      ReturnType<typeof makeFsModule>,
-      "copyFile" | "lstat" | "readFile" | "readlink" | "realpath" | "rm" | "stat" | "symlink"
-    >;
-
-    type FailureCase = NodeSemanticsCase<Driver>;
-
-    // Staged as a→b→a. node walks the cycle until it gives up and blames the
-    // operation's own syscall; the errno is darwin's, where ELOOP is -62 and Linux
-    // uses -40 — it is asserted only through the recorded replay, which is
-    // platform-independent because the stub raises the recorded number itself.
-    const stageLoop = (volume: Volume): void => {
-      volume.symlinkSync("b", "/repo/a");
-      volume.symlinkSync("a", "/repo/b");
-    };
-
-    const LOOP_HANGS = "memfs recurses through the cycle instead of answering ELOOP";
-
-    const CASES: readonly FailureCase[] = [
-      {
-        // The link resolves to nothing, so the path stat was given is the one it
-        // blames rather than the missing target the link named.
-        title: "stat on a dangling symlink rejects with ENOENT",
-        setup: (volume) => volume.symlinkSync("missing.txt", "/repo/dangling"),
-        invoke: (fs) => fs.stat("/repo/dangling"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, stat '/repo/dangling'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "stat",
-          path: "/repo/dangling"
-        }
-      },
-      {
-        title: "readlink on a regular file rejects with EINVAL",
-        setup: (volume) => volume.writeFileSync("/repo/file.txt", "contents"),
-        invoke: (fs) => fs.readlink("/repo/file.txt"),
-        node: {
-          name: "Error",
-          message: "EINVAL: invalid argument, readlink '/repo/file.txt'",
-          code: "EINVAL",
-          errno: -22,
-          syscall: "readlink",
-          path: "/repo/file.txt"
-        }
-      },
-      {
-        // A directory is not a link either, and node separates the two: a missing path
-        // is ENOENT while a path that exists and is not a link is EINVAL.
-        title: "readlink on a directory rejects with EINVAL",
-        setup: (volume) => volume.mkdirSync("/repo/dir"),
-        invoke: (fs) => fs.readlink("/repo/dir"),
-        node: {
-          name: "Error",
-          message: "EINVAL: invalid argument, readlink '/repo/dir'",
-          code: "EINVAL",
-          errno: -22,
-          syscall: "readlink",
-          path: "/repo/dir"
-        }
-      },
-      {
-        title: "readlink on a missing path rejects with ENOENT",
-        invoke: (fs) => fs.readlink("/repo/missing"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, readlink '/repo/missing'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "readlink",
-          path: "/repo/missing"
-        }
-      },
-      {
-        // realpath has to resolve the link to answer, so a dangling one is a missing
-        // file rather than the link's own path echoed back.
-        title: "realpath on a dangling symlink rejects with ENOENT",
-        setup: (volume) => volume.symlinkSync("missing.txt", "/repo/dangling"),
-        invoke: (fs) => fs.realpath("/repo/dangling"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, realpath '/repo/dangling'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "realpath",
-          path: "/repo/dangling"
-        }
-      },
-      {
-        // node blames the target as 'path' and the link as 'dest' here, which is the
-        // reverse of how the arguments read: symlink(target, path). Recorded rather
-        // than reasoned, because either way round looks plausible. memfs reports the
-        // same message, code, and path and only omits the dest, so the divergence is
-        // in a field no comparison over memfs can see rather than in the answer.
-        title: "symlink onto an existing path rejects with EEXIST",
-        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "contents"),
-        invoke: (fs) => fs.symlink("file.txt", "/repo/taken.txt"),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, symlink 'file.txt' -> '/repo/taken.txt'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "symlink",
-          path: "file.txt",
-          dest: "/repo/taken.txt"
-        }
-      },
-      {
-        // node opens the directory the link resolves to and fails on the read, so the
-        // error names no path at all: it is the descriptor that could not be read.
-        title: "readFile through a symlink to a directory rejects with EISDIR",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/dir");
-          volume.symlinkSync("dir", "/repo/dirlink");
-        },
-        invoke: (fs) => fs.readFile("/repo/dirlink", "utf8"),
-        node: {
-          name: "Error",
-          message: "EISDIR: illegal operation on a directory, read",
-          code: "EISDIR",
-          errno: -21,
-          syscall: "read",
-          path: undefined
-        },
-        gap: {
-          reason:
-            "memfs blames open with the directory the link resolved to where node blames a pathless read",
-          memfs: {
-            name: "Error",
-            message: "EISDIR: illegal operation on a directory, open '/repo/dir'",
-            code: "EISDIR",
-            path: "/repo/dir"
-          }
-        }
-      },
-      {
-        title: "readFile through a symlink loop rejects with ELOOP",
-        setup: stageLoop,
-        invoke: (fs) => fs.readFile("/repo/a", "utf8"),
-        node: {
-          name: "Error",
-          message: "ELOOP: too many symbolic links encountered, open '/repo/a'",
-          code: "ELOOP",
-          errno: -62,
-          syscall: "open",
-          path: "/repo/a"
-        },
-        gap: { reason: LOOP_HANGS, memfs: HANGS }
-      },
-      {
-        title: "stat through a symlink loop rejects with ELOOP",
-        setup: stageLoop,
-        invoke: (fs) => fs.stat("/repo/a"),
-        node: {
-          name: "Error",
-          message: "ELOOP: too many symbolic links encountered, stat '/repo/a'",
-          code: "ELOOP",
-          errno: -62,
-          syscall: "stat",
-          path: "/repo/a"
-        },
-        gap: { reason: LOOP_HANGS, memfs: HANGS }
-      },
-      {
-        title: "realpath through a symlink loop rejects with ELOOP",
-        setup: stageLoop,
-        invoke: (fs) => fs.realpath("/repo/a"),
-        node: {
-          name: "Error",
-          message: "ELOOP: too many symbolic links encountered, realpath '/repo/a'",
-          code: "ELOOP",
-          errno: -62,
-          syscall: "realpath",
-          path: "/repo/a"
-        },
-        gap: { reason: LOOP_HANGS, memfs: HANGS }
-      }
-    ];
-
     // The hanging cases are named in the gap list too, since a memfs that learns to answer
     // ELOOP would otherwise leave three cases driven against nothing.
-    driveNodeSemantics(CASES, [
+    driveNodeSemantics(SYMLINK_CASES, [
       "readFile through a symlink to a directory rejects with EISDIR: memfs blames open with the directory the link resolved to where node blames a pathless read",
       `readFile through a symlink loop rejects with ELOOP: ${LOOP_HANGS}`,
       `stat through a symlink loop rejects with ELOOP: ${LOOP_HANGS}`,
@@ -3473,354 +2442,7 @@ describe("makeFsModule", () => {
   // outright where node rejects, and destructively, so those gaps are data loss rather than a
   // reporting difference — the effects block below records what each one destroys.
   describe("copyFile, cp, rename, and link node semantics", () => {
-    type Driver = Pick<ReturnType<typeof makeFsModule>, "copyFile" | "cp" | "link" | "rename">;
-
-    type SemanticsCase = NodeSemanticsCase<Driver>;
-
-    // node spells the syscall rather than the fs function in a copyfile message, which is
-    // the whole of what memfs gets wrong on the two EXCL cases.
-    const NAMES_THE_FUNCTION =
-      "memfs names the copyFile function where node names the copyfile syscall";
-
-    const stageFile = (volume: Volume): void => {
-      volume.writeFileSync("/repo/src", "source");
-      volume.writeFileSync("/repo/dest", "dest");
-    };
-
-    const CASES: readonly SemanticsCase[] = [
-      {
-        title: "copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST",
-        setup: stageFile,
-        invoke: (fs) => fs.copyFile("/repo/src", "/repo/dest", nodeFsConstants.COPYFILE_EXCL),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, copyfile '/repo/src' -> '/repo/dest'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "copyfile",
-          path: "/repo/src",
-          dest: "/repo/dest"
-        },
-        gap: {
-          reason: NAMES_THE_FUNCTION,
-          memfs: {
-            name: "Error",
-            message: "EEXIST: file already exists, copyFile '/repo/src' -> '/repo/dest'",
-            code: "EEXIST",
-            path: "/repo/src"
-          }
-        }
-      },
-      {
-        // copyFile is not asked whether the two paths name the same file, so a copy onto
-        // itself is a copy: it opens the destination, truncates nothing it has not already
-        // read, and resolves.
-        title: "copyFile onto itself resolves",
-        setup: (volume) => volume.writeFileSync("/repo/src", "source"),
-        invoke: (fs) => fs.copyFile("/repo/src", "/repo/src"),
-        node: { result: undefined }
-      },
-      {
-        // EXCL is checked against the destination existing rather than against it being a
-        // different file, so a path is refused as its own destination.
-        title: "copyFile onto itself with COPYFILE_EXCL rejects with EEXIST",
-        setup: (volume) => volume.writeFileSync("/repo/src", "source"),
-        invoke: (fs) => fs.copyFile("/repo/src", "/repo/src", nodeFsConstants.COPYFILE_EXCL),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, copyfile '/repo/src' -> '/repo/src'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "copyfile",
-          path: "/repo/src",
-          dest: "/repo/src"
-        },
-        gap: {
-          reason: NAMES_THE_FUNCTION,
-          memfs: {
-            name: "Error",
-            message: "EEXIST: file already exists, copyFile '/repo/src' -> '/repo/src'",
-            code: "EEXIST",
-            path: "/repo/src"
-          }
-        }
-      },
-      {
-        // darwin's copyfile refuses a directory source with ENOTSUP, whose libuv message
-        // names a socket whatever the path really is; Linux answers EISDIR here instead.
-        // Like the ELOOP cases above, the errno is asserted only through the recorded
-        // replay, which raises the recorded number itself and so is platform-independent.
-        title: "copyFile where the source is a directory rejects with ENOTSUP",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.copyFile("/repo/d", "/repo/dest"),
-        node: {
-          name: "Error",
-          message: "ENOTSUP: operation not supported on socket, copyfile '/repo/d' -> '/repo/dest'",
-          code: "ENOTSUP",
-          errno: -45,
-          syscall: "copyfile",
-          path: "/repo/d",
-          dest: "/repo/dest"
-        },
-        gap: {
-          reason:
-            "memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP",
-          memfs: {
-            name: "Error",
-            message: "EISDIR: illegal operation on a directory, open '/repo/d'",
-            code: "EISDIR",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "copyFile where the destination is a directory rejects with EISDIR",
-        setup: (volume) => {
-          volume.writeFileSync("/repo/src", "source");
-          volume.mkdirSync("/repo/d");
-        },
-        invoke: (fs) => fs.copyFile("/repo/src", "/repo/d"),
-        node: {
-          name: "Error",
-          message: "EISDIR: illegal operation on a directory, copyfile '/repo/src' -> '/repo/d'",
-          code: "EISDIR",
-          errno: -21,
-          syscall: "copyfile",
-          path: "/repo/src",
-          dest: "/repo/d"
-        },
-        gap: {
-          reason:
-            "memfs blames the destination it opened where node blames the source and reports the destination as dest",
-          memfs: {
-            name: "Error",
-            message: "EISDIR: illegal operation on a directory, open '/repo/d'",
-            code: "EISDIR",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "copyFile onto an existing destination resolves",
-        setup: stageFile,
-        invoke: (fs) => fs.copyFile("/repo/src", "/repo/dest"),
-        node: { result: undefined }
-      },
-      {
-        title: "cp non-recursive on a directory rejects with ERR_FS_EISDIR",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.cp("/repo/d", "/repo/copy"),
-        node: {
-          name: "SystemError",
-          message:
-            "Path is a directory: cp returned EISDIR (/repo/d is a directory (not copied)) /repo/d",
-          code: "ERR_FS_EISDIR",
-          errno: 21,
-          syscall: "cp",
-          path: "/repo/d"
-        },
-        gap: {
-          reason: "memfs raises a plain EISDIR where node raises its own ERR_FS_EISDIR",
-          memfs: {
-            name: "Error",
-            message: "EISDIR: illegal operation on a directory, cp '/repo/d'",
-            code: "EISDIR",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "cp recursive on a directory resolves",
-        setup: (volume) => volume.mkdirSync("/repo/d/e", { recursive: true }),
-        invoke: (fs) => fs.cp("/repo/d", "/repo/copy", { recursive: true }),
-        node: { result: undefined }
-      },
-      {
-        // errorOnExist is only read when force is off: force overwrites, so the two
-        // together would be a contradiction node resolves in force's favour.
-        title:
-          "cp with errorOnExist and force off onto an existing file rejects with ERR_FS_CP_EEXIST",
-        setup: stageFile,
-        invoke: (fs) => fs.cp("/repo/src", "/repo/dest", { errorOnExist: true, force: false }),
-        node: {
-          name: "SystemError",
-          message:
-            "Target already exists: cp returned EEXIST (/repo/dest already exists) /repo/dest",
-          code: "ERR_FS_CP_EEXIST",
-          errno: 17,
-          syscall: "cp",
-          path: "/repo/dest"
-        },
-        gap: {
-          reason: "memfs raises a plain EEXIST where node raises its own ERR_FS_CP_EEXIST",
-          memfs: {
-            name: "Error",
-            message: "EEXIST: file already exists, cp '/repo/dest'",
-            code: "EEXIST",
-            path: "/repo/dest"
-          }
-        }
-      },
-      {
-        // node blames the destination rather than the source: the fault is where the copy
-        // was asked to land, not what it was asked to copy.
-        title: "cp of a directory into itself rejects with ERR_FS_CP_EINVAL",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.cp("/repo/d", "/repo/d/sub", { recursive: true }),
-        node: {
-          name: "SystemError",
-          message:
-            "Invalid src or dest: cp returned EINVAL (cannot copy /repo/d to a subdirectory of self /repo/d/sub) /repo/d/sub",
-          code: "ERR_FS_CP_EINVAL",
-          errno: 22,
-          syscall: "cp",
-          path: "/repo/d/sub"
-        },
-        gap: {
-          reason:
-            "memfs raises a plain EINVAL blaming the source where node raises ERR_FS_CP_EINVAL blaming the destination",
-          memfs: {
-            name: "Error",
-            message: "EINVAL: invalid argument, cp '/repo/d' -> '/repo/d/sub'",
-            code: "EINVAL",
-            path: "/repo/d"
-          }
-        }
-      },
-      {
-        title: "rename onto itself resolves as a no-op",
-        setup: (volume) => volume.writeFileSync("/repo/src", "source"),
-        invoke: (fs) => fs.rename("/repo/src", "/repo/src"),
-        node: { result: undefined }
-      },
-      {
-        title: "rename with a missing source rejects with ENOENT",
-        invoke: (fs) => fs.rename("/repo/nope", "/repo/dest"),
-        node: {
-          name: "Error",
-          message: "ENOENT: no such file or directory, rename '/repo/nope' -> '/repo/dest'",
-          code: "ENOENT",
-          errno: -2,
-          syscall: "rename",
-          path: "/repo/nope",
-          dest: "/repo/dest"
-        }
-      },
-      {
-        title: "rename of a file onto an existing directory rejects with EISDIR",
-        setup: (volume) => {
-          volume.writeFileSync("/repo/src", "source");
-          volume.mkdirSync("/repo/d");
-        },
-        invoke: (fs) => fs.rename("/repo/src", "/repo/d"),
-        node: {
-          name: "Error",
-          message: "EISDIR: illegal operation on a directory, rename '/repo/src' -> '/repo/d'",
-          code: "EISDIR",
-          errno: -21,
-          syscall: "rename",
-          path: "/repo/src",
-          dest: "/repo/d"
-        },
-        gap: {
-          reason: "memfs replaces the directory with the file instead of refusing it as EISDIR",
-          memfs: { result: undefined }
-        }
-      },
-      {
-        title: "rename of a directory onto an existing file rejects with ENOTDIR",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d");
-          volume.writeFileSync("/repo/f", "file");
-        },
-        invoke: (fs) => fs.rename("/repo/d", "/repo/f"),
-        node: {
-          name: "Error",
-          message: "ENOTDIR: not a directory, rename '/repo/d' -> '/repo/f'",
-          code: "ENOTDIR",
-          errno: -20,
-          syscall: "rename",
-          path: "/repo/d",
-          dest: "/repo/f"
-        },
-        gap: {
-          reason: "memfs replaces the file with the directory instead of refusing it as ENOTDIR",
-          memfs: { result: undefined }
-        }
-      },
-      {
-        // node replaces an empty destination directory and refuses a non-empty one, so
-        // ENOTEMPTY is the whole of what stops rename destroying a tree.
-        title: "rename of a directory onto a non-empty directory rejects with ENOTEMPTY",
-        setup: (volume) => {
-          volume.mkdirSync("/repo/d");
-          volume.mkdirSync("/repo/t");
-          volume.writeFileSync("/repo/t/x", "x");
-        },
-        invoke: (fs) => fs.rename("/repo/d", "/repo/t"),
-        node: {
-          name: "Error",
-          message: "ENOTEMPTY: directory not empty, rename '/repo/d' -> '/repo/t'",
-          code: "ENOTEMPTY",
-          errno: -66,
-          syscall: "rename",
-          path: "/repo/d",
-          dest: "/repo/t"
-        },
-        gap: {
-          reason: "memfs overwrites the non-empty directory instead of refusing it as ENOTEMPTY",
-          memfs: { result: undefined }
-        }
-      },
-      {
-        title: "rename onto an existing file resolves",
-        setup: stageFile,
-        invoke: (fs) => fs.rename("/repo/src", "/repo/dest"),
-        node: { result: undefined }
-      },
-      {
-        title: "link where the destination exists rejects with EEXIST",
-        setup: stageFile,
-        invoke: (fs) => fs.link("/repo/src", "/repo/dest"),
-        node: {
-          name: "Error",
-          message: "EEXIST: file already exists, link '/repo/src' -> '/repo/dest'",
-          code: "EEXIST",
-          errno: -17,
-          syscall: "link",
-          path: "/repo/src",
-          dest: "/repo/dest"
-        }
-      },
-      {
-        // A hard link to a directory would let a script build a cycle the kernel cannot
-        // unwind, so darwin refuses it outright rather than reporting it as a type error.
-        title: "link where the source is a directory rejects with EPERM",
-        setup: (volume) => volume.mkdirSync("/repo/d"),
-        invoke: (fs) => fs.link("/repo/d", "/repo/l"),
-        node: {
-          name: "Error",
-          message: "EPERM: operation not permitted, link '/repo/d' -> '/repo/l'",
-          code: "EPERM",
-          errno: -1,
-          syscall: "link",
-          path: "/repo/d",
-          dest: "/repo/l"
-        },
-        gap: {
-          reason: "memfs hard-links the directory instead of refusing it as EPERM",
-          memfs: { result: undefined }
-        }
-      },
-      {
-        title: "link where the destination is free resolves",
-        setup: (volume) => volume.writeFileSync("/repo/src", "one"),
-        invoke: (fs) => fs.link("/repo/src", "/repo/hard"),
-        node: { result: undefined }
-      }
-    ];
-
-    driveNodeSemantics(CASES, [
+    driveNodeSemantics(COPY_RENAME_CASES, [
       "copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST: memfs names the copyFile function where node names the copyfile syscall",
       "copyFile onto itself with COPYFILE_EXCL rejects with EEXIST: memfs names the copyFile function where node names the copyfile syscall",
       "copyFile where the source is a directory rejects with ENOTSUP: memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP",
@@ -3933,6 +2555,14 @@ describe("makeFsModule", () => {
         expect((await fs.stat("/repo/l")).isDirectory()).toBe(true);
       });
     });
+  });
+
+  // The cases the conformance table adds for its own sake: the reads, shapes, and encodings that
+  // answer rather than refuse, which the edge-case blocks above had no reason to cover.
+  describe("read, shape, and encoding node semantics", () => {
+    driveNodeSemantics(READ_AND_SHAPE_CASES, [
+      "writeFile into a missing directory rejects with ENOENT: memfs blames the missing parent rather than the path it was given, and names no syscall in the message at all"
+    ]);
   });
 
   describe("resume policies", () => {

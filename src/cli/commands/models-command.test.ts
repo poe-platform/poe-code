@@ -413,6 +413,109 @@ describe("models command", () => {
     expect(byModel).not.toContain("anthropic/claude-sonnet");
   });
 
+  it("filters by --model using the namespaced owned_by/id form the table renders", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "claude-opus-4.7", owned_by: "Anthropic" }),
+      createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--model", "Anthropic/claude-opus-4.7"]
+    });
+
+    expect(output).toContain("1/2 models");
+    expect(output).toContain("anthropic/claude-opus-4.7");
+    expect(output).not.toContain("openai/gpt-5");
+  });
+
+  it("filters --view raw by the namespaced model id instead of emitting an empty array", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [
+          createModelEntry({ id: "claude-haiku-4.5", owned_by: "Anthropic" }),
+          createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
+        ]
+      })
+    });
+
+    const output = await runModelsWithStdout({
+      fs,
+      httpClient,
+      args: ["--view", "raw", "--model", "anthropic/claude-haiku-4.5"]
+    });
+
+    expect(yamlParse(output)).toEqual([
+      expect.objectContaining({ id: "claude-haiku-4.5", owned_by: "Anthropic" })
+    ]);
+  });
+
+  it("filters by --search using the rendered provider/id label, including spaced provider names", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "kimi-k2.5", owned_by: "Novita AI" }),
+      createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--search", "novita ai/kimi-k2.5"]
+    });
+
+    expect(output).toContain("novita ai/kimi-k2.5");
+    expect(output).not.toContain("openai/gpt-5");
+  });
+
+  it("filters by --search when the term carries a trailing namespace slash", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" }),
+      createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--search", "claude/"] });
+
+    expect(output).toContain("anthropic/claude-sonnet");
+    expect(output).not.toContain("openai/gpt-5");
+  });
+
+  it("rejects a --search term that is only a slash", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: [createModelEntry({ id: "gpt-5" })] })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--search", "/"] })
+    ).rejects.toThrow(ValidationError);
+  });
+
   it("filters by --tools (shorthand for --feature tools)", async () => {
     fs = await createConfigVolume("test-key");
     const models = [

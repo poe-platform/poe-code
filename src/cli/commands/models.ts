@@ -127,6 +127,10 @@ function formatDefaultValue(value: unknown): string {
   return truncate(String(value), MAX_DEFAULT_LENGTH);
 }
 
+function namespacedModelId(model: ModelEntry): string {
+  return `${model.owned_by.toLowerCase()}/${model.id.toLowerCase()}`;
+}
+
 function hasFeature(model: ModelEntry, feature: string): boolean {
   if (feature === "reasoning") return model.reasoning != null;
   return (model.supported_features ?? []).includes(feature);
@@ -222,6 +226,17 @@ function normalizeRequiredFilter(name: string, value: string): string {
   return normalized;
 }
 
+function normalizeSearchFilter(value: string): string {
+  const normalized = normalizeRequiredFilter("--search", value);
+  const withoutTrailingSlash = normalized.endsWith("/")
+    ? normalized.slice(0, -1).trimEnd()
+    : normalized;
+  if (withoutTrailingSlash.length === 0) {
+    throw new ValidationError("Invalid --search value: must be non-empty.");
+  }
+  return withoutTrailingSlash;
+}
+
 function unknownFilterError(flag: string, value: string, known: string[]): ValidationError {
   const prefix = value.slice(0, 3);
   const suggestions = known.filter((candidate) =>
@@ -298,8 +313,8 @@ export function registerModelsCommand(
     .alias("m")
     .description("List available Poe API models.")
     .option("--provider <name>", "Filter by provider name")
-    .option("--model <name>", "Filter by exact model id")
-    .option("--search <term>", "Search model id and provider name")
+    .option("--model <name>", "Filter by exact model id (bare or provider/id)")
+    .option("--search <term>", "Search the rendered provider/id label")
     .option("--feature <name>", "Filter by feature (tools, web_search, reasoning)")
     .option("--endpoint <path>", "Filter by supported endpoint (e.g. /v1/responses)")
     .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
@@ -316,8 +331,10 @@ export function registerModelsCommand(
       "",
       "Filters:",
       "  --provider   Substring match on provider/owner (e.g. anthropic, openai)",
-      "  --model      Exact model id match (case-insensitive, e.g. gpt-5.2-codex)",
-      "  --search     Substring match on model id and provider (e.g. sonnet, openai)",
+      "  --model      Exact model id match, bare or namespaced (case-insensitive,",
+      "               e.g. gpt-5.2-codex or openai/gpt-5.2-codex)",
+      "  --search     Substring match on the displayed provider/id label",
+      "               (e.g. sonnet, openai, anthropic/claude)",
       "  --feature    Exact match: tools, web_search, or reasoning",
       "  --endpoint   Exact supported endpoint match (e.g. /v1/responses)",
       "  --input      Comma-separated input modalities: text, image, audio, video",
@@ -337,7 +354,7 @@ export function registerModelsCommand(
       "  $ poe-code models --endpoint /v1/responses",
       "  $ poe-code models --input image --view pricing",
       "  $ poe-code models --search claude --view parameters",
-      "  $ poe-code models --model claude-opus-4.7 --view raw",
+      "  $ poe-code models --model anthropic/claude-opus-4.7 --view raw",
       "  $ poe-code models --since 2w --output text"
     ].join("\n"))
     .action(async function (this: Command) {
@@ -363,7 +380,7 @@ export function registerModelsCommand(
           ? normalizeRequiredFilter("--model", commandOptions.model)
           : undefined;
         const searchFilter = commandOptions.search !== undefined
-          ? normalizeRequiredFilter("--search", commandOptions.search)
+          ? normalizeSearchFilter(commandOptions.search)
           : undefined;
         const endpointFilter = commandOptions.endpoint !== undefined
           ? normalizeEndpoint(normalizeRequiredFilter("--endpoint", commandOptions.endpoint))
@@ -448,13 +465,13 @@ export function registerModelsCommand(
         }
         if (modelFilter !== undefined) {
           filtered = filtered.filter((m) =>
-            m.id.toLowerCase() === modelFilter
+            m.id.toLowerCase() === modelFilter ||
+            namespacedModelId(m) === modelFilter
           );
         }
         if (searchFilter !== undefined) {
           filtered = filtered.filter((m) =>
-            m.id.toLowerCase().includes(searchFilter) ||
-            m.owned_by.toLowerCase().includes(searchFilter)
+            namespacedModelId(m).includes(searchFilter)
           );
         }
         if (featureFilter !== undefined) {

@@ -25,6 +25,7 @@
   "dependencies": {
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/config-extends": "*",
+    "@poe-code/user-error": "*",
     "toolcraft-design": "*",
     "yaml": "^2.8.2"
   }

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { isUserError } from "@poe-code/user-error";
 import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 import { resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
@@ -1060,6 +1061,34 @@ describe("loadPipelineConfig", () => {
 });
 
 describe("resolvePlanPath", () => {
+  it("reports a missing explicit --plan as a user error naming the path and a recovery", async () => {
+    const error = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({}),
+      plan: "missing.md"
+    }).catch((thrown: unknown) => thrown);
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain('Plan not found at "missing.md".');
+    expect((error as Error).message).toContain("pipeline show-plan-path");
+  });
+
+  it("reports a directory passed as --plan as a user error", async () => {
+    const fs = createFs({});
+    await fs.mkdir("/repo/docs/plans", { recursive: true });
+
+    const error = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      plan: "docs/plans"
+    }).catch((thrown: unknown) => thrown);
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain('Plan not found at "docs/plans".');
+  });
+
   it("returns the explicit --plan path without discovery", async () => {
     const result = await resolvePlanPath({
       cwd: "/repo",

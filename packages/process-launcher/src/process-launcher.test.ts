@@ -1,6 +1,7 @@
 import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
+import { isUserError } from "@poe-code/user-error";
 import type { Runner } from "@poe-code/process-runner";
 import * as api from "@poe-code/process-launcher";
 import {
@@ -900,6 +901,39 @@ describe("process launcher manager", () => {
     await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(
       /state document/i
     );
+  });
+
+  it("reports restarting an unknown process as a user error listing known names", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await fs.mkdir(path.join(baseDir, "api"), { recursive: true });
+    await fs.writeFile(path.join(baseDir, "api", "spec.json"), `${JSON.stringify(spec)}\n`);
+
+    const error = await restartManagedProcess({
+      baseDir,
+      fs,
+      id: "missing",
+      spawnDaemon: async () => null
+    }).catch((thrown: unknown) => thrown);
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain('Managed process "missing" was not found.');
+    expect((error as Error).message).toContain("api");
+  });
+
+  it("points at launch start when no managed processes exist at all", async () => {
+    const fs = createMemFs();
+
+    const error = await restartManagedProcess({
+      baseDir: "/state/launch",
+      fs,
+      id: "missing",
+      spawnDaemon: async () => null
+    }).catch((thrown: unknown) => thrown);
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain("No managed processes");
   });
 
   it("rejects restarting a record whose persisted id redirects the launch", async () => {

@@ -4,6 +4,7 @@ import {
   type NormalizedTrace,
   type TraceReference
 } from "@poe-code/agent-traces";
+import { UserError } from "@poe-code/user-error";
 import { computeContextBreakdown } from "./breakdown.js";
 import { computeContextUsage } from "./context.js";
 import {
@@ -323,6 +324,18 @@ export async function loadTraceFromFile(
   path: string,
   options: LoadTraceOptions
 ): Promise<TraceView> {
+  const stat = await options.fs.stat(path).catch(() => undefined);
+  if (stat === undefined) {
+    throw new UserError(
+      `Trace file not found: ${path}\nPass a path to an existing trace file, or run "poe-code traces" to list the traces found.`
+    );
+  }
+  if (stat.isDirectory()) {
+    throw new UserError(
+      `Trace path is a directory: ${path}\nPass a path to a trace file, or run "poe-code traces" to list the traces found.`
+    );
+  }
+
   const contents = await options.fs.readFile(path, "utf8");
   const firstLineEnd = contents.indexOf("\n");
   const firstLine = firstLineEnd === -1 ? contents : contents.slice(0, firstLineEnd);

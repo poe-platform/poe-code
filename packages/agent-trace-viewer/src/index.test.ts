@@ -1,5 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { isUserError } from "@poe-code/user-error";
 import type {
   AgentTraceFileSystem,
   NormalizedTrace,
@@ -396,6 +397,33 @@ describe("loadTraceFromFile", () => {
       { fs: memFs }
     );
     expect(view.source).toBe("codex");
+  });
+
+  it("reports a missing trace file as a user error instead of ENOENT", async () => {
+    const memFs = createFsFromVolume(Volume.fromJSON({})).promises as AgentTraceFileSystem;
+
+    const error = await loadTraceFromFile("/tmp/no-such-trace.jsonl", { fs: memFs }).catch(
+      (thrown: unknown) => thrown
+    );
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain("Trace file not found");
+    expect((error as Error).message).toContain("/tmp/no-such-trace.jsonl");
+    expect((error as Error).message).not.toContain("ENOENT");
+  });
+
+  it("reports a directory trace path as a user error instead of EISDIR", async () => {
+    const memFs = createFsFromVolume(
+      Volume.fromJSON({ "/tmp/traces/keep.jsonl": "{}" })
+    ).promises as AgentTraceFileSystem;
+
+    const error = await loadTraceFromFile("/tmp/traces", { fs: memFs }).catch(
+      (thrown: unknown) => thrown
+    );
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain("is a directory");
+    expect((error as Error).message).not.toContain("EISDIR");
   });
 });
 

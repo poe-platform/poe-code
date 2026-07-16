@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "@poe-code/process-runner": "*",
+    "@poe-code/user-error": "*",
     "@poe-code/workspace-resolver": "*"
   }
 }

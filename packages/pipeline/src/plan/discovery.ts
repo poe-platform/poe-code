@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { discoverPlans } from "@poe-code/agent-harness-tools";
+import { UserError } from "@poe-code/user-error";
 import { parsePlan } from "./parser.js";
 import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
 import { isNotFound } from "../utils.js";
@@ -50,17 +51,17 @@ function countCompletedTasks(planPath: string, content: string): PlanCandidate {
 
 async function ensurePlanExists(fs: DiscoveryFs, cwd: string, planPath: string): Promise<void> {
   const absolutePath = path.isAbsolute(planPath) ? planPath : path.resolve(cwd, planPath);
-
-  try {
-    const stat = await fs.stat(absolutePath);
-    if (!stat.isFile()) {
-      throw new Error(`Plan not found at "${planPath}".`);
-    }
-  } catch (error) {
+  const stat = await fs.stat(absolutePath).catch((error: unknown) => {
     if (isNotFound(error)) {
-      throw new Error(`Plan not found at "${planPath}".`);
+      return undefined;
     }
     throw error;
+  });
+
+  if (stat === undefined || !stat.isFile()) {
+    throw new UserError(
+      `Plan not found at "${planPath}".\nPass --plan <path> to an existing plan file, or run "poe-code pipeline show-plan-path" to see where plans are discovered.`
+    );
   }
 }
 

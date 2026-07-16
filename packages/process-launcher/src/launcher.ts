@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import path from "node:path";
 import { TextDecoder } from "node:util";
+import { UserError } from "@poe-code/user-error";
 import { hasOwnErrorCode } from "./errors.js";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
@@ -227,7 +228,7 @@ export async function restartManagedProcess(
   });
 
   if (record.spec === null) {
-    throw new Error(`Managed process "${options.id}" was not found.`);
+    throw await managedProcessNotFound(fs, options.baseDir, options.id);
   }
 
   await stopManagedProcess({
@@ -592,7 +593,7 @@ export async function runManagedProcess(options: RunManagedProcessOptions): Prom
   await assertPathNotSymbolicLink(fs, resolveLogDir(options.baseDir, options.id));
   const spec = await readSpec(fs, options.baseDir, options.id);
   if (spec === null) {
-    throw new Error(`Managed process "${options.id}" was not found.`);
+    throw await managedProcessNotFound(fs, options.baseDir, options.id);
   }
 
   const controller = new AbortController();
@@ -820,6 +821,24 @@ function isActiveRecord(record: ManagedProcessRecord): boolean {
 
 function isActiveStatus(status: ProcessState["status"]): boolean {
   return status === "running" || status === "restarting";
+}
+
+/**
+ * Names the processes that do exist, so an unknown id points at the real ones
+ * instead of leaving the user to guess.
+ */
+async function managedProcessNotFound(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string
+): Promise<UserError> {
+  const ids = await listIds(fs, baseDir);
+  const recovery =
+    ids.length === 0
+      ? 'No managed processes exist yet: start one with "poe-code launch start".'
+      : `Known processes: ${ids.join(", ")}. Run "poe-code launch status" for their state.`;
+
+  return new UserError(`Managed process "${id}" was not found.\n${recovery}`);
 }
 
 async function listIds(fs: LauncherFileSystem, baseDir: string): Promise<string[]> {

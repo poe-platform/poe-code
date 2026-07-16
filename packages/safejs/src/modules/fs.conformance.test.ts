@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 
+import nodeTruth from "./fs.node-truth.json" with { type: "json" };
 import {
   driveCase,
   FS_CONFORMANCE_CASES,
   type FsConformanceCase,
   HANGS,
-  readRecordedOutcome
+  type NodeTruthFixture,
+  readObserved,
+  readRecordedOutcome,
+  toRecordedObserved
 } from "./fs.conformance-cases.js";
 
 // The differential half of the fs module's conformance: every case in the shared table runs the
@@ -78,6 +82,87 @@ describe("fs module conformance against the reference implementation", () => {
 
     expect([...new Set(titles)]).toEqual(titles);
   });
+});
+
+// The node-truth half. The differential above proves the module answers exactly what the
+// filesystem under it answered; it cannot prove that filesystem is node, because memfs only
+// approximates node — it returns the path mkdir was asked for rather than the first directory it
+// created, forgives a read-only flag, and blames the fs function where node blames the syscall.
+// So every case is driven through the module over memfs once more and held against what real node
+// answered, recorded from real node:fs/promises by scripts/record-fs-conformance.ts.
+//
+// Recording and refreshing:
+//
+//   npm run record:fs-conformance
+//
+// The recorder stages each case in os.tmpdir() and removes it again; nothing here touches the real
+// disk. The fixture is keyed by process.platform because node's fs errors are the platform's, and
+// a recording is only ever read for the platform the suite is running on — this suite fails rather
+// than passes when that platform has none, and fails when the recording is missing a case the
+// table defines, so adding a case forces a re-record.
+//
+// A case memfs cannot reproduce is a reference gap: the fixture carries the reason, and the case
+// is skipped by name so the run reports it. That is the whole of what may be skipped — where the
+// module diverges from node and memfs is not to blame, that is a module bug to fix in fs.ts rather
+// than a gap to record.
+const RECORDED = (nodeTruth as NodeTruthFixture).platforms[process.platform];
+
+const RECORDED_BY_TITLE = new Map((RECORDED?.cases ?? []).map((entry) => [entry.title, entry]));
+
+const REFRESH = "Re-record with `npm run record:fs-conformance`";
+
+describe("fs module conformance against real node's recorded truth", () => {
+  it("has a recording for the platform the suite is running on", () => {
+    expect(
+      RECORDED,
+      `No node truth is recorded for ${process.platform}. Run \`npm run record:fs-conformance\` on ${process.platform} and commit the fixture.`
+    ).toBeDefined();
+  });
+
+  // Sorted title lists rather than a missing-only check so a stale entry fails too: a renamed case
+  // leaves a recording nothing asks for, which would otherwise sit in the fixture claiming to
+  // prove something.
+  it("records every case the table defines and no case it does not", () => {
+    expect([...RECORDED_BY_TITLE.keys()].sort(), REFRESH).toEqual(
+      FS_CONFORMANCE_CASES.map((entry) => entry.title).sort()
+    );
+  });
+
+  // The fixture's gap markers are the table's, so a gap cannot be invented in the fixture alone to
+  // silence a case the module actually fails.
+  it("marks exactly the reference gaps the table declares, with each reason", () => {
+    const recorded = (RECORDED?.cases ?? [])
+      .filter((entry) => entry.gap !== undefined)
+      .map((entry) => `${entry.title}: ${entry.gap}`);
+
+    expect(recorded, REFRESH).toEqual(
+      FS_CONFORMANCE_CASES.filter((entry) => entry.gap !== undefined).map(describeCase)
+    );
+  });
+
+  for (const testCase of FS_CONFORMANCE_CASES) {
+    const recorded = RECORDED_BY_TITLE.get(testCase.title);
+
+    // An unrecorded case is reported by the coverage test above rather than silently passing here.
+    if (recorded === undefined) {
+      continue;
+    }
+
+    if (recorded.gap !== undefined) {
+      // Skipped by name and reason rather than filtered out of the list: the runner reports every
+      // skip, which is what keeps a gap something a reader sees rather than something absent.
+      it.skip(`reference gap — ${recorded.gap}: ${testCase.title}`, () => {});
+      continue;
+    }
+
+    it(`answers exactly what node answered: ${testCase.title}`, async () => {
+      const { fs } = driveCase(testCase);
+
+      // Compared over the fields memfs models: it sets no errno, syscall, or dest, so those three
+      // are proven against node's recorded numbers by the replay drive in fs.test.ts instead.
+      expect(await readObserved(testCase.invoke(fs))).toEqual(toRecordedObserved(recorded));
+    });
+  }
 });
 
 function describeCase(testCase: FsConformanceCase): string {

@@ -8,16 +8,20 @@ import { makeFsModule, type FsImplementation } from "./fs.js";
 // assertions because three suites read it and each asks it a different question:
 //
 //   - fs.conformance.test.ts drives every case twice over identical volumes — once through the
-//     module and once against memfs directly — and proves the two answers are the same;
+//     module and once against memfs directly — and proves the two answers are the same; it then
+//     drives each case once more and holds the answer against real node's recorded truth;
 //   - fs.test.ts drives each case against a stub replaying `node`, so node's full truth
 //     (errno, syscall, and dest included) is asserted with no real filesystem, and drives the
 //     cases memfs models node's way over a volume so the operation's effect is exercised;
-//   - scripts/record-fs-conformance.ts (fs-node-truth-fixture) will record `node` from real
-//     node:fs/promises in a temporary directory rather than from the literals recorded here.
+//   - scripts/record-fs-conformance.ts records what real node:fs/promises answers for every case
+//     into fs.node-truth.json, in a temporary directory it removes again. Refresh it with
+//     `npm run record:fs-conformance`, on each platform the suite runs on; the suite fails when a
+//     case it defines has no recording, so adding a case here forces a re-record.
 //
 // Every `node` literal below was recorded from real node v22.22.2 on darwin with a umask of
-// 0o022. An errno is platform-specific (ENOTEMPTY is -66 on darwin and -39 on Linux), which is
-// why a case's errno is only ever asserted through the replay of its own recorded number.
+// 0o022, and the fixture is what proves they still are: the recorder answers for the same table.
+// An errno is platform-specific (ENOTEMPTY is -66 on darwin and -39 on Linux), which is why a
+// case's errno is only ever asserted through the replay of its own recorded number.
 //
 // A case is a title, the volume it needs, and one call. It carries no assertion: what the two
 // drives prove is fixed, so a case that wants its own expectation wants a test rather than a
@@ -77,13 +81,40 @@ type Observed = { readonly result: unknown } | ObservedFailure;
 // dest is optional because node's cp is its own JavaScript layer rather than a syscall
 // wrapper: its ERR_FS_CP_* errors carry a path alone, where the syscall-backed operations
 // report both.
-type RecordedTruth =
+export type RecordedTruth =
   | { readonly result: unknown }
   | (ObservedFailure & {
       readonly errno: number;
       readonly syscall: string;
       readonly dest?: string;
     });
+
+// The shape scripts/record-fs-conformance.ts writes and fs.conformance.test.ts reads back:
+// what real node answered for every case in the table, recorded per platform because node's
+// answer is the platform's. A case memfs cannot reproduce carries the gap's reason so the
+// suite can name what it skipped rather than skipping it quietly.
+export type RecordedCase = {
+  readonly title: string;
+  // Whether the call resolved, spelled out rather than read off `node` as `"result" in node`:
+  // undefined is what mkdir, rm, rename, link, copyFile, and truncate resolve with, and
+  // JSON.stringify drops an undefined property — so `{ result: undefined }` lands in the fixture
+  // as `{}`, which is indistinguishable from a rejection that carried no fields. In memory this
+  // duplicates the union's discriminator; across JSON it is the only copy of it that survives.
+  readonly resolved: boolean;
+  readonly node: RecordedTruth;
+  readonly gap?: string;
+};
+
+export type RecordedPlatform = {
+  readonly nodeVersion: string;
+  readonly cases: readonly RecordedCase[];
+};
+
+// Keyed by process.platform. A platform is absent until someone records on it, which the
+// suite reports as a missing recording rather than as a pass.
+export type NodeTruthFixture = {
+  readonly platforms: Readonly<Record<string, RecordedPlatform>>;
+};
 
 // A case memfs cannot answer at all rather than answering differently: a real symlink cycle
 // recurses inside memfs with the event loop blocked, so driving it would hang the suite rather
@@ -213,6 +244,16 @@ export function toObserved(truth: RecordedTruth): Observed {
   return { name, message, code, path };
 }
 
+// The same projection over a recording read back from the fixture, which has been through JSON
+// and so cannot be asked whether it has a `result` key: `resolved` is the discriminator that
+// survived, and for a resolved case the result reads back as undefined exactly when node
+// answered nothing.
+export function toRecordedObserved(entry: RecordedCase): Observed {
+  return entry.resolved
+    ? { result: (entry.node as { result?: unknown }).result }
+    : toObserved(entry.node);
+}
+
 // The volume every case starts from, and the two drivers a differential needs: the module over
 // one copy of it and memfs's own promises API over an identical copy.
 export function driveCase(testCase: FsConformanceCase): {
@@ -232,8 +273,18 @@ export function driveCase(testCase: FsConformanceCase): {
   };
 }
 
+// The directory every case's paths are spelled under. The recorder rebuilds the volume below
+// inside a temporary directory and rewrites this prefix onto it, so a case that named a path
+// outside it would be recorded against the real filesystem rather than the copy.
+export const CASE_ROOT = "/repo";
+
+// The volume every case starts from, as a path-to-contents map: memfs builds it with
+// Volume.fromJSON and the recorder stages the same entries with real mkdir and writeFile, so
+// both sides of a comparison start from one description rather than two that can drift.
+export const CASE_VOLUME: Readonly<Record<string, string>> = { [`${CASE_ROOT}/keep.txt`]: "" };
+
 function createCaseVolume(testCase: FsConformanceCase): Volume {
-  const volume = Volume.fromJSON({ "/repo/keep.txt": "" }, "/");
+  const volume = Volume.fromJSON(CASE_VOLUME, "/");
   testCase.setup?.(volume);
   return volume;
 }

@@ -676,10 +676,10 @@ tasks:
       re-record. Document the record-and-refresh workflow in a header comment and in the fs-docs
       task's README section.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-platform-variance
     title: Handle darwin/linux errno variance and scope win32 explicitly
@@ -962,6 +962,25 @@ cannot reproduce are marked as reference gaps and skipped loudly; a case can nev
 absent. Platform-specific errnos (`fs-platform-variance`) are never hardcoded — `unlink` on a
 directory is `EPERM` on darwin and `EISDIR` on linux, and the module passes node's error through
 untranslated.
+
+What that recording settled, and what it left open. All 99 of the table's `node` literals matched
+real node v22.22.2 on darwin exactly, so the literals `fs.test.ts` replays are node's truth rather
+than a plausible reconstruction of it, and no module bug or missing gap surfaced. Two details are
+the fixture's rather than the table's: a recorded case spells `resolved` instead of letting
+`"result" in node` discriminate the union, because 33 cases resolve with `undefined` and
+`JSON.stringify` drops an undefined property — `{ result: undefined }` lands as `{}` and would read
+back as a rejection carrying no fields; and temporary paths are stripped longest-first, because
+darwin's `os.tmpdir()` sits under a symlinked `/var` and one case directory therefore answers to
+both `/var/...` and `/private/var/...`, the shorter being a substring of the longer.
+
+Two halves of the task are deliberately not done. The README section it was to document belongs to
+`fs-docs`, which still owns rewriting "Sandbox by design" and has not run; the record-and-refresh
+workflow is written in the header comments of `scripts/record-fs-conformance.ts`,
+`fs.conformance.test.ts`, and the case table for `fs-docs` to lift, since AGENTS.md forbids adding
+to a README without the user's permission. And only darwin is recorded: `turbo run test:unit` runs
+on `ubuntu-latest` in release.yml, and the suite fails rather than passes on an unrecorded platform,
+so a linux recording has to land before this reaches CI. It cannot be made from darwin — that is
+`fs-platform-variance`'s first job, or a one-off run of the recorder on linux.
 
 ## Ordering
 

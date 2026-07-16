@@ -1,0 +1,1083 @@
+{
+  "platforms": {
+    "darwin": {
+      "nodeVersion": "v22.22.2",
+      "cases": [
+        {
+          "title": "readFile on a missing path is blamed on open",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "open",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "readFile on a directory is blamed on read, which names no path",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, read",
+            "code": "EISDIR",
+            "errno": -21,
+            "syscall": "read"
+          },
+          "gap": "memfs blames the open rather than the read and names the path node omits"
+        },
+        {
+          "title": "readdir on a missing path is blamed on scandir",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, scandir '/repo/missing'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "scandir",
+            "path": "/repo/missing"
+          }
+        },
+        {
+          "title": "mkdir on an existing directory is blamed on mkdir",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, mkdir '/repo/d'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "mkdir",
+            "path": "/repo/d"
+          }
+        },
+        {
+          "title": "rmdir on a non-empty directory is blamed on rmdir",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTEMPTY: directory not empty, rmdir '/repo/d'",
+            "code": "ENOTEMPTY",
+            "errno": -66,
+            "syscall": "rmdir",
+            "path": "/repo/d"
+          }
+        },
+        {
+          "title": "rm of a file in a write-denied directory is blamed on unlink",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EACCES: permission denied, unlink '/repo/ro/child.txt'",
+            "code": "EACCES",
+            "errno": -13,
+            "syscall": "unlink",
+            "path": "/repo/ro/child.txt"
+          },
+          "gap": "memfs blames rm, the fs function, where node blames the unlink it refused"
+        },
+        {
+          "title": "rename of a missing source is blamed on rename and names both paths",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, rename '/repo/missing.txt' -> '/repo/renamed.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "rename",
+            "path": "/repo/missing.txt",
+            "dest": "/repo/renamed.txt"
+          }
+        },
+        {
+          "title": "copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, copyfile '/repo/keep.txt' -> '/repo/taken.txt'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "copyfile",
+            "path": "/repo/keep.txt",
+            "dest": "/repo/taken.txt"
+          },
+          "gap": "memfs blames copyFile, the fs function, where node blames the lower-cased syscall"
+        },
+        {
+          "title": "link onto an existing path is blamed on link and names both paths",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, link '/repo/keep.txt' -> '/repo/taken.txt'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "link",
+            "path": "/repo/keep.txt",
+            "dest": "/repo/taken.txt"
+          }
+        },
+        {
+          "title": "symlink onto an existing path is blamed on symlink and names both paths",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, symlink '/repo/keep.txt' -> '/repo/taken.txt'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "symlink",
+            "path": "/repo/keep.txt",
+            "dest": "/repo/taken.txt"
+          }
+        },
+        {
+          "title": "readlink on a regular file is blamed on readlink",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EINVAL: invalid argument, readlink '/repo/keep.txt'",
+            "code": "EINVAL",
+            "errno": -22,
+            "syscall": "readlink",
+            "path": "/repo/keep.txt"
+          }
+        },
+        {
+          "title": "realpath on a missing path is blamed on realpath",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, realpath '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "realpath",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "stat on a missing path is blamed on stat",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, stat '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "stat",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "lstat on a missing path is blamed on lstat",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, lstat '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "lstat",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "access on a missing path is blamed on access",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, access '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "access",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "chmod on a missing path is blamed on chmod",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, chmod '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "chmod",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "utimes on a missing path is blamed on utime",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, utime '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "utime",
+            "path": "/repo/missing.txt"
+          },
+          "gap": "memfs blames utimes, the fs function, where node blames the utime syscall"
+        },
+        {
+          "title": "truncate on a missing path is blamed on the open it opens the path with",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "open",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "mkdir recursive returns the first directory it created",
+          "resolved": true,
+          "node": {
+            "result": "/repo/a"
+          },
+          "gap": "memfs returns the requested path rather than the first directory created"
+        },
+        {
+          "title": "mkdir recursive returns the first directory created below an existing parent",
+          "resolved": true,
+          "node": {
+            "result": "/repo/a/b"
+          },
+          "gap": "memfs returns the requested path rather than the first directory created"
+        },
+        {
+          "title": "mkdir recursive returns the first directory it created as the path was spelled",
+          "resolved": true,
+          "node": {
+            "result": "/repo/./d1"
+          },
+          "gap": "memfs returns the requested path rather than the first directory created"
+        },
+        {
+          "title": "mkdir recursive on an existing directory creates nothing and returns undefined",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "mkdir non-recursive with a missing parent rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, mkdir '/repo/missing/leaf'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "mkdir",
+            "path": "/repo/missing/leaf"
+          },
+          "gap": "memfs blames the missing parent rather than the path mkdir was given"
+        },
+        {
+          "title": "mkdir non-recursive on an existing directory rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, mkdir '/repo/a'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "mkdir",
+            "path": "/repo/a"
+          }
+        },
+        {
+          "title": "mkdir non-recursive through a file segment rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, mkdir '/repo/f/leaf'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "mkdir",
+            "path": "/repo/f/leaf"
+          },
+          "gap": "memfs blames the file segment rather than the path mkdir was given"
+        },
+        {
+          "title": "mkdir recursive through a file segment rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, mkdir '/repo/f/leaf'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "mkdir",
+            "path": "/repo/f/leaf"
+          }
+        },
+        {
+          "title": "mkdir non-recursive on an existing file rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, mkdir '/repo/f'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "mkdir",
+            "path": "/repo/f"
+          }
+        },
+        {
+          "title": "mkdir recursive on an existing file rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, mkdir '/repo/f'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "mkdir",
+            "path": "/repo/f"
+          },
+          "gap": "memfs forgives an existing file when mkdir is recursive and resolves"
+        },
+        {
+          "title": "rm on a missing path without force rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, lstat '/repo/nope'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "lstat",
+            "path": "/repo/nope"
+          },
+          "gap": "memfs blames stat where node's rm lstats the path first"
+        },
+        {
+          "title": "rm on a missing path with force resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "rm force through a file segment still rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, lstat '/repo/f/leaf'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "lstat",
+            "path": "/repo/f/leaf"
+          },
+          "gap": "memfs blames stat where node's rm lstats the path first"
+        },
+        {
+          "title": "rm on a directory without recursive rejects with ERR_FS_EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "SystemError",
+            "message": "Path is a directory: rm returned EISDIR (is a directory) /repo/d",
+            "code": "ERR_FS_EISDIR",
+            "errno": 21,
+            "syscall": "rm",
+            "path": "/repo/d"
+          },
+          "gap": "memfs raises a plain Error and prefixes the code to node's message"
+        },
+        {
+          "title": "rm force on a directory without recursive still rejects with ERR_FS_EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "SystemError",
+            "message": "Path is a directory: rm returned EISDIR (is a directory) /repo/d",
+            "code": "ERR_FS_EISDIR",
+            "errno": 21,
+            "syscall": "rm",
+            "path": "/repo/d"
+          },
+          "gap": "memfs raises a plain Error and prefixes the code to node's message"
+        },
+        {
+          "title": "rm recursive on a non-empty directory resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "rm on a symlink to a directory unlinks the link",
+          "resolved": true,
+          "node": {},
+          "gap": "memfs follows the link and refuses it as a directory instead of unlinking it"
+        },
+        {
+          "title": "rm on a dangling symlink without force unlinks the link",
+          "resolved": true,
+          "node": {},
+          "gap": "memfs stats through the link and reports the missing target as ENOENT"
+        },
+        {
+          "title": "rmdir on a non-empty directory rejects with ENOTEMPTY",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTEMPTY: directory not empty, rmdir '/repo/d'",
+            "code": "ENOTEMPTY",
+            "errno": -66,
+            "syscall": "rmdir",
+            "path": "/repo/d"
+          }
+        },
+        {
+          "title": "rmdir on a file rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, rmdir '/repo/f'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "rmdir",
+            "path": "/repo/f"
+          }
+        },
+        {
+          "title": "rmdir on a missing path rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, rmdir '/repo/nope'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "rmdir",
+            "path": "/repo/nope"
+          }
+        },
+        {
+          "title": "rmdir on a symlink to a directory rejects with ENOTDIR rather than following it",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, rmdir '/repo/link'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "rmdir",
+            "path": "/repo/link"
+          }
+        },
+        {
+          "title": "rmdir on a dangling symlink rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, rmdir '/repo/dangle'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "rmdir",
+            "path": "/repo/dangle"
+          }
+        },
+        {
+          "title": "rmdir recursive on a non-empty directory resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "writeFile with flag wx onto an existing path rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, open '/repo/f.txt'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "open",
+            "path": "/repo/f.txt"
+          }
+        },
+        {
+          "title": "writeFile with flag r+ onto a missing path rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "open",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "writeFile onto a directory rejects with EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, open '/repo/d'",
+            "code": "EISDIR",
+            "errno": -21,
+            "syscall": "open",
+            "path": "/repo/d"
+          }
+        },
+        {
+          "title": "appendFile with flag r rejects with EBADF",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EBADF: bad file descriptor, write",
+            "code": "EBADF",
+            "errno": -9,
+            "syscall": "write"
+          },
+          "gap": "memfs ignores the read-only flag and appends where node refuses the write"
+        },
+        {
+          "title": "truncate on a missing path rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/repo/nope.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "open",
+            "path": "/repo/nope.txt"
+          }
+        },
+        {
+          "title": "truncate on a directory rejects with EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, open '/repo/d'",
+            "code": "EISDIR",
+            "errno": -21,
+            "syscall": "open",
+            "path": "/repo/d"
+          }
+        },
+        {
+          "title": "stat on a dangling symlink rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, stat '/repo/dangling'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "stat",
+            "path": "/repo/dangling"
+          }
+        },
+        {
+          "title": "readlink on a regular file rejects with EINVAL",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EINVAL: invalid argument, readlink '/repo/file.txt'",
+            "code": "EINVAL",
+            "errno": -22,
+            "syscall": "readlink",
+            "path": "/repo/file.txt"
+          }
+        },
+        {
+          "title": "readlink on a directory rejects with EINVAL",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EINVAL: invalid argument, readlink '/repo/dir'",
+            "code": "EINVAL",
+            "errno": -22,
+            "syscall": "readlink",
+            "path": "/repo/dir"
+          }
+        },
+        {
+          "title": "readlink on a missing path rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, readlink '/repo/missing'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "readlink",
+            "path": "/repo/missing"
+          }
+        },
+        {
+          "title": "realpath on a dangling symlink rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, realpath '/repo/dangling'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "realpath",
+            "path": "/repo/dangling"
+          }
+        },
+        {
+          "title": "symlink onto an existing path rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, symlink 'file.txt' -> '/repo/taken.txt'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "symlink",
+            "path": "file.txt",
+            "dest": "/repo/taken.txt"
+          }
+        },
+        {
+          "title": "readFile through a symlink to a directory rejects with EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, read",
+            "code": "EISDIR",
+            "errno": -21,
+            "syscall": "read"
+          },
+          "gap": "memfs blames open with the directory the link resolved to where node blames a pathless read"
+        },
+        {
+          "title": "readFile through a symlink loop rejects with ELOOP",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ELOOP: too many symbolic links encountered, open '/repo/a'",
+            "code": "ELOOP",
+            "errno": -62,
+            "syscall": "open",
+            "path": "/repo/a"
+          },
+          "gap": "memfs recurses through the cycle instead of answering ELOOP"
+        },
+        {
+          "title": "stat through a symlink loop rejects with ELOOP",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ELOOP: too many symbolic links encountered, stat '/repo/a'",
+            "code": "ELOOP",
+            "errno": -62,
+            "syscall": "stat",
+            "path": "/repo/a"
+          },
+          "gap": "memfs recurses through the cycle instead of answering ELOOP"
+        },
+        {
+          "title": "realpath through a symlink loop rejects with ELOOP",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ELOOP: too many symbolic links encountered, realpath '/repo/a'",
+            "code": "ELOOP",
+            "errno": -62,
+            "syscall": "realpath",
+            "path": "/repo/a"
+          },
+          "gap": "memfs recurses through the cycle instead of answering ELOOP"
+        },
+        {
+          "title": "copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, copyfile '/repo/src' -> '/repo/dest'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "copyfile",
+            "path": "/repo/src",
+            "dest": "/repo/dest"
+          },
+          "gap": "memfs names the copyFile function where node names the copyfile syscall"
+        },
+        {
+          "title": "copyFile onto itself resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "copyFile onto itself with COPYFILE_EXCL rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, copyfile '/repo/src' -> '/repo/src'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "copyfile",
+            "path": "/repo/src",
+            "dest": "/repo/src"
+          },
+          "gap": "memfs names the copyFile function where node names the copyfile syscall"
+        },
+        {
+          "title": "copyFile where the source is a directory rejects with ENOTSUP",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTSUP: operation not supported on socket, copyfile '/repo/d' -> '/repo/dest'",
+            "code": "ENOTSUP",
+            "errno": -45,
+            "syscall": "copyfile",
+            "path": "/repo/d",
+            "dest": "/repo/dest"
+          },
+          "gap": "memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP"
+        },
+        {
+          "title": "copyFile where the destination is a directory rejects with EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, copyfile '/repo/src' -> '/repo/d'",
+            "code": "EISDIR",
+            "errno": -21,
+            "syscall": "copyfile",
+            "path": "/repo/src",
+            "dest": "/repo/d"
+          },
+          "gap": "memfs blames the destination it opened where node blames the source and reports the destination as dest"
+        },
+        {
+          "title": "copyFile onto an existing destination resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "cp non-recursive on a directory rejects with ERR_FS_EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "SystemError",
+            "message": "Path is a directory: cp returned EISDIR (/repo/d is a directory (not copied)) /repo/d",
+            "code": "ERR_FS_EISDIR",
+            "errno": 21,
+            "syscall": "cp",
+            "path": "/repo/d"
+          },
+          "gap": "memfs raises a plain EISDIR where node raises its own ERR_FS_EISDIR"
+        },
+        {
+          "title": "cp recursive on a directory resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "cp with errorOnExist and force off onto an existing file rejects with ERR_FS_CP_EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "SystemError",
+            "message": "Target already exists: cp returned EEXIST (/repo/dest already exists) /repo/dest",
+            "code": "ERR_FS_CP_EEXIST",
+            "errno": 17,
+            "syscall": "cp",
+            "path": "/repo/dest"
+          },
+          "gap": "memfs raises a plain EEXIST where node raises its own ERR_FS_CP_EEXIST"
+        },
+        {
+          "title": "cp of a directory into itself rejects with ERR_FS_CP_EINVAL",
+          "resolved": false,
+          "node": {
+            "name": "SystemError",
+            "message": "Invalid src or dest: cp returned EINVAL (cannot copy /repo/d to a subdirectory of self /repo/d/sub) /repo/d/sub",
+            "code": "ERR_FS_CP_EINVAL",
+            "errno": 22,
+            "syscall": "cp",
+            "path": "/repo/d/sub"
+          },
+          "gap": "memfs raises a plain EINVAL blaming the source where node raises ERR_FS_CP_EINVAL blaming the destination"
+        },
+        {
+          "title": "rename onto itself resolves as a no-op",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "rename with a missing source rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, rename '/repo/nope' -> '/repo/dest'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "rename",
+            "path": "/repo/nope",
+            "dest": "/repo/dest"
+          }
+        },
+        {
+          "title": "rename of a file onto an existing directory rejects with EISDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, rename '/repo/src' -> '/repo/d'",
+            "code": "EISDIR",
+            "errno": -21,
+            "syscall": "rename",
+            "path": "/repo/src",
+            "dest": "/repo/d"
+          },
+          "gap": "memfs replaces the directory with the file instead of refusing it as EISDIR"
+        },
+        {
+          "title": "rename of a directory onto an existing file rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, rename '/repo/d' -> '/repo/f'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "rename",
+            "path": "/repo/d",
+            "dest": "/repo/f"
+          },
+          "gap": "memfs replaces the file with the directory instead of refusing it as ENOTDIR"
+        },
+        {
+          "title": "rename of a directory onto a non-empty directory rejects with ENOTEMPTY",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTEMPTY: directory not empty, rename '/repo/d' -> '/repo/t'",
+            "code": "ENOTEMPTY",
+            "errno": -66,
+            "syscall": "rename",
+            "path": "/repo/d",
+            "dest": "/repo/t"
+          },
+          "gap": "memfs overwrites the non-empty directory instead of refusing it as ENOTEMPTY"
+        },
+        {
+          "title": "rename onto an existing file resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "link where the destination exists rejects with EEXIST",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EEXIST: file already exists, link '/repo/src' -> '/repo/dest'",
+            "code": "EEXIST",
+            "errno": -17,
+            "syscall": "link",
+            "path": "/repo/src",
+            "dest": "/repo/dest"
+          }
+        },
+        {
+          "title": "link where the source is a directory rejects with EPERM",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "EPERM: operation not permitted, link '/repo/d' -> '/repo/l'",
+            "code": "EPERM",
+            "errno": -1,
+            "syscall": "link",
+            "path": "/repo/d",
+            "dest": "/repo/l"
+          },
+          "gap": "memfs hard-links the directory instead of refusing it as EPERM"
+        },
+        {
+          "title": "link where the destination is free resolves",
+          "resolved": true,
+          "node": {}
+        },
+        {
+          "title": "writeFile into a missing directory rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/repo/missing/f.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "open",
+            "path": "/repo/missing/f.txt"
+          },
+          "gap": "memfs blames the missing parent rather than the path it was given, and names no syscall in the message at all"
+        },
+        {
+          "title": "readdir on a file rejects with ENOTDIR",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOTDIR: not a directory, scandir '/repo/f.txt'",
+            "code": "ENOTDIR",
+            "errno": -20,
+            "syscall": "scandir",
+            "path": "/repo/f.txt"
+          }
+        },
+        {
+          "title": "readdir names every entry of a directory",
+          "resolved": true,
+          "node": {
+            "result": [
+              "b.txt",
+              "sub"
+            ]
+          }
+        },
+        {
+          "title": "readdir withFileTypes reports each entry's name, parent, and type",
+          "resolved": true,
+          "node": {
+            "result": [
+              {
+                "name": "b.txt",
+                "parentPath": "/repo/tree",
+                "isFile": true,
+                "isDirectory": false,
+                "isSymbolicLink": false
+              },
+              {
+                "name": "sub",
+                "parentPath": "/repo/tree",
+                "isFile": false,
+                "isDirectory": true,
+                "isSymbolicLink": false
+              }
+            ]
+          }
+        },
+        {
+          "title": "readdir recursive names every nested entry relative to the directory",
+          "resolved": true,
+          "node": {
+            "result": [
+              "b.txt",
+              "sub",
+              "sub/c.txt"
+            ]
+          }
+        },
+        {
+          "title": "stat follows a symlink to a file and reports the file",
+          "resolved": true,
+          "node": {
+            "result": {
+              "isFile": true,
+              "isDirectory": false,
+              "isSymbolicLink": false
+            }
+          }
+        },
+        {
+          "title": "lstat does not follow a symlink to a file and reports the link",
+          "resolved": true,
+          "node": {
+            "result": {
+              "isFile": false,
+              "isDirectory": false,
+              "isSymbolicLink": true
+            }
+          }
+        },
+        {
+          "title": "access R_OK on a missing path rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, access '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "access",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "access W_OK on a missing path rejects with ENOENT",
+          "resolved": false,
+          "node": {
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, access '/repo/missing.txt'",
+            "code": "ENOENT",
+            "errno": -2,
+            "syscall": "access",
+            "path": "/repo/missing.txt"
+          }
+        },
+        {
+          "title": "truncate beyond the length pads the file with NUL bytes",
+          "resolved": true,
+          "node": {
+            "result": "abc\u0000\u0000"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a utf8 string",
+          "resolved": true,
+          "node": {
+            "result": "héllo ✓"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a utf-8 string",
+          "resolved": true,
+          "node": {
+            "result": "héllo ✓"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a utf16le string",
+          "resolved": true,
+          "node": {
+            "result": "써沩潬鎜"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a utf-16le string",
+          "resolved": true,
+          "node": {
+            "result": "써沩潬鎜"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a ucs2 string",
+          "resolved": true,
+          "node": {
+            "result": "써沩潬鎜"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a ucs-2 string",
+          "resolved": true,
+          "node": {
+            "result": "써沩潬鎜"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a latin1 string",
+          "resolved": true,
+          "node": {
+            "result": "hÃ©llo â"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a binary string",
+          "resolved": true,
+          "node": {
+            "result": "hÃ©llo â"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a ascii string",
+          "resolved": true,
+          "node": {
+            "result": "hC)llo b\u001c\u0013"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a base64 string",
+          "resolved": true,
+          "node": {
+            "result": "aMOpbGxvIOKckw=="
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a base64url string",
+          "resolved": true,
+          "node": {
+            "result": "aMOpbGxvIOKckw"
+          }
+        },
+        {
+          "title": "writeFile and readFile round-trip a hex string",
+          "resolved": true,
+          "node": {
+            "result": "68c3a96c6c6f20e29c93"
+          }
+        }
+      ]
+    }
+  }
+}

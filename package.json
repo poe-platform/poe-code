@@ -90,6 +90,7 @@
     "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
     "smoke:toolcraft-sdk-types": "node scripts/verify-toolcraft-published-sdk-types.mjs",
     "sync-skills": "tsx scripts/sync-skills.ts",
+    "record:fs-conformance": "tsx scripts/record-fs-conformance.ts",
     "sync:json-schema-test-suite": "node scripts/sync-json-schema-test-suite.mjs",
     "sync:uri-template-test": "node scripts/sync-uri-template-test.mjs",
     "postinstall": "node scripts/postinstall-sync-skills.mjs"

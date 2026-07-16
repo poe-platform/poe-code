@@ -1511,6 +1511,30 @@ describe("configure provider resolution", () => {
     expect(output).not.toContain(DEFAULT_CLAUDE_CODE_MODEL);
   });
 
+  it("explains that cursor writes no agent config files instead of only reporting success", async () => {
+    const lines: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (line) => {
+        lines.push(line);
+      }
+    });
+    mockOptions(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes", "--dry-run"]),
+      container,
+      "cursor",
+      {}
+    );
+
+    const output = lines.join("\n");
+    expect(output).toContain("cursor-agent login");
+    expect(output).toContain("no configuration files");
+  });
+
   it("keeps overlay symlinks staged until commit", async () => {
     const linkPath = `${homeDir}/links/current`;
     const targetPath = `${homeDir}/target`;

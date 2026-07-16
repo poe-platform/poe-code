@@ -29,6 +29,9 @@ export const cursorService = createProvider({
   supportsMcpSpawn: true,
   requiresProvider: false,
   manifest: { configure: [] },
+  postConfigureMessages: [
+    "Cursor needs no configuration files: cursor-agent keeps its own credentials. Run `cursor-agent login` once, then pick a model per run with `poe-code spawn cursor --model <model>`."
+  ],
   install: CURSOR_INSTALL_DEFINITION,
   test(context) {
     return context.runCheck(

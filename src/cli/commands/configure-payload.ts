@@ -80,6 +80,15 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
   }
 
   const modelPrompt = adapter.configurePrompts?.model;
+  // An agent takes a configure-time model either through a model prompt or through
+  // its payload extension. With neither, --model would be accepted and dropped.
+  if (
+    !modelPrompt &&
+    !adapter.extendConfigurePayload &&
+    resolveNonEmpty(options.model) !== undefined
+  ) {
+    throw new ValidationError(`${adapter.label} does not support --model.`);
+  }
   if (modelPrompt) {
     const configModel = await resolveConfigModel(
       {

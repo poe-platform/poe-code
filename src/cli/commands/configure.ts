@@ -281,9 +281,9 @@ export async function executeConfigure(
     dry: `Dry run: would configure ${adapter.label}.`
   });
 
-  if (!flags.dryRun) {
-    resources.logger.nextSteps(adapter.postConfigureMessages ?? []);
-  }
+  // Post-configure notes explain what configuring the agent actually means, so a
+  // preview needs them too - especially for agents whose configure writes no files.
+  resources.logger.nextSteps(adapter.postConfigureMessages ?? []);
 
   resources.context.finalize();
 }

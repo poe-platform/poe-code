@@ -652,6 +652,51 @@ describe("createConfigurePayload — model choices", () => {
     ).rejects.toThrow(/No Effort Service does not support --reasoning-effort/);
   });
 
+  it("rejects a model for an agent that does not support one", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = createProviderStub({
+      name: "cursor",
+      label: "No Model Service"
+    });
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    await expect(
+      createConfigurePayload({
+        container,
+        flags: defaultFlags,
+        options: { model: "anthropic/claude-opus-4.7" },
+        context,
+        adapter,
+        logger: resources.logger
+      })
+    ).rejects.toThrow(/No Model Service does not support --model/);
+  });
+
+  it("allows an absent model for an agent that does not support one", async () => {
+    const container = createContainer(fs);
+
+    const adapter = createProviderStub({
+      name: "cursor",
+      label: "No Model Service"
+    });
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: {},
+      context,
+      adapter,
+      logger: resources.logger
+    })) as Record<string, unknown>;
+
+    expect(payload).not.toHaveProperty("model");
+  });
+
   it("leaves the payload without reasoning effort when the flag is absent", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { isUserError } from "@poe-code/user-error";
 import { buildCachePath, buildCloneUrl, cloneOrUpdate } from "./clone.js";
 import { createWritableCheckout } from "./isolation.js";
 import type { ResolverFileSystem, WorkspaceResolverOptions } from "../types.js";
@@ -121,6 +122,59 @@ describe("github clone helpers", () => {
         cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       }
     ]);
+  });
+
+  describe("failed clones of a missing cache", () => {
+    async function cloneWithStderr(stderr: string, target = locator): Promise<unknown> {
+      const fs = createFs();
+      return await cloneOrUpdate(
+        target,
+        createOptions({
+          fs,
+          exec: async () => ({ stdout: "", stderr, exitCode: 128 })
+        })
+      ).catch((error: unknown) => error);
+    }
+
+    it("maps a missing repository to guidance naming the locator, without raw git stderr", async () => {
+      const error = await cloneWithStderr(
+        "Cloning into '/home/test/...'\nERROR: Repository not found.\nfatal: Could not read from remote repository.",
+        { scheme: "github", owner: "not", repo: "a-repo" }
+      );
+
+      expect(isUserError(error)).toBe(true);
+      expect((error as Error).message).toMatch(
+        /^Cannot clone github:\/\/not\/a-repo: the repository does not exist or your account cannot see it\./
+      );
+      expect((error as Error).message).not.toContain("Cloning into");
+    });
+
+    it("maps an authentication failure to guidance naming the locator", async () => {
+      const error = await cloneWithStderr(
+        "fatal: Authentication failed for 'https://github.com/poe-platform/poe-code.git/'"
+      );
+
+      expect(isUserError(error)).toBe(true);
+      expect((error as Error).message).toMatch(/^Cannot clone github:\/\/poe-platform\/poe-code:/);
+      expect((error as Error).message).toContain("gh auth login");
+    });
+
+    it("maps an unreachable network to guidance naming the locator", async () => {
+      const error = await cloneWithStderr(
+        "fatal: unable to access 'https://github.com/poe-platform/poe-code.git/': Could not resolve host: github.com"
+      );
+
+      expect(isUserError(error)).toBe(true);
+      expect((error as Error).message).toMatch(/^Cannot clone github:\/\/poe-platform\/poe-code:/);
+      expect((error as Error).message).toContain("GitHub is unreachable");
+    });
+
+    it("leaves an unrecognised clone failure as a system error", async () => {
+      const error = await cloneWithStderr("error: index-pack died of signal 9");
+
+      expect(isUserError(error)).toBe(false);
+      expect((error as Error).message).toContain("index-pack died of signal 9");
+    });
   });
 
   it("rejects a cached path that is not a git repository", async () => {

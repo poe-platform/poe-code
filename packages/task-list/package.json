@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@poe-code/process-runner": "^0.0.1",
+    "@poe-code/user-error": "*",
     "yaml": "*"
   }
 }

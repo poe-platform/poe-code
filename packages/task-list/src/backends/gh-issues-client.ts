@@ -1,5 +1,6 @@
 import { text } from "node:stream/consumers";
 import { createHostRunner, type Runner } from "@poe-code/process-runner";
+import { UserError } from "@poe-code/user-error";
 
 const DEFAULT_ENDPOINT = "https://api.github.com/graphql";
 const USER_AGENT = "poe-code-task-list/0.0.1";
@@ -32,6 +33,11 @@ export function createGhClient(options: GhClientOptions): GhClient {
       });
 
       const body = await response.text();
+      if (response.status === 401) {
+        throw new UserError(
+          "GitHub rejected your credentials (HTTP 401). Your token is missing or expired - run 'gh auth login', or pass a valid token via auth: { token }."
+        );
+      }
       if (response.status !== 200) {
         throw new Error(`GitHub GraphQL request failed with status ${response.status}: ${body}`);
       }

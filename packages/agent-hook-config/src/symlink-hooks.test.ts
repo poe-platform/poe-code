@@ -3,6 +3,7 @@ import path from "node:path";
 import { lstatSync, readFileSync, readlinkSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+import { isUserError } from "@poe-code/user-error";
 
 vi.mock("node:fs", async () => {
   const { fs } = await import("memfs");
@@ -39,6 +40,7 @@ vi.mock("./configs.js", async (importOriginal) => {
 });
 
 const { symlinkHooks } = await import("./index.js");
+const { userAuthoredHookFileCode } = await import("./symlink-hooks.js");
 
 const cwd = "/repo/project";
 const homeDir = "/home/tester";
@@ -218,6 +220,23 @@ describe("symlinkHooks", () => {
     );
     expect(readFileSync(targetPath, "utf8")).toBe(contents);
     expect(lstatSync(targetPath).isSymbolicLink()).toBe(false);
+  });
+
+  it("refuses a user-authored hook file as a user error with recovery guidance", () => {
+    const contents = generatedSettings("user-authored");
+    vol.fromJSON({ [targetPath]: contents }, "/");
+
+    let failure: unknown;
+    try {
+      symlinkHooks("source", "target", cwd, homeDir, "project");
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(isUserError(failure)).toBe(true);
+    expect(failure).toMatchObject({ code: userAuthoredHookFileCode });
+    expect((failure as Error).message).toContain(targetPath);
+    expect((failure as Error).message).toMatch(/--hooks-strategy/);
   });
 
   it("does not ignore user-authored targets with inherited missing-file codes", async () => {

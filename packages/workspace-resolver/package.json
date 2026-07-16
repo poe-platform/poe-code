@@ -18,5 +18,8 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "@poe-code/user-error": "*"
+  }
 }

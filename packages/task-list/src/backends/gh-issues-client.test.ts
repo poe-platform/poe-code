@@ -1,6 +1,7 @@
 import { Readable } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
 import type { RunHandle, Runner, RunSpec } from "@poe-code/process-runner";
+import { isUserError } from "@poe-code/user-error";
 import { createGhClient, resolveAuth, resolveEndpoint } from "./gh-issues-client.js";
 
 describe("resolveAuth", () => {
@@ -138,6 +139,30 @@ describe("createGhClient", () => {
     await expect(client.graphql("query { viewer { login } }", {})).rejects.toThrow(
       "GitHub GraphQL request failed"
     );
+  });
+
+  it("maps a 401 to auth guidance without leaking the response body", async () => {
+    const fetchMock = vi.fn(async () =>
+      createJsonResponse(
+        { message: "Bad credentials", documentation_url: "https://docs.github.com/graphql" },
+        { status: 401 }
+      )
+    );
+    const client = createGhClient({
+      token: "stale",
+      endpoint: "https://api.github.com/graphql",
+      fetch: fetchMock
+    });
+
+    const error = await client
+      .graphql("query { viewer { login } }", {})
+      .then(() => undefined)
+      .catch((caught: unknown) => caught);
+
+    expect(isUserError(error)).toBe(true);
+    expect((error as Error).message).toContain("gh auth login");
+    expect((error as Error).message).not.toContain("Bad credentials");
+    expect((error as Error).message).not.toContain("documentation_url");
   });
 
   it("throws on non-200 responses with status and body", async () => {

@@ -293,7 +293,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
     .argument("[agent]", `Agent to unconfigure skills for (${supportedAgents.join(" | ")})`)
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
-    .option("--force", "Remove directory even if it contains files")
+    .option("--force", "Remove poe-code managed skills even if they were modified locally")
     .action(async (agentArg, options) => {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "skill");
@@ -366,11 +366,14 @@ export function registerSkillCommand(program: Command, container: CliContainer):
           onStart: (details) => {
             if (flags.dryRun) {
               resources.logger.dryRun(`Would ${details.label.toLowerCase()}`);
+              return;
             }
+            // Blast radius: announce every path before it is deleted.
+            resources.logger.info(details.label);
           },
           onComplete: (details, outcome) => {
             targetPath = details.targetPath;
-            removed = outcome.changed;
+            removed = removed || outcome.changed;
             if (!flags.dryRun && outcome.changed) {
               resources.logger.verbose(details.label);
             }
@@ -378,19 +381,10 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         }
       });
 
-      if (flags.dryRun) {
+      if (flags.dryRun || removed) {
         resources.context.complete({
-          success: `Removed skill directory for ${resolvedAgent} at ${displayPath}`,
-          dry: `Would remove skill directory for ${resolvedAgent} at ${displayPath}`
-        });
-        resources.context.finalize();
-        return;
-      }
-
-      if (removed) {
-        resources.context.complete({
-          success: `Removed skill directory for ${resolvedAgent} at ${displayPath}`,
-          dry: `Would remove skill directory for ${resolvedAgent} at ${displayPath}`
+          success: `Removed poe-code skills for ${resolvedAgent} at ${displayPath}`,
+          dry: `Would remove poe-code skills for ${resolvedAgent} at ${displayPath}`
         });
         resources.context.finalize();
         return;
@@ -401,7 +395,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
           const entries = await container.fs.readdir(targetPath);
           if (entries.length > 0) {
             resources.logger.warn(
-              `Skill directory for ${resolvedAgent} at ${displayPath} has files. Use --force to remove.`
+              `Kept ${displayPath} for ${resolvedAgent}: it holds ${entries.length} entr${entries.length === 1 ? "y" : "ies"} of skills poe-code does not manage.`
             );
             return;
           }

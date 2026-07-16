@@ -99,32 +99,35 @@ export async function unconfigure(
 
   const skillDir =
     scope === "global" ? config.globalSkillDir : toHomeRelative(config.localSkillDir);
+  const displayDir = scope === "global" ? config.globalSkillDir : config.localSkillDir;
   const homeDir = scope === "global" ? options.homeDir : options.cwd;
   const templateLoader = createTemplateLoader();
   const removeBundledSkills = [];
 
   for (const templateId of bundledSkillTemplateIds) {
-    const targetPath = `${scope === "global" ? options.homeDir : options.cwd}/${skillDir.slice(2)}/${templateId}`;
-    if (await pathExists(options.fs, targetPath)) {
-      const existing = await options.fs.readFile(targetPath, "utf8");
-      if (existing === (await templateLoader(templateId))) {
-        removeBundledSkills.push(
-          fileMutation.remove({
-            target: `${skillDir}/${templateId}`,
-            label: `Remove bundled skill ${templateId} from ${skillDir}`
-          })
-        );
-      }
+    const targetPath = `${homeDir}/${skillDir.slice(2)}/${templateId}`;
+    if (!(await pathExists(options.fs, targetPath))) {
+      continue;
+    }
+    const existing = await options.fs.readFile(targetPath, "utf8");
+    if (options.force || existing === (await templateLoader(templateId))) {
+      removeBundledSkills.push(
+        fileMutation.remove({
+          target: `${skillDir}/${templateId}`,
+          label: `Remove bundled skill ${templateId} from ${displayDir}`
+        })
+      );
     }
   }
 
   await runMutations(
     [
       ...removeBundledSkills,
+      // Never force-remove the shared skills root: it holds skills poe-code does not
+      // manage. It is only removed once poe-code's own skills left it empty.
       fileMutation.removeDirectory({
         path: skillDir,
-        force: options.force,
-        label: `Remove skills directory ${skillDir}`
+        label: `Remove empty skills directory ${displayDir}`
       })
     ],
     {

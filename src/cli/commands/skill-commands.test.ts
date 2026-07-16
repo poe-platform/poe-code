@@ -134,7 +134,7 @@ describe("skill unconfigure command", () => {
     expect(selectMock).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Select agent to unconfigure:" })
     );
-    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
+    expect(logs).toContain("Removed poe-code skills for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
     await expect(fs.stat(`${homeDir}/.codex/skills`)).resolves.toBeDefined();
   });
@@ -165,7 +165,7 @@ describe("skill unconfigure command", () => {
     await program.parseAsync(["node", "cli", "--yes", "skill", "unconfigure", "--global", "--force"]);
 
     expect(selectMock).not.toHaveBeenCalled();
-    expect(logs).toContain("Removed skill directory for codex at ~/.codex/skills");
+    expect(logs).toContain("Removed poe-code skills for codex at ~/.codex/skills");
     await expect(fs.stat(`${homeDir}/.codex/skills`)).rejects.toThrow("ENOENT");
   });
 
@@ -205,7 +205,7 @@ describe("skill unconfigure command", () => {
     await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure"]);
 
     expect(selectMock).not.toHaveBeenCalled();
-    expect(logs).toContain("Would remove skill directory for claude-code at ~/.claude/skills");
+    expect(logs).toContain("Would remove poe-code skills for claude-code at ~/.claude/skills");
   });
 
   it("warns when directory has files and --force is not set", async () => {
@@ -227,18 +227,17 @@ describe("skill unconfigure command", () => {
 
     await program.parseAsync(["node", "cli", "skill", "unconfigure", "claude-code", "--global"]);
 
-    expect(logs.some((line) => line.includes("has files"))).toBe(true);
-    expect(logs.some((line) => line.includes("--force"))).toBe(true);
+    expect(logs.some((line) => line.includes("skills poe-code does not manage"))).toBe(true);
     await expect(fs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
     await expect(fs.readdir(`${homeDir}/.claude/skills`)).resolves.toContain("a.txt");
   });
 
-  it("removes directory when --force is set", async () => {
+  it("removes poe-code managed skills when --force is set", async () => {
     const { fs, vol } = createMemFs();
     const logs: string[] = [];
 
     vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
-    await fs.writeFile(`${homeDir}/.claude/skills/a.txt`, "hello", "utf8");
+    await fs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "locally edited", "utf8");
 
     const program = createProgram({
       fs,
@@ -260,8 +259,114 @@ describe("skill unconfigure command", () => {
       "--force"
     ]);
 
-    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
+    expect(logs).toContain("Removed poe-code skills for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("keeps unmanaged skills and the skills root when --force is set", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${homeDir}/.claude/skills/poe-code-pipeline-plan`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "locally edited", "utf8");
+    await fs.writeFile(
+      `${homeDir}/.claude/skills/poe-code-pipeline-plan/SKILL.md`,
+      "user authored",
+      "utf8"
+    );
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "skill",
+      "unconfigure",
+      "claude-code",
+      "--global",
+      "--force"
+    ]);
+
+    await expect(
+      fs.readFile(`${homeDir}/.claude/skills/poe-code-pipeline-plan/SKILL.md`, "utf8")
+    ).resolves.toBe("user authored");
+    await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).rejects.toThrow("ENOENT");
+    await expect(fs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
+    expect(logs).toContain("Removed poe-code skills for claude-code at ~/.claude/skills");
+    expect(logs.some((line) => line.includes("No skill directory found"))).toBe(false);
+  });
+
+  it("prints the blast radius before removing skills", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "locally edited", "utf8");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "skill",
+      "unconfigure",
+      "claude-code",
+      "--global",
+      "--force"
+    ]);
+
+    const blastRadiusIndex = logs.findIndex((line) => line.includes("poe-generate.md"));
+    const summaryIndex = logs.findIndex((line) => line.includes("Removed poe-code skills"));
+    expect(blastRadiusIndex).toBeGreaterThanOrEqual(0);
+    expect(blastRadiusIndex).toBeLessThan(summaryIndex);
+  });
+
+  it("never reports a home directory path for --local dry-run", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${cwd}/.claude/skills`, { recursive: true });
+    await fs.writeFile(`${cwd}/.claude/skills/poe-generate.md`, "locally edited", "utf8");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "skill",
+      "unconfigure",
+      "claude-code",
+      "--local",
+      "--force"
+    ]);
+
+    expect(logs.filter((line) => line.includes("~/"))).toEqual([]);
+    expect(logs.some((line) => line.includes(".claude/skills"))).toBe(true);
   });
 
   it("prompts for agent and scope when not provided", async () => {
@@ -285,7 +390,7 @@ describe("skill unconfigure command", () => {
     await program.parseAsync(["node", "cli", "skill", "unconfigure", "--force"]);
 
     expect(selectMock).toHaveBeenCalledTimes(2);
-    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
+    expect(logs).toContain("Removed poe-code skills for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
   });
 

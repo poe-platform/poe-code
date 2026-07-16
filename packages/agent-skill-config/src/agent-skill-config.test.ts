@@ -367,13 +367,21 @@ describe("unconfigure", () => {
     );
   });
 
-  it("removes global skill directory by default when force is set", async () => {
+  it("removes global bundled skill and the emptied root when force is set", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd, force: true });
+
+    await expect(memFs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("never removes unmanaged files from the global skills root when force is set", async () => {
     vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
     await memFs.writeFile(`${homeDir}/.claude/skills/a.txt`, "hello", { encoding: "utf8" });
 
     await unconfigure("claude-code", { fs: memFs, homeDir, cwd, force: true });
 
-    await expect(memFs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/a.txt`, "utf8")).resolves.toBe("hello");
   });
 
   it("does nothing for non-empty global skill directory without force", async () => {
@@ -414,13 +422,110 @@ describe("unconfigure", () => {
     );
   });
 
-  it("removes local skill directory in cwd when force is set", async () => {
-    vol.mkdirSync(`${cwd}/.claude/skills`, { recursive: true });
-    await memFs.writeFile(`${cwd}/.claude/skills/a.txt`, "hello", { encoding: "utf8" });
+  it("removes local bundled skill in cwd when force is set", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd, scope: "local" });
 
     await unconfigure("claude-code", { fs: memFs, homeDir, cwd, scope: "local", force: true });
 
     await expect(memFs.stat(`${cwd}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("keeps the global skills root and unmanaged skills when force is set", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd });
+    vol.mkdirSync(`${homeDir}/.claude/skills/poe-code-pipeline-plan`, { recursive: true });
+    await memFs.writeFile(
+      `${homeDir}/.claude/skills/poe-code-pipeline-plan/SKILL.md`,
+      "user authored",
+      { encoding: "utf8" }
+    );
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd, force: true });
+
+    await expect(
+      memFs.readFile(`${homeDir}/.claude/skills/poe-code-pipeline-plan/SKILL.md`, "utf8")
+    ).resolves.toBe("user authored");
+    await expect(memFs.stat(`${homeDir}/.claude/skills`)).resolves.toBeDefined();
+    await expect(memFs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).rejects.toThrow("ENOENT");
+  });
+
+  it("keeps the local skills root and unmanaged skills when force is set", async () => {
+    vol.mkdirSync(`${cwd}/.claude/skills/terminal-pilot`, { recursive: true });
+    await memFs.writeFile(`${cwd}/.claude/skills/terminal-pilot/SKILL.md`, "user authored", {
+      encoding: "utf8"
+    });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd, scope: "local", force: true });
+
+    await expect(
+      memFs.readFile(`${cwd}/.claude/skills/terminal-pilot/SKILL.md`, "utf8")
+    ).resolves.toBe("user authored");
+    await expect(memFs.stat(`${cwd}/.claude/skills`)).resolves.toBeDefined();
+  });
+
+  it("removes a locally modified bundled skill only when force is set", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "edited by user", {
+      encoding: "utf8"
+    });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe(
+      "edited by user"
+    );
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd, force: true });
+    await expect(memFs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).rejects.toThrow("ENOENT");
+  });
+
+  it("labels local scope mutations with project-relative paths", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd, scope: "local" });
+    const labels: string[] = [];
+
+    await unconfigure("claude-code", {
+      fs: memFs,
+      homeDir,
+      cwd,
+      scope: "local",
+      dryRun: true,
+      observers: {
+        onStart: (details) => {
+          labels.push(details.label);
+        }
+      }
+    });
+
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.some((label) => label.includes(".claude/skills"))).toBe(true);
+    expect(labels.filter((label) => label.includes("~/"))).toEqual([]);
+  });
+
+  it("resolves local scope removals inside the project, never the home directory", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "home skill", {
+      encoding: "utf8"
+    });
+    await configure("claude-code", { fs: memFs, homeDir, cwd, scope: "local" });
+    const targets: string[] = [];
+
+    await unconfigure("claude-code", {
+      fs: memFs,
+      homeDir,
+      cwd,
+      scope: "local",
+      force: true,
+      observers: {
+        onComplete: (details) => {
+          if (details.targetPath) {
+            targets.push(details.targetPath);
+          }
+        }
+      }
+    });
+
+    expect(targets.every((target) => target.startsWith(cwd))).toBe(true);
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe(
+      "home skill"
+    );
   });
 });
 

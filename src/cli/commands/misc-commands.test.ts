@@ -131,6 +131,29 @@ describe("agent command", () => {
     expect(logs.some((line) => line.includes("Hello from Poe agent"))).toBe(true);
   });
 
+  it("prints the failure before closing the panel with the feedback footer", async () => {
+    const logs: string[] = [];
+    sendMessageMock.mockRejectedValue(new Error("Prompt must not be empty."));
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", "agent", "Say hello"])).rejects.toThrow(
+      "Prompt must not be empty."
+    );
+
+    const errorIndex = logs.findIndex((line) => line.includes("Prompt must not be empty."));
+    const footerIndex = logs.findIndex((line) => line.includes("Problems?"));
+    expect(errorIndex).toBeGreaterThanOrEqual(0);
+    expect(footerIndex).toBeGreaterThan(errorIndex);
+    expect(disposeMock).toHaveBeenCalledTimes(1);
+  });
+
   it("uses and advertises the default model when omitted", async () => {
     const program = createProgram({
       fs: createMemFs(),
@@ -673,6 +696,7 @@ describe("config command", () => {
       program.parseAsync(["node", "cli", "utils", "config", "edit"])
     ).rejects.toThrow("Set $EDITOR to use this command");
   });
+
 });
 
 // ---------------------------------------------------------------------------

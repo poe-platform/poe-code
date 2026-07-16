@@ -7,6 +7,7 @@ import {
 } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
+import { ReportedError, isSilentError } from "../errors.js";
 import { requireNonEmpty } from "../options.js";
 import {
   apiKeyFlagDescription,
@@ -76,6 +77,15 @@ export function registerAgentCommand(program: Command, container: CliContainer):
           success: "Agent response received.",
           dry: "Dry run: would send a prompt to Poe agent."
         });
+      } catch (error) {
+        if (isSilentError(error)) {
+          throw error;
+        }
+        // Render the failure before finalize() closes the panel, otherwise the
+        // panel reads as a success and the error lands outside it.
+        const failure = error instanceof Error ? error : new Error(String(error));
+        resources.logger.errorWithStack(failure);
+        throw new ReportedError(failure.message);
       } finally {
         if (session) {
           await session.dispose();

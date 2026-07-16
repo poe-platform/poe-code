@@ -48,6 +48,17 @@ export function createCommandContextFactory(
   init: CommandContextFactoryInit
 ): CommandContextFactory {
   const { fs } = init;
+  let feedbackEmitted = false;
+
+  // The feedback footer closes the panel, so it must be emitted once per
+  // process rather than once per sub-operation that finalizes.
+  const emitFeedbackOnce = (logger: ScopedLogger): void => {
+    if (feedbackEmitted) {
+      return;
+    }
+    feedbackEmitted = true;
+    logger.feedback("Problems?", FEEDBACK_URL);
+  };
 
   const create = (options: CommandContextOptions): CommandContext => {
     if (!options.dryRun) {
@@ -66,7 +77,7 @@ export function createCommandContextFactory(
           options.logger.success(messages.success);
         },
         finalize() {
-          options.logger.feedback("Problems?", FEEDBACK_URL);
+          emitFeedbackOnce(options.logger);
         }
       };
     }
@@ -116,7 +127,7 @@ export function createCommandContextFactory(
         flush(true);
       },
       finalize() {
-        options.logger.feedback("Problems?", FEEDBACK_URL);
+        emitFeedbackOnce(options.logger);
       }
     };
   };

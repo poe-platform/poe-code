@@ -1,6 +1,9 @@
 import type { FileSystem } from "@poe-code/config-mutations";
 import { readMergedDocument } from "./store.js";
 
+/** Memory context budget used when memory.query.defaultBudgetTokens is unset. */
+export const DEFAULT_QUERY_BUDGET_TOKENS = 4_096;
+
 export interface MemoryConfigOptions {
   fs: FileSystem;
   filePath: string;
@@ -59,7 +62,7 @@ async function resolveMemoryConfig(
     300_000;
   const defaultQueryBudget =
     readOptionalNumber(getOwnEntry(query, "defaultBudgetTokens"), "memory.query.defaultBudgetTokens") ??
-    4_096;
+    DEFAULT_QUERY_BUDGET_TOKENS;
 
   if (ingestTimeoutMs < 0) {
     throw new Error("memory.ingestTimeoutMs: expected a non-negative finite number.");

@@ -14,6 +14,7 @@ export type ExplainOptions = {
   relPath: string;
   budget: number;
   agent?: string;
+  model?: string;
 };
 
 export async function explainPage(
@@ -48,7 +49,7 @@ export async function explainPage(
   } satisfies MemoryConfigOptions;
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
-  const spawned = await spawn(agentId, { prompt });
+  const spawned = await spawn(agentId, { prompt, model: options.model });
   const response = parseMemoryAgentResponse(spawned.stdout);
 
   return {

@@ -206,6 +206,30 @@ describe("explainPage", () => {
     });
   });
 
+  it("forwards an explicit model override to the agent spawn", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/packages/superintendent.md": "# Superintendent\n\nRetries happen during cleanup races.\n"
+    });
+
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({ answer: "ok", citations: [], tokensUsed: 1 }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    await explainPage("/repo/.poe-code/memory", {
+      relPath: "pages/packages/superintendent.md",
+      budget: 4096,
+      model: "Claude-Sonnet-4.5"
+    });
+
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({ model: "Claude-Sonnet-4.5" })
+    );
+  });
+
   it("throws when the budget cannot fit the required explain context", async () => {
     vol.fromJSON({
       "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",

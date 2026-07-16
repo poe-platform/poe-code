@@ -123,6 +123,7 @@ export type QueryOptions = {
   question: string;
   budget: number;
   agent?: string;
+  model?: string;
   /** Kill the agent after this many ms without output. Defaults to 10 minutes. */
   activityTimeoutMs?: number;
 };

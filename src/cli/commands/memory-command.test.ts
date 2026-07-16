@@ -389,6 +389,54 @@ describe("memory command", () => {
     writeSpy.mockRestore();
   });
 
+  it("forwards --model through query and explain to the memory handle", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      query: vi.fn().mockResolvedValue({ answer: "Known.", citations: [], tokensUsed: 3, budget: 256, exitCode: 0 }),
+      explainPage: vi.fn().mockResolvedValue({ answer: "Page.", citations: [], tokensUsed: 4, budget: 256, exitCode: 0, inboundPages: [], outboundSources: [] })
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "query", "what?", "--budget", "256", "--model", "Claude-Sonnet-4.5"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "explain", "one", "--budget", "256", "--model", "Claude-Sonnet-4.5"]);
+
+    expect(handle.query).toHaveBeenCalledWith({
+      question: "what?",
+      budget: 256,
+      agent: undefined,
+      model: "Claude-Sonnet-4.5"
+    });
+    expect(handle.explainPage).toHaveBeenCalledWith({
+      relPath: "pages/one.md",
+      budget: 256,
+      agent: undefined,
+      model: "Claude-Sonnet-4.5"
+    });
+    writeSpy.mockRestore();
+  });
+
+  it("documents query and explain arguments and the budget flag in user terms", () => {
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+    const memory = program.commands.find((command) => command.name() === "memory");
+    const unwrap = (help: string | undefined): string => (help ?? "").split(/\s+/).join(" ");
+    const queryHelp = unwrap(memory?.commands.find((command) => command.name() === "query")?.helpInformation());
+    const explainHelp = unwrap(memory?.commands.find((command) => command.name() === "explain")?.helpInformation());
+
+    expect(queryHelp).toContain("Natural-language question to answer using stored memory pages");
+    expect(queryHelp).not.toContain("question Question");
+
+    for (const help of [queryHelp, explainHelp]) {
+      expect(help).toContain("--model <model>");
+      expect(help).toContain("default: 4096");
+      expect(help).not.toContain("Token budget");
+      expect(help).toContain("Model identifier override passed to the agent");
+    }
+  });
+
   it("does not accept the unimplemented memory lint --fix option", async () => {
     const handle = {
       statusOf: vi.fn().mockResolvedValue({ initialized: true }),

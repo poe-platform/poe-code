@@ -63,6 +63,7 @@ export {
   configuredMemoryRoot,
   configuredTimeout,
   defaultQueryBudget,
+  DEFAULT_QUERY_BUDGET_TOKENS,
   mcpWritesAllowed,
   resolveAgent,
   type MemoryConfigOptions

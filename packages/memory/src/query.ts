@@ -44,6 +44,7 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
   const context = await selectQueryContext(root, options.question, options.budget);
   const spawned = await spawn(agentId, {
     prompt: context.prompt,
+    model: options.model,
     activityTimeoutMs: options.activityTimeoutMs ?? DEFAULT_QUERY_ACTIVITY_TIMEOUT_MS
   });
   const result = parseMemoryAgentResponse(spawned.stdout);

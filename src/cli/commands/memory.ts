@@ -4,7 +4,7 @@ import { execSync } from "node:child_process";
 import parseDuration from "parse-duration";
 import type { Command } from "commander";
 import { confirmOrCancel } from "toolcraft-design";
-import { defaultQueryBudget } from "@poe-code/poe-code-config";
+import { DEFAULT_QUERY_BUDGET_TOKENS, defaultQueryBudget } from "@poe-code/poe-code-config";
 import {
   cacheStatus,
   clearCache,
@@ -405,10 +405,11 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
   memory
     .command("query")
     .description("Answer a question using memory-only context.")
-    .argument("<question>", "Question")
-    .option("--budget <tokens>", "Token budget")
-    .option("--agent <agent>", "Agent override")
-    .action(async (question: string, options: { budget?: string; agent?: string }) => {
+    .argument("<question>", "Natural-language question to answer using stored memory pages")
+    .option("--budget <tokens>", `Max tokens of memory context sent to the agent (default: ${DEFAULT_QUERY_BUDGET_TOKENS})`)
+    .option("--agent <agent>", "Agent to answer the question, instead of the configured memory agent")
+    .option("--model <model>", "Model identifier override passed to the agent")
+    .action(async (question: string, options: { budget?: string; agent?: string; model?: string }) => {
       const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
@@ -423,7 +424,8 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const result = await mem.query({
         question,
         budget,
-        agent: options.agent
+        agent: options.agent,
+        model: options.model
       });
       process.stdout.write(`${result.answer}\n`);
     });
@@ -431,10 +433,11 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
   memory
     .command("explain")
     .description("Summarize a memory page and its relationships.")
-    .argument("<path>", "Page path (relative to memory pages/)")
-    .option("--budget <tokens>", "Token budget")
-    .option("--agent <agent>", "Agent override")
-    .action(async (pagePath: string, options: { budget?: string; agent?: string }) => {
+    .argument("<path>", "Page to summarize (relative to memory pages/)")
+    .option("--budget <tokens>", `Max tokens of memory context sent to the agent (default: ${DEFAULT_QUERY_BUDGET_TOKENS})`)
+    .option("--agent <agent>", "Agent to write the summary, instead of the configured memory agent")
+    .option("--model <model>", "Model identifier override passed to the agent")
+    .action(async (pagePath: string, options: { budget?: string; agent?: string; model?: string }) => {
       const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
@@ -450,7 +453,8 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const result = await mem.explainPage({
         relPath,
         budget,
-        agent: options.agent
+        agent: options.agent,
+        model: options.model
       });
       process.stdout.write(`${result.answer}\n`);
     });

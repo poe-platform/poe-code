@@ -9,7 +9,7 @@ import type {
   HumanInLoopRuntime
 } from "./human-in-loop/types.js";
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
-import { ToolcraftBugError, UserError } from "./user-error.js";
+import { ToolcraftBugError, UserError, isUserError } from "./user-error.js";
 import { suggest } from "./suggest.js";
 import type { RuntimeLogger } from "./runtime-logging.js";
 import type { StreamStatusEvent, ToolcraftStream } from "./stream.js";
@@ -1156,7 +1156,7 @@ export {
   createHttpError
 } from "./http-errors.js";
 export type { HttpErrorRequest, HttpErrorResponse } from "./http-errors.js";
-export { ApprovalDeclinedError, ToolcraftBugError, UserError };
+export { ApprovalDeclinedError, ToolcraftBugError, UserError, isUserError };
 export { suggest } from "./suggest.js";
 export { createRuntimeLogger, isLogLevel, shouldEmitDiagnostic } from "./runtime-logging.js";
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";

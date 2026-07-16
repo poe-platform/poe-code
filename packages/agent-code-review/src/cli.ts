@@ -148,7 +148,10 @@ export const readCodeReviewDraftCommand = defineCommand({
       ...(params.draftStore ? { draftStore: params.draftStore } : {})
     });
     if (draft === undefined) {
-      throw new Error(`No active code review draft found for ${params.prUrl}.`);
+      throw new UserError(
+        `No active code review draft found for ${params.prUrl}.\n` +
+          "Hint: run `code-review run <prUrl>` first to produce a draft."
+      );
     }
     return draft;
   }

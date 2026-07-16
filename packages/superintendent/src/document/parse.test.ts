@@ -685,6 +685,32 @@ Body
     );
   });
 
+  it("reports a wrong frontmatter kind as a user error naming the kind it found", () => {
+    const content = `---
+kind: pipeline
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+---
+Body
+`;
+
+    const error = (() => {
+      try {
+        parseSuperintendentDoc("plan.md", content);
+        return undefined;
+      } catch (thrown: unknown) {
+        return thrown;
+      }
+    })();
+
+    expect(error).toBeInstanceOf(UserError);
+    expect((error as Error).message).toContain('frontmatter kind must be "superintendent"');
+    expect((error as Error).message).toContain("pipeline");
+    expect((error as Error).message).toMatch(/hint/i);
+  });
+
   it("throws on invalid YAML", () => {
     const content = `---
 kind: superintendent

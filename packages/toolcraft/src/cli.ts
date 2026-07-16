@@ -58,6 +58,7 @@ import {
   assertCommandRequirements,
   getCommandSourcePath,
   hasMcpProxyConfig,
+  isUserError,
   resolveCommandSecrets
 } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
@@ -4249,7 +4250,7 @@ function parseOptionFieldValue(
 
     return { ok: true, value: parsedValue };
   } catch (error) {
-    if (error instanceof UserError || error instanceof InvalidArgumentError) {
+    if (isUserError(error) || error instanceof InvalidArgumentError) {
       errors.push({
         path: field.displayPath,
         message: error.message
@@ -5707,7 +5708,7 @@ async function handleRunError(
   const logger = createLogger(options.outputEmitter);
 
   await withOutputFormat(options.output, async () => {
-    if (error instanceof UserError) {
+    if (isUserError(error)) {
       renderCliErrorPattern(
         options.userErrorPattern === "definition"
           ? {

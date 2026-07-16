@@ -50,6 +50,27 @@ describe("code-review command group", () => {
     ).rejects.toThrow("No active code review draft found");
   });
 
+  it("reports a missing draft as a user error pointing at code-review run, not a crash", async () => {
+    const error = await readCodeReviewDraftCommand
+      .handler({
+        params: {
+          prUrl: "https://github.com/acme/repo/pull/404",
+          cwd: "/repo"
+        }
+      } as never)
+      .then(
+        () => undefined,
+        (thrown: unknown) => thrown
+      );
+
+    expect(error).toBeInstanceOf(UserError);
+    expect((error as Error).message).toContain(
+      "No active code review draft found for https://github.com/acme/repo/pull/404"
+    );
+    expect((error as Error).message).toMatch(/hint/i);
+    expect((error as Error).message).toContain("code-review run");
+  });
+
   it("rejects an invalid prUrl argument before resolving the review agent", async () => {
     const invocation = runCodeReviewCommand.handler({
       params: { prUrl: "not-a-url", cwd: "/repo" }

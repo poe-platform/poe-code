@@ -160,6 +160,13 @@ function createHttpErrorLike(
   return error;
 }
 
+function createForeignUserError(message: string): Error {
+  const error = new Error(message);
+  error.name = "UserError";
+  error.stack = "UserError: foreign\n    at fake-handler";
+  return error;
+}
+
 function readPlainStderr(stderrWrite: ReturnType<typeof vi.spyOn>): string {
   return stripAnsi(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
 }
@@ -233,6 +240,24 @@ describe("toolcraft error UX contract", () => {
 
     expect(stderr).toMatchInlineSnapshot(`
       "Invalid input.
+      "
+    `);
+  });
+
+  it("snapshots a UserError thrown from another bundle, matched by name not instanceof", async () => {
+    const stderr = await runWithStderrSnapshot(
+      {
+        name: "deploy",
+        params: S.Object({}),
+        handler: async () => {
+          throw createForeignUserError("No active code review draft found for the pull request.");
+        }
+      },
+      ["deploy", "--yes"]
+    );
+
+    expect(stderr).toMatchInlineSnapshot(`
+      "No active code review draft found for the pull request.
       "
     `);
   });

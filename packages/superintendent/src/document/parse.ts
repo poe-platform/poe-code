@@ -455,7 +455,11 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
   }
 
   if (kind !== "superintendent") {
-    throw new Error(`${filePath}: frontmatter kind must be "superintendent"`);
+    throw new UserError(
+      `${filePath}: frontmatter kind must be "superintendent", found ${JSON.stringify(kind)}.\n` +
+        "Hint: superintendent commands only accept superintendent documents - " +
+        "set `kind: superintendent` in the frontmatter, or pass a superintendent document instead."
+    );
   }
 
   return {

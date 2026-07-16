@@ -40,7 +40,7 @@ Main commands:
 poe-code superintendent run [doc] [--agent <builder-agent>]
 poe-code superintendent validate <doc>
 poe-code superintendent complete <doc> [--reason <text>]
-poe-code superintendent install [agent] [--scope local|global]
+poe-code superintendent install [agent] [--scope local|global] [--force]
 poe-code superintendent plan-path
 poe-code superintendent builder run <doc>
 poe-code superintendent inspector list <doc>
@@ -52,7 +52,7 @@ Behavior notes:
 - `run` starts the full loop and uses the live dashboard in terminal output. It also accepts shared runtime flags: `--runtime host|docker`, `--runtime-image`, `--detach`, `--runner-sync`, `--tui`, and `--worktree`. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
 - `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
-- `install` installs the Superintendent skill and scaffolds the shared plan directory.
+- `install` installs the Superintendent skill and scaffolds the shared plan directory. `--force` overwrites an existing skill instead of failing.
 - `plan-path` prints the directory where superintendent plan files belong.
 - `builder run` executes only the builder role.
 - `inspector run` executes one named inspector, or all configured inspectors when `name` is omitted.

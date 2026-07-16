@@ -47,6 +47,9 @@ const installParams = S.Object({
     default: "local",
     description: "Install scope"
   }),
+  force: S.Optional(S.Boolean({
+    description: "Overwrite an existing Superintendent skill"
+  })),
   dryRun: S.Optional(S.Boolean({
     description: "Preview install without writing changes",
     scope: ["cli", "sdk"],
@@ -82,6 +85,7 @@ export const installCommand = defineCommand({
         cwd,
         homeDir,
         scope,
+        ...(params.force === true ? { force: true } : {}),
         ...(params.dryRun === true ? { dryRun: true } : {})
       }
     );

@@ -316,6 +316,21 @@ describe("configure", () => {
     );
   });
 
+  it("reports a diverging bundled skill as a user error naming the path and next step", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", {
+      encoding: "utf8"
+    });
+
+    const error = await configure("claude-code", { fs: memFs, homeDir, cwd }).catch(
+      (thrown: unknown) => thrown as Error
+    );
+
+    expect(error.name).toBe("UserError");
+    expect(error.message).toContain(`${homeDir}/.claude/skills/poe-generate.md`);
+    expect(error.message).toMatch(/move or delete/i);
+  });
+
   it("does not treat inherited stat error codes as missing bundled skills", async () => {
     const targetPath = `${homeDir}/.claude/skills/poe-generate.md`;
     let denied = false;
@@ -640,6 +655,21 @@ describe("installSkill", () => {
     await expect(memFs.readFile(`${cwd}/.claude/skills/existing/SKILL.md`, "utf8")).resolves.toBe(
       "user"
     );
+  });
+
+  it("reports an existing skill as a user error naming the path and the force recovery", async () => {
+    vol.mkdirSync(`${cwd}/.claude/skills/existing`, { recursive: true });
+    await memFs.writeFile(`${cwd}/.claude/skills/existing/SKILL.md`, "user", { encoding: "utf8" });
+
+    const error = await installSkill(
+      "claude-code",
+      { name: "existing", content: "generated" },
+      { fs: memFs, cwd, homeDir, scope: "local" }
+    ).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.name).toBe("UserError");
+    expect(error.message).toContain(".claude/skills/existing/SKILL.md");
+    expect(error.message).toContain("--force");
   });
 
   it("overwrites an existing skill when force is set", async () => {

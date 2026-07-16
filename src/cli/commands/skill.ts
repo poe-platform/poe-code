@@ -24,6 +24,7 @@ import {
 import type { ScopedLogger } from "../logger.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
+import { UserError } from "@poe-code/user-error";
 
 interface SkillCommandOptions {
   local?: boolean;
@@ -314,6 +315,11 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       const sourcePath = path.isAbsolute(options.file)
         ? options.file
         : path.resolve(container.env.cwd, options.file);
+      if (!(await container.fs.stat(sourcePath).catch(() => undefined))) {
+        throw new UserError(
+          `Skill file not found: ${sourcePath}\nPass --file <path> pointing at an existing SKILL.md.`
+        );
+      }
       const content = await container.fs.readFile(sourcePath, "utf8");
 
       resources.logger.intro(`skill install ${resolvedAgent}`);

@@ -55,6 +55,10 @@ describe("superintendent install command", () => {
     expect(installCommand.positional).toEqual(["agent"]);
   });
 
+  it("exposes --force so an existing skill can be overwritten", () => {
+    expect(installCommand.params).toHaveProperty("shape.force");
+  });
+
   it("renders rich output for a successful install", () => {
     const result: InstallResult = {
       agent: "claude-code",

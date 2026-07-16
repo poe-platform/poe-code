@@ -1030,4 +1030,37 @@ describe("skill install command", () => {
       fs.readFile(`${cwd}/.codex/skills/poe-agent-tools/SKILL.md`, "utf8")
     ).resolves.toBe("# Poe Agent Tools\n");
   });
+
+  it("names a missing --file as a user error instead of leaking ENOENT", async () => {
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    const error = await program
+      .parseAsync([
+        "node",
+        "cli",
+        "skill",
+        "install",
+        "codex",
+        "--local",
+        "--name",
+        "probe",
+        "--file",
+        "missing/skill.md",
+        "--yes"
+      ])
+      .then(() => undefined)
+      .catch((thrown: unknown) => thrown as Error);
+
+    expect(error?.name).toBe("UserError");
+    expect(error?.message).toContain(`${cwd}/missing/skill.md`);
+    expect(error?.message).not.toContain("ENOENT");
+  });
 });

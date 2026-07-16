@@ -7,6 +7,7 @@ import {
   resolveSkillDir,
   supportedAgents
 } from "./configs.js";
+import { UserError } from "@poe-code/user-error";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { appendExcludeBlock, removeExcludeBlock } from "./git-exclude.js";
 import { resolveSkillReference, type SkillResolutionFailure } from "./resolve-skill-reference.js";
@@ -153,9 +154,10 @@ function formatResolutionFailureError(failures: SkillResolutionFailure[]): Error
         lines.push(`  - ${searchedPath}`);
       }
     }
+    lines.push("Install one with poe-code skill install <agent> --name <name> --file <path>.");
   }
 
-  return new Error(lines.join("\n"));
+  return new UserError(lines.join("\n"));
 }
 
 function copyDirectory(sourcePath: string, targetPath: string): void {

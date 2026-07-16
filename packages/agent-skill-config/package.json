@@ -20,6 +20,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
-    "@poe-code/config-mutations": "*"
+    "@poe-code/config-mutations": "*",
+    "@poe-code/user-error": "*"
   }
 }

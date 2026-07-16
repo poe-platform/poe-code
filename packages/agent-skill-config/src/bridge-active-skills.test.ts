@@ -170,6 +170,20 @@ describe("bridgeActiveSkills", () => {
     );
   });
 
+  it("reports unresolved refs as a user error hinting at skill install", () => {
+    const error = (() => {
+      try {
+        bridgeActiveSkills("opencode", cwd, ["missing"], homeDir, runId);
+        return undefined;
+      } catch (thrown) {
+        return thrown as Error;
+      }
+    })();
+
+    expect(error?.name).toBe("UserError");
+    expect(error?.message).toContain("poe-code skill install");
+  });
+
   it("groups malformed, unknown-agent, and not-found failures into one error", () => {
     expect(() =>
       bridgeActiveSkills("opencode", cwd, ["a/b/c", "nonsense/foo", "missing"], homeDir, runId)

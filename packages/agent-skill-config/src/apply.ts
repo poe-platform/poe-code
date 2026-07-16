@@ -1,4 +1,5 @@
 import { fileMutation, runMutations, templateMutation } from "@poe-code/config-mutations";
+import { UserError } from "@poe-code/user-error";
 import { resolveAgentSupport } from "./configs.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { createTemplateLoader } from "./templates.js";
@@ -56,7 +57,9 @@ export async function configure(agentId: string, options: ApplyOptions): Promise
     if (await pathExists(options.fs, targetPath)) {
       const existing = await options.fs.readFile(targetPath, "utf8");
       if (existing !== (await templateLoader(templateId))) {
-        throw new Error(`Skill already exists: ${targetPath}`);
+        throw new UserError(
+          `Skill already exists and differs from the bundled ${templateId}: ${targetPath}\nMove or delete it, then re-run this command to install the poe-code version.`
+        );
       }
     }
   }
@@ -196,7 +199,9 @@ export async function installSkill(
   const absoluteSkillPath = `${scope === "global" ? options.homeDir : options.cwd}/${skillFilePath.slice(2)}`;
 
   if (!options.force && (await pathExists(options.fs, absoluteSkillPath))) {
-    throw new Error(`Skill already exists: ${displayPath}`);
+    throw new UserError(
+      `Skill already exists: ${displayPath}\nRe-run with --force to overwrite it, or remove it first.`
+    );
   }
 
   await runMutations(

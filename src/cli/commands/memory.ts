@@ -219,7 +219,8 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     });
 
   memory
-    .command("ls")
+    .command("list")
+    .alias("ls")
     .description("List every memory file with a one-line description.")
     .action(async () => {
       const root = await resolveRoot(container);

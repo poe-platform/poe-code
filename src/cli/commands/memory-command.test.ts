@@ -202,7 +202,7 @@ describe("memory command", () => {
 
     const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
-    await program.parseAsync(["node", "cli", "--yes", "memory", "ls"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "list"]);
 
     expect(writeSpy).toHaveBeenCalledWith("INDEX.md\n");
     expect(writeSpy).toHaveBeenCalledWith("LOG.md\n");

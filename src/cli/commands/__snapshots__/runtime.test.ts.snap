@@ -6,7 +6,7 @@ second line"
 `;
 
 exports[`runtime command > snapshots runtime jobs ls output and marks missing running sandboxes as lost 1`] = `
-"runtime jobs ls
+"runtime jobs list
 ┌──────────────────────────────┬──────────────────┬────────────┬────────────┬──────────────────────────┬──────────────────────────────┐
 │ JOB                          │ TOOL             │ RUNTIME    │ STATUS     │ STARTED                  │ SANDBOX                      │
 ├──────────────────────────────┼──────────────────┼────────────┼────────────┼──────────────────────────┼──────────────────────────────┤
@@ -21,7 +21,7 @@ Cleared 1 local runtime template cache entry."
 `;
 
 exports[`runtime command > snapshots runtime templates ls output grouped by backend 1`] = `
-"runtime templates ls
+"runtime templates list
 ┌────────────┬──────────────────┬──────────────────────────────────┬──────────────────────────────────────┬──────────────────────────┐
 │ Backend    │ Hash             │ Artifact                         │ Dockerfile                           │ Built                    │
 ├────────────┼──────────────────┼──────────────────────────────────┼──────────────────────────────────────┼──────────────────────────┤

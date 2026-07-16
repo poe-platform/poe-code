@@ -540,6 +540,37 @@ describe("JobRegistry", () => {
     ]);
   });
 
+  it("lists the newest jobs first and caps them with a limit", async () => {
+    const fs = createMemFs();
+    const registry = createJobRegistry("/home/tester", fs);
+    const stale = createJob("stale", { started_at: "2026-05-03T12:00:00.000Z" });
+    const recent = createJob("recent", { started_at: "2026-07-10T12:00:00.000Z" });
+    const newest = createJob("newest", { started_at: "2026-07-14T12:00:00.000Z" });
+
+    await registry.put(stale);
+    await registry.put(recent);
+    await registry.put(newest);
+
+    await expect(registry.list()).resolves.toEqual([newest, recent, stale]);
+    await expect(registry.list({ limit: 2 })).resolves.toEqual([newest, recent]);
+  });
+
+  it("drops jobs started before a since window but keeps unknown start times", async () => {
+    const fs = createMemFs();
+    const registry = createJobRegistry("/home/tester", fs);
+    const stale = createJob("stale", { started_at: "2026-05-03T12:00:00.000Z" });
+    const recent = createJob("recent", { started_at: "2026-07-14T12:00:00.000Z" });
+    const unstarted = createJob("unstarted", { started_at: "", status: "pending" });
+
+    await registry.put(stale);
+    await registry.put(recent);
+    await registry.put(unstarted);
+
+    await expect(
+      registry.list({ since: new Date("2026-07-01T00:00:00.000Z") })
+    ).resolves.toEqual([recent, unstarted]);
+  });
+
   it("removes a job file", async () => {
     const fs = createMemFs();
     const registry = createJobRegistry("/home/tester", fs);

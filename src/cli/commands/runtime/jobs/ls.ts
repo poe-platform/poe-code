@@ -3,22 +3,33 @@ import type { Command } from "commander";
 import type { JobEntry } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";
+import {
+  listWindowHint,
+  resolveListWindow,
+  withListWindowOptions,
+  type ListWindowFlags
+} from "../list-window.js";
 import { attachJob, createRuntimeState } from "./shared.js";
 
 export function registerRuntimeJobsLsCommand(jobs: Command, root: Command, container: CliContainer): void {
-  jobs
-    .command("ls")
-    .description("List detached runtime jobs.")
-    .action(async () => {
-      await executeRuntimeJobsLs(root, container);
-    });
+  withListWindowOptions(
+    jobs.command("list").alias("ls").description("List detached runtime jobs, newest first."),
+    "jobs"
+  ).action(async (options: ListWindowFlags) => {
+    await executeRuntimeJobsLs(root, container, options);
+  });
 }
 
-async function executeRuntimeJobsLs(root: Command, container: CliContainer): Promise<void> {
+async function executeRuntimeJobsLs(
+  root: Command,
+  container: CliContainer,
+  options: ListWindowFlags
+): Promise<void> {
   const flags = resolveCommandFlags(root);
-  const resources = createExecutionResources(container, flags, "runtime:jobs:ls");
+  const resources = createExecutionResources(container, flags, "runtime:jobs:list");
+  const window = resolveListWindow(options);
   const state = createRuntimeState(container);
-  const recordedEntries = await state.jobs.list();
+  const recordedEntries = await state.jobs.list(window);
   const entries = flags.dryRun
     ? recordedEntries
     : await reconcileRunningJobs(recordedEntries, state);
@@ -29,7 +40,7 @@ async function executeRuntimeJobsLs(root: Command, container: CliContainer): Pro
       "Dry run: would inspect active sandboxes and persist reconciled runtime job statuses."
     );
   }
-  resources.logger.intro("runtime jobs ls");
+  resources.logger.intro("runtime jobs list");
   resources.logger.info(
     renderTable({
       theme,
@@ -44,6 +55,11 @@ async function executeRuntimeJobsLs(root: Command, container: CliContainer): Pro
       }))
     })
   );
+
+  const hint = listWindowHint(window, entries.length, "jobs");
+  if (hint !== undefined) {
+    resources.logger.info(hint);
+  }
 }
 
 async function reconcileRunningJobs(

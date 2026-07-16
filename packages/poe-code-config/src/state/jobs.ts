@@ -30,12 +30,15 @@ export interface JobListFilter {
   env_kind?: string;
   tool?: string;
   status?: JobStatus;
+  since?: Date;
+  limit?: number;
 }
 
 export interface JobRegistry {
   get(id: string): Promise<JobEntry | null>;
   put(entry: JobEntry): Promise<void>;
   update(id: string, patch: Partial<JobEntry>): Promise<JobEntry | null>;
+  /** Newest first, capped by filter.limit when provided. */
   list(filter?: JobListFilter): Promise<JobEntry[]>;
   remove(id: string): Promise<void>;
 }
@@ -150,7 +153,9 @@ export function createJobRegistry(
         jobs.push(job);
       }
     }
-    return jobs;
+
+    jobs.sort((left, right) => startedAtTime(right) - startedAtTime(left));
+    return filter.limit === undefined ? jobs : jobs.slice(0, filter.limit);
   }
 
   async function remove(id: string): Promise<void> {
@@ -258,8 +263,23 @@ function matchesFilter(job: JobEntry, filter: JobListFilter): boolean {
     (filter.env_id === undefined || job.env_id === filter.env_id) &&
     (filter.env_kind === undefined || job.env_kind === filter.env_kind) &&
     (filter.tool === undefined || job.tool === filter.tool) &&
-    (filter.status === undefined || job.status === filter.status)
+    (filter.status === undefined || job.status === filter.status) &&
+    isWithinSince(job, filter.since)
   );
+}
+
+function isWithinSince(job: JobEntry, since: Date | undefined): boolean {
+  if (since === undefined) {
+    return true;
+  }
+
+  const startedAt = Date.parse(job.started_at);
+  return !Number.isFinite(startedAt) || startedAt >= since.getTime();
+}
+
+function startedAtTime(job: JobEntry): number {
+  const startedAt = Date.parse(job.started_at);
+  return Number.isFinite(startedAt) ? startedAt : 0;
 }
 
 function parseJobEntry(content: string, expectedId: string): JobEntry | null {

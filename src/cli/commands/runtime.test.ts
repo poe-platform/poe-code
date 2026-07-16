@@ -408,6 +408,75 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
   });
 
+  it("caps runtime templates list at --limit, keeping the newest builds", async () => {
+    const fs = createMemFs({
+      [statePath]: `${JSON.stringify(
+        {
+          docker: {
+            stale: {
+              hash: "stale",
+              image: "poe-code/local:stale",
+              runtime_type: "docker",
+              dockerfile_path: "/repo/.poe-code/Dockerfile",
+              built_at: "2026-05-03T10:00:00.000Z"
+            },
+            fresh: {
+              hash: "fresh",
+              image: "poe-code/local:fresh",
+              runtime_type: "docker",
+              dockerfile_path: "/repo/.poe-code/Dockerfile",
+              built_at: "2026-07-14T10:00:00.000Z"
+            }
+          }
+        },
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "templates", "list", "--limit", "1"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("fresh");
+    expect(output).not.toContain("stale");
+    expect(output).toContain("--all");
+  });
+
+  it("filters runtime templates list by --since and restores every build with --all", async () => {
+    const fs = createMemFs({
+      [statePath]: `${JSON.stringify(
+        {
+          docker: {
+            stale: {
+              hash: "stale",
+              image: "poe-code/local:stale",
+              runtime_type: "docker",
+              dockerfile_path: "/repo/.poe-code/Dockerfile",
+              built_at: "2026-05-03T10:00:00.000Z"
+            }
+          }
+        },
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "templates", "list", "--since", "7d"]);
+    expect(stripAnsi(logs.join("\n"))).not.toContain("stale");
+
+    logs.length = 0;
+    await program.parseAsync(["node", "cli", "runtime", "templates", "ls", "--all"]);
+    expect(stripAnsi(logs.join("\n"))).toContain("stale");
+  });
+
   it("snapshots runtime templates clear output and removes local template entries", async () => {
     const fs = createMemFs({
       [statePath]: `${JSON.stringify(
@@ -507,6 +576,68 @@ describe("runtime command", () => {
     await expect(fs.readFile(path.join(jobsDir, "job-missing.json"), "utf8")).resolves.toContain(
       '"status": "lost"'
     );
+  });
+
+  it("caps runtime jobs list at --limit, keeping the newest jobs", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-stale.json")]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-stale",
+          env_id: "env-stale",
+          status: "exited",
+          started_at: "2026-05-03T12:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`,
+      [path.join(jobsDir, "job-fresh.json")]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-fresh",
+          env_id: "env-fresh",
+          status: "exited",
+          started_at: "2026-07-14T12:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "list", "--limit", "1"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("job-fresh");
+    expect(output).not.toContain("job-stale");
+    expect(output).toContain("--all");
+  });
+
+  it("filters runtime jobs list by --since and restores every job with --all", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-stale.json")]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-stale",
+          env_id: "env-stale",
+          status: "exited",
+          started_at: "2026-05-03T12:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "list", "--since", "7d"]);
+    expect(stripAnsi(logs.join("\n"))).not.toContain("job-stale");
+
+    logs.length = 0;
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "ls", "--all"]);
+    expect(stripAnsi(logs.join("\n"))).toContain("job-stale");
   });
 
   it("keeps a running job when status inspection cannot reach its sandbox", async () => {

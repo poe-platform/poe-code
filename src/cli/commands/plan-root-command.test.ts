@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
+import { stripVTControlCharacters } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
+import { SilentError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
 
 const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, selectMock, isCancelMock, spawnResult } = vi.hoisted(
@@ -107,6 +109,76 @@ describe("plan root and browse commands", () => {
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });
 
+  it("reports a typo'd subcommand as unknown instead of drafting a plan", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "lst"]), false)
+    ).rejects.toBeInstanceOf(SilentError);
+
+    const plain = stripVTControlCharacters(loggerOutput);
+    expect(plain).toContain("Unknown command:");
+    expect(plain).toContain("lst");
+    expect(plain).toContain("Did you mean:");
+    expect(plain).toContain("list");
+    expect(sdkSpawnMock).not.toHaveBeenCalled();
+    expect(runPlanBrowserMock).not.toHaveBeenCalled();
+  });
+
+  it("renders a plan when browse is given a path", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan A\n\nPlan body line." }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "browse", "docs/plans/plan-a.md"]),
+      false
+    );
+
+    const output = stripVTControlCharacters(
+      writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")
+    );
+    expect(output).toContain("Plan A");
+    expect(output).toContain("Plan body line.");
+    expect(runPlanBrowserMock).not.toHaveBeenCalled();
+  });
+
+  it("reports an unknown plan path passed to browse", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan A" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(
+        () => program.parseAsync(["node", "cli", "plan", "browse", "docs/plans/missing.md"]),
+        false
+      )
+    ).rejects.toThrow("Plan not found: docs/plans/missing.md");
+
+    expect(runPlanBrowserMock).not.toHaveBeenCalled();
+  });
+
   it("documents the default explorer flow in help", () => {
     const container = createCliContainer({
       fs: createMemFs(),
@@ -123,7 +195,9 @@ describe("plan root and browse commands", () => {
     expect(planCommand?.description()).toBe(
       "Browse plans in an interactive explorer, or draft a new plan when given a question."
     );
-    expect(browseCommand?.description()).toBe("Browse plans in the interactive explorer.");
+    expect(browseCommand?.description()).toBe(
+      "Browse plans in the interactive explorer, or render one plan when given a path."
+    );
 
     const helpChunks: string[] = [];
     planCommand?.configureOutput({

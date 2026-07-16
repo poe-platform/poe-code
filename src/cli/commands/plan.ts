@@ -31,11 +31,12 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { UserError } from "toolcraft";
+import { UserError, suggest } from "toolcraft";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
 import { formatAgentCapabilityError, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
+import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
 import {
@@ -582,6 +583,22 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const question = questionArg?.trim() ?? "";
 
       if (question.length > 0) {
+        const candidates = plan.commands.flatMap((command) => [
+          command.name(),
+          ...command.aliases()
+        ]);
+        const suggestions = suggest(question, candidates);
+        if (suggestions.length > 0) {
+          throwCommandNotFound({
+            container,
+            scope: "cli",
+            unknownCommand: question,
+            helpArgs: ["plan", "--help"],
+            candidates,
+            moduleUrl: import.meta.url
+          });
+        }
+
         const agent = await resolvePlanSessionAgent(container, opts.agent, flags);
         if (agent === null) {
           return;
@@ -614,15 +631,31 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
   plan
     .command("browse")
-    .description("Browse plans in the interactive explorer.")
+    .description("Browse plans in the interactive explorer, or render one plan when given a path.")
+    .argument("[path]", "Plan path to render instead of opening the explorer")
     .option(
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
-    .action(async function (this: Command) {
+    .action(async function (this: Command, pathArg?: string) {
       const opts = resolvePlanCommandOptions(this);
       const flags = resolveCommandFlags(program);
       const kind = resolveKind(opts.kind);
+
+      if ((pathArg?.trim() ?? "").length > 0) {
+        const plans = await discoverPlans(container, kind);
+        const selected = await resolveSelectedPlan({
+          container,
+          plans,
+          providedPath: pathArg,
+          assumeYes: flags.assumeYes,
+          promptMessage: "Select a plan to view"
+        });
+        const markdown = await loadPlanPreviewMarkdown(selected, container.fs);
+        writeOutput("terminal", renderMarkdown(markdown).trimEnd());
+        return;
+      }
+
       await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
       intro("plan browser");
       await runPlanBrowser(createPlanBrowserOptions(container, { kind }));

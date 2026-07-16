@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
-import { createCliContainer } from "../container.js";
+import { createCliContainer, type CliContainer } from "../container.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerExperimentCommand } from "./experiment.js";
@@ -4072,5 +4072,156 @@ describe("ralph init command", () => {
 
     await expect(fs.readFile("/repo/docs/loop.md", "utf8")).resolves.toBe(original);
     expect(logs.join("\n")).toContain("Dry run: would save Ralph config.");
+  });
+});
+
+describe("wrong frontmatter kind reporting", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    isCancelMock.mockReturnValue(false);
+  });
+
+  const planDoc = ["---", "kind: plan", "version: 1", "---", "# Plan", "", "Body"].join("\n");
+
+  function createPlanContainer(): CliContainer {
+    return createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/32-agent-goal.md": planDoc }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+  }
+
+  async function captureError(run: () => Promise<unknown>): Promise<Error> {
+    try {
+      await run();
+    } catch (error) {
+      return error as Error;
+    }
+    throw new Error("Expected the command to reject.");
+  }
+
+  it("reports a kind mismatch instead of not found for experiment validate", async () => {
+    const program = createBaseProgram();
+    registerExperimentCommand(program, createPlanContainer());
+
+    const error = await captureError(() =>
+      program.parseAsync(["node", "cli", "experiment", "validate", "docs/plans/32-agent-goal.md"])
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain("docs/plans/32-agent-goal.md");
+    expect(error.message).toContain('kind is "plan"');
+    expect(error.message).toContain('expected "experiment"');
+    expect(error.message).not.toContain("not found");
+  });
+
+  it("reports a kind mismatch instead of not found for experiment journal", async () => {
+    const program = createBaseProgram();
+    registerExperimentCommand(program, createPlanContainer());
+
+    const error = await captureError(() =>
+      program.parseAsync(["node", "cli", "experiment", "journal", "docs/plans/32-agent-goal.md"])
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain('kind is "plan"');
+    expect(error.message).toContain('expected "experiment"');
+    expect(error.message).not.toContain("not found");
+  });
+
+  it("reports a kind mismatch instead of not found for ralph run", async () => {
+    const program = createBaseProgram();
+    registerRalphCommand(program, createPlanContainer());
+
+    const error = await captureError(() =>
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "ralph",
+        "run",
+        "docs/plans/32-agent-goal.md",
+        "--agent",
+        "codex"
+      ])
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain('kind is "plan"');
+    expect(error.message).toContain('expected "ralph"');
+    expect(error.message).not.toContain("not found");
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
+  it("still reports missing docs as not found", async () => {
+    const program = createBaseProgram();
+    registerExperimentCommand(program, createPlanContainer());
+
+    const error = await captureError(() =>
+      program.parseAsync(["node", "cli", "experiment", "validate", "docs/plans/absent.md"])
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain("Experiment doc not found: docs/plans/absent.md");
+  });
+
+  it("names the required kind when no experiment doc is discovered", async () => {
+    const program = createBaseProgram();
+    registerExperimentCommand(program, createPlanContainer());
+
+    const error = await captureError(() =>
+      program.parseAsync(["node", "cli", "experiment", "validate"])
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain('kind: experiment');
+    expect(error.message).toContain("poe-code experiment install");
+  });
+
+  it("names the required kind when no ralph doc is discovered", async () => {
+    const program = createBaseProgram();
+    registerRalphCommand(program, createPlanContainer());
+
+    const error = await captureError(() =>
+      program.parseAsync(["node", "cli", "--yes", "ralph", "run", "--agent", "codex"])
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain('kind: ralph');
+    expect(error.message).toContain("poe-code ralph init");
+  });
+
+  it("scaffolds ralph frontmatter onto a plan-kind doc via ralph init", async () => {
+    const fs = createMemFs({ "/repo/docs/plans/32-agent-goal.md": planDoc });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "init",
+      "docs/plans/32-agent-goal.md",
+      "--agent",
+      "codex",
+      "--iterations",
+      "3"
+    ]);
+
+    const updated = await fs.readFile("/repo/docs/plans/32-agent-goal.md", "utf8");
+    const parsed = parseFrontmatter(updated);
+    expect(parsed.data).toEqual({
+      agent: "codex",
+      iterations: 3,
+      status: { state: "open", iteration: 0 }
+    });
+    expect(parsed.body).toBe("# Plan\n\nBody");
   });
 });

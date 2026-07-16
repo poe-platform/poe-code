@@ -23,6 +23,7 @@ import {
   writeFrontmatter,
   type RalphFrontmatter
 } from "@poe-code/ralph";
+import { isFrontmatterKindError } from "@poe-code/frontmatter";
 import {
   readMergedDocument,
   readMergedDocumentReadonly,
@@ -415,7 +416,7 @@ async function resolveDocPath(options: {
   });
   if (docs.length === 0) {
     throw new ValidationError(
-      `No markdown doc found under ${options.planDirectory}. Provide a doc path.`
+      `No Ralph doc (kind: ralph) found under ${options.planDirectory}. Pass a doc path, or turn an existing markdown doc into one with \`poe-code ralph init <doc>\`.`
     );
   }
 
@@ -447,7 +448,8 @@ async function resolveDocPath(options: {
 
 async function readRalphDoc(
   container: CliContainer,
-  docPath: string
+  docPath: string,
+  options: { adoptForeignKind?: boolean } = {}
 ): Promise<{
   absolutePath: string;
   body: string;
@@ -455,16 +457,30 @@ async function readRalphDoc(
 }> {
   const absolutePath = resolveAbsoluteDocPath(container, docPath);
 
+  let content: string;
   try {
-    const content = await container.fs.readFile(absolutePath, "utf8");
-    const parsed = parseFrontmatter(content);
+    content = await container.fs.readFile(absolutePath, "utf8");
+  } catch {
+    throw new ValidationError(`Ralph doc not found: ${docPath}`);
+  }
+
+  try {
+    const parsed = parseFrontmatter(content, options);
     return {
       absolutePath,
       body: parsed.body,
       data: parsed.data
     };
-  } catch {
-    throw new ValidationError(`Ralph doc not found: ${docPath}`);
+  } catch (error) {
+    if (isFrontmatterKindError(error)) {
+      throw new ValidationError(
+        `Found ${docPath} but kind is "${error.foundKind}", expected "${error.expectedKind}". Run \`poe-code ralph init ${docPath}\` to write Ralph frontmatter into it.`
+      );
+    }
+
+    throw new ValidationError(
+      `Invalid Ralph doc ${docPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -713,7 +729,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           return;
         }
 
-        const doc = await readRalphDoc(container, docPath);
+        const doc = await readRalphDoc(container, docPath, { adoptForeignKind: true });
         const currentConfig = formatCurrentConfig(doc.data);
         if (!options.agent && !options.iterations && !flags.assumeYes && currentConfig) {
           resources.logger.info(currentConfig);

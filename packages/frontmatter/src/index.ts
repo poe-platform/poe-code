@@ -4,7 +4,9 @@ export {
   type SplitFrontmatterResult
 } from "./fences.js";
 export {
+  FrontmatterKindError,
   FrontmatterParseError,
+  isFrontmatterKindError,
   parseFrontmatter,
   parseFrontmatterDocument,
   type ParsedFrontmatter,

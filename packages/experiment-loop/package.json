@@ -28,6 +28,7 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/config-extends": "*",
+    "@poe-code/frontmatter": "*",
     "gray-matter": "^4.0.3"
   }
 }

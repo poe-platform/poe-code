@@ -30,6 +30,7 @@ import {
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import { discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
+import { isFrontmatterKindError } from "@poe-code/frontmatter";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
@@ -598,7 +599,7 @@ async function resolveDocPath(options: {
   });
   if (docs.length === 0) {
     throw new ValidationError(
-      `No markdown doc found under ${options.planDirectory}. Provide a doc path.`
+      `No experiment doc (kind: experiment) found under ${options.planDirectory}. Pass a doc path, or create one with \`poe-code experiment install\`.`
     );
   }
 
@@ -635,14 +636,28 @@ async function readExperimentDoc(
 }> {
   const absolutePath = resolveWorkflowPath(docPath, container.env.cwd, container.env.homeDir);
 
+  let content: string;
   try {
-    const content = await container.fs.readFile(absolutePath, "utf8");
+    content = await container.fs.readFile(absolutePath, "utf8");
+  } catch {
+    throw new ValidationError(`Experiment doc not found: ${docPath}`);
+  }
+
+  try {
     return {
       absolutePath,
       frontmatter: parseExperimentFrontmatter(content).frontmatter
     };
-  } catch {
-    throw new ValidationError(`Experiment doc not found: ${docPath}`);
+  } catch (error) {
+    if (isFrontmatterKindError(error)) {
+      throw new ValidationError(
+        `Found ${docPath} but kind is "${error.foundKind}", expected "${error.expectedKind}". Pass an experiment doc, or create one with \`poe-code experiment install\`.`
+      );
+    }
+
+    throw new ValidationError(
+      `Invalid experiment doc ${docPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 

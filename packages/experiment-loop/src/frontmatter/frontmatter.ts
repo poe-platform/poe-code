@@ -1,3 +1,4 @@
+import { FrontmatterKindError } from "@poe-code/frontmatter";
 import matter from "gray-matter";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
@@ -361,7 +362,10 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
 
 function validateDocumentKind(value: unknown): void {
   if (value !== undefined && value !== "experiment") {
-    throw new Error("Experiment document kind must be 'experiment'.");
+    throw new FrontmatterKindError("Experiment document kind must be 'experiment'.", {
+      expected: "experiment",
+      found: typeof value === "string" ? value : JSON.stringify(value)
+    });
   }
 }
 

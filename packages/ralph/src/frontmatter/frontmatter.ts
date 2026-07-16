@@ -1,4 +1,5 @@
 import {
+  FrontmatterKindError,
   parseFrontmatter as parseSharedFrontmatter,
   stringifyFrontmatter
 } from "@poe-code/frontmatter";
@@ -134,14 +135,17 @@ const DEFAULT_STATUS: RalphFrontmatter["status"] = {
   iteration: 0
 };
 
-export function parseFrontmatter(content: string): {
+export function parseFrontmatter(
+  content: string,
+  options: { adoptForeignKind?: boolean } = {}
+): {
   data: RalphFrontmatter;
   body: string;
 } {
   const parsed = parseSharedFrontmatter(content);
 
   return {
-    data: parseFrontmatterData(parsed.frontmatter),
+    data: parseFrontmatterData(parsed.frontmatter, options),
     body: parsed.body.startsWith("\n") ? parsed.body.slice(1) : parsed.body
   };
 }
@@ -173,13 +177,19 @@ function createDefaultFrontmatter(): RalphFrontmatter {
   };
 }
 
-export function parseFrontmatterData(value: unknown): RalphFrontmatter {
+export function parseFrontmatterData(
+  value: unknown,
+  options: { adoptForeignKind?: boolean } = {}
+): RalphFrontmatter {
   const defaults = createDefaultFrontmatter();
   const parsed = isRecord(value) ? value : undefined;
-  if (parsed !== undefined) {
+  if (parsed !== undefined && !options.adoptForeignKind) {
     const kind = getOwnEntry(parsed, "kind");
     if (kind !== undefined && kind !== "ralph") {
-      throw new Error('Invalid Ralph frontmatter: "kind" must be "ralph".');
+      throw new FrontmatterKindError('Invalid Ralph frontmatter: "kind" must be "ralph".', {
+        expected: "ralph",
+        found: typeof kind === "string" ? kind : JSON.stringify(kind)
+      });
     }
   }
   const { state, iteration } = parseStatusFields(parsed, defaults.status);

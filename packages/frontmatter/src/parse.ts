@@ -22,6 +22,27 @@ export class FrontmatterParseError extends Error {
   }
 }
 
+export class FrontmatterKindError extends FrontmatterParseError {
+  readonly expectedKind: string;
+  readonly foundKind: string;
+
+  constructor(message: string, kinds: { expected: string; found: string }) {
+    super(message);
+    this.name = "FrontmatterKindError";
+    this.expectedKind = kinds.expected;
+    this.foundKind = kinds.found;
+  }
+}
+
+export function isFrontmatterKindError(error: unknown): error is FrontmatterKindError {
+  return (
+    error instanceof Error &&
+    error.name === "FrontmatterKindError" &&
+    typeof (error as { expectedKind?: unknown }).expectedKind === "string" &&
+    typeof (error as { foundKind?: unknown }).foundKind === "string"
+  );
+}
+
 export function parseFrontmatter(
   source: string,
   options: ParseFrontmatterOptions = {}

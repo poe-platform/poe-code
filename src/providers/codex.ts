@@ -33,6 +33,8 @@ type CodexUnconfigureContext = {
 
 const PROFILE_KEYWORDS = ["opus", "sonnet", "haiku", "codex", "pro"] as const;
 const CODEX_OPENAI_PROVIDER_ID = "openai";
+/** Levels the Codex CLI accepts for model_reasoning_effort. */
+const CODEX_EFFORT_LEVELS = ["minimal", "low", "medium", "high", "xhigh"];
 
 export function deriveCodexProfileName(model: string): string {
   const stripped = stripModelNamespace(model);
@@ -199,19 +201,19 @@ function isTableEmpty(value: unknown): value is ConfigObject {
 const baseCodexService = createProvider<CodexConfigureContext, CodexUnconfigureContext>({
   ...codexAgent,
   supportsStdinPrompt: true,
+  configurePrompts: {
+    reasoningEffort: {
+      label: "Codex reasoning effort",
+      levels: CODEX_EFFORT_LEVELS
+    }
+  },
   extendConfigurePayload({ commandOptions, logger }) {
     const model = resolveOptionalCodexText(commandOptions.model);
-    const reasoningEffort = resolveOptionalCodexText(commandOptions.reasoningEffort);
-    const extension: Record<string, string> = {};
-    if (model !== undefined) {
-      logger.resolved("Codex model", model);
-      extension.model = model;
+    if (model === undefined) {
+      return undefined;
     }
-    if (reasoningEffort !== undefined) {
-      logger.resolved("Codex reasoning effort", reasoningEffort);
-      extension.reasoningEffort = reasoningEffort;
-    }
-    return Object.keys(extension).length === 0 ? undefined : extension;
+    logger.resolved("Codex model", model);
+    return { model };
   },
   isolatedEnv: {
     agentBinary: codexAgent.binaryName!,

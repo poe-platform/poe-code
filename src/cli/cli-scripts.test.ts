@@ -1875,6 +1875,49 @@ describe("option resolvers", () => {
     sonnet: "anthropic/claude-sonnet-4.6"
   };
 
+  const effortLevels = ["none", "low", "medium", "high", "max"];
+
+  it("rejects an explicit reasoning effort that is absent from the levels", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveReasoning({
+        value: "xhigh",
+        levels: effortLevels,
+        label: "Claude Code reasoning effort"
+      })
+    ).rejects.toThrow(ValidationError);
+  });
+
+  it("lists the supported levels when an explicit reasoning effort is unknown", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveReasoning({
+        value: "bogus",
+        levels: effortLevels,
+        label: "Claude Code reasoning effort"
+      })
+    ).rejects.toThrow(
+      'Unknown reasoning effort "bogus" for Claude Code reasoning effort. Supported levels: none, low, medium, high, max.'
+    );
+  });
+
+  it("reports the resolved reasoning effort when the level is supported", async () => {
+    const resolvers = createResolvers();
+    const onResolve = vi.fn();
+
+    const result = await resolvers.resolveReasoning({
+      value: "low",
+      levels: effortLevels,
+      label: "Claude Code reasoning effort",
+      onResolve
+    });
+
+    expect(result).toBe("low");
+    expect(onResolve).toHaveBeenCalledWith("Claude Code reasoning effort", "low");
+  });
+
   it("rejects an explicit model that is absent from the catalog", async () => {
     const resolvers = createResolvers();
 

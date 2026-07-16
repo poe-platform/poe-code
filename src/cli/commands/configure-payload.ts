@@ -11,6 +11,7 @@ import {
   type CommandFlags
 } from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
+import { ValidationError } from "../errors.js";
 import { POE_PROVIDER_ID, type AuthProvider } from "@poe-code/providers";
 import type { ModelChoice, ModelChoices } from "../prompts.js";
 
@@ -113,15 +114,21 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     payload.model = model;
   }
 
-  const reasoningPrompt = adapter.configurePrompts?.reasoningEffort;
-  if (reasoningPrompt) {
-    const reasoningEffort = await container.options.resolveReasoning({
-      value: options.reasoningEffort,
-      assumeDefault: flags.assumeYes,
-      defaultValue: reasoningPrompt.defaultValue,
-      label: reasoningPrompt.label
+  const requestedReasoning = resolveNonEmpty(options.reasoningEffort);
+  if (requestedReasoning !== undefined) {
+    const reasoning = adapter.configurePrompts?.reasoningEffort;
+    if (!reasoning) {
+      throw new ValidationError(`${adapter.label} does not support --reasoning-effort.`);
+    }
+    payload.reasoningEffort = await container.options.resolveReasoning({
+      value: requestedReasoning,
+      levels:
+        typeof reasoning.levels === "function"
+          ? reasoning.levels(payload.model as string | undefined)
+          : reasoning.levels,
+      label: reasoning.label,
+      onResolve: (label, value) => logger.resolved(label, value)
     });
-    payload.reasoningEffort = reasoningEffort;
   }
 
   const extension = flags.dryRun

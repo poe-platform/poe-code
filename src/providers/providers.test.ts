@@ -7,6 +7,7 @@ import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderContext } from "../cli/service-registry.js";
 import type { HttpClient } from "../cli/http.js";
 import { createCliEnvironment } from "../cli/environment.js";
+import { resolveProviderRuntimeEnv } from "../cli/isolated-env.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
 import { createLoggerFactory } from "../cli/logger.js";
 import {
@@ -18,6 +19,7 @@ import {
 import { createCliContainer } from "../cli/container.js";
 import { buildProviderContext, createExecutionResources } from "../cli/commands/shared.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
+import { getCurrentExecutionContext } from "../utils/execution-context.js";
 import * as claudeService from "./claude-code.js";
 import * as codexService from "./codex.js";
 import * as kimiService from "./kimi.js";
@@ -303,6 +305,25 @@ describe("claude-code service", () => {
       },
       model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
+  });
+
+  it("writes the requested reasoning effort as effortLevel", async () => {
+    await configureClaude({ reasoningEffort: "low" });
+
+    const parsed = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
+    expect(parsed.effortLevel).toBe("low");
+  });
+
+  it("leaves effortLevel untouched when no reasoning effort is requested", async () => {
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify({ effortLevel: "high" }, null, 2), {
+      encoding: "utf8"
+    });
+
+    await configureClaude();
+
+    const parsed = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
+    expect(parsed.effortLevel).toBe("high");
   });
 
   it("uses provider.baseUrl override for ANTHROPIC_BASE_URL", async () => {
@@ -979,9 +1000,19 @@ describe("codex service", () => {
 
     await codexService.codexService.test?.(context);
 
+    // The hook bridge re-invokes this CLI through the resolved host command
+    // rather than a bare "poe-code" on PATH, so derive the expectation the same way.
+    const host = getCurrentExecutionContext(import.meta.url).command;
+
     expect(runCommand).toHaveBeenCalledWith(
-      "poe-code",
-      expect.arrayContaining(["spawn", "--hooks-from", "claude-code", "codex"])
+      host.command,
+      expect.arrayContaining([
+        ...host.args,
+        "spawn",
+        "--hooks-from",
+        "claude-code",
+        "codex"
+      ])
     );
   });
 
@@ -1855,6 +1886,27 @@ describe("gemini-cli service", () => {
   beforeEach(() => {
     mockFsObj = createMockFs({}, homeDir);
     env = createCliEnvironment({ cwd: homeDir, homeDir });
+  });
+
+  it("declares runtime env so non-isolated runs receive the provider credential", () => {
+    expect(geminiCliService.provider.runtimeEnv).toEqual({
+      GEMINI_API_KEY: { kind: "providerCredential" },
+      GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" }
+    });
+  });
+
+  it("resolves the active provider credential and base URL into the Gemini runtime env", async () => {
+    await expect(
+      resolveProviderRuntimeEnv(
+        env,
+        geminiCliService.provider.runtimeEnv!,
+        "gemini-cli",
+        buildConfigureOptions().provider
+      )
+    ).resolves.toEqual({
+      GEMINI_API_KEY: "sk-test",
+      GOOGLE_GEMINI_BASE_URL: "https://gateway.example.com/google-ai-studio"
+    });
   });
 
   it("declares Gemini wrapper capabilities and isolated environment", () => {

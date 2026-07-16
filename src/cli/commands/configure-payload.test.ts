@@ -559,6 +559,120 @@ describe("createConfigurePayload — model choices", () => {
     expect(payload.model).toBe("model-only-on-the-server");
   });
 
+  it("applies an explicit reasoning effort to the payload", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: { model: "sonnet", reasoningEffort: "low" },
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    })) as Record<string, unknown>;
+
+    expect(payload.reasoningEffort).toBe("low");
+  });
+
+  it("rejects a reasoning effort the selected model does not support", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    await expect(
+      createConfigurePayload({
+        container,
+        flags: defaultFlags,
+        options: { model: "sonnet", reasoningEffort: "xhigh" },
+        context,
+        adapter,
+        logger: resources.logger,
+        providerId: "poe"
+      })
+    ).rejects.toThrow(/Unknown reasoning effort "xhigh"/);
+  });
+
+  it("accepts a reasoning effort only the selected model supports", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: { model: "opus", reasoningEffort: "xhigh" },
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    })) as Record<string, unknown>;
+
+    expect(payload.reasoningEffort).toBe("xhigh");
+  });
+
+  it("rejects a reasoning effort for an agent that does not support it", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = createProviderStub({
+      name: "opencode",
+      label: "No Effort Service",
+      configurePrompts: {
+        model: {
+          label: "No effort model",
+          defaultValue: "model-a"
+        }
+      }
+    });
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    await expect(
+      createConfigurePayload({
+        container,
+        flags: defaultFlags,
+        options: { reasoningEffort: "low" },
+        context,
+        adapter,
+        logger: resources.logger,
+        providerId: "poe"
+      })
+    ).rejects.toThrow(/No Effort Service does not support --reasoning-effort/);
+  });
+
+  it("leaves the payload without reasoning effort when the flag is absent", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: { model: "sonnet" },
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    })) as Record<string, unknown>;
+
+    expect(payload).not.toHaveProperty("reasoningEffort");
+  });
+
   it("calls an async model choices resolver once per configure run", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");

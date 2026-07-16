@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, onTestFinished } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import { Command } from "commander";
@@ -186,10 +186,22 @@ describe("configure command", () => {
     expect(httpClient).not.toHaveBeenCalled();
   });
 
+  function stubConfigurePrompts(
+    container: ReturnType<typeof createContainer>["container"],
+    service: string,
+    configurePrompts: unknown
+  ): void {
+    const provider = container.registry.require(service) as any;
+    const original = provider.configurePrompts;
+    onTestFinished(() => {
+      provider.configurePrompts = original;
+    });
+    provider.configurePrompts = configurePrompts;
+  }
+
   it("uses provider-defined prompt metadata for configure flows", async () => {
     const { container } = createContainer();
-    const provider = container.registry.require("codex") as any;
-    provider.configurePrompts = {
+    stubConfigurePrompts(container, "codex", {
       model: {
         label: "Custom Codex model",
         defaultValue: "custom-model",
@@ -197,9 +209,9 @@ describe("configure command", () => {
       },
       reasoningEffort: {
         label: "Custom reasoning label",
-        defaultValue: "extra"
+        levels: ["extra"]
       }
-    };
+    });
 
     const resolveModel = vi
       .spyOn(container.options, "resolveModel")
@@ -212,13 +224,13 @@ describe("configure command", () => {
       .spyOn(container.options, "resolveReasoning")
       .mockImplementation(async (input) => {
         expect(input.label).toBe("Custom reasoning label");
-        expect(input.defaultValue).toBe("extra");
-        return input.defaultValue;
+        expect(input.levels).toEqual(["extra"]);
+        return input.value;
       });
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
 
     const program = createTestProgram();
-    await executeConfigure(program, container, "codex", {});
+    await executeConfigure(program, container, "codex", { reasoningEffort: "extra" });
 
     expect(resolveModel).toHaveBeenCalled();
     expect(resolveReasoning).toHaveBeenCalled();
@@ -226,6 +238,9 @@ describe("configure command", () => {
 
   it("prefills the configure model prompt from stored agent config", async () => {
     const { container } = createContainer();
+    stubConfigurePrompts(container, "codex", {
+      model: { label: "Codex model", defaultValue: "openai/gpt-5.4-codex" }
+    });
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       configPath,
@@ -234,9 +249,7 @@ describe("configure command", () => {
     );
 
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
-      async ({ defaultValue }) => defaultValue
-    );
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value }) => value);
 
     const resolveModel = vi
       .spyOn(container.options, "resolveModel")
@@ -253,6 +266,9 @@ describe("configure command", () => {
 
   it("prefills the configure model prompt from the stored global model config", async () => {
     const { container } = createContainer();
+    stubConfigurePrompts(container, "codex", {
+      model: { label: "Codex model", defaultValue: "openai/gpt-5.4-codex" }
+    });
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       configPath,
@@ -261,9 +277,7 @@ describe("configure command", () => {
     );
 
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
-      async ({ defaultValue }) => defaultValue
-    );
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value }) => value);
 
     const resolveModel = vi
       .spyOn(container.options, "resolveModel")
@@ -431,6 +445,8 @@ describe("configure command", () => {
 
     expect(logs).toEqual([
       "configure claude-code",
+      "Poe anthropic-messages base URL: https://api.poe.com/anthropic",
+      "Claude Code base URL: https://api.poe.com",
       "Configured Claude Code.",
       "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
       "Problems? https://github.com/poe-platform/poe-code/issues"

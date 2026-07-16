@@ -5,7 +5,6 @@ import {
   renderLabelDocument
 } from "../tools/label-generator.js";
 import { createPromptLibrary } from "./prompts.js";
-import { DEFAULT_REASONING } from "./constants.js";
 import { createLoggerFactory } from "./logger.js";
 import { createMutationReporter } from "../services/mutation-events.js";
 import { createCliContainer } from "./container.js";
@@ -109,15 +108,6 @@ describe("prompt library", () => {
     expect(descriptor.type).toBe("text");
   });
 
-  it("builds a reasoning descriptor with a provider-defined label", () => {
-    const library = createPromptLibrary();
-    const descriptor = library.reasoningEffort({
-      label: "Codex reasoning effort",
-      defaultValue: DEFAULT_REASONING
-    });
-    expect(descriptor.message).toBe("Codex reasoning effort");
-    expect(descriptor.initial).toBe(DEFAULT_REASONING);
-  });
 });
 
 // verbose-flag

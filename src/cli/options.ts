@@ -49,10 +49,11 @@ export interface ResolveModelInput {
 }
 
 export interface ResolveReasoningInput {
-  value?: string;
-  assumeDefault?: boolean;
-  defaultValue: string;
+  value: string;
+  /** Levels the selected model accepts; anything else is rejected. */
+  levels: ReadonlyArray<string>;
   label: string;
+  onResolve?: (label: string, value: string) => void;
 }
 
 export interface OptionResolvers {
@@ -276,18 +277,18 @@ export function createOptionResolvers(
 
   const resolveReasoning = async ({
     value,
-    assumeDefault,
-    defaultValue,
-    label
-  }: ResolveReasoningInput): Promise<string> =>
-    await ensure({
-      value,
-      descriptor: init.promptLibrary.reasoningEffort({
-        label,
-        defaultValue
-      }),
-      fallback: assumeDefault ? defaultValue : undefined
-    });
+    levels,
+    label,
+    onResolve
+  }: ResolveReasoningInput): Promise<string> => {
+    if (!levels.includes(value)) {
+      throw new ValidationError(
+        `Unknown reasoning effort "${value}" for ${label}. Supported levels: ${levels.join(", ")}.`
+      );
+    }
+    onResolve?.(label, value);
+    return value;
+  };
 
   const resolveConfigName = async (
     value: string | undefined,

@@ -36,9 +36,14 @@ export interface ResolvedModelPromptInput {
   choices?: ReadonlyArray<ModelChoice>;
 }
 
-export interface ReasoningPromptInput {
+/** Levels an agent accepts, as a function when support varies by model. */
+export type ReasoningLevels =
+  | ReadonlyArray<string>
+  | ((model: string | undefined) => ReadonlyArray<string>);
+
+export interface ReasoningEffortInput {
   label: string;
-  defaultValue: string;
+  levels: ReasoningLevels;
 }
 
 export interface ServiceSelectionInput {
@@ -50,7 +55,6 @@ export interface PromptLibrary {
   loginApiKey(): PromptDescriptor<"apiKey">;
   providerBaseUrl(label: string): PromptDescriptor<"baseUrl">;
   model(input: ResolvedModelPromptInput): PromptDescriptor<"model">;
-  reasoningEffort(input: ReasoningPromptInput): PromptDescriptor<"reasoningEffort">;
   configName(defaultName: string): PromptDescriptor<"configName">;
   serviceSelection(
     input: ServiceSelectionInput
@@ -96,13 +100,6 @@ export function createPromptLibrary(): PromptLibrary {
         choices
       });
     },
-    reasoningEffort: ({ label, defaultValue }) =>
-      describe({
-        name: "reasoningEffort",
-        message: label,
-        type: "text",
-        initial: defaultValue
-      }),
     configName: (defaultName: string) =>
       describe({
         name: "configName",

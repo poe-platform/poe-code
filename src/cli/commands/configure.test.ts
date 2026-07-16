@@ -136,9 +136,7 @@ function mockOptions(container: ReturnType<typeof createContainer>) {
   vi.spyOn(container.options, "resolveModel").mockImplementation(
     async ({ defaultValue }) => defaultValue
   );
-  vi.spyOn(container.options, "resolveReasoning").mockImplementation(
-    async ({ defaultValue }) => defaultValue
-  );
+  vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value }) => value);
 }
 
 function stubInvoke(container: ReturnType<typeof createContainer>) {
@@ -290,9 +288,7 @@ describe("configure provider resolution", () => {
     const resolveModelSpy = vi.spyOn(container.options, "resolveModel").mockImplementation(
       async ({ defaultValue }) => defaultValue
     );
-    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
-      async ({ defaultValue }) => defaultValue
-    );
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value }) => value);
     stubInvoke(container);
 
     const program = createBaseProgram();
@@ -1224,8 +1220,73 @@ describe("configure provider resolution", () => {
     ]);
 
     expect(capture.provider()).toMatchObject({
-      baseUrl: "https://proxy.example/anthropic"
+      baseUrl: "https://proxy.example/anthropic",
+      agentBaseUrl: "https://proxy.example"
     });
+  });
+
+  it("applies explicit --base-url to the agent base URL", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "configure",
+      "claude-code",
+      "--provider",
+      "poe",
+      "--base-url",
+      "https://example.invalid"
+    ]);
+
+    expect(capture.provider()?.agentBaseUrl).toBe("https://example.invalid");
+  });
+
+  it("applies explicit --shape-base-url to the agent base URL for the resolved shape", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "configure",
+      "claude-code",
+      "--provider",
+      "poe",
+      "--base-url",
+      "https://generic.example/anth",
+      "--shape-base-url",
+      "anthropic-messages=https://shape.example/anth"
+    ]);
+
+    expect(capture.provider()?.agentBaseUrl).toBe("https://shape.example/anth");
+  });
+
+  it("prefers an explicit --base-url over POE_BASE_URL for the agent base URL", async () => {
+    const container = createContainer(fs, {
+      POE_API_KEY: "sk-env",
+      POE_BASE_URL: "https://env.example/v1"
+    });
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "poe",
+      baseUrl: "https://flag.example"
+    });
+
+    expect(capture.provider()?.agentBaseUrl).toBe("https://flag.example");
   });
 
   it("uses explicit --shape-base-url before --base-url for the resolved shape", async () => {

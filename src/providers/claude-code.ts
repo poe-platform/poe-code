@@ -21,6 +21,13 @@ import type { ActiveProvider } from "../cli/commands/shared.js";
 type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
   provider: ActiveProvider;
+  reasoningEffort?: string;
+};
+
+/** Catalog output_effort enum shared by the Claude models Poe exposes. */
+const CLAUDE_CODE_EFFORT_LEVELS = ["none", "low", "medium", "high", "max"];
+const CLAUDE_CODE_MODEL_EFFORT_LEVELS: Readonly<Record<string, ReadonlyArray<string>>> = {
+  [CLAUDE_CODE_VARIANTS.opus]: ["none", "low", "medium", "high", "xhigh", "max"]
 };
 
 type ClaudeCodeUnconfigureContext = {
@@ -68,6 +75,12 @@ export const claudeCodeService = createProvider<
       })),
       aliases: CLAUDE_CODE_VARIANTS,
       strictChoices: true
+    },
+    reasoningEffort: {
+      label: "Claude Code reasoning effort",
+      levels: (model) =>
+        CLAUDE_CODE_MODEL_EFFORT_LEVELS[model ?? DEFAULT_CLAUDE_CODE_MODEL] ??
+        CLAUDE_CODE_EFFORT_LEVELS
     }
   },
   postConfigureMessages: [
@@ -117,7 +130,10 @@ export const claudeCodeService = createProvider<
               ...options.provider?.extraEnv,
               ANTHROPIC_BASE_URL: options.provider?.agentBaseUrl ?? options.provider?.baseUrl
             },
-            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-")
+            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-"),
+            ...(options.reasoningEffort === undefined
+              ? {}
+              : { effortLevel: options.reasoningEffort })
           };
         }
       })
@@ -135,7 +151,8 @@ export const claudeCodeService = createProvider<
             ANTHROPIC_DEFAULT_SONNET_MODEL: true,
             ANTHROPIC_DEFAULT_OPUS_MODEL: true
           },
-          model: true
+          model: true,
+          effortLevel: true
         }
       }),
       fileMutation.restoreBackup({ target: "~/.claude/settings.json" })

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { isNotFound } from "@poe-code/config-mutations";
+import { UserError } from "@poe-code/user-error";
 import type { CliEnvironment } from "./environment.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type {
@@ -21,10 +22,15 @@ export interface IsolatedEnvDetails {
   configProbePath?: string;
 }
 
-function missingActiveProviderError(reference: string): Error {
-  return new Error(
-    `Cannot resolve "${reference}": no provider is configured for this agent. ` +
-      "Run `poe-code configure <agent> --provider <provider>` first, " +
+/**
+ * Names the agent when the caller knows it: which internal reference failed to
+ * resolve is a detail of this module, but which agent to configure is the whole
+ * recovery step.
+ */
+function missingActiveProviderError(agent?: string): UserError {
+  return new UserError(
+    `No provider is configured for ${agent ? `"${agent}"` : "this agent"}. ` +
+      `Run \`poe-code configure ${agent ?? "<agent>"} --provider <provider>\` first, ` +
       "adding `--base-url <url>` when the provider requires a gateway base URL."
   );
 }
@@ -47,7 +53,7 @@ export async function resolveIsolatedEnvDetails(
   }
   return {
     agentBinary: isolated.agentBinary,
-    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, activeProvider),
+    env: await resolveIsolatedEnvVars(env, baseDir, isolated.env, providerName, activeProvider),
     configProbePath: isolated.configProbe
       ? resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
       : undefined
@@ -64,6 +70,7 @@ export async function resolveProviderRuntimeEnv(
     env,
     resolveIsolatedBaseDir(env, providerName),
     vars,
+    providerName,
     activeProvider
   );
 }
@@ -107,11 +114,12 @@ async function resolveIsolatedEnvVars(
   env: CliEnvironment,
   baseDir: string,
   vars: Record<string, IsolatedEnvValue>,
+  agent: string,
   activeProvider?: ActiveProvider
 ): Promise<Record<string, string>> {
   const out = Object.create(null) as Record<string, string>;
   for (const [key, value] of Object.entries(vars)) {
-    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, activeProvider);
+    out[key] = await resolveIsolatedEnvValue(env, baseDir, value, agent, activeProvider);
   }
   return out;
 }
@@ -120,6 +128,7 @@ async function resolveIsolatedEnvValue(
   env: CliEnvironment,
   baseDir: string,
   value: IsolatedEnvValue,
+  agent: string,
   activeProvider?: ActiveProvider
 ): Promise<string> {
   if (typeof value === "string") {
@@ -136,19 +145,19 @@ async function resolveIsolatedEnvValue(
   }
   if (isProviderCredentialReference(value)) {
     if (!activeProvider) {
-      throw missingActiveProviderError("providerCredential");
+      throw missingActiveProviderError(agent);
     }
     return `${value.prefix ?? ""}${activeProvider.credential}`;
   }
   if (isProviderBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw missingActiveProviderError("providerBaseUrl");
+      throw missingActiveProviderError(agent);
     }
     return activeProvider.baseUrl;
   }
   if (isAgentBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw missingActiveProviderError("agentBaseUrl");
+      throw missingActiveProviderError(agent);
     }
     return activeProvider.agentBaseUrl;
   }
@@ -279,19 +288,19 @@ async function resolveCliSettingValue(
 ): Promise<string> {
   if (isProviderCredentialReference(value)) {
     if (!activeProvider) {
-      throw missingActiveProviderError("providerCredential");
+      throw missingActiveProviderError();
     }
     return `${value.prefix ?? ""}${activeProvider.credential}`;
   }
   if (isProviderBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw missingActiveProviderError("providerBaseUrl");
+      throw missingActiveProviderError();
     }
     return activeProvider.baseUrl;
   }
   if (isAgentBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw missingActiveProviderError("agentBaseUrl");
+      throw missingActiveProviderError();
     }
     return activeProvider.agentBaseUrl;
   }

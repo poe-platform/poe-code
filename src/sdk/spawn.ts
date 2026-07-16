@@ -1,6 +1,6 @@
 import * as nodeFs from "node:fs/promises";
 import os from "node:os";
-import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
+import { assertUsableThreadId, resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 import { ValidationError } from "../cli/errors.js";
 import { formatAgentCapabilityError } from "@poe-code/agent-defs";
@@ -71,6 +71,13 @@ export function spawn(
     typeof promptOrOptions === "string"
       ? { ...maybeOptions, prompt: promptOrOptions }
       : promptOrOptions;
+
+  // Checked before any branch runs: every spawn path forwards this id to the
+  // agent's own --resume, and a worktree must not be created for a run that
+  // cannot start.
+  if (options.resumeThreadId !== undefined) {
+    assertUsableThreadId(options.resumeThreadId);
+  }
 
   if (isWorktreeEnabled(options.worktree)) {
     const worktreeOptions = options.worktree ?? true;

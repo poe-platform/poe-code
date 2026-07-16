@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { isUserError } from "@poe-code/user-error";
 import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
@@ -2594,6 +2595,61 @@ describe("spawn command", () => {
     );
 
     expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("names the empty prompt file instead of claiming no prompt was provided", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, "empty.md");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(filePath, "   \n", { encoding: "utf8" });
+
+    const error = await program
+      .parseAsync(["node", "cli", "spawn", "codex", "@empty.md"])
+      .then(() => undefined)
+      .catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain(filePath);
+    expect((error as Error).message).toContain("empty");
+    expect((error as Error).message).not.toContain("No prompt provided via argument or stdin");
+    expect(isUserError(error)).toBe(true);
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("reports a missing prompt as a user error, not a system failure", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    const stdinStream = Readable.from([Buffer.from("")]);
+    Object.defineProperty(stdinStream, "isTTY", { value: false });
+    const stdinSpy = vi
+      .spyOn(process, "stdin", "get")
+      .mockReturnValue(stdinStream as NodeJS.ReadStream);
+
+    try {
+      const error = await program
+        .parseAsync(["node", "cli", "spawn", "codex"])
+        .then(() => undefined)
+        .catch((thrown: unknown) => thrown);
+
+      expect(isUserError(error)).toBe(true);
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    } finally {
+      stdinSpy.mockRestore();
+    }
   });
 
   it("treats stdin starting with @ as literal prompt text, not a file reference", async () => {

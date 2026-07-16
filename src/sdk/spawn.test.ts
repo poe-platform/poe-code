@@ -71,6 +71,7 @@ import {
   spawnLog
 } from "@poe-code/agent-spawn";
 import { spawnCore } from "./spawn-core.js";
+import { isUserError } from "@poe-code/user-error";
 import { createSdkContainer } from "./container.js";
 import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
@@ -175,6 +176,26 @@ async function collectEvents(events: AsyncIterable<unknown>): Promise<unknown[]>
 }
 
 describe("SDK spawn()", () => {
+  it.each([
+    ["an id containing spaces", "not a real id"],
+    ["a blank id", "  "],
+    ["a flag-shaped id", "--resume"]
+  ])("rejects %s for resumeThreadId before reaching the agent", (_label, resumeThreadId) => {
+    let thrown: unknown;
+    try {
+      spawn("claude", "hello", { mode: "read", resumeThreadId });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isUserError(thrown)).toBe(true);
+    expect((thrown as Error).message).toContain("--resume-thread-id");
+    expect(spawnStreaming).not.toHaveBeenCalled();
+    expect(agentSpawn).not.toHaveBeenCalled();
+    expect(spawnAcp).not.toHaveBeenCalled();
+    expect(spawnCore).not.toHaveBeenCalled();
+  });
+
   it("spawns Pi through the declarative streaming path without a provider registry entry", async () => {
     delete process.env.POE_API_KEY;
     vi.mocked(getSpawnConfig).mockReturnValue({

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { UserError } from "@poe-code/user-error";
 
 import {
   isHarnessSpawnErrorRetryable,
@@ -37,6 +38,14 @@ describe("harness spawn retry policy", () => {
     ).toBe(false);
     expect(
       isHarnessSpawnResultRetryable({ exitCode: 2, stderr: "network reset", summary: "" })
+    ).toBe(false);
+  });
+
+  it("never retries a user error, whatever its wording", () => {
+    expect(
+      isHarnessSpawnErrorRetryable(
+        new UserError('No provider is configured for "gemini". Run `poe-code configure gemini`.')
+      )
     ).toBe(false);
   });
 

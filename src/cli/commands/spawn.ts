@@ -19,6 +19,7 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
+import { UserError } from "@poe-code/user-error";
 import {
   bridgeActiveSkills,
   cleanupBridgedSkills,
@@ -246,7 +247,9 @@ export function registerSpawnCommand(
       }
 
       if (!promptText && !commandOptions.interactive) {
-        throw new Error("No prompt provided via argument or stdin");
+        throw new UserError(
+          "No prompt provided. Pass it as an argument, pipe it in with --stdin, or use -i for an interactive session."
+        );
       }
       const prompt = promptText ?? "";
       // Resolve the agent before the mode. Otherwise a missing or unknown agent is
@@ -660,14 +663,24 @@ async function resolvePromptInput(input: string, fs: FileSystem, baseDir: string
 
   const filePath = path.isAbsolute(rawPath) ? rawPath : path.join(baseDir, rawPath);
 
+  let contents: string;
   try {
-    const contents = await fs.readFile(filePath, "utf8");
-    return contents.trim();
+    contents = await fs.readFile(filePath, "utf8");
   } catch (error) {
     throw new ValidationError(
       `prompt could not read file "${filePath}": ${(error as Error).message}`
     );
   }
+
+  const prompt = contents.trim();
+  // The file was found; saying "no prompt provided" here would send the user
+  // looking for a missing argument instead of at the file they pointed at.
+  if (prompt.length === 0) {
+    throw new UserError(
+      `prompt file "${filePath}" is empty. Write the prompt into the file, or pass the prompt as an argument instead.`
+    );
+  }
+  return prompt;
 }
 
 function getCustomSpawnHandler(

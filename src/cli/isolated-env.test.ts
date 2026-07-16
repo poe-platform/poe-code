@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { isUserError } from "@poe-code/user-error";
 import { resolveIsolatedEnvDetails, resolveProviderRuntimeEnv, resolveCliSettings } from "./isolated-env.js";
 import { createCliEnvironment } from "./environment.js";
 import type { ActiveProvider } from "./commands/shared.js";
@@ -46,6 +47,24 @@ describe("resolveIsolatedEnvDetails", () => {
       await expect(failure).rejects.toThrow(/poe-code configure/);
       await expect(failure).rejects.toThrow(/--provider/);
       await expect(failure).rejects.toThrow(/--base-url/);
+    });
+
+    it("reports the missing provider as a user error naming the agent, without resolver jargon", async () => {
+      const error = await resolveIsolatedEnvDetails(
+        makeEnv(),
+        { ...baseIsolated, env: { MY_KEY: { kind: "providerCredential" as const } } },
+        "gemini"
+      )
+        .then(() => undefined)
+        .catch((thrown: unknown) => thrown);
+
+      expect(isUserError(error)).toBe(true);
+      const message = (error as Error).message;
+      expect(message).toContain("gemini");
+      expect(message).toContain("poe-code configure gemini");
+      expect(message).not.toContain("Cannot resolve");
+      expect(message).not.toContain("providerCredential");
+      expect(message).not.toContain("context");
     });
 
     it("supports a declarative prefix", async () => {

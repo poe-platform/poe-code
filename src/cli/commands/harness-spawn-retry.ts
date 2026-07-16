@@ -1,3 +1,5 @@
+import { isUserError } from "@poe-code/user-error";
+
 export function isHarnessSpawnResultRetryable(result: {
   exitCode: number;
   stderr: string;
@@ -16,6 +18,9 @@ export function isHarnessSpawnErrorRetryable(error: unknown): boolean {
   const message = formatUnknownError(error);
   const normalized = message.toLowerCase();
   return !(
+    // A user error is a decided verdict on the input: retrying re-runs the same
+    // mistake. Checked by identity so the copy is free to change.
+    isUserError(error) ||
     message.startsWith("Unknown service ") ||
     message.startsWith("Unknown agent ") ||
     isPermanentCredentialError(message) ||

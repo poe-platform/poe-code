@@ -5,6 +5,7 @@ import {
   parseAgentSpecifier
 } from "@poe-code/agent-defs";
 import { resolveConfigModel } from "@poe-code/poe-code-config";
+import { UserError } from "@poe-code/user-error";
 import type { CliContainer } from "../cli/container.js";
 import { ValidationError } from "../cli/errors.js";
 import type { SpawnResult } from "./types.js";
@@ -64,6 +65,10 @@ export async function spawnCore(
   const adapter = container.registry.get(service);
   if (!adapter) {
     throw new ValidationError(formatAgentCapabilityError({ agent: service, capability: "spawn" }));
+  }
+
+  if (options.resumeThreadId !== undefined) {
+    assertUsableThreadId(options.resumeThreadId);
   }
 
   const model = await resolveConfiguredModel(container, service, options.model, {
@@ -148,6 +153,32 @@ export async function spawnCore(
     };
   } finally {
     await workspace.cleanup?.().catch(() => undefined);
+  }
+}
+
+/**
+ * Agents disagree on thread id format (UUIDs, `thr_`/`ses_` prefixes), so only the
+ * shapes no agent can accept are rejected here. Left unchecked, these reach the
+ * agent's own `--resume` and come back as its usage text about a flag the user
+ * never typed.
+ */
+export function assertUsableThreadId(threadId: string): void {
+  if (threadId.trim().length === 0) {
+    throw new UserError(
+      "--resume-thread-id is empty. Pass the thread id printed at the end of the run you want to resume."
+    );
+  }
+  if (/[\s\u0000-\u001f]/.test(threadId)) {
+    throw new UserError(
+      `--resume-thread-id "${threadId}" is not a thread id: it contains whitespace. ` +
+        "Pass the thread id printed at the end of the run you want to resume."
+    );
+  }
+  if (threadId.startsWith("-")) {
+    throw new UserError(
+      `--resume-thread-id "${threadId}" looks like a flag, not a thread id. ` +
+        "Pass the thread id printed at the end of the run you want to resume."
+    );
   }
 }
 

@@ -30,6 +30,14 @@ import type { RunLifecycle } from "../snapshot/dump.js";
 
 const AsyncFunction = (async () => undefined).constructor;
 
+const hostErrorMetadata = {
+  code: "string",
+  dest: "string",
+  errno: "number",
+  path: "string",
+  syscall: "string"
+} as const;
+
 type CallerInjectedFunction = {
   bivarianceHack(...args: readonly unknown[]): unknown;
 }["bivarianceHack"];
@@ -320,8 +328,34 @@ function createHostErrorValue(
           chargeBudget: false
         });
 
+  if (reason instanceof Error) {
+    copyHostErrorMetadata(error, reason, budget);
+  }
+
   attachErrorSpan(error, span);
   return error;
+}
+
+function copyHostErrorMetadata(error: SandboxObject, reason: Error, budget: Budget): void {
+  const resumeChecks = budget.suspendChecks();
+
+  try {
+    for (const [key, expectedType] of Object.entries(hostErrorMetadata)) {
+      const descriptor = Object.getOwnPropertyDescriptor(reason, key);
+      if (descriptor === undefined || "get" in descriptor || "set" in descriptor) {
+        continue;
+      }
+
+      const value = descriptor.value as unknown;
+      if (typeof value !== expectedType) {
+        continue;
+      }
+
+      error[key] = typeof value === "string" ? budget.allocateString(value) : (value as number);
+    }
+  } finally {
+    resumeChecks();
+  }
 }
 
 function wrapSandboxClosureForHost(

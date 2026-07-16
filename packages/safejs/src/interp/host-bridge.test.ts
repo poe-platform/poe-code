@@ -326,6 +326,185 @@ describe("host bridge", () => {
     });
   });
 
+  it("surfaces allowlisted host error metadata to sandbox catch blocks", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await copyFile();",
+        "} catch (error) {",
+        "  return [error.code, error.errno, error.syscall, error.path, error.dest].join('|');",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          async copyFile() {
+            throw Object.assign(
+              new Error("ENOENT: no such file or directory, copyfile 'a.txt' -> 'b.txt'"),
+              {
+                code: "ENOENT",
+                errno: -2,
+                syscall: "copyfile",
+                path: "a.txt",
+                dest: "b.txt"
+              }
+            );
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "ENOENT|-2|copyfile|a.txt|b.txt"
+    });
+  });
+
+  it("omits host error metadata the allowlist does not cover", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await explode();",
+        "} catch (error) {",
+        "  return typeof error.secret;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          async explode() {
+            throw Object.assign(new Error("boom"), { code: "EACCES", secret: "token" });
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "undefined"
+    });
+  });
+
+  it("omits allowlisted host error metadata whose type does not match", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await explode();",
+        "} catch (error) {",
+        "  return typeof error.code + ':' + typeof error.errno;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          async explode() {
+            throw Object.assign(new Error("boom"), { code: 42, errno: "-2" });
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "undefined:undefined"
+    });
+  });
+
+  it("keeps non-Error host rejections free of metadata", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await explode();",
+        "} catch (error) {",
+        "  return error.message + ':' + typeof error.code;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          async explode() {
+            throw { code: "ENOENT", message: "plain rejection" };
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "plain rejection:undefined"
+    });
+  });
+
+  it("surfaces host error metadata rejected from a nested host module function", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await fs.readFile('a.txt');",
+        "} catch (error) {",
+        "  return [error.code, error.errno, error.syscall, error.path].join('|');",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          fs: {
+            async readFile() {
+              throw Object.assign(new Error("ENOENT: no such file or directory, open 'a.txt'"), {
+                code: "ENOENT",
+                errno: -2,
+                syscall: "open",
+                path: "a.txt"
+              });
+            }
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({ ok: true, returnValue: "ENOENT|-2|open|a.txt" });
+  });
+
+  it("surfaces host error metadata from synchronous host throws", async () => {
+    const result = await run(
+      ["try {", "  boom();", "} catch (error) {", "  return error.code;", "}"].join("\n"),
+      {
+        bindings: {
+          boom() {
+            throw Object.assign(new Error("nope"), { code: "EACCES" });
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({ ok: true, returnValue: "EACCES" });
+  });
+
+  it("keeps the original host error when metadata is exposed through an accessor", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await explode();",
+        "} catch (error) {",
+        "  return error.message + ':' + typeof error.code;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          async explode() {
+            const error = new Error("original host failure");
+            Object.defineProperty(error, "code", {
+              enumerable: true,
+              get() {
+                throw new Error("accessor side effect");
+              }
+            });
+            throw error;
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "original host failure:undefined"
+    });
+  });
+
   it("rejects in-flight host promises when the host bridge signal aborts", async () => {
     const controller = new AbortController();
     const wrapped = wrapCallerInjectedBindings(

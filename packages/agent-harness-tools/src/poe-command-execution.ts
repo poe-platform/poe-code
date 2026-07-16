@@ -51,11 +51,25 @@ export function resolvePoeCommandExecution(input: {
   const config = applyRuntimeOverrides(loaded, input.runtime, runtimeConfigCwd);
   const resolved = resolveRuntime({ cwd: runtimeConfigCwd, config });
   const factory = selectExecutionEnv(resolved.runtime);
+
+  if (config.runner.detach && factory.supportsDetach !== true) {
+    throw new UnsupportedRuntimeCapabilityError(
+      `Detach was requested (--detach or runner.detach) but the "${factory.type}" runtime ` +
+        "cannot detach. Re-run with --runtime docker to detach, or drop --detach to run inline."
+    );
+  }
+  if (input.runtime?.runnerSync !== undefined && factory.supportsWorkspaceTransfer !== true) {
+    throw new UnsupportedRuntimeCapabilityError(
+      `--runner-sync was requested but the "${factory.type}" runtime has no ` +
+        "transferable workspace. Re-run with --runtime docker, or drop --runner-sync."
+    );
+  }
+
   const state = input.context?.state ?? loadState(homeDir);
 
   return {
     factory,
-    detach: factory.supportsDetach === true && config.runner.detach,
+    detach: config.runner.detach,
     state,
     openSpec: {
       cwd: input.cwd,
@@ -73,6 +87,14 @@ export function resolvePoeCommandExecution(input: {
       ...input.openSpec
     }
   };
+}
+
+/** Raised when a requested runner capability is not offered by the resolved execution env. */
+export class UnsupportedRuntimeCapabilityError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnsupportedRuntimeCapabilityError";
+  }
 }
 
 export interface LoadedRuntimeConfig extends ResolvedConfig {

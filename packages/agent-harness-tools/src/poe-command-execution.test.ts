@@ -1,5 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { applyRuntimeOverrides } from "./poe-command-execution.js";
+import { registerExecutionEnvFactory, type ExecutionEnvFactory } from "./execution-env.js";
+import { applyRuntimeOverrides, resolvePoeCommandExecution } from "./poe-command-execution.js";
+
+function registerStubExecutionEnv(
+  overrides: Pick<ExecutionEnvFactory, "type"> & Partial<ExecutionEnvFactory>
+): void {
+  registerExecutionEnvFactory({
+    async open() {
+      throw new Error("stub env is never opened");
+    },
+    async attach() {
+      throw new Error("stub env is never attached");
+    },
+    ...overrides
+  });
+}
+
+function resolveStubExecution(runtime: Parameters<typeof resolvePoeCommandExecution>[0]["runtime"]) {
+  return resolvePoeCommandExecution({
+    cwd: "/repo",
+    env: {},
+    argv: ["--print", "hi"],
+    tool: "claude",
+    runtime,
+    context: { homeDir: "/nonexistent-poe-home" }
+  });
+}
 
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -27,6 +53,45 @@ async function withObjectPrototypeProperties<T>(
     }
   }
 }
+
+describe("runtime capability validation", () => {
+  registerStubExecutionEnv({ type: "host", supportsDetach: false });
+  registerStubExecutionEnv({
+    type: "docker",
+    supportsDetach: true,
+    supportsWorkspaceTransfer: true
+  });
+
+  it("fails when detach is requested but the resolved runtime cannot detach", () => {
+    expect(() => resolveStubExecution({ detach: true })).toThrow(
+      /--detach.*"host".*--runtime docker/s
+    );
+  });
+
+  it("detaches when the resolved runtime supports detach", () => {
+    expect(
+      resolveStubExecution({ runtime: "docker", runtimeImage: "poe-code:test", detach: true })
+        .detach
+    ).toBe(true);
+  });
+
+  it("fails when runner sync is requested but the resolved runtime has no transferable workspace", () => {
+    expect(() => resolveStubExecution({ runnerSync: "none" })).toThrow(
+      /--runner-sync.*"host".*--runtime docker/s
+    );
+  });
+
+  it("keeps runner sync usable on a workspace runtime without detach", () => {
+    const resolved = resolveStubExecution({
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      runnerSync: "none"
+    });
+
+    expect(resolved.detach).toBe(false);
+    expect(resolved.openSpec.runner?.sync).toBe("none");
+  });
+});
 
 describe("runtime command execution overrides", () => {
   it("applies CLI/SDK runtime overrides after config resolution", () => {

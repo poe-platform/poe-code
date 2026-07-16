@@ -58,6 +58,7 @@ export {
 export {
   applyRuntimeOverrides,
   resolvePoeCommandExecution,
+  UnsupportedRuntimeCapabilityError,
   type RuntimeOverrideOptions
 } from "./poe-command-execution.js";
 export { skillPlanConfigSection } from "./skill-config.js";

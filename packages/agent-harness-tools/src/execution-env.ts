@@ -11,6 +11,8 @@ export type JobStatus = "running" | "exited" | "killed" | "lost";
 export interface ExecutionEnvFactory {
   readonly type: ExecutionEnvType;
   readonly supportsDetach?: boolean;
+  /** Whether uploadWorkspace/downloadWorkspace move real files, i.e. whether runner.sync means anything. */
+  readonly supportsWorkspaceTransfer?: boolean;
   open(spec: OpenSpec): Promise<OpenedEnv>;
   attach(envId: string, context?: AttachedJobContext): Promise<OpenedEnv>;
 }

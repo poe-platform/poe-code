@@ -22,8 +22,15 @@ execution.
 
 - `type`: runtime backend id, currently `host` or `docker`.
 - `supportsDetach`: true when the backend can leave an addressable environment running.
+- `supportsWorkspaceTransfer`: true when `uploadWorkspace`/`downloadWorkspace` move real files, i.e. when
+  `runner.sync` has any effect.
 - `open(spec)`: creates a fresh `OpenedEnv`.
 - `attach(envId, context)`: reconnects to an existing runtime environment.
+
+`resolvePoeCommandExecution` rejects requested runner capabilities the resolved backend does not offer,
+rather than downgrading them silently: it throws `UnsupportedRuntimeCapabilityError` when detach is
+requested but `supportsDetach` is not true, and when `runnerSync` is overridden but
+`supportsWorkspaceTransfer` is not true.
 
 `OpenedEnv` owns one command environment lifecycle:
 

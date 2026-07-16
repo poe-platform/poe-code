@@ -4,7 +4,7 @@ import type { CliContainer } from "../container.js";
 import { deleteConfig, loadConfiguredServices } from "../../services/config.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { confirmDestructive } from "./confirm-destructive.js";
-import { executeUnconfigure } from "./unconfigure.js";
+import { formatUnconfigureMessages, unconfigureAgent } from "./unconfigure.js";
 
 export const logoutScopeDescription =
   "Danger: full reset. Removes stored credentials for every logged-in account and removes configuration for ALL configured agents. Requires --yes to run non-interactively; preview with --dry-run.";
@@ -62,12 +62,27 @@ export async function executeLogout(program: Command, container: CliContainer): 
     }
   }
 
+  // One row per agent inside the logout panel: nesting an unconfigure panel per
+  // agent buries the factory-reset summary users must read before confirming.
   for (const serviceName of configuredAgents) {
     const adapter = container.registry.get(serviceName);
-    if (!adapter) {
+    if (!adapter || adapter.supportsConfigure === false) {
       continue;
     }
-    await executeUnconfigure(program, container, serviceName, { alreadyConfirmed: true });
+    const metadata = configuredServices[serviceName]!;
+    if (flags.dryRun) {
+      // A preview only needs the agents and files at stake, not every diff.
+      resources.logger.info(formatUnconfigureMessages(adapter, true, metadata.files).dry);
+      continue;
+    }
+    const unconfigured = await unconfigureAgent({
+      container,
+      adapter,
+      flags,
+      resources,
+      metadata
+    });
+    resources.logger.info(formatUnconfigureMessages(adapter, unconfigured, metadata.files).success);
   }
 
   const environmentCredential = container.env.getVariable("POE_API_KEY");

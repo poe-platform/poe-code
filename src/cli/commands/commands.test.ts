@@ -1095,6 +1095,92 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("POE_API_KEY"))).toBe(true);
     expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
   });
+
+  function registerLogoutAgents(container: ReturnType<typeof createCliContainer>): void {
+    container.registry.register(
+      createProviderStub({
+        name: "test-a",
+        label: "Test A",
+        async unconfigure() {
+          return true;
+        }
+      })
+    );
+    container.registry.register(
+      createProviderStub({
+        name: "test-b",
+        label: "Test B",
+        async unconfigure() {
+          return true;
+        }
+      })
+    );
+  }
+
+  async function writeTwoConfiguredAgents(fs: FileSystem): Promise<void> {
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({
+        apiKey: "test-key",
+        configured_services: {
+          "test-a": { files: ["/a/config.json"] },
+          "test-b": { files: ["/b/config.json"] }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+  }
+
+  it("previews every agent as a row in one logout panel", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    registerLogoutAgents(container);
+    await writeTwoConfiguredAgents(fs);
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "logout"]);
+
+    expect(logs.filter((line) => line.startsWith("unconfigure "))).toEqual([]);
+    expect(logs.filter((line) => line === "logout")).toHaveLength(1);
+    expect(logs.some((line) => line.includes("Test A configuration: /a/config.json"))).toBe(true);
+    expect(logs.some((line) => line.includes("Test B configuration: /b/config.json"))).toBe(true);
+    expect(logs.filter((line) => line.includes("Problems?"))).toHaveLength(1);
+  });
+
+  it("reports every unconfigured agent as a row in one logout panel", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    registerLogoutAgents(container);
+    await writeTwoConfiguredAgents(fs);
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
+
+    expect(logs.filter((line) => line.startsWith("unconfigure "))).toEqual([]);
+    expect(logs.filter((line) => line === "logout")).toHaveLength(1);
+    expect(logs.some((line) => line.includes("Removed Test A configuration."))).toBe(true);
+    expect(logs.some((line) => line.includes("Removed Test B configuration."))).toBe(true);
+    expect(logs.filter((line) => line.includes("Problems?"))).toHaveLength(1);
+  });
 });
 
 // ─── skill command ───────────────────────────────────────────────────────────

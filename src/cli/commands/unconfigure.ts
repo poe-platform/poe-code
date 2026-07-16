@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import type { ProviderContext } from "../service-registry.js";
+import type { ProviderContext, ProviderService } from "../service-registry.js";
+import type { ConfiguredServiceMetadata } from "../../services/config.js";
 import { unconfigureService, loadConfiguredServices } from "../../services/config.js";
 import { createMutationReporter } from "../../services/mutation-events.js";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
@@ -10,7 +11,9 @@ import {
   resolveCommandFlags,
   resolveServiceAdapter,
   formatServiceList,
-  listServiceNames
+  listServiceNames,
+  type CommandFlags,
+  type ExecutionResources
 } from "./shared.js";
 import { confirmDestructive } from "./confirm-destructive.js";
 import { createOverlayFileSystem } from "./configure.js";
@@ -63,7 +66,7 @@ export async function executeUnconfigure(
   });
   const metadata = configuredServices[canonicalService];
   if (!metadata) {
-    resources.context.complete(formatUnconfigureMessages(adapter, false, {}));
+    resources.context.complete(formatUnconfigureMessages(adapter, false));
     resources.context.finalize();
     return;
   }
@@ -82,6 +85,36 @@ export async function executeUnconfigure(
     });
   }
 
+  const unconfigured = await unconfigureAgent({
+    container,
+    adapter,
+    flags,
+    resources,
+    metadata
+  });
+
+  resources.context.complete(formatUnconfigureMessages(adapter, unconfigured, metadata.files));
+
+  resources.context.finalize();
+}
+
+export interface UnconfigureAgentInput {
+  container: CliContainer;
+  adapter: ProviderService;
+  flags: CommandFlags;
+  resources: ExecutionResources;
+  metadata: ConfiguredServiceMetadata;
+}
+
+/**
+ * Removes one agent's configuration without rendering any panel of its own, so
+ * callers that unconfigure several agents (e.g. `logout`) can report the whole
+ * batch inside a single panel.
+ */
+export async function unconfigureAgent(input: UnconfigureAgentInput): Promise<boolean> {
+  const { container, adapter, flags, resources, metadata } = input;
+  const canonicalService = adapter.name;
+  const providerContext = buildProviderContext(container, adapter, resources);
   const mutationLogger = createMutationReporter(resources.logger);
   const transaction = flags.dryRun ? undefined : createOverlayFileSystem(providerContext.command.fs);
   const executionProviderContext = transaction
@@ -95,14 +128,11 @@ export async function executeUnconfigure(
     : providerContext;
 
   const payload = await createUnconfigurePayload({
-    service: canonicalService,
-    container,
-    options,
     context: providerContext,
     metadata
   });
 
-  const unconfigured = await container.registry.invoke(
+  const result = await container.registry.invoke(
     canonicalService,
     "unconfigure",
     async (entry) => {
@@ -156,19 +186,12 @@ export async function executeUnconfigure(
     }
   );
 
-  const messages = formatUnconfigureMessages(adapter, unconfigured, payload);
-
-  resources.context.complete(messages);
-
-  resources.context.finalize();
+  return typeof result === "boolean" ? result : Boolean(result);
 }
 
 interface UnconfigurePayloadInit {
-  service: string;
-  container: CliContainer;
-  options: UnconfigureCommandOptions;
   context: ProviderContext;
-  metadata: Awaited<ReturnType<typeof loadConfiguredServices>>[string];
+  metadata: ConfiguredServiceMetadata;
 }
 
 async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
@@ -179,19 +202,17 @@ async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<u
   };
 }
 
-function formatUnconfigureMessages(
+export function formatUnconfigureMessages(
   adapter: { label: string; configurationLabel?: string },
-  unconfigured: unknown,
-  _payload: unknown
+  unconfigured: boolean,
+  files: readonly string[] = []
 ): { success: string; dry: string } {
-  const didUnconfigure = typeof unconfigured === "boolean" ? unconfigured : Boolean(unconfigured);
   const label = adapter.configurationLabel ?? adapter.label;
+  const detail = files.length > 0 ? `: ${files.join(", ")}` : ".";
   return {
-    success: didUnconfigure
-      ? `Removed ${label} configuration.`
-      : `No ${label} configuration found.`,
-    dry: didUnconfigure
-      ? `Dry run: would remove ${label} configuration.`
+    success: unconfigured ? `Removed ${label} configuration.` : `No ${label} configuration found.`,
+    dry: unconfigured
+      ? `Dry run: would remove ${label} configuration${detail}`
       : `No ${label} configuration found.`
   };
 }

@@ -36,7 +36,9 @@ export interface BalanceResponse {
   };
 }
 
-function parsePositivePageCount(value: string): number {
+const historyPageSize = 20;
+
+function parsePositiveEntryCount(value: string): number {
   if (!/^[1-9]\d*$/.test(value)) {
     throw new InvalidArgumentError("Expected a positive integer.");
   }
@@ -168,14 +170,11 @@ export function registerUsageCommand(
   const usage = program
     .command("usage")
     .alias("u")
-    .description("Check Poe API usage information.")
-    .action(async () => {
-      await executeBalance(program, container);
-    });
+    .description("Check Poe API usage information.");
 
   usage
-    .command("balance", { hidden: true })
-    .description("Display current point balance.")
+    .command("balance", { isDefault: true })
+    .description("Display current point balance (default).")
     .action(async () => {
       await executeBalance(program, container);
     });
@@ -184,7 +183,11 @@ export function registerUsageCommand(
     .command("list")
     .description("Display usage history.")
     .option("--filter <model>", "Filter results by model name")
-    .option("--pages <count>", "Number of pages to load automatically", parsePositivePageCount)
+    .option(
+      "--limit <entries>",
+      "Maximum number of entries to show (default: 20, then prompts to load more)",
+      parsePositiveEntryCount
+    )
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(
@@ -192,7 +195,7 @@ export function registerUsageCommand(
         flags,
         "usage:list"
       );
-      const commandOptions = this.opts<{ filter?: string; pages?: number }>();
+      const commandOptions = this.opts<{ filter?: string; limit?: number }>();
 
       if (flags.dryRun) {
         await container.options.resolveApiKey({
@@ -278,11 +281,13 @@ export function registerUsageCommand(
         let totalFetched = 0;
         let totalFiltered = 0;
         let startingAfter: string | undefined;
-        let pagesLoaded = 0;
-        const maxPages = commandOptions.pages;
+        const entryLimit = commandOptions.limit;
 
         while (true) {
-          let url = `${container.env.poeBaseUrl}/usage/points_history?limit=20`;
+          const pageSize = entryLimit === undefined
+            ? historyPageSize
+            : Math.min(entryLimit - totalFetched, historyPageSize);
+          let url = `${container.env.poeBaseUrl}/usage/points_history?limit=${pageSize}`;
           if (startingAfter) {
             url += `&starting_after=${encodeURIComponent(startingAfter)}`;
           }
@@ -298,7 +303,7 @@ export function registerUsageCommand(
               cost_breakdown_in_points?: Record<string, string>;
             }>;
           }>({
-            message: `Fetching usage history page ${pagesLoaded + 1}...`,
+            message: "Fetching usage history...",
             fn: async () => {
               const response = await container.httpClient(url, {
                 method: "GET",
@@ -332,7 +337,6 @@ export function registerUsageCommand(
             stopMessage: (page) => `${page.data.length} usage entries fetched`
           });
 
-          pagesLoaded++;
           totalFetched += result.data.length;
 
           const pageEntries = filterTerm
@@ -352,13 +356,13 @@ export function registerUsageCommand(
             break;
           }
 
-          if (maxPages !== undefined && pagesLoaded >= maxPages) {
+          if (entryLimit !== undefined && totalFetched >= entryLimit) {
             break;
           }
 
           startingAfter = result.data[result.data.length - 1].query_id;
 
-          if (maxPages === undefined && !flags.assumeYes) {
+          if (entryLimit === undefined && !flags.assumeYes) {
             if (process.stdin.isTTY !== true) {
               break;
             }

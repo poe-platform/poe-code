@@ -685,7 +685,7 @@ describe("usage list command", () => {
       exitOverride: true
     });
 
-    await program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--pages", "1"]);
+    await program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--limit", "1"]);
 
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
@@ -703,7 +703,7 @@ describe("usage list command", () => {
     vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: true } as any);
 
     await expect(
-      program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--pages", "1"])
+      program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--limit", "1"])
     ).rejects.toThrow(
       "No API key found. Pass --api-key, set POE_API_KEY, or run without --yes to authenticate interactively."
     );
@@ -905,7 +905,128 @@ describe("usage list command", () => {
     expect(confirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it("loads specified number of pages without prompting when --pages is passed", async () => {
+  it("requests only as many entries as --limit and does not prompt", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        has_more: true,
+        data: [
+          { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+          { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
+        ]
+      })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list", "--limit", "2"]);
+
+    expect(httpClient).toHaveBeenCalledTimes(1);
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/usage/points_history?limit=2"),
+      expect.any(Object)
+    );
+    expect(confirmMock).not.toHaveBeenCalled();
+  });
+
+  it("derives pagination internally when --limit exceeds the API page size", async () => {
+    fs = await createConfigVolume("test-key");
+    const firstPage = Array.from({ length: 20 }, (_, index) => ({
+      query_id: `entry-${index + 1}`,
+      creation_time: 1705314600000000,
+      bot_name: `model-${index + 1}`,
+      cost_usd: "0.001",
+      cost_points: -10
+    }));
+
+    (httpClient as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ has_more: true, data: firstPage })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          has_more: true,
+          data: Array.from({ length: 5 }, (_, index) => ({
+            query_id: `entry-${index + 21}`,
+            creation_time: 1705240800000000,
+            bot_name: `model-${index + 21}`,
+            cost_usd: "0.003",
+            cost_points: -100
+          }))
+        })
+      });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list", "--limit", "25"]);
+
+    expect(httpClient).toHaveBeenCalledTimes(2);
+    expect(String((httpClient as ReturnType<typeof vi.fn>).mock.calls[0][0])).toContain("limit=20");
+    expect(String((httpClient as ReturnType<typeof vi.fn>).mock.calls[1][0])).toContain("limit=5");
+    expect(String((httpClient as ReturnType<typeof vi.fn>).mock.calls[1][0])).toContain("starting_after=entry-20");
+    expect(confirmMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects --pages so pagination internals are not part of the interface", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "usage", "list", "--pages", "2"])
+    ).rejects.toThrow("unknown option '--pages'");
+
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
+  it.each(["abc", "0", "-1", "1abc", "1.5"])(
+    "rejects invalid --limit value %s before fetching usage",
+    async (value) => {
+      const program = createProgram({
+        fs,
+        prompts: vi.fn(),
+        env: { cwd, homeDir, variables: {} },
+        httpClient,
+        logger: (message) => logs.push(message)
+      });
+      vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+      await expect(
+        program.parseAsync(["node", "cli", "usage", "list", "--limit", value])
+      ).rejects.toThrow("Expected a positive integer.");
+
+      expect(httpClient).not.toHaveBeenCalled();
+      expect(confirmMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it("keeps fetching without prompting until --limit is satisfied", async () => {
     fs = await createConfigVolume("test-key");
     const page1Entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
@@ -938,20 +1059,20 @@ describe("usage list command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await program.parseAsync(["node", "cli", "usage", "list", "--pages", "3"]);
+    await program.parseAsync(["node", "cli", "usage", "list", "--limit", "3"]);
 
     expect(confirmMock).not.toHaveBeenCalled();
     expect(httpClient).toHaveBeenCalledTimes(2);
     expect(withSpinnerMock).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        message: "Fetching usage history page 1..."
+        message: "Fetching usage history..."
       })
     );
     expect(withSpinnerMock).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        message: "Fetching usage history page 2..."
+        message: "Fetching usage history..."
       })
     );
 
@@ -961,30 +1082,7 @@ describe("usage list command", () => {
     expect(output).toContain("Claude-Opus");
   });
 
-  it.each(["abc", "0", "-1", "1abc", "1.5"])(
-    "rejects invalid --pages value %s before fetching usage",
-    async (value) => {
-      const program = createProgram({
-        fs,
-        prompts: vi.fn(),
-        env: { cwd, homeDir, variables: {} },
-        httpClient,
-        logger: (message) => logs.push(message)
-      });
-
-      const optsSpy = vi.spyOn(program, "optsWithGlobals");
-      optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
-
-      await expect(
-        program.parseAsync(["node", "cli", "usage", "list", "--pages", value])
-      ).rejects.toThrow("Expected a positive integer.");
-
-      expect(httpClient).not.toHaveBeenCalled();
-      expect(confirmMock).not.toHaveBeenCalled();
-    }
-  );
-
-  it("stops after reaching --pages limit", async () => {
+  it("stops after reaching the --limit entry count", async () => {
     fs = await createConfigVolume("test-key");
     const page1Entries = [
       { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
@@ -1008,7 +1106,7 @@ describe("usage list command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await program.parseAsync(["node", "cli", "usage", "list", "--pages", "1"]);
+    await program.parseAsync(["node", "cli", "usage", "list", "--limit", "2"]);
 
     expect(confirmMock).not.toHaveBeenCalled();
     expect(httpClient).toHaveBeenCalledTimes(1);
@@ -1053,7 +1151,7 @@ describe("usage list command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await program.parseAsync(["node", "cli", "usage", "list", "--pages", "2"]);
+    await program.parseAsync(["node", "cli", "usage", "list", "--limit", "2"]);
 
     const secondUrl = String((httpClient as ReturnType<typeof vi.fn>).mock.calls[1][0]);
     expect(secondUrl).toContain("starting_after=entry%26cursor%3Dbroken");
@@ -1254,6 +1352,41 @@ describe("usage list command", () => {
     expect(output).not.toContain("gpt-5.2");
     expect(logs.some((m) => m.includes('Showing entries matching "claude".'))).toBe(true);
     expect(httpClient).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("usage command help", () => {
+  function findUsageCommand() {
+    const program = createProgram({
+      fs: createMemfs(homeDir),
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient: vi.fn(),
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+    const usage = program.commands.find((command) => command.name() === "usage");
+    if (!usage) throw new Error("usage command is not registered");
+    return usage;
+  }
+
+  it("lists balance and documents it as the default action", () => {
+    const help = findUsageCommand().helpInformation();
+
+    expect(help).toContain("balance");
+    expect(help).toContain("default");
+  });
+
+  it("describes --limit in entries instead of exposing pagination", () => {
+    const list = findUsageCommand().commands.find((command) => command.name() === "list");
+    if (!list) throw new Error("usage list command is not registered");
+    const help = list.helpInformation();
+
+    expect(help).toContain("--limit <entries>");
+    expect(help).toContain("Maximum number of entries");
+    expect(help).not.toContain("--pages");
+    expect(help).not.toContain("pages to load");
   });
 });
 

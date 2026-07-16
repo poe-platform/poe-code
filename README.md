@@ -139,11 +139,11 @@ Check your compute points balance and review usage history.
 # Show current balance
 poe-code usage
 
-# Show usage history (paginated, 20 entries per page)
+# Show usage history (20 entries, then prompts to load more)
 poe-code usage list
 
-# Auto-load multiple pages
-poe-code usage list --pages 5
+# Show a specific number of entries without prompting
+poe-code usage list --limit 100
 
 # Filter by model name
 poe-code usage list --filter claude

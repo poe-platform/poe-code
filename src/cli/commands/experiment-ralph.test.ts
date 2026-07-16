@@ -4331,3 +4331,214 @@ describe("wrong frontmatter kind reporting", () => {
     expect(parsed.body).toBe("# Plan\n\nBody");
   });
 });
+
+describe("ralph validate command", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    isCancelMock.mockReturnValue(false);
+  });
+
+  it("validates a valid Ralph doc and reports success", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "kind: ralph",
+          "version: 1",
+          "agent: claude-code",
+          "iterations: 5",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "# Loop"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "validate", "docs/loop.md"]);
+
+    expect(loggerOutput).toContain("docs/loop.md");
+    expect(loggerOutput).toContain("claude-code");
+    expect(loggerOutput).toContain("5");
+    expect(loggerOutput).toContain("valid");
+  });
+
+  it("reports multi-agent frontmatter and status progress", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "kind: ralph",
+          "version: 1",
+          "agent:",
+          "  - claude-code",
+          "  - codex",
+          "iterations: 4",
+          "status:",
+          "  state: in_progress",
+          "  iteration: 2",
+          "---",
+          "# Loop"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "ralph", "validate", "docs/loop.md"]);
+
+    expect(loggerOutput).toContain("claude-code, codex");
+    expect(loggerOutput).toContain("in_progress");
+    expect(loggerOutput).toContain("valid");
+  });
+
+  it("reports errors for missing required fields", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/bad.md": ralphPlanDoc("Bad")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "ralph", "validate", "docs/bad.md"])
+    ).rejects.toBeInstanceOf(ValidationError);
+    expect(loggerOutput).toContain("agent");
+    expect(loggerOutput).toContain("iterations");
+  });
+
+  it("rejects unsupported frontmatter agents", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": [
+          "---",
+          "kind: ralph",
+          "version: 1",
+          "agent: not-a-real-agent",
+          "iterations: 2",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "# Loop"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "ralph", "validate", "docs/loop.md"])
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("rejects a doc whose kind is not ralph", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": experimentPlanDoc("Loop")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "ralph", "validate", "docs/loop.md"])
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("discovers the first doc with --yes", async () => {
+    let loggerOutput = "";
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-b.md": [
+          "---",
+          "kind: ralph",
+          "version: 1",
+          "agent: codex",
+          "iterations: 3",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "# B"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "validate"]);
+
+    expect(loggerOutput).toContain("docs/plans/plan-b.md");
+    expect(loggerOutput).toContain("codex");
+    expect(loggerOutput).toContain("valid");
+  });
+
+  it("does not repair invalid project config while previewing validation", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "kind: ralph",
+        "version: 1",
+        "agent: codex",
+        "iterations: 2",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# Loop"
+      ].join("\n"),
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "ralph", "validate", "docs/loop.md"])
+    ).rejects.toThrow(SyntaxError);
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe(
+      "{ invalid json\n"
+    );
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+});

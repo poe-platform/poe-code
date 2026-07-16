@@ -672,6 +672,20 @@ function formatCurrentConfig(frontmatter: RalphFrontmatter): string | null {
   return items.length > 0 ? `Current: ${items.join(", ")}` : null;
 }
 
+function validateRalphDoc(frontmatter: RalphFrontmatter): string[] {
+  const errors: string[] = [];
+
+  if (frontmatter.agent === undefined) {
+    errors.push("Missing required field: agent");
+  }
+
+  if (frontmatter.iterations === undefined) {
+    errors.push("Missing required field: iterations");
+  }
+
+  return errors;
+}
+
 function expandAgentList(
   agent: RalphFrontmatter["agent"],
   iterations: number | undefined
@@ -775,6 +789,57 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           success: "Ralph config saved.",
           dry: "Dry run: would save Ralph config."
         });
+      } finally {
+        resources.context.finalize();
+      }
+    });
+
+  ralph
+    .command("validate")
+    .description("Validate a Ralph doc without running it.")
+    .argument("[doc]", "Markdown doc path")
+    .action(async function (this: Command, docArg?: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "ralph:validate");
+
+      try {
+        resources.logger.intro("ralph validate");
+
+        const commandConfig = await resolveRalphCommandConfig(container, {
+          readOnly: flags.dryRun
+        });
+        const docPath = await resolveDocPath({
+          container,
+          program,
+          providedDoc: docArg,
+          planDirectory: commandConfig.planDirectory
+        });
+        if (!docPath) {
+          return;
+        }
+
+        const doc = await readRalphDoc(container, docPath);
+        const errors = validateRalphDoc(doc.data);
+
+        if (errors.length > 0) {
+          for (const error of errors) {
+            resources.logger.error(error);
+          }
+          throw new ValidationError(
+            `Ralph doc has ${errors.length} validation error${errors.length === 1 ? "" : "s"}.`
+          );
+        }
+
+        const agent = resolveConfiguredAgents(doc.data.agent)!;
+
+        resources.logger.resolved("Doc", docPath);
+        resources.logger.resolved("Agent", formatRalphAgentSummary(agent));
+        resources.logger.resolved("Iterations", String(doc.data.iterations));
+        resources.logger.resolved(
+          "Status",
+          `${doc.data.status.state} (iteration ${doc.data.status.iteration})`
+        );
+        resources.logger.success("Ralph doc is valid.");
       } finally {
         resources.context.finalize();
       }

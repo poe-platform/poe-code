@@ -480,6 +480,7 @@ function createCheckRunner(resources: ExecutionResources): (check: CommandCheck)
   return async (check) => {
     await check.run({
       isDryRun: resources.logger.context.dryRun,
+      verbose: resources.logger.context.verbose,
       runCommand: resources.context.runCommand,
       logDryRun: (message) => resources.logger.dryRun(message),
       logWarning: (message) => resources.logger.warn(message)

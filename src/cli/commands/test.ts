@@ -147,6 +147,7 @@ export async function executeTest(
               runCheck: async (check: CommandCheck) => {
                 await check.run({
                   isDryRun: providerContext.logger.context.dryRun,
+                  verbose: providerContext.logger.context.verbose,
                   runCommand: async (command: string, args: string[], runOptions) => {
                     const activeProvider = await resolveActiveProviderForService(
                       container,
@@ -197,6 +198,7 @@ export async function executeTest(
                 runCheck: async (check: CommandCheck) => {
                   await check.run({
                     isDryRun: providerContext.logger.context.dryRun,
+                    verbose: providerContext.logger.context.verbose,
                     runCommand: async (command, args, runOptions) => {
                       const runtimeEnv = await resolveRuntimeEnv();
                       return resources.context.runCommand(command, args, {

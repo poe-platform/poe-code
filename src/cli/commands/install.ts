@@ -61,31 +61,32 @@ export async function executeInstall(
     resources
   );
 
-  const installProvider = async (): Promise<void> => {
+  const installProvider = async (): Promise<boolean | void> =>
     await container.registry.invoke(canonicalService, "install", async (entry) => {
       if (!entry.install) {
         throw new Error(`Agent "${canonicalService}" does not support install.`);
       }
-      await entry.install(providerContext);
+      return await entry.install(providerContext);
     });
-  };
 
-  if (flags.dryRun) {
-    await installProvider();
-  } else {
-    await withSpinner({
-      message: `Installing ${adapter.label}...`,
-      fn: installProvider
-    });
-  }
+  const installed = flags.dryRun
+    ? await installProvider()
+    : await withSpinner({
+        message: `Installing ${adapter.label}...`,
+        fn: installProvider
+      });
 
   const dryMessage =
     canonicalService === "claude-code"
       ? `${adapter.label} install (dry run)`
       : `Dry run: would install ${adapter.label}.`;
 
+  // Providers that report no outcome cannot tell the two apart, so the run reads as fresh.
   resources.context.complete({
-    success: `Installed ${adapter.label}.`,
+    success:
+      installed === false
+        ? `${adapter.label} is already installed.`
+        : `Installed ${adapter.label}.`,
     dry: dryMessage
   });
 

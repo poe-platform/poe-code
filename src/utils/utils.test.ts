@@ -637,6 +637,111 @@ describe("createSpawnHealthCheck", () => {
   });
 });
 
+describe("spawn health check failure reporting", () => {
+  const jsonlFlood = [
+    '{"type":"system","subtype":"init","session_id":"abc","tools":["Bash","Read"]}',
+    '{"type":"assistant","message":{"id":"msg_1","content":[{"type":"text","text":"working"}]}}',
+    '{"type":"result","subtype":"error","result":"Invalid API key - please run /login"}'
+  ].join("\n");
+
+  async function captureError(
+    context: Parameters<ReturnType<typeof createSpawnHealthCheck>["run"]>[0]
+  ): Promise<Error> {
+    const check = createSpawnHealthCheck("claude-code", { expectedOutput: "DEMO_OK" });
+    const error = await check.run(context).then(
+      () => undefined,
+      (thrown: Error) => thrown
+    );
+    if (!error) {
+      throw new Error("expected the health check to fail");
+    }
+    return error;
+  }
+
+  it("summarises a non-zero exit with the cause instead of the raw agent stream", async () => {
+    const error = await captureError({
+      isDryRun: false,
+      runCommand: vi.fn().mockResolvedValue({ stdout: jsonlFlood, stderr: "", exitCode: 1 })
+    });
+
+    expect(error.message).toContain("exit code 1");
+    expect(error.message).toContain("Invalid API key - please run /login");
+    expect(error.message).not.toContain('"type":"system"');
+    expect(error.message).not.toContain('"type":"assistant"');
+    expect(error.message).toContain("--verbose");
+  });
+
+  it("prefers stderr as the cause when the agent writes one", async () => {
+    const error = await captureError({
+      isDryRun: false,
+      runCommand: vi.fn().mockResolvedValue({
+        stdout: jsonlFlood,
+        stderr: "claude: command not found",
+        exitCode: 127
+      })
+    });
+
+    expect(error.message).toContain("claude: command not found");
+    expect(error.message).not.toContain('"type":"system"');
+  });
+
+  it("summarises unexpected output without dumping the raw agent stream", async () => {
+    const error = await captureError({
+      isDryRun: false,
+      runCommand: vi.fn().mockResolvedValue({ stdout: jsonlFlood, stderr: "", exitCode: 0 })
+    });
+
+    expect(error.message).toContain('expected "DEMO_OK"');
+    expect(error.message).toContain("Invalid API key - please run /login");
+    expect(error.message).not.toContain('"type":"system"');
+    expect(error.message).toContain("--verbose");
+  });
+
+  it("includes the raw agent stream when the check context is verbose", async () => {
+    const error = await captureError({
+      isDryRun: false,
+      verbose: true,
+      runCommand: vi.fn().mockResolvedValue({ stdout: jsonlFlood, stderr: "", exitCode: 1 })
+    });
+
+    expect(error.message).toContain("stdout:");
+    expect(error.message).toContain('"type":"system"');
+    expect(error.message).toContain('"type":"assistant"');
+    expect(error.message).not.toContain("--verbose");
+  });
+
+  it("summarises expectation check failures and keeps the stream behind verbose", async () => {
+    const options = {
+      id: "demo-health",
+      command: "demo",
+      args: ["run"],
+      expectedOutput: "DEMO_OK"
+    };
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: jsonlFlood,
+      stderr: "",
+      exitCode: 1
+    });
+
+    const summarised = await createCommandExpectationCheck(options)
+      .run({ isDryRun: false, runCommand })
+      .then(
+        () => undefined,
+        (thrown: Error) => thrown
+      );
+    expect(summarised?.message).toContain("Invalid API key - please run /login");
+    expect(summarised?.message).not.toContain('"type":"system"');
+
+    const verbose = await createCommandExpectationCheck(options)
+      .run({ isDryRun: false, runCommand, verbose: true })
+      .then(
+        () => undefined,
+        (thrown: Error) => thrown
+      );
+    expect(verbose?.message).toContain('"type":"system"');
+  });
+});
+
 describe("stdoutMatchesExpected", () => {
   it("matches plain text output", () => {
     expect(stdoutMatchesExpected("DEMO_OK\n", "DEMO_OK")).toBe(true);

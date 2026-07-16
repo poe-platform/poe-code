@@ -148,8 +148,8 @@ export function createProvider<
 }
 
 function createInstallRunner(definition: ServiceInstallDefinition) {
-  return async (context: ProviderContext): Promise<void> => {
-    await runServiceInstall(definition, {
+  return async (context: ProviderContext): Promise<boolean> => {
+    return await runServiceInstall(definition, {
       isDryRun: context.logger.context.dryRun,
       runCommand: context.command.runCommand,
       logger: (message) => context.logger.verbose(message),

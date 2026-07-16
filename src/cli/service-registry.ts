@@ -92,7 +92,8 @@ export interface ProviderService<TConfigure = any, TUnconfigure = TConfigure, TS
   ): Promise<Record<string, unknown> | void> | Record<string, unknown> | void;
   runtimeEnv?: Record<string, IsolatedEnvValue>;
   isolatedEnv?: ProviderIsolatedEnv;
-  install?(context: ProviderContext): Promise<void> | void;
+  /** Resolves true when the agent was installed, false when it was already present. */
+  install?(context: ProviderContext): Promise<boolean | void> | boolean | void;
   spawn?(context: ProviderContext, options: TSpawn): Promise<unknown>;
   test?(context: ProviderContext): Promise<void>;
 }

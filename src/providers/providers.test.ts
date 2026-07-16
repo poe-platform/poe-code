@@ -168,6 +168,7 @@ describe("claude-code service", () => {
       async runCheck(check) {
         await check.run({
           isDryRun: logger.context.dryRun,
+          verbose: logger.context.verbose,
           runCommand,
           logDryRun: (message) => logger.dryRun(message)
         });
@@ -529,6 +530,7 @@ describe("codex service", () => {
       async runCheck(check) {
         await check.run({
           isDryRun: logger.context.dryRun,
+          verbose: logger.context.verbose,
           runCommand,
           logDryRun: (message) => logger.dryRun(message)
         });
@@ -1103,6 +1105,7 @@ describe("kimi service", () => {
       async runCheck(check) {
         await check.run({
           isDryRun: logger.context.dryRun,
+          verbose: logger.context.verbose,
           runCommand,
           logDryRun: (message) => logger.dryRun(message)
         });
@@ -1486,6 +1489,7 @@ describe("opencode service", () => {
       async runCheck(check) {
         await check.run({
           isDryRun: logger.context.dryRun,
+          verbose: logger.context.verbose,
           runCommand,
           logDryRun: (message) => logger.dryRun(message)
         });
@@ -2375,6 +2379,7 @@ describe("goose service", () => {
       async runCheck(check) {
         await check.run({
           isDryRun: logger.context.dryRun,
+          verbose: logger.context.verbose,
           runCommand,
           logDryRun: (message) => logger.dryRun(message)
         });

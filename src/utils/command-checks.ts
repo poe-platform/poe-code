@@ -20,6 +20,68 @@ export function formatCommandRunnerResult(result: CommandRunnerResult): string {
   return `stdout:\n${stdout}\nstderr:\n${stderr}`;
 }
 
+const VERBOSE_STREAM_HINT = "Re-run with --verbose to see the full agent output.";
+const MAX_CAUSE_LENGTH = 200;
+
+/**
+ * A health check answers one question, so its failure reports the cause rather than the
+ * whole stream. The stream stays available behind --verbose for diagnosis.
+ */
+function describeFailureDetail(
+  result: CommandRunnerResult,
+  verbose: boolean | undefined
+): string {
+  if (verbose) {
+    return formatCommandRunnerResult(result);
+  }
+  const cause = summarizeFailureCause(result);
+  return cause === undefined ? VERBOSE_STREAM_HINT : `Cause: ${cause}\n${VERBOSE_STREAM_HINT}`;
+}
+
+function summarizeFailureCause(result: CommandRunnerResult): string | undefined {
+  return firstReportedMessage(result.stderr) ?? firstReportedMessage(result.stdout);
+}
+
+function firstReportedMessage(output: string): string | undefined {
+  for (const line of output.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0) {
+      continue;
+    }
+    const message = trimmed[0] === "{" ? readJsonMessage(trimmed) : trimmed;
+    if (message !== undefined) {
+      return message.length > MAX_CAUSE_LENGTH
+        ? `${message.slice(0, MAX_CAUSE_LENGTH)}…`
+        : message;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Stream agents report over JSONL where most lines are protocol bookkeeping and only a
+ * few carry words meant for a human. Reading the text-bearing fields finds the cause
+ * without reprinting the stream, and is agent-agnostic: every agent names them the same.
+ */
+function readJsonMessage(line: string): string | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(line);
+  } catch {
+    return line;
+  }
+  if (typeof parsed !== "object" || parsed === null) {
+    return undefined;
+  }
+  for (const field of ["error", "message", "result", "text"]) {
+    const value = (parsed as Record<string, unknown>)[field];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
 export interface RunAndMatchOutputOptions {
   command: string;
   args: string[];
@@ -68,15 +130,15 @@ export async function runAndMatchOutput(
     ? await context.runCommand(options.command, options.args, options.commandOptions)
     : await context.runCommand(options.command, options.args);
   if (result.exitCode !== 0) {
-    const detail = formatCommandRunnerResult(result);
+    const detail = describeFailureDetail(result, context.verbose);
     throw new Error(
       [`Command ${rendered} failed with exit code ${result.exitCode}.`, detail].join("\n")
     );
   }
 
   if (!stdoutMatchesExpected(result.stdout, options.expectedOutput)) {
-    const detail = formatCommandRunnerResult(result);
-    const received = result.stdout.trim();
+    const detail = describeFailureDetail(result, context.verbose);
+    const received = summarizeFailureCause(result) ?? "<no output>";
     throw new Error(
       [
         `Command ${rendered} failed: expected "${options.expectedOutput}" but received "${received}".`,
@@ -137,6 +199,8 @@ function needsQuoting(value: string): boolean {
 export interface CommandCheckContext {
   isDryRun: boolean;
   runCommand: CommandRunner;
+  /** Reports the command's raw output on failure instead of a summarised cause. */
+  verbose?: boolean;
   logDryRun?: (message: string) => void;
   logWarning?: (message: string) => void;
 }
@@ -250,13 +314,13 @@ export function createSpawnHealthCheck(
 
       if (result.exitCode !== 0) {
         throw new Error(
-          `spawn ${agentId} failed with exit code ${result.exitCode}.\n${formatCommandRunnerResult(result)}`
+          `spawn ${agentId} failed with exit code ${result.exitCode}.\n${describeFailureDetail(result, context.verbose)}`
         );
       }
 
       if (!result.stdout.includes(options.expectedOutput)) {
         throw new Error(
-          `spawn ${agentId}: expected "${options.expectedOutput}" in stdout.\n${formatCommandRunnerResult(result)}`
+          `spawn ${agentId}: expected "${options.expectedOutput}" in stdout.\n${describeFailureDetail(result, context.verbose)}`
         );
       }
     }

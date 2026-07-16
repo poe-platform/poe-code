@@ -347,7 +347,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: fs-symlink-edges
     title: Symlink, readlink, and realpath edge cases
@@ -375,10 +375,10 @@ tasks:
 
       TDD with memfs; no real files.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-copy-rename-edges
     title: copyFile/cp/rename/link edge cases
@@ -793,6 +793,21 @@ the path before validating it, so it is only reachable on a file that exists —
 (`1.5`/`Infinity` → `ERR_OUT_OF_RANGE`, `"3"` → `ERR_INVALID_ARG_TYPE`, `-1` → truncates to zero)
 belongs to `fs-node-truth-fixture`, and what the memfs suite proves is that the length arrives
 unmodified.
+Symlinks are the case where the gap hid a hole rather than an errno, so it is worth stating what
+it cost. memfs does not follow a **dangling** symlink: a write through one replaces the link with a
+regular file, where node follows it and creates the target. A dangling link is also the one
+`realpath` refuses with the same `ENOENT` it gives a path that was never there, so canonicalization
+that reads that `ENOENT` as "nothing here" answered with the link's own path and called an escaping
+link contained — `writeFile` through a planted `/repo/bomb` -> `/outside/pwned.txt` wrote outside
+root. memfs masked it end to end: it never performs the escape, so an effect assertion passed
+against a module with the hole in it, and `fs-root-confinement-edges` shipped believing its
+symlink-target check covered this. Confinement is therefore asserted as a **denial**, never as a
+written-outside-root effect — a denial is what the module owns whatever the filesystem underneath
+would have done — and canonicalization reads a link rather than trusting `realpath`'s `ENOENT`
+(`resolveCanonicalPath` in packages/safejs/src/modules/canonical-path.ts). The lesson generalizes:
+where memfs is more permissive than node the suite proves the module's own refusal, because an
+effect memfs never produces cannot fail.
+
 So `fs-node-truth-fixture` records the case table's real-node outcomes via a **script** in
 `os.tmpdir()` into a committed fixture, and the suite compares against that fixture. Cases memfs
 cannot reproduce are marked as reference gaps and skipped loudly; a case can never be silently

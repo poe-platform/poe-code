@@ -2154,6 +2154,559 @@ describe("makeFsModule", () => {
     });
   });
 
+  // Symlinks are where a filesystem facade usually stops matching node, so the
+  // semantics pinned here are node's own rather than the reference filesystem's:
+  // recorded from real node v22.22.2 on darwin. memfs reproduces most of them,
+  // diverges on the reporting of two, and cannot answer at all for a real cycle, so
+  // each failure carries node's outcome and what memfs answers instead where the two
+  // part. Re-record with scripts/record-fs-conformance.ts once
+  // fs-node-truth-fixture lands.
+  describe("symlink node semantics", () => {
+    // The error fields memfs models. It sets neither errno nor syscall on any error
+    // (proven above) and sets no dest either (proven below), so those three live in
+    // the recorded node truth and are unassertable over memfs.
+    type Failure = {
+      readonly name: string;
+      readonly message: string;
+      readonly code: string;
+      readonly path?: string;
+    };
+
+    type NodeFailure = Failure & {
+      readonly errno: number;
+      readonly syscall: string;
+      readonly dest?: string;
+    };
+
+    type Success = { readonly result: unknown };
+
+    // A real cycle recurses inside memfs with the event loop blocked, so it never
+    // answers and never yields: a driven case would hang the suite rather than fail
+    // it. Those cases are proven against the recorded truth alone, which is also why
+    // the loop stays a recorded literal here instead of being staged on a live volume.
+    const HANGS = "hangs";
+
+    type Driver = Pick<
+      ReturnType<typeof makeFsModule>,
+      "copyFile" | "lstat" | "readFile" | "readlink" | "realpath" | "rm" | "stat" | "symlink"
+    >;
+
+    type FailureCase = {
+      readonly title: string;
+      readonly setup?: (volume: Volume) => void;
+      readonly invoke: (fs: Driver) => Promise<unknown>;
+      readonly node: NodeFailure;
+      // Why memfs cannot reproduce node, and what it answers instead.
+      readonly gap?: { readonly reason: string; readonly memfs: Failure | typeof HANGS };
+    };
+
+    // Staged as a→b→a. node walks the cycle until it gives up and blames the
+    // operation's own syscall; the errno is darwin's, where ELOOP is -62 and Linux
+    // uses -40 — it is asserted only through the recorded replay, which is
+    // platform-independent because the stub raises the recorded number itself.
+    const stageLoop = (volume: Volume): void => {
+      volume.symlinkSync("b", "/repo/a");
+      volume.symlinkSync("a", "/repo/b");
+    };
+
+    const LOOP_HANGS = "memfs recurses through the cycle instead of answering ELOOP";
+
+    const CASES: readonly FailureCase[] = [
+      {
+        // The link resolves to nothing, so the path stat was given is the one it
+        // blames rather than the missing target the link named.
+        title: "stat on a dangling symlink rejects with ENOENT",
+        setup: (volume) => volume.symlinkSync("missing.txt", "/repo/dangling"),
+        invoke: (fs) => fs.stat("/repo/dangling"),
+        node: {
+          name: "Error",
+          message: "ENOENT: no such file or directory, stat '/repo/dangling'",
+          code: "ENOENT",
+          errno: -2,
+          syscall: "stat",
+          path: "/repo/dangling"
+        }
+      },
+      {
+        title: "readlink on a regular file rejects with EINVAL",
+        setup: (volume) => volume.writeFileSync("/repo/file.txt", "contents"),
+        invoke: (fs) => fs.readlink("/repo/file.txt"),
+        node: {
+          name: "Error",
+          message: "EINVAL: invalid argument, readlink '/repo/file.txt'",
+          code: "EINVAL",
+          errno: -22,
+          syscall: "readlink",
+          path: "/repo/file.txt"
+        }
+      },
+      {
+        // A directory is not a link either, and node separates the two: a missing path
+        // is ENOENT while a path that exists and is not a link is EINVAL.
+        title: "readlink on a directory rejects with EINVAL",
+        setup: (volume) => volume.mkdirSync("/repo/dir"),
+        invoke: (fs) => fs.readlink("/repo/dir"),
+        node: {
+          name: "Error",
+          message: "EINVAL: invalid argument, readlink '/repo/dir'",
+          code: "EINVAL",
+          errno: -22,
+          syscall: "readlink",
+          path: "/repo/dir"
+        }
+      },
+      {
+        title: "readlink on a missing path rejects with ENOENT",
+        invoke: (fs) => fs.readlink("/repo/missing"),
+        node: {
+          name: "Error",
+          message: "ENOENT: no such file or directory, readlink '/repo/missing'",
+          code: "ENOENT",
+          errno: -2,
+          syscall: "readlink",
+          path: "/repo/missing"
+        }
+      },
+      {
+        // realpath has to resolve the link to answer, so a dangling one is a missing
+        // file rather than the link's own path echoed back.
+        title: "realpath on a dangling symlink rejects with ENOENT",
+        setup: (volume) => volume.symlinkSync("missing.txt", "/repo/dangling"),
+        invoke: (fs) => fs.realpath("/repo/dangling"),
+        node: {
+          name: "Error",
+          message: "ENOENT: no such file or directory, realpath '/repo/dangling'",
+          code: "ENOENT",
+          errno: -2,
+          syscall: "realpath",
+          path: "/repo/dangling"
+        }
+      },
+      {
+        // node blames the target as 'path' and the link as 'dest' here, which is the
+        // reverse of how the arguments read: symlink(target, path). Recorded rather
+        // than reasoned, because either way round looks plausible. memfs reports the
+        // same message, code, and path and only omits the dest, so the divergence is
+        // in a field no comparison over memfs can see rather than in the answer.
+        title: "symlink onto an existing path rejects with EEXIST",
+        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "contents"),
+        invoke: (fs) => fs.symlink("file.txt", "/repo/taken.txt"),
+        node: {
+          name: "Error",
+          message: "EEXIST: file already exists, symlink 'file.txt' -> '/repo/taken.txt'",
+          code: "EEXIST",
+          errno: -17,
+          syscall: "symlink",
+          path: "file.txt",
+          dest: "/repo/taken.txt"
+        }
+      },
+      {
+        // node opens the directory the link resolves to and fails on the read, so the
+        // error names no path at all: it is the descriptor that could not be read.
+        title: "readFile through a symlink to a directory rejects with EISDIR",
+        setup: (volume) => {
+          volume.mkdirSync("/repo/dir");
+          volume.symlinkSync("dir", "/repo/dirlink");
+        },
+        invoke: (fs) => fs.readFile("/repo/dirlink", "utf8"),
+        node: {
+          name: "Error",
+          message: "EISDIR: illegal operation on a directory, read",
+          code: "EISDIR",
+          errno: -21,
+          syscall: "read",
+          path: undefined
+        },
+        gap: {
+          reason:
+            "memfs blames open with the directory the link resolved to where node blames a pathless read",
+          memfs: {
+            name: "Error",
+            message: "EISDIR: illegal operation on a directory, open '/repo/dir'",
+            code: "EISDIR",
+            path: "/repo/dir"
+          }
+        }
+      },
+      {
+        title: "readFile through a symlink loop rejects with ELOOP",
+        setup: stageLoop,
+        invoke: (fs) => fs.readFile("/repo/a", "utf8"),
+        node: {
+          name: "Error",
+          message: "ELOOP: too many symbolic links encountered, open '/repo/a'",
+          code: "ELOOP",
+          errno: -62,
+          syscall: "open",
+          path: "/repo/a"
+        },
+        gap: { reason: LOOP_HANGS, memfs: HANGS }
+      },
+      {
+        title: "stat through a symlink loop rejects with ELOOP",
+        setup: stageLoop,
+        invoke: (fs) => fs.stat("/repo/a"),
+        node: {
+          name: "Error",
+          message: "ELOOP: too many symbolic links encountered, stat '/repo/a'",
+          code: "ELOOP",
+          errno: -62,
+          syscall: "stat",
+          path: "/repo/a"
+        },
+        gap: { reason: LOOP_HANGS, memfs: HANGS }
+      },
+      {
+        title: "realpath through a symlink loop rejects with ELOOP",
+        setup: stageLoop,
+        invoke: (fs) => fs.realpath("/repo/a"),
+        node: {
+          name: "Error",
+          message: "ELOOP: too many symbolic links encountered, realpath '/repo/a'",
+          code: "ELOOP",
+          errno: -62,
+          syscall: "realpath",
+          path: "/repo/a"
+        },
+        gap: { reason: LOOP_HANGS, memfs: HANGS }
+      }
+    ];
+
+    // Raises the recorded node error from whichever operation the case reaches. Only
+    // that one is called: with no root the module calls nothing else, so a stub that
+    // answers every name cannot let a case pass through an operation it did not name.
+    function createNodeTruthFs(truth: NodeFailure): FsImplementation {
+      const answer = async (): Promise<never> => {
+        const error: NodeJS.ErrnoException & { dest?: string } = new Error(truth.message);
+        error.name = truth.name;
+        error.code = truth.code;
+        error.errno = truth.errno;
+        error.syscall = truth.syscall;
+        error.path = truth.path;
+
+        if (truth.dest !== undefined) {
+          error.dest = truth.dest;
+        }
+
+        throw error;
+      };
+
+      return {
+        copyFile: answer,
+        lstat: answer,
+        readFile: answer,
+        readlink: answer,
+        realpath: answer,
+        rm: answer,
+        stat: answer,
+        symlink: answer
+      } as unknown as FsImplementation;
+    }
+
+    // Reads every field node carries, so the replay proves errno, syscall, and dest
+    // cross unchanged rather than only the message.
+    async function readNodeOutcome(operation: Promise<unknown>): Promise<Success | NodeFailure> {
+      try {
+        return { result: await operation };
+      } catch (error) {
+        const rejection = error as NodeJS.ErrnoException & { dest?: string };
+        return {
+          name: rejection.name,
+          message: rejection.message,
+          code: rejection.code as string,
+          errno: rejection.errno as number,
+          syscall: rejection.syscall as string,
+          path: rejection.path,
+          dest: rejection.dest
+        };
+      }
+    }
+
+    // Reads back only what memfs models, so a comparison never pretends memfs answered
+    // an errno, a syscall, or a dest.
+    async function readObservable(operation: Promise<unknown>): Promise<Success | Failure> {
+      try {
+        return { result: await operation };
+      } catch (error) {
+        const rejection = error as NodeJS.ErrnoException;
+        return {
+          name: rejection.name,
+          message: rejection.message,
+          code: rejection.code as string,
+          path: rejection.path
+        };
+      }
+    }
+
+    function readObservableTruth({ name, message, code, path }: NodeFailure): Failure {
+      return { name, message, code, path };
+    }
+
+    function drive(testCase: FailureCase): { fs: Driver; reference: Driver } {
+      const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+      testCase.setup?.(volume);
+
+      const referenceVolume = Volume.fromJSON({ "/repo/keep.txt": "" }, "/");
+      testCase.setup?.(referenceVolume);
+
+      return {
+        fs: fs as unknown as Driver,
+        reference: createFsFromVolume(referenceVolume).promises as unknown as Driver
+      };
+    }
+
+    // Every case, gap or not: each field node carries reaches the caller unchanged.
+    // This is the only cover the ELOOP cases have, memfs being unable to answer.
+    for (const testCase of CASES) {
+      it(`surfaces node's recorded outcome: ${testCase.title}`, async () => {
+        const fs = makeFsModule({ fs: createNodeTruthFs(testCase.node) }) as unknown as Driver;
+
+        expect(await readNodeOutcome(testCase.invoke(fs))).toEqual(testCase.node);
+      });
+    }
+
+    // The cases memfs reports the way node does, driven over a real filesystem so the
+    // link is actually walked rather than replayed.
+    for (const testCase of CASES.filter((entry) => entry.gap === undefined)) {
+      it(`matches node over memfs: ${testCase.title}`, async () => {
+        const { fs } = drive(testCase);
+
+        expect(await readObservable(testCase.invoke(fs))).toEqual(
+          readObservableTruth(testCase.node)
+        );
+      });
+    }
+
+    // The reporting gaps cannot be asserted against node here: memfs answers something
+    // else, so all an in-memory run can prove is that the module forwards its
+    // implementation untouched rather than approximating node itself. A case memfs
+    // cannot answer at all is left to the recorded replay above.
+    for (const testCase of CASES.filter((entry) => entry.gap !== undefined)) {
+      const gap = testCase.gap as NonNullable<FailureCase["gap"]>;
+
+      if (gap.memfs === HANGS) {
+        continue;
+      }
+
+      it(`forwards memfs's recorded divergence from node: ${testCase.title}`, async () => {
+        const { fs, reference } = drive(testCase);
+
+        expect(await readObservable(testCase.invoke(fs))).toEqual(gap.memfs);
+        expect(await readObservable(testCase.invoke(reference))).toEqual(gap.memfs);
+        expect(gap.memfs).not.toEqual(readObservableTruth(testCase.node));
+      });
+    }
+
+    // A gap cannot be silently absent: the list is asserted whole, so closing one in
+    // memfs or adding a case forces the reason list to be re-read. The hanging cases
+    // are named here too, since a memfs that learns to answer ELOOP would otherwise
+    // leave three cases driven against nothing.
+    it("reports every memfs reference gap with a reason", () => {
+      const gaps = CASES.filter((entry) => entry.gap !== undefined).map(
+        (entry) => `${entry.title}: ${(entry.gap as NonNullable<FailureCase["gap"]>).reason}`
+      );
+
+      expect(gaps).toEqual([
+        "readFile through a symlink to a directory rejects with EISDIR: memfs blames open with the directory the link resolved to where node blames a pathless read",
+        `readFile through a symlink loop rejects with ELOOP: ${LOOP_HANGS}`,
+        `stat through a symlink loop rejects with ELOOP: ${LOOP_HANGS}`,
+        `realpath through a symlink loop rejects with ELOOP: ${LOOP_HANGS}`
+      ]);
+    });
+
+    // Why dest is absent from every comparison driven over memfs rather than asserted
+    // there: memfs raises a symlink EEXIST carrying node's message, code, and path but
+    // no dest, so only the recorded replay can prove the module surfaces node's field.
+    it("proves memfs sets no dest on a symlink EEXIST", async () => {
+      const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+      volume.writeFileSync("/repo/taken.txt", "contents");
+
+      const rejection = (await fs.symlink("file.txt", "/repo/taken.txt").then(
+        () => undefined,
+        (error: unknown) => error
+      )) as NodeJS.ErrnoException & { dest?: string };
+
+      expect(rejection.code).toBe("EEXIST");
+      expect(rejection.dest).toBeUndefined();
+    });
+
+    // lstat is the one operation that does not walk the link, so it answers where
+    // stat, realpath, and readFile all fail. memfs agrees with node on every
+    // assertion below, so each is driven over a real volume.
+    describe("lstat does not follow the link", () => {
+      it("resolves for a dangling symlink and reports it as a link rather than a file", async () => {
+        const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+        volume.symlinkSync("missing.txt", "/repo/dangling");
+
+        const stats = await fs.lstat("/repo/dangling");
+
+        expect(stats.isSymbolicLink()).toBe(true);
+        expect(stats.isFile()).toBe(false);
+        expect(stats.isDirectory()).toBe(false);
+      });
+
+      // The one cycle assertion memfs can answer: lstat never resolves the target, so
+      // it cannot be caught by the loop that hangs memfs's stat.
+      it("resolves for a link in a loop", async () => {
+        const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+        stageLoop(volume);
+
+        const stats = await fs.lstat("/repo/a");
+
+        expect(stats.isSymbolicLink()).toBe(true);
+        expect(stats.isFile()).toBe(false);
+      });
+
+      it("reports a symlink to a directory as a link while stat reports a directory", async () => {
+        const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+        volume.mkdirSync("/repo/dir");
+        volume.symlinkSync("dir", "/repo/dirlink");
+
+        expect((await fs.lstat("/repo/dirlink")).isSymbolicLink()).toBe(true);
+        expect((await fs.lstat("/repo/dirlink")).isDirectory()).toBe(false);
+        expect((await fs.stat("/repo/dirlink")).isDirectory()).toBe(true);
+        expect((await fs.stat("/repo/dirlink")).isSymbolicLink()).toBe(false);
+      });
+    });
+
+    // node stores a target as the bytes it was handed and readlink answers with them:
+    // resolving or normalising the answer would tell a script the link names something
+    // it does not. memfs agrees, so each is driven over a real volume.
+    describe("readlink answers with the target exactly as stored", () => {
+      it("keeps a relative target relative rather than resolving it", async () => {
+        const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+        volume.symlinkSync("../a/./b.txt", "/repo/rel");
+
+        expect(await fs.readlink("/repo/rel")).toBe("../a/./b.txt");
+      });
+
+      it("keeps an unnormalised absolute target unnormalised", async () => {
+        const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+        volume.symlinkSync("/repo/./a/../file.txt", "/repo/abs");
+
+        expect(await fs.readlink("/repo/abs")).toBe("/repo/./a/../file.txt");
+      });
+
+      it("keeps the target of a link in a loop", async () => {
+        const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+        stageLoop(volume);
+
+        expect(await fs.readlink("/repo/a")).toBe("b");
+      });
+    });
+
+    describe("realpath resolves the whole chain", () => {
+      it("answers the final canonical path for a chain of links", async () => {
+        const { fs, volume } = createFs({ "/repo/file.txt": "contents" });
+        volume.symlinkSync("file.txt", "/repo/link1");
+        volume.symlinkSync("link1", "/repo/link2");
+        volume.symlinkSync("link2", "/repo/link3");
+
+        expect(await fs.realpath("/repo/link3")).toBe("/repo/file.txt");
+        expect(await fs.readFile("/repo/link3", "utf8")).toBe("contents");
+      });
+    });
+
+    describe("symlink", () => {
+      // node writes the target verbatim without looking for it, so a link may be
+      // created before the file it names exists.
+      it("creates a link to a target that does not exist", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+
+        await fs.symlink("nope.txt", "/repo/fresh");
+
+        expect(await fs.readlink("/repo/fresh")).toBe("nope.txt");
+        expect((await fs.lstat("/repo/fresh")).isSymbolicLink()).toBe(true);
+        expect(await readCode(fs.stat("/repo/fresh"))).toBe("ENOENT");
+      });
+
+      // The link becomes readable once the target it already names appears, which is
+      // what proves the target was stored rather than resolved at creation.
+      it("resolves a link created before its target once the target exists", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+
+        await fs.symlink("later.txt", "/repo/eager");
+        await fs.writeFile("/repo/later.txt", "arrived");
+
+        expect(await fs.readFile("/repo/eager", "utf8")).toBe("arrived");
+      });
+    });
+
+    // copyFile follows the link and copies what it resolves to, so the copy is a
+    // regular file rather than a second link. node's link-preserving counterpart is
+    // cp, which preserves a link by default (its dereference defaults to false) and
+    // copies the resolved contents when dereference is true — the reverse of the
+    // default a reading of copyFile would suggest. cp does not store the target
+    // verbatim while preserving it: it rewrites a relative target to an absolute one
+    // resolved against the source's directory unless verbatimSymlinks is true, so a
+    // '/repo/link' -> 'file.txt' copies as a link to '/repo/file.txt'. Recorded from
+    // real node v22.22.2 but unassertable here, cp being absent from
+    // FS_OPTION_SURFACE and the module's surface. Should cp ever be exposed, those are
+    // the cases to pin: the same source copies as a file through copyFile and as a
+    // link through cp, and cp's preserved target is not the one readlink answers.
+    describe("copyFile follows the link", () => {
+      it("copies the contents rather than the link", async () => {
+        const { fs, volume } = createFs({ "/repo/file.txt": "contents" });
+        volume.symlinkSync("file.txt", "/repo/link");
+
+        await fs.copyFile("/repo/link", "/repo/copy.txt");
+
+        const copy = await fs.lstat("/repo/copy.txt");
+        expect(copy.isSymbolicLink()).toBe(false);
+        expect(copy.isFile()).toBe(true);
+        expect(await fs.readFile("/repo/copy.txt", "utf8")).toBe("contents");
+      });
+    });
+
+    // rm unlinks the link itself: node never follows it, so the target survives.
+    // memfs inverts this, and the case table cannot see it — both resolve with
+    // undefined, so the table would call them agreed. Asserted as an effect instead,
+    // which is how the mkdir/rm/rmdir block records the same class of divergence.
+    describe("rm on a symlink", () => {
+      it("records that memfs unlinks the target and keeps the link node removes", async () => {
+        const { fs, volume } = createFs({ "/repo/file.txt": "contents" });
+        volume.symlinkSync("file.txt", "/repo/link");
+
+        await fs.rm("/repo/link");
+
+        // node removes the link and leaves '/repo/file.txt'; memfs does the reverse
+        // and destroys the target, which is data loss rather than a reporting gap.
+        // lstat rather than exists: exists follows the link, so the link memfs left
+        // behind reports absent purely because memfs deleted what it pointed at.
+        expect(volume.lstatSync("/repo/link").isSymbolicLink()).toBe(true);
+        expect(volume.existsSync("/repo/link")).toBe(false);
+        expect(volume.readdirSync("/repo")).toEqual(["link"]);
+        expect(await readCode(fs.readFile("/repo/file.txt", "utf8"))).toBe("ENOENT");
+      });
+
+      // The effect above is memfs's, so it can only record the divergence — it cannot
+      // pin the one part node's semantics ask of this module. node removes the link and
+      // leaves the target, which requires the path rm is handed to still be the link:
+      // canonicalising it first would delete the target instead. A root is where that
+      // could plausibly happen, since a root resolves every path argument before the
+      // call, and it already canonicalises this same path to prove it stays inside
+      // root — so this asserts the resolved path and the containment check stay
+      // separate, and fails if a rooted rm ever forwards what realpath answered.
+      it("hands rm the link path rather than the target it resolves to", async () => {
+        const removed: unknown[] = [];
+        const { fs, volume } = createFs({ "/repo/file.txt": "contents" }, "/repo", (base) =>
+          new Proxy(base, {
+            get: (target, property) =>
+              property === "rm"
+                ? async (...args: readonly unknown[]) => void removed.push(args[0])
+                : Reflect.get(target, property, target)
+          })
+        );
+        volume.symlinkSync("file.txt", "/repo/link");
+
+        await fs.rm("link");
+
+        expect(removed).toEqual(["/repo/link"]);
+      });
+    });
+  });
+
   describe("resume policies", () => {
     const reads = ["readFile", "readdir", "stat", "lstat", "access", "realpath", "readlink"];
     const mutations = [
@@ -2478,6 +3031,196 @@ describe("makeFsModule", () => {
       });
     });
 
+    // A link whose target does not exist yet is the escape a live-link check misses.
+    // realpath refuses a dangling link with the same ENOENT it gives a path that was
+    // never there, so canonicalization that reads that ENOENT as "nothing here" keeps
+    // the link's own path — which is inside root — and lets the call through. node
+    // then follows the link and creates the target, outside root: recorded from real
+    // node v22.22.2 on darwin, where writeFile through a dangling '/repo/bomb' ->
+    // '/outside/pwned.txt' leaves the link a link and '/outside/pwned.txt' holding the
+    // written bytes.
+    //
+    // memfs cannot show that escape — it replaces the dangling link with a regular
+    // file instead of following it, so the write lands at '/repo/bomb' and looks
+    // contained (proven below). The denial is therefore what these assert: the module
+    // must refuse the call whatever the filesystem underneath would have done with it,
+    // because the filesystem it runs against in production is node's.
+    describe("dangling symlinks pointing outside root", () => {
+      const DANGLING = "/repo/bomb";
+      const VICTIM = "/outside/pwned.txt";
+
+      function createDanglingFs(): ReturnType<typeof createFs> {
+        const created = createFs(TREE, ROOT);
+        // Planted on the volume rather than through the module: a checked-out repo can
+        // carry a dangling link, and the module refuses to create an escaping one.
+        created.volume.symlinkSync(VICTIM, DANGLING);
+        return created;
+      }
+
+      it("denies writing through a dangling escaping symlink", async () => {
+        const { fs, volume } = createDanglingFs();
+
+        expect(await readDenial(fs.writeFile(DANGLING, "PWNED"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: DANGLING
+        });
+        expect(volume.existsSync(VICTIM)).toBe(false);
+      });
+
+      it("denies appending through a dangling escaping symlink", async () => {
+        const { fs, volume } = createDanglingFs();
+
+        expect(await readDenial(fs.appendFile(DANGLING, "PWNED"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: DANGLING
+        });
+        expect(volume.existsSync(VICTIM)).toBe(false);
+      });
+
+      it("denies a dangling escaping symlink as a copyFile destination", async () => {
+        const { fs, volume } = createDanglingFs();
+
+        expect(await readDenial(fs.copyFile("/repo/file.txt", DANGLING))).toMatchObject({
+          code: "EACCES",
+          syscall: "copyfile",
+          path: "/repo/file.txt",
+          dest: DANGLING
+        });
+        expect(volume.existsSync(VICTIM)).toBe(false);
+      });
+
+      it("denies reading through a dangling escaping symlink", async () => {
+        const { fs } = createDanglingFs();
+
+        expect(await readDenial(fs.readFile(DANGLING, "utf8"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: DANGLING
+        });
+      });
+
+      // The link resolves outside root whether or not the escape is the last segment,
+      // so a dangling link standing in as a parent directory is denied the same way.
+      it("denies a path descending through a dangling escaping symlink", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("/outside/nursery", "/repo/dir-bomb");
+
+        expect(await readDenial(fs.writeFile("/repo/dir-bomb/planted.txt", "x"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: "/repo/dir-bomb/planted.txt"
+        });
+        expect(volume.existsSync("/outside/nursery")).toBe(false);
+      });
+
+      // A chain of dangling links escapes just as well as one, so following stops at
+      // the target rather than at the first link that resolves to nothing.
+      it("denies writing through a chain of dangling symlinks that escapes root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("/repo/hop", DANGLING);
+        volume.symlinkSync(VICTIM, "/repo/hop");
+
+        expect(await readDenial(fs.writeFile(DANGLING, "PWNED"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: DANGLING
+        });
+        expect(volume.existsSync(VICTIM)).toBe(false);
+      });
+
+      // Telling a dangling link from a path that was never there means reading the
+      // link, and a filesystem that refuses the read has not said "not a link". Taking
+      // that refusal for one would canonicalize the link to its own path and could
+      // hand back a contained answer for a link that escapes, so the filesystem's own
+      // error surfaces instead — the same rule the identity walk follows for stat.
+      it("surfaces a readlink failure rather than reading it as a path that is not a link", async () => {
+        const denied: NodeJS.ErrnoException = new Error(
+          "EACCES: permission denied, readlink '/repo/bomb'"
+        );
+        denied.code = "EACCES";
+        denied.syscall = "readlink";
+        const { fs } = createFs(TREE, ROOT, (base) =>
+          new Proxy(base, {
+            get: (target, property) =>
+              property === "readlink"
+                ? async (path: string) => {
+                    if (path === DANGLING) {
+                      throw denied;
+                    }
+
+                    return (await base.readlink(path)) as string;
+                  }
+                : Reflect.get(target, property, target)
+          })
+        );
+
+        await expect(fs.writeFile(DANGLING, "PWNED")).rejects.toBe(denied);
+      });
+
+      // Why the assertions above are denials rather than a written-outside-root
+      // effect: memfs never performs the escape, so an effect assertion would pass
+      // against a module that had no confinement at all. This is the divergence that
+      // makes memfs unable to prove the case, recorded the way the mkdir/rm/rmdir
+      // block records the same class of gap.
+      it("records that memfs replaces a dangling link rather than following it", async () => {
+        const volume = Volume.fromJSON(TREE, "/");
+        volume.symlinkSync(VICTIM, DANGLING);
+        const reference = createFsFromVolume(volume).promises;
+
+        await reference.writeFile(DANGLING, "PWNED");
+
+        // node would leave the link a link and create the target outside root.
+        expect(volume.lstatSync(DANGLING).isSymbolicLink()).toBe(false);
+        expect(volume.readFileSync(DANGLING, "utf8")).toBe("PWNED");
+        expect(volume.existsSync(VICTIM)).toBe(false);
+      });
+    });
+
+    // A dangling link is only an escape when its target leaves root. One pointing at a
+    // path inside root is the ordinary write-then-read flow and stays allowed, which is
+    // what keeps the denial above from being a blanket refusal of dangling links.
+    describe("dangling symlinks pointing inside root", () => {
+      // Allowance is the whole assertion: node lands these bytes at the link's target
+      // and memfs lands them at the link's own path, and confinement has no opinion
+      // between the two because both are inside root. Asserting where they land would
+      // pin memfs's masking rather than node's behaviour, so each only proves the call
+      // is not refused.
+      it("allows writing through a dangling symlink whose target is inside root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("/repo/later.txt", "/repo/eager");
+
+        await expect(fs.writeFile("/repo/eager", "arrived")).resolves.toBeUndefined();
+      });
+
+      it("allows a relative dangling target inside root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("../later.txt", "/repo/sub/eager");
+
+        await expect(fs.writeFile("/repo/sub/eager", "arrived")).resolves.toBeUndefined();
+      });
+
+      // A chain of dangling links that stays inside root is followed to its end and
+      // still allowed, which is the mirror of the escaping chain denied above.
+      it("allows writing through a chain of dangling symlinks inside root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("/repo/hop", "/repo/eager");
+        volume.symlinkSync("/repo/later.txt", "/repo/hop");
+
+        await expect(fs.writeFile("/repo/eager", "arrived")).resolves.toBeUndefined();
+      });
+
+      it("allows reading a dangling symlink's own metadata and target", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("/repo/missing.txt", "/repo/dangling");
+
+        expect((await fs.lstat("/repo/dangling")).isSymbolicLink()).toBe(true);
+        expect(await fs.readlink("/repo/dangling")).toBe("/repo/missing.txt");
+        expect(await readCode(fs.stat("/repo/dangling"))).toBe("ENOENT");
+      });
+    });
+
     // node resolves a relative symlink target against the link's own directory
     // and stores it verbatim, so root must not rewrite the target.
     describe("symlink targets", () => {
@@ -2766,6 +3509,48 @@ describe("makeFsModule", () => {
         );
 
         await expect(fs.readFile("loop", "utf8")).rejects.toBe(loop);
+      });
+
+      // Canonicalization follows a dangling link to the target node would act on, so
+      // a filesystem that reports a cycle as a missing path rather than answering
+      // ELOOP would leave it following that cycle forever and hang the sandbox. The
+      // walk gives up where the platform does and raises the ELOOP the filesystem
+      // declined to. Staged on an injected filesystem because no real one behaves this
+      // way: node answers ELOOP from realpath itself, which the case above covers.
+      it("gives up with ELOOP when the filesystem reports a cycle as a missing path", async () => {
+        const cycle: Record<string, string> = { "/repo/a": "b", "/repo/b": "a" };
+        const { fs } = createFs(TREE, ROOT, (base) =>
+          new Proxy(base, {
+            get: (target, property) => {
+              if (property === "realpath") {
+                return async (path: string) => {
+                  if (path in cycle) {
+                    const missing: NodeJS.ErrnoException = new Error(
+                      `ENOENT: no such file or directory, realpath '${path}'`
+                    );
+                    missing.code = "ENOENT";
+                    throw missing;
+                  }
+
+                  return (await base.realpath(path)) as string;
+                };
+              }
+
+              if (property === "readlink") {
+                return async (path: string) =>
+                  path in cycle ? cycle[path] : ((await base.readlink(path)) as string);
+              }
+
+              return Reflect.get(target, property, target);
+            }
+          })
+        );
+
+        expect(await readRejection(fs.readFile("a", "utf8"))).toEqual({
+          name: "Error",
+          message: "ELOOP: too many symbolic links encountered, realpath '/repo/a'"
+        });
+        expect(await readCode(fs.readFile("a", "utf8"))).toBe("ELOOP");
       });
     });
 

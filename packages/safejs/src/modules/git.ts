@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, realpath, rm, stat } from "node:fs/promises";
+import { mkdir, readlink, realpath, rm, stat } from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { containsPath, isSamePath, resolveCanonicalPath } from "./canonical-path.js";
 
@@ -319,7 +319,7 @@ async function resolveWorktreePath(repoRoot: string, path: string, label: string
   const resolvedRoot = resolve(repoRoot);
   const resolvedPath = isAbsolute(path) ? resolve(path) : resolve(resolvedRoot, path);
   const canonicalRoot = await realpath(resolvedRoot);
-  const canonicalPath = await resolveCanonicalPath(realpath, resolvedPath);
+  const canonicalPath = await resolveCanonicalPath({ realpath, readlink }, resolvedPath);
 
   // A worktree lives somewhere under the repository, never at the repository root
   // itself, so root-itself is rejected alongside anything outside it. Both answers

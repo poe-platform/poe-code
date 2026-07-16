@@ -22,6 +22,13 @@ vi.mock("node:fs/promises", () => {
   return {
     mkdir: vi.fn(async () => undefined),
     realpath: vi.fn(async (path: string) => path),
+    // Canonicalization only reads a link when realpath refuses the path, which this
+    // realpath never does, so every path here is the non-link EINVAL answers for.
+    readlink: vi.fn(async () => {
+      const error: NodeJS.ErrnoException = new Error("EINVAL: invalid argument, readlink");
+      error.code = "EINVAL";
+      throw error;
+    }),
     rm: vi.fn(async () => undefined),
     stat: vi.fn(async (path: string) => ({ dev: 1, ino: identify(path) }))
   };

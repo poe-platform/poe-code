@@ -4,7 +4,12 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import { getSystemErrorMap, inspect } from "node:util";
 
 import { declareHostOperation } from "../interp/host-bridge.js";
-import { containsPath, type Realpath, resolveCanonicalPath, type Stat } from "./canonical-path.js";
+import {
+  type CanonicalPathFs,
+  containsPath,
+  resolveCanonicalPath,
+  type Stat
+} from "./canonical-path.js";
 import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
 
 type FsOperationName =
@@ -405,7 +410,7 @@ async function resolvePathArguments(
   name: FsOperationName,
   args: readonly unknown[]
 ): Promise<readonly unknown[]> {
-  const canonicalRoot = await resolveCanonicalPath(readRealpath(fs), resolve(root));
+  const canonicalRoot = await resolveCanonicalPath(readCanonicalPathFs(fs), resolve(root));
   const resolved = [...args];
 
   if (name === "symlink") {
@@ -451,16 +456,20 @@ async function escapesRoot(
   canonicalRoot: string,
   path: string
 ): Promise<boolean> {
-  const canonicalPath = await resolveCanonicalPath(readRealpath(fs), path);
+  const canonicalPath = await resolveCanonicalPath(readCanonicalPathFs(fs), path);
 
   return !(await containsPath(readStat(fs), canonicalRoot, canonicalPath));
 }
 
-// realpath is handed over as a bound call: the injected implementation may be a
-// method that needs its own receiver, and node's overloads widen the result to
-// Buffer, which only the no-encoding call used here can never return.
-function readRealpath(fs: FsImplementation): Realpath {
-  return async (path) => (await invoke(fs, "realpath", [path])) as string;
+// realpath and readlink are handed over as bound calls: the injected implementation
+// may keep them as methods that need their own receiver, and node's overloads widen
+// both results to Buffer, which only the no-encoding calls used here can never
+// return.
+function readCanonicalPathFs(fs: FsImplementation): CanonicalPathFs {
+  return {
+    realpath: async (path) => (await invoke(fs, "realpath", [path])) as string,
+    readlink: async (path) => (await invoke(fs, "readlink", [path])) as string
+  };
 }
 
 // Bound for the same reason as realpath above. Only dev and ino are read: they are

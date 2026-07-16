@@ -245,11 +245,25 @@ tasks:
       not handle — an unknown key must reject, never pass through unvalidated.
 
       TDD with memfs; no real files.
+    notes: |
+      `cp` is not part of this module's surface (see fs-module-core), so its options are not
+      classified here. Adding `cp` is separate work: its `filter` option is a callback the
+      sandbox would have to call back into, and a recursive copy needs its own root-confinement
+      design.
+
+      The audit reads @types/node, which is ahead of the runtime node: it has already dropped
+      `rmdir`'s options argument, while node 22 still validates `maxRetries`/`retryDelay`. The
+      audit therefore proves every option node's typings declare is classified, and the table is
+      allowed to classify more than the typings declare. `signal` on `appendFile` is the same
+      skew in reverse: undeclared by the typings, honoured by the runtime.
+
+      `throwIfNoEntry` is forwarded rather than refused: node's fs/promises accepts the key and
+      ignores it (only the sync variants honour it), so forwarding is node's own behaviour.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-mkdir-rm-edges
     title: mkdir/rm/rmdir edge cases and return values

@@ -468,10 +468,14 @@ describe("makeFsModule", () => {
       });
     }
 
+    // mkdtemp belongs here for the same reason as the rest: node defaults it to utf8
+    // but answers with a Buffer for a buffer encoding, so the created directory's name
+    // would cross into the sandbox as one.
     const bufferEncodingTargets = {
       readlink: "/repo/link.txt",
       realpath: "/repo/file.txt",
-      readdir: "/repo"
+      readdir: "/repo",
+      mkdtemp: "/repo/tmp-"
     } as const;
 
     for (const [operation, path] of Object.entries(bufferEncodingTargets)) {
@@ -512,6 +516,7 @@ describe("makeFsModule", () => {
       await readRejection(untyped(fs).readFile("/repo/file.txt", { encoding: "buffer" }));
       await readRejection(untyped(fs).readdir("/repo", "buffer"));
       await readRejection(untyped(fs).realpath("/repo/file.txt", "buffer"));
+      await readRejection(untyped(fs).mkdtemp("/repo/tmp-", "buffer"));
       await readRejection(untyped(fs).stat("/repo/file.txt", { bigint: true }));
       await readRejection(untyped(fs).lstat("/repo/file.txt", { bigint: true }));
 
@@ -537,6 +542,324 @@ describe("makeFsModule", () => {
       const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
 
       expect(typeof (await fs.stat("/repo/file.txt", { bigint: false })).size).toBe("number");
+    });
+  });
+
+  // node reads the options it knows off the options argument and ignores every other
+  // key, so a script cannot tell an honoured option from a dropped one. Inside SafeJS
+  // each key is either forwarded to node untouched or refused by name. The audit in
+  // fs.option-surface.test.ts proves the classification covers node's own typings.
+  describe("option surface", () => {
+    const SIGNAL_MESSAGE = (operation: string): string =>
+      `fs.${operation} cannot honour the 'signal' option inside SafeJS; the sandbox has no AbortController, and cancelling a run is the host's to request rather than the script's.`;
+
+    const UNKNOWN_MESSAGE = (operation: string, option: string): string =>
+      `fs.${operation} cannot honour the '${option}' option inside SafeJS; node declares no such option for it, and an unrecognised option is refused rather than silently ignored.`;
+
+    // Records the arguments each operation is handed, which is what separates an
+    // option that reached node from one the module dropped on the way.
+    function createRecordingFs(files: Record<string, string> = {}): {
+      fs: ReturnType<typeof makeFsModule>;
+      volume: Volume;
+      calls: { name: string; args: readonly unknown[] }[];
+    } {
+      const calls: { name: string; args: readonly unknown[] }[] = [];
+      const { fs, volume } = createFs(
+        files,
+        undefined,
+        (base) =>
+          new Proxy(base, {
+            get(target, property) {
+              const operation = Reflect.get(target, property, target);
+
+              if (typeof operation !== "function") {
+                return operation;
+              }
+
+              return (...args: readonly unknown[]): unknown => {
+                calls.push({ name: String(property), args });
+                return (operation as (...call: readonly unknown[]) => unknown).call(target, ...args);
+              };
+            }
+          })
+      );
+
+      return { fs, volume, calls };
+    }
+
+    // Every option node's fs/promises honours for an operation this module exposes,
+    // paired with the argument slot node reads it from. A recorded call proves the
+    // whole bag arrived: an option the module filtered out would be missing here.
+    const FORWARDED: ReadonlyArray<{
+      operation: string;
+      index: number;
+      options: Record<string, unknown>;
+      call: (
+        fs: ReturnType<typeof untyped>,
+        options: Record<string, unknown>
+      ) => Promise<unknown>;
+    }> = [
+      {
+        operation: "mkdir",
+        index: 1,
+        options: { recursive: true, mode: 0o700 },
+        call: (fs, options) => fs.mkdir("/repo/made/deep", options)
+      },
+      {
+        operation: "rm",
+        index: 1,
+        options: { force: true, recursive: true, maxRetries: 2, retryDelay: 1 },
+        call: (fs, options) => fs.rm("/repo/tree", options)
+      },
+      {
+        operation: "rmdir",
+        index: 1,
+        options: { maxRetries: 2, retryDelay: 1 },
+        call: (fs, options) => fs.rmdir("/repo/empty", options)
+      },
+      {
+        operation: "readdir",
+        index: 1,
+        options: { withFileTypes: true, recursive: true, encoding: "utf8" },
+        call: (fs, options) => fs.readdir("/repo/tree", options)
+      },
+      {
+        operation: "writeFile",
+        index: 2,
+        options: { flag: "a", mode: 0o600, flush: true, encoding: "utf8" },
+        call: (fs, options) => fs.writeFile("/repo/file.txt", "-more", options)
+      },
+      {
+        operation: "appendFile",
+        index: 2,
+        options: { flag: "a", mode: 0o600, encoding: "utf8" },
+        call: (fs, options) => fs.appendFile("/repo/file.txt", "-more", options)
+      },
+      {
+        operation: "readFile",
+        index: 1,
+        options: { encoding: "utf8", flag: "r" },
+        call: (fs, options) => fs.readFile("/repo/file.txt", options)
+      },
+      {
+        operation: "stat",
+        index: 1,
+        options: { bigint: false, throwIfNoEntry: true },
+        call: (fs, options) => fs.stat("/repo/file.txt", options)
+      },
+      {
+        operation: "lstat",
+        index: 1,
+        options: { bigint: false, throwIfNoEntry: true },
+        call: (fs, options) => fs.lstat("/repo/file.txt", options)
+      },
+      {
+        operation: "mkdtemp",
+        index: 1,
+        options: { encoding: "utf8" },
+        call: (fs, options) => fs.mkdtemp("/repo/tmp-", options)
+      },
+      {
+        operation: "readlink",
+        index: 1,
+        options: { encoding: "utf8" },
+        call: (fs, options) => fs.readlink("/repo/link.txt", options)
+      },
+      {
+        operation: "realpath",
+        index: 1,
+        options: { encoding: "utf8" },
+        call: (fs, options) => fs.realpath("/repo/file.txt", options)
+      }
+    ];
+
+    const OPTION_FILES = {
+      "/repo/file.txt": "hi",
+      "/repo/tree/nested/inner.txt": "inner"
+    };
+
+    // The directory rmdir is driven against has to be genuinely empty, which a
+    // volume built from files alone cannot hold.
+    async function createOptionFs(): Promise<ReturnType<typeof createRecordingFs>> {
+      const recording = createRecordingFs(OPTION_FILES);
+      await recording.fs.symlink("./file.txt", "/repo/link.txt");
+      await recording.fs.mkdir("/repo/empty");
+      recording.calls.length = 0;
+      return recording;
+    }
+
+    for (const { operation, index, options, call } of FORWARDED) {
+      it(`hands ${operation} every option node honours`, async () => {
+        const { fs, calls } = await createOptionFs();
+
+        await call(untyped(fs), options);
+
+        expect(calls.find((recorded) => recorded.name === operation)?.args[index]).toEqual(options);
+      });
+    }
+
+    // An option is only honoured if node acts on it, so the ones with an outcome the
+    // volume can show are asserted on the filesystem rather than on a recorded call.
+    it("creates parent directories and applies the mode mkdir was given", async () => {
+      const { fs, volume } = await createOptionFs();
+
+      await fs.mkdir("/repo/made/deep", { recursive: true, mode: 0o700 });
+
+      expect(volume.statSync("/repo/made/deep").isDirectory()).toBe(true);
+      expect(volume.statSync("/repo/made/deep").mode & 0o777).toBe(0o700);
+    });
+
+    it("removes a tree with rm recursive and forgives a missing path with force", async () => {
+      const { fs, volume } = await createOptionFs();
+
+      await fs.rm("/repo/tree", { recursive: true });
+      await expect(fs.rm("/repo/gone", { force: true })).resolves.toBeUndefined();
+
+      expect(volume.existsSync("/repo/tree")).toBe(false);
+    });
+
+    it("lists nested entries and Dirents when readdir is given recursive and withFileTypes", async () => {
+      const { fs } = await createOptionFs();
+
+      expect(new Set(await fs.readdir("/repo/tree", { recursive: true }))).toEqual(
+        new Set(["nested", "nested/inner.txt"])
+      );
+
+      const entries = await fs.readdir("/repo/tree", { withFileTypes: true, recursive: true });
+
+      expect(entries.map((entry) => entry.name).includes("inner.txt")).toBe(true);
+      expect(entries.every((entry) => typeof entry.isFile() === "boolean")).toBe(true);
+    });
+
+    it("encodes readdir names with the encoding it was given", async () => {
+      const { fs } = await createOptionFs();
+
+      expect(await fs.readdir("/repo/tree", { encoding: "hex" })).toEqual([
+        Buffer.from("nested", "utf8").toString("hex")
+      ]);
+    });
+
+    it("appends rather than truncates when writeFile is given an append flag", async () => {
+      const { fs, volume } = await createOptionFs();
+
+      await fs.writeFile("/repo/file.txt", "-appended", { flag: "a", flush: true });
+
+      expect(volume.readFileSync("/repo/file.txt", "utf8")).toBe("hi-appended");
+    });
+
+    it("applies the mode writeFile and appendFile were given", async () => {
+      const { fs, volume } = await createOptionFs();
+
+      await fs.writeFile("/repo/written.txt", "x", { mode: 0o600 });
+      await fs.appendFile("/repo/appended.txt", "x", { mode: 0o640, flag: "a" });
+
+      expect(volume.statSync("/repo/written.txt").mode & 0o777).toBe(0o600);
+      expect(volume.statSync("/repo/appended.txt").mode & 0o777).toBe(0o640);
+    });
+
+    it("refuses to overwrite when copyFile is given COPYFILE_EXCL", async () => {
+      const { fs } = await createOptionFs();
+
+      await fs.copyFile("/repo/file.txt", "/repo/copy.txt");
+
+      expect(await readCode(fs.copyFile("/repo/file.txt", "/repo/copy.txt", fs.constants.COPYFILE_EXCL))).toBe(
+        "EEXIST"
+      );
+    });
+
+    // node rejects the run itself when handed an aborted signal, so a signal SafeJS
+    // dropped would silently read the file the script asked to cancel.
+    const SIGNAL_CALLS: Record<string, (fs: ReturnType<typeof untyped>, signal: unknown) => Promise<unknown>> =
+      {
+        readFile: (fs, signal) => fs.readFile("/repo/file.txt", { encoding: "utf8", signal }),
+        writeFile: (fs, signal) => fs.writeFile("/repo/file.txt", "x", { signal }),
+        appendFile: (fs, signal) => fs.appendFile("/repo/file.txt", "x", { signal })
+      };
+
+    for (const [operation, call] of Object.entries(SIGNAL_CALLS)) {
+      it(`${operation} with a signal rejects with a TypeError naming the option`, async () => {
+        const { fs } = await createOptionFs();
+        const controller = new AbortController();
+
+        expect(await readRejection(call(untyped(fs), controller.signal))).toEqual({
+          name: "TypeError",
+          message: SIGNAL_MESSAGE(operation)
+        });
+      });
+    }
+
+    it("refuses a signal without waiting for the host's own cancellation", async () => {
+      const { fs, volume } = await createOptionFs();
+      const before = volume.toJSON();
+
+      await readRejection(untyped(fs).writeFile("/repo/file.txt", "x", { signal: undefined }));
+
+      expect(volume.toJSON()).toEqual(before);
+    });
+
+    // Every operation with an options bag, so an unknown key cannot pass through on
+    // whichever one a test forgot.
+    const UNKNOWN_CALLS: Record<string, (fs: ReturnType<typeof untyped>, options: unknown) => Promise<unknown>> =
+      {
+        readFile: (fs, options) => fs.readFile("/repo/file.txt", options),
+        writeFile: (fs, options) => fs.writeFile("/repo/file.txt", "x", options),
+        appendFile: (fs, options) => fs.appendFile("/repo/file.txt", "x", options),
+        readdir: (fs, options) => fs.readdir("/repo/tree", options),
+        readlink: (fs, options) => fs.readlink("/repo/link.txt", options),
+        realpath: (fs, options) => fs.realpath("/repo/file.txt", options),
+        mkdir: (fs, options) => fs.mkdir("/repo/made", options),
+        mkdtemp: (fs, options) => fs.mkdtemp("/repo/tmp-", options),
+        rm: (fs, options) => fs.rm("/repo/tree", options),
+        rmdir: (fs, options) => fs.rmdir("/repo/empty", options),
+        stat: (fs, options) => fs.stat("/repo/file.txt", options),
+        lstat: (fs, options) => fs.lstat("/repo/file.txt", options)
+      };
+
+    for (const [operation, call] of Object.entries(UNKNOWN_CALLS)) {
+      it(`${operation} with an unknown option rejects rather than ignoring it`, async () => {
+        const { fs, volume } = await createOptionFs();
+        const before = volume.toJSON();
+
+        expect(await readRejection(call(untyped(fs), { madeUpOption: true }))).toEqual({
+          name: "TypeError",
+          message: UNKNOWN_MESSAGE(operation, "madeUpOption")
+        });
+        expect(volume.toJSON()).toEqual(before);
+      });
+    }
+
+    // node reads an option off the prototype chain the same as an own property, so a
+    // refused one cannot be smuggled past the module behind Object.create.
+    it("refuses an inherited option key", async () => {
+      const { fs } = await createOptionFs();
+
+      expect(
+        await readRejection(
+          untyped(fs).readFile("/repo/file.txt", Object.create({ encoding: "utf8", signal: null }))
+        )
+      ).toEqual({ name: "TypeError", message: SIGNAL_MESSAGE("readFile") });
+    });
+
+    // The options argument node reads as an encoding, not as a bag of keys.
+    it("leaves a string encoding and a numeric mode to node", async () => {
+      const { fs, volume } = await createOptionFs();
+
+      expect(await fs.readFile("/repo/file.txt", "utf8")).toBe("hi");
+      await fs.mkdir("/repo/moded", 0o700);
+
+      expect(volume.statSync("/repo/moded").mode & 0o777).toBe(0o700);
+    });
+
+    // Operations node gives no options bag: the trailing argument is a mode, a length,
+    // or a time, and node validates it itself.
+    it("leaves the trailing argument of an option-less operation to node", async () => {
+      const { fs, volume } = await createOptionFs();
+
+      await fs.access("/repo/file.txt", fs.constants.R_OK);
+      await fs.chmod("/repo/file.txt", 0o600);
+      await fs.truncate("/repo/file.txt", 1);
+
+      expect(volume.readFileSync("/repo/file.txt", "utf8")).toBe("h");
     });
   });
 

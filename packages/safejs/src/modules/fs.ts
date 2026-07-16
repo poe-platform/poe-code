@@ -32,17 +32,86 @@ type FsOperationName =
 // Operations whose node result already crosses into the sandbox unchanged.
 type FsPassthroughName = Exclude<
   FsOperationName,
-  "lstat" | "readFile" | "readdir" | "readlink" | "realpath" | "stat"
+  "lstat" | "mkdtemp" | "readFile" | "readdir" | "readlink" | "realpath" | "stat"
 >;
 
 // Whether node answers with a Buffer when an encoding is not given: readFile
-// defaults to a Buffer, while readdir, readlink, and realpath default to utf8.
+// defaults to a Buffer, while readdir, readlink, realpath, and mkdtemp default to
+// utf8 yet still answer with one for a buffer encoding.
 const BUFFER_BY_DEFAULT = {
   readFile: true,
   readdir: false,
   readlink: false,
-  realpath: false
+  realpath: false,
+  mkdtemp: false
 } as const;
+
+// Why each option node honours cannot be honoured here, written once for every
+// operation that declares it.
+const REFUSED_OPTION_REASONS = {
+  signal:
+    "the sandbox has no AbortController, and cancelling a run is the host's to request rather than the script's"
+} as const;
+
+const UNKNOWN_OPTION_REASON =
+  "node declares no such option for it, and an unrecognised option is refused rather than silently ignored";
+
+type FsOptionSurface = {
+  // Which argument node reads the options bag from.
+  readonly argument: number;
+  readonly honoured: readonly string[];
+  readonly refused: readonly (keyof typeof REFUSED_OPTION_REASONS)[];
+};
+
+// Every operation node gives an options bag, the argument it reads the bag from,
+// and each option split into the ones forwarded to node untouched and the ones
+// refused by name. An option node honours and this table omits is refused as
+// unknown, so a silently ignored option is not reachable; the audit in
+// fs.option-surface.test.ts proves the split covers node's own typings, which is
+// what keeps a handle, stream, or watcher option node adds later from passing
+// through unclassified.
+//
+// The operations absent here are the ones node gives no options bag: access,
+// chmod, copyFile, truncate, and utimes read a trailing mode, length, or time
+// that node validates itself, and link, rename, and symlink take paths alone.
+//
+// rmdir carries maxRetries and retryDelay because node validates both (its
+// recursive option is deprecated but still honoured), even though @types/node has
+// already dropped rmdir's options argument for a future node that removes them.
+export const FS_OPTION_SURFACE: Record<
+  | "appendFile"
+  | "lstat"
+  | "mkdir"
+  | "mkdtemp"
+  | "readFile"
+  | "readdir"
+  | "readlink"
+  | "realpath"
+  | "rm"
+  | "rmdir"
+  | "stat"
+  | "writeFile",
+  FsOptionSurface
+> = {
+  appendFile: {
+    argument: 2,
+    honoured: ["encoding", "mode", "flag", "flush"],
+    // node's appendFile forwards to writeFile, so it honours a signal even though
+    // @types/node does not declare one for it.
+    refused: ["signal"]
+  },
+  lstat: { argument: 1, honoured: ["bigint", "throwIfNoEntry"], refused: [] },
+  mkdir: { argument: 1, honoured: ["recursive", "mode"], refused: [] },
+  mkdtemp: { argument: 1, honoured: ["encoding"], refused: [] },
+  readFile: { argument: 1, honoured: ["encoding", "flag"], refused: ["signal"] },
+  readdir: { argument: 1, honoured: ["encoding", "withFileTypes", "recursive"], refused: [] },
+  readlink: { argument: 1, honoured: ["encoding"], refused: [] },
+  realpath: { argument: 1, honoured: ["encoding"], refused: [] },
+  rm: { argument: 1, honoured: ["force", "recursive", "maxRetries", "retryDelay"], refused: [] },
+  rmdir: { argument: 1, honoured: ["recursive", "maxRetries", "retryDelay"], refused: [] },
+  stat: { argument: 1, honoured: ["bigint", "throwIfNoEntry"], refused: [] },
+  writeFile: { argument: 2, honoured: ["encoding", "mode", "flag", "flush"], refused: ["signal"] }
+};
 
 const STAT_NUMBER_FIELDS = [
   "dev",
@@ -181,6 +250,7 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
   readFile(path: PathLike, options: ReadFileOptions): Promise<string>;
   readlink(path: PathLike, options?: EncodingOptions): Promise<string>;
   realpath(path: PathLike, options?: EncodingOptions): Promise<string>;
+  mkdtemp(prefix: string, options?: EncodingOptions): Promise<string>;
   readdir: {
     (path: PathLike, options: ReaddirOptions & { withFileTypes: true }): Promise<SandboxDirent[]>;
     (
@@ -214,7 +284,10 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
     link: bind(fs, "link", "read-side-effect"),
     lstat: bindStat(fs, "lstat"),
     mkdir: bind(fs, "mkdir", "read-side-effect"),
-    mkdtemp: bind(fs, "mkdtemp", "read-side-effect"),
+    // Creates a directory, so it cannot be re-issued on resume like the other
+    // string-result operations, but its name still crosses as a Buffer for a buffer
+    // encoding and so goes through the same guard.
+    mkdtemp: bindStringResult(fs, "mkdtemp", "read-side-effect"),
     readFile: bindStringResult(fs, "readFile"),
     readdir: bindReaddir(fs),
     readlink: bindStringResult(fs, "readlink"),
@@ -247,11 +320,12 @@ function bind<Name extends FsOperationName>(
   ) as FsImplementation[Name];
 }
 
-function bindStringResult<Name extends "readFile" | "readlink" | "realpath">(
+function bindStringResult<Name extends "readFile" | "readlink" | "realpath" | "mkdtemp">(
   fs: FsImplementation,
-  name: Name
+  name: Name,
+  policy: PendingHostCallPolicyMode = "re-issue"
 ): FsModule[Name] {
-  return declare(name, "re-issue", async (...args: readonly unknown[]) => {
+  return declare(name, policy, async (...args: readonly unknown[]) => {
     assertNoBufferResult(name, args[1]);
     return (await invoke(fs, name, args)) as string;
   }) as FsModule[Name];
@@ -286,6 +360,7 @@ function declare<TOperation extends FsHostOperation>(
     FS_PATH_ARGUMENTS[name].forEach((argument, index) =>
       assertSupportedPath(name, argument, args[index])
     );
+    assertSupportedOptions(name, args);
 
     return await operation(...args);
   };
@@ -517,11 +592,41 @@ function readSystemError(code: string): [number, string] {
   throw new Error(`node does not define the ${code} system error.`);
 }
 
+// node ignores an option key it does not know, which leaves a script unable to tell
+// an option it honoured from one it dropped. Every key is answered for here: refused
+// by name with the reason, or proven to be one node forwards.
+function assertSupportedOptions(name: FsOperationName, args: readonly unknown[]): void {
+  // Widened to every operation for the lookup: the table only holds the ones node
+  // gives an options bag.
+  const surface: FsOptionSurface | undefined = (
+    FS_OPTION_SURFACE as Partial<Record<FsOperationName, FsOptionSurface>>
+  )[name];
+
+  // An operation with no options bag, or an options argument node reads as an
+  // encoding or a mode rather than a bag: node validates the value itself.
+  if (surface === undefined || !isObjectLike(args[surface.argument])) {
+    return;
+  }
+
+  // for...in rather than own keys: node reads an option off the prototype chain too.
+  for (const option in args[surface.argument] as object) {
+    const refused = surface.refused.find((name) => name === option);
+
+    if (refused !== undefined) {
+      throw createUnsupportedOptionError(name, refused, REFUSED_OPTION_REASONS[refused]);
+    }
+
+    if (!surface.honoured.includes(option)) {
+      throw createUnsupportedOptionError(name, option, UNKNOWN_OPTION_REASON);
+    }
+  }
+}
+
 function assertNoBufferResult(operation: keyof typeof BUFFER_BY_DEFAULT, options: unknown): void {
   if (readsBuffer(options, BUFFER_BY_DEFAULT[operation])) {
     throw createUnsupportedCapabilityError(
       operation,
-      "a Buffer",
+      "return a Buffer",
       'pass a string encoding such as "utf8"'
     );
   }
@@ -531,18 +636,28 @@ function assertNoBigIntResult(operation: FsOperationName, options: unknown): voi
   if (isObjectLike(options) && (options as { bigint?: unknown }).bigint === true) {
     throw createUnsupportedCapabilityError(
       operation,
-      "BigInt fields",
+      "return BigInt fields",
       "omit bigint and read the *Ms timestamps instead"
     );
   }
 }
 
+function createUnsupportedOptionError(
+  operation: FsOperationName,
+  option: string,
+  reason: string
+): TypeError {
+  return createUnsupportedCapabilityError(operation, `honour the '${option}' option`, reason);
+}
+
+// The one shape every capability SafeJS cannot offer is refused with, so a script
+// reads the same sentence whichever option, encoding, or field it reached for.
 function createUnsupportedCapabilityError(
   operation: FsOperationName,
   capability: string,
   remedy: string
 ): TypeError {
-  return new TypeError(`fs.${operation} cannot return ${capability} inside SafeJS; ${remedy}.`);
+  return new TypeError(`fs.${operation} cannot ${capability} inside SafeJS; ${remedy}.`);
 }
 
 // Only reports the shapes node answers with a Buffer. Anything else — including

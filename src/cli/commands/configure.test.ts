@@ -19,7 +19,7 @@ import type { AuthProvider } from "@poe-code/providers";
 import type { CommandRunner } from "../../utils/command-checks.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type { PromptFn } from "../types.js";
-import { PROVIDER_NAME } from "../constants.js";
+import { DEFAULT_CLAUDE_CODE_MODEL, PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
 import { ensureIsolatedConfigForService } from "./ensure-isolated-config.js";
 import { parseToml } from "@poe-code/config-mutations/testing";
@@ -1367,6 +1367,68 @@ describe("configure provider resolution", () => {
 
     expect(writeSpy).not.toHaveBeenCalled();
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe(before);
+  });
+
+  it("--skip-if-configured keeps an existing config whose model differs from the default", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ value, defaultValue }) => value ?? defaultValue
+    );
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "poe",
+      model: "anthropic/claude-sonnet-4.6"
+    });
+
+    const settingsFile = `${homeDir}/.claude/settings.json`;
+    const before = await fs.readFile(settingsFile, "utf8");
+    const writeSpy = vi.spyOn(fs, "writeFile");
+    const resolveModelSpy = vi.spyOn(container.options, "resolveModel");
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "poe",
+      skipIfConfigured: true
+    });
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(resolveModelSpy).not.toHaveBeenCalled();
+    await expect(fs.readFile(settingsFile, "utf8")).resolves.toBe(before);
+  });
+
+  it("--skip-if-configured --dry-run reports a skip instead of a default model rewrite", async () => {
+    const lines: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-env" } },
+      logger: (line) => {
+        lines.push(line);
+      }
+    });
+    mockOptions(container);
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ value, defaultValue }) => value ?? defaultValue
+    );
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "poe",
+      model: "anthropic/claude-sonnet-4.6"
+    });
+
+    lines.length = 0;
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes", "--dry-run"]),
+      container,
+      "claude-code",
+      { provider: "poe", skipIfConfigured: true }
+    );
+
+    const output = lines.join("\n");
+    expect(output).toContain("already configured");
+    expect(output).not.toContain("would configure");
+    expect(output).not.toContain(DEFAULT_CLAUDE_CODE_MODEL);
   });
 
   it("keeps overlay symlinks staged until commit", async () => {

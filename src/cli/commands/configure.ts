@@ -18,7 +18,7 @@ import {
   applyIsolatedConfiguration,
   type CommandFlags
 } from "./shared.js";
-import { saveConfiguredService } from "../../services/config.js";
+import { loadConfiguredServices, saveConfiguredService } from "../../services/config.js";
 import { OperationCancelledError } from "../errors.js";
 import {
   combineMutationObservers,
@@ -27,7 +27,6 @@ import {
 import type { MutationObservers } from "@poe-code/config-mutations";
 import type { CommandContext } from "../context.js";
 import { createConfigurePayload } from "./configure-payload.js";
-import type { ProviderContext, ProviderService } from "../service-registry.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
@@ -117,6 +116,23 @@ export async function executeConfigure(
 
   resources.logger.intro(`configure ${canonicalService}`);
 
+  if (options.skipIfConfigured === true) {
+    const configured = await loadConfiguredServices({
+      fs: container.fs,
+      filePath: container.env.configPath,
+      projectFilePath: container.env.projectConfigPath,
+      readOnly: flags.dryRun
+    });
+    if (Object.prototype.hasOwnProperty.call(configured, canonicalService)) {
+      resources.context.complete({
+        success: `${adapter.label} is already configured.`,
+        dry: `Dry run: ${adapter.label} is already configured.`
+      });
+      resources.context.finalize();
+      return;
+    }
+  }
+
   const providerId =
     adapter.requiresProvider === false
       ? undefined
@@ -139,22 +155,9 @@ export async function executeConfigure(
     providerId
   });
 
-  let skippedConfigured = false;
   await container.registry.invoke(canonicalService, "configure", async (entry) => {
     if (!entry.configure) {
       throw new Error(`Agent "${canonicalService}" does not support configure.`);
-    }
-    if (
-      options.skipIfConfigured === true &&
-      !(await hasMaterialConfigureChange({
-        entry,
-        adapter,
-        providerContext,
-        payload
-      }))
-    ) {
-      skippedConfigured = true;
-      return;
     }
 
     const tracker = createMutationTracker();
@@ -265,15 +268,6 @@ export async function executeConfigure(
     }
   });
 
-  if (skippedConfigured) {
-    resources.context.complete({
-      success: `${adapter.label} is already configured.`,
-      dry: `Dry run: ${adapter.label} is already configured.`
-    });
-    resources.context.finalize();
-    return;
-  }
-
   resources.context.complete({
     success: `Configured ${adapter.label}.`,
     dry: `Dry run: would configure ${adapter.label}.`
@@ -286,44 +280,6 @@ export async function executeConfigure(
   resources.context.finalize();
 }
 
-async function hasMaterialConfigureChange(input: {
-  entry: ProviderService;
-  adapter: ProviderService;
-  providerContext: ProviderContext;
-  payload: unknown;
-}): Promise<boolean> {
-  const overlay = createOverlayFileSystem(input.providerContext.command.fs);
-  const command = createSilentDryRunCommand(input.providerContext.command, overlay.fs);
-
-  await input.entry.configure(
-    {
-      fs: overlay.fs,
-      env: input.providerContext.env,
-      command,
-      options: input.payload
-    },
-    { observers: createNoopMutationObservers(), sideEffects: false }
-  );
-
-  const isolated = input.adapter.isolatedEnv;
-  if (isolated && isolated.requiresConfig !== false) {
-    await applyIsolatedConfiguration({
-      adapter: input.entry,
-      providerContext: {
-        ...input.providerContext,
-        command
-      },
-      payload: input.payload,
-      isolated,
-      providerName: input.adapter.name,
-      observers: createNoopMutationObservers(),
-      sideEffects: false
-    });
-  }
-
-  return overlay.hasMaterialChange();
-}
-
 function createSilentDryRunCommand(base: CommandContext, fs: CommandContext["fs"]): CommandContext {
   return {
     dryRun: base.dryRun,
@@ -334,10 +290,6 @@ function createSilentDryRunCommand(base: CommandContext, fs: CommandContext["fs"
     complete() {},
     finalize() {}
   };
-}
-
-function createNoopMutationObservers(): MutationObservers {
-  return {};
 }
 
 export function createOverlayFileSystem(base: FileSystem): {

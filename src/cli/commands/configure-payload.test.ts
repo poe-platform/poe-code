@@ -7,6 +7,8 @@ import type { FileSystem } from "../../utils/file-system.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 import type { ModelChoice } from "../prompts.js";
+import type { ProviderService } from "../service-registry.js";
+import { ValidationError, isUserFacingError } from "../errors.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -753,5 +755,70 @@ describe("createConfigurePayload — model choices", () => {
     });
 
     expect(choicesResolver).toHaveBeenCalledOnce();
+  });
+});
+
+describe("createConfigurePayload — freeform provider model is required", () => {
+  let fs: FileSystem;
+
+  beforeEach(() => {
+    fs = createHomeFs(homeDir);
+    createTestProgram();
+  });
+
+  function freeformInit(container: ReturnType<typeof createContainer>, adapter: ProviderService) {
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    return {
+      container,
+      flags: defaultFlags,
+      options: { baseUrl: "https://gateway.example.com" },
+      context: buildProviderContext(container, adapter, resources),
+      adapter,
+      logger: resources.logger,
+      providerId: "cloudflare"
+    };
+  }
+
+  it("lists the agent's known model ids when the provider requires a model", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.providerRegistry, "resolveCredential").mockResolvedValue("cf-token");
+    const adapter = container.registry.require("claude-code");
+
+    await expect(createConfigurePayload(freeformInit(container, adapter))).rejects.toThrow(
+      'Provider "cloudflare" requires a model for "Claude Code default model". ' +
+        "Pass --model with one of: haiku, sonnet, opus, anthropic/claude-haiku-4.5, " +
+        "anthropic/claude-sonnet-4.6, anthropic/claude-opus-4.7, or any other model id " +
+        "your Cloudflare AI Gateway exposes."
+    );
+  });
+
+  it("raises a user-facing validation error rather than a plain Error", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.providerRegistry, "resolveCredential").mockResolvedValue("cf-token");
+    const adapter = container.registry.require("claude-code");
+
+    const error = await createConfigurePayload(freeformInit(container, adapter)).catch(
+      (caught: unknown) => caught
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(isUserFacingError(error)).toBe(true);
+  });
+
+  it("points at the provider when the agent declares no model candidates", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.providerRegistry, "resolveCredential").mockResolvedValue("cf-token");
+    const adapter = createProviderStub({
+      name: "gemini-cli",
+      label: "Gemini CLI",
+      configurePrompts: {
+        model: { label: "Gemini model", defaultValue: "gemini-a" }
+      }
+    });
+
+    await expect(createConfigurePayload(freeformInit(container, adapter))).rejects.toThrow(
+      'Provider "cloudflare" requires a model for "Gemini model". ' +
+        "Pass --model with a model id your Cloudflare AI Gateway exposes."
+    );
   });
 });

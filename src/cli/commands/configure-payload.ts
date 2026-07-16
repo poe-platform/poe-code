@@ -13,7 +13,7 @@ import {
 import type { ConfigureCommandOptions } from "./configure.js";
 import { ValidationError } from "../errors.js";
 import { POE_PROVIDER_ID, type AuthProvider } from "@poe-code/providers";
-import type { ModelChoice, ModelChoices } from "../prompts.js";
+import type { ModelChoice, ModelChoices, ModelPromptInput } from "../prompts.js";
 
 interface ConfigurePayloadInit {
   container: CliContainer;
@@ -104,7 +104,7 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
             container,
             flags,
             options,
-            label: modelPrompt.label,
+            modelPrompt,
             configModel,
             provider,
             logger
@@ -230,34 +230,56 @@ async function resolveFreeformProviderModel(input: {
   container: CliContainer;
   flags: CommandFlags;
   options: ConfigureCommandOptions;
-  label: string;
+  modelPrompt: ModelPromptInput;
   configModel: string | null;
   provider: AuthProvider;
   logger: ScopedLogger;
 }): Promise<string> {
+  const label = input.modelPrompt.label;
   const explicitModel = resolveNonEmpty(input.options.model);
   if (explicitModel !== undefined) {
-    input.logger.resolved(input.label, explicitModel);
+    input.logger.resolved(label, explicitModel);
     return explicitModel;
   }
 
   const configuredModel = resolveNonEmpty(input.configModel ?? undefined);
   if (configuredModel !== undefined) {
-    input.logger.resolved(input.label, configuredModel);
+    input.logger.resolved(label, configuredModel);
     return configuredModel;
   }
 
   if (input.flags.assumeYes) {
-    throw new Error(
-      `Provider "${input.provider.id}" requires a model for "${input.label}". Pass --model.`
+    throw new ValidationError(
+      `Provider "${input.provider.id}" requires a model for "${label}". ${formatFreeformModelHint(
+        input.modelPrompt,
+        input.provider
+      )}`
     );
   }
 
   return await input.container.options.ensure({
     descriptor: {
       name: "model",
-      message: input.label,
+      message: label,
       type: "text"
     }
   });
+}
+
+/**
+ * A freeform provider accepts any model its gateway routes, so the agent's declared
+ * ids are offered as candidates rather than as the complete set.
+ */
+function formatFreeformModelHint(prompt: ModelPromptInput, provider: AuthProvider): string {
+  const candidates = [
+    ...Object.keys(prompt.aliases ?? {}),
+    ...(typeof prompt.choices === "function" ? [] : prompt.choices ?? []).map(
+      (choice) => choice.value
+    )
+  ];
+  return candidates.length > 0
+    ? `Pass --model with one of: ${candidates.join(", ")}, or any other model id your ${
+        provider.label
+      } exposes.`
+    : `Pass --model with a model id your ${provider.label} exposes.`;
 }

@@ -712,6 +712,139 @@ describe("skill configure command", () => {
 });
 
 // ---------------------------------------------------------------------------
+// skill-list-command.test.ts
+// ---------------------------------------------------------------------------
+
+describe("skill list command", () => {
+  beforeEach(() => {
+    setProcessStdinIsTTY(true);
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
+    vi.restoreAllMocks();
+    selectMock.mockReset();
+    cancelMock.mockReset();
+  });
+
+  it("lists installed skills for an agent in both scopes", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${cwd}/.claude/skills/project-skill`, { recursive: true });
+    vol.writeFileSync(`${cwd}/.claude/skills/project-skill/SKILL.md`, "# project\n");
+    vol.writeFileSync(`${cwd}/.claude/skills/README.md`, "not a skill\n");
+    vol.mkdirSync(`${homeDir}/.claude/skills/user-skill`, { recursive: true });
+    vol.writeFileSync(`${homeDir}/.claude/skills/user-skill/SKILL.md`, "# user\n");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "list", "claude-code"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("claude-code/project-skill");
+    expect(output).toContain("claude-code/user-skill");
+    expect(output).not.toContain("README");
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("filters by scope when --global is passed", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${cwd}/.claude/skills/project-skill`, { recursive: true });
+    vol.mkdirSync(`${homeDir}/.claude/skills/user-skill`, { recursive: true });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "list", "claude-code", "--global"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("claude-code/user-skill");
+    expect(output).not.toContain("project-skill");
+  });
+
+  it("lists every skill-capable agent when no agent is given", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${cwd}/.claude/skills/claude-skill`, { recursive: true });
+    vol.mkdirSync(`${homeDir}/.codex/skills/codex-skill`, { recursive: true });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "list"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("claude-code/claude-skill");
+    expect(output).toContain("codex/codex-skill");
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("reports where it looked when nothing is installed", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "list", "claude-code"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("No skills installed for claude-code");
+    expect(output).toContain("- .claude/skills");
+    expect(output).toContain("- ~/.claude/skills");
+  });
+
+  it("rejects an unknown agent", async () => {
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(program.parseAsync(["node", "cli", "skill", "list", "unknown"])).rejects.toThrow(
+      /^Unknown agent "unknown"\. Agents supporting skill: /
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // skill-install-command.test.ts
 // ---------------------------------------------------------------------------
 

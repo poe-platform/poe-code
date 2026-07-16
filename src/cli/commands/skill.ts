@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import * as path from "node:path";
-import { select, isCancel, cancel } from "toolcraft-design";
+import { select, isCancel, cancel, getTheme, renderTable } from "toolcraft-design";
 import {
   formatAgentCapabilityError,
   listAgentsWithCapability,
@@ -10,9 +10,13 @@ import type { CliContainer } from "../container.js";
 import {
   supportedAgents,
   configure,
+  getAgentConfig,
   installSkill,
+  resolveSkillDir,
+  resolveSkillReference,
   unconfigure,
   resolveAgentSupport,
+  type SkillResolutionFailure,
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
@@ -30,6 +34,17 @@ interface SkillCommandOptions {
 interface SkillInstallCommandOptions extends SkillCommandOptions {
   name: string;
   file: string;
+}
+
+interface SkillBridgeCommandOptions {
+  agent?: string;
+  yes?: boolean;
+}
+
+interface InstalledSkill {
+  ref: string;
+  scope: SkillScope;
+  skillPath: string;
 }
 
 /** Aliases included so the list matches what `configure --help` advertises. */
@@ -73,6 +88,97 @@ function assertInteractivePromptAvailable(message: string): void {
   if (process.stdin.isTTY !== true) {
     throw new ValidationError(message);
   }
+}
+
+function formatSkillPath(container: CliContainer, filePath: string): string {
+  const relative = path.relative(container.env.cwd, filePath);
+  return relative.length > 0 && !relative.startsWith("..") && !path.isAbsolute(relative)
+    ? relative
+    : filePath.replace(container.env.homeDir, "~");
+}
+
+function requireSkillAgentId(agent: string): string {
+  const support = resolveAgentSupport(agent);
+  if (support.status !== "supported" || !support.id) {
+    throw new ValidationError(formatAgentCapabilityError({ agent, capability: "skill" }));
+  }
+  return support.id;
+}
+
+function resolveScopes(options: SkillCommandOptions): SkillScope[] {
+  if (options.local && options.global) {
+    throw new ValidationError("Use either --local or --global, not both.");
+  }
+  if (options.local) {
+    return ["local"];
+  }
+  if (options.global) {
+    return ["global"];
+  }
+  return ["local", "global"];
+}
+
+/** Directory entries are skills; SKILL.md files sitting loose in the root are not. */
+async function collectInstalledSkills(
+  container: CliContainer,
+  agentIds: string[],
+  scopes: SkillScope[]
+): Promise<{ skills: InstalledSkill[]; searchedDirs: string[] }> {
+  const skills: InstalledSkill[] = [];
+  const searchedDirs: string[] = [];
+
+  for (const agentId of agentIds) {
+    const config = getAgentConfig(agentId);
+    if (!config) {
+      continue;
+    }
+
+    for (const scope of scopes) {
+      const skillDir = resolveSkillDir(config, scope, container.env.cwd, container.env.homeDir);
+      searchedDirs.push(skillDir);
+
+      let entries: string[];
+      try {
+        entries = await container.fs.readdir(skillDir);
+      } catch {
+        continue;
+      }
+
+      for (const entry of [...entries].sort()) {
+        const skillPath = path.join(skillDir, entry);
+        const stats = await container.fs.stat(skillPath).catch(() => undefined);
+        if (stats?.isDirectory() !== true) {
+          continue;
+        }
+        skills.push({ ref: `${agentId}/${entry}`, scope, skillPath });
+      }
+    }
+  }
+
+  return { skills, searchedDirs };
+}
+
+function formatUnresolvedRefs(failures: SkillResolutionFailure[]): string {
+  const lines = [`Could not resolve ${failures.length} skill reference(s).`];
+
+  for (const failure of failures) {
+    if (failure.kind === "malformed") {
+      lines.push(`- ${failure.ref}: malformed reference, expected "<name>" or "<agentId>/<name>".`);
+      continue;
+    }
+    if (failure.kind === "unknown-agent") {
+      lines.push(
+        `- ${failure.ref}: ${formatAgentCapabilityError({ agent: failure.agentInput, capability: "skill" })}`
+      );
+      continue;
+    }
+    lines.push(`- ${failure.ref}: not found, searched paths:`);
+    for (const searchedPath of failure.searchedPaths) {
+      lines.push(`  - ${searchedPath}`);
+    }
+  }
+
+  return lines.join("\n");
 }
 
 export function registerSkillCommand(program: Command, container: CliContainer): void {
@@ -194,6 +300,122 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         dry: `Would install skill ${options.name} for ${resolvedAgent} at ${result.displayPath}`
       });
       resources.context.finalize();
+    });
+
+  skill
+    .command("list")
+    .alias("ls")
+    .description("List installed skills for an agent.")
+    .argument(
+      "[agent]",
+      `Agent to list skills for (${skillAgentHelpList()}); omit to list every agent`
+    )
+    .option("--local", "Use local scope (in the current project)")
+    .option("--global", "Use global scope (in the user home directory)")
+    .action(async (agentArg: string | undefined, options: SkillCommandOptions) => {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "skill:list");
+      const scopes = resolveScopes(options);
+      const agentIds = agentArg ? [requireSkillAgentId(agentArg)] : [...supportedAgents];
+
+      resources.logger.intro("skill list");
+
+      const { skills, searchedDirs } = await collectInstalledSkills(container, agentIds, scopes);
+
+      if (skills.length === 0) {
+        resources.logger.info(
+          [
+            `No skills installed for ${agentIds.join(", ")}. Searched:`,
+            ...searchedDirs.map((dir) => `- ${formatSkillPath(container, dir)}`),
+            "Install one with poe-code skill install <agent> --name <name> --file <path>."
+          ].join("\n")
+        );
+        return;
+      }
+
+      const theme = getTheme();
+      resources.logger.info(
+        renderTable({
+          theme,
+          columns: [
+            { name: "Skill", title: "Skill", alignment: "left", maxLen: 36 },
+            { name: "Scope", title: "Scope", alignment: "left", maxLen: 8 },
+            { name: "Path", title: "Path", alignment: "left", maxLen: 44 }
+          ],
+          rows: skills.map((installed) => ({
+            Skill: theme.accent(installed.ref),
+            Scope: installed.scope,
+            Path: formatSkillPath(container, installed.skillPath)
+          }))
+        })
+      );
+    });
+
+  skill
+    .command("bridge")
+    .description(
+      "Preview how active skill references resolve and where they would be bridged for a spawn agent. Writes nothing: bridging runs during poe-code spawn --skill <ref>."
+    )
+    .argument("<refs...>", "Skill references to resolve (<name> or <agentId>/<name>)")
+    .option("--agent <agent>", `Spawn agent that would receive the skills (${skillAgentHelpList()})`)
+    .option("-y, --yes", "Accept defaults, skip prompts")
+    .action(async (refs: string[], options: SkillBridgeCommandOptions) => {
+      const rootFlags = resolveCommandFlags(program);
+      const flags = {
+        ...rootFlags,
+        assumeYes: rootFlags.assumeYes || Boolean(options.yes)
+      };
+      const resources = createExecutionResources(container, flags, "skill:bridge");
+
+      const agent = await resolveSkillAgent({
+        agentArg: options.agent,
+        container,
+        flags,
+        promptMessage: "Select agent to bridge skills for:"
+      });
+      if (!agent) {
+        return;
+      }
+
+      const resolvedAgent = requireSkillAgentId(agent);
+      const targetDir = resolveSkillDir(
+        getAgentConfig(resolvedAgent)!,
+        "local",
+        container.env.cwd,
+        container.env.homeDir
+      );
+
+      resources.logger.intro(`skill bridge ${resolvedAgent}`);
+
+      const resolutions = refs.map((ref) =>
+        resolveSkillReference(ref, container.env.cwd, container.env.homeDir)
+      );
+      const failures = resolutions.filter(
+        (resolution): resolution is SkillResolutionFailure => resolution.kind !== "resolved"
+      );
+      if (failures.length > 0) {
+        throw new ValidationError(formatUnresolvedRefs(failures));
+      }
+
+      const theme = getTheme();
+      resources.logger.info(
+        renderTable({
+          theme,
+          columns: [
+            { name: "Skill", title: "Skill", alignment: "left", maxLen: 30 },
+            { name: "Source", title: "Source", alignment: "left", maxLen: 40 },
+            { name: "Bridged to", title: "Bridged to", alignment: "left", maxLen: 40 }
+          ],
+          rows: resolutions.map((resolution) => {
+            const source = resolution as Extract<typeof resolution, { kind: "resolved" }>;
+            return {
+              Skill: theme.accent(source.ref),
+              Source: formatSkillPath(container, source.sourcePath),
+              "Bridged to": formatSkillPath(container, path.join(targetDir, source.name))
+            };
+          })
+        })
+      );
     });
 
   skill

@@ -2189,8 +2189,10 @@ describe("runCLI", () => {
 
     await runCLI(root);
 
-    const stderr = readStderr(stderrWrite);
-    expect(stderr).toContain("Did you mean: rich?\nExpected one of: rich, md, markdown, json");
+    expect(loggerState.error.join("\n")).toContain(
+      "Did you mean: rich?\nExpected one of: rich, md, markdown, json"
+    );
+    expect(readStderr(stderrWrite)).not.toContain("Did you mean: rich?");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2361,6 +2363,62 @@ describe("runCLI", () => {
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
       ['Missing required parameter "name".', "Run toolcraft deploy --help for usage."].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports a missing required positional once instead of Commander's raw argument error", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      positional: ["name"],
+      params: S.Object({
+        name: S.String()
+      }),
+      handler: async () => null
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    setTTY(process.stdin, false);
+    process.argv = ["node", "toolcraft", "deploy"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      ['Missing required parameter "name".', "Run toolcraft deploy --help for usage."].join("\n")
+    ]);
+    expect(readStderr(stderrWrite)).not.toContain("missing required argument");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("lists the valid choices when a required enum parameter is missing", async () => {
+    const preview = defineCommand({
+      name: "preview",
+      params: S.Object({
+        spawn: S.Enum(["orchestrator", "agent"] as const)
+      }),
+      handler: async () => null
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [preview]
+    });
+
+    setTTY(process.stdin, false);
+    process.argv = ["node", "toolcraft", "preview"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Missing required parameter "spawn". Expected one of: orchestrator, agent.',
+        "Run toolcraft preview --help for usage."
+      ].join("\n")
     ]);
     expect(process.exitCode).toBe(1);
   });

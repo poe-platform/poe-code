@@ -840,6 +840,16 @@ function formatOptionFlags(
   return [`-${field.shortFlag}`, field.optionFlag, ...field.longAliases].join(", ");
 }
 
+function formatMissingParameterMessage(field: FieldDefinition): string {
+  const message = `Missing required parameter "${field.displayPath}".`;
+
+  if (field.schema.kind !== "enum") {
+    return message;
+  }
+
+  return `${message} Expected one of: ${field.schema.values.map((value) => String(value)).join(", ")}.`;
+}
+
 function formatPositionalToken(field: FieldDefinition): string {
   const optionalPositional = field.optional || field.hasDefault;
 
@@ -2748,7 +2758,14 @@ function createNodeCommand<TServices extends object>(
 
     for (const field of fields) {
       if (field.positionalIndex !== undefined) {
-        command.argument(formatPositionalToken(field));
+        // Positionals are declared optional so resolveParams stays the single owner of argument
+        // validation: Commander would otherwise report a missing positional in its own words
+        // before prompts, defaults, and presets have had a chance to supply the value.
+        command.argument(
+          field.variadicPosition === true
+            ? `[${field.displayPath}...]`
+            : `[${field.displayPath}]`
+        );
         continue;
       }
 
@@ -5018,7 +5035,7 @@ async function resolveParams(
 
       errors.push({
         path: field.displayPath,
-        message: `Missing required parameter "${field.displayPath}".`
+        message: formatMissingParameterMessage(field)
       });
       continue;
     }
@@ -6133,13 +6150,9 @@ function getDefaultCommanderCommandName(command: CommanderCommand): string | und
 function configureCommanderSuggestionOutput(command: CommanderCommand): void {
   command.exitOverride();
   command.configureOutput({
-    outputError: (message, write) => {
-      if (message.includes("unknown command") || message.includes("unknown option")) {
-        return;
-      }
-
-      write(message);
-    }
+    // Every Commander error throws through exitOverride and is rendered once by handleRunError
+    // in the design-system error pattern; writing it here as well double-reports one mistake.
+    outputError: () => {}
   });
 
   command.commands.forEach((child) => configureCommanderSuggestionOutput(child));

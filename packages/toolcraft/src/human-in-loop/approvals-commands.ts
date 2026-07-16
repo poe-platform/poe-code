@@ -77,17 +77,12 @@ export const approvalsGroup = markApprovalsBuiltIn(
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: showParams,
         handler: async ({ params, humanInLoop }) => {
-          try {
+          return withMissingApprovalError(params.approvalId, async () => {
             const { tasks } = await ensureApprovalList(humanInLoop.runtimeOptions, {
               create: false
             });
             return tasks.get(params.approvalId);
-          } catch (error) {
-            if (isMissingStateError(error)) {
-              throw new TaskNotFoundError(`Task "approvals/${params.approvalId}" not found.`);
-            }
-            throw error;
-          }
+          });
         },
         render: {
           rich: (result, primitives) => renderApprovalDetails(result, primitives),
@@ -108,7 +103,9 @@ export const approvalsGroup = markApprovalsBuiltIn(
         scope: runScope as unknown as ["cli"],
         params: runParams,
         handler: async ({ params, humanInLoop, root }) => {
-          return runApproval(params.approvalId, humanInLoop.runtimeOptions, root);
+          return withMissingApprovalError(params.approvalId, async () =>
+            runApproval(params.approvalId, humanInLoop.runtimeOptions, root)
+          );
         },
         render: {
           rich: (result, primitives) => {
@@ -285,6 +282,20 @@ function stringifyValue(value: unknown): string {
 
 function escapeMarkdownCell(value: string): string {
   return value.replaceAll("|", "\\|");
+}
+
+async function withMissingApprovalError<T>(approvalId: string, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    if (error instanceof TaskNotFoundError || isMissingStateError(error)) {
+      throw new UserError(
+        `Approval "${approvalId}" not found. Run approvals list to see queued approvals.`
+      );
+    }
+
+    throw error;
+  }
 }
 
 function isMissingStateError(error: unknown): error is NodeJS.ErrnoException {

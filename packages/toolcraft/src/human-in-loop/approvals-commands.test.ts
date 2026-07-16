@@ -1,9 +1,9 @@
-import { openTaskList, TaskNotFoundError } from "@poe-code/task-list";
+import { openTaskList } from "@poe-code/task-list";
 import type { TaskList, TaskListFs } from "@poe-code/task-list";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import { defineCommand, defineGroup } from "../index.js";
+import { defineCommand, defineGroup, UserError } from "../index.js";
 import { enqueueApproval } from "./approval-tasks.js";
 import { approvalStateMachine } from "./state-machine.js";
 import { approvalsGroup, mergeApprovalsGroup } from "./approvals-commands.js";
@@ -286,7 +286,7 @@ describe("approvals built-in commands", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
-  it("shows a single approval and throws TaskNotFoundError for an unknown id", async () => {
+  it("shows a single approval and reports an unknown id as a missing approval", async () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const showCommand = getApprovalCommand("show");
     const approvalId = await enqueueDemoApproval(taskList, {
@@ -331,7 +331,9 @@ describe("approvals built-in commands", () => {
           approvalId: "missing"
         }
       } as unknown as Parameters<typeof showCommand.handler>[0])
-    ).rejects.toBeInstanceOf(TaskNotFoundError);
+    ).rejects.toThrow(
+      new UserError('Approval "missing" not found. Run approvals list to see queued approvals.')
+    );
   });
 
   it("reaches approvals.run from the CLI but hides it from MCP and SDK", async () => {
@@ -498,6 +500,38 @@ describe("approvals built-in commands", () => {
     await expect(sdk.deploy({})).resolves.toEqual({ ok: true });
     expect(provider.requestApproval).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports an unknown id as a missing approval from approvals.run", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const runCommand = getApprovalCommand("run");
+
+    await expect(
+      runCommand.handler({
+        humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList }),
+        root: defineGroup({
+          name: "root",
+          children: []
+        }),
+        params: {
+          approvalId: "missing"
+        },
+        secrets: {},
+        fetch: globalThis.fetch,
+        fs: {
+          readFile: vi.fn(),
+          writeFile: vi.fn(),
+          exists: vi.fn()
+        },
+        env: {
+          get: vi.fn()
+        },
+        diagnostics: { level: "silent", emit: vi.fn() },
+        progress: vi.fn()
+      } as unknown as Parameters<typeof runCommand.handler>[0])
+    ).rejects.toThrow(
+      new UserError('Approval "missing" not found. Run approvals list to see queued approvals.')
+    );
   });
 
   it("throws from approvals.run when the runtime task list is unset", async () => {

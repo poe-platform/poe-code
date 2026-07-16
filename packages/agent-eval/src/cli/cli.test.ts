@@ -213,7 +213,7 @@ describe("agent-eval cli", () => {
     await runEvalCli(["init"]);
 
     expect(process.exitCode).toBe(1);
-    expect(output()).toContain("missing required argument 'name'");
+    expect(output()).toContain('Missing required parameter "name".');
     expect(mockedRun.runInitCli).not.toHaveBeenCalled();
   });
 

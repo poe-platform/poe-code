@@ -545,20 +545,38 @@ function createConfigFileSystem(
   }
 
   return {
-    readFile(filePath: string, encoding?: BufferEncoding): Promise<string | Buffer> {
-      return encoding ? fsPromises.readFile(filePath, encoding) : fsPromises.readFile(filePath);
+    readFile(filePath: string, encoding: "utf8"): Promise<string> {
+      return fsPromises.readFile(filePath, encoding);
     },
     async writeFile(
       filePath: string,
-      data: string | NodeJS.ArrayBufferView,
-      options?: { encoding?: BufferEncoding }
+      content: string,
+      options?: { encoding: "utf8"; flag?: string }
     ): Promise<void> {
-      await fsPromises.writeFile(filePath, data, options);
+      await fsPromises.writeFile(filePath, content, options);
     },
-    async mkdir(filePath: string, options?: { recursive?: boolean }): Promise<void> {
+    async mkdir(filePath: string, options?: { recursive: boolean }): Promise<void> {
       await fsPromises.mkdir(filePath, options);
+    },
+    rename(oldPath: string, newPath: string): Promise<void> {
+      return fsPromises.rename(oldPath, newPath);
+    },
+    unlink(filePath: string): Promise<void> {
+      return fsPromises.unlink(filePath);
+    },
+    stat(filePath: string): Promise<{ mode?: number }> {
+      return fsPromises.stat(filePath);
+    },
+    lstat(filePath: string): Promise<{ isSymbolicLink(): boolean }> {
+      return fsPromises.lstat(filePath);
+    },
+    readdir(filePath: string): Promise<string[]> {
+      return fsPromises.readdir(filePath);
+    },
+    chmod(filePath: string, mode: number): Promise<void> {
+      return fsPromises.chmod(filePath, mode);
     }
-  } as unknown as ConfigFileSystem;
+  };
 }
 
 function createInMemoryAcpTransport(options: {

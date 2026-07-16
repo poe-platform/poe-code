@@ -12,6 +12,7 @@ import {
 } from "@poe-code/poe-code-config";
 import { getTheme, renderTable, text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
+import { ValidationError } from "../errors.js";
 import { knownConfigScopes } from "../../services/config.js";
 import {
   createExecutionResources,
@@ -308,7 +309,7 @@ function resolveEditor(container: CliContainer): string {
   const editor = container.env.getVariable("EDITOR") ?? container.env.getVariable("VISUAL");
   const resolved = typeof editor === "string" ? editor.trim() : "";
   if (resolved.length === 0) {
-    throw new Error("Set $EDITOR to use this command");
+    throw new ValidationError("Set $EDITOR to use this command");
   }
   return resolved;
 }

@@ -20,7 +20,7 @@ import {
   type CommandFlags
 } from "./shared.js";
 import { loadConfiguredServices, saveConfiguredService } from "../../services/config.js";
-import { OperationCancelledError } from "../errors.js";
+import { OperationCancelledError, ValidationError } from "../errors.js";
 import { requireNonEmpty } from "../options.js";
 import {
   combineMutationObservers,
@@ -809,7 +809,12 @@ async function resolveProvider(
   if (explicit) {
     const provider = container.providerRegistry.get(explicit);
     if (!provider) {
-      throw new Error(`Unknown provider "${explicit}".`);
+      throw new ValidationError(
+        `Unknown provider "${explicit}". Expected: ${container.providerRegistry
+          .list()
+          .map((candidate) => candidate.id)
+          .join(", ")}.`
+      );
     }
     if (!resolveApiShape(provider, agent)) {
       throw new Error(formatIncompatibleProviderError(agent, provider));

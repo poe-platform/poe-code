@@ -19,6 +19,7 @@ import type { AuthProvider } from "@poe-code/providers";
 import type { CommandRunner } from "../../utils/command-checks.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type { PromptFn } from "../types.js";
+import { ValidationError } from "../errors.js";
 import { DEFAULT_CLAUDE_CODE_MODEL, PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
 import { ensureIsolatedConfigForService } from "./ensure-isolated-config.js";
@@ -260,6 +261,29 @@ describe("configure provider resolution", () => {
     expect(forAgentSpy).toHaveBeenCalledWith(claudeCodeAgent);
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
+  });
+
+  it("rejects an unknown --provider as a user error listing the valid providers", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    stubInvoke(container);
+
+    const error = await executeConfigure(createTestProgram(), container, "claude-code", {
+      provider: "bogus"
+    }).then(
+      () => undefined,
+      (thrown: unknown) => thrown
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect((error as ValidationError).isUserError).toBe(true);
+    const expected = container.providerRegistry
+      .list()
+      .map((provider) => provider.id)
+      .join(", ");
+    expect((error as ValidationError).message).toBe(
+      `Unknown provider "bogus". Expected: ${expected}.`
+    );
   });
 
   it("treats POE_API_KEY as logged-in Poe provider with --yes", async () => {

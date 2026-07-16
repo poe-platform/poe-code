@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
+import { ValidationError } from "../errors.js";
 import { allAgents, type ApiShapeId } from "@poe-code/agent-defs";
 import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config";
 import {
@@ -149,7 +150,7 @@ async function executeProviderLogin(
 
   const provider = container.providerRegistry.get(id);
   if (!provider) {
-    throw new Error(
+    throw new ValidationError(
       `Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`
     );
   }
@@ -403,7 +404,7 @@ async function executeProviderLogout(
 
   const provider = container.providerRegistry.get(id);
   if (!provider) {
-    throw new Error(
+    throw new ValidationError(
       `Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`
     );
   }

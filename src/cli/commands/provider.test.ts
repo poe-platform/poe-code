@@ -9,6 +9,7 @@ import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 import type { AuthProvider } from "@poe-code/providers";
 import type { PromptFn } from "../types.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
+import { ValidationError } from "../errors.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -369,6 +370,28 @@ describe("provider login", () => {
 
     expect(loginSpy).toHaveBeenCalledWith("poe", { apiKey: "sk-test" }, expect.any(Object));
   });
+
+  it.each(["login", "logout"])(
+    "reports an unknown provider on %s as a user error keeping the provider list hint",
+    async (subcommand) => {
+      const container = createContainer(fs);
+      const program = createBaseProgram();
+      registerProviderCommand(program, container);
+
+      const error = await program
+        .parseAsync(["node", "cli", "--yes", "provider", subcommand, "not-a-provider"])
+        .then(
+          () => undefined,
+          (thrown: unknown) => thrown
+        );
+
+      expect(error).toBeInstanceOf(ValidationError);
+      expect((error as ValidationError).isUserError).toBe(true);
+      expect((error as ValidationError).message).toBe(
+        'Unknown provider "not-a-provider". Run `poe-code provider list` to see available providers.'
+      );
+    }
+  );
 
   it("warns about shell history and names the provider env var when --api-key is passed", async () => {
     const logs: string[] = [];

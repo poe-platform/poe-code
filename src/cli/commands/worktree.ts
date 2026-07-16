@@ -6,6 +6,7 @@ import {
 } from "../../sdk/worktree.js";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { confirmDestructive } from "./confirm-destructive.js";
 
 type WorktreeReconcileOptions = {
   agent?: string;
@@ -38,7 +39,9 @@ export function registerWorktreeCommand(program: Command, container: CliContaine
 
   worktree
     .command("remove")
-    .description("Remove a managed worktree.")
+    .description(
+      "Danger: deletes the managed worktree directory, discarding any uncommitted changes it holds. Requires --yes to run non-interactively; preview with --dry-run."
+    )
     .argument("<name>", "Managed worktree name")
     .option("--delete-branch", "Delete the managed branch after removing the worktree")
     .action(async (name: string, options: WorktreeRemoveOptions) => {
@@ -88,16 +91,33 @@ async function executeWorktreeRemove(
   name: string,
   options: WorktreeRemoveOptions
 ): Promise<void> {
-  const resources = createExecutionResources(
-    container,
-    resolveCommandFlags(program),
-    "worktree:remove"
-  );
+  const flags = resolveCommandFlags(program);
+  const resources = createExecutionResources(container, flags, "worktree:remove");
   resources.logger.intro("worktree remove");
+
+  const deleteBranch = options.deleteBranch === true;
+  await confirmDestructive({
+    logger: resources.logger,
+    flags,
+    action: `worktree remove ${name}`,
+    summary: [
+      `Deletes worktree ${name} and any uncommitted changes inside it.`,
+      ...(deleteBranch ? [`Deletes the managed branch for ${name}.`] : [])
+    ],
+    message: `Remove worktree ${name}?`
+  });
+
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      `Dry run: would remove worktree ${name}${deleteBranch ? " and its managed branch" : ""}.`
+    );
+    return;
+  }
+
   await removeManagedWorktree({
     cwd: container.env.cwd,
     name,
-    deleteBranch: options.deleteBranch === true
+    deleteBranch
   });
   resources.logger.success(`Removed worktree ${name}`);
 }

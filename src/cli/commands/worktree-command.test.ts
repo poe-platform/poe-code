@@ -20,8 +20,20 @@ const homeDir = "/home/test";
 function createProgram(): Command {
   const program = new Command();
   program.exitOverride();
-  program.name("poe-code").option("--dry-run").option("--verbose");
+  program.name("poe-code").option("-y, --yes").option("--dry-run").option("--verbose");
   return program;
+}
+
+function setStdinTTY(value: boolean): () => void {
+  const original = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  Object.defineProperty(process.stdin, "isTTY", { configurable: true, value });
+  return () => {
+    if (original === undefined) {
+      delete (process.stdin as { isTTY?: boolean }).isTTY;
+      return;
+    }
+    Object.defineProperty(process.stdin, "isTTY", original);
+  };
 }
 
 function createContainer(logs: string[] = []): ReturnType<typeof createCliContainer> {
@@ -96,12 +108,42 @@ describe("worktree command", () => {
   });
 
   it("removes a managed worktree and optionally deletes the branch", async () => {
-    await runWorktreeCommand(["worktree", "remove", "wt", "--delete-branch"]);
+    await runWorktreeCommand(["--yes", "worktree", "remove", "wt", "--delete-branch"]);
 
     expect(worktreeMocks.removeManagedWorktree).toHaveBeenCalledWith({
       cwd,
       name: "wt",
       deleteBranch: true
     });
+  });
+
+  it("refuses to remove a worktree without --yes in non-interactive mode", async () => {
+    const logs: string[] = [];
+    const restore = setStdinTTY(false);
+
+    try {
+      await expect(runWorktreeCommand(["worktree", "remove", "wt"], logs)).rejects.toThrow(
+        "worktree remove wt requires --yes when running without an interactive TTY."
+      );
+    } finally {
+      restore();
+    }
+
+    expect(worktreeMocks.removeManagedWorktree).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("uncommitted changes");
+  });
+
+  it("previews worktree removal without removing anything in dry-run mode", async () => {
+    const logs: string[] = [];
+    const restore = setStdinTTY(false);
+
+    try {
+      await runWorktreeCommand(["--dry-run", "worktree", "remove", "wt"], logs);
+    } finally {
+      restore();
+    }
+
+    expect(worktreeMocks.removeManagedWorktree).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("wt");
   });
 });

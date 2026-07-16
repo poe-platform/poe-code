@@ -410,6 +410,27 @@ describe("auth command", () => {
     expect(apiKeyCommand?.helpInformation()).toContain("--reveal");
   });
 
+  it("states the full blast radius on auth logout and distinguishes it from root logout", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const authLogout = program
+      .commands.find((command) => command.name() === "auth")
+      ?.commands.find((command) => command.name() === "logout");
+    const rootLogout = program.commands.find((command) => command.name() === "logout");
+
+    expect(authLogout?.description()).toContain("ALL configured agents");
+    expect(authLogout?.description().toLowerCase()).toContain("danger");
+    expect(rootLogout?.description()).toContain("ALL configured agents");
+    expect(authLogout?.description()).not.toBe(rootLogout?.description());
+    expect(authLogout?.description()).toContain("poe-code logout");
+  });
+
   it("documents POE_API_KEY as the preferred path on auth login --api-key help", async () => {
     const program = createProgram({
       fs,

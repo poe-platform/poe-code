@@ -34,6 +34,18 @@ function createContainer(
   });
 }
 
+function setStdinTTY(value: boolean): () => void {
+  const original = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  Object.defineProperty(process.stdin, "isTTY", { configurable: true, value });
+  return () => {
+    if (original === undefined) {
+      delete (process.stdin as { isTTY?: boolean }).isTTY;
+      return;
+    }
+    Object.defineProperty(process.stdin, "isTTY", original);
+  };
+}
+
 function stripAnsi(input: string): string {
   let result = "";
   let index = 0;
@@ -821,7 +833,7 @@ describe("provider logout", () => {
     const program = createBaseProgram();
     registerProviderCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "provider", "logout", "poe"]);
+    await program.parseAsync(["node", "cli", "--yes", "provider", "logout", "poe"]);
 
     expect(logoutSpy).toHaveBeenCalledWith("poe", { store: expect.any(Object) });
   });
@@ -870,7 +882,7 @@ describe("provider logout", () => {
       provider: "anthropic"
     });
 
-    await program.parseAsync(["node", "cli", "provider", "logout", "anthropic"]);
+    await program.parseAsync(["node", "cli", "--yes", "provider", "logout", "anthropic"]);
 
     await expect(fs.stat(`${homeDir}/.claude/settings.json`)).rejects.toThrow();
   });
@@ -884,7 +896,7 @@ describe("provider logout", () => {
     const program = createBaseProgram();
     registerProviderCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "provider", "logout", "cloudflare"]);
+    await program.parseAsync(["node", "cli", "--yes", "provider", "logout", "cloudflare"]);
 
     expect(logs.some((line) => line.includes("CF_AIG_TOKEN"))).toBe(true);
     expect(logs.some((line) => line.includes("Logged out from cloudflare."))).toBe(false);
@@ -899,5 +911,41 @@ describe("provider logout", () => {
     await expect(program.parseAsync(["node", "cli", "provider", "logout", "nope"])).rejects.toThrow(
       /unknown provider/i
     );
+  });
+
+  it("documents the danger and --yes requirement in provider logout help", async () => {
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    const logoutCommand = program.commands
+      .find((command) => command.name() === "provider")
+      ?.commands.find((command) => command.name() === "logout");
+
+    expect(logoutCommand?.description().toLowerCase()).toContain("danger");
+    expect(logoutCommand?.description()).toContain("--yes");
+  });
+
+  it("refuses to log out without --yes in non-interactive mode and names the credential", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const logoutSpy = vi.spyOn(container.providerRegistry, "logout").mockResolvedValue();
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    const restore = setStdinTTY(false);
+    try {
+      await expect(
+        program.parseAsync(["node", "cli", "provider", "logout", "anthropic"])
+      ).rejects.toThrow(
+        "provider logout anthropic requires --yes when running without an interactive TTY."
+      );
+    } finally {
+      restore();
+    }
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("credentials.anthropic.enc");
   });
 });

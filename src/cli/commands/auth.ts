@@ -3,7 +3,7 @@ import type { CliContainer } from "../container.js";
 import { spinner } from "toolcraft-design";
 import { apiKeyFlagDescription, createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
-import { executeLogout } from "./logout.js";
+import { executeLogout, logoutScopeDescription } from "./logout.js";
 import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
 
 interface ApiKeyCommandOptions {
@@ -59,7 +59,9 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
 
   auth
     .command("logout")
-    .description("Remove all configuration and credentials.")
+    .description(
+      `Alias of \`poe-code logout\`: this is not credentials-only. ${logoutScopeDescription}`
+    )
     .action(async () => {
       await executeLogout(program, container);
     });

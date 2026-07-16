@@ -20,6 +20,8 @@ import {
 } from "@poe-code/task-list";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
+import { isSilentError } from "../errors.js";
+import { confirmDestructive } from "./confirm-destructive.js";
 import {
   resolveTasksOptions,
   resolveWorkflowMoveTargetOptions,
@@ -88,7 +90,11 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .description("Move tasks between workflow-configured backends.")
     .option("--from <workflow.md>", "Source workflow file path.")
     .option("--to <workflow.md>", "Target workflow file path.")
-    .option("--delete-source", "Delete source tasks after successful creation.")
+    .option(
+      "--delete-source",
+      "Danger: permanently delete source tasks after successful creation. Requires --yes to run non-interactively."
+    )
+    .option("--yes", "Confirm a destructive move non-interactively.")
     .option("--rate <number>", "Maximum task creates per minute.")
     .option("--limit <number>", "Maximum tasks to move.")
     .option("--dry-run", "Simulate the move without writing changes.")
@@ -102,8 +108,12 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .description("Import markdown task files into a workflow-configured backend.")
     .option("--from <dir>", "Source directory of markdown task files.")
     .option("--to <workflow.md>", "Target workflow file path.")
-    .option("--delete-source", "Delete source files after successful creation.")
+    .option(
+      "--delete-source",
+      "Danger: permanently delete source markdown files after successful creation. Requires --yes to run non-interactively."
+    )
     .option("--keep", "Keep source files after successful creation.")
+    .option("--yes", "Confirm a destructive import non-interactively.")
     .option("--rate <number>", "Maximum task creates per minute.")
     .option("--limit <number>", "Maximum tasks to import.")
     .option("--dry-run", "Simulate the import without writing changes.")
@@ -283,6 +293,8 @@ async function runMove(options: TasksCommandOptions, container: CliContainer): P
       options.limit === undefined ? undefined : parseNonNegativeInteger(options.limit, "--limit");
     const stateMap = options.stateMap === undefined ? undefined : parseStateMap(options.stateMap);
 
+    await confirmDeleteSource(options, logger, "tasks move", `source tasks from ${options.from}`);
+
     await moveTasks({
       source: await resolveWorkflowTaskListOptions(options.from),
       target: await resolveWorkflowMoveTargetOptions(options.to),
@@ -323,6 +335,8 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
       singleList: "import",
       frontmatterMode: "passthrough"
     };
+
+    await confirmDeleteSource(options, logger, "tasks import", `markdown files in ${source.path}`);
 
     await moveTasks({
       source,
@@ -729,7 +743,30 @@ function writeField(task: Task, field: string): void {
   process.stdout.write(`${output ?? ""}\n`);
 }
 
+async function confirmDeleteSource(
+  options: TasksCommandOptions,
+  logger: ScopedLogger,
+  action: string,
+  target: string
+): Promise<void> {
+  if (options.deleteSource !== true) {
+    return;
+  }
+
+  await confirmDestructive({
+    logger,
+    flags: { dryRun: options.dryRun === true, assumeYes: options.yes === true },
+    action: `${action} --delete-source`,
+    summary: [`Permanently deletes ${target} once each task is created in the target.`],
+    message: `Delete ${target} after the move?`
+  });
+}
+
 function handleCommandError(error: unknown, logger: ScopedLogger, json: boolean | undefined): void {
+  if (isSilentError(error)) {
+    throw error;
+  }
+
   const message = formatCommandError(error);
   writeError(message, logger, json);
   process.exitCode = error instanceof TasksCommandUsageError ? 2 : 1;

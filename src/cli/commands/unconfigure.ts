@@ -12,10 +12,13 @@ import {
   formatServiceList,
   listServiceNames
 } from "./shared.js";
+import { confirmDestructive } from "./confirm-destructive.js";
 import { createOverlayFileSystem } from "./configure.js";
 
 export interface UnconfigureCommandOptions {
   configName?: string;
+  /** Set by callers that already confirmed a wider blast radius, e.g. `logout`. */
+  alreadyConfirmed?: boolean;
 }
 
 export function registerUnconfigureCommand(program: Command, container: CliContainer): Command {
@@ -26,7 +29,9 @@ export function registerUnconfigureCommand(program: Command, container: CliConta
   return program
     .command("unconfigure")
     .alias("uc")
-    .description("Remove existing Poe API tooling configuration.")
+    .description(
+      "Danger: removes the agent's Poe API tooling configuration files. Requires --yes to run non-interactively; preview with --dry-run."
+    )
     .argument("<agent>", serviceDescription)
     .action(async (service: string, options: UnconfigureCommandOptions) => {
       await executeUnconfigure(program, container, service, options);
@@ -62,6 +67,21 @@ export async function executeUnconfigure(
     resources.context.finalize();
     return;
   }
+
+  if (options.alreadyConfirmed !== true) {
+    await confirmDestructive({
+      logger: resources.logger,
+      flags,
+      action: `unconfigure ${canonicalService}`,
+      summary: [
+        `Removes ${adapter.configurationLabel ?? adapter.label} configuration${
+          metadata.files && metadata.files.length > 0 ? `: ${metadata.files.join(", ")}` : "."
+        }`
+      ],
+      message: `Remove ${adapter.configurationLabel ?? adapter.label} configuration?`
+    });
+  }
+
   const mutationLogger = createMutationReporter(resources.logger);
   const transaction = flags.dryRun ? undefined : createOverlayFileSystem(providerContext.command.fs);
   const executionProviderContext = transaction

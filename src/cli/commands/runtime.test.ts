@@ -15,6 +15,18 @@ import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerRuntimeCommand } from "./runtime/index.js";
 
+const designSystemMocks = vi.hoisted(() => ({
+  confirmOrCancel: vi.fn()
+}));
+
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
+  return {
+    ...actual,
+    confirmOrCancel: designSystemMocks.confirmOrCancel
+  };
+});
+
 vi.mock("@poe-code/process-runner", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/process-runner")>();
   return {
@@ -256,6 +268,7 @@ describe("runtime command", () => {
 
   beforeEach(() => {
     buildDockerRuntimeTemplateMock.mockClear();
+    designSystemMocks.confirmOrCancel.mockReset().mockResolvedValue(true);
     jobHandles.clear();
     runtimeEvents.attached = [];
     runtimeEvents.downloads = [];
@@ -427,6 +440,45 @@ describe("runtime command", () => {
       }
       "
     `);
+  });
+
+  it("previews runtime templates clear entries without prompting in dry-run mode", async () => {
+    const stateJson = `${JSON.stringify(
+      {
+        docker: {
+          abc123: {
+            hash: "abc123",
+            image: "poe-code/local:abc123",
+            runtime_type: "docker",
+            dockerfile_path: "/repo/.poe-code/Dockerfile",
+            built_at: "2026-05-03T10:00:00.000Z"
+          }
+        }
+      },
+      null,
+      2
+    )}\n`;
+    const fs = createMemFs({ [statePath]: stateJson });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    const original = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: false });
+    try {
+      await program.parseAsync(["node", "cli", "--dry-run", "runtime", "templates", "clear"]);
+    } finally {
+      if (original === undefined) {
+        delete (process.stdin as { isTTY?: boolean }).isTTY;
+      } else {
+        Object.defineProperty(process.stdin, "isTTY", original);
+      }
+    }
+
+    expect(designSystemMocks.confirmOrCancel).not.toHaveBeenCalled();
+    expect(stripAnsi(logs.join("\n"))).toContain("abc123");
+    await expect(fs.readFile(statePath, "utf8")).resolves.toBe(stateJson);
   });
 
   it("snapshots runtime jobs ls output and marks missing running sandboxes as lost", async () => {

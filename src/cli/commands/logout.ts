@@ -3,12 +3,16 @@ import { isNotFound } from "@poe-code/config-mutations";
 import type { CliContainer } from "../container.js";
 import { deleteConfig, loadConfiguredServices } from "../../services/config.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { confirmDestructive } from "./confirm-destructive.js";
 import { executeUnconfigure } from "./unconfigure.js";
+
+export const logoutScopeDescription =
+  "Danger: full reset. Removes stored credentials for every logged-in account and removes configuration for ALL configured agents. Requires --yes to run non-interactively; preview with --dry-run.";
 
 export function registerLogoutCommand(program: Command, container: CliContainer): void {
   program
     .command("logout")
-    .description("Remove all configuration and credentials.")
+    .description(logoutScopeDescription)
     .action(async () => {
       await executeLogout(program, container);
     });
@@ -35,18 +39,35 @@ export async function executeLogout(program: Command, container: CliContainer): 
       })
     }))
   );
+  const configuredAgents = Object.keys(configuredServices);
+  await confirmDestructive({
+    logger: resources.logger,
+    flags,
+    action: "logout",
+    summary: [
+      configuredAgents.length > 0
+        ? `Removes configuration for ALL configured agents: ${configuredAgents.join(", ")}.`
+        : "Removes configuration for ALL configured agents (none configured).",
+      `Deletes stored credentials at ${container.env.configPath} and ${container.env.servicesConfigPath}.`,
+      ...authenticatedProviders
+        .filter((provider) => provider.authenticated)
+        .map((provider) => `Logs out provider ${provider.id}.`)
+    ],
+    message: "Remove all configuration and credentials?"
+  });
+
   if (!flags.dryRun) {
     for (const provider of authenticatedProviders) {
       await container.providerRegistry.logout(provider.id);
     }
   }
 
-  for (const serviceName of Object.keys(configuredServices)) {
+  for (const serviceName of configuredAgents) {
     const adapter = container.registry.get(serviceName);
     if (!adapter) {
       continue;
     }
-    await executeUnconfigure(program, container, serviceName, {});
+    await executeUnconfigure(program, container, serviceName, { alreadyConfirmed: true });
   }
 
   const environmentCredential = container.env.getVariable("POE_API_KEY");

@@ -35,6 +35,18 @@ function createMemFs(): FileSystem {
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
+function setStdinTTY(value: boolean): () => void {
+  const original = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  Object.defineProperty(process.stdin, "isTTY", { configurable: true, value });
+  return () => {
+    if (original === undefined) {
+      delete (process.stdin as { isTTY?: boolean }).isTTY;
+      return;
+    }
+    Object.defineProperty(process.stdin, "isTTY", original);
+  };
+}
+
 // ─── configure command ──────────────────────────────────────────────────────
 
 describe("configure command", () => {
@@ -765,10 +777,61 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "logout"]);
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
 
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
     expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
+  });
+
+  it("refuses to log out without --yes in non-interactive mode and keeps every config", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    container.registry.register(
+      createProviderStub({
+        name: "test-service",
+        label: "Test Service",
+        async unconfigure() {
+          return true;
+        }
+      })
+    );
+
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({
+        apiKey: "test-key",
+        configured_services: { "test-service": { files: ["/some/file.json"] } }
+      }),
+      { encoding: "utf8" }
+    );
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    const restore = setStdinTTY(false);
+    try {
+      await expect(program.parseAsync(["node", "cli", "logout"])).rejects.toThrow(
+        "logout requires --yes when running without an interactive TTY."
+      );
+    } finally {
+      restore();
+    }
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toContain("test-service");
+    expect(logs.join("\n")).toContain("Removes configuration for ALL configured agents");
+    expect(logs.join("\n")).toContain("test-service");
   });
 
   it("unconfigures all configured services then deletes config", async () => {
@@ -812,7 +875,7 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "logout"]);
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
@@ -848,7 +911,7 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await expect(program.parseAsync(["node", "cli", "logout"])).rejects.toThrow("cleanup failed");
+    await expect(program.parseAsync(["node", "cli", "--yes", "logout"])).rejects.toThrow("cleanup failed");
     await expect(container.providerRegistry.isLoggedIn("poe")).resolves.toBe(false);
   });
 
@@ -943,7 +1006,7 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "logout"]);
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
 
     const storedKey = await readStoredApiKey(fs);
     expect(storedKey).toBeNull();
@@ -983,7 +1046,7 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "logout"]);
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
 
     await expect(container.providerRegistry.isLoggedIn("anthropic")).resolves.toBe(false);
     await expect(container.providerRegistry.isLoggedIn("cloudflare")).resolves.toBe(false);
@@ -1008,7 +1071,7 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "logout"]);
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
 
     expect(logs.some((line) => line.includes("Already logged out."))).toBe(true);
   });
@@ -1027,7 +1090,7 @@ describe("logout command", () => {
     registerUnconfigureCommand(program, container);
     registerLogoutCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "logout"]);
+    await program.parseAsync(["node", "cli", "--yes", "logout"]);
 
     expect(logs.some((line) => line.includes("POE_API_KEY"))).toBe(true);
     expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
@@ -1559,10 +1622,56 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "unconfigure", "test-service"]);
+    await program.parseAsync(["node", "cli", "--yes", "unconfigure", "test-service"]);
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     expect(logs.some((line) => line.includes("Removed Test Service configuration."))).toBe(true);
+  });
+
+  it("refuses to unconfigure without --yes in non-interactive mode", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const unconfigureSpy = vi.fn();
+    container.registry.register(
+      createProviderStub({
+        name: "test-service",
+        label: "Test Service",
+        async unconfigure() {
+          unconfigureSpy();
+          return true;
+        }
+      })
+    );
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "test-service",
+      metadata: { provider: "none", files: [] }
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    const restore = setStdinTTY(false);
+    try {
+      await expect(program.parseAsync(["node", "cli", "unconfigure", "test-service"])).rejects.toThrow(
+        "unconfigure test-service requires --yes when running without an interactive TTY."
+      );
+    } finally {
+      restore();
+    }
+
+    expect(unconfigureSpy).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Removes Test Service configuration");
   });
 
   it("uses provider metadata for unconfigure messages", async () => {
@@ -1599,7 +1708,7 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "unconfigure", "test-service"]);
+    await program.parseAsync(["node", "cli", "--yes", "unconfigure", "test-service"]);
 
     expect(logs.join("\n")).toContain("Removed Test Service CLI configuration.");
     expect(logs.join("\n")).not.toContain("Removed Test Service configuration.");
@@ -1628,7 +1737,7 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "unconfigure", "claude-code"]);
+    await program.parseAsync(["node", "cli", "--yes", "unconfigure", "claude-code"]);
 
     await expect(fs.readFile(settingsPath, "utf8")).resolves.toBe(original);
   });
@@ -1702,7 +1811,7 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await expect(program.parseAsync(["node", "cli", "unconfigure", "codex"])).rejects.toThrow(
+    await expect(program.parseAsync(["node", "cli", "--yes", "unconfigure", "codex"])).rejects.toThrow(
       "isolated deletion failed"
     );
 
@@ -1757,7 +1866,7 @@ describe("unconfigure command", () => {
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--verbose", "unconfigure", "test-service"]);
+    await program.parseAsync(["node", "cli", "--verbose", "--yes", "unconfigure", "test-service"]);
 
     expect(
       logs.some((line) =>

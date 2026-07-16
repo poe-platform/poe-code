@@ -950,11 +950,80 @@ states:
       `${cwd}/source-dir`,
       "--to",
       `${cwd}/target.md`,
-      "--delete-source"
+      "--delete-source",
+      "--yes"
     ]);
 
     expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
       expect.objectContaining({ deleteSource: true })
+    );
+  });
+
+  it("import refuses --delete-source without --yes in non-interactive mode", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+    const logs: string[] = [];
+    const restore = setStdinTTY(false);
+
+    try {
+      await runTasks(
+        ["import", "--from", `${cwd}/source-dir`, "--to", `${cwd}/target.md`, "--delete-source"],
+        logs
+      );
+    } finally {
+      restore();
+    }
+
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain(
+      "tasks import --delete-source requires --yes when running without an interactive TTY."
+    );
+  });
+
+  it("move refuses --delete-source without --yes in non-interactive mode", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: markdown-dir
+  path: ./source-tasks
+`,
+      `${cwd}/source.md`
+    );
+    seedWorkflow(
+      `
+tasks:
+  type: yaml-file
+  path: ./target.yml
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+    const logs: string[] = [];
+    const restore = setStdinTTY(false);
+
+    try {
+      await runTasks(
+        ["move", "--from", `${cwd}/source.md`, "--to", `${cwd}/target.md`, "--delete-source"],
+        logs
+      );
+    } finally {
+      restore();
+    }
+
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain(
+      "tasks move --delete-source requires --yes when running without an interactive TTY."
     );
   });
 

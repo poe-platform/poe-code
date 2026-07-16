@@ -17,6 +17,8 @@ import {
 } from "./shared.js";
 import { getTheme, renderTable } from "toolcraft-design";
 import type { AuthProvider } from "@poe-code/providers";
+import { confirmDestructive } from "./confirm-destructive.js";
+import { providerCredentialFileName } from "../provider-auth-storage.js";
 import { createConfigurePayload } from "./configure-payload.js";
 import { createOverlayFileSystem, type ConfigureCommandOptions } from "./configure.js";
 import { loadConfiguredServices, unconfigureService } from "../../services/config.js";
@@ -69,7 +71,9 @@ export function registerProviderCommand(program: Command, container: CliContaine
 
   providerCmd
     .command("logout")
-    .description("Log out from a provider.")
+    .description(
+      "Danger: deletes the provider's stored credential file and removes configuration for every agent configured with it. Requires --yes to run non-interactively; preview with --dry-run."
+    )
     .argument("<id>", "Provider id (e.g. poe, anthropic)")
     .action(async (id: string) => {
       await executeProviderLogout(program, container, id);
@@ -385,6 +389,14 @@ async function executeProviderLogout(
     );
   }
 
+  await confirmDestructive({
+    logger: resources.logger,
+    flags,
+    action: `provider logout ${id}`,
+    summary: await describeProviderLogoutBlastRadius({ container, provider }),
+    message: `Log out from ${id}?`
+  });
+
   let rollbackCredential: (() => Promise<void>) | undefined;
   const transaction = flags.dryRun ? undefined : createOverlayFileSystem(resources.context.fs);
   const executionFs = transaction?.fs ?? resources.context.fs;
@@ -475,6 +487,33 @@ async function stageProviderLogin(input: {
     credential,
     rollback: () => restoreProviderCredential(input.container, input.id, previousCredential)
   };
+}
+
+async function describeProviderLogoutBlastRadius(input: {
+  container: CliContainer;
+  provider: AuthProvider;
+}): Promise<string[]> {
+  const summary =
+    input.provider.auth.kind === "api-key"
+      ? [
+          `Deletes the stored credential ${input.container.env.homeDir}/.poe-code/${providerCredentialFileName(input.provider)}.`
+        ]
+      : [`Deletes the stored credential for ${input.provider.id}.`];
+
+  const configuredServices = await loadConfiguredServices({
+    fs: input.container.fs,
+    filePath: input.container.env.configPath,
+    projectFilePath: input.container.env.projectConfigPath,
+    readOnly: true
+  });
+  const affectedAgents = Object.entries(configuredServices)
+    .filter(([, metadata]) => metadata.provider === input.provider.id)
+    .map(([service]) => service);
+  if (affectedAgents.length > 0) {
+    summary.push(`Removes configuration for agents: ${affectedAgents.join(", ")}.`);
+  }
+
+  return summary;
 }
 
 async function stageProviderLogout(input: {

@@ -3,17 +3,22 @@ import type { McpSpawnConfig } from "@poe-code/agent-spawn";
 import type { FileSystem } from "../utils/file-system.js";
 import { ValidationError } from "./errors.js";
 
+export type McpSpawnInput = {
+  content: string;
+  filePath?: string;
+};
+
 export async function resolveMcpSpawnInput(
   input: string | undefined,
   fs: Pick<FileSystem, "readFile">,
   baseDir: string
-): Promise<string | undefined> {
+): Promise<McpSpawnInput | undefined> {
   if (!input) {
     return undefined;
   }
 
   if (!input.startsWith("@")) {
-    return input;
+    return { content: input };
   }
 
   const rawPath = input.slice(1);
@@ -24,7 +29,7 @@ export async function resolveMcpSpawnInput(
   const filePath = path.isAbsolute(rawPath) ? rawPath : path.join(baseDir, rawPath);
 
   try {
-    return await fs.readFile(filePath, "utf8");
+    return { content: await fs.readFile(filePath, "utf8"), filePath };
   } catch (error) {
     throw new ValidationError(
       `--mcp-servers could not read file "${filePath}": ${(error as Error).message}`
@@ -32,14 +37,14 @@ export async function resolveMcpSpawnInput(
   }
 }
 
-export function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
+export function parseMcpSpawnConfig(input?: McpSpawnInput): McpSpawnConfig | undefined {
   if (!input) {
     return undefined;
   }
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(input);
+    parsed = JSON.parse(input.content);
   } catch {
     throw new ValidationError(
       "--mcp-servers must be valid JSON in this shape: {name: {command, args?, env?}}"
@@ -138,7 +143,15 @@ export function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined 
     };
   }
 
-  return Object.keys(servers).length > 0 ? servers : undefined;
+  if (Object.keys(servers).length === 0) {
+    throw new ValidationError(
+      input.filePath
+        ? `--mcp-servers file "${input.filePath}" configured no servers: expected at least one entry in this shape: {name: {command, args?, env?}}`
+        : "--mcp-servers must configure at least one server in this shape: {name: {command, args?, env?}}"
+    );
+  }
+
+  return servers;
 }
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {

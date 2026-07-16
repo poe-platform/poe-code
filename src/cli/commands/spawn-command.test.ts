@@ -2006,6 +2006,47 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
+  it("rejects an empty inline --mcp-servers map", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "{}", "codex", "hello"])
+    ).rejects.toThrow(
+      "--mcp-servers must configure at least one server in this shape: {name: {command, args?, env?}}"
+    );
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty --mcp-servers @file map and names the file", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const filePath = path.join(cwd, "mcp.json");
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify({ mcpServers: {} }), { encoding: "utf8" });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "@mcp.json", "codex", "hello"])
+    ).rejects.toThrow(
+      `--mcp-servers file "${filePath}" configured no servers: expected at least one entry in this shape: {name: {command, args?, env?}}`
+    );
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("ignores inherited optional MCP server fields", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

@@ -757,6 +757,38 @@ export async function resolveDefaultAgent(
   });
 }
 
+/**
+ * The agent `--yes` assumes when neither the command line nor config names one.
+ * Shared by install, plan and skill so the fallback cannot drift per command.
+ */
+const FALLBACK_DEFAULT_AGENT = "claude-code";
+
+/**
+ * Resolves the agent that `--yes` should assume and announces it: a defaulted
+ * agent has real side effects (installs, written skills), so it is never silent.
+ */
+export async function resolveAssumedDefaultAgent(input: {
+  container: CliContainer;
+  logger: ScopedLogger;
+  readOnly?: boolean;
+}): Promise<string> {
+  const fromConfig = await resolveDefaultAgent(input.container, { readOnly: input.readOnly });
+  if (fromConfig === null) {
+    input.logger.info(
+      `Using default agent: ${FALLBACK_DEFAULT_AGENT} (built-in default; name an agent or set core.defaultAgent to change it).`
+    );
+    return FALLBACK_DEFAULT_AGENT;
+  }
+
+  const agent = parseAgentSpecifier(fromConfig).agent;
+  input.logger.info(`Using default agent: ${agent} (from core.defaultAgent).`);
+  return agent;
+}
+
+export function announceAssumedScope(logger: ScopedLogger, scope: string): void {
+  logger.info(`Using default scope: ${scope} (pass --local or --global to change it).`);
+}
+
 export function shlexQuote(value: string): string {
   if (value.length === 0) {
     return "''";

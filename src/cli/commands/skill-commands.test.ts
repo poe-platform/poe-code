@@ -687,6 +687,67 @@ describe("skill configure command", () => {
     await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 
+  it("announces the default agent and scope that --yes selected", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "skill", "configure"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Using default agent: claude-code (built-in default");
+    expect(output).toContain("Using default scope: global");
+  });
+
+  it("does not announce a default scope when --local is explicit", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "skill", "configure", "--local"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Using default agent: claude-code (built-in default");
+    expect(output).not.toContain("Using default scope");
+  });
+
+  it("does not announce a default agent when the agent is explicit", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "skill", "configure", "codex", "--local"]);
+
+    expect(logs.join("\n")).not.toContain("Using default agent");
+  });
+
   it("prompts for agent when --local is provided and reports local path", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];

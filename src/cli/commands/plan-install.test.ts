@@ -111,6 +111,53 @@ describe("plan install command", () => {
     );
   });
 
+  it("announces the default agent and scope that --yes selected", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "plan", "install"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Using default agent: claude-code (built-in default");
+    expect(output).toContain("Using default scope: local");
+  });
+
+  it("announces a configured default agent instead of the built-in one", async () => {
+    const logs: string[] = [];
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "plan", "install", "--local"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Using default agent: codex (from core.defaultAgent)");
+    expect(output).not.toContain("Using default scope");
+  });
+
   it("does not recover malformed config while previewing plan installation", async () => {
     const fs = createMemFs();
     const malformedConfig = "{ invalid json\n";

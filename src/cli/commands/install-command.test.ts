@@ -134,3 +134,32 @@ describe("install command outcome reporting", () => {
     expect(logs.some((line) => line.includes("Installed Test Service"))).toBe(false);
   });
 });
+
+describe("install command default agent", () => {
+  it("announces the built-in default agent that --yes selected", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "install"]);
+
+    expect(logs.join("\n")).toContain("Using default agent: claude-code (built-in default");
+  });
+
+  it("does not announce a default agent when the agent is explicit", async () => {
+    const logs: string[] = [];
+    const program = createInstallProgram(async () => {}, logs);
+
+    await program.parseAsync(["node", "cli", "--yes", "install", "test-service"]);
+
+    expect(logs.join("\n")).not.toContain("Using default agent");
+  });
+});

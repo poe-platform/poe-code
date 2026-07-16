@@ -11,8 +11,8 @@ import {
   createSecretPrompter,
   formatServiceList,
   listServiceNames,
+  resolveAssumedDefaultAgent,
   resolveCommandFlags,
-  resolveDefaultAgent,
   resolveAgentDefinition,
   resolveServiceAdapter,
   applyIsolatedConfiguration,
@@ -32,7 +32,6 @@ import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
 const serviceSelectionPrompt = (action: string) => `Pick a tool to ${action}:`;
-const DEFAULT_SERVICE_AGENT = "claude-code";
 const apiShapeLabels: Record<ApiShapeId, string> = {
   "openai-chat-completions": "chat-completions",
   "openai-responses": "responses",
@@ -981,15 +980,18 @@ export async function resolveServiceArgument(
   if (services.length === 0) {
     throw new Error(`No agents available to ${action}.`);
   }
-  if (flags.assumeYes) {
-    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_SERVICE_AGENT;
-  }
   const selectionLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,
     verbose: flags.verbose,
     scope: action
   });
+  if (flags.assumeYes) {
+    return await resolveAssumedDefaultAgent({
+      container,
+      logger: selectionLogger,
+      readOnly: flags.dryRun
+    });
+  }
   selectionLogger.intro(action);
   const choices = services.map((service) => ({
     title: service.label,

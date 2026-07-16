@@ -5,7 +5,11 @@ import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { ValidationError } from "../errors.js";
-import { resolveDefaultAgent, resolveMergedDocument } from "./shared.js";
+import {
+  resolveAssumedDefaultAgent,
+  resolveDefaultAgent,
+  resolveMergedDocument
+} from "./shared.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -23,6 +27,7 @@ function createContainer(options?: {
   globalDocument?: Record<string, unknown>;
   projectDocument?: Record<string, unknown>;
   variables?: Record<string, string | undefined>;
+  logs?: string[];
 }) {
   const files: Record<string, string> = {};
 
@@ -42,7 +47,9 @@ function createContainer(options?: {
       homeDir,
       variables: { ...(options?.variables ?? {}) }
     },
-    logger: () => {}
+    logger: (message: string) => {
+      options?.logs?.push(message);
+    }
   });
 }
 
@@ -178,5 +185,38 @@ describe("shared command helpers", () => {
       }
     });
     await expect(resolveDefaultAgent(container)).resolves.toBe("goose");
+  });
+});
+
+describe("resolveAssumedDefaultAgent", () => {
+  it("announces the built-in default agent when no config default exists", async () => {
+    const logs: string[] = [];
+    const container = createContainer({ logs });
+
+    await expect(
+      resolveAssumedDefaultAgent({
+        container,
+        logger: container.loggerFactory.create({})
+      })
+    ).resolves.toBe("claude-code");
+
+    expect(logs.join("\n")).toContain("Using default agent: claude-code (built-in default");
+  });
+
+  it("announces the configured default agent and drops the model portion", async () => {
+    const logs: string[] = [];
+    const container = createContainer({
+      globalDocument: { core: { defaultAgent: "codex:openai/gpt-5.4" } },
+      logs
+    });
+
+    await expect(
+      resolveAssumedDefaultAgent({
+        container,
+        logger: container.loggerFactory.create({})
+      })
+    ).resolves.toBe("codex");
+
+    expect(logs.join("\n")).toContain("Using default agent: codex (from core.defaultAgent)");
   });
 });

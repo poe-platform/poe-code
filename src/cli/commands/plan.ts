@@ -33,22 +33,23 @@ import {
 } from "@poe-code/agent-skill-config";
 import { UserError, suggest } from "toolcraft";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
-import { formatAgentCapabilityError, parseAgentSpecifier } from "@poe-code/agent-defs";
+import { formatAgentCapabilityError } from "@poe-code/agent-defs";
 import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
 import {
+  announceAssumedScope,
   createExecutionResources,
   requireInteractiveStdin,
-  resolveCommandFlags,
-  resolveDefaultAgent
+  resolveAssumedDefaultAgent,
+  resolveCommandFlags
 } from "./shared.js";
+import type { ScopedLogger } from "../logger.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import planSkillTemplate from "../../templates/plan/SKILL_plan.md";
 
-const DEFAULT_PLAN_AGENT = "claude-code";
 const DEFAULT_PLAN_SCOPE: SkillScope = "local";
 
 export interface BuildPlanPromptOptions {
@@ -599,7 +600,12 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
           });
         }
 
-        const agent = await resolvePlanSessionAgent(container, opts.agent, flags);
+        const agent = await resolvePlanSessionAgent(
+          container,
+          opts.agent,
+          flags,
+          container.loggerFactory.create({ dryRun: flags.dryRun, verbose: flags.verbose, scope: "plan" })
+        );
         if (agent === null) {
           return;
         }
@@ -624,7 +630,17 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       await runPlanBrowser(
         createPlanBrowserOptions(container, {
           kind,
-          onCreatePlan: () => runPlanSessionWithPrompt(container, opts.agent, flags)
+          onCreatePlan: () =>
+            runPlanSessionWithPrompt(
+              container,
+              opts.agent,
+              flags,
+              container.loggerFactory.create({
+                dryRun: flags.dryRun,
+                verbose: flags.verbose,
+                scope: "plan"
+              })
+            )
         })
       );
     });
@@ -883,7 +899,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const resources = createExecutionResources(container, flags, "plan:install");
 
       try {
-        const agent = await resolvePlanAgent(container, options.agent, flags);
+        const agent = await resolvePlanAgent(container, options.agent, flags, resources.logger);
         if (agent === null) {
           return;
         }
@@ -893,7 +909,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
           throw new ValidationError(formatAgentCapabilityError({ agent, capability: "skill" }));
         }
 
-        const scope = await resolvePlanScope(options, flags.assumeYes);
+        const scope = await resolvePlanScope(options, flags.assumeYes, resources.logger);
         if (scope === null) {
           return;
         }
@@ -968,7 +984,8 @@ async function resolvePlanQuestion(
 async function resolvePlanSessionAgent(
   container: CliContainer,
   value: string | undefined,
-  flags: { assumeYes: boolean; dryRun: boolean }
+  flags: { assumeYes: boolean; dryRun: boolean },
+  logger: ScopedLogger
 ): Promise<string | null> {
   const trimmed = value?.trim() ?? "";
   if (trimmed.length > 0) {
@@ -976,8 +993,7 @@ async function resolvePlanSessionAgent(
   }
 
   if (flags.assumeYes) {
-    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
+    return await resolveAssumedDefaultAgent({ container, logger, readOnly: flags.dryRun });
   }
 
   requireInteractiveStdin(
@@ -999,14 +1015,15 @@ async function resolvePlanSessionAgent(
 async function runPlanSessionWithPrompt(
   container: CliContainer,
   agentValue: string | undefined,
-  flags: { assumeYes: boolean; dryRun: boolean }
+  flags: { assumeYes: boolean; dryRun: boolean },
+  logger: ScopedLogger
 ): Promise<void> {
   const question = await resolvePlanQuestion(undefined, flags.assumeYes);
   if (question === null) {
     return;
   }
 
-  const agent = await resolvePlanSessionAgent(container, agentValue, flags);
+  const agent = await resolvePlanSessionAgent(container, agentValue, flags, logger);
   if (agent === null) {
     return;
   }
@@ -1082,7 +1099,8 @@ async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
 async function resolvePlanAgent(
   container: CliContainer,
   value: string | undefined,
-  flags: { assumeYes: boolean; dryRun: boolean }
+  flags: { assumeYes: boolean; dryRun: boolean },
+  logger: ScopedLogger
 ): Promise<string | null> {
   const trimmed = value?.trim() ?? "";
   if (trimmed.length > 0) {
@@ -1090,8 +1108,7 @@ async function resolvePlanAgent(
   }
 
   if (flags.assumeYes) {
-    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
+    return await resolveAssumedDefaultAgent({ container, logger, readOnly: flags.dryRun });
   }
 
   requireInteractiveStdin(
@@ -1111,7 +1128,8 @@ async function resolvePlanAgent(
 
 async function resolvePlanScope(
   options: { local?: boolean; global?: boolean },
-  assumeYes: boolean
+  assumeYes: boolean,
+  logger: ScopedLogger
 ): Promise<SkillScope | null> {
   if (options.local) {
     return "local";
@@ -1120,6 +1138,7 @@ async function resolvePlanScope(
     return "global";
   }
   if (assumeYes) {
+    announceAssumedScope(logger, DEFAULT_PLAN_SCOPE);
     return DEFAULT_PLAN_SCOPE;
   }
 

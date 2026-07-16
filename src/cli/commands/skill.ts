@@ -1,11 +1,7 @@
 import type { Command } from "commander";
 import * as path from "node:path";
 import { select, isCancel, cancel, getTheme, renderTable } from "toolcraft-design";
-import {
-  formatAgentCapabilityError,
-  listAgentsWithCapability,
-  parseAgentSpecifier
-} from "@poe-code/agent-defs";
+import { formatAgentCapabilityError, listAgentsWithCapability } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import {
   supportedAgents,
@@ -19,11 +15,15 @@ import {
   type SkillResolutionFailure,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  announceAssumedScope,
+  createExecutionResources,
+  resolveAssumedDefaultAgent,
+  resolveCommandFlags
+} from "./shared.js";
+import type { ScopedLogger } from "../logger.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
-
-const DEFAULT_SKILL_AGENT = "claude-code";
 
 interface SkillCommandOptions {
   local?: boolean;
@@ -57,16 +57,18 @@ async function resolveSkillAgent(input: {
   container: CliContainer;
   flags: ReturnType<typeof resolveCommandFlags>;
   promptMessage: string;
+  logger: ScopedLogger;
 }): Promise<string | undefined> {
   if (input.agentArg) {
     return input.agentArg;
   }
 
   if (input.flags.assumeYes) {
-    const fromConfig = await resolveDefaultAgent(input.container, { readOnly: input.flags.dryRun });
-    return fromConfig !== null
-      ? parseAgentSpecifier(fromConfig).agent
-      : DEFAULT_SKILL_AGENT;
+    return await resolveAssumedDefaultAgent({
+      container: input.container,
+      logger: input.logger,
+      readOnly: input.flags.dryRun
+    });
   }
 
   assertInteractivePromptAvailable(
@@ -226,7 +228,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         agentArg,
         container,
         flags,
-        promptMessage: "Select agent to install skill for:"
+        promptMessage: "Select agent to install skill for:",
+        logger: resources.logger
       });
       if (!agent) {
         return;
@@ -244,6 +247,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         scope = "global";
       } else if (flags.assumeYes) {
         scope = "local";
+        announceAssumedScope(resources.logger, scope);
       } else {
         assertInteractivePromptAvailable(
           "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
@@ -373,7 +377,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         agentArg: options.agent,
         container,
         flags,
-        promptMessage: "Select agent to bridge skills for:"
+        promptMessage: "Select agent to bridge skills for:",
+        logger: resources.logger
       });
       if (!agent) {
         return;
@@ -439,7 +444,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         agentArg,
         container,
         flags,
-        promptMessage: "Select agent to configure:"
+        promptMessage: "Select agent to configure:",
+        logger: resources.logger
       });
       if (!agent) {
         return;
@@ -460,6 +466,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         scope = "global";
       } else if (flags.assumeYes) {
         scope = "global";
+        announceAssumedScope(resources.logger, scope);
       } else {
         assertInteractivePromptAvailable(
           "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
@@ -533,7 +540,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         agentArg,
         container,
         flags,
-        promptMessage: "Select agent to unconfigure:"
+        promptMessage: "Select agent to unconfigure:",
+        logger: resources.logger
       });
       if (!agent) {
         return;

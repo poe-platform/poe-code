@@ -28,7 +28,11 @@ async function writeConfig(fs: FileSystem, document: unknown): Promise<void> {
   await fs.writeFile(configPath, `${JSON.stringify(document, null, 2)}\n`, "utf8");
 }
 
-async function runBraintrustStatus(fs: FileSystem): Promise<string[]> {
+async function runBraintrust(
+  fs: FileSystem,
+  args: string[],
+  flags: { dryRun?: boolean } = {}
+): Promise<string[]> {
   const logs: string[] = [];
   const program = createProgram({
     fs,
@@ -36,10 +40,21 @@ async function runBraintrustStatus(fs: FileSystem): Promise<string[]> {
     env: { cwd, homeDir },
     logger: (message) => logs.push(message)
   });
-  vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+  vi.spyOn(program, "optsWithGlobals").mockReturnValue({
+    yes: false,
+    dryRun: flags.dryRun ?? false
+  } as any);
 
-  await program.parseAsync(["node", "cli", "braintrust", "status"]);
+  await program.parseAsync(["node", "cli", "braintrust", ...args]);
   return logs;
+}
+
+async function runBraintrustStatus(fs: FileSystem): Promise<string[]> {
+  return runBraintrust(fs, ["status"]);
+}
+
+async function readConfig(fs: FileSystem): Promise<any> {
+  return JSON.parse(await fs.readFile(configPath, "utf8"));
 }
 
 describe("braintrust command", () => {
@@ -142,6 +157,73 @@ describe("braintrust command", () => {
 
     expect(logs).toContain("enabled, project=poe-code, last error: none, errors: 0");
     expect(braintrustMock.shutdown).toHaveBeenCalledOnce();
+  });
+
+  it("points at the enable command when status is disabled", async () => {
+    const logs = await runBraintrustStatus(fs);
+
+    expect(logs.join("\n")).toContain('Run "poe-code braintrust enable"');
+  });
+
+  it("enables the integration and keeps the existing credentials", async () => {
+    await writeConfig(fs, {
+      integrations: {
+        braintrust: {
+          enabled: false,
+          apiKey: "${BRAINTRUST_API_KEY}",
+          project: "poe-code"
+        }
+      }
+    });
+
+    const logs = await runBraintrust(fs, ["enable"]);
+
+    expect((await readConfig(fs)).integrations.braintrust).toEqual({
+      enabled: true,
+      apiKey: "${BRAINTRUST_API_KEY}",
+      project: "poe-code"
+    });
+    expect(logs.join("\n")).toContain("enabled");
+  });
+
+  it("names the missing required fields as next steps after enabling", async () => {
+    const logs = await runBraintrust(fs, ["enable"]);
+
+    expect((await readConfig(fs)).integrations.braintrust).toEqual({ enabled: true });
+    expect(logs.join("\n")).toContain("integrations.braintrust.apiKey");
+    expect(logs.join("\n")).toContain("integrations.braintrust.project");
+  });
+
+  it("preserves other config scopes when disabling", async () => {
+    await writeConfig(fs, {
+      core: { defaultAgent: "claude-code" },
+      integrations: {
+        braintrust: {
+          enabled: true,
+          apiKey: "key",
+          project: "poe-code"
+        }
+      }
+    });
+
+    await runBraintrust(fs, ["disable"]);
+
+    const document = await readConfig(fs);
+    expect(document.integrations.braintrust).toEqual({
+      enabled: false,
+      apiKey: "key",
+      project: "poe-code"
+    });
+    expect(document.core).toEqual({ defaultAgent: "claude-code" });
+  });
+
+  it("does not write the config when enabling under --dry-run", async () => {
+    await writeConfig(fs, { integrations: { braintrust: { enabled: false } } });
+
+    const logs = await runBraintrust(fs, ["enable"], { dryRun: true });
+
+    expect((await readConfig(fs)).integrations.braintrust).toEqual({ enabled: false });
+    expect(logs.join("\n")).toContain("would");
   });
 
   it("does not recover malformed configuration while checking status", async () => {

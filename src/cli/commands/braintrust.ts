@@ -1,5 +1,11 @@
 import type { Command } from "commander";
 import { bootstrap } from "@poe-code/braintrust";
+import {
+  createConfigStore,
+  integrationsConfigScope,
+  readDocument,
+  readDocumentReadonly
+} from "@poe-code/poe-code-config";
 
 import type { CliContainer } from "../container.js";
 import {
@@ -11,13 +17,27 @@ import {
 export function registerBraintrustCommand(program: Command, container: CliContainer): void {
   const braintrust = program
     .command("braintrust")
-    .description("Inspect Braintrust integration status.");
+    .description("Inspect and manage the Braintrust integration.");
 
   braintrust
     .command("status")
     .description("Show Braintrust integration status.")
     .action(async () => {
       await executeBraintrustStatus(program, container);
+    });
+
+  braintrust
+    .command("enable")
+    .description("Enable the Braintrust integration in the global config.")
+    .action(async () => {
+      await executeBraintrustToggle(program, container, true);
+    });
+
+  braintrust
+    .command("disable")
+    .description("Disable the Braintrust integration in the global config.")
+    .action(async () => {
+      await executeBraintrustToggle(program, container, false);
     });
 }
 
@@ -34,6 +54,7 @@ async function executeBraintrustStatus(
 
   if (braintrust?.enabled !== true) {
     resources.logger.info("disabled");
+    resources.logger.nextSteps(['Run "poe-code braintrust enable" to turn it on.']);
     resources.context.finalize();
     return;
   }
@@ -63,6 +84,52 @@ async function executeBraintrustStatus(
   } finally {
     await integrations?.shutdown();
   }
+}
+
+async function executeBraintrustToggle(
+  program: Command,
+  container: CliContainer,
+  enabled: boolean
+): Promise<void> {
+  const flags = resolveCommandFlags(program);
+  const action = enabled ? "enable" : "disable";
+  const resources = createExecutionResources(container, flags, `braintrust:${action}`);
+  const configPath = container.env.configPath;
+
+  resources.logger.intro(`braintrust ${action}`);
+
+  const document = await (flags.dryRun ? readDocumentReadonly : readDocument)(
+    container.fs,
+    configPath
+  );
+  const current = document.integrations?.braintrust;
+
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      `Dry run: would set integrations.braintrust.enabled to ${enabled} in ${configPath}`
+    );
+    resources.context.finalize();
+    return;
+  }
+
+  await createConfigStore({ fs: container.fs, filePath: configPath })
+    .scope(integrationsConfigScope)
+    .set("braintrust", { ...current, enabled });
+  resources.logger.success(`Braintrust ${enabled ? "enabled" : "disabled"} in ${configPath}`);
+
+  const missing = enabled ? missingBraintrustFields(current ?? {}) : [];
+  if (missing.length > 0) {
+    resources.logger.nextSteps([
+      ...missing.map((field) =>
+        field === "apiKey"
+          ? 'Set integrations.braintrust.apiKey, commonly "${BRAINTRUST_API_KEY}" via config interpolation.'
+          : "Set integrations.braintrust.project to the Braintrust project name."
+      ),
+      'Run "poe-code braintrust status" to confirm.'
+    ]);
+  }
+
+  resources.context.finalize();
 }
 
 function missingBraintrustFields(

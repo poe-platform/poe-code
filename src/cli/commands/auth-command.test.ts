@@ -274,8 +274,8 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
   });
 
-  it("outputs only the raw API key with auth api-key", async () => {
-    await storeApiKey(fs, "stored-key");
+  it("masks the stored API key by default with auth api-key", async () => {
+    await storeApiKey(fs, "poe-secret-abcd");
 
     const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
@@ -289,7 +289,69 @@ describe("auth command", () => {
 
     await program.parseAsync(["node", "cli", "auth", "api-key"]);
 
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    expect(written).not.toContain("poe-secret-abcd");
+    expect(written).toContain("abcd");
+    expect(written.trim().startsWith("*")).toBe(true);
+    stdoutSpy.mockRestore();
+  });
+
+  it("hints at --reveal when masking the API key", async () => {
+    await storeApiKey(fs, "poe-secret-abcd");
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "api-key"]);
+
+    expect(logs.some((message) => message.includes("--reveal"))).toBe(true);
+    expect(logs.some((message) => message.includes("poe-secret-abcd"))).toBe(false);
+    stdoutSpy.mockRestore();
+  });
+
+  it("outputs the raw API key with auth api-key --reveal", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "api-key", "--reveal"]);
+
     expect(stdoutSpy).toHaveBeenCalledWith("stored-key");
+    stdoutSpy.mockRestore();
+  });
+
+  it("never prints the API key while previewing auth api-key --reveal", async () => {
+    await storeApiKey(fs, "stored-key");
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "api-key", "--reveal"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    expect(written).not.toContain("stored-key");
+    expect(logs.some((message) => message.includes("stored-key"))).toBe(false);
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(true);
     stdoutSpy.mockRestore();
   });
 
@@ -306,12 +368,13 @@ describe("auth command", () => {
 
     await program.parseAsync(["node", "cli", "--dry-run", "auth", "api-key"]);
 
-    expect(stdoutSpy).toHaveBeenCalledWith("legacy-key");
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    expect(written).not.toContain("legacy-key");
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
     stdoutSpy.mockRestore();
   });
 
-  it("keeps auth api_key working as a compatibility alias", async () => {
+  it("keeps auth api_key working as a compatibility alias with --reveal", async () => {
     await storeApiKey(fs, "stored-key");
 
     const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -324,10 +387,27 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await program.parseAsync(["node", "cli", "auth", "api_key"]);
+    await program.parseAsync(["node", "cli", "auth", "api_key", "--reveal"]);
 
     expect(stdoutSpy).toHaveBeenCalledWith("stored-key");
     stdoutSpy.mockRestore();
+  });
+
+  it("documents the secret danger and --reveal in auth api-key help", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const apiKeyCommand = program
+      .commands.find((command) => command.name() === "auth")
+      ?.commands.find((command) => command.name() === "api-key");
+
+    expect(apiKeyCommand?.description().toLowerCase()).toContain("danger");
+    expect(apiKeyCommand?.helpInformation()).toContain("--reveal");
   });
 
   it("sets exit code 1 when no API key is stored", async () => {

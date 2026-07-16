@@ -6,6 +6,10 @@ import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout } from "./logout.js";
 import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
 
+interface ApiKeyCommandOptions {
+  reveal?: boolean;
+}
+
 export function registerAuthCommand(program: Command, container: CliContainer): void {
   const auth = program
     .command("auth")
@@ -23,15 +27,19 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
 
   auth
     .command("api-key")
-    .description("Display stored API key.")
-    .action(async () => {
-      await executeApiKey(program, container);
+    .description(
+      "Display stored API key, masked to the last 4 characters. Danger: --reveal writes the full secret to stdout, where scrollback, screenshots, and CI logs can capture it."
+    )
+    .option("--reveal", "Print the full API key to stdout (for use in command substitution).")
+    .action(async (options: ApiKeyCommandOptions) => {
+      await executeApiKey(program, container, options);
     });
 
   auth
     .command("api_key", { hidden: true })
-    .action(async () => {
-      await executeApiKey(program, container);
+    .option("--reveal", "Print the full API key to stdout (for use in command substitution).")
+    .action(async (options: ApiKeyCommandOptions) => {
+      await executeApiKey(program, container, options);
     });
 
   auth
@@ -105,7 +113,11 @@ async function executeStatus(program: Command, container: CliContainer): Promise
   }
 }
 
-async function executeApiKey(program: Command, container: CliContainer): Promise<void> {
+async function executeApiKey(
+  program: Command,
+  container: CliContainer,
+  options: ApiKeyCommandOptions
+): Promise<void> {
   const flags = resolveCommandFlags(program);
   const apiKey = await container.readApiKey({ readOnly: flags.dryRun });
   if (!apiKey) {
@@ -113,7 +125,31 @@ async function executeApiKey(program: Command, container: CliContainer): Promise
     return;
   }
 
-  process.stdout.write(apiKey);
+  const resources = createExecutionResources(container, flags, "auth:api-key");
+
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      options.reveal
+        ? "Dry run: would write the full API key to stdout."
+        : "Dry run: would display the masked API key."
+    );
+    resources.context.finalize();
+    return;
+  }
+
+  if (options.reveal) {
+    process.stdout.write(apiKey);
+    return;
+  }
+
+  process.stdout.write(`${maskApiKey(apiKey)}\n`);
+  resources.logger.warn("Masked to the last 4 characters. Re-run with --reveal to print the full secret.");
+  resources.context.finalize();
+}
+
+function maskApiKey(apiKey: string): string {
+  const suffix = apiKey.length > 4 ? apiKey.slice(-4) : "";
+  return `${"*".repeat(8)}${suffix}`;
 }
 
 async function resolveAuthCredential(

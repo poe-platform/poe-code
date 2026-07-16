@@ -24,6 +24,12 @@ Options:
   --runner-sync <mode>   Override runner workspace sync: both | upload | none
                          (choices: "both", "upload", "none")
   -h, --help             Display help for command
+
+Global Options:
+  -y, --yes              Accept defaults without prompting.
+  --dry-run              Simulate commands without writing changes.
+  --verbose              Show verbose logs.
+  -V, --version          Output the version number.
 "
 `;
 
@@ -54,6 +60,12 @@ Options:
   --runner-sync <mode>   Override runner workspace sync: both | upload | none
                          (choices: "both", "upload", "none")
   -h, --help             Display help for command
+
+Global Options:
+  -y, --yes              Accept defaults without prompting.
+  --dry-run              Simulate commands without writing changes.
+  --verbose              Show verbose logs.
+  -V, --version          Output the version number.
 "
 `;
 
@@ -111,6 +123,12 @@ Options:
   --runner-sync <mode>         Override runner workspace sync: both | upload |
                                none (choices: "both", "upload", "none")
   -h, --help                   Display help for command
+
+Global Options:
+  -y, --yes                    Accept defaults without prompting.
+  --dry-run                    Simulate commands without writing changes.
+  --verbose                    Show verbose logs.
+  -V, --version                Output the version number.
 "
 `;
 

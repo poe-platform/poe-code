@@ -206,6 +206,66 @@ describe("createProgram", () => {
     }
   );
 
+  describe("global flags on subcommand help", () => {
+    const renderHelp = async (args: string[]): Promise<string> => {
+      const writes: string[] = [];
+      vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+        writes.push(String(chunk));
+        return true;
+      }) as typeof process.stdout.write);
+      process.argv = ["node", "/usr/local/bin/poe-code", ...args];
+      const program = createProgram({
+        fs: createMemFs(homeDir),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir },
+        logger: () => {},
+        exitOverride: true
+      });
+
+      try {
+        await program.parseAsync(process.argv);
+      } catch (error) {
+        // --help exits through commander; exitOverride surfaces it as an error.
+        expect(error).toBeInstanceOf(CommanderError);
+      }
+
+      return stripVTControlCharacters(writes.join(""));
+    };
+
+    it("documents --yes on memory clear, whose body requires it without a TTY", async () => {
+      const output = await renderHelp(["memory", "clear", "--help"]);
+
+      expect(output).toContain("Global Options:");
+      expect(output).toContain("-y, --yes");
+    });
+
+    it.each([
+      ["spawn"],
+      ["unconfigure"],
+      ["install"],
+      ["login"],
+      ["update"],
+      ["plan"],
+      ["pipeline"],
+      ["worktree"]
+    ])("lists the root global flags on %s help", async (command) => {
+      const output = await renderHelp([command, "--help"]);
+
+      const globalBlock = output.slice(output.indexOf("Global Options:"));
+      expect(output).toContain("Global Options:");
+      expect(globalBlock).toContain("-y, --yes");
+      expect(globalBlock).toContain("--dry-run");
+      expect(globalBlock).toContain("--verbose");
+    });
+
+    it("keeps root help free of a Global Options section", async () => {
+      const output = await renderHelp(["--help"]);
+
+      expect(output).not.toContain("Global Options:");
+      expect(output).toContain("-y, --yes");
+    });
+  });
+
   describe("forwarded toolcraft help matches commander help", () => {
     const renderHelp = async (args: string[]): Promise<string> => {
       const writes: string[] = [];

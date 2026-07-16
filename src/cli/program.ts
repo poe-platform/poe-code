@@ -849,6 +849,7 @@ function bootstrapProgram(container: CliContainer): Command {
     .showHelpAfterError(false)
     .showSuggestionAfterError(true)
     .configureHelp({
+      showGlobalOptions: true,
       formatHelp: (cmd, helper) => {
         if (cmd.name() === "poe-code") {
           return formatHelpText({ command: cmd, heading, usageCommand, helpCommand, helper });

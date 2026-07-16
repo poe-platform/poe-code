@@ -7,6 +7,7 @@ import {
 } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
+import { requireNonEmpty } from "../options.js";
 import {
   apiKeyFlagDescription,
   createExecutionResources,
@@ -30,6 +31,10 @@ export function registerAgentCommand(program: Command, container: CliContainer):
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "agent");
       const options = this.opts<AgentCommandOptions>();
+      const model =
+        options.model === undefined ? undefined : requireNonEmpty(options.model, "--model");
+      const apiKey =
+        options.apiKey === undefined ? undefined : requireNonEmpty(options.apiKey, "--api-key");
 
       resources.logger.intro("agent");
       warnApiKeyFlag(resources.logger, options.apiKey, "POE_API_KEY");
@@ -50,8 +55,8 @@ export function registerAgentCommand(program: Command, container: CliContainer):
       try {
         const { createAgentSession } = await import("@poe-code/poe-agent");
         session = await createAgentSession({
-          model: options.model ?? DEFAULT_FRONTIER_MODEL,
-          apiKey: options.apiKey,
+          model: model ?? DEFAULT_FRONTIER_MODEL,
+          apiKey,
           cwd: container.env.cwd
         });
 

@@ -1877,6 +1877,29 @@ describe("option resolvers", () => {
 
   const effortLevels = ["none", "low", "medium", "high", "max"];
 
+  it.each([
+    ["an empty explicit API key", ""],
+    ["a whitespace-only explicit API key", "   "]
+  ])("rejects %s instead of falling back to the stored key", async (_name, value) => {
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue("stored-api-key"),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts: vi.fn().mockResolvedValue({}),
+      promptLibrary: createPromptLibrary(),
+      apiKeyStore,
+      confirm: vi.fn().mockResolvedValue(true),
+      checkAuth: vi.fn().mockResolvedValue(true)
+    });
+
+    await expect(
+      resolvers.resolveApiKey({ value, dryRun: false })
+    ).rejects.toThrow(ValidationError);
+    expect(apiKeyStore.read).not.toHaveBeenCalled();
+    expect(apiKeyStore.write).not.toHaveBeenCalled();
+  });
+
   it("rejects an explicit reasoning effort that is absent from the levels", async () => {
     const resolvers = createResolvers();
 
@@ -1916,6 +1939,39 @@ describe("option resolvers", () => {
 
     expect(result).toBe("low");
     expect(onResolve).toHaveBeenCalledWith("Claude Code reasoning effort", "low");
+  });
+
+  it.each([
+    ["an empty explicit model", ""],
+    ["a whitespace-only explicit model", "   "]
+  ])("rejects %s instead of falling back to the default", async (_name, value) => {
+    const resolvers = createResolvers();
+    const onResolve = vi.fn();
+
+    await expect(
+      resolvers.resolveModel({
+        value,
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        choices: catalogChoices,
+        aliases: catalogAliases,
+        strictChoices: true,
+        label: "Claude Code default model",
+        onResolve
+      })
+    ).rejects.toThrow("Claude Code default model cannot be empty.");
+    expect(onResolve).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty explicit model with a ValidationError", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveModel({
+        value: "",
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        label: "Claude Code default model"
+      })
+    ).rejects.toThrow(ValidationError);
   });
 
   it("rejects an explicit model that is absent from the catalog", async () => {

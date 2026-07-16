@@ -20,6 +20,7 @@ import {
 } from "./shared.js";
 import { loadConfiguredServices, saveConfiguredService } from "../../services/config.js";
 import { OperationCancelledError } from "../errors.js";
+import { requireNonEmpty } from "../options.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -115,6 +116,13 @@ export async function executeConfigure(
   const resources = createExecutionResources(container, flags, `configure:${canonicalService}`);
 
   resources.logger.intro(`configure ${canonicalService}`);
+
+  if (options.apiKey !== undefined) {
+    requireNonEmpty(options.apiKey, "--api-key");
+  }
+  if (options.model !== undefined) {
+    requireNonEmpty(options.model, "--model");
+  }
 
   if (options.skipIfConfigured === true) {
     const configured = await loadConfiguredServices({

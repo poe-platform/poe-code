@@ -16,6 +16,21 @@ function stripBracketedPaste(value: string): string {
     .split("\x1b[201~").join("");
 }
 
+/**
+ * Rejects explicitly supplied but empty/whitespace-only flag values.
+ *
+ * An explicit flag always means the user asked for something specific, so an
+ * empty value is a mistake rather than a request for the default: it must never
+ * fall back to a default, a stored credential or be silently dropped.
+ */
+export function requireNonEmpty(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new ValidationError(`${label} cannot be empty.`);
+  }
+  return trimmed;
+}
+
 export interface ApiKeyStore {
   read(options?: { readOnly?: boolean }): Promise<string | null>;
   write(value: string): Promise<void>;
@@ -122,14 +137,8 @@ export function createOptionResolvers(
     return result;
   };
 
-  const normalizeApiKey = (value: string): string => {
-    const sanitized = stripBracketedPaste(value);
-    const trimmed = sanitized.trim();
-    if (trimmed.length === 0) {
-      throw new Error("POE API key cannot be empty.");
-    }
-    return trimmed;
-  };
+  const normalizeApiKey = (value: string): string =>
+    requireNonEmpty(stripBracketedPaste(value), "POE API key");
 
   const validateApiKey = async (apiKey: string): Promise<boolean> => {
     return await init.checkAuth(apiKey);
@@ -234,13 +243,16 @@ export function createOptionResolvers(
     onResolve
   }: ResolveModelInput): Promise<string> => {
     if (value != null) {
-      const resolved = aliases?.[value] ?? value;
+      const explicit = requireNonEmpty(value, label);
+      const resolved = aliases?.[explicit] ?? explicit;
       if (
         strictChoices &&
         choices.length > 0 &&
         !choices.some((choice) => choice.value === resolved)
       ) {
-        throw new ValidationError(unknownModelMessage({ value, choices, aliases, label }));
+        throw new ValidationError(
+          unknownModelMessage({ value: explicit, choices, aliases, label })
+        );
       }
       onResolve?.(label, resolved);
       return resolved;

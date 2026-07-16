@@ -56,6 +56,7 @@ import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
+import { requireNonEmpty } from "../options.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
 import {
   addRuntimeOptions,
@@ -109,9 +110,9 @@ export function registerSpawnCommand(
       "--mcp-servers <json|@file>",
       "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
     )
-    .option("--skill <ref>", "Active skill reference to bridge for this run", collectOption)
+    .option("--skill <ref>", "Active skill reference to bridge for this run", collectSkillOption)
     .option(
-      "--skills [refs]",
+      "--skills <refs>",
       "Comma-separated active skill references to bridge for this run",
       collectSkillsOption
     )
@@ -167,7 +168,7 @@ export function registerSpawnCommand(
           mcpServers?: string;
           mcpConfig?: string;
           skill?: string[];
-          skills?: string[] | boolean;
+          skills?: string[];
           hooksFrom?: string;
           hooksStrategy?: "auto" | "symlink" | "transform";
           hooksScope?: "project" | "user" | "merged";
@@ -181,6 +182,14 @@ export function registerSpawnCommand(
         } & RuntimeCliOptions
       >();
       const runtimeOptions = pickRuntimeOptions(commandOptions);
+      const model =
+        commandOptions.model === undefined
+          ? undefined
+          : requireNonEmpty(commandOptions.model, "--model");
+      const resumeThreadId =
+        commandOptions.resumeThreadId === undefined
+          ? undefined
+          : requireNonEmpty(commandOptions.resumeThreadId, "--resume-thread-id");
       const skills = resolveSkillOptions(commandOptions.skill, commandOptions.skills);
       const hooks = resolveHookOptions(
         commandOptions.hooksFrom,
@@ -247,22 +256,20 @@ export function registerSpawnCommand(
           const target = resolveSpawnTarget(container, service);
           const canonicalService = target.name;
           assertInteractiveSupport(target.label, canonicalService);
-          const model = await resolveConfiguredModel(
+          const interactiveModel = await resolveConfiguredModel(
             container,
             canonicalService,
-            commandOptions.model,
+            model,
             { readOnly: flags.dryRun }
           );
           const result = await spawnInteractive(canonicalService, {
             prompt,
             args: forwardedArgs,
-            model,
+            model: interactiveModel,
             mode,
             ...(skills ? { skills } : {}),
             ...(hooks ? { hooks } : {}),
-            ...(commandOptions.resumeThreadId !== undefined
-              ? { resumeThreadId: commandOptions.resumeThreadId }
-              : {}),
+            ...(resumeThreadId !== undefined ? { resumeThreadId } : {}),
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
@@ -275,15 +282,13 @@ export function registerSpawnCommand(
         const directSpawnOptions: SpawnCommandOptions = {
           prompt,
           args: forwardedArgs,
-          model: commandOptions.model,
+          model,
           mode,
           mcpServers,
           ...(skills ? { skills } : {}),
           ...(hooks ? { hooks } : {}),
           cwd: cwdOverride,
-          ...(commandOptions.resumeThreadId !== undefined
-            ? { resumeThreadId: commandOptions.resumeThreadId }
-            : {}),
+          ...(resumeThreadId !== undefined ? { resumeThreadId } : {}),
           logDir: commandOptions.logDir,
           ...(commandOptions.logFileName !== undefined
             ? { logFileName: commandOptions.logFileName }
@@ -323,15 +328,15 @@ export function registerSpawnCommand(
 
         const target = resolveSpawnTarget(container, service);
         const canonicalService = target.name;
-        const model = await resolveConfiguredModel(
+        const configuredModel = await resolveConfiguredModel(
           container,
           canonicalService,
-          commandOptions.model,
+          model,
           { readOnly: flags.dryRun }
         );
         const spawnOptions: SpawnCommandOptions = {
           ...directSpawnOptions,
-          model
+          model: configuredModel
         };
         const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
         let skipFinalize = false;
@@ -610,27 +615,26 @@ function parsePositiveInt(value: string, fieldName: string): number {
   return parsed;
 }
 
-function collectOption(value: string, previous: string[] | undefined): string[] {
-  return [...(previous ?? []), value];
+function collectSkillOption(value: string, previous: string[] | undefined): string[] {
+  return [...(previous ?? []), requireNonEmpty(value, "--skill")];
 }
 
-function collectSkillsOption(value: string | boolean, previous: string[] | undefined): string[] {
-  if (typeof value !== "string") {
-    return previous ?? [];
-  }
-
+function collectSkillsOption(value: string, previous: string[] | undefined): string[] {
   const entries = value
     .split(",")
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
+  if (entries.length === 0) {
+    throw new ValidationError("--skills cannot be empty.");
+  }
   return [...(previous ?? []), ...entries];
 }
 
 function resolveSkillOptions(
   skill: string[] | undefined,
-  skills: string[] | boolean | undefined
+  skills: string[] | undefined
 ): string[] | undefined {
-  const resolved = [...(skill ?? []), ...(Array.isArray(skills) ? skills : [])];
+  const resolved = [...(skill ?? []), ...(skills ?? [])];
   return resolved.length > 0 ? resolved : undefined;
 }
 

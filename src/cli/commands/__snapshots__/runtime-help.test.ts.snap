@@ -85,7 +85,7 @@ Options:
   --mcp-servers <json|@file>   MCP server config JSON (or @path/to/file.json):
                                {name: {command, args?, env?}}
   --skill <ref>                Active skill reference to bridge for this run
-  --skills [refs]              Comma-separated active skill references to bridge
+  --skills <refs>              Comma-separated active skill references to bridge
                                for this run
   --hooks-from <agentId>       Agent hook configuration to bridge for this run
   --hooks-strategy <strategy>  Hook bridge strategy (default: auto; transform

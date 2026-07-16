@@ -151,6 +151,25 @@ describe("agent command", () => {
     );
   });
 
+  it.each([
+    ["empty --model value", ["--model", ""], "--model cannot be empty."],
+    ["whitespace-only --model value", ["--model", "  "], "--model cannot be empty."],
+    ["empty --api-key value", ["--api-key", ""], "--api-key cannot be empty."],
+    ["whitespace-only --api-key value", ["--api-key", " "], "--api-key cannot be empty."]
+  ])("rejects %s instead of falling back", async (_name, flagArgs, message) => {
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "agent", "Say hello", ...flagArgs])
+    ).rejects.toThrow(message);
+    expect(createAgentSessionMock).not.toHaveBeenCalled();
+  });
+
   it("warns and documents POE_API_KEY when --api-key is passed on the command line", async () => {
     const logs: string[] = [];
     const program = createProgram({
@@ -770,18 +789,18 @@ describe("root command", () => {
     expect(plainOutput).not.toContain("plan markdown-reader-mcp");
     expect(plainOutput).toContain("ralph");
     expect(plainOutput).toContain("experiment");
-    expect(plainOutput).not.toContain("github-workflows, gh");
-    expect(plainOutput).not.toContain("GitHub workflow automations");
-    expect(plainOutput).not.toContain("approvals");
-    expect(plainOutput).not.toContain("Inspect and execute queued approvals");
+    expect(plainOutput).toContain("github-workflows, gh");
+    expect(plainOutput).toContain("GitHub workflow automations");
+    expect(plainOutput).toContain("approvals");
+    expect(plainOutput).toContain("Inspect and execute queued approvals");
     expect(plainOutput).not.toContain("auth api_key");
     expect(plainOutput).not.toContain("auth login");
     expect(plainOutput).not.toContain("auth logout");
     expect(plainOutput).not.toContain("research");
     expect(plainOutput).toContain("[agent]");
     expect(plainOutput).toContain("<agent>");
-    expect(plainOutput).not.toContain("skill");
-    expect(plainOutput).not.toContain("Skill directory commands");
+    expect(plainOutput).toContain("skill");
+    expect(plainOutput).toContain("Skill directory commands");
     expect(plainOutput).not.toContain("poe-code configure claude-code");
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
     expect(plainOutput).toContain("Run poe-code <command> --help for command options.");
@@ -818,7 +837,7 @@ describe("root command", () => {
     expect(planHelp).toContain("markdown-reader-mcp");
   });
 
-  it("keeps root help focused on primary command groups", async () => {
+  it("lists primary commands first and the rest under Advanced", async () => {
     const rootHelp = await renderHelp([]);
 
     for (const command of [
@@ -829,7 +848,8 @@ describe("root command", () => {
       "ralph",
       "usage"
     ]) {
-      expect(rootHelp).toContain(command);
+      expect(rootHelp.indexOf(command)).toBeGreaterThanOrEqual(0);
+      expect(rootHelp.indexOf(command)).toBeLessThan(rootHelp.indexOf("Advanced:"));
     }
 
     for (const command of [
@@ -844,6 +864,14 @@ describe("root command", () => {
       "approvals",
       "github-workflows",
       "code-review",
+      "superintendent",
+      "provider",
+      "utils"
+    ]) {
+      expect(rootHelp.indexOf("Advanced:")).toBeLessThan(rootHelp.indexOf(command));
+    }
+
+    for (const command of [
       "plan list",
       "plan markdown-read",
       "tasks import",

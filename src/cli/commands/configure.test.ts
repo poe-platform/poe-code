@@ -983,6 +983,27 @@ describe("configure provider resolution", () => {
     expect(resolveApiKey).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["--api-key", { provider: "poe", apiKey: "" }, "--api-key cannot be empty."],
+    ["whitespace-only --api-key", { provider: "poe", apiKey: "  " }, "--api-key cannot be empty."],
+    ["--model", { provider: "poe", model: "" }, "--model cannot be empty."],
+    ["whitespace-only --model", { provider: "poe", model: " \t " }, "--model cannot be empty."]
+  ])("rejects an empty %s instead of previewing a configure", async (_name, options, message) => {
+    const container = createContainer(fs);
+    useOnlyPoeCandidate(container);
+    const invoke = vi.spyOn(container.registry, "invoke");
+
+    await expect(
+      executeConfigure(
+        createTestProgram(["node", "cli", "--dry-run", "--yes"]),
+        container,
+        "claude-code",
+        options
+      )
+    ).rejects.toThrow(message);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it("does not recover malformed config while selecting a default agent in dry-run mode", async () => {
     const malformedConfig = "{ invalid json\n";
     await fs.mkdir(path.dirname(configPath), { recursive: true });

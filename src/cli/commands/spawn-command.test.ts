@@ -1230,12 +1230,7 @@ describe("spawn command", () => {
     });
   });
 
-  it.each([
-    ["empty --skills value", ["--skills", ""], "codex", "List files"],
-    ["bare --skills flag", [], "codex", "List files", "--skills"],
-    ["whitespace-only --skills value", ["--skills", "  \t  "], "codex", "List files"],
-    ["no --skills flag", [], "codex", "List files"]
-  ])("omits skills for %s", async (_name, leadingArgs, agent, prompt, trailingArg) => {
+  it("omits skills when no --skills flag is passed", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -1245,15 +1240,7 @@ describe("spawn command", () => {
       logger: () => {}
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      ...leadingArgs,
-      agent,
-      prompt,
-      ...(trailingArg ? [trailingArg] : [])
-    ]);
+    await program.parseAsync(["node", "cli", "spawn", "codex", "List files"]);
 
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
@@ -1264,6 +1251,55 @@ describe("spawn command", () => {
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
+  });
+
+  it.each([
+    ["empty --skills value", ["--skills", ""], "--skills cannot be empty."],
+    ["whitespace-only --skills value", ["--skills", "  \t  "], "--skills cannot be empty."],
+    ["empty --skill value", ["--skill", ""], "--skill cannot be empty."],
+    ["whitespace-only --skill value", ["--skill", "  "], "--skill cannot be empty."],
+    ["empty --model value", ["--model", ""], "--model cannot be empty."],
+    ["whitespace-only --model value", ["--model", " "], "--model cannot be empty."],
+    [
+      "empty --resume-thread-id value",
+      ["--resume-thread-id", ""],
+      "--resume-thread-id cannot be empty."
+    ],
+    [
+      "whitespace-only --resume-thread-id value",
+      ["--resume-thread-id", " "],
+      "--resume-thread-id cannot be empty."
+    ]
+  ])("rejects %s", async (_name, flagArgs, message) => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", ...flagArgs, "codex", "List files"])
+    ).rejects.toThrow(message);
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("requires a value for the --skills flag", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "codex", "List files", "--skills"])
+    ).rejects.toThrow(/--skills <refs>' argument missing/);
+    expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
   it("passes --hooks-from to SDK spawn with the default auto strategy", async () => {

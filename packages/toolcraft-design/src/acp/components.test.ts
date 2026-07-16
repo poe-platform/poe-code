@@ -49,13 +49,34 @@ describe("acp/components", () => {
     resetOutputFormatCache();
   });
 
-  it("renderAgentMessage prints a green bold checkmark + text", async () => {
+  it("renderAgentMessage prints a dim neutral glyph + text for streaming output by default", async () => {
     const { renderAgentMessage } = await import("./components.js");
     const output = captureStdout(() => renderAgentMessage("hello"));
 
-    expect(stripAnsi(output)).toBe("✓ agent: hello\n");
+    expect(stripAnsi(output)).toBe("· agent: hello\n");
+    expect(output).toContain("\u001b[2m");
+    expect(stripAnsi(output)).not.toContain("✓");
+  });
+
+  it("renderAgentMessage prints a green bold checkmark only for completed success", async () => {
+    const { renderAgentMessage } = await import("./components.js");
+    const output = captureStdout(() => renderAgentMessage("all done", "success"));
+
+    expect(stripAnsi(output)).toBe("✓ agent: all done\n");
     expect(output).toContain("\u001b[32m");
     expect(output).toContain("\u001b[1m");
+  });
+
+  it("renderAgentMessage prints a red error glyph and never a checkmark on failure", async () => {
+    const { renderAgentMessage } = await import("./components.js");
+    const output = captureStdout(() =>
+      renderAgentMessage("API Error: 400 Unsupported model: 'does-not-exist-xyz'.", "error")
+    );
+    const plain = stripAnsi(output);
+
+    expect(plain).toBe("✗ agent: API Error: 400 Unsupported model: 'does-not-exist-xyz'.\n");
+    expect(plain).not.toContain("✓");
+    expect(output).toContain("\u001b[31m");
   });
 
   it("renderAgentMessage renders markdown formatting for terminal", async () => {
@@ -67,7 +88,7 @@ describe("acp/components", () => {
     expect(plain).toContain("Summary");
     expect(plain).toContain("• File A updated");
     expect(plain).toContain("• File B created");
-    expect(plain).toContain("✓ agent:");
+    expect(plain).toContain("· agent:");
   });
 
   it("renderAgentMessage renders code blocks with markdown formatting", async () => {
@@ -106,24 +127,25 @@ describe("acp/components", () => {
     expect(stripAnsi(output)).toBe("  → toString: read config\n  ✓ toString\n");
   });
 
-  it("renderReasoning prints a dim checkmark + truncated text (80 chars)", async () => {
+  it("renderReasoning prints a dim neutral bullet + truncated text (80 chars), never a checkmark", async () => {
     const { renderReasoning } = await import("./components.js");
     const long = "x".repeat(200);
     const output = captureStdout(() => renderReasoning(long));
 
     expect(output).toContain("\u001b[2m");
     const plain = stripAnsi(output);
-    expect(plain.startsWith("  ✓ ")).toBe(true);
+    expect(plain).not.toContain("✓");
+    expect(plain.startsWith("  · ")).toBe(true);
     expect(plain.endsWith("...\n")).toBe(true);
     expect(plain.length).toBe(4 + 80 + 1);
   });
 
-  it("renderUsage prints green token usage with cached token detail", async () => {
+  it("renderUsage prints neutral token usage with cached token detail, never a checkmark", async () => {
     const { renderUsage } = await import("./components.js");
     const output = captureStdout(() => renderUsage({ input: 1500, output: 350, cached: 800 }));
 
-    expect(stripAnsi(output)).toBe("\n✓ tokens: 1500 in (800 cached) → 350 out\n");
-    expect(output).toContain("\u001b[32m");
+    expect(stripAnsi(output)).toBe("\n· tokens: 1500 in (800 cached) → 350 out\n");
+    expect(output).toContain("\u001b[2m");
   });
 
   it("renderError prints a red X + message", async () => {

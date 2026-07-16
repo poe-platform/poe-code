@@ -28,8 +28,22 @@ function writeLine(line: string): void {
   getAcpWriter()(line);
 }
 
-function agentPrefix(): string {
-  return `${color.green.bold("✓")} agent: `;
+/**
+ * Status of the agent output being rendered.
+ *
+ * `streaming` covers partial/in-progress content, which has not reached any outcome yet and so must not
+ * claim success. `success`/`error` are terminal outcomes known to the caller.
+ */
+export type AcpOutputState = "streaming" | "success" | "error";
+
+const STATE_GLYPHS: Record<AcpOutputState, () => string> = {
+  streaming: () => color.dim("·"),
+  success: () => color.green.bold("✓"),
+  error: () => color.red.bold("✗")
+};
+
+function agentPrefix(state: AcpOutputState): string {
+  return `${STATE_GLYPHS[state]()} agent: `;
 }
 
 function formatCost(costUsd: number): string {
@@ -41,7 +55,7 @@ function formatCost(costUsd: number): string {
   }).format(costUsd);
 }
 
-export function renderAgentMessage(text: string): void {
+export function renderAgentMessage(text: string, state: AcpOutputState = "streaming"): void {
   const format = resolveOutputFormat();
 
   if (format === "markdown") {
@@ -55,7 +69,7 @@ export function renderAgentMessage(text: string): void {
   }
 
   const rendered = renderMarkdown(text).trimEnd();
-  writeLine(`${agentPrefix()}${rendered}`);
+  writeLine(`${agentPrefix(state)}${rendered}`);
 }
 
 export function renderToolStart(kind: string, title: string): void {
@@ -105,7 +119,7 @@ export function renderReasoning(text: string): void {
     return;
   }
 
-  writeLine(color.dim(`  ✓ ${truncate(text, 80)}`));
+  writeLine(color.dim(`  · ${truncate(text, 80)}`));
 }
 
 export function renderUsage(tokens: {
@@ -142,7 +156,7 @@ export function renderUsage(tokens: {
   }
 
   writeLine("");
-  writeLine(color.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
+  writeLine(color.dim(`· tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
 }
 
 export function renderPermissionRejected(title: string): void {

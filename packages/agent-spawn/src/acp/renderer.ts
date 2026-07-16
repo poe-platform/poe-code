@@ -1,6 +1,6 @@
 import { acp, resolveOutputFormat, text } from "toolcraft-design";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
-import type { AcpEvent } from "./types.js";
+import type { AcpEvent, SpawnResultEvent } from "./types.js";
 import { toRenderKind } from "./session-update-converter.js";
 
 function writeLine(line: string): void {
@@ -64,15 +64,25 @@ export function renderAcpEvent(event: AcpEvent): void {
   }
 }
 
+/**
+ * Outcome an event reveals about the run, so buffered partial text is attributed correctly:
+ * a failure marks the text it belongs to as failed instead of leaving it looking successful.
+ */
+function stateForEvent(event: AcpEvent): acp.AcpOutputState {
+  if (event.event === "error") return "error";
+  if (event.event === "spawn_result" && (event as SpawnResultEvent).exitCode !== 0) return "error";
+  return "streaming";
+}
+
 export async function renderAcpStream(
   events: AsyncIterable<AcpEvent>
 ): Promise<void> {
   let messageBuffer = "";
   let reasoningBuffer = "";
 
-  function flushMessageBuffer(): void {
+  function flushMessageBuffer(state: acp.AcpOutputState): void {
     if (messageBuffer.length > 0) {
-      acp.renderAgentMessage(messageBuffer);
+      acp.renderAgentMessage(messageBuffer, state);
       messageBuffer = "";
     }
   }
@@ -84,8 +94,8 @@ export async function renderAcpStream(
     }
   }
 
-  function flushAll(): void {
-    flushMessageBuffer();
+  function flushAll(state: acp.AcpOutputState): void {
+    flushMessageBuffer(state);
     flushReasoningBuffer();
   }
 
@@ -96,14 +106,14 @@ export async function renderAcpStream(
       continue;
     }
     if (event.event === "reasoning") {
-      flushMessageBuffer();
+      flushMessageBuffer("streaming");
       reasoningBuffer += (event as { text: string }).text;
       continue;
     }
-    flushAll();
+    flushAll(stateForEvent(event));
     renderAcpEvent(event);
   }
-  flushAll();
+  flushAll("streaming");
 }
 
 function renderSessionUpdate(update: SessionUpdate): void {

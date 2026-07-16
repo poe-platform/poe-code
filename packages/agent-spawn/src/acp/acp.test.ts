@@ -620,7 +620,67 @@ describe("acp/renderer", () => {
     await renderAcpStream(fromArray(events as any[]));
 
     expect(acp.renderAgentMessage).toHaveBeenCalledTimes(1);
-    expect(acp.renderAgentMessage).toHaveBeenCalledWith("ab");
+    expect(acp.renderAgentMessage).toHaveBeenCalledWith("ab", "streaming");
+  });
+
+  it("renderAcpStream flushes buffered agent text with the error state when an error event follows", async () => {
+    const { renderAcpStream } = await import("./renderer.js");
+    const { acp } = await import("toolcraft-design");
+
+    async function* fromArray<T>(items: T[]): AsyncIterable<T> {
+      for (const item of items) yield item;
+    }
+
+    const events = [
+      { event: "agent_message", text: "API Error: 400 Unsupported model" },
+      { event: "error", message: "Claude Code spawn failed with exit code 1" }
+    ];
+
+    await renderAcpStream(fromArray(events as any[]));
+
+    expect(acp.renderAgentMessage).toHaveBeenCalledWith(
+      "API Error: 400 Unsupported model",
+      "error"
+    );
+  });
+
+  it("renderAcpStream flushes buffered agent text with the error state on a non-zero spawn_result", async () => {
+    const { renderAcpStream } = await import("./renderer.js");
+    const { acp } = await import("toolcraft-design");
+
+    async function* fromArray<T>(items: T[]): AsyncIterable<T> {
+      for (const item of items) yield item;
+    }
+
+    const events = [
+      { event: "agent_message", text: "API Error: 400 Unsupported model" },
+      { event: "spawn_result", exitCode: 1 }
+    ];
+
+    await renderAcpStream(fromArray(events as any[]));
+
+    expect(acp.renderAgentMessage).toHaveBeenCalledWith(
+      "API Error: 400 Unsupported model",
+      "error"
+    );
+  });
+
+  it("renderAcpStream keeps the streaming state on a zero-exit spawn_result", async () => {
+    const { renderAcpStream } = await import("./renderer.js");
+    const { acp } = await import("toolcraft-design");
+
+    async function* fromArray<T>(items: T[]): AsyncIterable<T> {
+      for (const item of items) yield item;
+    }
+
+    const events = [
+      { event: "agent_message", text: "ok" },
+      { event: "spawn_result", exitCode: 0 }
+    ];
+
+    await renderAcpStream(fromArray(events as any[]));
+
+    expect(acp.renderAgentMessage).toHaveBeenCalledWith("ok", "streaming");
   });
 
   it("renderAcpStream buffers consecutive reasoning events and flushes at end", async () => {
@@ -684,8 +744,8 @@ describe("acp/renderer", () => {
     await renderAcpStream(fromArray(events as any[]));
 
     expect(acp.renderAgentMessage).toHaveBeenCalledTimes(2);
-    expect(acp.renderAgentMessage).toHaveBeenNthCalledWith(1, "hello world");
-    expect(acp.renderAgentMessage).toHaveBeenNthCalledWith(2, "done");
+    expect(acp.renderAgentMessage).toHaveBeenNthCalledWith(1, "hello world", "streaming");
+    expect(acp.renderAgentMessage).toHaveBeenNthCalledWith(2, "done", "streaming");
     expect(acp.renderToolStart).toHaveBeenCalledWith("read", "file.txt");
   });
 });

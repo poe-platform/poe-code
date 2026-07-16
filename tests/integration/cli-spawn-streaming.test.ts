@@ -156,7 +156,7 @@ describe("CLI spawn streaming integration", () => {
     expect(plainChunks).toEqual([
       "  → exec: npm test\n",
       "  ✓ exec\n",
-      "✓ agent: Hi\n"
+      "· agent: Hi\n"
     ]);
   });
 });

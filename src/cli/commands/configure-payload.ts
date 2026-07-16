@@ -70,6 +70,11 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
       explicitShapeBaseUrls,
       readOnly: flags.dryRun
     });
+    logger.resolved(
+      `${provider.label} ${activeProvider.apiShape} base URL`,
+      activeProvider.baseUrl
+    );
+    logger.resolved(`${adapter.label} base URL`, activeProvider.agentBaseUrl);
     payload.provider = activeProvider;
   }
 
@@ -99,6 +104,9 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
             assumeDefault: flags.assumeYes,
             defaultValue: configModel ?? modelPrompt.defaultValue,
             choices: await resolveChoices(),
+            aliases: modelPrompt.aliases,
+            strictChoices:
+              modelPrompt.strictChoices === true && typeof modelPrompt.choices !== "function",
             label: modelPrompt.label,
             onResolve: (label, value) => logger.resolved(label, value)
           });

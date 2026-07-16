@@ -1,3 +1,4 @@
+import { ValidationError } from "./errors.js";
 import type { ModelChoice, PromptDescriptor, PromptLibrary } from "./prompts.js";
 import type { PromptFn } from "./types.js";
 
@@ -39,6 +40,10 @@ export interface ResolveModelInput {
   assumeDefault?: boolean;
   defaultValue: string;
   choices?: ReadonlyArray<ModelChoice>;
+  /** Short names accepted on the command line, mapped to their catalog id. */
+  aliases?: Readonly<Record<string, string>>;
+  /** Set when `choices` is the complete catalog, so unknown ids can be rejected. */
+  strictChoices?: boolean;
   label: string;
   onResolve?: (label: string, value: string) => void;
 }
@@ -72,6 +77,28 @@ export interface OptionResolverInit {
   confirm: (message: string) => Promise<boolean>;
   checkAuth: (apiKey: string) => Promise<boolean>;
   loginViaOAuth?: () => Promise<string>;
+}
+
+function unknownModelMessage(input: {
+  value: string;
+  choices: ReadonlyArray<ModelChoice>;
+  aliases?: Readonly<Record<string, string>>;
+  label: string;
+}): string {
+  const known = [
+    ...Object.keys(input.aliases ?? {}),
+    ...input.choices.map((choice) => choice.value)
+  ];
+  const needle = input.value.toLowerCase();
+  const near = known.filter((candidate) => {
+    const id = candidate.toLowerCase();
+    return id.includes(needle) || needle.includes(id);
+  });
+  const hint =
+    near.length > 0
+      ? `Did you mean: ${near.join(", ")}?`
+      : `Available models: ${known.join(", ")}.`;
+  return `Unknown model "${input.value}" for ${input.label}. ${hint}`;
 }
 
 export function createOptionResolvers(
@@ -200,12 +227,22 @@ export function createOptionResolvers(
     assumeDefault,
     defaultValue,
     choices = [],
+    aliases,
+    strictChoices,
     label,
     onResolve
   }: ResolveModelInput): Promise<string> => {
     if (value != null) {
-      onResolve?.(label, value);
-      return value;
+      const resolved = aliases?.[value] ?? value;
+      if (
+        strictChoices &&
+        choices.length > 0 &&
+        !choices.some((choice) => choice.value === resolved)
+      ) {
+        throw new ValidationError(unknownModelMessage({ value, choices, aliases, label }));
+      }
+      onResolve?.(label, resolved);
+      return resolved;
     }
     if (choices.length === 1) {
       onResolve?.(label, choices[0]!.value);

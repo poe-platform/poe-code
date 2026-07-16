@@ -13,7 +13,7 @@ import type { ProviderIsolatedEnv } from "./service-registry.js";
 import { createOptionResolvers } from "./options.js";
 import { createPromptLibrary } from "./prompts.js";
 import { createPromptRunner } from "./prompt-runner.js";
-import { OperationCancelledError } from "./errors.js";
+import { OperationCancelledError, ValidationError } from "./errors.js";
 import { createServiceRegistry, type ProviderService } from "./service-registry.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
 
@@ -1851,6 +1851,125 @@ describe("option resolvers", () => {
       type: "text",
       initial: "Default-Model"
     });
+  });
+
+  function createResolvers() {
+    return createOptionResolvers({
+      prompts: vi.fn().mockResolvedValue({}),
+      promptLibrary: createPromptLibrary(),
+      apiKeyStore: {
+        read: vi.fn().mockResolvedValue(null),
+        write: vi.fn().mockResolvedValue(undefined)
+      },
+      confirm: vi.fn().mockResolvedValue(true),
+      checkAuth: vi.fn().mockResolvedValue(true)
+    });
+  }
+
+  const catalogChoices = [
+    { title: "Haiku", value: "anthropic/claude-haiku-4.5" },
+    { title: "Sonnet", value: "anthropic/claude-sonnet-4.6" }
+  ];
+  const catalogAliases = {
+    haiku: "anthropic/claude-haiku-4.5",
+    sonnet: "anthropic/claude-sonnet-4.6"
+  };
+
+  it("rejects an explicit model that is absent from the catalog", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveModel({
+        value: "does-not-exist-xyz",
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        choices: catalogChoices,
+        strictChoices: true,
+        label: "Claude Code default model"
+      })
+    ).rejects.toThrow(ValidationError);
+  });
+
+  it("lists catalog models and aliases when an explicit model is unknown", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveModel({
+        value: "does-not-exist-xyz",
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        choices: catalogChoices,
+        aliases: catalogAliases,
+        strictChoices: true,
+        label: "Claude Code default model"
+      })
+    ).rejects.toThrow(
+      'Unknown model "does-not-exist-xyz" for Claude Code default model. Available models: haiku, sonnet, anthropic/claude-haiku-4.5, anthropic/claude-sonnet-4.6.'
+    );
+  });
+
+  it("suggests near matches for an explicit model typo", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveModel({
+        value: "claude-sonnet",
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        choices: catalogChoices,
+        aliases: catalogAliases,
+        strictChoices: true,
+        label: "Claude Code default model"
+      })
+    ).rejects.toThrow(
+      'Unknown model "claude-sonnet" for Claude Code default model. Did you mean: sonnet, anthropic/claude-sonnet-4.6?'
+    );
+  });
+
+  it("resolves an explicit alias to the full catalog id and echoes it", async () => {
+    const resolvers = createResolvers();
+    const onResolve = vi.fn();
+
+    const result = await resolvers.resolveModel({
+      value: "sonnet",
+      defaultValue: "anthropic/claude-sonnet-4.6",
+      choices: catalogChoices,
+      aliases: catalogAliases,
+      strictChoices: true,
+      label: "Claude Code default model",
+      onResolve
+    });
+
+    expect(result).toBe("anthropic/claude-sonnet-4.6");
+    expect(onResolve).toHaveBeenCalledWith(
+      "Claude Code default model",
+      "anthropic/claude-sonnet-4.6"
+    );
+  });
+
+  it("accepts an explicit model that is present in the catalog", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveModel({
+        value: "anthropic/claude-haiku-4.5",
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        choices: catalogChoices,
+        aliases: catalogAliases,
+        strictChoices: true,
+        label: "Claude Code default model"
+      })
+    ).resolves.toBe("anthropic/claude-haiku-4.5");
+  });
+
+  it("keeps explicit models unchecked when the choice list is not authoritative", async () => {
+    const resolvers = createResolvers();
+
+    await expect(
+      resolvers.resolveModel({
+        value: "some-live-catalog-model",
+        defaultValue: "anthropic/claude-sonnet-4.6",
+        choices: catalogChoices,
+        label: "Dynamic model"
+      })
+    ).resolves.toBe("some-live-catalog-model");
   });
 });
 

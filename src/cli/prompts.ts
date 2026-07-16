@@ -24,6 +24,10 @@ export interface ModelPromptInput {
   label: string;
   defaultValue: string;
   choices?: ModelChoices;
+  /** Short names accepted on the command line, mapped to their catalog id. */
+  aliases?: Readonly<Record<string, string>>;
+  /** Set when `choices` is the complete set the agent accepts, so unknown ids are rejected. */
+  strictChoices?: boolean;
 }
 
 export interface ResolvedModelPromptInput {

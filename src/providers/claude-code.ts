@@ -65,7 +65,9 @@ export const claudeCodeService = createProvider<
       choices: Object.values(CLAUDE_CODE_VARIANTS).map((id) => ({
         title: id,
         value: id
-      }))
+      })),
+      aliases: CLAUDE_CODE_VARIANTS,
+      strictChoices: true
     }
   },
   postConfigureMessages: [

@@ -22,6 +22,17 @@ function createContainer(fs: FileSystem) {
   });
 }
 
+function createLoggingContainer(fs: FileSystem, lines: string[]) {
+  return createCliContainer({
+    fs,
+    prompts: vi.fn().mockResolvedValue({}),
+    env: { cwd, homeDir },
+    logger: (line) => {
+      lines.push(line);
+    }
+  });
+}
+
 describe("createConfigurePayload — ActiveProvider fields", () => {
   let fs: FileSystem;
 
@@ -136,6 +147,34 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
     expect((payload.provider as Record<string, unknown>).baseUrl).toBe(
       "https://proxy.example.test/anthropic"
     );
+  });
+
+  it("surfaces the effective base URLs so a dry run shows the requested override", async () => {
+    const lines: string[] = [];
+    const container = createLoggingContainer(fs, lines);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+    const dryRunFlags: CommandFlags = { dryRun: true, assumeYes: true, verbose: false };
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, dryRunFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    await createConfigurePayload({
+      container,
+      flags: dryRunFlags,
+      options: { baseUrl: "https://example.invalid" },
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    });
+
+    const output = lines.join("\n");
+    expect(output).toContain("https://example.invalid");
+    expect(output).not.toContain("https://api.poe.com");
   });
 
   it("omits provider auth resolution for providerless services", async () => {
@@ -442,6 +481,82 @@ describe("createConfigurePayload — model choices", () => {
     })) as Record<string, unknown>;
 
     expect(payload.model).toBe("fallback-model");
+  });
+
+  it("resolves a claude model alias to its full catalog id", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: { model: "sonnet" },
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    })) as Record<string, unknown>;
+
+    expect(payload.model).toBe("anthropic/claude-sonnet-4.6");
+  });
+
+  it("rejects a claude model that is absent from the declared catalog", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    await expect(
+      createConfigurePayload({
+        container,
+        flags: defaultFlags,
+        options: { model: "does-not-exist-xyz" },
+        context,
+        adapter,
+        logger: resources.logger,
+        providerId: "poe"
+      })
+    ).rejects.toThrow(/Unknown model "does-not-exist-xyz"/);
+  });
+
+  it("keeps explicit models unchecked for dynamic catalog services", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    const choicesResolver = vi
+      .fn()
+      .mockResolvedValue([{ title: "Resolved A", value: "resolved-a" }]);
+
+    const adapter = createProviderStub({
+      name: "opencode",
+      label: "Dynamic Model Service",
+      configurePrompts: {
+        model: {
+          label: "Dynamic model",
+          defaultValue: "resolved-a",
+          choices: choicesResolver
+        }
+      }
+    });
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: { model: "model-only-on-the-server" },
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    })) as Record<string, unknown>;
+
+    expect(payload.model).toBe("model-only-on-the-server");
   });
 
   it("calls an async model choices resolver once per configure run", async () => {

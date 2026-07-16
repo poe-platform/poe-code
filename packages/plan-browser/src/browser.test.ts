@@ -157,51 +157,34 @@ describe("plan browser", () => {
     expect(createCtx.refresh).toHaveBeenCalledOnce();
   });
 
-  it("previews the first plan for assumeYes without launching the explorer", async () => {
+  it("never dumps a plan body when stdin is not a TTY and lists candidates instead", async () => {
     const fs = createMemFs({
-      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
-    });
-    const runExplorerImpl = vi.fn(async () => null);
-    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-
-    await runPlanBrowser({
-      cwd,
-      homeDir,
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveProjectConfigPath(cwd),
-      fs,
-      variables: {},
-      assumeYes: true,
-      runExplorerImpl
-    });
-
-    expect(runExplorerImpl).not.toHaveBeenCalled();
-    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
-  });
-
-  it("previews the first plan when stdin is not a TTY without launching the explorer", async () => {
-    const fs = createMemFs({
-      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
+      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body",
+      "/repo/docs/plans/second.md": "# Second\n\nOther body"
     });
     const runExplorerImpl = vi.fn(async () => null);
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     setStdinTTY(false);
 
-    await runPlanBrowser({
-      cwd,
-      homeDir,
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveProjectConfigPath(cwd),
-      fs,
-      variables: {},
-      runExplorerImpl
-    });
+    await expect(
+      runPlanBrowser({
+        cwd,
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd),
+        fs,
+        variables: {},
+        runExplorerImpl
+      })
+    ).rejects.toThrow(/docs\/plans\/feature\.md[\s\S]*docs\/plans\/second\.md/);
 
     expect(runExplorerImpl).not.toHaveBeenCalled();
-    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).not.toContain(
+      "Preview body"
+    );
   });
 
-  it("previews the first plan when stdin TTY status is undefined", async () => {
+  it("never dumps a plan body when stdin TTY status is undefined", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
     });
@@ -212,24 +195,29 @@ describe("plan browser", () => {
       value: undefined
     });
 
-    await runPlanBrowser({
-      cwd,
-      homeDir,
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveProjectConfigPath(cwd),
-      fs,
-      variables: {},
-      runExplorerImpl
-    });
+    await expect(
+      runPlanBrowser({
+        cwd,
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd),
+        fs,
+        variables: {},
+        runExplorerImpl
+      })
+    ).rejects.toThrow(/docs\/plans\/feature\.md/);
 
     expect(runExplorerImpl).not.toHaveBeenCalled();
-    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).not.toContain(
+      "Preview body"
+    );
   });
 
   it("writes no-plans output without launching the explorer", async () => {
     const fs = createMemFs();
     const runExplorerImpl = vi.fn(async () => null);
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    setStdinTTY(true);
 
     await runPlanBrowser({
       cwd,

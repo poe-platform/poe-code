@@ -350,18 +350,28 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "plan",
-      "view",
-      "--kind",
-      "pipeline",
-      "--output",
-      "json"
-    ]);
+    selectMock.mockResolvedValue("/repo/docs/plans/plan-a.md");
 
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          "view",
+          "--kind",
+          "pipeline",
+          "--output",
+          "json"
+        ]),
+      true
+    );
+
+    expect(selectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [expect.objectContaining({ value: "/repo/docs/plans/plan-a.md" })]
+      })
+    );
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(output)).toEqual(
       expect.objectContaining({
@@ -373,10 +383,11 @@ describe("plan command", () => {
     );
   });
 
-  it("rejects plan selection in non-interactive mode", async () => {
+  it("rejects plan selection in non-interactive mode and lists candidates", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-a.md": "# Plan"
+        "/repo/docs/plans/plan-a.md": "# Plan",
+        "/repo/docs/plans/plan-b.md": "# Plan B"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -387,14 +398,56 @@ describe("plan command", () => {
 
     await expect(
       withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "view"]), false)
-    ).rejects.toThrow(
-      "Plan selection requires a path or --yes when running without an interactive TTY."
-    );
+    ).rejects.toThrow(/docs\/plans\/plan-a\.md[\s\S]*docs\/plans\/plan-b\.md/);
 
     expect(selectMock).not.toHaveBeenCalled();
   });
 
-  it("archives the first matching plan with --yes", async () => {
+  it("refuses to archive without an explicit path even with --yes", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan",
+      "/repo/docs/plans/plan-b.md": "# Plan B"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { EDITOR: "cat" } },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "plan", "archive"])).rejects.toThrow(
+      /docs\/plans\/plan-a\.md[\s\S]*docs\/plans\/plan-b\.md/
+    );
+
+    expect(writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")).not.toContain("Archived");
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
+  });
+
+  it("refuses to delete without an explicit path even with --yes", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "plan", "delete"])).rejects.toThrow(
+      /docs\/plans\/plan-a\.md/
+    );
+
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("archives the named plan with --yes without confirming", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
       "/repo/docs/plans/plan-a.md": "# Plan"
@@ -408,7 +461,7 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "archive"]);
+    await program.parseAsync(["node", "cli", "--yes", "plan", "archive", "docs/plans/plan-a.md"]);
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toContain("Archived");

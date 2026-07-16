@@ -986,7 +986,17 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "--agent", "codex"]);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex",
+      "--plan",
+      "docs/plans/plan.md"
+    ]);
 
     expect(
       logs.some((message) => message.includes("Task task-1 done in 3s (tokens: 1234 in / 567 out)"))
@@ -1032,7 +1042,17 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "--agent", "codex"]);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex",
+      "--plan",
+      "docs/plans/plan.md"
+    ]);
 
     expect(process.exitCode).toBe(1);
     expect(

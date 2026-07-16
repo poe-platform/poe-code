@@ -1074,18 +1074,25 @@ describe("resolvePlanPath", () => {
   });
 
   it("ignores config planPath when discovering plans", async () => {
+    const selectPlan = vi.fn().mockResolvedValue("docs/plans/plan-demo.md");
+
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       planDirectory: "docs/plans",
-      assumeYes: true,
       fs: createFs({
         "/repo/.poe-code/pipeline/config.yaml": "planPath: local-plan.yaml\n",
         "/repo/local-plan.yaml": "tasks: []\n",
         "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
-      })
+      }),
+      selectPlan
     });
 
+    expect(selectPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [{ label: "docs/plans/plan-demo.md (0/0)", value: "docs/plans/plan-demo.md" }]
+      })
+    );
     expect(result).toBe("docs/plans/plan-demo.md");
   });
 
@@ -1126,31 +1133,31 @@ describe("resolvePlanPath", () => {
     expect(result).toBeNull();
   });
 
-  it("auto-selects the only discovered plan with --yes", async () => {
-    const result = await resolvePlanPath({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      assumeYes: true,
-      fs: createFs({
-        "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
+  it("requires an explicit --plan with --yes even when a single plan is discovered", async () => {
+    await expect(
+      resolvePlanPath({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        assumeYes: true,
+        fs: createFs({
+          "/repo/docs/plans/plan-demo.md": PIPELINE_MD_EMPTY
+        })
       })
-    });
-
-    expect(result).toBe("docs/plans/plan-demo.md");
+    ).rejects.toThrow(/--plan[\s\S]*docs\/plans\/plan-demo\.md/);
   });
 
-  it("selects the first plan alphabetically with --yes", async () => {
-    const result = await resolvePlanPath({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      assumeYes: true,
-      fs: createFs({
-        "/repo/docs/plans/plan-beta.md": PIPELINE_MD_EMPTY,
-        "/repo/docs/plans/plan-alpha.md": PIPELINE_MD_EMPTY
+  it("lists every candidate instead of autopicking the first plan with --yes", async () => {
+    await expect(
+      resolvePlanPath({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        assumeYes: true,
+        fs: createFs({
+          "/repo/docs/plans/plan-beta.md": PIPELINE_MD_EMPTY,
+          "/repo/docs/plans/plan-alpha.md": PIPELINE_MD_EMPTY
+        })
       })
-    });
-
-    expect(result).toBe("docs/plans/plan-alpha.md");
+    ).rejects.toThrow(/docs\/plans\/plan-alpha\.md[\s\S]*docs\/plans\/plan-beta\.md/);
   });
 
   it("prompts when multiple plans exist", async () => {
@@ -1258,29 +1265,31 @@ describe("resolvePlanPath", () => {
     expect(result).toBe("custom-plans/plan-custom.md");
   });
 
-  it("auto-selects from custom planDirectory with --yes", async () => {
-    const result = await resolvePlanPath({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      planDirectory: "/abs/plans",
-      assumeYes: true,
-      fs: createFs({
-        "/abs/plans/plan-one.md": PIPELINE_MD_EMPTY
+  it("lists candidates from a custom planDirectory instead of autopicking with --yes", async () => {
+    await expect(
+      resolvePlanPath({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        planDirectory: "/abs/plans",
+        assumeYes: true,
+        fs: createFs({
+          "/abs/plans/plan-one.md": PIPELINE_MD_EMPTY
+        })
       })
-    });
-
-    expect(result).toBe("/abs/plans/plan-one.md");
+    ).rejects.toThrow(/\/abs\/plans\/plan-one\.md/);
   });
 
   it("resolves tilde planDirectory paths", async () => {
+    const selectPlan = vi.fn().mockResolvedValue("~/my-plans/plan-tilde.md");
+
     const result = await resolvePlanPath({
       cwd: "/repo",
       homeDir: "/home/test",
       planDirectory: "~/my-plans",
-      assumeYes: true,
       fs: createFs({
         "/home/test/my-plans/plan-tilde.md": PIPELINE_MD_EMPTY
-      })
+      }),
+      selectPlan
     });
 
     expect(result).toBe("~/my-plans/plan-tilde.md");
@@ -1360,6 +1369,24 @@ describe("resolvePlanPaths", () => {
       })
     );
     expect(result).toEqual(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
+  });
+
+  it("refuses to autopick discovered plans with --yes", async () => {
+    const selectPlans = vi.fn();
+
+    await expect(
+      resolvePlanPaths({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        assumeYes: true,
+        fs: createFs({
+          "/repo/docs/plans/plan-beta.md": PIPELINE_MD_EMPTY,
+          "/repo/docs/plans/plan-alpha.md": PIPELINE_MD_EMPTY
+        }),
+        selectPlans
+      })
+    ).rejects.toThrow(/--plan/);
+    expect(selectPlans).not.toHaveBeenCalled();
   });
 
   it("rejects a discovered plan with an empty step status map", async () => {

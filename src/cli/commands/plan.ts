@@ -137,7 +137,6 @@ function createPlanBrowserOptions(
   container: CliContainer,
   options: {
     kind: PlanKind | undefined;
-    assumeYes: boolean;
     onCreatePlan?: () => Promise<void>;
   }
 ): Parameters<typeof runPlanBrowser>[0] {
@@ -149,7 +148,6 @@ function createPlanBrowserOptions(
     fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
     kind: options.kind,
     variables: container.env.variables,
-    assumeYes: options.assumeYes,
     ...(options.onCreatePlan ? { onCreatePlan: options.onCreatePlan } : {})
   };
 }
@@ -295,6 +293,30 @@ async function discoverPlans(
   });
 }
 
+async function requirePlanBrowsingPrompt(options: {
+  container: CliContainer;
+  kind: PlanKind | undefined;
+  assumeYes: boolean;
+}): Promise<void> {
+  if (!options.assumeYes && process.stdin.isTTY === true) {
+    return;
+  }
+  const plans = await discoverPlans(options.container, options.kind);
+  if (plans.length === 0) {
+    return;
+  }
+  throw new ValidationError(formatPlanPathRequired(plans));
+}
+
+function formatPlanPathRequired(plans: PlanEntry[]): string {
+  return [
+    "Name the plan you want: pass an explicit plan path. --yes and non-interactive runs never pick one for you.",
+    "",
+    "Plans:",
+    ...plans.map((plan) => `- ${plan.path}`)
+  ].join("\n");
+}
+
 async function resolveSelectedPlan(options: {
   container: CliContainer;
   plans: PlanEntry[];
@@ -326,13 +348,9 @@ async function resolveSelectedPlan(options: {
     throw new ValidationError("No plans found.");
   }
 
-  if (options.assumeYes) {
-    return options.plans[0]!;
+  if (options.assumeYes || process.stdin.isTTY !== true) {
+    throw new ValidationError(formatPlanPathRequired(options.plans));
   }
-
-  requireInteractiveStdin(
-    "Plan selection requires a path or --yes when running without an interactive TTY."
-  );
 
   const selected = await select({
     message: options.promptMessage,
@@ -556,11 +574,12 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         );
       }
 
+      await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
+
       intro("plan");
       await runPlanBrowser(
         createPlanBrowserOptions(container, {
           kind,
-          assumeYes: false,
           onCreatePlan: () => runPlanSessionWithPrompt(container, opts.agent, flags)
         })
       );
@@ -576,13 +595,10 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .action(async function (this: Command) {
       const opts = resolvePlanCommandOptions(this);
       const flags = resolveCommandFlags(program);
+      const kind = resolveKind(opts.kind);
+      await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
       intro("plan browser");
-      await runPlanBrowser(
-        createPlanBrowserOptions(container, {
-          kind: resolveKind(opts.kind),
-          assumeYes: flags.assumeYes
-        })
-      );
+      await runPlanBrowser(createPlanBrowserOptions(container, { kind }));
     });
 
   plan

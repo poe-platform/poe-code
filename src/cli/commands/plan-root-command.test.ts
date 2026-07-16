@@ -42,8 +42,8 @@ vi.mock("../../sdk/spawn.js", () => ({
 const cwd = "/repo";
 const homeDir = "/home/test";
 
-function createMemFs(): FileSystem {
-  const volume = Volume.fromJSON({}, "/");
+function createMemFs(files: Record<string, string> = {}): FileSystem {
+  const volume = Volume.fromJSON(files, "/");
   volume.mkdirSync(cwd, { recursive: true });
   volume.mkdirSync(homeDir, { recursive: true });
   return createFsFromVolume(volume).promises as unknown as FileSystem;
@@ -167,12 +167,11 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan"]);
+    await withMockedStdin(() => program.parseAsync(["node", "cli", "plan"]), true);
 
     expect(runPlanBrowserMock).toHaveBeenCalledTimes(1);
     expect(runPlanBrowserMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        assumeYes: false,
         onCreatePlan: expect.any(Function)
       })
     );
@@ -205,7 +204,7 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan"]);
+    await withMockedStdin(() => program.parseAsync(["node", "cli", "plan"]), true);
 
     const browserOptions = runPlanBrowserMock.mock.calls[0]![0];
     await expect(withMockedStdin(() => browserOptions.onCreatePlan!(), false)).rejects.toThrow(
@@ -254,9 +253,12 @@ describe("plan root and browse commands", () => {
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });
 
-  it("passes assumeYes to the browser for --yes", async () => {
+  it("refuses to browse with --yes and lists the candidate plans", async () => {
     const container = createCliContainer({
-      fs: createMemFs(),
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": "# Plan A",
+        "/repo/docs/plans/plan-b.md": "# Plan B"
+      }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
       logger: () => {}
@@ -264,13 +266,45 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "browse"]);
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "--yes", "plan", "browse"]), true)
+    ).rejects.toThrow(/docs\/plans\/plan-a\.md[\s\S]*docs\/plans\/plan-b\.md/);
 
-    expect(runPlanBrowserMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assumeYes: true
-      })
-    );
+    expect(runPlanBrowserMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses to browse without an interactive TTY and lists the candidate plans", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan A" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "browse"]), false)
+    ).rejects.toThrow(/docs\/plans\/plan-a\.md/);
+
+    expect(runPlanBrowserMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses the root plan command without a question when stdin is not a TTY", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan A" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan"]), false)
+    ).rejects.toThrow(/docs\/plans\/plan-a\.md/);
+
+    expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });
 
   it("forwards --kind to the browser", async () => {
@@ -283,7 +317,10 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "browse", "--kind", "ralph"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "browse", "--kind", "ralph"]),
+      true
+    );
 
     expect(runPlanBrowserMock).toHaveBeenCalledWith(expect.objectContaining({ kind: "ralph" }));
   });
@@ -298,7 +335,10 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "browse", "--kind", "superintendent"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "browse", "--kind", "superintendent"]),
+      true
+    );
 
     expect(runPlanBrowserMock).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "superintendent" })

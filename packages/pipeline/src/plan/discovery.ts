@@ -186,7 +186,16 @@ export async function resolvePlanPaths(options: {
 
   if (candidates.length >= 1) {
     if (options.assumeYes) {
-      return [candidates[0]!.path];
+      throw new Error(
+        [
+          "Provide --plan <path> to an existing plan file: --yes never picks a plan for you.",
+          "",
+          "Plans:",
+          ...candidates.map(
+            (candidate) => `- ${candidate.path} (${candidate.done}/${candidate.total})`
+          )
+        ].join("\n")
+      );
     }
     if (options.selectPlans) {
       return options.selectPlans({

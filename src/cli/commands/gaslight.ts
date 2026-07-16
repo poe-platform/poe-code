@@ -140,12 +140,16 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
       )}`
     );
   }
-  if (assumeYes) {
-    return [plans[0]!];
+  if (assumeYes || process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      [
+        "Gaslight needs an explicit plan path or --plans: --yes and non-interactive runs never pick a plan for you.",
+        "",
+        "Plans:",
+        ...plans.map((plan) => `- ${plan}`)
+      ].join("\n")
+    );
   }
-  requireInteractiveStdin(
-    "Gaslight plan selection requires a plan path, --plans, or --yes when running without an interactive TTY."
-  );
   const selected = await multiselect({
     message: "Select Gaslight plans to run:",
     options: plans.map((plan) => ({ label: plan, value: plan })),

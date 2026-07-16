@@ -73,6 +73,19 @@ function createContainer(
   });
 }
 
+function withInteractiveStdin<T>(run: () => Promise<T>): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
+}
+
 describe("gaslight command", () => {
   beforeEach(() => {
     ingestGaslightMock.mockReset().mockResolvedValue({
@@ -434,7 +447,7 @@ describe("gaslight command", () => {
       })
     );
 
-    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "docs/plans/a.md"]);
 
     expect(prompts).not.toHaveBeenCalled();
     expect(runGaslightMock).toHaveBeenCalledWith(
@@ -464,12 +477,12 @@ describe("gaslight command", () => {
     );
   });
 
-  it("accepts defaults without prompts with --yes", async () => {
+  it("accepts agent and mode defaults without prompts with --yes and a named plan", async () => {
     const prompts = vi.fn();
     const program = createProgram();
     registerGaslightCommand(program, createContainer(prompts));
 
-    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "docs/plans/a.md"]);
 
     expect(prompts).not.toHaveBeenCalled();
     expect(multiselectMock).not.toHaveBeenCalled();
@@ -482,6 +495,18 @@ describe("gaslight command", () => {
       })
     );
     expect(runGaslightMock.mock.calls[0]?.[0]).not.toHaveProperty("model");
+  });
+
+  it("refuses to autopick a plan with --yes and lists the discovered plans", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "gaslight"])).rejects.toThrow(
+      /docs\/plans\/a\.md[\s\S]*docs\/plans\/b\.md/
+    );
+
+    expect(multiselectMock).not.toHaveBeenCalled();
+    expect(runGaslightMock).not.toHaveBeenCalled();
   });
 
   it("reports configured and resolved plan directories when the default directory is missing", async () => {
@@ -554,8 +579,18 @@ describe("gaslight command", () => {
       })
     );
 
-    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+    multiselectMock.mockResolvedValue(["~/.poe-code/docs/plans/global.md"]);
+    await withInteractiveStdin(() =>
+      program.parseAsync(["node", "cli", "gaslight", "--agent", "claude-code"])
+    );
 
+    expect(multiselectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          { label: "~/.poe-code/docs/plans/global.md", value: "~/.poe-code/docs/plans/global.md" }
+        ]
+      })
+    );
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({
         planPaths: ["~/.poe-code/docs/plans/global.md"],
@@ -589,8 +624,16 @@ describe("gaslight command", () => {
       })
     );
 
-    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+    multiselectMock.mockResolvedValue(["project/plans/project.md"]);
+    await withInteractiveStdin(() =>
+      program.parseAsync(["node", "cli", "gaslight", "--agent", "claude-code"])
+    );
 
+    expect(multiselectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [{ label: "project/plans/project.md", value: "project/plans/project.md" }]
+      })
+    );
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({
         planPaths: ["project/plans/project.md"],

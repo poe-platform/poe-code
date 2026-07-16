@@ -1,12 +1,7 @@
-import {
-  renderMarkdown,
-  runExplorer,
-  type ExplorerConfig
-} from "toolcraft-design";
+import { runExplorer, type ExplorerConfig } from "toolcraft-design";
 import { discoverAllPlans } from "./discovery.js";
 import { buildPlanExplorerConfig } from "./explorer-config.js";
-import { loadPlanPreviewMarkdown } from "./format.js";
-import type { ActionFs, DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
+import type { ActionFs, DiscoveryFs, PlanKind } from "./types.js";
 
 type RunExplorerImpl = (config: ExplorerConfig<void>) => Promise<void | null>;
 
@@ -18,17 +13,9 @@ export async function runPlanBrowser(options: {
   fs: DiscoveryFs & Partial<ActionFs>;
   kind?: PlanKind;
   variables?: Record<string, string | undefined>;
-  assumeYes?: boolean;
   onCreatePlan?: () => Promise<void>;
   runExplorerImpl?: RunExplorerImpl;
 }): Promise<void> {
-  const renderPlanPreview = async (
-    entry: Pick<PlanEntry, "absolutePath" | "format" | "kind" | "title">
-  ) => {
-    const markdown = await loadPlanPreviewMarkdown(entry, options.fs);
-    process.stdout.write(`${renderMarkdown(markdown).trimEnd()}\n`);
-  };
-
   const discover = () => discoverAllPlans({
     cwd: options.cwd,
     homeDir: options.homeDir,
@@ -46,9 +33,15 @@ export async function runPlanBrowser(options: {
     return;
   }
 
-  if (options.assumeYes || process.stdin.isTTY !== true) {
-    await renderPlanPreview(plans[0]!);
-    return;
+  if (process.stdin.isTTY !== true) {
+    throw new Error(
+      [
+        "Plan browsing needs an interactive terminal. Name the plan you want with `poe-code plan view <path>`.",
+        "",
+        "Plans:",
+        ...plans.map((plan) => `- ${plan.path}`)
+      ].join("\n")
+    );
   }
 
   const config = buildPlanExplorerConfig({

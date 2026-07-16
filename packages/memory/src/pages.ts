@@ -12,7 +12,18 @@ import {
 import type { MemoryPage, MemoryRoot } from "./types.js";
 
 export async function listPages(root: MemoryRoot): Promise<MemoryPage[]> {
-  const relPaths = await collectMarkdownRelPaths(root, MEMORY_PAGES_DIR_RELPATH);
+  return await readMarkdownFilesUnder(root, MEMORY_PAGES_DIR_RELPATH);
+}
+
+export async function listMemoryFiles(root: MemoryRoot): Promise<MemoryPage[]> {
+  return await readMarkdownFilesUnder(root, "");
+}
+
+async function readMarkdownFilesUnder(
+  root: MemoryRoot,
+  startRelPath: string
+): Promise<MemoryPage[]> {
+  const relPaths = await collectMarkdownRelPaths(root, startRelPath);
   const pages = await Promise.all(relPaths.map(async (relPath) => readPage(root, relPath)));
   return pages.sort((left, right) => left.relPath.localeCompare(right.relPath));
 }

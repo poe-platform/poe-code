@@ -7,6 +7,7 @@ describe("memory index exports", () => {
     expect(entrypoint.resolveMemoryRoot("/repo")).toBe("/repo/.poe-code/memory");
     expect(entrypoint.initMemory).toBeTypeOf("function");
     expect(entrypoint.listPages).toBeTypeOf("function");
+    expect(entrypoint.listMemoryFiles).toBeTypeOf("function");
     expect(entrypoint.readPage).toBeTypeOf("function");
     expect(entrypoint.searchMemory).toBeTypeOf("function");
     expect(entrypoint.statusOf).toBeTypeOf("function");

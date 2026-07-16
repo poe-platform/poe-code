@@ -29,6 +29,7 @@ describe("openMemory", () => {
 
     expect(handle.root).toBe("/repo/.poe-code/memory");
     expect(handle.listPages).toBeTypeOf("function");
+    expect(handle.listMemoryFiles).toBeTypeOf("function");
     expect(handle.readPage).toBeTypeOf("function");
     expect(handle.searchMemory).toBeTypeOf("function");
     expect(handle.statusOf).toBeTypeOf("function");
@@ -61,6 +62,7 @@ describe("openMemory", () => {
   it("binds the root into the underlying free functions", async () => {
     const pages = {
       listPages: vi.fn().mockResolvedValue([]),
+      listMemoryFiles: vi.fn().mockResolvedValue([]),
       readPage: vi.fn().mockResolvedValue({
         relPath: "pages/a.md",
         frontmatter: {},
@@ -145,6 +147,7 @@ describe("openMemory", () => {
     const handle = openMemory({ root: "/repo/.poe-code/memory" });
 
     await handle.listPages();
+    await handle.listMemoryFiles();
     await handle.readPage("pages/a.md");
     await handle.searchMemory("alpha");
     await handle.statusOf();
@@ -161,6 +164,7 @@ describe("openMemory", () => {
     await handle.auditClaims({ repoRoot: "/repo", rejectUntagged: true });
 
     expect(pages.listPages).toHaveBeenCalledWith("/repo/.poe-code/memory");
+    expect(pages.listMemoryFiles).toHaveBeenCalledWith("/repo/.poe-code/memory");
     expect(pages.readPage).toHaveBeenCalledWith("/repo/.poe-code/memory", "pages/a.md");
     expect(search.searchMemory).toHaveBeenCalledWith("/repo/.poe-code/memory", "alpha");
     expect(status.statusOf).toHaveBeenCalledWith("/repo/.poe-code/memory");

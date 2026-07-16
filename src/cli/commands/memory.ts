@@ -37,7 +37,7 @@ async function resolveRoot(container: CliContainer): Promise<string> {
   });
 }
 
-function resolvePageRelPath(input: string): string {
+function resolvePageRelPathCandidates(input: string): [string, ...string[]] {
   const trimmed = input.trim();
   if (trimmed.length === 0) {
     throw new ValidationError("Missing page path.");
@@ -45,12 +45,22 @@ function resolvePageRelPath(input: string): string {
 
   const normalized = trimmed.replaceAll("\\", "/");
   const withExt = path.posix.extname(normalized).length === 0 ? `${normalized}.md` : normalized;
-  const relPath = path.posix.normalize(withExt.startsWith("pages/") ? withExt : `pages/${withExt}`);
-  if (!relPath.startsWith("pages/") || relPath === "pages/.." || relPath.includes("/../")) {
-    throw new ValidationError("Page path must remain under memory pages/.");
+  const relPath = path.posix.normalize(withExt);
+  if (
+    path.posix.isAbsolute(relPath) ||
+    relPath === ".." ||
+    relPath.startsWith("../") ||
+    relPath === "."
+  ) {
+    throw new ValidationError("Page path must remain under the memory root.");
   }
 
-  return relPath;
+  return relPath.startsWith("pages/") ? [relPath] : [relPath, `pages/${relPath}`];
+}
+
+function resolvePageRelPath(input: string): string {
+  const [rootRelPath, pagesRelPath] = resolvePageRelPathCandidates(input);
+  return pagesRelPath ?? rootRelPath;
 }
 
 function displayPageRelPath(relPath: string): string {
@@ -210,14 +220,14 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
 
   memory
     .command("ls")
-    .description("List every page with a one-line description.")
+    .description("List every memory file with a one-line description.")
     .action(async () => {
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
       await assertInitialized(mem);
 
-      const pages = await mem.listPages();
+      const pages = await mem.listMemoryFiles();
       if (pages.length === 0) {
         process.stdout.write("No memory pages yet.\n");
         return;
@@ -234,26 +244,29 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
   memory
     .command("show")
     .description("Print a page to stdout.")
-    .argument("<path>", "Page path (relative to memory pages/)")
+    .argument("<path>", "Page path (relative to the memory root, or to memory pages/)")
     .action(async (pagePath: string) => {
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
       await assertInitialized(mem);
 
-      const relPath = resolvePageRelPath(pagePath);
-      const absPath = path.join(mem.root, relPath);
+      const candidates = resolvePageRelPathCandidates(pagePath);
 
-      try {
-        await mem.readPage(relPath);
-        const content = await fs.readFile(absPath, "utf8");
-        process.stdout.write(content.endsWith("\n") ? content : `${content}\n`);
-      } catch (error) {
-        if (hasOwnErrorCode(error, "ENOENT")) {
-          throw new ValidationError(`Page not found: ${displayPageRelPath(relPath)}`);
+      for (const relPath of candidates) {
+        try {
+          await mem.readPage(relPath);
+          const content = await fs.readFile(path.join(mem.root, relPath), "utf8");
+          process.stdout.write(content.endsWith("\n") ? content : `${content}\n`);
+          return;
+        } catch (error) {
+          if (!hasOwnErrorCode(error, "ENOENT")) {
+            throw error;
+          }
         }
-        throw error;
       }
+
+      throw new ValidationError(`Page not found: ${candidates.join(" or ")}`);
     });
 
   memory

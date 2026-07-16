@@ -204,6 +204,8 @@ describe("memory command", () => {
 
     await program.parseAsync(["node", "cli", "--yes", "memory", "ls"]);
 
+    expect(writeSpy).toHaveBeenCalledWith("INDEX.md\n");
+    expect(writeSpy).toHaveBeenCalledWith("LOG.md\n");
     expect(writeSpy).toHaveBeenCalledWith("one.md — First page\n");
     expect(writeSpy).toHaveBeenCalledWith("two.md\n");
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
@@ -232,6 +234,41 @@ describe("memory command", () => {
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
     writeSpy.mockRestore();
+  });
+
+  it("shows a file stored at the memory root", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages`]: null
+    });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "show", "INDEX"]);
+
+    expect(writeSpy).toHaveBeenCalledWith("# Memory index\n");
+    writeSpy.mockRestore();
+  });
+
+  it("reports every resolved candidate when a page is not found", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages`]: null
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "memory", "show", "missing"])
+    ).rejects.toThrow("Page not found: missing.md or pages/missing.md");
   });
 
   it("does not treat inherited read codes as missing memory pages", async () => {

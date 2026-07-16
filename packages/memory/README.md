@@ -45,8 +45,8 @@ Configure under `.poe-code/config.json`:
 ## CLI
 
 - `poe-code memory init`: create `.poe-code/memory/` with `INDEX.md`, `LOG.md`, and `pages/`
-- `poe-code memory ls`: list pages and descriptions
-- `poe-code memory show <path>`: print one page
+- `poe-code memory ls`: list memory files (root `INDEX.md`, `LOG.md`, and `pages/**`) with descriptions
+- `poe-code memory show <path>`: print one memory file, resolved against the memory root first and `pages/` as a fallback
 - `poe-code memory edit <path>`: open a page in `$EDITOR`
 - `poe-code memory write <path> --reason <text>`: replace a page from stdin
 - `poe-code memory append <path>`: append stdin to a page
@@ -130,6 +130,7 @@ import {
   openMemory,
   initMemory,
   listPages,
+  listMemoryFiles,
   readPage,
   searchMemory,
   writePage,
@@ -210,6 +211,7 @@ const root: MemoryRoot = resolveMemoryRoot(process.cwd());
 await initMemory(root);
 
 const pages = await listPages(root);
+const memoryFiles = await listMemoryFiles(root);
 const page = await readPage(root, "pages/architecture.md");
 const hits: SearchHit[] = await searchMemory(root, "superintendent phases");
 const stats = await statusOf(root);

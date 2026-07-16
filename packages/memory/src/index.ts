@@ -32,7 +32,7 @@ export {
   type ResolveConfiguredMemoryRootOptions
 } from "./resolve-root.js";
 export { initMemory } from "./init.js";
-export { listPages, readPage } from "./pages.js";
+export { listMemoryFiles, listPages, readPage } from "./pages.js";
 export { searchMemory } from "./search.js";
 export { statusOf } from "./status.js";
 export { editPage } from "./edit.js";

@@ -4,7 +4,7 @@ import { auditClaims as auditClaimsFree } from "./audit.js";
 import type { ExplainOptions } from "./explain.js";
 import { explainPage as explainPageFree } from "./explain.js";
 import { ingest as ingestFree } from "./ingest.js";
-import { listPages, readPage } from "./pages.js";
+import { listMemoryFiles, listPages, readPage } from "./pages.js";
 import { queryMemory } from "./query.js";
 import { searchMemory } from "./search.js";
 import { statusOf } from "./status.js";
@@ -42,6 +42,7 @@ export interface MemoryHandle {
   readonly root: MemoryRoot;
 
   listPages(): Promise<MemoryPage[]>;
+  listMemoryFiles(): Promise<MemoryPage[]>;
   readPage(relPath: string): Promise<MemoryPage>;
   searchMemory(query: string): Promise<SearchHit[]>;
   statusOf(): Promise<StatusInfo>;
@@ -76,6 +77,7 @@ export function openMemory(opts: OpenMemoryOptions): MemoryHandle {
   return {
     root,
     listPages: async () => await listPages(root),
+    listMemoryFiles: async () => await listMemoryFiles(root),
     readPage: async (relPath) => await readPage(root, relPath),
     searchMemory: async (query) => await searchMemory(root, query),
     statusOf: async () => await statusOf(root),

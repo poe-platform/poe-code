@@ -6,7 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-const { listPages, readPage } = await import("./pages.js");
+const { listMemoryFiles, listPages, readPage } = await import("./pages.js");
 
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -140,6 +140,37 @@ describe("listPages", () => {
     await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
       await expect(listPages("/repo/.poe-code/memory")).rejects.toThrow("page scan denied");
     });
+  });
+});
+
+describe("listMemoryFiles", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  it("lists the memory root INDEX.md and LOG.md alongside pages", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/LOG.md": "",
+      "/repo/.poe-code/memory/pages/one.md": "# One\n"
+    });
+
+    await expect(listMemoryFiles("/repo/.poe-code/memory")).resolves.toMatchObject([
+      { relPath: "INDEX.md", body: "# Memory index\n" },
+      { relPath: "LOG.md", body: "" },
+      { relPath: "pages/one.md", body: "# One\n" }
+    ]);
+  });
+
+  it("skips ingest cache entries at the memory root", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/.cache/ingest/entry.md": "# Cached\n"
+    });
+
+    await expect(listMemoryFiles("/repo/.poe-code/memory")).resolves.toMatchObject([
+      { relPath: "INDEX.md" }
+    ]);
   });
 });
 

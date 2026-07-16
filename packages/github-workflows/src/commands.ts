@@ -277,8 +277,7 @@ const installCommand = defineCommand({
     eject: S.Optional(S.Boolean()),
     dryRun: S.Optional(S.Boolean({
       description: "Preview workflow installation without writing files",
-      scope: ["cli"],
-      global: true
+      scope: ["cli"]
     }))
   }),
   scope: ["cli"],

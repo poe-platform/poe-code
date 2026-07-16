@@ -104,6 +104,7 @@ export interface GaslightIngestOptions {
   allWorkspaces?: boolean;
   outputPath?: string;
   keepDataPath?: string;
+  dryRun?: boolean;
   onEvent?: (event: GaslightIngestEvent) => void;
   fs?: GaslightFileSystem;
   spawn?: GaslightSpawn;

@@ -1082,6 +1082,98 @@ states:
     );
   });
 
+  it("import previews source tasks in a dry run without requiring --to", async () => {
+    vol.fromJSON(
+      {
+        [`${cwd}/source-dir/foo.md`]: [
+          "---",
+          "kind: task",
+          "version: 1",
+          "name: Foo task",
+          "state: draft",
+          "---",
+          "",
+          "Foo body"
+        ].join("\n"),
+        [`${cwd}/source-dir/bar.md`]: [
+          "---",
+          "kind: task",
+          "version: 1",
+          "name: Bar task",
+          "state: draft",
+          "---",
+          "",
+          "Bar body"
+        ].join("\n")
+      },
+      "/"
+    );
+    const logs: string[] = [];
+
+    await runTasks(["import", "--from", `${cwd}/source-dir`, "--dry-run"], logs);
+
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        '[dry-run] Would import "Foo task".',
+        '[dry-run] Would import "Bar task".',
+        `[dry-run] Would import 2 tasks from ${cwd}/source-dir; pass --to <workflow.md> to choose the import target.`
+      ])
+    );
+    expect(logs).toHaveLength(3);
+    expect(process.exitCode).toBeUndefined();
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+  });
+
+  it("import honours --limit when previewing source tasks without --to", async () => {
+    vol.fromJSON(
+      {
+        [`${cwd}/source-dir/foo.md`]: [
+          "---",
+          "kind: task",
+          "version: 1",
+          "name: Foo task",
+          "state: draft",
+          "---",
+          "",
+          "Foo body"
+        ].join("\n"),
+        [`${cwd}/source-dir/bar.md`]: [
+          "---",
+          "kind: task",
+          "version: 1",
+          "name: Bar task",
+          "state: draft",
+          "---",
+          "",
+          "Bar body"
+        ].join("\n")
+      },
+      "/"
+    );
+    const logs: string[] = [];
+
+    await runTasks(
+      ["import", "--from", `${cwd}/source-dir`, "--dry-run", "--limit", "1"],
+      logs
+    );
+
+    expect(logs).toHaveLength(2);
+    expect(logs.at(-1)).toBe(
+      `[dry-run] Would import 1 task from ${cwd}/source-dir; pass --to <workflow.md> to choose the import target.`
+    );
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+  });
+
+  it("import still requires --from in a dry run", async () => {
+    const logs: string[] = [];
+
+    await runTasks(["import", "--dry-run"], logs);
+
+    expect(logs).toEqual(["[error] tasks import requires --from <source-dir>."]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+  });
+
   it("import rejects conflicting source deletion flags", async () => {
     seedWorkflow(
       `

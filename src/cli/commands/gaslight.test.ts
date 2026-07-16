@@ -901,6 +901,54 @@ describe("gaslight command", () => {
     );
   });
 
+  it("previews ingest counts without prompting or writing when --dry-run is passed", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(prompts));
+
+    await program.parseAsync(["node", "cli", "gaslight", "ingest", "--dry-run", "--limit", "25"]);
+
+    expect(prompts).not.toHaveBeenCalled();
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(ingestGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analysisAgent: "claude-code",
+        dryRun: true,
+        limit: 25
+      })
+    );
+  });
+
+  it("reports what ingest would analyse and write on a single dry-run closing line", async () => {
+    const logger = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(vi.fn(), logger));
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "ingest",
+      "--agent",
+      "codex",
+      "--dry-run"
+    ]);
+
+    expect(outroMock).toHaveBeenCalledWith(
+      "Would analyze 3 prompts from 2 traces with codex and write .poe-code/codex-gaslight.yaml"
+    );
+    expect(outroMock.mock.calls[0]?.[0]).not.toContain("\n");
+  });
+
+  it("honours the global --dry-run flag passed before the ingest command", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync(["node", "cli", "--dry-run", "gaslight", "ingest", "--agent", "codex"]);
+
+    expect(ingestGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ dryRun: true }));
+  });
+
   it("keeps gaslight ingest completion as a single closing line", async () => {
     const logger = vi.fn();
     const program = createProgram();

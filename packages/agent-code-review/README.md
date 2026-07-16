@@ -9,7 +9,7 @@ Internal package for agent-assisted GitHub code review. It owns code-review conf
 - `.poe-code/code-review/reviews` is the default YAML draft-state store. Published review state moves into its `archive` subdirectory.
 - `.poe-code/code-review/ingest` records ingest evidence under `<profile>/{source.yaml,comments.jsonl,synthesis-prompt.md}` before a synthesized profile is written.
 - Profile Markdown may start with YAML frontmatter `version: 1` and `name: <filename-without-.md>`; prompt Markdown may start with `version: 1` and `role: <prompt-role>`.
-- Install starter assets with `poe-code code-review install --cwd <repo>`; pass `--force` to overwrite existing files.
+- Install starter assets with `poe-code code-review install --cwd <repo>`; pass `--force` to overwrite existing files, or `--dry-run` to preview them first.
 
 ## Configuration
 
@@ -62,7 +62,7 @@ The package defines no environment variables of its own. Runtime review does not
 
 The root CLI forwards `poe-code code-review ...`, but the group is intentionally hidden from root help. Use `poe-code code-review --help` for the command list.
 
-- `install`: run `poe-code code-review install [--cwd <repo>] [--force]` to install repo-local starter profiles and prompts.
+- `install`: run `poe-code code-review install [--cwd <repo>] [--force] [--dry-run]` to install repo-local starter profiles and prompts. `--dry-run` reports the files it would create, overwrite, or skip and writes nothing.
 - `profiles`: run `poe-code code-review profiles [--cwd <repo>]` to list available reviewer profiles. Add or edit `.poe-code/code-review/profiles/*.md`, or rely on the built-in `generic` fallback when the directory contains no profiles.
 - `prompt-preview`: run `poe-code code-review prompt-preview --spawn <orchestrator|reviewer|profile-synthesis> [--profile <name>] [--cwd <repo>]` to render the exact effective spawn prompt without GitHub, model, or agent calls.
 - `ingest`: run `poe-code code-review ingest <github-username> --repo <owner/name> [--repo <owner/name>...] [--profile <name>] [--agent <agent>] [--cwd <repo>]` to synthesize a profile from authored GitHub review history; repeat `--repo` for each source repository.

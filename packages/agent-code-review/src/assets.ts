@@ -249,6 +249,7 @@ function validateResolvedRolePrompt(
 export async function installCodeReviewAssets(input: {
   cwd: string;
   force?: boolean;
+  dryRun?: boolean;
 }): Promise<CodeReviewInstallResult> {
   const cwd = resolve(input.cwd);
   const assetsDirectory = codeReviewAssetsDirectory(cwd);
@@ -259,6 +260,17 @@ export async function installCodeReviewAssets(input: {
   };
   for (const [relativePath, content] of INSTALL_ASSETS) {
     const filePath = join(assetsDirectory, relativePath);
+    if (input.dryRun) {
+      const exists = await assertInstallTargetIsFileOrMissing(filePath);
+      if (!exists) {
+        result.created.push(filePath);
+      } else if (input.force) {
+        result.overwritten.push(filePath);
+      } else {
+        result.skipped.push(filePath);
+      }
+      continue;
+    }
     await ensureContainedDirectory(cwd, dirname(filePath));
     if (!input.force) {
       const installed = await createAssetUnlessPresent(filePath, content);

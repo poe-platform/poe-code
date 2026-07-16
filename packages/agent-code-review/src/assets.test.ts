@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { vol } from "memfs";
-import { discoverCodeReviewProfiles, resolveCodeReviewRolePrompt } from "./assets.js";
+import {
+  discoverCodeReviewProfiles,
+  installCodeReviewAssets,
+  resolveCodeReviewRolePrompt
+} from "./assets.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -33,6 +37,49 @@ async function withObjectPrototypeProperties<T>(
     }
   }
 }
+
+describe("installCodeReviewAssets", () => {
+  beforeEach(() => vol.reset());
+
+  it("previews the assets it would create without writing them", async () => {
+    await expect(installCodeReviewAssets({ cwd: "/repo", dryRun: true })).resolves.toEqual({
+      created: [
+        "/repo/.poe-code/code-review/profiles/generic.md",
+        "/repo/.poe-code/code-review/prompts/orchestrator.md",
+        "/repo/.poe-code/code-review/prompts/subagent.md",
+        "/repo/.poe-code/code-review/prompts/agent.md",
+        "/repo/.poe-code/code-review/prompts/profile-synthesis.md"
+      ],
+      overwritten: [],
+      skipped: []
+    });
+
+    expect(vol.existsSync("/repo/.poe-code")).toBe(false);
+  });
+
+  it("previews forced overwrites without changing existing assets", async () => {
+    vol.fromJSON({ "/repo/.poe-code/code-review/profiles/generic.md": "# Existing\n" });
+
+    const result = await installCodeReviewAssets({ cwd: "/repo", force: true, dryRun: true });
+
+    expect(result.overwritten).toEqual(["/repo/.poe-code/code-review/profiles/generic.md"]);
+    expect(result.created).toContain("/repo/.poe-code/code-review/prompts/orchestrator.md");
+    expect(vol.readFileSync("/repo/.poe-code/code-review/profiles/generic.md", "utf8")).toBe(
+      "# Existing\n"
+    );
+    expect(vol.existsSync("/repo/.poe-code/code-review/prompts")).toBe(false);
+  });
+
+  it("previews assets it would skip when they already exist", async () => {
+    vol.fromJSON({ "/repo/.poe-code/code-review/profiles/generic.md": "# Existing\n" });
+
+    const result = await installCodeReviewAssets({ cwd: "/repo", dryRun: true });
+
+    expect(result.skipped).toEqual(["/repo/.poe-code/code-review/profiles/generic.md"]);
+    expect(result.created).not.toContain("/repo/.poe-code/code-review/profiles/generic.md");
+    expect(vol.existsSync("/repo/.poe-code/code-review/prompts")).toBe(false);
+  });
+});
 
 describe("discoverCodeReviewProfiles", () => {
   beforeEach(() => vol.reset());

@@ -614,6 +614,17 @@ export async function ingestGaslight(
   }
 
   const dataPath = await resolveDataPath(cwd, options.keepDataPath);
+
+  if (options.dryRun === true) {
+    const previewOutputPath = await resolveOutputPath(fs, cwd, analysisAgent, outputPathOption);
+    return {
+      outputPath: previewOutputPath.resultPath,
+      dataPath: dataPath.resultPath,
+      promptCount: collection.records.length,
+      traceCount: collection.traceCount
+    };
+  }
+
   await writeAnalysisInput(fs, collection.records, dataPath.absolutePath, cwd, homeDir);
   const shouldRemoveAnalysisInput = options.keepDataPath === undefined;
 

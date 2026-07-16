@@ -197,14 +197,15 @@ async function resolveGaslightPlanPaths(options: {
 async function resolveAgentAndModel(
   program: Command,
   container: CliContainer,
-  options: GaslightCommandOptions
+  options: GaslightCommandOptions,
+  useConfiguredAgent = false
 ): Promise<{ agent: string; model?: string }> {
   const flags = resolveCommandFlags(program);
   const configured = await resolveDefaultAgent(container, { readOnly: true });
   const configuredSpecifier = configured ? parseAgentSpecifier(configured) : undefined;
   const agent =
     options.agent ??
-    (flags.assumeYes
+    (flags.assumeYes || useConfiguredAgent
       ? (configuredSpecifier?.agent ?? DEFAULT_AGENT)
       : await resolveServiceArgument(program, container, undefined, { action: "gaslight" }));
   const model =
@@ -406,7 +407,8 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         ...gaslight.opts<GaslightIngestCommandOptions>(),
         ...this.opts<GaslightIngestCommandOptions>()
       };
-      const { agent, model } = await resolveAgentAndModel(program, container, options);
+      const flags = resolveCommandFlags(program);
+      const { agent, model } = await resolveAgentAndModel(program, container, options, flags.dryRun);
       let extractedPrompts = 0;
       let extractedTraces = 0;
       const logger = container.loggerFactory.create();
@@ -415,6 +417,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       const result = await ingestGaslight({
         analysisAgent: agent,
         ...(model ? { model } : {}),
+        ...(flags.dryRun ? { dryRun: true } : {}),
         sources: parseSources(options.sources),
         since: options.since,
         limit: parsePositiveInteger(options.limit, "--limit"),
@@ -439,10 +442,14 @@ export function registerGaslightCommand(program: Command, container: CliContaine
               `Analyzed ${extractedPrompts} prompts from ${extractedTraces} traces with ${spawnAgent}`
           })
       });
-      if (options.keepData) {
+      if (options.keepData && !flags.dryRun) {
         logger.resolved("Analysis input", result.dataPath);
       }
-      outro(`Wrote ${result.outputPath}`);
+      outro(
+        flags.dryRun
+          ? `Would analyze ${result.promptCount} prompts from ${result.traceCount} traces with ${agent} and write ${result.outputPath}`
+          : `Wrote ${result.outputPath}`
+      );
     });
 
   gaslight

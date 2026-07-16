@@ -113,6 +113,7 @@ After all rounds for a plan finish successfully, Gaslight leaves the plan file i
 - `allWorkspaces`: Read traces from every workspace instead of only `cwd`.
 - `outputPath`: Generated gaslight config path. Defaults to `.poe-code/gaslight.yaml` or an agent-prefixed variant when that file exists.
 - `keepDataPath`: Persist curated analysis input at this path. Without it, ingest writes a temporary Markdown file under `.poe-code/ingest/` and deletes it after analysis.
+- `dryRun`: Count the traces and prompts that would be analysed, then return the paths that would be written without spawning the analysis agent or writing any file.
 - `onEvent`: Receives ingest progress events.
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.

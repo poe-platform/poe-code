@@ -101,11 +101,15 @@ poe-code gh install <name>
 # Ejected — full workflow definition copied into your repo, plus a prompt file next to the workflow YAML
 poe-code gh install <name> --eject
 
+# Preview — report every path that would be written, without writing anything
+poe-code gh install <name> --dry-run
+
 # Uninstall
 poe-code gh uninstall <name>
 ```
 
 Use `--eject` when you need full control over the workflow YAML itself.
+Install writes by default; pass `--dry-run` to preview the paths first.
 
 With `--eject`, poe-code writes:
 

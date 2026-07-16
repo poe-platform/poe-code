@@ -86,14 +86,29 @@ export const installCodeReviewAssetsCommand = defineCommand({
       S.Boolean({
         description: "Overwrite existing profile and prompt files."
       })
+    ),
+    dryRun: S.Optional(
+      S.Boolean({
+        description: "Preview the profile and prompt files without writing them."
+      })
     )
   }),
   scope: ["cli"],
-  handler: async ({ params }) =>
-    installCodeReviewAssets({
+  handler: async ({ params }) => {
+    const dryRun = Boolean(params.dryRun);
+    const result = await installCodeReviewAssets({
       cwd: params.cwd?.trim() || process.cwd(),
-      force: Boolean(params.force)
-    })
+      force: Boolean(params.force),
+      dryRun
+    });
+    return dryRun
+      ? {
+          wouldCreate: result.created,
+          wouldOverwrite: result.overwritten,
+          wouldSkip: result.skipped
+        }
+      : result;
+  }
 });
 
 export const listCodeReviewProfilesCommand = defineCommand({

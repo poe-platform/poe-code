@@ -2,16 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import { UserError } from "toolcraft";
 import {
   codeReviewGroup,
+  installCodeReviewAssetsCommand,
   listCodeReviewProfilesCommand,
   readCodeReviewDraftCommand,
   runCodeReviewCommand
 } from "./cli.js";
-import { discoverCodeReviewProfiles } from "./assets.js";
+import { discoverCodeReviewProfiles, installCodeReviewAssets } from "./assets.js";
 import { loadCodeReviewRuntimeConfig } from "./config.js";
 
 vi.mock("./assets.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./assets.js")>()),
-  discoverCodeReviewProfiles: vi.fn(async () => [])
+  discoverCodeReviewProfiles: vi.fn(async () => []),
+  installCodeReviewAssets: vi.fn(async () => ({ created: [], overwritten: [], skipped: [] }))
 }));
 
 vi.mock("./config.js", async (importOriginal) => ({
@@ -57,6 +59,52 @@ describe("code-review command group", () => {
     await expect(invocation).rejects.toThrow(
       'Invalid prUrl argument. Expected a GitHub pull request URL like https://github.com/<owner>/<repo>/pull/<number>, received "not-a-url".'
     );
+  });
+
+  it("previews install writes without reporting them as done when --dry-run is passed", async () => {
+    vi.mocked(installCodeReviewAssets).mockResolvedValueOnce({
+      created: ["/repo/.poe-code/code-review/prompts/agent.md"],
+      overwritten: ["/repo/.poe-code/code-review/profiles/generic.md"],
+      skipped: []
+    });
+
+    const result = await installCodeReviewAssetsCommand.handler({
+      params: { cwd: "/repo", force: true, dryRun: true }
+    } as never);
+
+    expect(installCodeReviewAssets).toHaveBeenCalledWith({
+      cwd: "/repo",
+      force: true,
+      dryRun: true
+    });
+    expect(result).toEqual({
+      wouldCreate: ["/repo/.poe-code/code-review/prompts/agent.md"],
+      wouldOverwrite: ["/repo/.poe-code/code-review/profiles/generic.md"],
+      wouldSkip: []
+    });
+  });
+
+  it("reports installed assets when --dry-run is absent", async () => {
+    vi.mocked(installCodeReviewAssets).mockResolvedValueOnce({
+      created: ["/repo/.poe-code/code-review/prompts/agent.md"],
+      overwritten: [],
+      skipped: []
+    });
+
+    const result = await installCodeReviewAssetsCommand.handler({
+      params: { cwd: "/repo" }
+    } as never);
+
+    expect(installCodeReviewAssets).toHaveBeenCalledWith({
+      cwd: "/repo",
+      force: false,
+      dryRun: false
+    });
+    expect(result).toEqual({
+      created: ["/repo/.poe-code/code-review/prompts/agent.md"],
+      overwritten: [],
+      skipped: []
+    });
   });
 
   it("lists profiles from configured external catalogs", async () => {

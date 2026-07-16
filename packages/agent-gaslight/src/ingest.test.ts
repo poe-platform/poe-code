@@ -88,6 +88,66 @@ describe("ingestGaslight", () => {
     );
   });
 
+  it("counts traces and prompts without analysing or writing anything in dry run", async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+    const spawn = vi.fn();
+
+    const result = await ingestGaslight({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      analysisAgent: "codex",
+      dryRun: true,
+      fs,
+      spawn,
+      collectHumanPrompts: vi.fn().mockResolvedValue({
+        traceCount: 2,
+        records: [
+          { traceId: "one", source: "codex", text: "Did you test it?" },
+          { traceId: "two", source: "claude", text: "Did you inspect the output?" }
+        ]
+      })
+    });
+
+    expect(result).toMatchObject({
+      outputPath: ".poe-code/gaslight.yaml",
+      promptCount: 2,
+      traceCount: 2
+    });
+    expect(spawn).not.toHaveBeenCalled();
+    await expect(fs.readdir("/repo")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("reports the config it would write next to an existing config in dry run", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/repo/.poe-code/gaslight.yaml": "prompt: Existing\n" })
+    ).promises;
+
+    const result = await ingestGaslight({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      analysisAgent: "codex",
+      dryRun: true,
+      keepDataPath: ".poe-code/ingest/human-prompts.md",
+      fs,
+      spawn: vi.fn(),
+      collectHumanPrompts: vi.fn().mockResolvedValue({
+        traceCount: 1,
+        records: [{ traceId: "one", source: "codex", text: "Did you test it?" }]
+      })
+    });
+
+    expect(result).toMatchObject({
+      outputPath: ".poe-code/codex-gaslight.yaml",
+      dataPath: ".poe-code/ingest/human-prompts.md"
+    });
+    await expect(fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toBe(
+      "prompt: Existing\n"
+    );
+    await expect(
+      fs.readFile("/repo/.poe-code/ingest/human-prompts.md", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("stores default prompt data under the workspace for analysis and removes it afterwards", async () => {
     const fs = createFsFromVolume(new Volume()).promises;
     const spawn = vi.fn().mockResolvedValue({

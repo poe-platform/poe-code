@@ -9,6 +9,7 @@ import {
   resolveAuth,
   syncGhProject,
   verifyGhProject,
+  type OpenMarkdownDirOptions,
   type OpenTaskListOptions,
   type MoveProgressEvent,
   type Task,
@@ -318,9 +319,6 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
     if (options.from === undefined || options.from.trim() === "") {
       throw new TasksCommandUsageError("tasks import requires --from <source-dir>.");
     }
-    if (options.to === undefined || options.to.trim() === "") {
-      throw new TasksCommandUsageError("tasks import requires --to <workflow.md>.");
-    }
     if (options.keep === true && options.deleteSource === true) {
       throw new TasksCommandUsageError("Provide only one of --keep or --delete-source.");
     }
@@ -337,6 +335,14 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
       frontmatterMode: "passthrough"
     };
 
+    if (options.dryRun === true && (options.to === undefined || options.to.trim() === "")) {
+      await previewImportSource(source, limit, logger, container);
+      return;
+    }
+    if (options.to === undefined || options.to.trim() === "") {
+      throw new TasksCommandUsageError("tasks import requires --to <workflow.md>.");
+    }
+
     await confirmDeleteSource(options, logger, "tasks import", `markdown files in ${source.path}`);
 
     await moveTasks({
@@ -351,6 +357,22 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
   } catch (error) {
     handleCommandError(error, logger, options.json);
   }
+}
+
+async function previewImportSource(
+  source: OpenMarkdownDirOptions,
+  limit: number | undefined,
+  logger: ScopedLogger,
+  container: CliContainer
+): Promise<void> {
+  const taskList = await openTaskList({ ...source, fs: container.fs as unknown as TaskListFs });
+  const tasks = (await taskList.allTasks({ includeArchived: true })).slice(0, limit);
+  for (const task of tasks) {
+    logger.dryRun(`[dry-run] Would import "${task.name}".`);
+  }
+  logger.dryRun(
+    `[dry-run] Would import ${tasks.length} task${tasks.length === 1 ? "" : "s"} from ${source.path}; pass --to <workflow.md> to choose the import target.`
+  );
 }
 
 function logMoveProgress(event: MoveProgressEvent, logger: ScopedLogger): void {

@@ -3,5 +3,5 @@
     "ANTHROPIC_CUSTOM_HEADERS": "Authorization: Bearer sk-test",
     "ANTHROPIC_BASE_URL": "https://api.poe.com"
   },
-  "model": "claude-sonnet-5"
+  "model": "claude-sonnet-4-6"
 }

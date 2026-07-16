@@ -77,8 +77,17 @@ export const GOOSE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   successMessage: "Installed Goose CLI."
 };
 
+/**
+ * The models written into Goose's custom provider catalog: just the selected
+ * model when configure resolved one, otherwise the offered defaults.
+ */
+function gooseCatalogModels(model: string | undefined): readonly string[] {
+  return model ? [model] : GOOSE_MODELS;
+}
+
 function buildCustomProvider(
   baseUrl: string,
+  model: string | undefined,
   modelContextLimits: Record<string, number> = {}
 ): ConfigObject {
   return {
@@ -88,10 +97,14 @@ function buildCustomProvider(
     description: "Poe OpenAI-compatible API",
     api_key_env: CUSTOM_PROVIDER_API_KEY_ENV,
     base_url: `${baseUrl}/chat/completions`,
-    models: GOOSE_MODELS.map((name) => ({
-      name,
-      context_limit: resolveGooseModelContextLimit(name, modelContextLimits)
-    })),
+    models: gooseCatalogModels(model).map((name) => {
+      const contextLimit = resolveGooseModelContextLimit(name, modelContextLimits);
+      const entry: ConfigObject = { name };
+      if (contextLimit !== undefined) {
+        entry.context_limit = contextLimit;
+      }
+      return entry;
+    }),
     supports_streaming: true,
     requires_auth: true
   };
@@ -99,7 +112,7 @@ function buildCustomProvider(
 
 const GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS: Record<string, number> = {
   "anthropic/claude-opus-4.7": 200_000,
-  "anthropic/claude-sonnet-5": 983_040,
+  "anthropic/claude-sonnet-4.6": 983_040,
   "openai/gpt-5.3-codex": 128_000,
   "openai/gpt-5.4-pro": 1_050_000,
   "google/gemini-3.1-pro": 1_000_000
@@ -108,22 +121,21 @@ const GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS: Record<string, number> = {
 function resolveGooseModelContextLimit(
   model: string,
   modelContextLimits: Record<string, number>
-): number {
+): number | undefined {
   const stripped = stripModelNamespace(model);
   const dynamicValue = modelContextLimits[model] ?? modelContextLimits[stripped];
   if (typeof dynamicValue === "number" && Number.isFinite(dynamicValue) && dynamicValue > 0) {
     return dynamicValue;
   }
-  const fallback = GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model];
-  if (typeof fallback === "number") {
-    return fallback;
-  }
-  throw new Error(`Missing Goose model context limit for ${model}.`);
+  return GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model];
 }
 
-function extractGooseModelContextLimits(response: GooseModelsResponse): Record<string, number> {
+function extractGooseModelContextLimits(
+  response: GooseModelsResponse,
+  models: readonly string[]
+): Record<string, number> {
   const entries = Array.isArray(response.data) ? response.data : [];
-  const wanted = new Map(GOOSE_MODELS.map((model) => [stripModelNamespace(model), model]));
+  const wanted = new Map(models.map((model) => [stripModelNamespace(model), model]));
   const limits: Record<string, number> = {};
 
   for (const entry of entries) {
@@ -160,6 +172,7 @@ function extractGooseModelContextLimits(response: GooseModelsResponse): Record<s
 async function fetchGooseModelContextLimits(input: {
   apiBaseUrl: string;
   apiKey: string;
+  models: readonly string[];
   httpClient: (
     url: string,
     init?: { method?: string; headers?: Record<string, string> }
@@ -181,16 +194,14 @@ async function fetchGooseModelContextLimits(input: {
   }
 
   const modelContextLimits = extractGooseModelContextLimits(
-    (await response.json()) as GooseModelsResponse
+    (await response.json()) as GooseModelsResponse,
+    input.models
   );
-  for (const model of GOOSE_MODELS) {
-    if (modelContextLimits[model] == null && GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model] != null) {
-      modelContextLimits[model] = GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model]!;
+  for (const model of input.models) {
+    const fallback = GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model];
+    if (modelContextLimits[model] == null && fallback != null) {
+      modelContextLimits[model] = fallback;
     }
-  }
-  const missing = GOOSE_MODELS.filter((model) => modelContextLimits[model] == null);
-  if (missing.length > 0) {
-    throw new Error(`Missing Goose model context limit for ${missing[0]}.`);
   }
   return modelContextLimits;
 }
@@ -257,10 +268,11 @@ export const gooseService = createProvider<
     }
   },
   async extendConfigurePayload(context) {
-    const { provider } = context.payload as GooseConfigureContext;
+    const { provider, model } = context.payload as GooseConfigureContext;
     const modelContextLimits = await fetchGooseModelContextLimits({
       apiBaseUrl: provider?.baseUrl ?? "",
       apiKey: provider?.credential ?? "",
+      models: gooseCatalogModels(model),
       httpClient: context.httpClient
     });
     return {
@@ -284,8 +296,9 @@ export const gooseService = createProvider<
       configMutation.merge({
         target: CUSTOM_PROVIDER_FILE,
         value: (ctx) => {
-          const { provider, modelContextLimits } = (ctx ?? {}) as unknown as GooseConfigureContext;
-          return buildCustomProvider(provider?.baseUrl ?? "", modelContextLimits);
+          const { provider, model, modelContextLimits } = (ctx ??
+            {}) as unknown as GooseConfigureContext;
+          return buildCustomProvider(provider?.baseUrl ?? "", model, modelContextLimits);
         }
       }),
       configMutation.merge({

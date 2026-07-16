@@ -36,7 +36,6 @@ import {
   KIMI_MODELS,
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
-  GOOSE_MODELS,
   PROVIDER_NAME
 } from "../cli/constants.js";
 
@@ -400,7 +399,7 @@ describe("claude-code service", () => {
         "-p",
         "Output exactly: CLAUDE_CODE_OK",
         "--model",
-        expect.stringContaining("claude-sonnet-5")
+        expect.stringContaining("claude-sonnet-4-6")
       ])
     );
   });
@@ -2358,23 +2357,42 @@ describe("goose service", () => {
     expect(provider.base_url).toBe("https://proxy.example.test/gateway/v1/chat/completions");
   });
 
-  it("uses static fallback context limits when modelContextLimits is empty", async () => {
-    await configureGoose({ modelContextLimits: {} });
+  it("uses the static fallback context limit when modelContextLimits is empty", async () => {
+    await configureGoose({ model: "anthropic/claude-sonnet-4.6", modelContextLimits: {} });
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
       string,
       unknown
     >;
     expect(provider.models).toEqual([
-      { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
-      { name: "anthropic/claude-sonnet-5", context_limit: 983_040 },
-      { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
-      { name: "openai/gpt-5.4-pro", context_limit: 1_050_000 },
-      { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
+      { name: "anthropic/claude-sonnet-4.6", context_limit: 983_040 }
     ]);
   });
 
-  it("fetches Goose model context limits from the Poe model catalog", async () => {
+  it("writes only the selected model into the custom provider models list", async () => {
+    await configureGoose({
+      model: "anthropic/claude-haiku-4.5",
+      modelContextLimits: { "anthropic/claude-haiku-4.5": 200_000 }
+    });
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(provider.models).toEqual([{ name: "anthropic/claude-haiku-4.5", context_limit: 200_000 }]);
+  });
+
+  it("omits context_limit when the selected model has no known context window", async () => {
+    await configureGoose({ model: "novita ai/kimi-k2-thinking", modelContextLimits: {} });
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(provider.models).toEqual([{ name: "novita ai/kimi-k2-thinking" }]);
+  });
+
+  it("fetches the Goose model context limit for the selected model", async () => {
     const modelContextLimits = await gooseService.gooseService.extendConfigurePayload?.({
       fs: mockFsObj,
       env,
@@ -2388,7 +2406,7 @@ describe("goose service", () => {
               context_window: { context_length: 983040 }
             },
             {
-              id: "claude-sonnet-5",
+              id: "claude-sonnet-4.6",
               context_window: { context_length: 983040 }
             },
             {
@@ -2411,15 +2429,15 @@ describe("goose service", () => {
         verbose: true,
         scope: "test:goose"
       }),
-      payload: buildConfigureOptions()
+      payload: buildConfigureOptions({ model: "anthropic/claude-sonnet-4.6" })
     });
 
     expect(modelContextLimits).toEqual({
-      modelContextLimits: buildGooseModelContextLimitsFixture()
+      modelContextLimits: { "anthropic/claude-sonnet-4.6": 983040 }
     });
   });
 
-  it("falls back to static context limits when the API response is missing models", async () => {
+  it("falls back to the static context limit when the API response omits the selected model", async () => {
     const result = await gooseService.gooseService.extendConfigurePayload?.({
       fs: mockFsObj,
       env,
@@ -2440,18 +2458,34 @@ describe("goose service", () => {
         verbose: true,
         scope: "test:goose"
       }),
-      payload: buildConfigureOptions()
+      payload: buildConfigureOptions({ model: "anthropic/claude-sonnet-4.6" })
     });
 
     expect(result).toEqual({
       modelContextLimits: {
-        "anthropic/claude-opus-4.7": 983040,
-        "anthropic/claude-sonnet-5": 983_040,
-        "openai/gpt-5.3-codex": 128_000,
-        "openai/gpt-5.4-pro": 1_050_000,
-        "google/gemini-3.1-pro": 1_000_000
+        "anthropic/claude-sonnet-4.6": 983_040
       }
     });
+  });
+
+  it("reports no context limit when neither the catalog nor the fallbacks know the model", async () => {
+    const result = await gooseService.gooseService.extendConfigurePayload?.({
+      fs: mockFsObj,
+      env,
+      httpClient: vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ id: "kimi-k2-thinking", context_window: null }] })
+      })),
+      logger: createLoggerFactory(() => {}).create({
+        dryRun: false,
+        verbose: true,
+        scope: "test:goose"
+      }),
+      payload: buildConfigureOptions({ model: "novita ai/kimi-k2-thinking" })
+    });
+
+    expect(result).toEqual({ modelContextLimits: {} });
   });
 
   it("removes managed Goose provider artifacts during unconfigure", async () => {
@@ -2716,17 +2750,16 @@ function buildCustomProviderFixture(): Record<string, unknown> {
   };
 }
 
-function buildCustomProviderModelsFixture(): Array<Record<string, unknown>> {
-  return GOOSE_MODELS.map((name) => ({
-    name,
-    context_limit: buildGooseModelContextLimitsFixture()[name]
-  }));
+function buildCustomProviderModelsFixture(
+  model: string = DEFAULT_GOOSE_MODEL
+): Array<Record<string, unknown>> {
+  return [{ name: model, context_limit: buildGooseModelContextLimitsFixture()[model] }];
 }
 
 function buildGooseModelContextLimitsFixture(): Record<string, number> {
   return {
     "anthropic/claude-opus-4.7": 983040,
-    "anthropic/claude-sonnet-5": 983040,
+    "anthropic/claude-sonnet-4.6": 983040,
     "openai/gpt-5.3-codex": 400000,
     "openai/gpt-5.4-pro": 1050000,
     "google/gemini-3.1-pro": 1048576

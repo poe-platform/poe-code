@@ -1,4 +1,5 @@
 import { readRegistry, updateWorktreeEntry } from "./registry.js";
+import { worktreeNotFoundError } from "./not-found.js";
 import type { Worktree, WorktreeDeps, WorktreeReconciliationSummary } from "./types.js";
 
 export type WorktreeReconcilePhase = "reconcile" | "cleanup-nudge";
@@ -137,7 +138,7 @@ async function findWorktree(
   const registry = await readRegistry(registryFile, deps.fs);
   const entry = registry.worktrees.find((worktree) => worktree.name === name);
   if (!entry) {
-    throw new Error(`Worktree "${name}" not found in registry`);
+    throw worktreeNotFoundError(name, registry.worktrees);
   }
   return entry;
 }

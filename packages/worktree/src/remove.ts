@@ -1,4 +1,5 @@
 import { removeWorktreeEntry, readRegistry, writeRegistry } from "./registry.js";
+import { worktreeNotFoundError } from "./not-found.js";
 import type { WorktreeDeps } from "./types.js";
 
 export type RemoveWorktreeOptions = {
@@ -15,7 +16,7 @@ export async function removeWorktree(
   const registry = await readRegistry(opts.registryFile, opts.deps.fs);
   const entry = registry.worktrees.find((w) => w.name === opts.name);
   if (!entry) {
-    throw new Error(`Worktree "${opts.name}" not found in registry`);
+    throw worktreeNotFoundError(opts.name, registry.worktrees);
   }
 
   await writeRegistry(opts.registryFile, {

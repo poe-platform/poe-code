@@ -476,6 +476,27 @@ describe("createWorktree", () => {
 });
 
 describe("reconcileWorktree", () => {
+  it("reports a not-found name as a user error listing the known worktrees", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "alpha", sourceCwd: "/repo" }), fs);
+    const exec = createReconcileExec();
+    const reconciliationAgent = vi.fn<WorktreeReconciliationAgent>();
+
+    const error = await reconcileWorktree({
+      cwd: "/repo",
+      name: "missing",
+      registryFile: REGISTRY,
+      reconciliationAgent,
+      deps: { fs, exec }
+    }).catch((thrown: unknown) => thrown);
+
+    expect((error as Error).name).toBe("UserError");
+    expect((error as Error).message).toContain('Worktree "missing" not found in registry');
+    expect((error as Error).message).toContain("Known worktrees: alpha");
+    expect((error as Error).message).toContain("poe-code worktree list");
+    expect(reconciliationAgent).not.toHaveBeenCalled();
+  });
+
   it("rejects dirty destination checkout before invoking the reconciliation agent", async () => {
     const fs = createMemFs();
     await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", sourceCwd: "/repo" }), fs);
@@ -1132,6 +1153,43 @@ describe("removeWorktree", () => {
     await expect(
       removeWorktree({ cwd: "/repo", name: "missing", registryFile: REGISTRY, deps: { fs, exec } })
     ).rejects.toThrow('Worktree "missing" not found in registry');
+  });
+
+  it("reports a not-found name as a user error listing the known worktrees", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "alpha" }), fs);
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "beta" }), fs);
+    const exec = createMockExec();
+
+    const error = await removeWorktree({
+      cwd: "/repo",
+      name: "missing",
+      registryFile: REGISTRY,
+      deps: { fs, exec }
+    }).catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).name).toBe("UserError");
+    expect((error as Error).message).toContain('Worktree "missing" not found in registry');
+    expect((error as Error).message).toContain("Known worktrees: alpha, beta");
+    expect((error as Error).message).toContain("poe-code worktree list");
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("reports an empty registry as a user error without a known-worktree list", async () => {
+    const fs = createMemFs();
+    const exec = createMockExec();
+
+    const error = await removeWorktree({
+      cwd: "/repo",
+      name: "missing",
+      registryFile: REGISTRY,
+      deps: { fs, exec }
+    }).catch((thrown: unknown) => thrown);
+
+    expect((error as Error).name).toBe("UserError");
+    expect((error as Error).message).toContain("No worktrees are registered");
+    expect((error as Error).message).not.toContain("Known worktrees:");
   });
 
   it("restores registry status when git worktree removal fails", async () => {

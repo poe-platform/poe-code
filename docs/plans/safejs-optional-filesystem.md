@@ -742,10 +742,10 @@ tasks:
       TDD with memfs; no real files. Reuse the existing snapshot/restore test helpers rather than
       inventing new ones.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-budget
     title: Charge fs reads against the SafeJS data budget

@@ -1142,6 +1142,81 @@ describe("ghGroup", () => {
     expect(result.readmePath).toBe("/repo/.github/workflows/README.md");
   });
 
+  it("labels a bulk dry run and frames the workflow paths in a panel", async () => {
+    for (const name of installableAutomationNames) {
+      writeBuiltInPrompt(name, `# Prompt for ${name}`);
+      seedWorkflowTemplate(name, "caller");
+    }
+
+    const installCommand = getCommand(["install"]);
+    const result = await installCommand.handler(createContext({ dryRun: true }));
+
+    const logger = {
+      info: vi.fn(),
+      success: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      resolved: vi.fn(),
+      errorResolved: vi.fn(),
+      message: vi.fn()
+    };
+    const note = vi.fn();
+
+    installCommand.render.rich(result, {
+      logger,
+      note,
+      renderTable: vi.fn(),
+      getTheme: vi.fn()
+    });
+
+    expect(logger.success).toHaveBeenCalledWith(
+      `Would install ${installableAutomationNames.length} workflows.`
+    );
+    expect(logger.success).not.toHaveBeenCalledWith(
+      expect.stringContaining(`Installed ${installableAutomationNames.length}`)
+    );
+    // Paths belong in a framed panel, not as bare unlabelled messages.
+    const panel = note.mock.calls.find(([, title]) => title === "Workflows");
+    expect(panel).toBeDefined();
+    for (const name of installableAutomationNames) {
+      expect(panel?.[0]).toContain(`poe-code-${name}.yml`);
+      expect(logger.message).not.toHaveBeenCalledWith(
+        `/repo/.github/workflows/poe-code-${name}.yml`
+      );
+    }
+  });
+
+  it("reports a bulk real install as installed", async () => {
+    for (const name of installableAutomationNames) {
+      writeBuiltInPrompt(name, `# Prompt for ${name}`);
+      seedWorkflowTemplate(name, "caller");
+    }
+
+    const installCommand = getCommand(["install"]);
+    const result = await installCommand.handler(createContext({}));
+
+    const logger = {
+      info: vi.fn(),
+      success: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      resolved: vi.fn(),
+      errorResolved: vi.fn(),
+      message: vi.fn()
+    };
+
+    installCommand.render.rich(result, {
+      logger,
+      note: vi.fn(),
+      renderTable: vi.fn(),
+      getTheme: vi.fn()
+    });
+
+    expect(logger.success).toHaveBeenCalledWith(
+      `Installed ${installableAutomationNames.length} workflows.`
+    );
+  });
+
   it("rolls back earlier workflows when a later bulk install write fails", async () => {
     for (const name of installableAutomationNames) {
       writeBuiltInPrompt(name, `# Prompt for ${name}`);

@@ -851,6 +851,33 @@ describe("dry run diff redaction", () => {
   });
 });
 
+describe("formatDryRunOperations directory previews", () => {
+  it("marks a directory that already exists as no change", async () => {
+    const base = createMockFs({ "/home/test/.gemini/settings.json": "{}\n" }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.mkdir("/home/test/.gemini", { recursive: true });
+
+    const output = formatDryRunOperations(recorder.drain()).join("\n");
+    expect(output).toContain("# exists");
+    expect(output).not.toContain("# ensure");
+  });
+
+  it("marks a missing directory as a pending create", async () => {
+    const base = createMockFs({}) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.mkdir("/home/test/.gemini", { recursive: true });
+
+    const output = formatDryRunOperations(recorder.drain()).join("\n");
+    expect(output).toContain("mkdir -p /home/test/.gemini");
+    expect(output).toContain("# ensure");
+    expect(output).not.toContain("# exists");
+  });
+});
+
 describe("formatDryRunOperations symlink and rename", () => {
   it("quotes path-like command arguments", () => {
     const lines = formatDryRunOperations([
@@ -892,6 +919,157 @@ describe("formatDryRunOperations symlink and rename", () => {
   it("formats rename as mv", () => {
     const lines = formatDryRunOperations([{ type: "rename", from: "CLAUDE.md", to: "AGENTS.md" }]);
     expect(lines.join("\n")).toContain("mv CLAUDE.md AGENTS.md");
+  });
+});
+
+describe("createDryRunFileSystem atomic writes", () => {
+  // Colour codes land between the diff marker and the text, so assertions on
+  // "+line" need the styling removed first.
+  const stripAnsi = (value: string): string => {
+    let result = "";
+    for (let index = 0; index < value.length; index += 1) {
+      if (value[index] === "\u001b" && value[index + 1] === "[") {
+        const end = value.indexOf("m", index);
+        if (end !== -1) {
+          index = end;
+          continue;
+        }
+      }
+      result += value[index];
+    }
+    return result;
+  };
+
+  const targetPath = "/home/test/.claude/settings.json";
+  const tempPath = `${targetPath}.mutation-tmp-123-abc`;
+  const existing = '{\n  "effortLevel": "high",\n  "model": "old"\n}\n';
+  const next = '{\n  "effortLevel": "high",\n  "model": "new"\n}\n';
+
+  it("folds a temp write plus rename into an update of the real target", async () => {
+    const base = createMockFs({ [targetPath]: existing }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.writeFile(tempPath, next, { encoding: "utf8" });
+    await dryFs.rename(tempPath, targetPath);
+
+    expect(recorder.drain()).toEqual([
+      {
+        type: "writeFile",
+        path: targetPath,
+        nextContent: next,
+        previousContent: existing
+      }
+    ]);
+  });
+
+  it("previews only the delta against the existing file, not a create from /dev/null", async () => {
+    const base = createMockFs({ [targetPath]: existing }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.writeFile(tempPath, next, { encoding: "utf8" });
+    await dryFs.rename(tempPath, targetPath);
+
+    const output = stripAnsi(formatDryRunOperations(recorder.drain()).join("\n"));
+
+    expect(output).toContain(`cat > ${targetPath}`);
+    expect(output).toContain("# update");
+    expect(output).not.toContain("# create");
+    expect(output).not.toContain("/dev/null");
+    expect(output).not.toContain("mutation-tmp");
+    // Pre-existing untouched values must not be reported as additions.
+    expect(output).not.toContain('+  "effortLevel": "high"');
+    expect(output).toContain('+  "model": "new"');
+    expect(output).toContain('-  "model": "old"');
+  });
+
+  it("reports a create when the atomic write targets a new file", async () => {
+    const base = createMockFs({}) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.writeFile(tempPath, next, { encoding: "utf8" });
+    await dryFs.rename(tempPath, targetPath);
+
+    const output = stripAnsi(formatDryRunOperations(recorder.drain()).join("\n"));
+
+    expect(output).toContain(`cat > ${targetPath}`);
+    expect(output).toContain("# create");
+    expect(output).toContain("/dev/null");
+    expect(output).not.toContain("mutation-tmp");
+  });
+
+  it("reports no change when the atomic write rewrites identical content", async () => {
+    const base = createMockFs({ [targetPath]: existing }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.writeFile(tempPath, existing, { encoding: "utf8" });
+    await dryFs.rename(tempPath, targetPath);
+
+    const output = stripAnsi(formatDryRunOperations(recorder.drain()).join("\n"));
+
+    expect(output).toContain("# no change");
+    expect(output).not.toContain("mutation-tmp");
+  });
+
+  it("coalesces repeated writes to one file into the original-to-final delta", async () => {
+    // Manifests commonly transform a file and then merge into it, so the same
+    // target is written twice against the same on-disk baseline. The preview
+    // must show the end state, not the intermediate one.
+    const base = createMockFs({ [targetPath]: existing }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+    const intermediate = '{\n  "effortLevel": "high"\n}\n';
+    const final = '{\n  "effortLevel": "high",\n  "model": "final"\n}\n';
+
+    await dryFs.writeFile(`${tempPath}-1`, intermediate, { encoding: "utf8" });
+    await dryFs.rename(`${tempPath}-1`, targetPath);
+    await dryFs.writeFile(`${tempPath}-2`, final, { encoding: "utf8" });
+    await dryFs.rename(`${tempPath}-2`, targetPath);
+
+    const lines = formatDryRunOperations(recorder.drain());
+    const output = stripAnsi(lines.join("\n"));
+
+    expect(lines).toHaveLength(1);
+    expect(output).toContain("# update");
+    // Baseline stays the real file and the content is the end state, so the
+    // intermediate write is never presented as the outcome.
+    expect(output).toContain('+  "model": "final"');
+    expect(output).toContain('-  "model": "old"');
+    expect(output).not.toContain('+  "effortLevel": "high"');
+    expect(output).not.toContain("mutation-tmp");
+  });
+
+  it("drops a write pair that ends at the original content", async () => {
+    const base = createMockFs({ [targetPath]: existing }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.writeFile(`${tempPath}-1`, next, { encoding: "utf8" });
+    await dryFs.rename(`${tempPath}-1`, targetPath);
+    await dryFs.writeFile(`${tempPath}-2`, existing, { encoding: "utf8" });
+    await dryFs.rename(`${tempPath}-2`, targetPath);
+
+    const output = stripAnsi(formatDryRunOperations(recorder.drain()).join("\n"));
+
+    expect(output).toContain("# no change");
+    expect(output).not.toContain('"model": "new"');
+  });
+
+  it("keeps an unrelated rename as a move", async () => {
+    const base = createMockFs({ "/home/test/CLAUDE.md": "hi\n" }) as unknown as FileSystem;
+    const recorder = new DryRunRecorder();
+    const dryFs = createDryRunFileSystem(base, recorder);
+
+    await dryFs.writeFile(tempPath, next, { encoding: "utf8" });
+    await dryFs.rename("/home/test/CLAUDE.md", "/home/test/AGENTS.md");
+
+    expect(recorder.drain()).toEqual([
+      { type: "writeFile", path: tempPath, nextContent: next, previousContent: null },
+      { type: "rename", from: "/home/test/CLAUDE.md", to: "/home/test/AGENTS.md" }
+    ]);
   });
 });
 

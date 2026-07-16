@@ -2,7 +2,7 @@ import { Buffer } from "node:buffer";
 import { basename } from "node:path";
 import { createTwoFilesPatch } from "diff";
 import chalk from "chalk";
-import { isNotFound } from "@poe-code/config-mutations";
+import { isNotFound, pathExists } from "@poe-code/config-mutations";
 import type { FileSystem } from "./file-system.js";
 
 const REDACTED_PLACEHOLDER = "<redacted>";
@@ -36,6 +36,7 @@ export type DryRunOperation =
       type: "mkdir";
       path: string;
       options?: { recursive?: boolean };
+      existing?: boolean;
     }
   | {
       type: "unlink";
@@ -72,6 +73,20 @@ export class DryRunRecorder {
 
   record(operation: DryRunOperation): void {
     this.operations.push(operation);
+  }
+
+  // Atomic writers stage content in a temp file and rename it over the target.
+  // Pulling the staged write back out lets the rename re-record it against the
+  // real target, so the preview diffs the delta instead of the whole file.
+  takeStagedWrite(path: string): Extract<DryRunOperation, { type: "writeFile" }> | null {
+    for (let index = this.operations.length - 1; index >= 0; index -= 1) {
+      const operation = this.operations[index];
+      if (operation.type === "writeFile" && operation.path === path) {
+        this.operations.splice(index, 1);
+        return operation;
+      }
+    }
+    return null;
   }
 
   drain(): DryRunOperation[] {
@@ -119,7 +134,13 @@ export function createDryRunFileSystem(
       path: string,
       options?: { recursive?: boolean }
     ): Promise<void> {
-      recorder.record({ type: "mkdir", path, options });
+      recorder.record({
+        type: "mkdir",
+        path,
+        options,
+        // Matches how the mutation layer itself decides the mkdir is a no-op.
+        existing: await pathExists(base, path)
+      });
     },
     async stat(path: string) {
       return base.stat(path);
@@ -128,6 +149,16 @@ export function createDryRunFileSystem(
       return base.lstat(path);
     },
     async rename(from: string, to: string): Promise<void> {
+      const staged = recorder.takeStagedWrite(from);
+      if (staged) {
+        recorder.record({
+          type: "writeFile",
+          path: to,
+          nextContent: staged.nextContent,
+          previousContent: await tryReadText(base, to)
+        });
+        return;
+      }
       recorder.record({ type: "rename", from, to });
     },
     async unlink(path: string): Promise<void> {
@@ -170,7 +201,7 @@ export function formatDryRunOperations(
   }
 
   const lines: string[] = [];
-  for (const operation of operations) {
+  for (const operation of coalesceWrites(operations)) {
     const formatted = formatOperation(operation);
     if (Array.isArray(formatted)) {
       if (formatted.length === 0) {
@@ -186,11 +217,42 @@ export function formatDryRunOperations(
   return lines;
 }
 
+// A manifest may write the same target several times (e.g. transform then
+// merge). Every write is staged against the same untouched baseline, so only
+// the last content is the outcome: report one baseline-to-final change per path.
+function coalesceWrites(operations: DryRunOperation[]): DryRunOperation[] {
+  const result: DryRunOperation[] = [];
+  const writeIndexByPath = new Map<string, number>();
+
+  for (const operation of operations) {
+    if (operation.type !== "writeFile") {
+      result.push(operation);
+      continue;
+    }
+    const existingIndex = writeIndexByPath.get(operation.path);
+    if (existingIndex === undefined) {
+      writeIndexByPath.set(operation.path, result.length);
+      result.push(operation);
+      continue;
+    }
+    const first = result[existingIndex] as Extract<DryRunOperation, { type: "writeFile" }>;
+    result[existingIndex] = {
+      ...first,
+      nextContent: operation.nextContent
+    };
+  }
+
+  return result;
+}
+
 function formatOperation(operation: DryRunOperation): string | string[] {
   switch (operation.type) {
     case "mkdir": {
       const recursiveFlag = operation.options?.recursive ? " -p" : "";
       const command = `mkdir${recursiveFlag} ${quoteShellArgument(operation.path)}`;
+      if (operation.existing === true) {
+        return renderOperationCommand(command, chalk.dim, "# exists");
+      }
       return renderOperationCommand(command, chalk.cyan, "# ensure");
     }
     case "unlink":
@@ -538,6 +600,18 @@ function redactSecretValueTokens(line: string): string {
 
 function isSecretTokenChar(char: string): boolean {
   return isKeyNameChar(char) || char === "." || char === "~" || char === "+" || char === "/";
+}
+
+// Whether an operation would actually alter the filesystem, so a preview can
+// tell the user that an already-configured agent needs no changes.
+export function describesChange(operation: DryRunOperation): boolean {
+  if (operation.type === "writeFile") {
+    return operation.previousContent !== operation.nextContent;
+  }
+  if (operation.type === "mkdir") {
+    return operation.existing !== true;
+  }
+  return true;
 }
 
 async function tryReadText(

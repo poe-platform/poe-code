@@ -1,6 +1,7 @@
 import {
   DryRunRecorder,
   createDryRunFileSystem,
+  describesChange,
   formatDryRunOperations
 } from "../utils/dry-run.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -85,12 +86,17 @@ export function createCommandContextFactory(
     const recorder = new DryRunRecorder();
     const proxyFs = createDryRunFileSystem(fs, recorder);
     const recordedCommands = new Set<string>();
-    let hasEmittedOperations = false;
+    let hasEmittedChanges = false;
 
     const flush = (emitIfEmpty = false): void => {
       const operations = recorder.drain();
+      // No-op operations must not suppress the summary: an agent that is already
+      // configured still ensures directories and rewrites identical content.
+      if (operations.some(describesChange)) {
+        hasEmittedChanges = true;
+      }
       if (operations.length === 0) {
-        if (emitIfEmpty && !hasEmittedOperations) {
+        if (emitIfEmpty && !hasEmittedChanges) {
           const lines = formatDryRunOperations(operations);
           for (const line of lines) {
             options.logger.info(line);
@@ -98,7 +104,6 @@ export function createCommandContextFactory(
         }
         return;
       }
-      hasEmittedOperations = true;
 
       for (const line of formatDryRunOperations(operations)) {
         const base = extractBaseCommand(line);

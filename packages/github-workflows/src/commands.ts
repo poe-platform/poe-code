@@ -325,10 +325,11 @@ const installCommand = defineCommand({
           );
         }
       } else {
-        logger.success(`Installed ${result.installations.length} workflows.`);
-        for (const installation of result.installations) {
-          logger.message(installation.workflowPath);
-        }
+        logger.success(`${action} ${result.installations.length} workflows.`);
+        note(
+          result.installations.map((installation) => installation.workflowPath).join("\n"),
+          "Workflows"
+        );
       }
       logger.message(`Shared variables ${result.dryRun === true ? "would be written" : "written"} to ${result.variablesPath}`);
       logger.message(`Command reference ${result.dryRun === true ? "would be written" : "written"} to ${result.readmePath}`);

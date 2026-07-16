@@ -212,6 +212,10 @@ function compactUrl(value: string): string {
   }
 }
 
+function stackedList(value: unknown[]): string {
+  return value.map((entry) => displayScalar(entry)).join("\n") || "—";
+}
+
 function displayRowValue(value: unknown): string {
   return isUrl(value) ? compactUrl(value) : displayScalar(value);
 }
@@ -257,7 +261,7 @@ function renderObjectCard(
   const arrayObjectSections = directArrayObjectSections(result);
   const listRows = Object.entries(result)
     .filter(([, value]) => Array.isArray(value) && !isNonEmptyArrayOfObjects(value))
-    .map(([key, value]) => ({ label: humanizeKey(key), value: displayScalar(value) }));
+    .map(([key, value]) => ({ label: humanizeKey(key), value: stackedList(value as unknown[]) }));
 
   return renderDetailCard({
     theme: primitives.getTheme(),

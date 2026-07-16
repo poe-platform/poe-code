@@ -130,6 +130,24 @@ describe("renderResult auto renderer", () => {
     ].join("\n"));
   });
 
+  it("stacks list values one entry per line instead of joining them", () => {
+    expect(render({
+      created: [
+        "/Users/dev/.poe-code/code-review/profiles/generic.md",
+        "/Users/dev/.poe-code/code-review/prompts/orchestrator.md"
+      ],
+      skipped: []
+    }).stdout).toBe([
+      "Show result",
+      "",
+      "Lists",
+      "Created  /Users/dev/.poe-code/code-review/profiles/generic.md",
+      "         /Users/dev/.poe-code/code-review/prompts/orchestrator.md",
+      "Skipped  —",
+      ""
+    ].join("\n"));
+  });
+
   it("renders nested object arrays as repeated detail sections", () => {
     expect(render({
       message_id: 488587457099,

@@ -8,7 +8,7 @@ import { formatCommandNotFoundPanel } from "./command-errors.js";
 import { color } from "./color.js";
 import { createLogger } from "./logger.js";
 import { symbols } from "./symbols.js";
-import { renderTable } from "./table.js";
+import { loggerTableWidth, renderTable } from "./table.js";
 import { text } from "./text.js";
 import type { ThemePalette } from "../tokens/colors.js";
 
@@ -402,6 +402,129 @@ describe("renderTable", () => {
         │ super-… │
         └─────────┘"
       `);
+    });
+
+    it("budgets the whole table to maxWidth by shrinking the widest columns", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Provider", title: "Provider", alignment: "left", maxLen: 20 },
+          { name: "Status", title: "Status", alignment: "left", maxLen: 14 },
+          { name: "Env", title: "Env", alignment: "left", maxLen: 34 },
+          { name: "API shapes", title: "API shapes", alignment: "left", maxLen: 52 },
+          { name: "Agents", title: "Agents", alignment: "left", maxLen: 60 },
+        ],
+        rows: [
+          {
+            Provider: "cloudflare",
+            Status: "[-]",
+            Env: "CF_AIG_TOKEN, CF_AIG_BASE_URL",
+            "API shapes": "chat-completions, responses, messages, generations",
+            Agents: "claude-code, codex, gemini-cli, goose, kimi, opencode, poe-agent",
+          },
+        ],
+        maxWidth: 60,
+      });
+
+      const lines = stripAnsi(result).split("\n");
+      expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(60);
+      expect(lines).toHaveLength(5);
+    });
+
+    it("budgets the table to the terminal width when maxWidth is absent", () => {
+      const columnsDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+      Object.defineProperty(process.stdout, "columns", { configurable: true, value: 40 });
+
+      try {
+        const result = renderTable({
+          theme,
+          columns: [
+            { name: "Provider", title: "Provider", alignment: "left", maxLen: 20 },
+            { name: "Env", title: "Env", alignment: "left", maxLen: 34 },
+            { name: "Agents", title: "Agents", alignment: "left", maxLen: 60 },
+          ],
+          rows: [{ Provider: "cloudflare", Env: "CF_AIG_TOKEN", Agents: "claude-code, codex, goose" }],
+        });
+
+        const lines = stripAnsi(result).split("\n");
+        expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(40);
+      } finally {
+        if (columnsDescriptor) {
+          Object.defineProperty(process.stdout, "columns", columnsDescriptor);
+        } else {
+          delete (process.stdout as { columns?: number }).columns;
+        }
+      }
+    });
+
+    it("keeps narrow columns at their declared width when the budget allows", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Name", title: "Name", alignment: "left", maxLen: 6 },
+          { name: "Detail", title: "Detail", alignment: "left", maxLen: 40 },
+        ],
+        rows: [{ Name: "alpha", Detail: "a fairly long detail value that overflows" }],
+        maxWidth: 30,
+      });
+
+      expect(stripAnsi(result)).toBe([
+        "┌────────┬───────────────────┐",
+        "│ Name   │ Detail            │",
+        "├────────┼───────────────────┤",
+        "│ alpha  │ a fairly long de… │",
+        "└────────┴───────────────────┘",
+      ].join("\n"));
+    });
+
+    it("fits a logger-emitted table inside the terminal, gutter included", () => {
+      const columnsDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+      Object.defineProperty(process.stdout, "columns", { configurable: true, value: 60 });
+
+      try {
+        const table = renderTable({
+          theme,
+          columns: [
+            { name: "Provider", title: "Provider", alignment: "left", maxLen: 20 },
+            { name: "Env", title: "Env", alignment: "left", maxLen: 34 },
+            { name: "Agents", title: "Agents", alignment: "left", maxLen: 60 },
+          ],
+          rows: [
+            {
+              Provider: "cloudflare",
+              Env: "CF_AIG_TOKEN, CF_AIG_BASE_URL",
+              Agents: "claude-code, codex, gemini-cli, goose, kimi, opencode",
+            },
+          ],
+          maxWidth: loggerTableWidth(),
+        });
+
+        const output = captureStdout(() => {
+          createLogger().info(table);
+        });
+        const lines = stripAnsi(output).split("\n");
+
+        expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(60);
+      } finally {
+        if (columnsDescriptor) {
+          Object.defineProperty(process.stdout, "columns", columnsDescriptor);
+        } else {
+          delete (process.stdout as { columns?: number }).columns;
+        }
+      }
+    });
+
+    it("leaves the table unbudgeted when there is no terminal to fit", () => {
+      const columnsDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+      delete (process.stdout as { columns?: number }).columns;
+
+      try {
+        expect(loggerTableWidth()).toBeUndefined();
+      } finally {
+        if (columnsDescriptor) {
+          Object.defineProperty(process.stdout, "columns", columnsDescriptor);
+        }
+      }
     });
 
     it("aligns left, center, and right columns", () => {

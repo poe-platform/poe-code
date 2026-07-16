@@ -15,7 +15,7 @@ import {
   resolveServiceAdapter,
   warnApiKeyFlag
 } from "./shared.js";
-import { getTheme, renderTable } from "toolcraft-design";
+import { getTheme, loggerTableWidth, renderTable } from "toolcraft-design";
 import type { AuthProvider } from "@poe-code/providers";
 import { confirmDestructive } from "./confirm-destructive.js";
 import { providerCredentialFileName } from "../provider-auth-storage.js";
@@ -113,7 +113,7 @@ async function executeProviderList(program: Command, container: CliContainer): P
     { name: "Agents", title: "Agents", alignment: "left" as const, maxLen: 60 }
   ];
 
-  resources.logger.info(renderTable({ theme, columns, rows }));
+  resources.logger.info(renderTable({ theme, columns, rows, maxWidth: loggerTableWidth() }));
 }
 
 async function executeProviderLogin(

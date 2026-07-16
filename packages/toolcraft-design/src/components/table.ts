@@ -29,6 +29,7 @@ interface ComputedColumn {
 
 const reset = "\x1b[0m";
 const ellipsis = "…";
+const minCellWidth = 4;
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
 function getCell(row: Record<string, string>, name: string): string {
@@ -238,6 +239,60 @@ function computeColumns(columns: TableColumn[]): ComputedColumn[] {
   }));
 }
 
+// Each column is framed as "│ cell ", plus the closing "│".
+function frameWidth(columnCount: number): number {
+  return columnCount * 3 + 1;
+}
+
+// Log output indents every line with a "│  " guide, so a table emitted through the
+// logger has that much less room than the terminal. Undefined without a terminal:
+// piped output has no width to fit.
+export function loggerTableWidth(): number | undefined {
+  const columns = process.stdout.columns;
+  return columns === undefined ? undefined : columns - 3;
+}
+
+// Without an explicit budget or a TTY there is no width to fit: the consumer of the
+// piped output decides, so columns keep their declared widths.
+function budgetColumns(columns: ComputedColumn[], maxWidth: number | undefined): ComputedColumn[] {
+  if (maxWidth === undefined) {
+    return columns;
+  }
+
+  const available = maxWidth - frameWidth(columns.length);
+  const contentWidth = (cap: number) =>
+    columns.reduce((total, column) => total + Math.min(column.width, cap), 0);
+
+  if (columns.reduce((total, column) => total + column.width, 0) <= available) {
+    return columns;
+  }
+
+  // Widest-first: raise a shared cap as far as the budget allows, so narrow columns
+  // keep their declared width and only the columns above the cap lose room.
+  let cap = minCellWidth;
+  while (contentWidth(cap + 1) <= available) {
+    cap += 1;
+  }
+
+  const budgeted = columns.map((column) => ({ ...column, width: Math.min(column.width, cap) }));
+  let slack = available - contentWidth(cap);
+  while (slack > 0) {
+    const growable = budgeted.filter((column, index) => column.width < columns[index]!.width);
+    if (growable.length === 0) {
+      break;
+    }
+    for (const column of growable) {
+      if (slack === 0) {
+        break;
+      }
+      column.width += 1;
+      slack -= 1;
+    }
+  }
+
+  return budgeted;
+}
+
 function renderBorder(
   columns: ComputedColumn[],
   theme: ThemePalette,
@@ -348,14 +403,16 @@ function renderTableTerminal(options: RenderTableOptions): string {
   const includeRowSeparators =
     separatorOptions.rowSeparator === true || separatorOptions.rowSeparators === true;
 
-  const top = renderBorder(computedColumns, theme, { left: "┌", mid: "┬", right: "┐" });
+  const budgetedColumns = budgetColumns(computedColumns, options.maxWidth ?? process.stdout.columns);
+
+  const top = renderBorder(budgetedColumns, theme, { left: "┌", mid: "┬", right: "┐" });
   const header = renderTerminalRow(
-    computedColumns.map((column) => theme.header(column.title)),
-    computedColumns,
+    budgetedColumns.map((column) => theme.header(column.title)),
+    budgetedColumns,
     theme
   );
-  const headerBottom = renderBorder(computedColumns, theme, { left: "├", mid: "┼", right: "┤" });
-  const bottom = renderBorder(computedColumns, theme, { left: "└", mid: "┴", right: "┘" });
+  const headerBottom = renderBorder(budgetedColumns, theme, { left: "├", mid: "┼", right: "┤" });
+  const bottom = renderBorder(budgetedColumns, theme, { left: "└", mid: "┴", right: "┘" });
 
   const renderedRows: string[] = [];
   for (const [index, row] of rows.entries()) {
@@ -364,8 +421,8 @@ function renderTableTerminal(options: RenderTableOptions): string {
     }
     renderedRows.push(
       renderTerminalRow(
-        computedColumns.map((column) => getCell(row, column.name)),
-        computedColumns,
+        budgetedColumns.map((column) => getCell(row, column.name)),
+        budgetedColumns,
         theme
       )
     );

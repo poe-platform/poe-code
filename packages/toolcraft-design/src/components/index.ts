@@ -25,7 +25,7 @@ export type {
 } from "./help-formatter.js";
 export { formatCommandNotFound } from "./command-errors.js";
 export { formatCommandNotFoundPanel } from "./command-errors.js";
-export { renderTable } from "./table.js";
+export { loggerTableWidth, renderTable } from "./table.js";
 export type { TableColumn, RenderTableOptions } from "./table.js";
 export { renderFileChanges } from "./file-changes.js";
 export type {

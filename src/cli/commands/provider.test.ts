@@ -122,6 +122,37 @@ describe("provider list", () => {
     expect(output).toContain("[-]");
   });
 
+  it("keeps every table line inside the terminal width", async () => {
+    const columnsDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+    Object.defineProperty(process.stdout, "columns", { configurable: true, value: 60 });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+
+    try {
+      const program = createBaseProgram();
+      registerProviderCommand(program, container);
+
+      await program.parseAsync(["node", "cli", "provider", "list"]);
+
+      const tableLines = logs
+        .join("\n")
+        .replaceAll(/\u001b\[[0-9;]*m/g, "")
+        .split("\n")
+        .filter((line) => line.includes("│") || line.includes("┌"));
+
+      expect(tableLines.length).toBeGreaterThan(0);
+      // 60 columns minus the logger's "│  " gutter.
+      expect(Math.max(...tableLines.map((line) => line.length))).toBeLessThanOrEqual(57);
+    } finally {
+      if (columnsDescriptor) {
+        Object.defineProperty(process.stdout, "columns", columnsDescriptor);
+      } else {
+        delete (process.stdout as { columns?: number }).columns;
+      }
+    }
+  });
+
   it("does not migrate legacy credentials while previewing provider list", async () => {
     await storeTestApiKey(fs, homeDir, "legacy-key");
     const logs: string[] = [];

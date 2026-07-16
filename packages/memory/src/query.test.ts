@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
+import { MEMORY_AGENT_JSON_CONTRACT } from "./agent-response.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -263,6 +264,42 @@ describe("queryMemory", () => {
       "claude-code",
       expect.objectContaining({ model: "Claude-Sonnet-4.5" })
     );
+  });
+
+  it("states the JSON contract the response is parsed against", async () => {
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({ answer: "ok", citations: [], tokensUsed: 1 }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/note.md": "# Note\n\nbody\n"
+    });
+
+    await queryMemory("/repo/.poe-code/memory", { question: "what?", budget: 4096 });
+
+    expect(mockedAgentSpawn.spawnMock!.spawn.mock.calls[0]?.[1]?.prompt).toContain(
+      MEMORY_AGENT_JSON_CONTRACT
+    );
+  });
+
+  it("surfaces agent stderr when the agent answers with prose instead of JSON", async () => {
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: "Sure! Here is what I found.",
+      stderr: "warning: model unavailable",
+      exitCode: 0
+    });
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/note.md": "# Note\n\nbody\n"
+    });
+
+    await expect(
+      queryMemory("/repo/.poe-code/memory", { question: "what?", budget: 4096 })
+    ).rejects.toThrow('stderr: "warning: model unavailable"');
   });
 
   it("rejects malformed agent citations and impossible token counts", async () => {

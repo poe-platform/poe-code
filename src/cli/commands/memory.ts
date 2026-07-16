@@ -170,10 +170,10 @@ function resolveEditor(container: CliContainer): string {
   return editor.trim();
 }
 
-function resolveIngestSource(
+async function resolveIngestSource(
   cwd: string,
   input: string
-): { kind: "url"; url: string } | { kind: "file"; absPath: string } {
+): Promise<{ kind: "url"; url: string } | { kind: "file"; absPath: string }> {
   try {
     const url = new URL(input);
     if (url.protocol === "http:" || url.protocol === "https:") {
@@ -184,7 +184,20 @@ function resolveIngestSource(
       throw error;
     }
   }
-  return { kind: "file", absPath: path.resolve(cwd, input) };
+
+  const absPath = path.resolve(cwd, input);
+  try {
+    await fs.stat(absPath);
+  } catch (error) {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
+      throw error;
+    }
+    throw new ValidationError(
+      `Source not found: ${absPath}. Provide a readable file path or an http(s) URL.`
+    );
+  }
+
+  return { kind: "file", absPath };
 }
 
 export function registerMemoryCommand(program: Command, container: CliContainer): void {
@@ -415,7 +428,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       await assertInitialized(mem);
       const timeoutMs = parseDecimalNonNegativeInteger(options.timeoutMs, "Timeout");
       const result = await mem.ingest({
-        source: resolveIngestSource(container.env.cwd, source),
+        source: await resolveIngestSource(container.env.cwd, source),
         agent: options.agent,
         reason: options.reason,
         timeoutMs,

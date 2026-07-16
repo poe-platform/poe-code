@@ -548,6 +548,7 @@ describe("memory command", () => {
     };
     memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
     memoryModuleMocks.installMemoryMock.mockResolvedValue({ skillInstalled: true, mcpConfigured: true });
+    vol.fromJSON({ "/repo/docs/source.md": "hello world" });
     const program = createBaseProgram();
     registerMemoryCommand(program, createContainer());
     const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -588,6 +589,26 @@ describe("memory command", () => {
     expect(memoryModuleMocks.installMemoryMock).toHaveBeenCalledWith(
       expect.objectContaining({ agent: "codex", skillOnly: true, force: true })
     );
+  });
+
+  it("names the source it searched for when the ingest file is missing", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      ingest: vi.fn()
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+
+    const rejection = await program
+      .parseAsync(["node", "cli", "--yes", "memory", "ingest", "docs/absent.md"])
+      .then(() => undefined)
+      .catch((error: unknown) => error);
+
+    expect((rejection as Error).message).toContain("Source not found: /repo/docs/absent.md");
+    expect((rejection as Error).message).toContain("URL");
+    expect((rejection as Error).message).not.toContain("ENOENT");
+    expect(handle.ingest).not.toHaveBeenCalled();
   });
 
   it("rejects non-decimal ingest timeout values", async () => {

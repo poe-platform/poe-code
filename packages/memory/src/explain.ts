@@ -3,7 +3,7 @@ import path from "node:path";
 import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
-import { parseMemoryAgentResponse } from "./agent-response.js";
+import { MEMORY_AGENT_JSON_CONTRACT, parseMemoryAgentResponse } from "./agent-response.js";
 import { hasOwnErrorCode } from "./errors.js";
 import { readPage } from "./pages.js";
 import { selectQueryContext } from "./query.js";
@@ -50,7 +50,7 @@ export async function explainPage(
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
   const spawned = await spawn(agentId, { prompt, model: options.model });
-  const response = parseMemoryAgentResponse(spawned.stdout);
+  const response = parseMemoryAgentResponse(spawned.stdout, { stderr: spawned.stderr });
 
   return {
     answer: response.answer,
@@ -91,6 +91,7 @@ function buildExplainPrompt(targetRelPath: string, pages: MemoryPage[]): string 
     "Return a 1-2 paragraph explanation plus the important inbound/outbound links.",
     "Cite pages and sections with [rel_path §section]. If memory is insufficient, say so.",
     "No tools are available.",
+    MEMORY_AGENT_JSON_CONTRACT,
     "",
     `Target page: ${targetRelPath}`,
     "",

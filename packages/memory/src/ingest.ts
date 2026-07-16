@@ -2,7 +2,9 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "@poe-code/agent-spawn";
 import { cacheEnabled, configuredTimeout, resolveAgent } from "@poe-code/poe-code-config";
+import { UserError } from "@poe-code/user-error";
 import { computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
+import { hasOwnErrorCode } from "./errors.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import { computeTokenStats } from "./tokens.js";
@@ -149,7 +151,12 @@ async function materializeSource(source: IngestOptions["source"]): Promise<{
   text: string;
 }> {
   if (source.kind === "file") {
-    const bytes = await fs.readFile(source.absPath);
+    const bytes = await fs.readFile(source.absPath).catch((error: unknown) => {
+      if (hasOwnErrorCode(error, "ENOENT")) {
+        throw new UserError(`Source not found: ${source.absPath}. Provide a readable file path or an http(s) URL.`);
+      }
+      throw error;
+    });
     return {
       label: source.absPath,
       bytes,

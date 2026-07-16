@@ -157,6 +157,21 @@ describe("ingest", () => {
     expect(result).toMatchObject({ cacheHit: false, exitCode: 0, durationMs: 0 });
   });
 
+  it("names the missing file as a user error instead of leaking ENOENT", async () => {
+    const rejection = await ingest(
+      "/repo/.poe-code/memory",
+      { source: { kind: "file", absPath: "/repo/docs/absent.md" }, dryRun: true },
+      runners
+    ).catch((error: unknown) => error);
+
+    expect(rejection).toBeInstanceOf(Error);
+    expect((rejection as Error).name).toBe("UserError");
+    expect((rejection as Error).message).toContain("/repo/docs/absent.md");
+    expect((rejection as Error).message).not.toContain("ENOENT");
+    expect(computeIngestKeyMock).not.toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
+  });
+
   it("rejects failed URL source responses", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("missing", { status: 404 })));
 

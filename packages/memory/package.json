@@ -26,6 +26,7 @@
     "@poe-code/config-mutations": "*",
     "@poe-code/frontmatter": "*",
     "@poe-code/poe-code-config": "*",
+    "@poe-code/user-error": "*",
     "tiny-stdio-mcp-server": "*",
     "tokenfill": "*"
   }

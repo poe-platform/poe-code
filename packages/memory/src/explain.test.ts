@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
+import { MEMORY_AGENT_JSON_CONTRACT } from "./agent-response.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -242,6 +243,48 @@ describe("explainPage", () => {
         budget: 1
       })
     ).rejects.toThrow(/budget too small/i);
+  });
+
+  it("states the JSON contract the response is parsed against", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/packages/superintendent.md": "# Superintendent\n"
+    });
+
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({ answer: "ok", citations: [], tokensUsed: 1 }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    await explainPage("/repo/.poe-code/memory", {
+      relPath: "pages/packages/superintendent.md",
+      budget: 4096
+    });
+
+    expect(mockedAgentSpawn.spawnMock!.spawn.mock.calls[0]?.[1]?.prompt).toContain(
+      MEMORY_AGENT_JSON_CONTRACT
+    );
+  });
+
+  it("surfaces agent stderr when the agent answers with prose instead of JSON", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/packages/superintendent.md": "# Superintendent\n"
+    });
+
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: "Here is the summary you asked for.",
+      stderr: "warning: model unavailable",
+      exitCode: 0
+    });
+
+    await expect(
+      explainPage("/repo/.poe-code/memory", {
+        relPath: "pages/packages/superintendent.md",
+        budget: 4096
+      })
+    ).rejects.toThrow('stderr: "warning: model unavailable"');
   });
 
   it("rejects malformed agent citations and impossible token counts", async () => {

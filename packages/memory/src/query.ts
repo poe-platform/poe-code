@@ -3,7 +3,7 @@ import path from "node:path";
 import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
-import { parseMemoryAgentResponse } from "./agent-response.js";
+import { MEMORY_AGENT_JSON_CONTRACT, parseMemoryAgentResponse } from "./agent-response.js";
 import { listPages } from "./pages.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
@@ -47,7 +47,7 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
     model: options.model,
     activityTimeoutMs: options.activityTimeoutMs ?? DEFAULT_QUERY_ACTIVITY_TIMEOUT_MS
   });
-  const result = parseMemoryAgentResponse(spawned.stdout);
+  const result = parseMemoryAgentResponse(spawned.stdout, { stderr: spawned.stderr });
 
   return {
     answer: result.answer,
@@ -145,6 +145,7 @@ function buildQueryPrompt(question: string, indexText: string, pages: MemoryPage
     "Answer using only the provided memory pages.",
     "Cite pages and sections with [rel_path §section]. If memory does not answer the question, say so.",
     "No tools are available.",
+    MEMORY_AGENT_JSON_CONTRACT,
     "",
     `Question: ${question}`,
     "",

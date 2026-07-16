@@ -80,6 +80,10 @@ export const geminiCliService = createProvider<
       }
     }
   },
+  runtimeEnv: {
+    GEMINI_API_KEY: { kind: "providerCredential" },
+    GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" }
+  },
   isolatedEnv: {
     agentBinary: "gemini",
     configProbe: { kind: "isolatedFile", relativePath: "settings.json" },

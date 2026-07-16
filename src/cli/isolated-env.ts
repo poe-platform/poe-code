@@ -21,6 +21,14 @@ export interface IsolatedEnvDetails {
   configProbePath?: string;
 }
 
+function missingActiveProviderError(reference: string): Error {
+  return new Error(
+    `Cannot resolve "${reference}": no provider is configured for this agent. ` +
+      "Run `poe-code configure <agent> --provider <provider>` first, " +
+      "adding `--base-url <url>` when the provider requires a gateway base URL."
+  );
+}
+
 export async function resolveIsolatedEnvDetails(
   env: CliEnvironment,
   isolated: ProviderIsolatedEnv,
@@ -128,19 +136,19 @@ async function resolveIsolatedEnvValue(
   }
   if (isProviderCredentialReference(value)) {
     if (!activeProvider) {
-      throw new Error('Cannot resolve "providerCredential": no active provider on context.');
+      throw missingActiveProviderError("providerCredential");
     }
     return `${value.prefix ?? ""}${activeProvider.credential}`;
   }
   if (isProviderBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw new Error('Cannot resolve "providerBaseUrl": no active provider on context.');
+      throw missingActiveProviderError("providerBaseUrl");
     }
     return activeProvider.baseUrl;
   }
   if (isAgentBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw new Error('Cannot resolve "agentBaseUrl": no active provider on context.');
+      throw missingActiveProviderError("agentBaseUrl");
     }
     return activeProvider.agentBaseUrl;
   }
@@ -271,19 +279,19 @@ async function resolveCliSettingValue(
 ): Promise<string> {
   if (isProviderCredentialReference(value)) {
     if (!activeProvider) {
-      throw new Error('Cannot resolve "providerCredential": no active provider on context.');
+      throw missingActiveProviderError("providerCredential");
     }
     return `${value.prefix ?? ""}${activeProvider.credential}`;
   }
   if (isProviderBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw new Error('Cannot resolve "providerBaseUrl": no active provider on context.');
+      throw missingActiveProviderError("providerBaseUrl");
     }
     return activeProvider.baseUrl;
   }
   if (isAgentBaseUrlReference(value)) {
     if (!activeProvider) {
-      throw new Error('Cannot resolve "agentBaseUrl": no active provider on context.');
+      throw missingActiveProviderError("agentBaseUrl");
     }
     return activeProvider.agentBaseUrl;
   }

@@ -37,6 +37,17 @@ describe("resolveIsolatedEnvDetails", () => {
       expect(details.env.MY_KEY).toBe("test-credential-secret");
     });
 
+    it("names the configure recovery path when no active provider is present", async () => {
+      const failure = resolveIsolatedEnvDetails(
+        makeEnv(),
+        { ...baseIsolated, env: { MY_KEY: { kind: "providerCredential" as const } } },
+        "test-service"
+      );
+      await expect(failure).rejects.toThrow(/poe-code configure/);
+      await expect(failure).rejects.toThrow(/--provider/);
+      await expect(failure).rejects.toThrow(/--base-url/);
+    });
+
     it("supports a declarative prefix", async () => {
       const details = await resolveIsolatedEnvDetails(
         makeEnv(),

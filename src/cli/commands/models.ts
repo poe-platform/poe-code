@@ -65,7 +65,28 @@ interface ModelsCommandOptions {
   output?: string;
   tools?: boolean;
   since?: string;
+  limit?: string;
   view: ModelViewName;
+}
+
+const DEFAULT_MODEL_LIMIT = 50;
+
+function parseLimit(value: string | undefined): number {
+  if (value === undefined) {
+    return DEFAULT_MODEL_LIMIT;
+  }
+
+  const trimmed = value.trim();
+  const isDigits = trimmed.length > 0 &&
+    [...trimmed].every((character) => character >= "0" && character <= "9");
+  const limit = isDigits ? Number.parseInt(trimmed, 10) : 0;
+  if (limit <= 0) {
+    throw new ValidationError(
+      `Invalid --limit value "${value}". Expected a positive integer.`
+    );
+  }
+
+  return limit;
 }
 
 function formatTokenCount(tokens: number): string {
@@ -321,6 +342,7 @@ export function registerModelsCommand(
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
     .option("--tools", "Show only models with tool support")
     .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
+    .option("--limit <n>", `Maximum models listed, newest first (default ${DEFAULT_MODEL_LIMIT})`)
     .addOption(
       new Option(
         "--view <name>",
@@ -341,6 +363,7 @@ export function registerModelsCommand(
       "  --output     Comma-separated output modalities: text, image, audio",
       "  --tools      Shorthand for --feature tools",
       "  --since      Duration: s, m, h, d, w, mo, y (e.g. 7d, 2w, 3mo, 1y)",
+      `  --limit      Maximum models listed, newest first (default ${DEFAULT_MODEL_LIMIT})`,
       "",
       "Views:",
       "  capabilities  Model features, modalities, and context window (default)",
@@ -355,7 +378,8 @@ export function registerModelsCommand(
       "  $ poe-code models --input image --view pricing",
       "  $ poe-code models --search claude --view parameters",
       "  $ poe-code models --model anthropic/claude-opus-4.7 --view raw",
-      "  $ poe-code models --since 2w --output text"
+      "  $ poe-code models --since 2w --output text",
+      "  $ poe-code models --provider openai --limit 10"
     ].join("\n"))
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
@@ -372,6 +396,7 @@ export function registerModelsCommand(
       }
 
       const sinceDuration = parseSinceDuration(commandOptions.since);
+      const limit = parseLimit(commandOptions.limit);
       const providerFilter = commandOptions.provider !== undefined
         ? normalizeRequiredFilter("--provider", commandOptions.provider)
         : undefined;
@@ -525,6 +550,9 @@ export function registerModelsCommand(
 
       filtered.sort((a, b) => b.created - a.created);
 
+      const matchCount = filtered.length;
+      filtered = filtered.slice(0, limit);
+
       if (rawView) {
         writeYaml(filtered.map(toRawModel));
         return;
@@ -626,5 +654,11 @@ export function registerModelsCommand(
       }
 
       resources.logger.info(renderTable({ theme, columns, rows }));
+
+      if (filtered.length < matchCount) {
+        resources.logger.info(
+          `showing ${filtered.length} of ${matchCount} models (--limit ${limit}); narrow with filters or raise --limit`
+        );
+      }
     });
 }

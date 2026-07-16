@@ -1590,6 +1590,130 @@ describe("models command", () => {
     expect(output).not.toContain("voice-049");
   });
 
+  it("caps unfiltered output at the default limit and reports the truncation", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = Array.from({ length: 55 }, (_, i) =>
+      createModelEntry({
+        id: `model-${String(i).padStart(2, "0")}`,
+        owned_by: "A",
+        created: 1_800_000_000_000 - i * 1000
+      })
+    );
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs });
+
+    expect(output).toContain("a/model-00");
+    expect(output).toContain("a/model-49");
+    expect(output).not.toContain("a/model-50");
+    expect(output).toContain("showing 50 of 55 models");
+  });
+
+  it("--limit caps rendered rows to the newest models", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "newest", owned_by: "A", created: 1_800_000_000_000 }),
+      createModelEntry({ id: "middle", owned_by: "A", created: 1_700_000_000_000 }),
+      createModelEntry({ id: "oldest", owned_by: "A", created: 1_600_000_000_000 })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--limit", "2"] });
+
+    expect(output).toContain("a/newest");
+    expect(output).toContain("a/middle");
+    expect(output).not.toContain("a/oldest");
+    expect(output).toContain("showing 2 of 3 models");
+  });
+
+  it("omits the truncation footer when every model is rendered", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: [createModelEntry({ id: "only", owned_by: "A" })] })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--limit", "5"] });
+
+    expect(output).toContain("a/only");
+    expect(output).not.toContain("showing");
+  });
+
+  it("rejects non-positive-integer --limit values before fetching", async () => {
+    for (const value of ["0", "-1", "abc", "1.5", ""]) {
+      await expect(
+        runModels({ fs, httpClient, logs, args: ["--limit", value] })
+      ).rejects.toBeInstanceOf(ValidationError);
+    }
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
+  it("--view parameters applies the limit instead of dumping every model", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "newest",
+        owned_by: "A",
+        created: 1_800_000_000_000,
+        parameters: [{ name: "temperature", schema: { type: "number", minimum: 0, maximum: 2 } }]
+      }),
+      createModelEntry({
+        id: "oldest",
+        owned_by: "A",
+        created: 1_600_000_000_000,
+        parameters: [{ name: "top_p", schema: { type: "number", minimum: 0, maximum: 1 } }]
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--view", "parameters", "--limit", "1"]
+    });
+
+    expect(output).toContain("a/newest");
+    expect(output).toContain("temperature");
+    expect(output).not.toContain("a/oldest");
+    expect(output).toContain("showing 1 of 2 models");
+  });
+
+  it("--view raw honors --limit without emitting the footer", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "newest", owned_by: "A", created: 1_800_000_000_000 }),
+      createModelEntry({ id: "oldest", owned_by: "A", created: 1_600_000_000_000 })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModelsWithStdout({
+      fs,
+      httpClient,
+      args: ["--view", "raw", "--limit", "1"]
+    });
+
+    expect(yamlParse(output)).toEqual([expect.objectContaining({ id: "newest" })]);
+    expect(output).not.toContain("showing");
+  });
+
   it("--view parameters truncates long default values", async () => {
     fs = await createConfigVolume("test-key");
     const models = [

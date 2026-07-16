@@ -172,9 +172,20 @@ function formatCanonicalCommandPath(cmd: Command): string {
 }
 
 function formatCanonicalCommandUsage(cmd: Command): string {
-  const usage = formatUsage(cmd.usage(), ["[command]"]);
-  const commandPath = formatCanonicalCommandPath(cmd);
-  return usage.length > 0 ? `${commandPath} ${usage}` : commandPath;
+  const usageParts = splitUsageParts(cmd.usage()).flatMap((part) => {
+    if (part === "[command]") {
+      // A group with no positionals of its own is reachable only through a subcommand: say so
+      // with the placeholder the root help uses. One that takes positionals also runs
+      // standalone, so its own arguments describe it better than a raw placeholder.
+      return cmd.registeredArguments.length === 0 ? ["<command>"] : [];
+    }
+    // Commander emits [options] for the implicit --help alone; only advertise real flags.
+    if (part === "[options]" && cmd.options.length === 0) {
+      return [];
+    }
+    return [part];
+  });
+  return [formatCanonicalCommandPath(cmd), ...usageParts].join(" ");
 }
 
 function formatHelpItem(input: {
@@ -826,6 +837,7 @@ export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
   const program = bootstrapProgram(container);
 
+  suppressImplicitHelpCommands(program);
   interceptUnknownHelpPaths(program, container);
 
   // Help and version exits are not errors: callers that asked for exitOverride
@@ -846,43 +858,55 @@ export function createProgram(dependencies: CliDependencies): Command {
   return program;
 }
 
+// Commander renders help before it rejects an unknown command, so `<group> <typo> --help`
+// would answer with the group's own help and exit 0. Reject the typo first, at any depth.
+function assertKnownHelpPath(program: Command, container: CliContainer, argv: string[]): void {
+  let target = program;
+  const path: string[] = [];
+
+  for (const token of argv.filter((arg) => !arg.startsWith("-"))) {
+    if (target.commands.length === 0) {
+      return;
+    }
+    const child = findCommand(target, token);
+    if (child !== undefined) {
+      target = child;
+      path.push(token);
+      continue;
+    }
+    // A group that also takes positionals (or forwards them) consumes the token itself.
+    if (target !== program && target.registeredArguments.length > 0) {
+      return;
+    }
+    throwCommandNotFound({
+      container,
+      scope: target === program ? "cli" : target.name(),
+      unknownCommand: token,
+      helpArgs: [...path, "--help"],
+      candidates: commandCandidates(target),
+      moduleUrl: import.meta.url
+    });
+  }
+}
+
 function interceptUnknownHelpPaths(program: Command, container: CliContainer): void {
   const parseAsync = program.parseAsync.bind(program);
   program.parseAsync = async (argv, options) => {
     const commandArgs = (argv ?? process.argv).slice(2);
     if (commandArgs.includes("--help") || commandArgs.includes("-h")) {
-      const rootToken = commandArgs.find((arg) => !arg.startsWith("-"));
-      if (rootToken !== undefined && !findCommand(program, rootToken)) {
-        throwCommandNotFound({
-          container,
-          scope: "cli",
-          unknownCommand: rootToken,
-          helpArgs: ["--help"],
-          candidates: commandCandidates(program),
-          moduleUrl: import.meta.url
-        });
-      }
-
-      if (rootToken === "mcp" || rootToken === "skill") {
-        const group = findCommand(program, rootToken)!;
-        const tokenIndex = commandArgs.indexOf(rootToken);
-        const subcommandToken = commandArgs
-          .slice(tokenIndex + 1)
-          .find((arg) => !arg.startsWith("-"));
-        if (subcommandToken !== undefined && !findCommand(group, subcommandToken)) {
-          throwCommandNotFound({
-            container,
-            scope: rootToken,
-            unknownCommand: subcommandToken,
-            helpArgs: [rootToken, "--help"],
-            candidates: commandCandidates(group),
-            moduleUrl: import.meta.url
-          });
-        }
-      }
+      assertKnownHelpPath(program, container, commandArgs);
     }
     return parseAsync(argv, options);
   };
+}
+
+// Commander's implicit `help [command]` row duplicates --help with lowercase copy;
+// every group suppresses it, so the root `help` command is the one way to ask by path.
+function suppressImplicitHelpCommands(command: Command): void {
+  command.helpCommand(false);
+  for (const child of command.commands) {
+    suppressImplicitHelpCommands(child);
+  }
 }
 
 function findCommand(parent: Command, name: string): Command | undefined {

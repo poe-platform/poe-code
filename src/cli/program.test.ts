@@ -280,6 +280,75 @@ describe("createProgram", () => {
     }
   );
 
+  describe("group help formatting", () => {
+    const renderHelp = async (args: string[]): Promise<string> => {
+      const writes: string[] = [];
+      vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+        writes.push(String(chunk));
+        return true;
+      }) as typeof process.stdout.write);
+      process.argv = ["node", "/usr/local/bin/poe-code", ...args];
+      const program = createProgram({
+        fs: createMemFs(homeDir),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir },
+        logger: () => {},
+        exitOverride: true
+      });
+
+      try {
+        await program.parseAsync(process.argv);
+      } catch (error) {
+        expect(error).toBeInstanceOf(CommanderError);
+      }
+
+      return stripVTControlCharacters(writes.join(""));
+    };
+
+    const usageLineOf = (help: string): string =>
+      help.split("\n").find((line) => line.startsWith("Usage:")) ?? "";
+
+    it.each(["skill", "utils", "usage", "ralph", "worktree", "harness", "provider", "runtime"])(
+      "advertises the required subcommand in the %s usage line",
+      async (command) => {
+        const usageLine = usageLineOf(await renderHelp([command, "--help"]));
+
+        expect(usageLine).toBe(`Usage: poe-code ${command} <command>`);
+      }
+    );
+
+    it.each(["provider", "runtime", "harness", "skill"])(
+      "omits commander's implicit help subcommand from %s help",
+      async (command) => {
+        const output = await renderHelp([command, "--help"]);
+
+        expect(output).not.toContain("display help for command");
+        expect(output).not.toContain("help [command]");
+      }
+    );
+  });
+
+  it("reports command not found for an unknown worktree subcommand asking for help", async () => {
+    const logs: string[] = [];
+    process.argv = ["node", "/usr/local/bin/poe-code", "worktree", "add", "--help"];
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: (message) => logs.push(message),
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    await expect(program.parseAsync(process.argv)).rejects.toThrow();
+
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+    const output = stripVTControlCharacters(logs.join("\n"));
+    expect(output).toContain("add");
+    expect(output).toContain("worktree --help");
+  });
+
   describe("global flags on subcommand help", () => {
     const renderHelp = async (args: string[]): Promise<string> => {
       const writes: string[] = [];

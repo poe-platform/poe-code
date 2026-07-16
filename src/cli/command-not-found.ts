@@ -6,7 +6,8 @@ import { SilentError } from "./errors.js";
 
 export function throwCommandNotFound(input: {
   container: CliContainer;
-  scope: "cli" | "mcp" | "skill";
+  /** "cli" for the root program, otherwise the group name the unknown command was typed under. */
+  scope: string;
   unknownCommand: string;
   helpArgs: string[];
   candidates?: readonly string[];

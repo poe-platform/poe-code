@@ -17,7 +17,7 @@ Options:
                          (q quit, Ctrl+C force quit)
   --no-tui               Disable the live dashboard for this experiment run
   --worktree             Run in a managed git worktree and reconcile successful
-                         output.
+                         output
   --runtime <runtime>    Override runtime backend: host | docker (choices:
                          "host", "docker")
   --runtime-image <ref>  Override Docker runtime image
@@ -54,7 +54,7 @@ Options:
                          Ctrl+C force quit)
   --no-tui               Disable the live dashboard for this Ralph run
   --worktree             Run in a managed git worktree and reconcile successful
-                         output.
+                         output
   --runtime <runtime>    Override runtime backend: host | docker (choices:
                          "host", "docker")
   --runtime-image <ref>  Override Docker runtime image
@@ -113,7 +113,7 @@ Advanced:
                                "project", "user", "merged")
   --activity-timeout-ms <ms>   Kill the agent after N ms of inactivity
   --worktree                   Run in a managed git worktree and reconcile
-                               successful output.
+                               successful output
 
 Infrastructure:
   --log-dir <path>             Directory override for ACP JSONL spawn logs

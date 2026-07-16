@@ -660,7 +660,9 @@ function copyHostValueToSandbox(
         );
       }
 
-      Object.defineProperty(copy, key, {
+      // Charged like any other string the copy carries in: a key is as readable to the sandbox
+      // as the value under it, so the same limit answers for both.
+      Object.defineProperty(copy, budget.allocateString(key), {
         enumerable: true,
         configurable: true,
         writable: true,

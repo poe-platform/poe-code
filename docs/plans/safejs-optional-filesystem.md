@@ -762,10 +762,10 @@ tasks:
       must not corrupt the run; a large `readdir` must be charged the same way. Keep the tests
       fast — small budgets, small fixtures, no real files.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-off-by-default-integrity
     title: Prove fs stays absent unless explicitly enabled

@@ -627,6 +627,31 @@ describe("host bridge", () => {
     );
   });
 
+  // A key is a string the sandbox holds and can read back with Object.keys, so stringLength
+  // answers for it like any other. It is charged where the object is copied rather than where
+  // the value under it is: the values, a Map's keys, and an array's entries all cross through
+  // the copy that charges them, and an object's keys were the one string shape that crossed
+  // uncharged — a host result could hand the sandbox a key of any length under any limit.
+  it("applies the stringLength budget to a host-returned object's keys", () => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host() {
+          return { "12345": 1 };
+        }
+      },
+      { budget: new Budget({ stringLength: 4 }) }
+    ).host as SandboxClosure;
+
+    expect(() => wrapped.call([])).toThrow(
+      expect.objectContaining({
+        code: "budgetExceeded",
+        budget: "stringLength",
+        current: 5,
+        limit: 4
+      })
+    );
+  });
+
   it("wraps host errors with no message field into readable sandbox errors", () => {
     const thrown = Object.create(null) as { name: string };
     thrown.name = "HostFailure";

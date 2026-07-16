@@ -2043,10 +2043,15 @@ describe("makeFsModule", () => {
     //
     // Every path and encoding here is spelled short on purpose. stringLength is charged
     // against a string literal in the script's own source too, so a '/repo/big.txt' would
-    // blow an 8-char budget while the module was still validating the argument and the read
+    // blow the budget while the module was still validating the argument and the read
     // that is under test would never be reached.
+    //
+    // The budget has a floor as well as a ceiling: the bridge charges the module's own binding
+    // keys as it injects them, so anything under 'COPYFILE_EXCL' at 13 is spent before the
+    // script runs. This sits above that and well below both fixtures, which leaves the read
+    // itself as the only thing that can overrun it.
     describe("charging a read against the run's budget", () => {
-      const STRING_BUDGET = 8;
+      const STRING_BUDGET = 16;
 
       const OVERSIZED_CONTENTS = "x".repeat(64);
 
@@ -2056,6 +2061,16 @@ describe("makeFsModule", () => {
         'import * as fs from "fs";',
         'const text = await fs.readFile("/b.txt", "utf8");',
         "return text.length;"
+      ].join("\n");
+
+      // Never awaits the read, so the contents cross into the sandbox without ever becoming a
+      // node's result. That is what isolates the crossing charge below: the interpreter
+      // reconciles what a scope retains plus the value each node evaluated to, and this script
+      // gives it neither.
+      const UNAWAITED_READ_SCRIPT = [
+        'import * as fs from "fs";',
+        'fs.readFile("/b.txt", "utf8");',
+        "return 0;"
       ].join("\n");
 
       it("refuses a file larger than the string budget", async () => {
@@ -2210,6 +2225,41 @@ describe("makeFsModule", () => {
           name: "SandboxError",
           code: "budgetExceeded",
           budget: "dataSize"
+        });
+      });
+
+      // The charge the case above cannot see, and the one an awaited read never needs. Two
+      // charges land on a read the script awaits, so that case stands on the reconcile alone and
+      // says nothing about the crossing. An unawaited read is charged once: nothing retains the
+      // contents and no node evaluated to them, so the reconcile measures a run no larger than
+      // an empty read's and the charge the bridge provisions as the result crosses is the only
+      // thing left refusing it. Without that charge this script resolves and a script reads a
+      // file of any size by declining to await it.
+      //
+      // The refusal surfaces as the rejection the script left unhandled rather than as the
+      // SandboxError itself: the read is a promise the script never took, so the budget error
+      // rejects it and the run reports what went unhandled, carrying the refusal as its reason.
+      it("charges the contents of a read the script never awaits", async () => {
+        const baseline = new Budget();
+        await run(UNAWAITED_READ_SCRIPT, {
+          budget: baseline,
+          modules: { fs: createFs({ "/b.txt": "" }).fs }
+        });
+
+        const { fs } = createFs({ "/b.txt": OVERSIZED_CONTENTS });
+
+        await expect(
+          run(UNAWAITED_READ_SCRIPT, {
+            budget: new Budget({ dataSize: baseline.peakDataSize }),
+            modules: { fs }
+          })
+        ).rejects.toMatchObject({
+          name: "UnhandledRejectionError",
+          reason: {
+            name: "SandboxError",
+            code: "budgetExceeded",
+            budget: "dataSize"
+          }
         });
       });
 

@@ -9,7 +9,7 @@ traces. The package builds on `@poe-code/agent-traces` readers and powers
 The poe-code CLI wires this package as `poe-code traces`.
 
 ```sh
-poe-code traces [path] [--source claude codex pi poe-code] [--all-workspaces] [--since 30d] [--limit 50] [--json] [--yes] [--open] [--html-out <file>]
+poe-code traces [path] [--source claude codex pi poe-code] [--all-workspaces] [--since 30d] [--limit 50] [--json] [--full-titles] [--yes] [--open] [--html-out <file>]
 ```
 
 - `path`: Load a specific JSONL trace file and render its detail view.
@@ -18,6 +18,7 @@ poe-code traces [path] [--source claude codex pi poe-code] [--all-workspaces] [-
 - `--since <duration>`: Include only traces updated within a duration such as `30d`, `12h`, or `45m`.
 - `--limit <n>`: Maximum discovered trace references to list. Defaults to `50`.
 - `--json`: Emit machine-readable JSON. List mode emits trace references; path mode emits the loaded `TraceView` plus `subagents`.
+- `--full-titles`: Emit untruncated reference titles in JSON list mode. Titles are prompt text, so list mode truncates them to the rendered list width (60 characters) by default.
 - `--yes`: Skip the interactive explorer and print the trace list table.
 - `--open`: Require `path`. Build a self-contained HTML page for the trace (including nested subagents inline under Task/Agent spawn turns) and open it with the platform browser. Incompatible with `--json`.
 - `--html-out <file>`: Require `path`. Write the same self-contained HTML to this file without opening, unless `--open` is also set. Incompatible with `--json`.

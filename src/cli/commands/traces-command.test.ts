@@ -103,9 +103,20 @@ describe("traces command", () => {
       since: new Date("2026-07-01T10:00:00.000Z"),
       limit: 7,
       json: false,
+      fullTitles: false,
       open: false,
       htmlOut: undefined
     });
+  });
+
+  it("forwards --full-titles to the trace viewer", async () => {
+    const { program } = createTracesProgram();
+
+    await program.parseAsync(["node", "cli", "traces", "--json", "--full-titles"]);
+
+    expect(runTraceViewerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ json: true, fullTitles: true })
+    );
   });
 
   it("forwards --open and --html-out for a path", async () => {

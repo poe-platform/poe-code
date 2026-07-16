@@ -19,6 +19,7 @@ interface TracesCommandOptions {
   since?: string;
   limit?: string;
   json?: boolean;
+  fullTitles?: boolean;
   open?: boolean;
   htmlOut?: string;
 }
@@ -85,6 +86,7 @@ export function registerTracesCommand(program: Command, container: CliContainer)
     .option("--since <duration>", "Only include recently updated traces")
     .option("--limit <n>", "Maximum traces listed")
     .option("--json", jsonOptionDescription)
+    .option("--full-titles", "Print untruncated trace titles, which may contain prompt content")
     .option("--open", "Generate HTML for a trace path and open it in the browser")
     .option("--html-out <file>", "Write HTML for a trace path without opening")
     .action(async function (this: Command, pathArg: string | undefined) {
@@ -125,6 +127,7 @@ export function registerTracesCommand(program: Command, container: CliContainer)
         since: parseSince(options.since),
         limit: parseLimit(options.limit),
         json,
+        fullTitles: options.fullTitles === true,
         open,
         htmlOut
       });

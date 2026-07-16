@@ -14,6 +14,8 @@ Trace discovery and normalization for local coding-agent histories.
   Spawn logs do not record `cwd`, so discovery includes them regardless of the workspace filter.
   Tool titles and result paths are preserved as logged, including the literal `[redacted]` value
   written by the spawn-log middleware when content logging is disabled.
+  Reference `title` comes from the first agent message text in the log, falling back to the
+  filename agent segment when that content is absent or `[redacted]`.
 
 ## API
 

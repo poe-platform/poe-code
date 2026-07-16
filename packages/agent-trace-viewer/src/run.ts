@@ -18,7 +18,7 @@ import type {
 } from "@poe-code/agent-traces";
 import { listTraces, loadSubagentSummaries, loadTrace, loadTraceFromFile, loadTraceTree } from "./loader.js";
 import { openTraceHtml } from "./open-html.js";
-import { renderTraceDetail, renderTraceLine } from "./render.js";
+import { renderTraceDetail, renderTraceLine, truncateTraceTitle } from "./render.js";
 import type { SubagentSummary, TraceTreeNode, TraceView } from "./types.js";
 import { writeTraceHtml } from "./write-html.js";
 
@@ -32,6 +32,7 @@ export interface RunTraceViewerOptions {
   since?: Date;
   limit?: number;
   json?: boolean;
+  fullTitles?: boolean;
   path?: string;
   open?: boolean;
   htmlOut?: string;
@@ -100,7 +101,8 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
 
   if (options.json || options.assumeYes || process.stdin.isTTY !== true) {
     if (options.json) {
-      writeLine(output, JSON.stringify(references, null, 2));
+      const listed = options.fullTitles === true ? references : references.map(withTruncatedTitle);
+      writeLine(output, JSON.stringify(listed, null, 2));
       return;
     }
 
@@ -119,6 +121,12 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
       onRefresh: discover
     })
   );
+}
+
+function withTruncatedTitle(reference: TraceReference): TraceReference {
+  return reference.title === undefined
+    ? reference
+    : { ...reference, title: truncateTraceTitle(reference.title) };
 }
 
 function renderTraceReferenceTable(references: TraceReference[]): string {

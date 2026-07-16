@@ -59,6 +59,54 @@ describe("poeCodeTraceReader", () => {
     ]);
   });
 
+  it("titles discovered traces with the first session content text", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/home/me/.poe-code/spawn-logs/20260701-192947-526-codex-b65c65af-8890-4034-be7c-d4caa92346c4.jsonl":
+          [
+            JSON.stringify({ event: "session_start", threadId: "thread-one" }),
+            JSON.stringify({ event: "tool_start", kind: "exec", title: "[redacted]" }),
+            JSON.stringify({ event: "agent_message", text: "Investigate the flaky runner test" }),
+            JSON.stringify({ event: "agent_message", text: "Second message" })
+          ].join("\n")
+      })
+    ).promises;
+
+    const references = await poeCodeTraceReader.discover({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs
+    });
+
+    expect(references[0]).toMatchObject({
+      id: "b65c65af-8890-4034-be7c-d4caa92346c4",
+      title: "Investigate the flaky runner test"
+    });
+  });
+
+  it("falls back to the agent name when session content is redacted or absent", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/home/me/.poe-code/spawn-logs/20260701-192947-526-codex-session-redacted.jsonl": [
+          JSON.stringify({ event: "tool_start", kind: "exec", title: "[redacted]" }),
+          JSON.stringify({ event: "tool_complete", kind: "exec", path: "[redacted]" }),
+          JSON.stringify({ event: "agent_message", text: "[redacted]" })
+        ].join("\n")
+      })
+    ).promises;
+
+    const references = await poeCodeTraceReader.discover({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs
+    });
+
+    expect(references[0]).toMatchObject({
+      id: "session-redacted",
+      title: "codex"
+    });
+  });
+
   it("filters discovered spawn logs by updatedAt", async () => {
     const baseFs = createFsFromVolume(
       Volume.fromJSON({

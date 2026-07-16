@@ -122,8 +122,12 @@ export function renderBreakdown(breakdown: ContextBreakdown, width = 32): string
   return lines.join("\n");
 }
 
+export function truncateTraceTitle(title: string): string {
+  return truncate(title.trim(), MAX_TRACE_LABEL_WIDTH);
+}
+
 export function renderTraceLine(item: TraceReference): { label: string; meta: string } {
-  const label = truncate(item.title?.trim() || item.id, MAX_TRACE_LABEL_WIDTH);
+  const label = truncateTraceTitle(item.title?.trim() || item.id);
   const metaParts = [
     item.source,
     relativeTime(item.updatedAt),

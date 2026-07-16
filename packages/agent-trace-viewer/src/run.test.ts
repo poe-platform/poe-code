@@ -219,6 +219,64 @@ describe("runTraceViewer", () => {
     ]);
   });
 
+  it("truncates reference titles in JSON mode the way the rendered list does", async () => {
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        discover: vi.fn(async () => [
+          {
+            source: "claude" as const,
+            id: "trace-1",
+            title: `Answer using only the provided memory pages.\n${"prompt ".repeat(20)}`,
+            updatedAt: new Date("2026-07-01T10:00:00.000Z")
+          }
+        ])
+      })
+    );
+    const output = new MemoryOutput();
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs: {} as AgentTraceFileSystem,
+      json: true,
+      output
+    });
+
+    const [reference] = JSON.parse(output.value);
+    expect(reference.title).toBe("Answer using only the provided memory pages.\nprompt prompt …");
+    expect([...reference.title]).toHaveLength(60);
+  });
+
+  it("keeps full reference titles in JSON mode when fullTitles is set", async () => {
+    const title = `Answer using only the provided memory pages.\n${"prompt ".repeat(20)}`;
+    mocks.traceReaders.push(
+      createReader({
+        id: "claude",
+        discover: vi.fn(async () => [
+          {
+            source: "claude" as const,
+            id: "trace-1",
+            title,
+            updatedAt: new Date("2026-07-01T10:00:00.000Z")
+          }
+        ])
+      })
+    );
+    const output = new MemoryOutput();
+
+    await runTraceViewer({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs: {} as AgentTraceFileSystem,
+      json: true,
+      fullTitles: true,
+      output
+    });
+
+    expect(JSON.parse(output.value)[0].title).toBe(title);
+  });
+
   it("does not cap discovered references when no limit is provided", async () => {
     mocks.traceReaders.push(
       createReader({

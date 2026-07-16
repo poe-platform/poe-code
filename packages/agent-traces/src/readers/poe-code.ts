@@ -15,6 +15,9 @@ interface PoeCodeLogFileName {
   sessionId: string;
 }
 
+const HEAD_SCAN_MAX_LINES = 50;
+const REDACTED_LOG_CONTENT = "[redacted]";
+
 function isMissingFile(error: unknown): boolean {
   return (
     typeof error === "object" &&
@@ -154,6 +157,26 @@ function parseLogFileName(filePath: string): PoeCodeLogFileName | undefined {
   };
 }
 
+/** Spawn logs carry no prompt record, so the first agent message is the closest identifying content. */
+function titleFromLogContent(content: string): string | undefined {
+  let lineStart = 0;
+  for (let line = 0; line < HEAD_SCAN_MAX_LINES && lineStart < content.length; line += 1) {
+    const lineEnd = content.indexOf("\n", lineStart);
+    const rawLine = lineEnd === -1 ? content.slice(lineStart) : content.slice(lineStart, lineEnd);
+    lineStart = lineEnd === -1 ? content.length : lineEnd + 1;
+
+    const record = asRecord(parseJsonLines(rawLine)[0]);
+    if (record?.event !== "agent_message" || typeof record.text !== "string") {
+      continue;
+    }
+    const text = record.text.trim();
+    if (text.length > 0 && text !== REDACTED_LOG_CONTENT) {
+      return text;
+    }
+  }
+  return undefined;
+}
+
 async function updatedAtForFile(
   fs: AgentTraceFileSystem,
   filePath: string,
@@ -257,12 +280,13 @@ export const poeCodeTraceReader: TraceReader = {
       if (options.since && updatedAt && updatedAt < options.since) {
         continue;
       }
+      const content = await options.fs.readFile(filePath, "utf8");
       references.push({
         source: "poe-code",
         id: parsed.sessionId,
         path: filePath,
         ...(updatedAt ? { updatedAt } : {}),
-        title: parsed.agent
+        title: titleFromLogContent(content) ?? parsed.agent
       });
     }
 

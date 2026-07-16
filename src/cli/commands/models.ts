@@ -59,7 +59,7 @@ interface ModelsCommandOptions {
   provider?: string;
   model?: string;
   search?: string;
-  feature?: string;
+  feature?: string[];
   endpoint?: string;
   input?: string;
   output?: string;
@@ -336,7 +336,11 @@ export function registerModelsCommand(
     .option("--provider <name>", "Filter by provider name")
     .option("--model <name>", "Filter by exact model id (bare or provider/id)")
     .option("--search <term>", "Search the rendered provider/id label")
-    .option("--feature <name>", "Filter by feature (tools, web_search, reasoning)")
+    .option(
+      "--feature <name>",
+      "Filter by feature (tools, web_search, reasoning); repeatable, combines with AND",
+      (value: string, previous: string[] = []) => [...previous, value]
+    )
     .option("--endpoint <path>", "Filter by supported endpoint (e.g. /v1/responses)")
     .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
@@ -357,13 +361,16 @@ export function registerModelsCommand(
       "               e.g. gpt-5.2-codex or openai/gpt-5.2-codex)",
       "  --search     Substring match on the displayed provider/id label",
       "               (e.g. sonnet, openai, anthropic/claude)",
-      "  --feature    Exact match: tools, web_search, or reasoning",
+      "  --feature    Exact match: tools, web_search, or reasoning; repeatable",
       "  --endpoint   Exact supported endpoint match (e.g. /v1/responses)",
       "  --input      Comma-separated input modalities: text, image, audio, video",
       "  --output     Comma-separated output modalities: text, image, audio",
-      "  --tools      Shorthand for --feature tools",
+      "  --tools      Shorthand for --feature tools; stacks with --feature",
       "  --since      Duration: s, m, h, d, w, mo, y (e.g. 7d, 2w, 3mo, 1y)",
       `  --limit      Maximum models listed, newest first (default ${DEFAULT_MODEL_LIMIT})`,
+      "",
+      "All filters combine with AND: a model must satisfy every filter given.",
+      "Repeating --feature requires all named features (--tools counts as one).",
       "",
       "Views:",
       "  capabilities  Model features, modalities, and context window (default)",
@@ -374,6 +381,7 @@ export function registerModelsCommand(
       "Examples:",
       "  $ poe-code models --provider anthropic",
       "  $ poe-code models --feature reasoning --since 3mo",
+      "  $ poe-code models --feature tools --feature web_search",
       "  $ poe-code models --endpoint /v1/responses",
       "  $ poe-code models --input image --view pricing",
       "  $ poe-code models --search claude --view parameters",
@@ -409,9 +417,9 @@ export function registerModelsCommand(
       const endpointFilter = commandOptions.endpoint !== undefined
         ? normalizeEndpoint(normalizeRequiredFilter("--endpoint", commandOptions.endpoint))
         : undefined;
-      const featureFilter = commandOptions.feature !== undefined
-        ? normalizeRequiredFilter("--feature", commandOptions.feature)
-        : undefined;
+      const featureFilters = commandOptions.feature?.map((feature) =>
+        normalizeRequiredFilter("--feature", feature)
+      );
       const inputFilter = commandOptions.input !== undefined
         ? parseModalityFilter("--input", commandOptions.input)
         : undefined;
@@ -467,8 +475,10 @@ export function registerModelsCommand(
         !availableProviders.some((provider) => provider.includes(providerFilter))) {
         throw unknownFilterError("--provider", providerFilter, availableProviders);
       }
-      if (featureFilter !== undefined && !availableFeatures.includes(featureFilter)) {
-        throw unknownFilterError("--feature", featureFilter, availableFeatures);
+      for (const feature of featureFilters ?? []) {
+        if (!availableFeatures.includes(feature)) {
+          throw unknownFilterError("--feature", feature, availableFeatures);
+        }
       }
       for (const modality of inputFilter ?? []) {
         if (!availableInputModalities.includes(modality)) {
@@ -498,8 +508,10 @@ export function registerModelsCommand(
           namespacedModelId(m).includes(searchFilter)
         );
       }
-      if (featureFilter !== undefined) {
-        filtered = filtered.filter((m) => hasFeature(m, featureFilter));
+      if (featureFilters !== undefined) {
+        filtered = filtered.filter((m) =>
+          featureFilters.every((feature) => hasFeature(m, feature))
+        );
       }
       if (endpointFilter !== undefined) {
         if (!availableEndpoints.includes(endpointFilter)) {

@@ -592,6 +592,93 @@ describe("models command", () => {
     expect(output).not.toContain("b/non-thinker");
   });
 
+  it("ANDs repeated --feature flags instead of letting the last value win", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "both", owned_by: "A", supported_features: ["tools", "web_search"] }),
+      createModelEntry({ id: "tools-only", owned_by: "B", supported_features: ["tools"] }),
+      createModelEntry({ id: "search-only", owned_by: "C", supported_features: ["web_search"] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--feature", "tools", "--feature", "web_search"]
+    });
+
+    expect(output).toContain("a/both");
+    expect(output).not.toContain("b/tools-only");
+    expect(output).not.toContain("c/search-only");
+  });
+
+  it("validates every repeated --feature value, not just the last one", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "with-tools", owned_by: "A", supported_features: ["tools"] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--feature", "bogus", "--feature", "tools"] })
+    ).rejects.toThrow('Unknown --feature value "bogus"');
+  });
+
+  it("ANDs repeated --feature with --tools shorthand", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "both", owned_by: "A", supported_features: ["tools", "web_search"] }),
+      createModelEntry({ id: "search-only", owned_by: "B", supported_features: ["web_search"] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({
+      fs,
+      httpClient,
+      logs,
+      args: ["--tools", "--feature", "web_search"]
+    });
+
+    expect(output).toContain("a/both");
+    expect(output).not.toContain("b/search-only");
+  });
+
+  it("documents that --feature repeats and that filters combine with AND", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient
+    });
+    const modelsCommand = program.commands.find((command) => command.name() === "models");
+    const chunks: string[] = [];
+    modelsCommand?.configureOutput({
+      writeOut: (text: string) => {
+        chunks.push(text);
+      }
+    });
+
+    modelsCommand?.outputHelp();
+    const help = chunks.join("").replace(/\u001b\[[0-9;]*m/g, "");
+
+    expect(help).toMatch(/repeatable/i);
+    expect(help).toMatch(/combine with AND/i);
+    expect(help).toContain("--feature tools --feature web_search");
+  });
+
   it("filters by --endpoint using supported_endpoints", async () => {
     fs = await createConfigVolume("test-key");
     const models = [

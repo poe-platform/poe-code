@@ -569,11 +569,52 @@ tasks:
 
       Confirm the message-format assumption against the installed node version before writing the
       assertions — if the reference API produces a different shape, the reference wins.
+
+      Implementation notes from the completed task:
+
+      The format holds against node v22.22.2 on darwin, with one correction: the path is quoted
+      only when the error carries one. `readFile` on a directory is blamed on the `read` syscall,
+      which node reached holding a descriptor rather than a path, so the message stops at
+      `EISDIR: illegal operation on a directory, read` and the error carries no `path` field
+      either. Everything else composes as `<code>: <description>, <syscall>` plus ` '<path>'` and
+      ` -> '<dest>'`, derived from `getSystemErrorMap()` — node's own errno table, which is what
+      makes the expectation the platform's numbers and wording rather than darwin's.
+
+      Three of the syscalls named above were wrong and the reference won. `utimes` is blamed as
+      `utime` (and `lutimes` as `lutime`). `truncate` is not reachable at all: `fs/promises`
+      truncate opens the path and ftruncates the descriptor, so a bad path is blamed on the
+      `open` — the case is kept under that name — and the `ftruncate` beside it needs a
+      `FileHandle`, which SafeJS refuses, so neither syscall can be reached through the module.
+      `unlink` is not on the module's surface either and is reachable only through `rm`, which
+      node implements as an lstat then an unlink: the representative is `EACCES` on a file inside
+      a write-denied directory, where the lstat succeeds and the unlink is what the mode refuses.
+      fs.ts's own `FS_SYSCALLS` table already recorded the first two answers.
+
+      memfs spells 14 of the 18 node's way, which is what proves the format independently of the
+      derivation. It diverges on four, each now a `gap` case whose node truth the
+      fs-node-truth-fixture recorder must confirm: `read` (memfs blames the open and names the
+      path node omits), `unlink` (blames `rm`, the fs function), `copyfile` (blames `copyFile`,
+      not node's lower-cased syscall), and `utime` (blames `utimes`). For those four the
+      derivation is the only witness in-memory, so the composition is additionally pinned against
+      recorded real-node text.
+
+      memfs cannot serve as the reference for node's *argument* validation, which is why the
+      TypeError/RangeError half went to the existing argument-validation block that drives real
+      `node:fs/promises` against a never-created path: memfs resolves `chmod(p, -1)` where node
+      raises `ERR_OUT_OF_RANGE`, and answers a bad encoding with `ERR_INVALID_OPT_VALUE_ENCODING`
+      where node raises `ERR_INVALID_ARG_VALUE`. That block already compared name against node;
+      it now also asserts the name *is* TypeError or RangeError, so a node that started answering
+      a bad argument with a plain Error moves the line rather than taking both sides with it.
+
+      `error.stack` needed no addition to the fs-docs list — it was already there — but it was
+      listed among the deviations "each of which throws rather than diverging silently", which it
+      does not: it is a property read, not a call. It now sits with the argument-blame ordering as
+      a divergence rather than a refusal.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-node-conformance-suite
     title: "Differential conformance suite: fs module vs node:fs/promises"
@@ -811,11 +852,15 @@ tasks:
          path arguments (both of which node accepts; an integer path is not a deviation, it is
          node's own `ERR_INVALID_ARG_TYPE`, as `fs/promises` has no descriptor path form), the
          `signal` option, `FileHandle`/`open`, streams, `watch`, `opendir`, callback/sync APIs,
-         `Date` stat fields (the `*Ms` numbers are exposed instead), and `error.stack`
-         (sandbox-shaped, not a node stack). Note the one deviation that is an ordering rather
-         than a refusal: with both a bad path and another bad argument, SafeJS blames the path
-         because it validates paths itself (`root` rewrites them first), where node may blame the
-         other argument. Explain the `root`
+         and `Date` stat fields (the `*Ms` numbers are exposed instead). Then the two deviations
+         that diverge rather than refuse, so neither announces itself the way the list above
+         does. `error.stack` is sandbox-shaped rather than a node stack: the bridge rewrites the
+         frames to the script's own, so node's frames are neither available to a script nor
+         meaningful to one that ran none of them, and node's text survives only in the
+         `name: message` header the stack is still headed by — reading a property is not a call
+         there is anything to refuse. And with both a bad path and another bad argument, SafeJS
+         blames the path because it validates paths itself (`root` rewrites them first), where
+         node may blame the other argument. Explain the `root`
          confinement and its node-shaped EACCES denial, note that `readdir` order is
          filesystem-dependent exactly as in node, note the resume policies (reads re-issue,
          mutations read-side-effect), state the platform-support decision from

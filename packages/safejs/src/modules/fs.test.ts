@@ -136,16 +136,40 @@ function createCaseInsensitiveFs(files: Record<string, string>): FsImplementatio
   });
 }
 
+// node pairs an errno name with the errno number and the description libuv gave it,
+// and every system error it raises is composed from that one table. Reading the pair
+// back from the table is what keeps an expectation the platform's answer rather than
+// the darwin numbers and wording this suite happened to be written on.
+function readSystemError(code: string): { errno: number; description: string } {
+  const entry = [...getSystemErrorMap()].find(([, [name]]) => name === code);
+
+  /* c8 ignore next 3 -- every code this suite names is one node defines. */
+  if (entry === undefined) {
+    throw new Error(`node does not define the ${code} system error.`);
+  }
+
+  const [errno, [, description]] = entry;
+  return { errno, description };
+}
+
+// The exact text node gives a system error, composed the way node's own uvException
+// does: the errno name, the description, the syscall, and the paths it was handed.
+// A path is quoted only when the error carries one — an error the read syscall
+// raised is blamed on a descriptor and names no path — and a second path is appended
+// for the operations node reports a dest for.
+function systemErrorMessage(code: string, syscall: string, path?: string, dest?: string): string {
+  const { description } = readSystemError(code);
+  const target = path === undefined ? "" : ` '${path}'`;
+  const destination = dest === undefined ? "" : ` -> '${dest}'`;
+
+  return `${code}: ${description}, ${syscall}${target}${destination}`;
+}
+
 function createLoopError(path: string): NodeJS.ErrnoException {
-  const [errno] = [...getSystemErrorMap()].find(
-    ([, [name]]) => name === "ELOOP"
-  ) ?? /* c8 ignore next */ [-62];
-  const error: NodeJS.ErrnoException = new Error(
-    `ELOOP: too many symbolic links encountered, realpath '${path}'`
-  );
+  const error: NodeJS.ErrnoException = new Error(systemErrorMessage("ELOOP", "realpath", path));
 
   error.code = "ELOOP";
-  error.errno = errno as number;
+  error.errno = readSystemError("ELOOP").errno;
   error.syscall = "realpath";
   error.path = path;
   return error;
@@ -590,6 +614,334 @@ describe("makeFsModule", () => {
         expect(await readCode(invoke(fs))).toBe("ENOENT");
       });
     }
+  });
+
+  // The errno above is what a script branches on; this is what a script prints and a log
+  // grep matches, so it is asserted whole rather than by substring. Every expectation is
+  // composed from node's own errno table by systemErrorMessage rather than typed out, which
+  // is what makes this a claim about node's format rather than a copy of darwin's wording.
+  //
+  // One case per syscall node blames across the module's whole surface. The syscall is named
+  // per case rather than derived from the operation because for seven of the eighteen it
+  // cannot be: readFile blames open, readFile on a directory blames read, readdir blames
+  // scandir, utimes blames utime, and copyFile blames a lower-cased copyfile, while two are
+  // blamed by no operation of their own name at all — fs/promises truncate opens the path
+  // first, so a bad path is blamed on the open, and unlink is reached only through rm.
+  // fs.ts's own FS_SYSCALLS table is the module's copy of the operation-level answers.
+  describe("system error message text", () => {
+    type Driver = {
+      access(path: string): Promise<void>;
+      chmod(path: string, mode: number): Promise<void>;
+      copyFile(src: string, dest: string, mode?: number): Promise<void>;
+      link(existingPath: string, newPath: string): Promise<void>;
+      lstat(path: string): Promise<unknown>;
+      mkdir(path: string): Promise<string | undefined>;
+      readFile(path: string, options: string): Promise<string>;
+      readdir(path: string): Promise<unknown>;
+      readlink(path: string): Promise<string>;
+      realpath(path: string): Promise<string>;
+      rename(oldPath: string, newPath: string): Promise<void>;
+      rm(path: string): Promise<void>;
+      rmdir(path: string): Promise<void>;
+      stat(path: string): Promise<unknown>;
+      symlink(target: string, path: string): Promise<void>;
+      truncate(path: string, length: number): Promise<void>;
+      utimes(path: string, atime: number, mtime: number): Promise<void>;
+    };
+
+    // The message, the errno, and the name are derived rather than carried: a case names
+    // only what node blamed and for which paths, which is the whole of what distinguishes
+    // one system error's text from another's.
+    type SystemErrorCase = {
+      readonly title: string;
+      readonly syscall: string;
+      readonly code: string;
+      readonly path?: string;
+      readonly dest?: string;
+      readonly setup?: (volume: Volume) => void;
+      readonly invoke: (fs: Driver) => Promise<unknown>;
+      readonly gap?: NodeSemanticsCase<Driver>["gap"];
+    };
+
+    // name is "Error" for every case: node raises a system error as a plain Error, never as
+    // a TypeError. That is the line an argument error sits on the other side of, and the
+    // argument validation block below holds it there by asserting TypeError/RangeError.
+    // memfs names each of these Error on its own, so the claim is measured over a real
+    // filesystem for every case memfs models rather than only replayed.
+    function toSemanticsCase(entry: SystemErrorCase): NodeSemanticsCase<Driver> {
+      return {
+        title: entry.title,
+        setup: entry.setup,
+        invoke: entry.invoke,
+        node: {
+          name: "Error",
+          message: systemErrorMessage(entry.code, entry.syscall, entry.path, entry.dest),
+          code: entry.code,
+          errno: readSystemError(entry.code).errno,
+          syscall: entry.syscall,
+          path: entry.path,
+          ...(entry.dest === undefined ? {} : { dest: entry.dest })
+        },
+        gap: entry.gap
+      };
+    }
+
+    const CASES: readonly SystemErrorCase[] = [
+      {
+        title: "readFile on a missing path is blamed on open",
+        syscall: "open",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.readFile("/repo/missing.txt", "utf8")
+      },
+      {
+        // The one syscall in the table node names no path for: by the time the read fails
+        // node holds a descriptor rather than a path, so the message stops at the syscall
+        // and the error carries no path field either. A format that always quoted a path
+        // would spell this ", read ''" or ", read 'undefined'".
+        title: "readFile on a directory is blamed on read, which names no path",
+        syscall: "read",
+        code: "EISDIR",
+        setup: (volume) => volume.mkdirSync("/repo/d"),
+        invoke: (fs) => fs.readFile("/repo/d", "utf8"),
+        gap: {
+          reason: "memfs blames the open rather than the read and names the path node omits",
+          memfs: {
+            name: "Error",
+            message: systemErrorMessage("EISDIR", "open", "/repo/d"),
+            code: "EISDIR",
+            path: "/repo/d"
+          }
+        }
+      },
+      {
+        title: "readdir on a missing path is blamed on scandir",
+        syscall: "scandir",
+        code: "ENOENT",
+        path: "/repo/missing",
+        invoke: (fs) => fs.readdir("/repo/missing")
+      },
+      {
+        title: "mkdir on an existing directory is blamed on mkdir",
+        syscall: "mkdir",
+        code: "EEXIST",
+        path: "/repo/d",
+        setup: (volume) => volume.mkdirSync("/repo/d"),
+        invoke: (fs) => fs.mkdir("/repo/d")
+      },
+      {
+        title: "rmdir on a non-empty directory is blamed on rmdir",
+        syscall: "rmdir",
+        code: "ENOTEMPTY",
+        path: "/repo/d",
+        setup: (volume) => {
+          volume.mkdirSync("/repo/d");
+          volume.writeFileSync("/repo/d/child.txt", "child");
+        },
+        invoke: (fs) => fs.rmdir("/repo/d")
+      },
+      {
+        // The module exports no unlink, so the only way to reach the syscall is rm, which
+        // node implements as an lstat and then an unlink: the lstat of a file inside a
+        // directory that denies writes succeeds and the unlink is what the mode refuses.
+        title: "rm of a file in a write-denied directory is blamed on unlink",
+        syscall: "unlink",
+        code: "EACCES",
+        path: "/repo/ro/child.txt",
+        setup: (volume) => {
+          volume.mkdirSync("/repo/ro");
+          volume.writeFileSync("/repo/ro/child.txt", "child");
+          volume.chmodSync("/repo/ro", 0o500);
+        },
+        invoke: (fs) => fs.rm("/repo/ro/child.txt"),
+        gap: {
+          reason: "memfs blames rm, the fs function, where node blames the unlink it refused",
+          memfs: {
+            name: "Error",
+            message: systemErrorMessage("EACCES", "rm", "/repo/ro/child.txt"),
+            code: "EACCES",
+            path: "/repo/ro/child.txt"
+          }
+        }
+      },
+      {
+        title: "rename of a missing source is blamed on rename and names both paths",
+        syscall: "rename",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        dest: "/repo/renamed.txt",
+        invoke: (fs) => fs.rename("/repo/missing.txt", "/repo/renamed.txt")
+      },
+      {
+        // node lower-cases the syscall it blames, which is not how the fs function is
+        // spelled: a message derived from the function name would say 'copyFile'.
+        title: "copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile",
+        syscall: "copyfile",
+        code: "EEXIST",
+        path: "/repo/keep.txt",
+        dest: "/repo/taken.txt",
+        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "taken"),
+        invoke: (fs) =>
+          fs.copyFile("/repo/keep.txt", "/repo/taken.txt", nodeFsConstants.COPYFILE_EXCL),
+        gap: {
+          reason:
+            "memfs blames copyFile, the fs function, where node blames the lower-cased syscall",
+          memfs: {
+            name: "Error",
+            message: systemErrorMessage("EEXIST", "copyFile", "/repo/keep.txt", "/repo/taken.txt"),
+            code: "EEXIST",
+            path: "/repo/keep.txt"
+          }
+        }
+      },
+      {
+        title: "link onto an existing path is blamed on link and names both paths",
+        syscall: "link",
+        code: "EEXIST",
+        path: "/repo/keep.txt",
+        dest: "/repo/taken.txt",
+        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "taken"),
+        invoke: (fs) => fs.link("/repo/keep.txt", "/repo/taken.txt")
+      },
+      {
+        title: "symlink onto an existing path is blamed on symlink and names both paths",
+        syscall: "symlink",
+        code: "EEXIST",
+        path: "/repo/keep.txt",
+        dest: "/repo/taken.txt",
+        setup: (volume) => volume.writeFileSync("/repo/taken.txt", "taken"),
+        invoke: (fs) => fs.symlink("/repo/keep.txt", "/repo/taken.txt")
+      },
+      {
+        title: "readlink on a regular file is blamed on readlink",
+        syscall: "readlink",
+        code: "EINVAL",
+        path: "/repo/keep.txt",
+        invoke: (fs) => fs.readlink("/repo/keep.txt")
+      },
+      {
+        title: "realpath on a missing path is blamed on realpath",
+        syscall: "realpath",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.realpath("/repo/missing.txt")
+      },
+      {
+        title: "stat on a missing path is blamed on stat",
+        syscall: "stat",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.stat("/repo/missing.txt")
+      },
+      {
+        title: "lstat on a missing path is blamed on lstat",
+        syscall: "lstat",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.lstat("/repo/missing.txt")
+      },
+      {
+        title: "access on a missing path is blamed on access",
+        syscall: "access",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.access("/repo/missing.txt")
+      },
+      {
+        title: "chmod on a missing path is blamed on chmod",
+        syscall: "chmod",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.chmod("/repo/missing.txt", 0o600)
+      },
+      {
+        // node blames the utime syscall, which is the fs function's name without its s.
+        title: "utimes on a missing path is blamed on utime",
+        syscall: "utime",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.utimes("/repo/missing.txt", 0, 0),
+        gap: {
+          reason: "memfs blames utimes, the fs function, where node blames the utime syscall",
+          memfs: {
+            name: "Error",
+            message: systemErrorMessage("ENOENT", "utimes", "/repo/missing.txt"),
+            code: "ENOENT",
+            path: "/repo/missing.txt"
+          }
+        }
+      },
+      {
+        // fs/promises has no truncate syscall to blame: it opens the path and ftruncates
+        // the descriptor, so a path it cannot open is blamed on the open. The syscall
+        // truncate is unreachable through the module, and ftruncate with it — the
+        // descriptor the module would need to reach one is FileHandle, which SafeJS refuses.
+        title: "truncate on a missing path is blamed on the open it opens the path with",
+        syscall: "open",
+        code: "ENOENT",
+        path: "/repo/missing.txt",
+        invoke: (fs) => fs.truncate("/repo/missing.txt", 0)
+      }
+    ];
+
+    driveNodeSemantics(CASES.map(toSemanticsCase), [
+      "readFile on a directory is blamed on read, which names no path: memfs blames the open rather than the read and names the path node omits",
+      "rm of a file in a write-denied directory is blamed on unlink: memfs blames rm, the fs function, where node blames the unlink it refused",
+      "copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile: memfs blames copyFile, the fs function, where node blames the lower-cased syscall",
+      "utimes on a missing path is blamed on utime: memfs blames utimes, the fs function, where node blames the utime syscall"
+    ]);
+
+    // Every case above compares a derived message against memfs's, which is what proves the
+    // format for the fourteen memfs spells node's way. The four it does not are left with the
+    // derivation as their only witness, so the composition itself is pinned here against text
+    // recorded from real node v22.22.2 on darwin. These are the literals the rest of the
+    // suite is written to avoid: they answer for the derivation rather than for an operation.
+    it("composes the message text node recorded for the cases memfs cannot confirm", () => {
+      expect(systemErrorMessage("EISDIR", "read")).toBe(
+        "EISDIR: illegal operation on a directory, read"
+      );
+      expect(systemErrorMessage("EACCES", "unlink", "/tmp/ro/child.txt")).toBe(
+        "EACCES: permission denied, unlink '/tmp/ro/child.txt'"
+      );
+      expect(systemErrorMessage("EEXIST", "copyfile", "/tmp/a.txt", "/tmp/b.txt")).toBe(
+        "EEXIST: file already exists, copyfile '/tmp/a.txt' -> '/tmp/b.txt'"
+      );
+      expect(systemErrorMessage("ENOENT", "utime", "/tmp/missing")).toBe(
+        "ENOENT: no such file or directory, utime '/tmp/missing'"
+      );
+    });
+
+    // Names the reachable set rather than deriving it: fs.ts keeps FS_SYSCALLS private, and the
+    // operation-to-syscall mapping is not one a test can re-derive without copying the same
+    // answers it is meant to check. What this holds is the table's coverage — a case dropped
+    // from it, or a syscall the module later reaches, has to be answered for here.
+    it("blames every syscall reachable through the module's surface", () => {
+      const blamed = [...new Set(CASES.map((entry) => entry.syscall))].sort();
+
+      // The operations absent are the ones no case can reach a syscall error through: node's
+      // cp is a JavaScript layer raising ERR_FS_CP_* rather than a syscall error, mkdtemp
+      // blames mkdtemp only for a prefix node has already rewritten into a path no case can
+      // name, and rm's own failures are blamed on the lstat and unlink it is made of.
+      expect(blamed).toEqual([
+        "access",
+        "chmod",
+        "copyfile",
+        "link",
+        "lstat",
+        "mkdir",
+        "open",
+        "read",
+        "readlink",
+        "realpath",
+        "rename",
+        "rmdir",
+        "scandir",
+        "stat",
+        "symlink",
+        "unlink",
+        "utime"
+      ]);
+    });
   });
 
   describe("string encodings", () => {
@@ -1444,6 +1796,12 @@ describe("makeFsModule", () => {
 
           expect(error).toEqual(await readArgumentError(call(reference)));
           expect(error.code).toBe(code);
+          // The line that separates a refused argument from a failed syscall. Comparing
+          // against the reference alone would not hold it: a node that started answering a
+          // bad mode with a plain Error would move the line and both sides would agree it
+          // had. A script reads name to tell the two apart, so the constructor node uses is
+          // asserted rather than only mirrored.
+          expect(["TypeError", "RangeError"]).toContain(error.name);
         });
       }
     });
@@ -1855,6 +2213,43 @@ describe("makeFsModule", () => {
         ok: true,
         returnValue: JSON.stringify(["TypeError", BUFFER_MESSAGE("readFile")])
       });
+    });
+
+    // stack is the one field of node's error that cannot match, and the module does not
+    // choose that: the bridge rebuilds every host error as a sandbox error and
+    // normalizeSurfacedSubsetError rewrites the frames, so node's stack is neither
+    // available to a script nor meaningful to one that never ran a node frame — and
+    // surfacing it would name host paths the sandbox exists to keep out of reach. What
+    // survives is the part a log actually reads: the header still carries node's name and
+    // node's message verbatim, and the frames below it are the script's own. Kept as a
+    // documented deviation in the fs-docs task rather than a divergence to close.
+    it("hands a script a sandbox-shaped stack headed by node's name and message", async () => {
+      const { fs } = createFs({ "/repo/keep.txt": "" });
+
+      const result = await run(
+        [
+          'import * as fs from "fs";',
+          'const read = async () => await fs.readFile("/repo/missing.txt", "utf8");',
+          "try {",
+          "  await read();",
+          "} catch (error) {",
+          "  return error.stack;",
+          "}"
+        ].join("\n"),
+        { modules: { fs } }
+      );
+
+      const [header, ...frames] = ((result as { returnValue: string }).returnValue ?? "").split(
+        "\n"
+      );
+
+      expect(header).toBe(`Error: ${systemErrorMessage("ENOENT", "open", "/repo/missing.txt")}`);
+      // The script's own call sites, in the sandbox's own frame format: the readFile the
+      // host rejected, and the await that reached it. No node frame, no host path.
+      expect(frames).toEqual([
+        "    at readFile (line 2, column 32)",
+        "    at <anonymous> (line 4, column 9)"
+      ]);
     });
 
     // cp is the only operation whose options bag a script has to build itself for the call

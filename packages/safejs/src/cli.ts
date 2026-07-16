@@ -13,6 +13,7 @@ import { lint, type Diagnostic } from "./lint.js";
 import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeFailModule } from "./modules/fail.js";
+import { makeFsModule, type FsModuleOptions } from "./modules/fs.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
@@ -69,6 +70,8 @@ type HarnessMeta = {
 type ParsedArgs = {
   filepath?: string;
   fix: boolean;
+  fs: boolean;
+  fsRoot?: string;
   dataSize?: number;
   maxSteps?: number;
   restorePath?: string;
@@ -160,7 +163,8 @@ function readCurrentWorkingDirectory(): string {
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
-    fix: false
+    fix: false,
+    fs: false
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -168,6 +172,17 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 
     if (arg === "--fix") {
       parsed.fix = true;
+      continue;
+    }
+
+    if (arg === "--fs") {
+      parsed.fs = true;
+      continue;
+    }
+
+    if (arg === "--fs-root") {
+      parsed.fsRoot = readFlagValue(argv, index, arg);
+      index += 1;
       continue;
     }
 
@@ -204,6 +219,13 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     }
 
     parsed.filepath = arg;
+  }
+
+  if (!parsed.fs && parsed.fsRoot !== undefined) {
+    throw new CliExitError(
+      "--fs-root requires --fs. Pass --fs to give the script a filesystem confined to that root, or drop --fs-root.",
+      EXIT_RUNTIME
+    );
   }
 
   return parsed;
@@ -270,6 +292,9 @@ async function runScriptFile(
     version: loaded.frontmatter.version
   };
   const runtime = createRuntime(loaded.frontmatter, meta, {
+    fs: parsed.fs
+      ? { root: path.resolve(options.cwd, parsed.fsRoot ?? dirname(filepath)) }
+      : undefined,
     modulesFor: options.modulesFor,
     stderr: options.stderr,
     stdout: options.stdout
@@ -443,6 +468,7 @@ function createRuntime(
   frontmatter: Record<string, unknown>,
   meta: HarnessMeta,
   options: {
+    fs: FsModuleOptions | undefined;
     modulesFor: RunCliOptions["modulesFor"];
     stderr: CliStream;
     stdout: CliStream;
@@ -502,6 +528,8 @@ function createRuntime(
     registry: {
       agent: toModuleExports(agent),
       fail: toModuleExports(new Map([["default", makeFailModule().default]])),
+      // The one module here that is not a stub, so it is registered only when asked for.
+      ...(options.fs === undefined ? {} : { fs: toModuleExports(makeFsModule(options.fs)) }),
       git: toModuleExports(
         new Map<string, CallerInjectedBinding>([
           ["checkpoint", git.checkpoint],
@@ -604,6 +632,10 @@ function createUsage(): string {
     "",
     "Options:",
     "  --fix                 apply lint fixes before running",
+    "  --fs                  register the fs module: a real filesystem, unlike the agent,",
+    "                        git, and metric stubs this runner bundles",
+    "  --fs-root <path>      directory --fs confines the script to (default: the script's",
+    "                        directory)",
     "  --snapshot <path>     write the final snapshot, and best-effort snapshot on SIGINT",
     "  --restore <path>      restore from a snapshot before running",
     "  --max-steps <n>       cap interpreter step budget",

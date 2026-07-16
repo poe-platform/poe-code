@@ -64,6 +64,129 @@ describe("SafeJS CLI", () => {
     expect(stderr.output()).toBe("");
   });
 
+  it("says in the help text that --fs is a real filesystem, unlike the bundled stubs", async () => {
+    const stdout = createSink();
+
+    const exitCode = await runCli(["--help"], { cwd: "/repo", stdout, stderr: createSink() });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output()).toContain("--fs ");
+    expect(stdout.output()).toContain("--fs-root <path>");
+    expect(stdout.output()).toMatch(/--fs .*real filesystem/);
+  });
+
+  it("exposes no fs module by default", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync("/repo/data.txt", "secret");
+    vol.writeFileSync(
+      "/repo/script.ajs",
+      'import { readFile } from "fs";\nreturn await readFile("data.txt", "utf8");\n'
+    );
+
+    const exitCode = await runCli(["script.ajs"], { cwd: "/repo", stdout, stderr });
+
+    expect(exitCode).toBe(1);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Unknown module 'fs'");
+  });
+
+  it("registers a real fs module rooted at the script directory for --fs", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.mkdirSync("/repo/harness", { recursive: true });
+    vol.writeFileSync("/repo/harness/data.txt", "hello");
+    vol.writeFileSync(
+      "/repo/harness/script.ajs",
+      'import { readFile } from "fs";\nreturn await readFile("data.txt", "utf8");\n'
+    );
+
+    const exitCode = await runCli(["--fs", "harness/script.ajs"], { cwd: "/repo", stdout, stderr });
+
+    expect(exitCode).toBe(0);
+    expect(stderr.output()).toBe("");
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: "hello" })}\n`);
+  });
+
+  // That the root *is* the script directory is pinned by the read above; this pins that the
+  // confinement is enforced and that node's own EACCES reaches the script's catch.
+  it("denies an --fs read escaping the root with a node-shaped EACCES", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.mkdirSync("/repo/harness", { recursive: true });
+    vol.writeFileSync("/repo/outside.txt", "secret");
+    vol.writeFileSync(
+      "/repo/harness/script.ajs",
+      [
+        'import { readFile } from "fs";',
+        "const read = async () => {",
+        "  try {",
+        '    return await readFile("../outside.txt", "utf8");',
+        "  } catch (error) {",
+        "    return error.code;",
+        "  }",
+        "};",
+        "return await read();"
+      ].join("\n")
+    );
+
+    const exitCode = await runCli(["--fs", "harness/script.ajs"], { cwd: "/repo", stdout, stderr });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: "EACCES" })}\n`);
+  });
+
+  it("roots --fs at --fs-root resolved against the cwd", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.mkdirSync("/repo/harness", { recursive: true });
+    vol.writeFileSync("/repo/outside.txt", "reachable");
+    vol.writeFileSync(
+      "/repo/harness/script.ajs",
+      'import { readFile } from "fs";\nreturn await readFile("outside.txt", "utf8");\n'
+    );
+
+    const exitCode = await runCli(["--fs", "--fs-root", ".", "harness/script.ajs"], {
+      cwd: "/repo",
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr.output()).toBe("");
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: "reachable" })}\n`);
+  });
+
+  it("rejects --fs-root without --fs and names the fix", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync("/repo/script.ajs", "return 1;");
+
+    const exitCode = await runCli(["--fs-root", "/repo", "script.ajs"], {
+      cwd: "/repo",
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).not.toBe(0);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("--fs-root requires --fs");
+  });
+
+  it("rejects a blank --fs-root rather than silently widening the root", async () => {
+    const stderr = createSink();
+    vol.writeFileSync("/repo/script.ajs", "return 1;");
+
+    const exitCode = await runCli(["--fs", "--fs-root", "", "script.ajs"], {
+      cwd: "/repo",
+      stdout: createSink(),
+      stderr
+    });
+
+    expect(exitCode).not.toBe(0);
+    expect(stderr.output()).toContain("Missing value for --fs-root");
+  });
+
   it("prints usage to stderr and exits non-zero when no path is provided", async () => {
     const stdout = createSink();
     const stderr = createSink();

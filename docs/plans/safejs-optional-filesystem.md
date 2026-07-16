@@ -882,7 +882,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: safejs-cli-fs-flag
     title: Add --fs to the poe-safejs runner
@@ -900,10 +900,32 @@ tasks:
 
       TDD in packages/safejs/src/cli.test.ts using the existing injected-stream/inject-fs test
       seams plus memfs; no real files. Verify the usage/help text output too.
+
+      Implementation notes from the completed task:
+
+      No `inject-fs` seam was needed or used: cli.test.ts already mocks `node:fs/promises` with
+      memfs for the whole module graph, and fs.ts imports the same specifier, so `makeFsModule()`
+      lands on memfs without the CLI exposing an `fs` implementation option. Adding one would be a
+      seam with no caller.
+
+      A blank `--fs-root` is refused by the pre-existing `readFlagValue`, which rejects an
+      empty flag value for every flag, so the harness's dedicated blank-root ValidationError has no
+      counterpart here — same outcome, one layer earlier, no new check. Whitespace-only diverges
+      from the harness, which refuses it: here `path.resolve` reads `"   "` as a directory name and
+      node reports the ENOENT, consistent with this runner leaving a non-existent root to node.
+
+      `--fs` feeds the default stub registry only; `modulesFor` replaces the registry wholesale, as
+      it already did for every other module.
+
+      Mutation-checked, because two of the three fs tests pass without pinning what they name:
+      defaulting the root to the cwd and ignoring `--fs-root` each fail exactly one case. The
+      EACCES-escape test survives both — `../outside.txt` escapes any root under the cwd — so it is
+      named for what it proves (confinement enforced, node's EACCES reaching the script's catch)
+      and the in-root read is what pins the root to the script directory.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: fs-docs

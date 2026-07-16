@@ -1139,6 +1139,42 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
+  it("reports an unknown agent before validating --mode", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "--mode", "dance", "notanagent", "hello"])
+    ).rejects.toThrow('Unknown agent "notanagent".');
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("reports an empty agent instead of requiring --mode on non-interactive stdin", async () => {
+    setProcessStdinIsTTY(false);
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "", "hello"])
+    ).rejects.toThrow("agent cannot be empty.");
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("passes through auto permission mode for agents that support it", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

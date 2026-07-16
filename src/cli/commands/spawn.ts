@@ -245,6 +245,12 @@ export function registerSpawnCommand(
         throw new Error("No prompt provided via argument or stdin");
       }
       const prompt = promptText ?? "";
+      // Resolve the agent before the mode. Otherwise a missing or unknown agent is
+      // reported as a --mode problem, blaming a flag the user did not get wrong.
+      const directHandler = getCustomSpawnHandler(options.handlers, service);
+      const resolvedTarget = directHandler
+        ? undefined
+        : resolveSpawnTarget(container, requireNonEmpty(service, "agent"));
       const mode = await resolveSpawnMode(service, commandOptions.mode, flags);
 
       const workspace = await resolveSpawnWorkspace(commandOptions.cwd, {
@@ -267,7 +273,7 @@ export function registerSpawnCommand(
           requireInteractiveStdin(
             "spawn --interactive requires an interactive TTY. Drop --interactive to run the agent non-interactively."
           );
-          const target = resolveSpawnTarget(container, service);
+          const target = resolvedTarget ?? resolveSpawnTarget(container, service);
           const canonicalService = target.name;
           assertInteractiveSupport(target.label, canonicalService);
           const interactiveModel = await resolveConfiguredModel(
@@ -321,7 +327,6 @@ export function registerSpawnCommand(
           useStdin: shouldReadFromStdin
         };
 
-        const directHandler = getCustomSpawnHandler(options.handlers, service);
         if (directHandler) {
           const resources = createExecutionResources(container, flags, `spawn:${service}`);
           if (shouldEmitUiOutput) {
@@ -340,7 +345,7 @@ export function registerSpawnCommand(
           return;
         }
 
-        const target = resolveSpawnTarget(container, service);
+        const target = resolvedTarget ?? resolveSpawnTarget(container, service);
         const canonicalService = target.name;
         const configuredModel = await resolveConfiguredModel(
           container,

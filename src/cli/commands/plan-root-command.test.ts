@@ -266,9 +266,16 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await expect(
-      withMockedStdin(() => program.parseAsync(["node", "cli", "--yes", "plan", "browse"]), true)
-    ).rejects.toThrow(/docs\/plans\/plan-a\.md[\s\S]*docs\/plans\/plan-b\.md/);
+    // Plans are listed newest-first, so their relative order depends on mtime.
+    // Assert both candidates are listed without pinning the order.
+    const error = await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "browse"]),
+      true
+    ).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.message).toContain("Name the plan you want");
+    expect(error.message).toContain("docs/plans/plan-a.md");
+    expect(error.message).toContain("docs/plans/plan-b.md");
 
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });

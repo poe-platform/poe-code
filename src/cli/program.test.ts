@@ -1,4 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { stripVTControlCharacters } from "node:util";
 import { CommanderError } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
@@ -204,4 +205,74 @@ describe("createProgram", () => {
       expect(writes.join("")).toContain(command);
     }
   );
+
+  describe("forwarded toolcraft help matches commander help", () => {
+    const renderHelp = async (args: string[]): Promise<string> => {
+      const writes: string[] = [];
+      vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+        writes.push(String(chunk));
+        return true;
+      }) as typeof process.stdout.write);
+      // argv[1] ending in .ts puts the CLI in development execution mode, which is
+      // where the 'npm run dev --' invocation used to leak into help output.
+      process.argv = ["node", "/repo/src/index.ts", ...args];
+      const program = createProgram({
+        fs: createMemFs(homeDir),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir },
+        logger: () => {},
+        exitOverride: true,
+        suppressCommanderOutput: true
+      });
+
+      await program.parseAsync(process.argv);
+
+      return stripVTControlCharacters(writes.join(""));
+    };
+
+    it("titles forwarded group help without the redundant poe-code segment", async () => {
+      expect(await renderHelp(["superintendent", "--help"])).toContain("Poe - superintendent");
+    });
+
+    it("uses the canonical binary name in forwarded usage lines, never npm run dev", async () => {
+      const output = await renderHelp(["superintendent", "--help"]);
+
+      expect(output).toContain("Usage: poe-code superintendent");
+      expect(output).not.toContain("npm run dev");
+    });
+
+    it("renders forwarded section headings with commander casing", async () => {
+      const output = await renderHelp(["superintendent", "--help"]);
+
+      expect(output).toContain("Commands:");
+      expect(output).not.toMatch(/^COMMANDS$/m);
+    });
+
+    it("collapses forwarded command rows instead of dumping every flag inline", async () => {
+      const output = await renderHelp(["superintendent", "--help"]);
+
+      expect(output).toContain("run [docs...] [+8 options]");
+      expect(output).not.toContain("--runner-sync");
+    });
+
+    it("lists forwarded leaf positionals under Arguments, not Options", async () => {
+      const output = await renderHelp(["superintendent", "run", "--help"]);
+
+      expect(output).toContain("Arguments:");
+      const argumentsBlock = output.slice(output.indexOf("Arguments:"), output.indexOf("Options:"));
+      const optionsBlock = output.slice(output.indexOf("Options:"));
+
+      expect(argumentsBlock).toContain("[docs...]");
+      expect(optionsBlock).not.toContain("[docs...]");
+      expect(optionsBlock).toContain("--agent");
+    });
+
+    it("does not render two competing Options headings in forwarded leaf help", async () => {
+      const output = await renderHelp(["superintendent", "run", "--help"]);
+
+      expect(output).not.toMatch(/^OPTIONS$/m);
+      expect(output).toContain("Global Options:");
+      expect(output.match(/^Options:$/gm)).toHaveLength(1);
+    });
+  });
 });

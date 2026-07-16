@@ -1967,6 +1967,8 @@ function formatExampleRows(
 }
 
 const MAX_INLINE_OPTIONAL_PARAMETER_TOKENS = 8;
+/** Mirrors the fallback width used by the design system's column layout. */
+const DEFAULT_HELP_TOTAL_WIDTH = 100;
 
 interface CommandParameterToken {
   optional: boolean;
@@ -2079,10 +2081,16 @@ function formatCommandParameterTokens<TServices extends object>(
 }
 
 function collapseOptionalParameterTokens(
-  parameterTokens: CommandParameterToken[]
+  parameterTokens: CommandParameterToken[],
+  inlineWidthBudget = Number.POSITIVE_INFINITY
 ): CommandParameterToken[] {
   const optionalCount = parameterTokens.filter((token) => token.optional).length;
-  if (optionalCount <= MAX_INLINE_OPTIONAL_PARAMETER_TOKENS) {
+  if (optionalCount === 0) {
+    return parameterTokens;
+  }
+
+  const inlineWidth = parameterTokens.reduce((total, token) => total + token.text.length + 1, 0);
+  if (optionalCount <= MAX_INLINE_OPTIONAL_PARAMETER_TOKENS && inlineWidth <= inlineWidthBudget) {
     return parameterTokens;
   }
 
@@ -2110,10 +2118,17 @@ function formatCommandRowNameTokens<TServices extends object>(
   const baseName =
     node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
   const nameTokens: HelpToken[] = [{ text: baseName, role: "command" }];
+  // formatCommandList indents rows by two columns, so anything wider than the rest of the
+  // terminal wraps onto continuation lines and makes the command list unreadable.
+  const inlineWidthBudget = Math.max(
+    0,
+    (process.stdout.columns ?? DEFAULT_HELP_TOTAL_WIDTH) - 2 - baseName.length
+  );
   const parameterTokens =
     node.kind === "command"
       ? collapseOptionalParameterTokens(
-          formatCommandParameterTokens(node, casing, globalLongOptionFlags)
+          formatCommandParameterTokens(node, casing, globalLongOptionFlags),
+          inlineWidthBudget
         )
       : [];
 
@@ -2191,11 +2206,11 @@ function formatGlobalOptionsLine(ctx: {
     flags.push("--version");
   }
 
-  return flags.length > 0 ? `${text.section("Options:")} ${flags.join("  ")}` : "";
+  return flags.length > 0 ? `${text.section("Global Options:")} ${flags.join("  ")}` : "";
 }
 
 function formatLeafGlobalOptionsLine(ctx: { controls: ResolvedCLIControls }): string {
-  return ctx.controls.verbose ? `${text.section("Options:")} -v, --verbose` : "";
+  return ctx.controls.verbose ? `${text.section("Global Options:")} -v, --verbose` : "";
 }
 
 function collectSchemaGlobalFieldRows<TServices extends object>(
@@ -2260,15 +2275,10 @@ function formatHelpOptionList(rows: HelpOptionRow[]): string {
 }
 
 function sortLeafHelpOptionFields(fields: FieldDefinition[]): FieldDefinition[] {
-  const positionals: FieldDefinition[] = [];
   const required: FieldDefinition[] = [];
   const optional: FieldDefinition[] = [];
 
   for (const field of fields) {
-    if (field.positionalIndex !== undefined) {
-      positionals.push(field);
-      continue;
-    }
     if (!field.optional && !field.hasDefault) {
       required.push(field);
       continue;
@@ -2276,7 +2286,7 @@ function sortLeafHelpOptionFields(fields: FieldDefinition[]): FieldDefinition[] 
     optional.push(field);
   }
 
-  return [...positionals, ...required, ...optional];
+  return [...required, ...optional];
 }
 
 function buildUsageLine(breadcrumb: string[], rootUsageName: string, suffix: string): string {
@@ -2364,7 +2374,7 @@ function renderGroupHelp<TServices extends object>(
   );
 
   if (commandRows.length > 0) {
-    sections.push(`${text.sectionHeader("Commands")}\n${formatHelpCommandList(commandRows)}`);
+    sections.push(`${text.section("Commands:")}\n${formatHelpCommandList(commandRows)}`);
   }
 
   if (isRoot) {
@@ -2378,7 +2388,7 @@ function renderGroupHelp<TServices extends object>(
 
     if (schemaGlobalRows.length > 0) {
       sections.push(
-        `${text.sectionHeader("Options")}\n${formatHelpOptionList(schemaGlobalRows)}\n${builtInLine}`
+        `${text.section("Options:")}\n${formatHelpOptionList(schemaGlobalRows)}\n${builtInLine}`
       );
     } else {
       sections.push(builtInLine);
@@ -2422,17 +2432,27 @@ function renderLeafHelp<TServices extends object>(
   );
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
-  const optionRows = sortLeafHelpOptionFields(fields.filter((field) => field.global !== true))
-    .map((field) =>
-      createHelpOptionRow(
-        formatHelpFieldFlags(field, globalLongOptionFlags),
-        formatHelpFieldDescription(field)
-      )
-    )
+  const localFields = fields.filter((field) => field.global !== true);
+  const toHelpRow = (field: FieldDefinition): HelpOptionRow =>
+    createHelpOptionRow(
+      formatHelpFieldFlags(field, globalLongOptionFlags),
+      formatHelpFieldDescription(field)
+    );
+  const argumentRows = localFields
+    .filter((field) => field.positionalIndex !== undefined)
+    .map(toHelpRow);
+  const optionRows = sortLeafHelpOptionFields(
+    localFields.filter((field) => field.positionalIndex === undefined)
+  )
+    .map(toHelpRow)
     .concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
 
+  if (argumentRows.length > 0) {
+    sections.push(`${text.section("Arguments:")}\n${formatHelpOptionList(argumentRows)}`);
+  }
+
   if (optionRows.length > 0) {
-    sections.push(`${text.sectionHeader("Options")}\n${formatHelpOptionList(optionRows)}`);
+    sections.push(`${text.section("Options:")}\n${formatHelpOptionList(optionRows)}`);
   }
 
   const builtInLine = formatLeafGlobalOptionsLine(globalOptions);
@@ -2443,13 +2463,13 @@ function renderLeafHelp<TServices extends object>(
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
     sections.push(
-      `${text.sectionHeader("Secrets (environment)")}\n${formatHelpOptionList(secretRows)}`
+      `${text.section("Secrets (environment):")}\n${formatHelpOptionList(secretRows)}`
     );
   }
 
   if (command.examples.length > 0) {
     sections.push(
-      `${text.sectionHeader("Examples")}\n${formatExampleRows(command.examples, breadcrumb, rootUsageName).join("\n")}`
+      `${text.section("Examples:")}\n${formatExampleRows(command.examples, breadcrumb, rootUsageName).join("\n")}`
     );
   }
 

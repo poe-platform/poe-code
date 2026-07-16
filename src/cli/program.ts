@@ -57,6 +57,9 @@ import {
   formatCliUsageCommand
 } from "../utils/execution-context.js";
 
+/** Shared by the commander and toolcraft help renderers so their titles cannot drift apart. */
+const POE_HELP_TITLE_PREFIX = "Poe";
+
 function formatCommandHeader(cmd: Command): string {
   const parts: string[] = [];
   let current: Command | null = cmd;
@@ -70,7 +73,7 @@ function formatCommandHeader(cmd: Command): string {
     }
     current = current.parent ?? null;
   }
-  return `Poe - ${parts.reverse().join(" ")}`;
+  return `${POE_HELP_TITLE_PREFIX} - ${parts.reverse().join(" ")}`;
 }
 
 const ROOT_HELP_PRIMARY_COMMANDS: readonly string[] = [
@@ -695,9 +698,7 @@ function registerForwardedToolcraftCommand(
     description: string;
     aliases?: readonly string[];
   },
-  forwardedRoots: Group<object>[],
-  heading: string,
-  usageCommand: string
+  forwardedRoots: Group<object>[]
 ): void {
   const action = async () => {
     const originalArgv = [...process.argv];
@@ -711,8 +712,11 @@ function registerForwardedToolcraftCommand(
           verbose: true,
           yes: true
         },
-        rootDisplayName: heading,
-        rootUsageName: usageCommand,
+        // formatCommandHeader titles commander help as "Poe - <command path>" and
+        // formatCanonicalCommandPath roots its usage line at the program name; toolcraft joins
+        // both values with the command breadcrumb, so forwarded help renders identically.
+        rootDisplayName: `${POE_HELP_TITLE_PREFIX} -`,
+        rootUsageName: program.name(),
         humanInLoop: createToolcraftHumanInLoop(container)
       });
     } finally {
@@ -893,9 +897,7 @@ function bootstrapProgram(container: CliContainer): Command {
       description: evalGroup.description ?? "",
       aliases: evalGroup.aliases
     },
-    toolcraftRoots,
-    heading,
-    usageCommand
+    toolcraftRoots
   );
   registerForwardedToolcraftCommand(
     program,
@@ -905,9 +907,7 @@ function bootstrapProgram(container: CliContainer): Command {
       description: ghGroup.description ?? "",
       aliases: ghGroup.aliases
     },
-    toolcraftRoots,
-    heading,
-    usageCommand
+    toolcraftRoots
   );
   registerForwardedToolcraftCommand(
     program,
@@ -917,9 +917,7 @@ function bootstrapProgram(container: CliContainer): Command {
       description: codeReviewGroup.description ?? "",
       aliases: codeReviewGroup.aliases
     },
-    toolcraftRoots,
-    heading,
-    usageCommand
+    toolcraftRoots
   );
   registerForwardedToolcraftCommand(
     program,
@@ -929,9 +927,7 @@ function bootstrapProgram(container: CliContainer): Command {
       description: superintendentGroup.description ?? "",
       aliases: superintendentGroup.aliases
     },
-    toolcraftRoots,
-    heading,
-    usageCommand
+    toolcraftRoots
   );
   registerForwardedToolcraftCommand(
     program,
@@ -940,9 +936,7 @@ function bootstrapProgram(container: CliContainer): Command {
       name: "approvals",
       description: "Inspect and execute queued approvals."
     },
-    toolcraftRoots,
-    heading,
-    usageCommand
+    toolcraftRoots
   );
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);

@@ -1580,14 +1580,14 @@ describe("runCLI", () => {
 
       Usage: toolcraft [command] [OPTIONS]
 
-      Commands
+      Commands:
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
           list [--state <value...>]  List queued approvals.
           show --approval-id <id>  Show one approval.
           run --approval-id <id>  Run one queued approval.
 
-      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      Global Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
       Run toolcraft <command> --help for full options.
       "
@@ -1705,14 +1705,14 @@ describe("runCLI", () => {
 
       Usage: toolcraft [command] [OPTIONS]
 
-      Commands
+      Commands:
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
           list [--state <value...>]  List queued approvals.
           show --approval-id <id>  Show one approval.
           run --approval-id <id>  Run one queued approval.
 
-      Options: --preset <path>  --yes  --output <rich|md|markdown|json>  -v, --verbose  --version
+      Global Options: --preset <path>  --yes  --output <rich|md|markdown|json>  -v, --verbose  --version
 
       Run toolcraft <command> --help for full options.
       "
@@ -4687,8 +4687,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Commands");
-    expect(output).not.toContain("Commands:");
+    expect(output).toContain("Commands:");
     expect(output).toContain("calendar");
     expect(output).toContain("  events");
     expect(output).toContain("    list");
@@ -5848,8 +5847,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Commands");
-    expect(output).not.toContain("Commands:");
+    expect(output).toContain("Commands:");
     expect(output).toContain("text");
     expect(output).not.toContain("invoke");
   });
@@ -5873,8 +5871,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Commands");
-    expect(output).not.toContain("Commands:");
+    expect(output).toContain("Commands:");
     expect(output).toContain("builder");
   });
 
@@ -5945,14 +5942,14 @@ describe("runCLI", () => {
 
       Usage: poe-code [command] [OPTIONS]
 
-      Commands
+      Commands:
         deploy
         approvals                     Inspect and execute queued approvals.
           list [--state <value...>]   List queued approvals.
           show --approval-id <id>     Show one approval.
           run --approval-id <id>      Run one queued approval.
 
-      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      Global Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
       Run poe-code <command> --help for full options.
       "
@@ -6114,7 +6111,7 @@ describe("runCLI", () => {
 
       Usage: toolcraft [command] [OPTIONS]
 
-      Commands
+      Commands:
         child                         Child group
           grandchild                  Nested leaf
         sibling                       Sibling leaf
@@ -6123,7 +6120,7 @@ describe("runCLI", () => {
           show --approval-id <id>     Show one approval.
           run --approval-id <id>      Run one queued approval.
 
-      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      Global Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
       Run toolcraft <command> --help for full options.
       "
@@ -6167,12 +6164,12 @@ describe("runCLI", () => {
 
       Usage: toolcraft [command] [OPTIONS]
 
-      Commands
+      Commands:
         child       Child group
         sibling     Sibling leaf
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      Global Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
       Run toolcraft <command> --help for full options.
       "
@@ -6205,7 +6202,7 @@ describe("runCLI", () => {
 
       Usage: toolcraft inspect [OPTIONS]
 
-      Options: -v, --verbose
+      Global Options: -v, --verbose
       "
     `);
   });
@@ -6240,7 +6237,7 @@ describe("runCLI", () => {
 
       Usage: toolcraft [command] [OPTIONS]
 
-      Commands
+      Commands:
         scan --repository-path <path>   Scan repositories and
                                         summarize changes.
         approvals                       Inspect and execute queued
@@ -6249,7 +6246,7 @@ describe("runCLI", () => {
           show --approval-id <id>       Show one approval.
           run --approval-id <id>        Run one queued approval.
 
-      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      Global Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
       Run toolcraft <command> --help for full options.
       "
@@ -6283,14 +6280,14 @@ describe("runCLI", () => {
 
       Usage: toolcraft [command] [OPTIONS]
 
-      Commands
+      Commands:
         deploy                        Deploy a service
         approvals                     Inspect and execute queued approvals.
           list [--state <value...>]   List queued approvals.
           show --approval-id <id>     Show one approval.
           run --approval-id <id>      Run one queued approval.
 
-      Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
+      Global Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
       Run toolcraft <command> --help for full options.
       "
@@ -6447,6 +6444,31 @@ describe("runCLI", () => {
     expect(output).toContain("--opt1");
     expect(output).toContain("--opt8");
     expect(output).not.toContain("[+8 options]");
+  });
+
+  it("collapses inline optional parameters that cannot fit the terminal width", async () => {
+    setStdoutColumns(100);
+    const shape: Record<string, ReturnType<typeof S.Optional>> = {};
+    for (let index = 1; index <= 8; index += 1) {
+      shape[`ratherLongOptionName${index}`] = S.Optional(S.String());
+    }
+    const create = defineCommand({
+      name: "create",
+      params: S.Object(shape),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [create]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root);
+    const output = readStdout(stdoutWrite);
+
+    expect(output).toContain("create [+8 options]");
+    expect(output).not.toContain("--rather-long-option-name1");
   });
 
   it("renders enum values and required as separate parentheticals", async () => {

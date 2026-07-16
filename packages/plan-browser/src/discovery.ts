@@ -57,7 +57,15 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }
 
+export function isPlanMetaDocument(filePath: string): boolean {
+  return path.basename(filePath).toLowerCase() === "readme.md";
+}
+
 function isSupportedPlanFile(name: string): boolean {
+  if (isPlanMetaDocument(name)) {
+    return false;
+  }
+
   const lowerName = name.toLowerCase();
   return lowerName.endsWith(".md") || lowerName.endsWith(".yaml") || lowerName.endsWith(".yml");
 }

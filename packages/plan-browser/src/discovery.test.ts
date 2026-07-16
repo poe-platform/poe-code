@@ -205,6 +205,24 @@ describe("discoverAllPlans", () => {
     ]);
   });
 
+  it("excludes README meta docs from the shared plan directory", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/README.md": "# Plans\n\nIndex of the plan directory.\n",
+      "/repo/docs/plans/later/README.md": "# Saved for later\n",
+      "/repo/docs/plans/architecture.md": "# Architecture\n"
+    });
+
+    const plans = await discoverAllPlans({
+      cwd,
+      homeDir,
+      fs,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd)
+    });
+
+    expect(plans.map((plan) => plan.path)).toEqual(["docs/plans/architecture.md"]);
+  });
+
   it("derives a plan entry from one file snapshot", async () => {
     const baseFs = createMemFs({
       "/repo/docs/plans/feature.md": [

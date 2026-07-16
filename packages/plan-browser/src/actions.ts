@@ -1,5 +1,6 @@
 import path from "node:path";
 import { spawnSync as nodeSpawnSync } from "node:child_process";
+import { isPlanMetaDocument } from "./discovery.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readSavedForLaterMetadata, writeSavedForLaterReason } from "./format.js";
 import type { ActionFs, PlanFormat, SavedForLaterMetadata } from "./types.js";
@@ -44,6 +45,7 @@ async function archiveSelectedPlan(
   entry: Pick<{ absolutePath: string }, "absolutePath">,
   fs: ActionFs
 ): Promise<string> {
+  rejectPlanMetaDocument(entry.absolutePath, "archive");
   const archiveDir = path.join(path.dirname(entry.absolutePath), "archive");
   const archivedPath = path.join(archiveDir, path.basename(entry.absolutePath));
   try {
@@ -143,6 +145,12 @@ async function rejectExistingDestination(
   }
 }
 
+function rejectPlanMetaDocument(absolutePath: string, action: string): void {
+  if (isPlanMetaDocument(absolutePath)) {
+    throw new Error(`Refusing to ${action} plan directory README: ${absolutePath}`);
+  }
+}
+
 async function rejectSymbolicLink(
   targetPath: string,
   fs: Pick<ActionFs, "lstat">,
@@ -239,5 +247,6 @@ export async function deletePlan(
   entry: Pick<{ absolutePath: string }, "absolutePath">,
   fs: Pick<ActionFs, "unlink">
 ): Promise<void> {
+  rejectPlanMetaDocument(entry.absolutePath, "delete");
   await fs.unlink(entry.absolutePath);
 }

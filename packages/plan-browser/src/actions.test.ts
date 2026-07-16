@@ -82,6 +82,28 @@ describe("plan actions", () => {
     await expect(fs.readFile("/repo/.poe-code/experiments/plan.md", "utf8")).rejects.toThrow();
   });
 
+  it("refuses to archive the plan directory README", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/README.md": "# Plans"
+    });
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/README.md" }, fs)).rejects.toThrow(
+      "Refusing to archive plan directory README: /repo/docs/plans/README.md"
+    );
+    await expect(fs.readFile("/repo/docs/plans/README.md", "utf8")).resolves.toBe("# Plans");
+  });
+
+  it("refuses to delete the plan directory README", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/README.md": "# Plans"
+    });
+
+    await expect(deletePlan({ absolutePath: "/repo/docs/plans/README.md" }, fs)).rejects.toThrow(
+      "Refusing to delete plan directory README: /repo/docs/plans/README.md"
+    );
+    await expect(fs.readFile("/repo/docs/plans/README.md", "utf8")).resolves.toBe("# Plans");
+  });
+
   it("saves a plan for later with a persisted frontmatter reason", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/feature.md": "# Feature\n\nPlan body\n"

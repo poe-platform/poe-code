@@ -7,6 +7,7 @@ import {
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
+import { observeSandboxPromise } from "./promise-tracker.js";
 import { replaceErrorStack } from "../error/shape.js";
 
 export function wrapCancelableBindings(
@@ -55,6 +56,9 @@ function wrapCancelableValue(
   }
 
   if (isSandboxPromise(value)) {
+    // The wrapper delivers this promise's rejection to the sandbox in its place, so
+    // the sandbox never awaits the original and it would otherwise read as unhandled.
+    observeSandboxPromise(value);
     const wrapped = createSandboxPromise(wrapCancelablePromise(value.promise, signal, seen), {
       ...(value.hostCall === undefined ? {} : { hostCall: value.hostCall }),
       ...(value.hostCallJournal === undefined ? {} : { hostCallJournal: value.hostCallJournal }),

@@ -193,6 +193,60 @@ describe("wrapCancelableBindings", () => {
 });
 
 describe("run cancellation", () => {
+  // An armed signal wraps every host call in a second sandbox promise, so the
+  // rejection the sandbox already caught must not also count as unhandled.
+  it("keeps a caught host call rejection non-fatal while a signal is armed", async () => {
+    const controller = new AbortController();
+    const source = [
+      'import { read } from "files";',
+      "try {",
+      "  await read();",
+      "  return 'missed';",
+      "} catch ({ code }) {",
+      "  return 'caught:' + code;",
+      "}"
+    ].join("\n");
+    const read = async () => {
+      throw Object.assign(new Error("ENOENT: no such file or directory"), {
+        code: "ENOENT"
+      });
+    };
+
+    await expect(
+      run(source, { modules: { files: { read } }, signal: controller.signal })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "caught:ENOENT"
+    });
+  });
+
+  it("makes an abort during an in-flight host call catchable", async () => {
+    const controller = new AbortController();
+    const started = createDeferred<void>();
+    const source = [
+      'import { read } from "files";',
+      "try {",
+      "  await read();",
+      "  return 'missed';",
+      "} catch ({ name, message }) {",
+      "  return name + ':' + message;",
+      "}"
+    ].join("\n");
+    const read = async () => {
+      started.resolve();
+      return new Promise(() => undefined);
+    };
+    const result = run(source, { modules: { files: { read } }, signal: controller.signal });
+
+    await started.promise;
+    controller.abort();
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "AbortError:This operation was aborted"
+    });
+  });
+
   it("does not start a second await when abort happens between two awaits", async () => {
     const controller = new AbortController();
     const first = createDeferred<string>();

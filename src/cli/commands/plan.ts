@@ -432,6 +432,16 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
     return;
   }
 
+  if (plans.length === 0) {
+    const scope = kind === undefined ? "" : `${kind} `;
+    const kindFlag = kind === undefined ? "" : ` --kind ${kind}`;
+    writeOutput(
+      format,
+      `No ${scope}plans found. Create one with poe-code plan${kindFlag} "<description>".`
+    );
+    return;
+  }
+
   const table = withOutputFormat(format, () =>
     renderTable({
       theme: getTheme(),

@@ -161,6 +161,45 @@ describe("plan command", () => {
     expect(output).not.toContain("Source");
   });
 
+  it("reports an empty state instead of table chrome when no plans match", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "plan", "list", "--kind", "experiment"]);
+
+    const output = stripVTControlCharacters(
+      writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")
+    );
+    expect(output).toContain("No experiment plans found.");
+    expect(output).toContain('poe-code plan --kind experiment');
+    expect(output).not.toContain("Kind");
+    expect(output).not.toContain("Updated");
+  });
+
+  it("still lists an empty plan set as an empty json array", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "plan", "list", "--output", "json"]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(output)).toEqual([]);
+  });
+
   it("filters list output by kind", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({

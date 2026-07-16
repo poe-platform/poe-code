@@ -52,21 +52,18 @@ async function executeRuntimeTemplatesLs(
   for (const backend of backends) {
     const entries = selectRecentTemplates(await state.templates.list(backend), window);
     shown += entries.length;
-    if (entries.length === 0) {
-      rows.push({
-        Backend: theme.accent(backend),
-        Hash: text.muted("(empty)"),
-        Artifact: text.muted("-"),
-        Dockerfile: text.muted("-"),
-        Built: text.muted("-")
-      });
-      continue;
-    }
-
     rows.push(...entries.map((entry) => formatEntryRow(backend, entry, theme)));
   }
 
   resources.logger.intro("runtime templates list");
+
+  if (shown === 0) {
+    resources.logger.info(
+      "No local runtime template cache entries. Build one with poe-code runtime build."
+    );
+    return;
+  }
+
   resources.logger.info(renderTable({ theme, columns, rows }));
 
   const hint = listWindowHint(window, shown, "templates");

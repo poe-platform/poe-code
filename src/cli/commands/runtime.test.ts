@@ -408,6 +408,22 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
   });
 
+  it("reports an empty state instead of placeholder rows when no templates are cached", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "templates", "ls"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("No local runtime template cache entries.");
+    expect(output).toContain("poe-code runtime build");
+    expect(output).not.toContain("(empty)");
+    expect(output).not.toContain("Hash");
+  });
+
   it("caps runtime templates list at --limit, keeping the newest builds", async () => {
     const fs = createMemFs({
       [statePath]: `${JSON.stringify(

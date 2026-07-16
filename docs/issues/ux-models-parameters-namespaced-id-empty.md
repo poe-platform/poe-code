@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Duplicate within the namespaced-id cluster (parameters view); retire into ux-models-exact-id-filter-rejects-namespaced-ids.md. Coverage only."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:378-383 filters with m.id.toLowerCase() === term, no owned_by/namespace prefix handling, so 'anthropic/claude-sonnet-4.6' matches nothing; filter runs before view selection so parameters view is not a distinct defect"
 ---
 
 # UX: models --view parameters --model anthropic/… returns empty

@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/gaslight.ts:310-324 registers a root action plus subcommands at :373 (ingest) and :428 (install); however src/cli/commands/plan.ts:522-533 uses the identical hybrid shape (root [question] action plus browse/list/view/install subcommands), so the doc's premise that no other command mixes both shapes is false - this is an established convention, not a defect."
 comment: "Thoughtful structural observation, correctly Low: gaslight is both an action and a group, which no other command in the CLI does, making it hard to document and hard to tab-complete. Not urgent, but this kind of shape gets more expensive to change later, and it interacts with ux-completion-command-missing.md, which needs a consistent command shape to generate from. Note this file is absent from MASTER.md - untracked by the master list."
 ---
 

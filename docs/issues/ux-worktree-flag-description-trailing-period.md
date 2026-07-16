@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: polish
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/worktree-options.ts:10 description ends with a period; runtime-help.test.ts.snap:18,48 show all sibling flags in the same Options sections unpunctuated; packages/superintendent/src/commands/run.ts:198 duplicates the text without the period"
 comment: "The smallest finding in the audit and correctly rated 'Low (systemic)': one flag description ends with a period where no other does, across four commands. Its own diagnosis is the interesting part - the shared description was written outside the flag convention - which makes it a one-line fix in one place. Worth doing only inside a broader copy pass; alone it is not worth a commit. Note this file is absent from MASTER.md."
 ---
 

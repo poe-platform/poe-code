@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/usage.ts:169-181 - bare `usage` action calls executeBalance while the `balance` subcommand is registered with { hidden: true }, so `usage --help` lists only `list`; duplicate of ux-usage-help-hides-default-balance-reconfirmed.md"
 comment: "Contentless twin of ux-usage-help-hides-default-balance-reconfirmed.md; retire into it."
 ---
 

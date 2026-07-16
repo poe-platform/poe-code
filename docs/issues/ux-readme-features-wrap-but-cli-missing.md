@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: polish
+reproduced: n
+recommendation: no-fix
+evidence: "Original claim already fixed: rg -n -i wrap README.md returns no matches (commit c72cec70d); npm run dev -- wrap prints 'Unknown command: wrap' and src/cli/ui/ui.test.ts:107,140-143 assert wrap is absent from help and commands intentionally; residual wrap refs only in low-traffic docs/plans/archive/10-memory.md:103,1115; no CHANGELOG.md exists and no did-you-mean/suggestSimilar in src/"
 comment: "Model filing and the only one in the audit that tracks its own resolution: it records the original Critical (README led with a wrap command the CLI lacks), the concurrent commit that fixed the README, the residual risk (external references), and downgrades its own severity accordingly. That discipline is exactly what the reconfirm-heavy clusters lack. Remaining asks are small and sensible: a changelog/FAQ migration note and a did-you-mean for wrap. Its Status note convention is worth adopting across the audit."
 ---
 

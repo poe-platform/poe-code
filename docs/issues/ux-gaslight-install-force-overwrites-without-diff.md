@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: data-loss
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/gaslight.ts:288-303 scaffoldConfig stats existing path, and when force is set falls through to writeFile of GASLIGHT_CONFIG_EXAMPLE with no backup or diff; line 445 always prints 'Would create'/'Create' even when overwriting."
 comment: "Real data-loss risk, understated at Medium: --force silently overwrites a possibly hand-customised gaslight.yaml with no backup, no diff and no preview of what is lost, and its dry-run misreports the operation as a create (ux-gaslight-install-force-dry-run-vs-already-exists.md). Merge the pair: back up before overwrite and say 'would overwrite'. The no-force 'already exists' path is correct and is the good half worth preserving."
 ---
 

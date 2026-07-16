@@ -2,6 +2,9 @@
 severity: low
 impact: polish
 comment: "Careful systemic filing with a real diagnosis: six group commands advertise [options] when they require [command], while memory/runtime/provider/auth/pipeline/experiment get it right - so this is a registration inconsistency rather than copy, and the correct pattern already dominates. One internal error to fix on merge: the summary says 'Four group commands' while the table lists six. Its 'Low (systemic)' rating is the honest one: individually trivial, collectively a coherent single-pass fix."
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- skill --help prints Usage - poe-code skill [options]; but memory/runtime/provider/auth/pipeline/experiment print [options] too, because src/cli/program.ts:175 formatCanonicalCommandUsage strips [command] from every help usage line - so the observed [options] wording is real but the claimed six-correct/six-wrong registration inconsistency does not exist"
 ---
 
 # UX: Multiple group commands show [options] instead of [command] in Usage line

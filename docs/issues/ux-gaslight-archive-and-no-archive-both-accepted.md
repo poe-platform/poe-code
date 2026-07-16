@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: usability
+impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/gaslight.ts:314-315 declares --archive and --no-archive with no .conflicts() call anywhere in src/cli (grep for 'conflicts(' returns no CLI option checks), so Commander's last-wins negation applies silently; the same idiomatic pattern is used repo-wide (ralph.ts, pipeline.ts, experiment.ts:741 --tui/--no-tui)."
 comment: "Minor but legitimate: --archive and --no-archive are peer options in help and passing both silently resolves via Commander's last-wins negation, so the user cannot tell which behavior they got - and for a flag controlling whether files are archived, silence is the wrong default. Given ux-gaslight-mode-read-still-mutated-plans-dir.md shows archiving already happens when it should not, clarity matters more here than Low-Medium suggests. Reject the conflict or document last-wins."
 ---
 

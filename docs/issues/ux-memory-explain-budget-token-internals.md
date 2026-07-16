@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/memory.ts:421 '.option(\"--budget <tokens>\", \"Token budget\")' and 'npm run dev -- memory explain --help' prints '--budget <tokens>  Token budget' with no default or range; default comes from defaultQueryBudget() at memory.ts:97"
 comment: "Fair and correctly Low: '--budget <tokens> Token budget' exposes an LLM implementation detail with no default and no range, so a user who finds it cannot use it. Its observation that query and explain share the unexplained flag is the useful part - fix both together. Either hide it behind an internal default or annotate default and range; the same 'annotate or hide' question applies to ux-spawn-advanced-flags-undifferentiated.md."
 ---
 

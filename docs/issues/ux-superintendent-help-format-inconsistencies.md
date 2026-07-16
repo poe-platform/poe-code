@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/toolcraft/src/cli.ts:2367 uses text.sectionHeader('Commands') which upper-cases (packages/toolcraft-design/src/components/text.ts:57), vs text.section('Commands:') in src/cli/program.ts; `npm run dev -- superintendent --help` prints 'Poe - poe-code superintendent' and 'COMMANDS' with the run row dumping 8 inline flags (wrapped, not off-screen), while `pipeline --help` prints 'Poe - pipeline'"
 comment: "Careful filing with three findings, of which the third is substantive: the run row dumps every flag inline so the line runs off-screen at normal widths, making the Commands list unreadable rather than merely inconsistent. The all-caps COMMANDS header and doubled 'poe-code' in the title are cosmetic. Consolidate with ux-eval-help-npm-run-dev-and-inline-flags.md, which reports the identical shape for eval - and note its own conclusion there: the two share a command-registration pattern, so fix at the source."
 ---
 

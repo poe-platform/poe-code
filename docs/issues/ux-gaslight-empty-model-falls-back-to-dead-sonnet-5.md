@@ -1,6 +1,9 @@
 ---
 severity: critical
 impact: correctness
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/gaslight.ts:202 returns `...(model ? { model } : {})`, so --model '' is falsy and silently dropped, falling back to src/cli/constants.ts:18 DEFAULT_CLAUDE_CODE_MODEL = 'anthropic/claude-sonnet-5'; siblings ux-empty-model-flag-behavior-inconsistent.md, ux-constants-source-of-dead-sonnet-5.md, ux-failure-shown-as-success-markers.md all exist."
 comment: "Critical is defensible only as a collision, not as a new defect: it stacks three already-filed bugs (empty flag ignored, dead sonnet-5 default, success glyph on failure) into one transcript. Nothing here needs its own fix - the empty-flag policy (ux-empty-model-flag-behavior-inconsistent.md), the constants change (ux-constants-source-of-dead-sonnet-5.md) and the glyph fix (ux-failure-shown-as-success-markers.md) close it entirely. Its value is as evidence of how the three compound; retire into those rather than scheduling separately."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:463-482 - when !flags.assumeYes and format is terminal it calls requireInteractiveStdin('plan archive requires --yes when running without an interactive TTY.') before archivePlan at line 497, so the file is untouched"
 comment: "Small positive that is decisive for the Critical: it proves the non-TTY --yes guard works when a path is supplied and the file is left untouched. Read with ux-plan-archive-delete-yes-picks-arbitrary-plan.md it isolates the bug precisely - the guard is on the confirmation, not on target selection, so --yes without a path skips straight past it to an autopicked victim. Keep and link; it turns a vague 'add confirmation' into a specific fix."
 ---
 

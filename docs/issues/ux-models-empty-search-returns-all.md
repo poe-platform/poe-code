@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "Keep as canonical of the models empty-filter trio (covers --search and --provider together). Its argument is the strongest in the empty-flag family: scripts passing an unset env var get the whole catalog rather than an error, so the failure is silent and entirely plausible in CI. Otherwise part of ux-empty-model-flag-behavior-inconsistent.md."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:372 'if (commandOptions.provider)' and :384 'if (commandOptions.search)' use truthiness, so empty strings skip filtering, while hasActiveFilters at :173 checks '!== undefined' and still prints the N/N count; contrast normalizeRequiredFilter at :198 which rejects empty --feature."
 ---
 
 # UX: models --search "" and --provider "" return all 341 models

@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "npm run dev -- plan markdown-read docs/plans/32-agent-goal.md --depth 2 prints sections 1-6; --output json emits depth/number/title array; src/cli/commands/plan.ts:658"
 comment: "Positive pattern and useful as the control case: depth 2 produces exactly the TOC users want on the same document where depth 1 is empty, pinning the problem to depth semantics rather than the reader. Near-duplicate of ux-markdown-read-unlimited-depth-works.md; consolidate. Its --output json evidence is worth keeping - the structured section array is a good machine contract."
 ---
 

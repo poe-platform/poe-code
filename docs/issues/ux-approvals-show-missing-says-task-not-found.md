@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Duplicate of ux-approvals-missing-id-says-task-not-found-double.md, which has the same string plus the double emission this one misses; retire into it. One detail worth carrying over: the 'Task' noun leaks because approvals are built on the task subsystem, so the fix is mapping task-layer errors to approval-domain copy at the boundary, not rewording a single string."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/toolcraft/src/human-in-loop/approvals-commands.ts:85 throws TaskNotFoundError with hardcoded 'Task \"approvals/${params.approvalId}\" not found.'; backend packages/task-list/src/backends/markdown-dir.ts:539 emits the same task-domain wording via tasks.get"
 ---
 
 # UX: approvals show missing id says Task not found (wrong domain)

@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "Positive note, no defect: --since/--limit wired in src/cli/commands/traces.ts:84-125 and applied in packages/agent-traces/src/collect.ts:97,129"
 comment: "Third filing of the traces filter-composition positive; retire into ux-traces-since-and-source-limit-work.md. Coverage only."
 ---
 

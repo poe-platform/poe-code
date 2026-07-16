@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/memory.ts:526 throws 'Refusing to clear cache without --yes.' while `npm run dev -- memory cache clear --help` Options list shows only --older-than and -h; -y/--yes is program-level at src/cli/program.ts:852"
 comment: "One of three filings about memory cache clear; consolidate. The shared point is narrow but true: the --yes guard exists and works (ux-memory-cache-clear-requires-yes-good.md) while help documents only --older-than and -h, so the guard is invisible until it fires. Same undocumented-global-flag family as ux-global-flags-hidden-on-subcommand-help.md."
 ---
 

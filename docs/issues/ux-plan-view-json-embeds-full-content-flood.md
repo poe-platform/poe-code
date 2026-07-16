@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/plan.ts:629-648 json branch always sets content: markdown; no --include-content flag exists (rg include-content matches only packages/agent-spawn)"
 comment: "Keep as canonical of the plan view JSON trio, though High overstates it: nothing breaks, and the content field is arguably correct for a 'view' command - the real complaint is that there is no metadata-only mode, a capability gap rather than a defect. Its proposed default (path/title/status/tasks summary with --include-content for the body) is the right shape. The three filings span Low-Medium to High for identical behavior; normalise."
 ---
 

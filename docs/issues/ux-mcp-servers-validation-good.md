@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/mcp-spawn-config.ts:75 throws ValidationError '--mcp-servers entry \"x\" must include a non-empty string \"command\"'; positive note, no defect to reproduce"
 comment: "Duplicate within the --mcp-servers positive set; retire into ux-mcp-servers-file-and-json-validation-good.md. Its field-level message ('entry \"x\" must include a non-empty string \"command\"') is the strongest example in the set and should survive as the quoted reference - it names the entry, the field and the constraint."
 ---
 

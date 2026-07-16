@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/install.ts:47 and src/cli/commands/test.ts:92 call resolveServiceAdapter, which throws 'Unknown agent \"pi\".' at src/cli/commands/shared.ts:491 because no pi provider exists in src/providers/index.ts; spawn.ts:240 uses resolveSpawnTarget, which resolves pi via packages/agent-spawn/src/configs/pi.ts:9"
 comment: "Keep as the best statement of the spawn-only messaging problem: it shows install, test and spawn --help side by side, proving pi is known to one command and unknown to two. Retire ux-install-pi-unknown-not-in-installable-list.md and ux-unconfigure-pi-unknown-not-spawn-only.md into it, and treat the family as evidence for ux-agent-capability-matrix-spawn-vs-configure-vs-install.md. 'Unknown agent' is factually wrong here, which is what makes it worth fixing rather than merely improving."
 ---
 

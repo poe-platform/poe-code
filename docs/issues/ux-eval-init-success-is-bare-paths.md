@@ -2,6 +2,9 @@
 severity: low-medium
 impact: polish
 comment: "Fourth filing of the eval init bare-success observation; retire into ux-eval-init-prints-bare-name-and-cwd-default-confusing.md. Its 'confirm what was created' framing is the right ask and should survive: the current output names the eval but never lists the files, so users cannot tell what the scaffold produced."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/agent-eval/src/cli/init.ts:25-26 writes bare process.stdout lines: relative evalDir then 'next: poe-code eval check <name>', no design-system framing or file list; duplicate of ux-eval-init-prints-bare-name-and-cwd-default-confusing.md"
 ---
 
 # UX: eval init success is bare path lines without design-system framing

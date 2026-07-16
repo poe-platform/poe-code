@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "Genuinely good catch and distinct from the framing nit: 'Edited <path>' prints whether or not anything changed, so the message asserts an outcome the command never verified - EDITOR=true proves it by making a no-op editor look successful. That matters because a failed or stubbed editor becomes indistinguishable from a real edit. Its fix is right: compare mtime/content and say 'No changes' when unchanged. Same false-success family as ux-install-always-success-reconfirmed.md and ux-launch-start-claims-running-then-status-stopped.md."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/plan.ts:458 prints `Edited ${plan.path}` unconditionally after editPlan(); packages/plan-browser/src/actions.ts:16-40 editFile only checks spawnSync error/exit status, never compares mtime or content, so EDITOR=true (exit 0, no-op) yields the success message."
 ---
 
 # UX: plan edit with EDITOR=true claims Edited without real edit

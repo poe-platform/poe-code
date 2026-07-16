@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/memory.ts:556-559 enforces requireInteractiveStdin without --yes; --yes is only a global option (src/cli/program.ts:852) and showGlobalOptions is off, so `npm run dev -- memory clear --help` prints 'Options: -h, --help' only"
 comment: "Keep as canonical of the memory clear cluster: the only filing pairing both facts - the --yes guard is enforced non-TTY and help documents neither --yes nor the blast radius - which is the accurate framing the other five miss. It also settles the contradiction with ux-memory-clear-no-yes-no-dry-run.md in favour of the guard existing. Remaining asks: a help fix and --dry-run."
 ---
 

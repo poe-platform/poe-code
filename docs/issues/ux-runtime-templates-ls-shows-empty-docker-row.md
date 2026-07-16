@@ -1,6 +1,9 @@
 ---
 severity: low-medium
 impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/runtime/templates/ls.ts:38-45 pushes a placeholder docker row with Hash '(empty)' and '-' cells when state.templates.list('docker') is empty; duplicate of ux-runtime-templates-ls-empty-rows.md"
 comment: "Duplicate of ux-runtime-templates-ls-empty-rows.md; retire into it. Its distinct observation is worth keeping: the empty docker row is ambiguous about whether docker is configured at all, so the placeholder does not merely look odd - it misleads about state."
 ---
 

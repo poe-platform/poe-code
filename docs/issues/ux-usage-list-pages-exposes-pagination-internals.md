@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/usage.ts:187 option text 'Number of pages to load automatically'; page size hardcoded as limit=20 at src/cli/commands/usage.ts:285 and never shown in help"
 comment: "Careful and correct: '--pages <count> Number of pages to load automatically' describes the fetch mechanism rather than the user's intent, and a page has no documented size so the flag cannot be reasoned about. Consolidate with ux-usage-pages-1-still-shows-20-entries.md, which supplies the missing number (20 per page). Its rename suggestion is the better fix - --limit expresses what users want and matches traces."
 ---
 

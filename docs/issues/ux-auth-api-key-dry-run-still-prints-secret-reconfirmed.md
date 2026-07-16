@@ -2,6 +2,9 @@
 severity: critical
 impact: security
 comment: "Duplicate reconfirm; restates that dry-run is ignored and adds nothing further. Retire into ux-auth-api-key-dry-run-still-prints-secret.md."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:110-116 executeApiKey passes flags.dryRun only as readOnly then unconditionally process.stdout.write(apiKey); duplicate of ux-auth-api-key-dry-run-still-prints-secret.md"
 ---
 
 # UX: auth api-key --dry-run still prints secret (reconfirmed)

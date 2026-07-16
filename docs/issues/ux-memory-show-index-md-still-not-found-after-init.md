@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: crash
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:48 forces every show path under pages/ (INDEX -> pages/INDEX.md) while packages/memory/src/init.ts:17-26 writes INDEX.md/LOG.md at the memory root; packages/memory/src/pages.ts:15 lists only MEMORY_PAGES_DIR_RELPATH, so ls prints 'No memory pages yet'. displayPageRelPath (memory.ts:56) strips the pages/ prefix, reproducing the exact reported 'Page not found: INDEX.md' text. Duplicate of ux-memory-show-cannot-open-root-index-file.md."
 comment: "The most thorough of the INDEX reconfirms - it tries INDEX, INDEX.md and the full .poe-code/memory/INDEX.md path, all failing, and confirms cat works outside the CLI. That triangulation is the evidence the canonical should carry, since it rules out a path-format mistake by the user. Retire into ux-memory-show-cannot-open-root-index-file.md; rated High against that Critical for identical behavior, so normalise."
 ---
 

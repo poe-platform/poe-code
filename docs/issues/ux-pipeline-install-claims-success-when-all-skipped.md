@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/pipeline.ts:1509 and :1538 log 'Skip: ... (already exists)', then :1582-1583 unconditionally calls resources.context.complete with success 'Installed Pipeline skill for ...' with no check that anything changed"
 comment: "Real and cleanly evidenced: both steps skip as already-existing and the command still reports 'Installed Pipeline skill', so the success line contradicts the two lines above it. Same overclaiming as ux-install-always-success-reconfirmed.md, and the fix is the rule from ux-config-init-already-exists-good.md - already-exists is idempotent success, so say 'already installed (nothing to do)' rather than claiming an install. Part of the installer-consistency umbrella."
 ---
 

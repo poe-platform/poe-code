@@ -2,6 +2,9 @@
 severity: low-medium
 impact: polish
 comment: "One of four filings of the same memory write bare-stdout observation; consolidate into ux-memory-ls-search-show-raw-unframed.md. Its framing is the fairest of the four: a bare path is genuinely useful for scripting, so the ask is a design-system success on TTY rather than removing the machine-friendly output."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:282-300 write action awaits mem.writePage and returns without any stdout output; no process.stdout/console.log in packages/memory/src (non-test) write paths, so the claimed bare 'hello.md' line is not emitted"
 ---
 
 # UX: memory write success is bare path on stdout

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "No `mcp` command is registered (grep '.command(\"mcp' in src/ and packages/ returns nothing); the only MCP config printer, packages/memory/src/mcp.ts:169-183 printMcpConfig(), emits command 'poe-code' with args ['memory-mcp'] - no dev path, no npm run dev."
 comment: "Unusually well-handled filing: it documents a real leak (a config snippet containing the auditor's own absolute path plus an npm run dev invocation, unusable if copied) and then updates itself to record that mcp serve no longer exists, hedging the severity accordingly. That honesty is right and the conditional severity is the correct call. Do not schedule; keep as a design constraint should mcp serve return. Same root cause as ux-development-mode-usage-intentional-but-leaks.md - config derived from the dev invocation rather than the installed binary."
 ---
 

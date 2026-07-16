@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/runtime/jobs/ls.ts:10 and src/cli/commands/memory.ts:211 register .command('ls') with no 'list' alias (rg -n 'alias' on both files returns no matches), while worktree.ts:24, plan.ts:589, harness.ts:110, provider.ts:44 register .command('list')"
 comment: "Careful and correct: harness/worktree/provider/plan all use 'list' while runtime jobs and memory use 'ls', so the pattern users learn fails on two commands. Its own aside is the giveaway - it lists 'memory ls' among the list-style commands then notes memory is also inconsistent, showing how easily the exception is overlooked. An alias is the cheap fix and costs nothing. Same naming-consistency family as the plan-path noun problem."
 ---
 

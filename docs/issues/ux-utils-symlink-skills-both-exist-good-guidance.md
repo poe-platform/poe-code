@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/utils-symlink-skills.ts:189 emits the quoted conflict message verbatim; positive note, no defect"
 comment: "Genuinely good positive and the best conflict-resolution copy in the product: it explains the conflict and gives an ordered manual procedure rather than refusing. Cite it from the hooks refusal cluster (ux-hooks-auto-strategy-still-refuses-user-settings.md), where a refusal offers no path forward at all - this is what that message should look like. Its design-system framing residue is minor."
 ---
 

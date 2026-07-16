@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Duplicate of ux-shape-base-url-invalid-format-validation-good.md; retire into it. One of the two should survive as part of the consolidated 'configure validates its own flags well' note, alongside the unknown-shape and unknown-provider positives."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/shared.ts:198 and :209 throw 'Invalid --shape-base-url value \"...\". Use <shape-id>=<url>.' - positive note, no defect; duplicate of ux-shape-base-url-invalid-format-validation-good.md"
 ---
 
 # UX: --shape-base-url invalid format validates cleanly (positive)

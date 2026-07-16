@@ -2,6 +2,9 @@
 severity: low
 impact: polish
 comment: "Small and part of the bare-success family (ux-memory-ls-search-show-raw-unframed.md, the eval init cluster); consolidate into one success-framing decision rather than per command. Its own suggestion is the right general answer: design-system on TTY, bare output for scripts."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/plan.ts:458 emits bare 'Edited ${plan.path}' through writeOutput (src/cli/commands/plan.ts:358-361), which for format 'terminal' does a raw process.stdout.write with no design-system outro/panel; archive/delete at lines 505 and 514 are equally unframed after intro() at line 429."
 ---
 
 # UX: plan edit success is bare Edited path line

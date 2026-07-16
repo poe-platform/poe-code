@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "agent errors (agent.ts:47 `?? DEFAULT` keeps \"\", agent-session.ts:98 throws); spawn silently drops flag (model-utils.ts:21 only rejects whitespace-only, spawn.ts:139 `if (modelOverride && config.modelFlag)` is falsy for \"\"); configure accepts \"\" (options.ts:206 `if (value != null) return value` -> payload.model = \"\")"
 comment: "One of the strongest filings in the audit: it runs --model \"\" through agent, spawn and configure in one place and gets three different behaviors - a clean error, a fall-through to the dead sonnet-5 default producing a 400 at runtime, and a silent ignore that still plans a write. That comparison is an argument no single-command file can make, and the spawn case shows how empty-flag tolerance and the dead default compound into a late, confusing failure. Keep as canonical for the empty-flag policy; resolve as one rule - an explicit empty flag is always a ValidationError and never falls back."
 ---
 

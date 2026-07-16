@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: data-loss
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-spawn/src/configs/claude-code.ts:23 maps mode read to only ['--permission-mode','plan'] with no write-blocking allowlist (edit mode pins --allowedTools), and packages/agent-gaslight/src/run.ts:181 sends `${config.prompt} ${planPath}` (Implement) regardless of mode, so nothing stops the agent mutating plans/; run.ts:173,250 show gaslight's own archive step does honor --no-archive, so the archive move came from the agent."
 comment: "One of the two or three most important files in the audit and correctly Critical: --mode read plus --no-archive both promised safety and the plans directory was still mutated (a plan moved into archive/), caught only because the auditor checked git status. The evidence is strong and specific - including the underlying invocation (claude -p Implement ... --permission-mode plan), which reveals the mechanism: read mode is forwarded to the agent as a permission mode while gaslight itself still issues an Implement prompt and performs its own archiving, so the safety flags never governed gaslight's own filesystem actions. Fix at that level, not by tweaking copy. Ties to ux-gaslight-help-says-plan-to-implement.md and the Implement-default cluster."
 ---
 

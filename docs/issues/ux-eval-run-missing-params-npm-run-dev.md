@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- eval run prints '2 parameter errors' then 'Run npm run dev -- eval run --help for usage.'; mechanism is src/utils/execution-context.ts:197-206 formatCliUsageCommand returning 'npm run dev --' for mode development"
 comment: "Per-command npm run dev filing with no distinct content; retire into ux-development-mode-usage-intentional-but-leaks.md."
 ---
 

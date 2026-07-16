@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/auth.ts:25-29 description 'Display stored API key.' with no options; executeApiKey writes raw key (auth.ts:113); 'npm run dev -- auth api-key --help' prints Options: -h, --help only"
 comment: "One of four filings that auth api-key help carries no secret warning. Consolidate to one. Important sequencing note for the whole sub-cluster: it is dependent on ux-auth-api-key-prints-secret.md - if masking plus --reveal lands, 'help does not warn that it prints a secret' largely evaporates. Schedule after that fix and keep only the residue: mark the command sensitive and document --reveal."
 ---
 

@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate of ux-skill-configure-goose-writes-dot-agents-skills.md (same command, same path observation). Consolidate. The shared insight is not really a positive: the success message names a path that differs from claude's for good reason, and nothing explains the layout - so the residue is documentation."
+reproduced: n
+recommendation: no-fix
+evidence: "packages/agent-skill-config/src/configs.ts:34-35 sets goose localSkillDir '.agents/skills' vs claude-code '.claude/skills' (configs.ts:14-15); src/cli/commands/skill.ts:284 emits the success message. Behaviour is intended, no defect."
 ---
 
 # UX: skill configure goose --local success is good (positive)

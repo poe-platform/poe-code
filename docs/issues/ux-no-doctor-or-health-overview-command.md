@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "rg -ril doctor over src/ and packages/ returns no matches; src/cli/program.ts:868-899 registers no doctor/health/status top-level command; only scoped statuses exist (src/cli/commands/auth.ts:18 auth status, launch status, braintrust status)"
 comment: "Keep as the canonical doctor issue rather than the four 'doctor still missing' reconfirms: the only one that specifies what doctor should do (auth, agents, stale models, provider logins, runtime in one screen with next actions) and why it matters. The audit itself is the best argument for it - the sonnet-5, effort and settings-corruption clusters were all found by hand-checking exactly these things. Consolidate the reconfirms into it."
 ---
 

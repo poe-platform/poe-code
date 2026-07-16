@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- github-workflows install --help lists only '[name]' and '--eject'; dryRun param declared at packages/github-workflows/src/commands.ts:278 with global:true stays hidden, and output at commands.ts:333-334 says 'would be written'; usage line prints 'npm run dev --' instead of poe-code"
 comment: "Keep as canonical for the gh install preview problem and merge ux-gh-install-dry-run-lists-paths-without-panel.md into it. It raises the right question: the output speaks in 'would be written' language while help documents no --dry-run, so it is unclear whether preview or write is the default - a dangerous ambiguity for a command that writes into .github/. Settle the default, document the flag, then frame the output."
 ---
 

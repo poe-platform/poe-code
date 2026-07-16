@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/isolated-env.ts:131 (and :274) throw plain Error 'Cannot resolve \"providerCredential\": no active provider on context.'; src/cli/bootstrap.ts:71-81 prints non-CliError as 'Error: <msg>' plus 'See logs at .../errors.log', matching the reported output."
 comment: "Keep as canonical of the gemini credential trio for the error-copy half: 'Cannot resolve providerCredential: no active provider on context' is internal resolution jargon presented as a crash, and its suggested replacement is right. But the copy fix is secondary to the question its sibling raises (whether gemini can use poe credentials at all) - answer that before rewording, since the correct message depends on the answer."
 ---
 

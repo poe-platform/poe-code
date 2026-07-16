@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: crash
+impact: correctness
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:48 resolvePageRelPath prefixes every show path with pages/, so pages/hello.md resolves but INDEX.md becomes pages/INDEX.md and memory.ts:253 reports 'Page not found'; packages/memory/src/init.ts:17-26 writes INDEX.md at the memory root. Duplicate of ux-memory-show-cannot-open-root-index-file.md."
 comment: "The most analytically useful member of the INDEX cluster: it isolates the fault by showing that show works for pages/hello.md and fails for INDEX, proving the store and the reader are both fine and the defect is specifically the root-file namespace. That bisection is what the canonical needs. Retire into ux-memory-show-cannot-open-root-index-file.md, carrying this evidence."
 ---
 

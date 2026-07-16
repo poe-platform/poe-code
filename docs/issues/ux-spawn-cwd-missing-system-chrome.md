@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "packages/workspace-resolver/src/resolve.ts:82 throws a plain Error; src/cli/bootstrap.ts:70-79 only suppresses the 'Error:' prefix and 'See logs at .../errors.log' footer for CliError with isUserError, so spawn -C /missing gets system-failure chrome"
 comment: "Third duplicate within the --cwd chrome trio; retire. Its framing is the best of the three and worth carrying into the systemic issue: 'message quality good; classification still crash-like', plus the observation that this is the pattern to standardise for all path errors - exactly what the shared path-validation helper would deliver."
 ---
 

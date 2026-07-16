@@ -1,6 +1,9 @@
 ---
 severity: low-medium
 impact: polish
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/plan.ts:405 renders renderTable with empty rows and no empty-state branch; `npm run dev -- plan list --kind superintendent` prints header-only bordered table with no message"
 comment: "The general statement of the empty-table problem and the right survivor alongside ux-empty-plan-kind-lists-still-draw-empty-tables.md; the five per-kind reconfirms retire into these. Note the convention question it raises is unsettled: harness list is criticised for printing a plain message with no panel (ux-harness-list-empty-state-unframed.md) while this is criticised for drawing a panel with no message. Decide the empty-state convention once, then apply it."
 ---
 

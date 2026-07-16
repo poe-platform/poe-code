@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/pipeline.ts validate action calls container.fs.readFile(absolutePath) with no ENOENT guard; `npm run dev -- pipeline validate /tmp/definitely-nope-12345.md` prints 'Error: ENOENT: no such file or directory, open /tmp/definitely-nope-12345.md'"
 comment: "Contentless instance of the bare-throw ENOENT family; retire into the shared path-validation issue (ux-mcp-servers-missing-file-almost-good.md proposes the helper). Its 'preflight unfriendly' note is fair - a validate command failing with a system error on a missing file is particularly incongruous, since checking things is its entire purpose."
 ---
 

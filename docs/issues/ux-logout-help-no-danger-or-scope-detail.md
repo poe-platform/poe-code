@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/logout.ts:11 description is only 'Remove all configuration and credentials.'; command registers no options and action calls executeLogout with no confirmation, deleting configs and running executeUnconfigure for every configured service (logout.ts:44-50, 70-77)"
 comment: "Keep as canonical of this pair (fuller fix list). Legitimate and part of the strongest cluster in the audit: logout's help describes a factory reset in seven words with no blast radius, no file list and no confirmation policy, while ux-auth-logout-no-confirmation-removes-all-agents.md proves it removes every agent config with no gate. Its 'split credentials vs reset' suggestion is the real answer and matches ux-logout-overclaims-scope.md - the copy cannot be fixed without deciding what the command should do."
 ---
 

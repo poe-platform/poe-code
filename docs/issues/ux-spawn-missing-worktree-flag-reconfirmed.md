@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- spawn --help lists no --worktree option; src/cli/commands/spawn.ts never imports addWorktreeOptions (used by gaslight.ts, harness.ts, ralph.ts, pipeline.ts, experiment.ts) though src/sdk/spawn.ts:73 supports options.worktree"
 comment: "Duplicate within the worktree parity trio; retire into ux-gaslight-has-worktree-spawn-does-not.md, which proves the capability exists on a sibling command. Its extra data point is useful: superintendent has --worktree too, so spawn is the outlier among three commands rather than one."
 ---
 

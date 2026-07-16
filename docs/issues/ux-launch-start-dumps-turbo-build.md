@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: usability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "package.json:36 predev runs 'turbo run build'; rg for turbo across src/ and packages/*/src finds only .turbo ignore entries (packages/poe-code-config/src/runtime.ts:48, packages/package-lint/src/packlist.ts:33) - no launch code path invokes turbo"
 comment: "Not a product defect: the turbo build is what npm run dev does by design (predev), so an installed user never sees it - the audit is observing its own harness. Four launch filings report this same noise at High, which materially overstates the backlog. Retire all four into ux-development-mode-usage-intentional-but-leaks.md as dev-UX context. The genuine launch defects (false success, tombstones, blank ids) are independent of it and should not be bundled with turbo output."
 ---
 

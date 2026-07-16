@@ -1,6 +1,9 @@
 ---
 severity: low-medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/worktree.ts:33-34 argument <name> + requiredOption --agent; `npm run dev -- worktree reconcile` prints only: error: required option '--agent <name>' not specified"
 comment: "Keep of this trio as the one with the distinct insight: --agent is demanded before the missing name, so users discover requirements one failure at a time - the same ordering problem as ux-memory-write-requires-reason-before-path.md, ux-skill-install-file-required-before-name.md and ux-maestro-tick-missing-transition-raw-commander.md. Four commands, one fix: collect and report all missing required inputs together. That generalisation is worth more than the individual filings."
 ---
 

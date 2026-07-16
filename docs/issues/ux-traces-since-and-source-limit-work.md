@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/traces.ts:82-86 registers --source/--since/--limit; packages/agent-trace-viewer/src/loader.ts:29-55 filters readers by sources, passes since to discover, slices by limit — positive note, no defect"
 comment: "Keep of this positive pair (covers --since, --source and --limit composing). Its value is as the reference for the bounded-output work: traces already demonstrates the full filter set that models and runtime jobs ls lack, so those fixes have a working in-product model to copy rather than a design to invent."
 ---
 

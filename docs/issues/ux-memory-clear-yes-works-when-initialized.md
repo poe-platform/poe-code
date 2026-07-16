@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Duplicate of ux-memory-clear-yes-reinitializes-index-log.md; consolidate. Its extra evidence is worth keeping: clear --yes without init points to memory init rather than failing obscurely - the same good not-initialized pattern as ux-memory-ingest-not-init-good.md, consistent across the memory group and worth citing as a precedent."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:545-576 clear honours flags.assumeYes and emits 'Cleared memory.'; assertInitialized at src/cli/commands/memory.ts:83 emits 'Memory is not initialized. Run \"poe-code memory init\"'"
 ---
 
 # UX: memory clear --yes works when initialized (positive destructive)

@@ -2,6 +2,9 @@
 severity: critical
 impact: correctness
 comment: "The most valuable file in the audit: it pins the single source of the entire Critical dead-default cluster to src/cli/constants.ts and traces every downstream consumer (FRONTIER_MODELS, CLAUDE_CODE_VARIANTS.sonnet, DEFAULT_CLAUDE_CODE_MODEL, GOOSE_MODELS, and the goose.ts context map). Fix here and roughly a dozen Critical/High symptom files close together. Keep as canonical root cause; the CI check that FRONTIER_MODELS resolve against the live catalog is what stops this recurring and should ship with the id change."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/constants.ts:3 FRONTIER_MODELS has anthropic/claude-sonnet-5; :14 CLAUDE_CODE_VARIANTS.sonnet same id; :18 DEFAULT_CLAUDE_CODE_MODEL = sonnet variant; :37 GOOSE_MODELS = FRONTIER_MODELS; src/providers/goose.ts:102 maps anthropic/claude-sonnet-5 to 983_040. Rest of repo uses claude-sonnet-4.6 (README.md:179, src/cli/commands/shared.test.ts:96, packages/poe-agent/src/agent.test.ts:520), so sonnet-5 defaults are dead ids."
 ---
 
 # UX: src/cli/constants.ts is the source of dead sonnet-5 defaults

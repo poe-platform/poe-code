@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/auth.ts:18-22 status registers no --json option and its description 'Show login status.' never mentions whoami; auth.ts:38-39 whoami is the JSON path"
 comment: "Correctly diagnosed as discoverability rather than a missing feature: whoami already is the machine-readable path, so the gap is that status help never points at it. The cross-link is the cheap fix; adding status --json duplicates whoami and invites drift. Same 'no --json' family as ux-provider-list-no-json-flag.md and ux-usage-list-no-json-flag.md - answer the general question once (which commands are scriptable, and whether --json or a sibling command is the pattern)."
 ---
 

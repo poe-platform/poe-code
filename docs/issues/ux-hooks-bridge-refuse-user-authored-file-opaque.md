@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "One of four 'refuse to replace' filings; retire into ux-hooks-auto-strategy-still-refuses-user-settings.md, which identifies the actual bug. Its distinct contribution is the best statement of the recovery gap - the refusal is safe but terminal, never saying why it refused or what to try - and that copy fix is still needed after auto is corrected."
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-hook-config/src/symlink-hooks.ts:167 throws plain Error('Refuse to replace user-authored hook file at ...') with no recovery guidance; bridge-hooks.ts:253 calls it on the symlink path and src/cli/bootstrap.ts:77 renders plain Errors as 'See logs at .../errors.log'"
 ---
 
 # UX: Hook bridge “Refuse to replace user-authored hook file” is opaque

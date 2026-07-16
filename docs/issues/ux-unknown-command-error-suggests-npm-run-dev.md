@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "Probe 'node dist/bin.cjs statuz' from /tmp printed 'Run poe-code --help for available commands.' - no npm run dev leak. src/utils/execution-context.ts:203 returns 'npm run dev --' only for mode development (isDevelopmentMode, lines 61-82: argv .ts / /src/ path, npm_lifecycle_event=dev, or tsx NODE_OPTIONS); detectExecutionContext:52-58 yields command 'poe-code'/'poe' for global installs, and src/cli/command-not-found.ts:20-26 feeds that into formatCommandNotFoundPanel (packages/toolcraft-design/src/components/command-errors.ts:15). Reported text is a tsx-only artefact; installed users already get the correct recovery line."
 comment: "The best-argued file in the identity cluster and its reasoning earns the Critical rating better than any sibling: every typo routes users to a recovery command that cannot work for an installed user, so the error's only actionable line is a dead end. Retire into ux-development-mode-usage-intentional-but-leaks.md, which names the mechanism, but carry this argument - it is the clearest statement of user impact in the cluster. Same caveat as the rest: verify against an installed binary, since the leak may be a tsx-only artefact."
 ---
 

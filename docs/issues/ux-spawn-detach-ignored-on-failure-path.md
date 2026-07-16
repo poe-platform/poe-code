@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "Duplicate within the detach family; consolidate into one issue about detach semantics. Its distinct contribution is the preflight argument: whatever detach means, failing on a bad model in the foreground after being asked to background is the wrong order. The underlying failure is the dead sonnet-5 default, so re-check after the constants fix."
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-harness-tools/src/poe-command-execution.ts:58 computes detach as factory.supportsDetach === true && config.runner.detach; host-execution-env.ts:6 sets supportsDetach: false and host is the default runtime (poe-code-config/src/runtime.ts:67), so --detach is silently dropped and the run stays foreground with no job id or warning"
 ---
 
 # UX: spawn --detach still runs foreground failure path for model errors

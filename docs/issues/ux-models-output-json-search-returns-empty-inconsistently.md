@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:271 registers '--output <modalities>' as a modality filter; parseModalityFilter (src/cli/commands/models.ts:203-211) only rejects empty parts, so 'json' passes and filters to zero, unlike --endpoint which throws ValidationError; 'npm run dev -- models --help' lists no --format flag."
 comment: "The best filing in the models cluster and correctly High: --output collides with the near-universal CLI meaning of 'output format', so '--output json' is silently interpreted as a modality filter and returns an empty catalog - a mistake the flag name actively invites - and there is no --format json to fall back on. Two defects at once: a naming collision and the silent-invalid-value gap. Distinct from the other modality filings because the name is the cause, not merely the validation. Its fix list is right: validate modalities and provide a real machine-format flag."
 ---
 

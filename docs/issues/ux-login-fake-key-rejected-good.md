@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Duplicate of ux-login-api-key-rejected-good.md with weaker evidence (no post-check that the session survived); retire into it. Its 'do not leave partial credentials' framing is the right rule to carry forward."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/options.ts:117-122 validates via checkAuth and throws 'API key rejected.' before apiKeyStore.write, so no fake key is persisted; positive note, no defect. Duplicate target docs/issues/ux-login-api-key-rejected-good.md exists."
 ---
 
 # UX: login --api-key sk-fake --yes rejected clearly (positive)

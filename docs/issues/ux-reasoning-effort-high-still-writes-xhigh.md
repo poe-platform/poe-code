@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: correctness
+impact: usability
+reproduced: n
+recommendation: no-fix
+evidence: "rg for 'xhigh|effortLevel' across src/ and packages/ returns zero hits; src/providers/claude-code.ts:104-118 merge writes only env + model, and src/cli/commands/configure-payload.ts:108-117 applies reasoningEffort only when a provider declares configurePrompts.reasoningEffort (claude-code does not). Probe 'npm run dev -- configure claude --model anthropic/claude-sonnet-4.6 --reasoning-effort high --yes --dry-run' printed '+\"effortLevel\": \"high\"' echoed from the pre-existing ~/.claude/settings.json diff, never xhigh."
 comment: "Duplicate within the effort cluster; retire into ux-configure-reasoning-effort-still-ignored-always-high.md. It does isolate the cleanest single case - explicit high produces xhigh, so the value is not merely ignored but replaced - though the later sweep found always-high rather than always-xhigh, so this snapshot predates a change in the baked-in constant. Preserve that timeline when merging."
 ---
 

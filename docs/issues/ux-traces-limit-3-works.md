@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; near-duplicate of ux-traces-since-and-source-limit-work.md. Consolidate. Its value is comparative and now well established across the audit: traces has --limit and models does not (ux-models-no-limit-flag-confirmed.md), so the convention exists and only needs propagating."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/traces.ts:85 registers --limit; parseLimit feeds runTraceViewer and packages/agent-trace-viewer/src/loader.ts:55 slices to it. Positive note, no defect."
 ---
 
 # UX: traces --limit 3 works (positive)

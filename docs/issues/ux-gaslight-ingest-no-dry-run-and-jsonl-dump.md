@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/gaslight.ts:373-425 ingest registers no --dry-run/--yes option and never reads flags.dryRun, so global --dry-run (src/cli/program.ts:853) is inert and resolveAgentAndModel (gaslight.ts:194-198) prompts unless assumeYes; packages/agent-gaslight/src/ingest.ts:632-635 throws plain Error with raw result.stdout, dumping agent JSONL."
 comment: "Keep as canonical for the ingest problems (fullest transcript). Of the three asks it bundles, the missing --dry-run matters most because ingest is high-cost: users cannot preview how many traces/prompts would be analysed before paying for it. It also reveals something the title understates - --dry-run is not merely absent, it falls through to a TTY prompt error, so the global flag silently does not apply here. Split: (a) --dry-run support, (b) UserError instead of JSONL dump, (c) the non-TTY message, which duplicates its sibling."
 ---
 

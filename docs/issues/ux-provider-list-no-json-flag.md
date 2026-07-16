@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/provider.ts:44-48 registers list with no options; `npm run dev -- provider list --json` prints: error: unknown option '--json'"
 comment: "Member of the --json inconsistency family; retire into ux-json-flag-inconsistent-across-commands.md. Its case is strengthened by the table problems though: since the Agents and API shapes columns truncate (ux-provider-list-table-layout-broken.md), --json is currently the only way to see the full data - making it a workaround for a rendering bug as well as a scripting gap."
 ---
 

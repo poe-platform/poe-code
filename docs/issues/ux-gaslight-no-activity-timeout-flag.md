@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/spawn.ts:135 registers --activity-timeout-ms; src/cli/commands/gaslight.ts:313-322 registers no such option and `npm run dev -- gaslight --help` lists none; rg finds no activityTimeout in packages/agent-gaslight/src"
 comment: "Legitimate parity gap with a safety edge: spawn can bound a hung run with --activity-timeout-ms and the multi-round runners cannot, so an unattended gaslight/pipeline/ralph run has no CLI-level stop. Same propagation shape as ux-gaslight-has-worktree-spawn-does-not.md in the opposite direction. Worth settling as one decision: which spawn-level controls belong to every runner's contract."
 ---
 

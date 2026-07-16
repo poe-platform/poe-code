@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/pipeline/src/plan/discovery.ts:57,61 throw plain Error('Plan not found at ...'), not CliError/isUserError, so src/cli/bootstrap.ts:71-80 prefixes 'Error:' and appends 'See logs at .../errors.log'"
 comment: "Standard instance of the systemic UserError chrome issue - message already correct, only 'See logs' wrong; retire into ux-user-errors-look-like-system-failures.md. Its pipeline-specific residue is the recovery: suggest pipeline plan-path or a plan list, which is more useful here because plan discovery is itself unclear."
 ---
 

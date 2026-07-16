@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/spawn.ts:239-265 calls spawnInteractive with no process.stdin.isTTY gate; the isTTY guard at spawn.ts:489 covers --mode only; packages/agent-spawn/src/spawn-interactive.ts:119-132 sets tty:true and inherits stdio without checking for a real TTY - so --interactive is honoured, not dropped. Duplicate of ux-spawn-interactive-non-tty-launches-agent-tui-copy.md (reproduced: y, recommendation: fix), which carries the same fix."
 comment: "Duplicate within the --interactive quartet; retire into ux-spawn-interactive-non-tty-launches-agent-tui-copy.md. Its 'flag ignored or partially applied' hedge is honest and is the real question: whether --interactive is silently dropped or partially honoured decides between the empty-flag family and the non-TTY family."
 ---
 

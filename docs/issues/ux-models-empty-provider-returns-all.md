@@ -2,6 +2,9 @@
 severity: low-medium
 impact: correctness
 comment: "Duplicate within the models empty-filter trio; retire into ux-models-empty-search-returns-all.md. No distinct content."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:372 `if (commandOptions.provider)` - empty string is falsy so the provider filter is skipped and all models are returned; canonical duplicate ux-models-empty-search-returns-all.md already covers --provider \"\"."
 ---
 
 # UX: models --provider "" returns all 341 models

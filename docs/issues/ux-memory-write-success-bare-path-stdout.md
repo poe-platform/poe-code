@@ -1,6 +1,9 @@
 ---
 severity: low-medium
 impact: polish
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:298 write action calls mem.writePage then returns; no stdout write, so success is silent, not a bare path. No stdout/console output in packages/memory/src/write.ts, handle.ts, pages.ts, index.ts."
 comment: "Duplicate within the memory write bare-output cluster; retire into ux-memory-ls-search-show-raw-unframed.md. Its incidental evidence is useful though: write then show pages/hello.md works end to end, corroborating ux-memory-user-page-show-works-index-does-not.md that the pages path is sound and only INDEX is broken."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "docker half reproduces: packages/process-runner/src/docker/engine.ts:13 throws a bare Error, and src/cli/bootstrap.ts:74-80 prefixes non-UserError with 'Error:' plus 'See logs at .../errors.log'; the E2B half is stale since src/cli/commands/runtime-options.ts:15 only offers choices host|docker and no e2b source remains. Subsumed by umbrella ux-user-errors-look-like-system-failures.md, which names this doc its best exemplar."
 comment: "Fair-minded and useful: the Docker/E2B missing-dependency messages are the best recovery copy in the product (install links, env var, config path) and they are dressed as crashes with a useless log pointer. Its framing is the sharpest statement of the systemic UserError issue - 'chrome trains crash response' - and it makes the case that classification matters most precisely where the content is already good. Retire into ux-user-errors-look-like-system-failures.md, keeping this as the exemplar."
 ---
 

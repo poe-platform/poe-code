@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Keep as canonical of the four-file maestro dry-run cluster: only this one catches both halves - bare 'maestro dry-run' is silently accepted as a workflow path (so a user who forgets the dashes gets 'Missing workflow file .../dry-run' rather than a hint), and --dry-run then hits GitHub 401 with raw JSON. The positional-versus-flag confusion is a genuinely distinct defect the other three miss. Three fixes: reject 'dry-run' as a path with a hint, validate locally first, and map 401 to a UserError pointing at auth."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/program.ts:499 maestro takes free-form [path] and only special-cases 'tui' (program.ts:535), so 'dry-run' falls through to loadWorkflow -> packages/maestro/src/config/load.ts:39 'Missing workflow file at ...'; packages/maestro/src/index.ts:224 runDryRun calls openConfiguredTaskList before validation, and packages/task-list/src/backends/gh-issues-client.ts:36 throws a plain Error 'GitHub GraphQL request failed with status 401: <raw body>' with no UserError mapping in src/cli/errors.ts"
 ---
 
 # UX: maestro dry-run as path is accepted; --dry-run hits GitHub 401

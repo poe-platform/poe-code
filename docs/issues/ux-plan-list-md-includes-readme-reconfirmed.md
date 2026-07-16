@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "Fifth filing of the README-in-plan-list observation, differing from ux-plan-list-md-includes-readme-noise.md only in title; retire. Two near-identical files for the same output mode of the same command is duplicate filing inside a duplicate cluster."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- plan list --kind plan --output md prints '| plan | Plan | README.md | Active Plans | 2026-07-08 |'; no README filter in packages/plan-browser/src/discovery.ts:218 isSupportedPlanFile/classifyPlanKind:137"
 ---
 
 # UX: plan list --output md includes README.md (reconfirmed)

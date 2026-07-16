@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Duplicate of ux-launch-start-triggers-turbo-monorepo-build.md; retire into it. Same split applies: the turbo half is a dev-mode artefact, the 'surface the command's stderr' half is the real ask."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/process-launcher/src/launcher.ts:144 throws Error(`Managed process \"${spec.id}\" failed to start.`) with no command stderr or log tail; turbo output is an npm run dev predev artefact, not product code. Duplicate of ux-launch-start-triggers-turbo-monorepo-build.md."
 ---
 
 # UX: launch start triggers monorepo turbo build noise then opaque failed to start

@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "packages/agent-skill-config/src/configs.ts:61 returns status unsupported for kimi; src/cli/commands/skill.ts:123 throws 'Skills not supported for kimi.'; `npm run dev -- skill configure kimi --yes --local` printed '■  Skills not supported for kimi.' - positive note, no defect"
 comment: "Valuable positive: 'Skills not supported for kimi' is the correct capability wording, and it resolves ux-skill-configure-agent-list-subset-reconfirmed.md - kimi's absence from the list is deliberate. Keep and cite from the capability-matrix cluster: this is the phrasing install and test should use instead of 'Unknown agent'. Consolidate with ux-skill-configure-pi-poe-agent-not-supported-clear.md, which makes the same point for pi."
 ---
 

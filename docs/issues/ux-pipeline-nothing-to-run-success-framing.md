@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Fair and well observed: 'Nothing to run' followed by 'Pipeline run finished' plus the Problems footer reads as success when no work occurred, and there is no path forward (re-open tasks, archive). The 21/21 done line is the genuinely useful information and it is buried. Its fix is right: make it an informational outcome with next steps. The Problems-footer half belongs to ux-problems-footer-on-every-success.md."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/pipeline.ts:1087-1091 logs info 'Nothing to run.' then continues; :1106-1110 then emits logger.success('Pipeline run finished.') with no next-step guidance"
 ---
 
 # UX: pipeline Nothing to run uses success framing with Problems footer

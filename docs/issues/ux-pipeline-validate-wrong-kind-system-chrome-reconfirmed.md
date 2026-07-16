@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Reconfirm duplicate within the wrong-kind-chrome quartet; retire. Four files for one 'See logs' line on one command is count inflation."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/pipeline/src/plan/parser.ts:540 throws plain Error, so src/cli/bootstrap.ts prints 'Error: ...' plus 'See logs at ...'; duplicate of ux-pipeline-validate-wrong-kind-see-logs.md"
 ---
 
 # UX: pipeline validate wrong kind still system chrome (reconfirmed)

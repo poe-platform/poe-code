@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- memory clear --help lists only '-h, --help'; the --yes guard exists at src/cli/commands/memory.ts:556-565 (requireInteractiveStdin + confirmOrCancel) but is never documented in subcommand help"
 comment: "One of six filings about memory clear; consolidate. Its claim is the accurate half of the cluster - help documents no --yes - while its framing ('fully destructive when initialized' with no guard) is contradicted by ux-memory-clear-requires-yes-non-tty-good.md, which shows the guard fires. So this is a help gap, not a safety gap: keep the help ask, drop the alarm."
 ---
 

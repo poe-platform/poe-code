@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate within the models filter-composition/pricing positives. Retire into the consolidated note; its '--limit' aside belongs to ux-models-no-limit-flag-confirmed.md."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:372-390 provider/search filters compose sequentially; :478-498 pricing view renders $/MTok columns - positive note, no defect"
 ---
 
 # UX: models --view pricing --provider anthropic --search sonnet works (positive)

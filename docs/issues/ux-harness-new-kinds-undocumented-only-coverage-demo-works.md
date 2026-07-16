@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/harness.ts:101 argument help is only 'Built-in template kind'; harness.ts:569 throws Unknown harness template without listing kinds; packages/agent-harness/src/templates/index.ts:10-16 lists five demo kinds, so guessed names agent-script/safejs/hello/counter fail while coverage-demo scaffolds"
 comment: "Duplicate within the kinds cluster; retire into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. Its title is misleading and must not survive: coverage-demo is not the only kind that works - ux-harness-new-all-builtin-kinds-work.md proves all five scaffold - it was simply the only one this probe guessed correctly, which is itself evidence of the discoverability problem."
 ---
 

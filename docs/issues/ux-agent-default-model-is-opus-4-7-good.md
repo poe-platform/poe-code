@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/constants.ts:9 DEFAULT_FRONTIER_MODEL = anthropic/claude-opus-4.7; src/cli/commands/agent.ts:22,47 use it for --model help text and fallback. Positive no-defect note, nothing to reproduce; live ping run not re-verified (needs credentials)."
 comment: "Positive pattern, no code change. Duplicate of ux-agent-default-model-works-when-opus-valid.md, which has stronger evidence (live run plus constants). Consolidate into that one. Note the direct contradiction with ux-agent-default-opus-4-7-not-latest-opus-4-8.md and ux-agent-default-model-hardcoded.md, which call the same 4.7 default stale: reconcile to one position - 4.7 is live and works but lags 4.8."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- spawn --help lists no --reasoning-effort (src/cli/commands/spawn.ts:95-137 plus addRuntimeOptions in src/cli/commands/runtime-options.ts:11-25); the flag exists only at src/cli/commands/configure.ts:78"
 comment: "Good filing and a genuine capability gap: effort is a per-run cost decision and is only settable via configure, so CI must mutate global config to change one run - the wrong shape. Its own suggestion notes the constraint that matters: any spawn-time flag needs the model-aware allow-list from ux-effort-xhigh-valid-for-opus-not-sonnet.md, otherwise it reproduces the xhigh-on-sonnet bug at run time. Sequence after the effort cluster; it also makes ux-configure-reasoning-effort-still-ignored-always-high.md less painful by giving users a working alternative."
 ---
 

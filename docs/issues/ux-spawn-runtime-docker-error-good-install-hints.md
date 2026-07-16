@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate of ux-runtime-missing-deps-good-message-system-chrome.md, which covers the same messages from the defect side. Consolidate. The install hints (Docker Desktop, Colima, Podman) are the best recovery copy in the product and worth citing as the template; the See logs residue is the systemic issue."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/process-runner/src/docker/engine.ts:13-18 throws plain Error with Docker Desktop/Colima/Podman hints; src/cli/bootstrap.ts:70-81 appends 'See logs at ...' because it is not a CliError with isUserError"
 ---
 
 # UX: spawn --runtime docker missing engine has good install hints (positive)

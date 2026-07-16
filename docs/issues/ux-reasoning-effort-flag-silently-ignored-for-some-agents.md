@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/configure.ts:78 registers --reasoning-effort for all agents; src/cli/commands/configure-payload.ts:108 only resolves it when adapter.configurePrompts.reasoningEffort exists; src/providers/claude-code.ts:61 defines model only, so `npm run dev -- configure claude-code --reasoning-effort low --yes --dry-run` printed no resolved reasoning line and kept effortLevel high"
 comment: "One of the more analytically useful effort filings: it contrasts claude (flag not reflected) with codex (model_reasoning_effort visibly changes), suggesting the defect is claude-specific rather than global - the opposite conclusion to ux-configure-reasoning-effort-still-ignored-always-high.md, whose sweep found the value tracking existing settings. Resolve the two before fixing. Its 'always print resolved effort' ask is the right general answer either way, since it makes the failure visible."
 ---
 

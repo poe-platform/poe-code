@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:505 emits JSON.stringify({action: 'archive', path, archivedPath}); --yes gate at plan.ts:463"
 comment: "Positive pattern with real value: the JSON result names the action, source path and archived path - a good machine contract for a destructive operation, since the caller can verify and undo. Cite it from ux-pipeline-validate-no-json-flag.md as proof the convention exists in this command group. Its own parenthetical is a reminder that even the positive probes here mutated real plans and needed git restore."
 ---
 

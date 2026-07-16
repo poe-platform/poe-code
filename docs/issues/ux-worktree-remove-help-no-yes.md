@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/worktree.ts:40-45 remove registers only <name> and --delete-branch; -y/--yes is program-level only (src/cli/program.ts:852); executeWorktreeRemove calls removeManagedWorktree with no confirmation guard. Duplicate of ux-worktree-remove-help-omits-yes.md."
 comment: "One of two filings of the worktree remove help gap; consolidate into ux-worktree-remove-help-omits-yes.md, which pairs it with the not-found chrome. The concern is fair - remove destroys a worktree, which may contain uncommitted work - so the confirmation policy belongs in help. Verify the guard exists before rating, per the memory clear lesson."
 ---
 

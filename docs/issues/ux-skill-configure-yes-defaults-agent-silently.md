@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/skill.ts:41-47 resolveSkillAgent returns resolveDefaultAgent or DEFAULT_SKILL_AGENT ('claude-code', line 18) under --yes with no announcement; configure action (lines 208-226) prints nothing about the defaulted agent"
 comment: "One of three filings of the same silent-default-agent observation on skill configure; consolidate. All belong to the silent-defaults family whose rule is single: --yes announces every default it resolves. Its 'refuse without agent in CI' alternative is worth considering for commands that write project files."
 ---
 

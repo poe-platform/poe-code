@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/sdk/types.ts:85 '(default: yolo)'; packages/agent-spawn/src/types.ts:41 'mode ?? \"yolo\"'; src/cli/commands/spawn.ts:99,486 '--yes uses yolo'; src/cli/commands/gaslight.ts:344 'options.mode ?? \"auto\"' and packages/agent-gaslight/src/run.ts:203 same"
 comment: "Important and correctly High: three surfaces give three answers for the same safety-critical default - SDK yolo, spawn --yes yolo, gaslight auto - so the blast radius of an unspecified mode depends on which entry point you use. Read with ux-permission-mode-sets-differ-across-commands.md (four different choice sets) this is one problem: permission mode has no single definition. The repo's own CLI/SDK parity rule makes it a clear defect rather than a judgement call. Its 'prefer safe library default' instinct is right - a library defaulting to yolo is the worst of the three."
 ---
 

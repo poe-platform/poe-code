@@ -2,6 +2,9 @@
 severity: high
 impact: security
 comment: "Speculative filing: it reasons from the help text ('If this command prints the raw key') while ux-auth-api-key-prints-secret.md has the actual stdout repro and is rated Critical. Retire into that one, but carry over its unique contribution - it is the only file in the cluster that names command substitution (curl -H \"Authorization: $(poe-code auth api-key)\") as a legitimate reason an unmasked path must survive, which argues for --reveal rather than removing the command. Its High rating also disagrees with the Critical twins; normalise."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:111 executeApiKey does process.stdout.write(apiKey) with no masking or --reveal flag; behaviour real but duplicate of canonical ux-auth-api-key-prints-secret.md"
 ---
 
 # UX: auth api-key prints stored Poe API key to stdout

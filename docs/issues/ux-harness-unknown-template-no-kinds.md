@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/harness.ts:568-569 throws ValidationError 'Unknown harness template \"${kind}\".' with no kind list, despite listBuiltinTemplates() being in scope at line 564; duplicate of ux-harness-new-kinds-undocumented-must-guess-demo-names.md which already carries recommendation=fix"
 comment: "Contentless sixth filing of the harness kinds gap; retire into ux-harness-new-kinds-undocumented-must-guess-demo-names.md with no loss."
 ---
 

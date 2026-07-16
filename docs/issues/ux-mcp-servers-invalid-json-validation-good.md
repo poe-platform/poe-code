@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Duplicate within the --mcp-servers positive set; retire into ux-mcp-servers-file-and-json-validation-good.md."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/mcp-spawn-config.ts:45 throws ValidationError with the documented message; positive no-defect note, duplicate of ux-mcp-servers-file-and-json-validation-good.md"
 ---
 
 # UX: invalid --mcp-servers JSON validation is good (positive)

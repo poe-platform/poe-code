@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "packages/agent-defs/src/agents/pi.ts:3 + packages/agent-spawn/src/configs/pi.ts make pi spawnable via resolveSpawnableAgent (src/cli/commands/shared.ts:508), but src/providers/index.ts has no pi entry so configure's resolveServiceAdapter (src/cli/commands/configure.ts:110) throws 'Unknown agent \"pi\".' at src/cli/commands/shared.ts:491"
 comment: "Duplicate within the pi/spawn-only family; retire into ux-install-test-pi-unknown-not-spawn-only.md or the capability-matrix canonical. Its phrase 'half-supported agents' is the crispest description of the underlying problem and worth carrying: the issue is not that pi lacks configure but that nothing declares which agents support what."
 ---
 

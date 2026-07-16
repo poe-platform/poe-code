@@ -1,7 +1,10 @@
 ---
 severity: critical
-impact: security
+impact: usability
 comment: "Duplicate reconfirm in the four-file auth api-key --dry-run cluster; contributes only a second live sighting and no new evidence. Retire into ux-auth-api-key-dry-run-still-prints-secret.md."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:110 passes flags.dryRun only as readOnly, then :116 process.stdout.write(apiKey) unconditionally; behaviour real but canonical ux-auth-api-key-dry-run-still-prints-secret.md already carries recommendation=fix"
 ---
 
 # UX: auth api-key --dry-run still prints full secret (live reconfirm)

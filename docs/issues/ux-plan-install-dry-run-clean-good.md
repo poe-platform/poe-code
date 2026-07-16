@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:813-822 logs 'Would create: <path>' plus dry 'Would install plan skill'; writes gated by dryRun in packages/config-mutations/src/execution/apply-mutation.ts:362,423,745"
 comment: "Positive pattern; part of the install dry-run positive family with the gaslight ones - consolidate. It is a useful counterweight in the installer cluster: plan install's dry-run does exactly what the codex flood and cursor silence fail to do - names the file, states the action, confirms no changes. Cite it as the dry-run template."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/runtime/jobs/ls.ts:11-15 registers ls with no --since/--limit and renders every entry from state.jobs.list(); no prune/GC exists in packages/poe-code-config/src/state/jobs.ts; local ~/.poe-code/state/jobs holds 5514 job files (2479 dated 2026-05, 16 pending with blank started_at)"
 comment: "Keep as canonical of the runtime jobs unbounded-list cluster: most specific evidence (May 2026 exited rows plus pending e2b rows with blank STARTED) and it identifies the second defect the others miss - pending rows with no start time, state that should have been reconciled or pruned. Absorbs ux-runtime-jobs-list-unbounded-opaque-statuses.md and ux-runtime-jobs-ls-unbounded-stale-from-may.md. Fix is two parts: default window plus GC."
 ---
 

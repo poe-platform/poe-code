@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "src/utils/execution-context.ts:200-201 returns 'npm run dev --' for mode=development; program.ts:840 passes it as rootUsageName; probe `npm run dev -- superintendent run --help` printed 'Usage: npm run dev -- superintendent run [OPTIONS] [docs...]'. Global install yields 'poe-code' (utils.test.ts:1045-1058), so the string mirrors actual invocation by design."
 comment: "Reconfirm duplicate within the superintendent identity group; retire into the root cause. No new evidence."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: correctness
+impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "configure.ts:148-158 skips only when hasMaterialConfigureChange is false; configure.ts:289-324 renders config into an overlay and returns overlay.hasMaterialChange (configure.ts:564-586 byte-compares against disk), so a differing --model yields different bytes and writes; configure.ts:85 documents the flag as 'Exit without writes when current config already matches', matching observed behaviour"
 comment: "The most thoughtful file in the skip cluster and the one that questions the premise: when --model differs from stored config, writing is arguably correct - 'already configured' plausibly means matching, not merely present. So the real defect here is that the match criteria are undefined, which is why the rest of the cluster disagrees about what the flag should do. Its ask is right and should shape the fix: document the criteria (file hash? model? provider?) and print 'would skip' versus 'would update' with the reason. Keep as the semantics question alongside the Critical."
 ---
 

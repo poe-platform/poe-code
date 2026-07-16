@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Keep of this pair. Its framing is the accurate one - the inconsistency lives inside a single command's validation, which makes it cheaper to justify than a cross-CLI reskin. Otherwise part of ux-raw-commander-invalid-option-choices.md."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:275-279 uses Commander Option.choices() for --view while --feature/--input use ValidationError (models.ts:195-208); models-command.test.ts:1050-1053 asserts the raw Commander 'Allowed choices are' wording."
 ---
 
 # UX: models --view invalid uses raw Commander choice error

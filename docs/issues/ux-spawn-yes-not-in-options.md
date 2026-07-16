@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- spawn --help lists no --yes entry; --yes is a root-only option at src/cli/program.ts:852 and showGlobalOptions is never enabled (src/cli/program.ts:320), so it surfaces only inside the --mode text at src/cli/commands/spawn.ts:99"
 comment: "Better than a help nit because of what is hidden: --yes is absent from Options and its only mention is a parenthetical in the --mode description - and the thing that parenthetical discloses is that --yes grants yolo (ux-spawn-yes-defaults-mode-to-yolo.md). So the CLI's most dangerous default is documented in the least discoverable place. Its suggested entry is right and should state the permission consequence. Part of the global-flags family but worth keeping for the safety angle."
 ---
 

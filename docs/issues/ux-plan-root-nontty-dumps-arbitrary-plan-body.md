@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Duplicate of ux-plan-root-non-tty-dumps-arbitrary-body.md; retire into it. Note the two name different plans as the dump victim (agent-goal here, toolcraft human-in-loop there), which usefully confirms the selection is genuinely arbitrary rather than 'first' - resolving the discrepancy in ux-plan-browse-non-tty-dumps-first-plan.md."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/plan-browser/src/browser.ts:49 - runPlanBrowser renders plans[0] body when process.stdin.isTTY !== true; src/cli/commands/plan.ts:565-567 bare plan with no question calls runPlanBrowser"
 ---
 
 # UX: bare plan non-TTY dumps an arbitrary plan body

@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Good filing and fair-minded: it credits the ambiguity error as the right idea and identifies the two things that ruin it - the candidate list is unbounded and it includes zombie 'running' jobs from earlier experiments, so the disambiguation prompt is itself unusable. Consolidate with ux-runtime-jobs-stop-lists-many-stale-running.md (same defect via stop/attach). Its fix list is the best in the cluster: default to most recent, cap the list, prune stale, drop the log tease."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/runtime/jobs/shared.ts:54-60 throws plain Error listing all candidates uncapped; logs.ts:38 passes intent 'pullable' so allowedStatuses includes 'running' (shared.ts:29-30) with no staleness pruning; plain Error routes to bootstrap.ts:74-80 'See logs at ...' tease."
 ---
 
 # UX: runtime jobs logs without id dumps long ambiguous job list including running zombies

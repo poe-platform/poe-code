@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/launch.ts:319 resolveProcessId only trims; probe 'npm run dev -- launch start $'\\''slee:\\n#'\\'' --dry-run -- echo hi' printed 'Dry run: would start managed process slee:' then newline '#.', so control-char ids pass the CLI layer and dry run never calls assertValidManagedProcessId (packages/process-launcher/src/process-id.ts:3)"
 comment: "The most honest file in the launch set: it identifies that the harness is contaminating the results - garbage process ids like 'slee:' plus a newline came from multi-line shell invocation through the npm run dev wrapper, not from launch itself. That explains the blank-ID and unremovable-row filings and means those must be re-verified against the installed binary before anyone builds GC for them. Its durable ask survives regardless: validate process ids strictly and refuse control characters. Read this before scheduling any other launch issue."
 ---
 

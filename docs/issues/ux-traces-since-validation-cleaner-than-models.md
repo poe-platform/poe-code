@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:540-547 catch calls logger.logException for every Error, printing 'Stack trace:' (src/cli/logger.ts:189) before the clean message; traces.ts has no such wrapper. Probe: 'npm run dev -- models --since notaduration' printed stack trace, 'npm run dev -- traces --since notaduration' printed only the one-line message."
 comment: "Excellent filing and the best kind of comparison in this audit: the same --since concept produces a clean one-line ValidationError in traces and a stack trace plus ERROR log in models, so identical flags have different error quality within one CLI. That makes it an inconsistency to close rather than a behavior to design, and its fix names the mechanism precisely - share parseSinceDuration's error path. Keep and link from ux-models-since-invalid-prints-stack.md, which sees only the bad half."
 ---
 

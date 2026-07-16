@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "Duplicate within the README-in-plan-list quintet (json variant); retire into ux-plan-list-includes-readme-reconfirmed.md. It does usefully show the noise reaches the machine contract too, so scripts consuming plan list receive README as a plan - carry that detail."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- plan list --output json emits {name: README.md, path: docs/plans/README.md}; packages/plan-browser/src/discovery.ts:62 accepts any .md with no README exclusion"
 ---
 
 # UX: plan list --output json includes README.md (reconfirmed)

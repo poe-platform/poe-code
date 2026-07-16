@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Duplicate of ux-markdown-read-section-wrong-recovery-command.md; consolidate. Same genuinely bad small bug: the hint names 'read-markdown', which does not exist, so the recovery line routes users into an Unknown command error. Its extra suggestion is the better fix and should survive: list close section titles rather than pointing at the TOC command at all - a fuzzy match on 'What' would have found 'What we're building' directly."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/markdown-reader/src/core/resolve.ts:35 throws UserError with hint \"try 'read-markdown' to see the table of contents\"; src/cli/commands/plan.ts:655 registers the command as 'markdown-read' under 'plan', so 'read-markdown' does not exist. Duplicate of ux-markdown-read-section-wrong-recovery-command.md (MASTER.md:158) per existing comment; fix tracked there."
 ---
 
 # UX: plan markdown-read-section error suggests wrong command name

@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: usability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/pipeline.ts:1025-1035 honours --tui; runPipelineWithDashboard starts the dashboard at pipeline.ts:648 before init runs and reports init failure via appendOutput(\"error\") at pipeline.ts:713-717; toolcraft-design/src/dashboard/should-use-dashboard.ts:12-15 falls back to logger output only when stdin/stdout are not TTYs, which matches the piped transcript in the report; success markers are tracked in ux-failure-shown-as-success-markers.md"
 comment: "Reasonable but its premise needs care: --tui is not ignored so much as never reached, because the model failure happens during init before any dashboard could open. That makes preflight the real ask - validate the model before entering the TUI path - which is its own suggestion and is sound. Note the underlying failure is the dead sonnet-5 default, so this may largely evaporate with the constants fix; the success-marker half belongs to ux-failure-shown-as-success-markers.md."
 ---
 

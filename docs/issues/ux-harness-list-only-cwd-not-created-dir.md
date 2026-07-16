@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Keep as canonical of this pair - it shows the actual consequence: harness new reports success at /tmp/h4 and harness list immediately answers 'No harness pairs found', so the product denies the existence of what it just created. That reads as a failed creation and is worse than the missing flag it stems from; understated at Medium. Fix: --dir on list/run discovery plus a next-step line printed by new."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/harness.ts:737-742 discoverProjectThenUserHarnesses hardcodes roots to cwd/.poe-code/harnesses and homeDir/.poe-code/harnesses; harness new accepts --dir (harness.ts:103) writing to any path, but list (harness.ts:110-114) takes no --dir/arg and calls the same discovery (harness.ts:656), so a pair at /tmp/h4 yields 'No harness pairs found.' (harness.ts:658); run shares this via harness.ts:697-700, and new's success message (harness.ts:615) prints no next-step run command."
 ---
 
 # UX: harness list only scans cwd; newly created --dir harnesses invisible

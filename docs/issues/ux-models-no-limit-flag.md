@@ -1,7 +1,10 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
 comment: "Duplicate of ux-models-no-limit-flag-confirmed.md; retire into it. Its concrete proposal is the best-specified in the family and should survive: --limit defaulting to 50 with --all for the full catalog."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:266-274 registers only --provider/--model/--search/--feature/--endpoint/--input/--output/--tools/--since plus --view; no --limit or --all, while traces.ts defines '--limit <n>' (Maximum traces listed)"
 ---
 
 # UX: models has no --limit for large catalog tables

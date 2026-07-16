@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Duplicate of ux-code-review-drafts-missing-arg-double-error.md on the run subcommand instead of drafts; identical output, identical fix. Retire into it."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- code-review run prints raw 'error: missing required argument prUrl' then the design-system panel repeating it plus 'Run npm run dev -- code-review run --help for usage.'; positional defined at packages/agent-code-review/src/cli.ts:164. Real but identical to canonical ux-code-review-drafts-missing-arg-double-error.md."
 ---
 
 # UX: code-review run missing prUrl double error + npm run dev

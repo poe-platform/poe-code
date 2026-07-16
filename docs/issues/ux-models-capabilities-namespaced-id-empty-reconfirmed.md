@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:378-382 --model filter compares m.id.toLowerCase() === term only; owned_by never joined, so anthropic/<id> matches nothing on any view. Duplicate of ux-models-exact-id-filter-rejects-namespaced-ids.md"
 comment: "One of several filings of the namespaced-id filter gap across views; retire into ux-models-exact-id-filter-rejects-namespaced-ids.md, which states it best. Its coverage contribution matters: the failure repeats on capabilities, pricing, parameters and raw, so the defect is in the shared --model matcher rather than any view - fix once."
 ---
 

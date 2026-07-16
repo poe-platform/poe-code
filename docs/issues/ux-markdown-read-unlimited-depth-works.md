@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; near-duplicate of ux-markdown-read-depth-2-works-well.md - consolidate. Together they make the case that unlimited should be the default, since it produces the nested TOC users expect without requiring them to know the document's heading levels."
+reproduced: n
+recommendation: no-fix
+evidence: "packages/markdown-reader/src/core/read-markdown.ts:32 skips filtering when depth is undefined; `npm run dev -- plan markdown-read packages/markdown-reader/src/testing/fixtures/markdown-reader-plan.md` prints nested TOC 1, 2, 2.1-2.5, 3.1-3.8; positive note, no defect"
 ---
 
 # UX: plan markdown-read unlimited depth TOC works (positive)

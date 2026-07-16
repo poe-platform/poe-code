@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "One of four filings of the --interactive non-TTY problem; consolidate into ux-spawn-interactive-non-tty-launches-agent-tui-copy.md, which states the core defect best. Its distinct half (bare output with no panel) is a consequence of the same root: the flag is not refused, so output escapes the design system."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/spawn.ts:239 interactive branch has no process.stdin.isTTY guard (only resolveSpawnMode at spawn.ts:489 checks TTY) and packages/agent-spawn/src/spawn-interactive.ts:119-132 uses stdio inherit, so agent output bypasses design-system panel; duplicate of ux-spawn-interactive-non-tty-launches-agent-tui-copy.md"
 ---
 
 # UX: spawn --interactive prints bare agent TUI text without design-system panel

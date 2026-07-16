@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/program.ts:868-959 registers no doctor command (rg -il doctor finds no matches outside docs/); `npm run dev -- doctor` prints 'Unknown command: doctor'"
 comment: "Keep as canonical of the four doctor filings despite being a reconfirm, because it is the only one that makes the case: doctor would have caught the live model/effort corruption this audit found by hand (ux-claude-settings-model-corrupted-to-fable-restored.md, the sonnet-5 cluster). That argument justifies its High against the Medium siblings and also specifies what doctor should check. Retire the other three into it."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "Built CLI 'node dist/index.js superintendent --help' prints 'Usage: poe-code superintendent [command] [OPTIONS]' and 'superintendent run --help' prints 'Usage: poe-code superintendent run [OPTIONS] [docs...]'; the 'npm run dev --' string is emitted only in development mode (src/utils/execution-context.ts:197-209 formatCliUsageCommand), which src/utils/execution-context.ts:62-80 detects from tsx/src paths or npm_lifecycle_event=dev; src/cli/commands/__snapshots__/runtime-help.test.ts.snap:117 confirms 'poe-code superintendent run' for argv[1]=/usr/local/bin/poe-code, so installed users never see the dev invocation"
 comment: "Critical is not defensible for a help usage line when this audit rates real data loss the same, and its severity is inconsistent with the five sibling filings of the identical leak (Medium/High). Retire into ux-development-mode-usage-intentional-but-leaks.md, which names the mechanism and the fix. Its reasoning is the best-articulated in the identity cluster though - installed users are told to run a developer script, and the resulting error has nothing to do with the command they wanted - so carry that argument across. Note the caveat from ux-root-help-usage-still-npm-run-dev-reconfirmed.md: the leak may only appear when run via tsx, which if true removes the premise entirely."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: low-medium
 impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "packages/agent-eval/src/cli/init.ts:16 resolves sourceDir from process.cwd(); lines 25-26 write bare relative dir and 'next:' line via process.stdout.write with no design-system formatting or created-path list"
 comment: "Second of four eval init filings; retire into ux-eval-init-prints-bare-name-and-cwd-default-confusing.md. Its incidental observation is worth carrying: repeated eval init runs during the audit left untracked directories behind - a process note about probe pollution rather than a product defect."
 ---
 

@@ -2,6 +2,9 @@
 severity: low-medium
 impact: usability
 comment: "Duplicate within the plan view JSON trio; retire. Its framing is the fairest of the three - the content field is genuinely useful for tooling, so the ask is documentation plus a metadata-only mode rather than removing it - and that nuance should survive the merge."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:630-646 JSON branch emits content: markdown; rg found no --no-content/metadata-only flag; duplicates ux-plan-view-json-dumps-full-content.md and ux-plan-view-json-embeds-full-content-flood.md"
 ---
 
 # UX: plan view --output json dumps entire markdown content field

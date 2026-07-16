@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/config.ts:54-75 registers only show/init/edit; `npm run dev -- utils config path` prints: error: too many arguments for 'config'. Expected 0 arguments but got 1."
 comment: "Duplicate of ux-utils-config-path-subcommand-missing.md; consolidate. Its own hedge is worth noting - show already prints the paths in its header - so the gap is only that scripts must scrape them, a smaller problem than a missing capability. Same machine-output question as the --json family."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/skill.ts registers only install/configure/unconfigure; `npm run dev -- skill --help` lists exactly those three; bridging is internal-only via packages/agent-spawn/src/skill-bridge.js"
 comment: "Keep as canonical of this pair (covers list and bridge). The list gap is the substantive one; the bridge gap is weaker, since bridging happens automatically during spawn (ux-skill-bridge-failure-lists-paths-good.md) and may not need a command at all - verify before scheduling. Its own hedge ('bridge may exist elsewhere') is appropriately honest."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- unconfigure --help lists only '-h, --help' under Options; src/cli/commands/unconfigure.ts:26-32 registers no --yes/--dry-run, while src/cli/program.ts:852-854 defines them globally and unconfigure reads them via resolveCommandFlags/optsWithGlobals (src/cli/commands/shared.ts:384-391); help formatter's global-options block at src/cli/program.ts:320 is dead because showGlobalOptions is never enabled."
 comment: "Keep as canonical of the unconfigure help trio - the only one connecting the help gap to the secret leak: users cannot discover --dry-run, and when they do find it, it prints their API keys (ux-unconfigure-goose-dry-run-still-prints-secrets.md). So documenting the flag is worth doing only after the redaction fix, or the documentation points at a leak. Sequence accordingly."
 ---
 

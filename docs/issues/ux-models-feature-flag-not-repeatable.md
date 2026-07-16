@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Contradicts ux-models-double-feature-flag-uses-last-or-and.md: this claims last-wins from Commander's option shape, that one measures 44/341 and infers AND. The measured number is the stronger evidence, so this file's premise is probably wrong - verify before acting. Its ask survives either way: make --feature collectable or reject duplicates rather than silently resolving them."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:268 declares --feature <name> with no collector fn and src/cli/commands/models.ts:62 types feature?: string, so Commander overwrites; single filter applied at models.ts:391-392, no duplicate rejection"
 ---
 
 # UX: --feature is not repeatable; second --feature replaces the first

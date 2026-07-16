@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: polish
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "npm run dev -- plan list renders exactly one line per entry, columns Kind/Type/Name/Detail/Updated with in-cell ellipsis; toolcraft-design table.js renderTerminalRow truncates each cell via truncateToWidth (no wrapping in table variant); src/cli/commands/plan.ts:399-403 orders Updated last, contradicting the doc's Kind/Updated header sample"
 comment: "Careful and well evidenced: each entry spans two visual rows with the Updated date detached from its content row, so long Kind values wrap and read as status indicators rather than types. It looks like a rendering bug rather than a layout choice, which is the strongest argument here. Related to ux-tables-ignore-terminal-width.md, which may be the underlying cause - check that first."
 ---
 

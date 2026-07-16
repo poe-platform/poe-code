@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Reconfirm duplicate in the codex dry-run flood cluster; contributes only a second sighting and no new evidence. Retire into ux-configure-dry-run-dumps-entire-existing-agent-config.md."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- configure codex --yes --dry-run emits full-file + blocks: [projects.\"/Users/kjopek/Workspace/ai-app\"], [notice.model_migrations], [profiles.\"gpt-5.5\"]; cause is parse+re-stringify in packages/config-mutations/src/formats/toml.ts:21 diffed at src/utils/dry-run.ts:318; duplicate of ux-configure-dry-run-dumps-entire-existing-agent-config.md"
 ---
 
 # UX: configure codex --dry-run still floods multi-profile config (reconfirm)

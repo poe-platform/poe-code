@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/providers/claude-code.ts:71 postConfigureMessages emits the VSCode deep-link note; positive note, no defect. Only provider with postConfigureMessages (grep src/providers)."
 comment: "Positive pattern with a genuinely reusable idea: post-configure Next steps carrying an actionable deep link, framed in the design system. Its 'mirror for other agents' suggestion is the actionable half and pairs directly with ux-configure-cursor-dry-run-no-filesystem-changes.md, where users are left guessing what configure even did. Keep as the precedent; no fix needed here."
 ---
 

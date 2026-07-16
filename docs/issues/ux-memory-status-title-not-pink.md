@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: polish
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "FORCE_COLOR=3 npm run dev -- memory status --help emits ESC[95m ESC[1m 'Poe - memory status' (bright magenta bold, same as pipeline --help); plain `memory status` prints no title (src/cli/commands/memory.ts:470-499); only utils symlink --help prints an uncolored title"
 comment: "Correct and correctly Low, and its cross-reference is the valuable part: the same white-instead-of-pink title appears on utils symlink --help (ux-utils-symlink-help-missing-design-system-colors.md), so this is a shared code path rather than a memory bug. Merge the two and fix once; alone it reads as a one-off cosmetic nit and would be under-prioritised."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/worktree-options.ts:10 defines --worktree; imported only by harness.ts/gaslight.ts/experiment.ts/ralph.ts/pipeline.ts, not spawn.ts (no worktree match in spawn.ts); `npm run dev -- spawn --help` prints no --worktree. Duplicate: retire into ux-gaslight-has-worktree-spawn-does-not.md."
 comment: "Third filing of the worktree parity gap; retire into ux-gaslight-has-worktree-spawn-does-not.md. Its list is the broadest (gaslight, ralph, pipeline, experiment all have it), which strengthens the case: spawn is the only runner without it, so the omission looks accidental rather than principled."
 ---
 

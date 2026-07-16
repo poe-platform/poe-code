@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: data-loss
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-gaslight/src/config.ts:8 default 'prompt: Implement'; run.ts:181 builds '${config.prompt} ${planPath}' and spawns immediately; src/cli/commands/gaslight.ts action calls runGaslight with no confirmation or dry-run preview"
 comment: "Keep as canonical for the Implement-by-default problem: passing a path alone launches an implementation run against a large plan with no preview or confirmation, and --mode read does not prevent it because the Implement intent lives in gaslight's own prompt. This is the behavioral statement of what ux-gaslight-help-says-plan-to-implement.md sees in the copy and what ux-gaslight-mode-read-still-mutated-plans-dir.md proves has consequences. Its 'dry-run shows prompt only' suggestion is the cheapest safe fix."
 ---
 

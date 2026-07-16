@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- maestro --dry-run --yes printed 'Error: GitHub GraphQL request failed with status 401: {\"message\": \"Bad credentials\"...}'; runDryRun opens the gh task list (packages/maestro/src/index.ts:224) which does an eager project GraphQL lookup (packages/task-list/src/backends/gh-issues.ts:506) before validateDispatch, and the raw body is thrown as a plain Error at packages/task-list/src/backends/gh-issues-client.ts:36. Duplicate of ux-maestro-dry-run-path-vs-flag-confusion.md."
 comment: "One of four filings of the same maestro dry-run finding; consolidate into ux-maestro-dry-run-path-vs-flag-confusion.md, the most complete. The shared point is correct and the more interesting half: --dry-run performs a network call and fails on GitHub auth before validating the local workflow, so dry-run is neither offline nor local-first and users cannot preview anything without credentials. The raw GraphQL 401 JSON is the secondary defect."
 ---
 

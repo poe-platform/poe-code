@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/skill.ts:399-406 refuses non-empty dir without --force; --force documented at src/cli/commands/skill.ts:296"
 comment: "Correct as filed - refusing a non-empty directory without --force is good safety - but it is also the setup for the Critical: the refusal teaches users to add --force, and --force then deletes unrelated skills without further warning. So the guard is only half a guard: it detects the dangerous case and then offers a flag that makes it worse. Keep, and link the two; the refusal message should name what --force would remove."
 ---
 

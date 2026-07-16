@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: data-loss
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-skill-config/src/apply.ts:124 unconfigure() issues fileMutation.removeDirectory({path: skillDir, force: options.force}) on the whole agent skills dir (configs.ts:15 localSkillDir '.claude/skills'); apply-mutation.ts runs fs.rm(targetPath, {recursive: true, force: true}) when force is set, so unrelated skills under that dir are deleted with no blast-radius listing; src/cli/commands/skill.ts:296 documents --force only as 'Remove directory even if it contains files'"
 comment: "One of the two or three most serious files in the audit and correctly Critical: --force removed the entire .claude/skills tree, destroying four unrelated skills (experiment-plan, pipeline-plan, superintendent-plan, terminal-pilot) that poe-code did not install, restored only because the audit checked git. The help says 'Remove skill directories', which is technically true and catastrophically under-specific. Its fix list is exactly right and the first item is key: only remove poe-code-managed skills. Read with ux-skill-unconfigure-dry-run-path-inconsistent.md, which suggests the same command may also reach into the home directory - together they are the strongest argument in the audit for a blast-radius summary before destructive writes."
 ---
 

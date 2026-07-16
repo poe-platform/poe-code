@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/harness.ts:97 argument help is only 'Built-in template kind'; src/cli/commands/harness.ts:454 throws `Unknown harness template \"${kind}\".` with no list; packages/agent-harness/src/templates/index.ts:9-17 lists only ralph-demo, coverage-demo, experiment-demo, pipeline-demo, superintendent-demo"
 comment: "Keep as canonical of the five-file kinds cluster: it has the full working list, the failed guesses, and the sharpest framing - the real kinds are all '-demo' suffixed, so even a user who guesses the right concept ('pipeline') fails, and the names are only discoverable from package tests. High is justified: harness new is the entry point and is unusable without reading source. Fix in three places at once: help choices, the unknown-kind error, and a statement of whether demo kinds are the only kinds."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: security
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/auth.ts:47 registers .option('--api-key <key>', 'Poe API key') on auth login; key value passed in argv reaches executeLogin via options.apiKey (src/cli/commands/login.ts:52)"
 comment: "The best filing of the --api-key argv class: it enumerates all four affected surfaces and correctly argues that auth login is the highest-exposure instance because it is the primary credential-storage path users will actually reach for. Promote this to the umbrella for the class and link ux-agent-api-key-flag-on-help.md, ux-provider-login-api-key-flag-history-risk.md and ux-api-key-flags-encourage-shell-history-leaks.md to it. Its Medium rating under-rates it relative to those siblings; align the class to one severity."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:305 append .option('--reason <text>', ..., 'append') vs :285 write .requiredOption('--reason <text>') - behaviour is as described and correct, no defect"
 comment: "Positive with a useful comparison rather than a defect: --reason defaults on append and is required on write, which is defensible (an append is self-describing, a write is not) but undocumented as deliberate. Its real contribution is the pointer that write's requirement surfaces as a raw Commander error - that belongs with ux-raw-commander-missing-args.md. Keep as the note that append's default is correct."
 ---
 

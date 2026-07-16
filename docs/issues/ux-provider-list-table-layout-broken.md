@@ -1,6 +1,9 @@
 ---
 severity: medium-high
-impact: polish
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "`npm run dev -- provider list` emits 213-column rows (cloudflare row: 'chat-completions, responses, messages, generations') that wrap on any normal terminal; packages/toolcraft-design/src/components/table.ts:229 fixes each column to maxLen and :237 never consults options.maxWidth for the table variant (only :329 detail variant), while src/cli/commands/provider.ts:99-105 declares 20+14+34+52+60 columns = 196 chars of frame."
 comment: "Keep as canonical of the provider list table cluster: best evidence and three distinct findings, of which the first is genuinely serious - 'generations' wraps onto its own line and reads as a standalone provider, so the table asserts something false rather than merely looking untidy. The Agents header sitting a row below the others and the API shapes cell cut off mid-list with a trailing comma are the other two. Likely the same root as ux-tables-ignore-terminal-width.md; fix the renderer rather than this table."
 ---
 

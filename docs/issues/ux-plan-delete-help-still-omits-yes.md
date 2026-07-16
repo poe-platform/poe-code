@@ -1,7 +1,10 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
 comment: "Reconfirm duplicate within the plan archive/delete help cluster; retire into ux-plan-archive-delete-help-still-omit-yes-reconfirmed.md, which covers both commands. No new evidence."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- plan delete --help lists only --kind, --output, -h; src/cli/commands/plan.ts:736-749 registers no --yes while plan.ts:485 calls requireInteractiveStdin; -y is root-only at src/cli/program.ts:852"
 ---
 
 # UX: plan delete --help still omits --yes (reconfirmed)

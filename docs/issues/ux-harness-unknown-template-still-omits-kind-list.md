@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/harness.ts:569 throws ValidationError with only `Unknown harness template \"${kind}\".` and no kind list; harness.ts:101 argument help is just 'Built-in template kind'; packages/agent-harness/src/templates/index.ts:9-17 returns the five demo kinds"
 comment: "Seventh filing of the kinds gap; retire into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. Its one useful detail is the source pointer - listBuiltinTemplates already returns the five kinds - which proves the error and help can enumerate them today with no new data. Carry that into the survivor."
 ---
 

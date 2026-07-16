@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- configure gemini --yes --dry-run prints: Error: Provider \"cloudflare\" requires a base URL for API shape \"google-generations\"; src/cli/commands/configure.ts:851 dry-run returns candidates[0] and cloudflare is the sole google-generations provider (packages/providers/src/providers/cloudflare.ts:36), so src/cli/commands/shared.ts:93 throws"
 comment: "Valid and nasty: configure gemini fails demanding a cloudflare base URL although the user never mentioned cloudflare, so the error names a provider drawn from residual or default state and the recovery points somewhere the user has no reason to go. Same misdiagnosis family as ux-code-review-run-invalid-url-wrong-error.md. Fix by defaulting to the poe provider when available and, when a provider does come from ambient state, saying where it came from."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: polish
+reproduced: y
+recommendation: fix
+evidence: "packages/toolcraft/src/renderer.ts:196 joins string arrays with ', ' into one Lists row; packages/toolcraft-design/src/components/detail-card.ts:27 wraps with { hard: true }, so installCodeReviewAssets (packages/agent-code-review/src/assets.ts:255 created/overwritten/skipped path arrays) hard-wraps absolute paths mid-filename"
 comment: "Best evidence of the three install filings - the pasted output shows absolute paths hard-wrapped mid-filename, which reads as corrupted output rather than success. Keep as canonical for the presentation half (one path per line, no mid-path wrapping); let ux-code-review-install-no-dry-run-force-writes.md carry the missing --dry-run and retire ux-code-review-install-unframed-and-npm-run-dev.md into the two."
 ---
 

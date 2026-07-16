@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; consolidate with the md-export positive. Its incidental detail is the interesting one: the JSON includes a detail field with '21/21 done', so the machine contract carries progress - useful for CI and worth documenting rather than merely praising."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:375-392 emits kind/path/detail JSON; `npm run dev -- plan list --kind pipeline --output json` printed detail '21/21 done' - positive note, no defect"
 ---
 
 # UX: plan list --kind pipeline --output json is clean (positive)

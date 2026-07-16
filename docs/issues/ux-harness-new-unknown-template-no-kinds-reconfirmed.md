@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/harness.ts:569 throws `Unknown harness template \"${kind}\".` with no kind list; harness.ts:101 argument help is only 'Built-in template kind'; packages/agent-harness/src/templates/index.ts:10-15 defines the five valid kinds"
 comment: "Reconfirm duplicate within the kinds cluster with no new evidence; retire. Five filings of one missing list, spanning Medium and High, is count inflation: the cluster needs one issue at one severity."
 ---
 

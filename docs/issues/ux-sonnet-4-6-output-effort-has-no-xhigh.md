@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: correctness
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "rg finds zero matches for xhigh or effortLevel in src and packages; claude-code.ts manifest merges only env and model. Dry-run probe printed effortLevel high, which originates from pre-existing ~/.claude/settings.json:143 (also present in its backup), echoed by the diff renderer - poe-code never writes effortLevel."
 comment: "Duplicate of ux-effort-xhigh-valid-for-opus-not-sonnet.md and ux-opus-4-7-catalog-supports-xhigh-sonnet-does-not.md; consolidate the three. Its distinct and useful addition is the catalog default - output_effort defaults to medium for sonnet-4.6 - which answers the question the others leave open: what should be written instead of xhigh. Carry that into the survivor."
 ---
 

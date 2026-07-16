@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:26 .description(\"Display stored API key.\"); `npm run dev -- auth --help` lists 'api-key  Display stored API key.' with no secret-reveal warning"
 comment: "Fourth filing of the help-warning point, this one at group level (the auth --help command list) rather than the command's own help. Only distinct angle: the warning is missing one level up too. Fold into the consolidated help issue as a checklist item; do not track separately."
 ---
 

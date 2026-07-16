@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Third of the four 'refuse to replace' filings; retire into ux-hooks-auto-strategy-still-refuses-user-settings.md. Its useful observation: --hooks-scope project looks like the natural workaround and fails identically, so users try scope, then strategy, and dead-end twice - an argument for the refusal message naming what actually works."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/agent-hook-config/src/bridge-hooks.ts:253 hardcodes symlinkHooks(..., 'project') ignoring opts.scope (scope only used at bridge-hooks.ts:287 transform path), so same-format pairs still hit the throw at packages/agent-hook-config/src/symlink-hooks.ts:167"
 ---
 
 # UX: --hooks-scope project still refuses user settings (recovery gap)

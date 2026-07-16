@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: data-loss
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/runtime/templates/clear.ts:47-66 runs the dsConfirm prompt before the flags.dryRun branch, so --dry-run still prompts (fails non-TTY); dry-run message reports only a count, never lists entries; `npm run dev -- runtime templates clear --help` prints only -h, though global -y/--yes and --dry-run exist at src/cli/program.ts:852-853 and flags.assumeYes is honored"
 comment: "Keep as canonical of this pair and the more serious half: templates clear deletes cached entries (21 in the sibling's evidence) with no --dry-run to preview and no documented --yes, and --dry-run itself fails with the POE_NO_PROMPT error - so the safe-preview path is unreachable. That combination is worse than either flag being absent alone. Its fix is right: --yes plus a --dry-run that lists entries."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "packages/agent-hook-config/src/bridge-hooks.ts:122 emits 'Unsupported source hook agent ... Supported hook agents: ...'; positive note, no defect"
 comment: "Positive pattern; keep as canonical of this pair (cleaner framing) and retire ux-hooks-from-pi-unsupported-lists-supported.md into it. Its 'use for all agent allow-lists' suggestion is the actionable half and directly serves ux-unknown-agent-no-allow-list-or-suggestions.md and ux-gaslight-unknown-agent-says-service.md: the good pattern already exists here and only needs propagating."
 ---
 

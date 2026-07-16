@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Duplicate of ux-pipeline-install-force-skips-skill-overwrites-steps.md; retire into it. Its alternative fix is worth carrying: if force is meant to be partial, the success line should say 'scaffolded (skill unchanged)' rather than claiming the skill was installed - the cheaper resolution if the partial behavior is intentional."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/pipeline.ts:1537 skips skill when skillExists without checking options.force, while steps honor force (line ~1497); success line 1583 still claims 'Installed Pipeline skill'. Duplicate of docs/issues/ux-pipeline-install-force-skips-skill-overwrites-steps.md"
 ---
 
 # UX: pipeline install --force overwrites steps but still skips existing skill

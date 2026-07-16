@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern, no code change; genuinely distinct from the two field-shape positives because it praises the help text rather than the payload. Its 'add status --json for parity' suggestion contradicts the cheaper cross-link direction preferred in ux-auth-status-no-json-flag.md - resolve the human-vs-machine convention once CLI-wide instead of in two files."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:39 description 'Print Poe account identity as JSON (uses POE_API_KEY if set).' matches the praised help text; positive note, no defect to reproduce"
 ---
 
 # UX: auth whoami help documents JSON output (positive)

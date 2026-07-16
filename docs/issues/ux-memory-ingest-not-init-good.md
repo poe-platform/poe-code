@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern worth citing: 'Memory is not initialized. Run \"poe-code memory init\" in this project.' names the state, the fix and the scope in one line - the recovery shape the braintrust and configure filings ask for (ux-braintrust-status-disabled-no-next-step.md). Consistent across the memory group; use as the reference example."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:358 ingest action calls assertInitialized; src/cli/commands/memory.ts:82-83 throws 'Memory is not initialized. Run \"poe-code memory init\" in this project.'"
 ---
 
 # UX: memory ingest without init points to memory init (positive)

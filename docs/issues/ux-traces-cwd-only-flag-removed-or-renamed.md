@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/traces.ts:83 registers --all-workspaces with help 'not just cwd'; rg finds no --cwd-only outside docs/issues; packages/agent-trace-viewer/README.md:17 documents the flag"
 comment: "Honest and self-resolving: it establishes that --all-workspaces is the real flag, cwd-only is the default, and --cwd-only never existed in current builds - so the defect is drift in the audit's own notes rather than the product. Its conclusion is right: document the default and the expansion flag. Check its compatibility suggestion before acting - do not add an alias for a flag that was never public."
 ---
 

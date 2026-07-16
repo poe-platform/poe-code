@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/harness.ts:569 throws ValidationError('Unknown harness template \"kind\".') with no kind list; line 101 documents argument only as 'Built-in template kind' despite listBuiltinTemplates() being available at line 565"
 comment: "Duplicate within the kinds cluster; retire into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. It does correctly identify the two places the list must appear - help and the unknown-kind error - which is the fix shape."
 ---
 

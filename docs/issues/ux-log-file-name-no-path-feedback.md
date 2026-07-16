@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-spawn/src/acp/spawn-log-path.ts:7 defaults to ~/.poe-code/spawn-logs (not logs/); src/cli/commands/spawn.ts:395-455 success path prints stdout/detached job/resume only, never the resolved log path."
 comment: "Keep as canonical for the log-path feedback gap and absorb ux-log-dir-relative-works-with-path-feedback-gap.md. Its concrete finding is better than the title suggests: the file lands in ~/.poe-code/spawn-logs/ rather than the ~/.poe-code/logs/ the user expected, and nothing prints the location - so the flag appears to have failed. Printing the resolved path fixes the discoverability and would also have exposed ux-log-dir-unwritable-silently-ignored.md."
 ---
 

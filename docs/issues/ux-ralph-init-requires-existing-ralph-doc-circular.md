@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/ralph/src/frontmatter/frontmatter.ts:181-183 throws 'kind must be ralph'; src/cli/commands/ralph.ts:460-467 bare catch remaps any parse error to 'Ralph doc not found'. Probe: 'ralph init /tmp/probe-plan-kind.md --agent claude --iterations 3 --yes' printed 'Ralph doc not found' for an existing kind=plan file, while a no-frontmatter doc saved fine."
 comment: "Keep as canonical of this pair - 'chicken-and-egg' is exactly right, and it quotes the help that proves the intent ('Write Ralph config into an existing markdown doc frontmatter'), so the behavior contradicts its own documentation: it should accept any markdown and write the frontmatter, yet it rejects anything lacking the frontmatter it is supposed to write. A genuine functional defect rather than a message problem, and it makes ralph init unusable for its stated purpose. Distinct from the wrong-kind message cluster; fix the behavior, not the copy."
 ---
 

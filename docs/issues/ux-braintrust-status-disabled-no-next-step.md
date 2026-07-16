@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/braintrust.ts:36 logs bare 'disabled'; only 'status' subcommand registered (line 17), no enable path. Probe 'npm run dev -- braintrust status' printed '● disabled' with no env var, docs link, or next step."
 comment: "One of three near-identical filings that 'braintrust status: disabled' offers no recovery path. Consolidate with ux-braintrust-status-minimal-disabled.md and ux-braintrust-status-opaque.md, and treat the result as dependent on ux-braintrust-only-status-no-enable.md: the next step cannot be written until it is decided whether enabling is a CLI command or env-only."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-eval/src/init/init.ts:41 evalDir = path.join(opts.sourceDir, opts.name); packages/agent-eval/src/cli/init.ts:16,25-26 sourceDir defaults to process.cwd() and stdout writes bare path.relative(sourceDir, result.evalDir) plus 'next: poe-code eval check'"
 comment: "Keep as canonical of the four eval init filings: it is the only one that catches the behavioral half - the eval is created in cwd rather than under evals/, so the scaffold lands where the rest of the tooling does not look. That is a real surprise and it explains the stray untracked directories other filings noticed. Absorbs the three framing-only twins; the bare-stdout and npm run dev halves belong to the design-system and identity clusters."
 ---
 

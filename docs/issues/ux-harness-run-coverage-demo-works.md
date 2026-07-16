@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate of ux-harness-new-run-coverage-demo-works.md - consolidate. Its detail that the run reports '0 spawns' is mildly important: the demo completes without invoking an agent, so this positive proves the harness plumbing works but does not exercise a real spawn. State that plainly rather than implying broader coverage."
+reproduced: n
+recommendation: no-fix
+evidence: "Positive note, no defect. Behaviour confirmed: packages/agent-harness/src/templates/index.ts:12 registers coverage-demo; coverage-demo.ajs returns object with kind/version and never spawns; packages/agent-harness/src/loader/run.test.ts:103-105 asserts that Result."
 ---
 
 # UX: harness run coverage-demo scaffold works (positive)

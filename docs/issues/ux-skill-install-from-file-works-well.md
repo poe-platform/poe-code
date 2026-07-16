@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Good positive and a useful template: the success line names the skill, the agent and the resolved path - exactly what the bare-success commands omit (memory write, eval init). Its own suggestion to reuse the framing is the actionable half. Keep as the reference alongside ux-plan-install-success-good.md."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/skill.ts:187 success message matches doc; positive no-defect note, nothing to reproduce"
 ---
 
 # UX: skill install --file success path is good (positive pattern)

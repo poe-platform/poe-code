@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "package.json:36 predev runs 'turbo run build --output-logs=errors-only' across 67 workspace packages before package.json:37 dev; logs already suppressed, latency remains, dev-only path"
 comment: "Real but scoped to the dev workflow rather than the shipped product: this is what npm run dev does by design (predev runs turbo build), so an installed user never sees it. Its value is as further evidence for ux-development-mode-usage-intentional-but-leaks.md - the audit was conducted through npm run dev, which is precisely why the identity cluster exists. Keep as a dev-UX note; do not schedule as a product defect."
 ---
 

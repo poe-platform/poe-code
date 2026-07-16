@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; consolidate with the other usage positives. Its 'add --limit if missing' aside is answered by ux-usage-pages-1-still-shows-20-entries.md - there is no --limit, only --pages, which is the flag-naming problem rather than a missing capability."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/usage.ts:348 renders design-system table; page size fixed at limit=20 (usage.ts:285); only --pages exists (usage.ts:187), no --limit"
 ---
 
 # UX: usage list table is clear (positive)

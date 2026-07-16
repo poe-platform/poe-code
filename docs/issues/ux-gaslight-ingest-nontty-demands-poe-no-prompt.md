@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: usability
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/gaslight.ts:372-425 ingest action never reads flags.dryRun (contrast install at :442); without --yes, resolveAgentAndModel (:186-198) calls resolveServiceArgument, which rejects via packages/toolcraft-design/src/prompts/interactive/core.ts:133 'Interactive prompt requires a TTY. Set POE_NO_PROMPT=1'. --yes IS honored for agent selection, so that part of the claim is inaccurate."
 comment: "Duplicate of the non-TTY half of ux-gaslight-ingest-no-dry-run-and-jsonl-dump.md; retire into it or into the shared non-TTY message issue (ux-configure-non-tty-demands-poe-no-prompt-not-yes.md). Its distinct observation should survive though: the global --dry-run is not honoured at all here, which is a stronger claim than 'the message names the wrong flag' - a global flag that silently does nothing is a correctness problem."
 ---
 

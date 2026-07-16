@@ -2,6 +2,9 @@
 severity: high
 impact: correctness
 comment: "Same unresolved ambiguity as the --base-url pair (flag ignored versus dry-run not rendering it); merge with ux-configure-base-url-not-visible-in-dry-run.md into one issue covering both flags. The sonnet-5 default it also shows is incidental noise from omitting --model, not part of this defect. Resolve by configuring for real and inspecting the written value before scheduling."
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/shared.ts:111-113 computes agentBaseUrl from provider.agentBaseUrl and ignores explicitShapeBaseUrls; src/providers/claude-code.ts:75 maps ANTHROPIC_BASE_URL to agentBaseUrl, so dry run of 'configure claude --shape-base-url anthropic-messages=https://example.invalid --yes --dry-run' still writes ANTHROPIC_BASE_URL https://api.poe.com"
 ---
 
 # UX: configure --shape-base-url not visible in dry-run diff

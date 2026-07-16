@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- unconfigure --help prints only 'Options: -h, --help'; global -y/--dry-run declared on root at src/cli/program.ts:852-853 and showGlobalOptions is never enabled (src/cli/program.ts:320)"
 comment: "Duplicate within the unconfigure help trio; retire. Its 'files affected' ask is the useful residue: help should name which agent files unconfigure touches, since ux-unconfigure-nonconfigured-agent-still-plans-mutations.md shows users cannot tell what poe-code owns."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: correctness
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/options.ts:206-209 resolveModel returns explicit value with no catalog check; 'npm run dev -- configure claude --model totally-fake-model-xyz --yes --dry-run' plans '\"model\": \"totally-fake-model-xyz\"' into settings.json with no error. Duplicate of ux-configure-accepts-any-string-as-model-no-catalog-check.md, which stays canonical."
 comment: "Duplicate of ux-configure-accepts-any-string-as-model-no-catalog-check.md; retire into it, carrying over its two better-specified fix details which the canonical lacks: behave sensibly offline (warn rather than block) and point at 'models --search' in the refusal. Its High rating conflicts with the twin's Critical; normalise."
 ---
 

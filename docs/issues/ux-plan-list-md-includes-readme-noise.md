@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "Duplicate within the README-in-plan-list quintet (md variant); retire into ux-plan-list-includes-readme-reconfirmed.md."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- plan list --kind plan --output md prints row '| plan | Plan | README.md | Active Plans |'; packages/plan-browser/src/discovery.ts:60 isSupportedPlanFile accepts any .md and classifyPlanKind:145 defaults frontmatter-less files to kind 'plan'"
 ---
 
 # UX: plan list --output md still includes README.md as a plan

@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Duplicate within the plan browse non-TTY trio; retire into ux-plan-browse-non-tty-dumps-arbitrary-plan-body.md. Its extra observation is worth carrying: bare 'poe-code plan' does the same thing, so the parent group also dumps a plan - linking this to ux-plan-root-non-tty-dumps-arbitrary-body.md and the group-command shape question."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/plan-browser/src/browser.ts:49-51 autopicks plans[0] and writes renderMarkdown body when process.stdin.isTTY !== true; src/cli/commands/plan.ts:561-585 routes both bare 'plan' and 'plan browse' into runPlanBrowser, confirming the extra bare-command observation; duplicate of ux-plan-browse-non-tty-dumps-arbitrary-plan-body.md which carries the fix"
 ---
 
 # UX: plan browse non-TTY dumps plan body instead of failing or listing

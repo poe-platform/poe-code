@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Reconfirm duplicate within the maestro dry-run cluster with no new evidence; retire into ux-maestro-dry-run-path-vs-flag-confusion.md."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/maestro/src/index.ts:224 dry-run calls openConfiguredTaskList; packages/task-list/src/backends/gh-issues-client.ts:36 throws raw Error 'GitHub GraphQL request failed with status ${response.status}: ${body}'"
 ---
 
 # UX: maestro --dry-run hits GitHub 401 without workflow (reconfirmed)

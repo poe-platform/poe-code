@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- experiment journal (no doc) prints 'No markdown doc found under docs/plans. Provide a doc path.' while experiment --help lists 'journal [doc]' as optional; src/cli/commands/experiment.ts:599-602 throws ValidationError when discoverExperimentDocs returns none, and packages/experiment-loop/src/discovery/discovery.ts:29-35 filters kinds: [experiment], so the message is kind-unaware."
 comment: "Sharpest filing in the kind-unaware cluster and genuinely distinct: it identifies a contract contradiction the others miss - help advertises [doc] as optional, so omitting it should do something sensible, yet it errors and then instructs the user to supply the argument help called optional. That reframes the fix as a choice: implement the discovery the optional arg implies (list experiment journals, as plan list does) or mark it required. Keep as canonical for the [doc] contract; the wrong-message half belongs to ux-experiment-ralph-no-doc-wrong-message.md."
 ---
 

@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Third duplicate within the worktree reconcile trio; retire. Its --yes-not-in-help aside belongs to the global-flags family."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/worktree.ts:33 requiredOption('--agent <name>'); `npm run dev -- worktree reconcile --yes` prints \"error: required option '--agent <name>' not specified\" and --help omits --yes"
 ---
 
 # UX: worktree reconcile requires --agent via raw commander

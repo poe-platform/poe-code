@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/program.ts:120 formatRootHelpCommandName joins name+aliases; `npm run dev -- --help` prints 'install, i', 'configure, c', 'spawn, s', 'models, m', 'unconfigure, uc'"
 comment: "Thin but real and cheap: aliases c/s/i work yet appear nowhere in help, so only users who guess find them, and Commander can render aliases in the command list with no new machinery. Part of the root-help discoverability cluster (ux-root-help-hides-skill-memory-runtime-eval-and-more.md); fold in there rather than fixing alone."
 ---
 

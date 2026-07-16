@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:333-334 resolveSelectedPlan calls requireInteractiveStdin with the exact message; positive note, no defect"
 comment: "Important small positive: 'Plan selection requires a path or --yes when running without an interactive TTY' is the exact message plan browse and bare plan should emit instead of dumping an arbitrary plan body. Its own suggestion says so. Keep and link from the non-TTY dump cluster - it proves the fix is reuse rather than design, the same shape as the login hang and its --yes counterpart."
 ---
 

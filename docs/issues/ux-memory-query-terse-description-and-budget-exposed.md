@@ -1,6 +1,9 @@
 ---
 severity: low
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/memory.ts:394-395 - .argument(\"<question>\", \"Question\") and .option(\"--budget <tokens>\", \"Token budget\") with no default or guidance"
 comment: "Fair, correctly Low, and near-duplicate of ux-memory-explain-budget-token-internals.md on the --budget half - consolidate those. Its distinct half is the argument description ('question Question'), a genuine no-op that teaches nothing, and its suggested replacement is good. Pair with ux-memory-query-no-model-flag.md: the interface exposes --budget, which few users can reason about, and hides --model, which they actually need."
 ---
 

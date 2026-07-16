@@ -2,6 +2,9 @@
 severity: critical
 impact: correctness
 comment: "Third Critical filing of the sonnet-5 root cause, overlapping ux-constants-source-of-dead-sonnet-5.md (which pins the file and every consumer) and ux-frontier-models-only-sonnet-5-is-dead.md (which bounds the fix to one string). Its distinct contribution is the runtime blast radius - gaslight, pipeline and spawn all failing with 400 - which is the best argument for the severity. Consolidate the three into one root-cause issue carrying all three angles: location, minimal diff, and impact."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/constants.ts:3 FRONTIER_MODELS includes anthropic/claude-sonnet-5; :14 CLAUDE_CODE_VARIANTS.sonnet is the same id; :18 DEFAULT_CLAUDE_CODE_MODEL = that variant; :37 GOOSE_MODELS = FRONTIER_MODELS; src/providers/goose.ts:102 maps anthropic/claude-sonnet-5 to 983_040. Defaults confirmed present, but this duplicates canonical root cause ux-constants-source-of-dead-sonnet-5.md (recommendation=fix) and ux-frontier-models-only-sonnet-5-is-dead.md; no-fix here means close as duplicate, not that the defect is absent."
 ---
 
 # UX: Product defaults still hard-code anthropic/claude-sonnet-5 which API rejects

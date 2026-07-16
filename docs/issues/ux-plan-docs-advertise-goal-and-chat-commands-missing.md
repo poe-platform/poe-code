@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "`npm run dev -- goal` and `npm run dev -- chat` both print 'Unknown command'; no goal/chat command registered in src/cli/program.ts and no packages/agent-goal exists, while docs/plans/32-agent-goal.md:30-47 documents them; but docs/plans/32-agent-goal.md:1-4 frontmatter already declares 'kind: plan', README.md/help never advertise the commands, and this duplicates ux-goal-chat-acp-commands-missing.md"
 comment: "Duplicate of ux-goal-chat-acp-commands-missing.md; consolidate. This is the better-argued of the two and its framing is right: the defect is docs/plans running ahead of the product without 'planned' markers, so the fix is marking them rather than building commands. Worth tempering though - plans are design documents by nature and their readers are contributors rather than end users, so the false-expectation risk is smaller than for README or help."
 ---
 

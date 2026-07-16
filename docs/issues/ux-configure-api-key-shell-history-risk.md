@@ -2,6 +2,9 @@
 severity: medium
 impact: security
 comment: "Better-argued twin of ux-configure-api-key-flag-on-help-shell-history.md - it names both leak vectors (shell history and ps aux for the process lifetime). Still a member of the four-surface --api-key class: fold into the umbrella ux-auth-login-api-key-shell-history-risk.md rather than fixing configure alone, since one policy should cover all four flags."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/configure.ts:75 declares .option(\"--api-key <key>\", \"Poe API key\"), so the plaintext flag exists; duplicate of umbrella docs/issues/ux-auth-login-api-key-shell-history-risk.md"
 ---
 
 # UX: configure --api-key exposes Poe API key via CLI flag (shell history/process list)

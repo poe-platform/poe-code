@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/harness.ts:101 .argument(\"<kind>\", \"Built-in template kind\") with no .choices(); `npm run dev -- harness new --help` prints 'kind  Built-in template kind' with no choices, while src/cli/commands/runtime/init.ts:23 uses .choices([\"host\", \"docker\"])"
 comment: "One of five filings about undiscoverable harness kinds; consolidate into ux-harness-new-kinds-undocumented-must-guess-demo-names.md. Its distinct contribution is the in-product precedent that makes the fix trivial: runtime init --type already renders '(choices: host, docker, e2b)' inline, so Commander can do this today. Carry that into the survivor."
 ---
 

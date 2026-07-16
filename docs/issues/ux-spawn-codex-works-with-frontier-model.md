@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; its value is as a control for the sonnet-5 cluster - codex with a live frontier model works, so the failures elsewhere are the dead default rather than the spawn path. Consolidate with the other spawn-works positives into one note; its stdin caveat belongs to ux-spawn-codex-reads-stdin-message-on-tty-less-success.md."
+reproduced: n
+recommendation: no-fix
+evidence: "packages/agent-spawn/src/configs/codex.ts:6-34 defines and registers codexSpawnConfig (modelStripProviderPrefix true handles openai/ prefix, resume hintArgs yields 'codex resume ...'); confirms the documented success path rather than a defect"
 ---
 
 # UX: spawn codex with gpt-5.3-codex works (positive)

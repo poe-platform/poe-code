@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate of ux-harness-run-coverage-demo-works.md (same new+run end-to-end check, same kind). Consolidate. Worth keeping in the survivor: the end-to-end path works once the kind is known, which isolates the harness problem to discoverability rather than function."
+reproduced: n
+recommendation: no-fix
+evidence: "Positive/no-defect note, no bug to reproduce; src/cli/commands/harness.ts:78 (run) and :99 (new) plus packages/agent-harness/src/templates/index.ts:12 (coverage-demo) confirm the working path; duplicate of ux-harness-run-coverage-demo-works.md"
 ---
 
 # UX: harness new+run coverage-demo works (positive)

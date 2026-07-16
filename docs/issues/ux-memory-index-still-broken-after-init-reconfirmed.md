@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: crash
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/memory.ts:48 forces every show/ls path under pages/ (resolvePageRelPath), and packages/memory/src/pages.ts:15 listPages only scans MEMORY_PAGES_DIR_RELPATH, while packages/memory/src/init.ts:17-26 writes INDEX.md and LOG.md at the memory root - so root files are unreachable: show INDEX resolves to pages/INDEX.md and reports 'Page not found: INDEX.md'."
 comment: "Strong filing and the clearest statement of the Critical memory contract break: init creates INDEX.md and LOG.md, then ls reports 'No memory pages yet' and show INDEX / show INDEX.md both answer 'Page not found' while the files demonstrably exist on disk. The product denies the existence of what it just created - the same shape as ux-harness-list-only-cwd-not-created-dir.md but worse, because these are the files the whole memory model is built on. Its diagnosis is likely right: the page namespace excludes the root files. Corroborated incidentally by ux-memory-clear-yes-reinitializes-index-log.md."
 ---
 

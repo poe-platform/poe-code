@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/experiment.ts:1106 declares '--force Overwrite existing files' but flags.force is never read; installSkill (packages/agent-skill-config/src/apply.ts:194) has no force option and throws 'Skill already exists' unconditionally"
 comment: "One of three filings of the same --force defect; consolidate into ux-experiment-install-force-still-fails-already-exists.md, which adds that dry-run fails too. All three establish the same point: help documents '--force Overwrite existing files' and the behavior refuses, so the flag is a lie. Fix jointly with ux-experiment-install-already-exists-vs-pipeline-skip.md, which shows pipeline already does the right thing."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/utils/execution-context.ts:201-205 returns 'npm run dev --' only for mode development; global/npx modes yield 'poe-code'/'npx poe-code' (execution-context.ts:47-58), and src/cli/commands/misc-commands.test.ts:748 asserts 'Run poe-code <command> --help for command options.'"
 comment: "Reconfirm duplicate within the root help footer trio; retire. No new evidence."
 ---
 

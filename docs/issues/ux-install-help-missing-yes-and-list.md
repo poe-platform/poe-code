@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/install.ts:22-38 registers only [agent] arg, no options; `npm run dev -- install --help` Options lists only -h; `install --list` errors \"unknown option '--list'\"; -y/--yes exists only as program-level option at src/cli/program.ts:852"
 comment: "One of three filings about sparse install help; consolidate with ux-install-help-no-force-or-options.md and ux-install-unconfigure-help-still-sparse-reconfirmed.md. Its distinct ask is the useful one: there is no way to list installable agents, and since that list only exists in the argument description, the capability-matrix work (ux-agent-capability-matrix-spawn-vs-configure-vs-install.md) would give install --list its content for free."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-spawn/src/spawn.ts:304 sets stdin to inherit whenever the prompt is an argument (stdinMode undefined), so codex sees a non-TTY stdin; the string 'Reading additional input from stdin' exists only in the codex binary (strings vendor/aarch64-apple-darwin/bin/codex), not anywhere in poe-code src/packages - fix is stdin ignore, not message suppression"
 comment: "Good catch and genuinely confusing: 'Reading additional input from stdin...' printed after a successful result makes CI logs look hung, and it appears even though the prompt came from an argument. Its diagnosis is likely right - the message is unconditional rather than emitted when stdin is actually read. Same false-signal family as ux-failure-shown-as-success-markers.md: status output that does not reflect what happened. Cheap fix, real payoff in log readability."
 ---
 

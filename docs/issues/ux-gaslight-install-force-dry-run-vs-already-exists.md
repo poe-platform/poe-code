@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/gaslight.ts:290-303 - scaffoldConfig returns changed:true when force and file exists; gaslight.ts:443-446 then logs 'Would create' with no overwrite distinction"
 comment: "Good catch and the counterweight to the two 'clean dry-run' positives: --force --dry-run reports 'Would create' for a file that exists, while the same command without --force correctly says 'already exists' - so the preview misdescribes a destructive overwrite as a create. That is a dry-run fidelity bug and it matters more than Medium suggests, given ux-gaslight-install-force-overwrites-without-diff.md shows the real run overwrites with no backup. Merge the two: preview must say 'would overwrite' and the real path should back up."
 ---
 

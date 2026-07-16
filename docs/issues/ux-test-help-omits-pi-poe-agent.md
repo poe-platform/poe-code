@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "poe-code test --help lists claude-code..opencode only; spawn --help adds pi | pi-agent | poe-agent; `poe-code test pi` errors 'Unknown agent \"pi\".' (src/cli/commands/test.ts:26-28 filters registry to providers exporting test())"
 comment: "Duplicate within the capability-matrix family; retire into ux-agent-capability-matrix-spawn-vs-configure-vs-install.md. Its contribution is scope: test's agent list also diverges from spawn's, so the matrix spans spawn/configure/install/test/skill/wrap - six commands with six lists, which is the argument for deriving them all from one source."
 ---
 

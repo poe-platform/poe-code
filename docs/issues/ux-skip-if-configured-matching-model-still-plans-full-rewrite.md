@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: correctness
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "configure.ts:149-157 sets skippedConfigured and returns before any writes when hasMaterialConfigureChange (configure.ts:289-325 overlay byte-compare) is false, with no flags.dryRun branch; configure.ts:268-274 emits 'Dry run: <label> is already configured.'; vitest configure.test.ts -t skip-if-configured: 1 passed. Doc's own evidence passes anthropic/claude-sonnet-4.6 against live claude-sonnet-4-6, a real byte difference, so a full plan is expected and the 'model matches' premise fails."
 comment: "Duplicate within the skip-never-short-circuits quartet; retire into ux-skip-if-configured-help-text-lies.md. Its evidence is the tightest of the four (explicit model matching live config, still a full plan), which rules out the mismatch explanation - carry that into the canonical."
 ---
 

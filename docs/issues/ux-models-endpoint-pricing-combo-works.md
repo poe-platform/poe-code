@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate within the models filter-composition positives. Consolidate - four separate files praising that filters combine correctly is count inflation with no decision attached."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:394-406 endpoint filter narrows 'filtered'; models.ts:478-500 pricing view renders same list - orthogonal, no defect"
 ---
 
 # UX: models --endpoint + --view pricing works (positive)

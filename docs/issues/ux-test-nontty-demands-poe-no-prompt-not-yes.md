@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "Probe 'npm run dev -- test </dev/null' prints '■ Error: Interactive prompt requires a TTY. Set POE_NO_PROMPT=1 to accept defaults non-interactively.' plus '● See logs at ~/.poe-code/logs/errors.log'; message from packages/toolcraft-design/src/prompts/interactive/core.ts:133, while src/cli/commands/configure.ts:1024-1027 resolveServiceArgument does honor flags.assumeYes and never lists agents."
 comment: "Instance of the POE_NO_PROMPT-versus---yes family; retire into ux-non-tty-prompt-wrong-guidance.md. Its extra ask is worth carrying: list the available agents rather than merely demanding a prompt mode - the capability matrix would supply that content."
 ---
 

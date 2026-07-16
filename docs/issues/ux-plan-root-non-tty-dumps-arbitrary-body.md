@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/plan-browser/src/browser.ts:49-52 - runPlanBrowser renders plans[0] body when process.stdin.isTTY !== true; src/cli/commands/plan.ts action with empty question calls runPlanBrowser"
 comment: "Keep as canonical of this pair. Its framing is the most useful in the plan non-TTY family because it names the root cause: 'plan' is ambiguous between browse, draft and list, so with no subcommand and no TTY it falls back to dumping something. Fix the ambiguity (list, or require a subcommand) and the browse dump trio resolves with it. Same family as ux-plan-unknown-subcommand-treated-as-question.md - the root command's argument handling is too permissive."
 ---
 

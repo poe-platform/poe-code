@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- configure claude --api-key sk-test-... --dry-run --yes prints '\"ANTHROPIC_CUSTOM_HEADERS\": \"Authorization: Bearer <redacted>\"' and no sk-test key; src/cli/commands/configure-payload.ts:27 PREVIEW_API_KEY plus src/utils/dry-run.ts:9-15 JSON_SENSITIVE_KEYS"
 comment: "The most useful positive in the security set: it proves redaction already exists in the configure dry-run path, which reframes the Critical secret-leak cluster (ux-dry-run-diffs-print-secrets.md, ux-logout-dry-run-still-prints-secrets-reconfirmed.md) from 'build redaction' to 'apply the existing redaction consistently' - a much cheaper fix with a known-good reference. Link it from those files; do not retire."
 ---
 

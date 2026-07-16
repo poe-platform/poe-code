@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/spawn.ts:239-265 runs spawnInteractive with no process.stdin.isTTY gate (only assertInteractiveSupport); the isTTY check at spawn.ts:489 covers --mode only and is bypassed by --mode read; packages/agent-spawn/src/spawn-interactive.ts:119-132 inherits stdio without any TTY check"
 comment: "Keep as canonical of the --interactive non-TTY quartet: best evidence (the agent's greeting 'Hey! What would you like to work on today?' appearing in a non-TTY run), which proves the flag is honoured into an interactive path that cannot possibly work. Its fix is right and matches the in-product precedent - plan view refuses non-TTY cleanly (ux-plan-view-non-tty-requires-path-good.md). Absorbs the other three."
 ---
 

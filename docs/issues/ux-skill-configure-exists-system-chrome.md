@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-skill-config/src/apply.ts:53-60 throws plain Error('Skill already exists: <path>') when an existing bundled skill 'poe-generate.md' differs from the template; src/cli/commands/skill.ts:194-199 registers configure with only --yes/--local/--global, no --force; bootstrap.ts:71-78 prefixes non-CliError with 'Error:' and appends 'See logs at .../errors.log', producing system-error chrome. Note: identical content is already idempotent, so global-vs-local divergence stems from differing existing file content."
 comment: "Keep as canonical of this trio (best evidence: the global path fails on an existing skill while --local succeeds). Three problems compound: already-exists is treated as a system error rather than idempotent success, there is no --force, and global and local behave differently for the same command. Part of the installer-idempotency umbrella, and the rule from ux-config-init-already-exists-good.md settles it. Note the target is 'poe-generate.md', a skill the audit never mentions elsewhere - worth checking the default skill set is what users expect."
 ---
 

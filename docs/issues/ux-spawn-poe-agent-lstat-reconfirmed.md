@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: crash
+impact: correctness
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- spawn poe-agent 'hi' --mode read => 'Error: fs.lstat is not a function'; poe-agent still listed in spawn --help agent choices; duplicate of ux-spawn-poe-agent-crashes-fs-lstat.md"
 comment: "Third filing of the poe-agent crash; retire into ux-spawn-poe-agent-crashes-fs-lstat.md. Its 'memfs/fs injection' hypothesis is the most specific guess at the cause across the trio and is worth carrying into the canonical as a starting point."
 ---
 

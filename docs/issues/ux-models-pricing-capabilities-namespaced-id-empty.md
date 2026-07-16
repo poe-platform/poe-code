@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:378-381 applies --model as m.id.toLowerCase() === term (bare id only) in the shared filter block before the view switch, so pricing/capabilities are affected; rows display namespaced ids via `${model.owned_by.toLowerCase()}/${model.id}` at models.ts:492. Real defect but duplicate: ux-models-exact-id-filter-rejects-namespaced-ids.md is canonical (reproduced=y, recommendation=fix) and states it absorbs the capabilities/pricing/parameters/raw reconfirms."
 comment: "Duplicate within the namespaced-id cluster (pricing and capabilities views); retire into ux-models-exact-id-filter-rejects-namespaced-ids.md. Its suggested implementation is the most concrete in the cluster and should survive: strip the provider prefix when matching, which accepts both forms without changing the display id."
 ---
 

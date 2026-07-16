@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:26 description is only 'Display stored API key.'; `npm run dev -- auth api-key --help` prints that line plus only '-h, --help'"
 comment: "Reconfirm duplicate in the help-warning sub-cluster with no new evidence; retire into the consolidated help issue."
 ---
 

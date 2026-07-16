@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: polish
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- provider --help and runtime --help both print 'help [command]        display help for command' (lowercase) beside sentence-case siblings; auth --help omits it entirely. src/cli/commands/provider.ts:40, src/cli/commands/runtime/index.ts:10 and src/cli/commands/harness.ts:74 never call .addHelpCommand(false), unlike src/cli/commands/pipeline.ts:877 and ralph.ts:684."
 comment: "Keep as canonical over ux-harness-help-command-lowercase-description.md: same Commander-generated 'help [command]' entry, but this file identifies the systemic scope (provider, runtime, harness) and spots the better fix - auth and configure already suppress the meta-subcommand, so the correct pattern exists in-product. Suppressing beats capitalising: it removes clutter rather than tidying it."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/spawn.ts:102-103 embeds raw MCP JSON schema in description; :129-133 expose --log-dir/--log-file-name/--log-content (ACP JSONL) and --capture-otel/--capture-otel-content with no hideHelp() or grouping, unlike --mcp-config at :127 which uses hideHelp()"
 comment: "The best-argued of the spawn help filings and it supersedes the contentless ux-spawn-advanced-flags-undifferentiated.md: it groups the offenders precisely (ACP JSONL logging, OpenTelemetry, the raw MCP JSON schema in a description) and explains why each is inappropriate for the product's most-used command - 'ACP JSONL' and 'OpenTelemetry' are internal vocabulary in user-facing help. Its fix is right and pairs with the examples ask: group advanced flags, show one MCP example instead of the schema. Consolidate the spawn help cluster here."
 ---
 

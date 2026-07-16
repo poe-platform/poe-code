@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:391-392 filters by --feature then :408-409 filters again by --tools (sequential = AND); help text :286-290 documents '--tools Shorthand for --feature tools' but never states filters combine with AND"
 comment: "The most careful of the three --feature semantics filings and it supplies the evidence the contradictory pair lacks: --tools with --feature web_search returns models with both columns checked, so filters AND. That supports ux-models-double-feature-flag-uses-last-or-and.md over ux-models-feature-flag-not-repeatable.md. Keep as the documentation ask (state AND explicitly) and use its evidence to settle the repeatability question."
 ---
 

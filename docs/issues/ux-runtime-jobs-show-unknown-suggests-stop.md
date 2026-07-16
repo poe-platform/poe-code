@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/runtime/jobs/index.ts:18-23 registers only ls/attach/logs/stop/sync/sandbox - no show/get; `npm run dev -- runtime jobs show` prints: error: unknown command 'show' (Did you mean stop?)"
 comment: "Two findings, both fair: there is no show/get for job detail (a real gap, since ls is the only view and it is unusable), and Commander suggests 'stop' for 'show' - a semantically dangerous suggestion, since accepting it would act rather than inspect. That is a sharper version of the point ux-eval-unknown-command-suggests-lint-for-list.md makes: edit-distance suggestions can be actively harmful when the near-match is destructive. Carry it into the did-you-mean work as a constraint."
 ---
 

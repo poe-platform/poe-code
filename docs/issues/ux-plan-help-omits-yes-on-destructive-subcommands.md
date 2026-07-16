@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- plan --help lists 'archive [options] [path]' and 'delete [options] [path]' with no --yes, while src/cli/commands/plan.ts:482 throws 'plan <action> requires --yes when running without an interactive TTY.'; duplicate of ux-plan-archive-delete-help-still-omit-yes-reconfirmed.md"
 comment: "Fourth filing of the plan destructive help gap; retire into ux-plan-archive-delete-help-still-omit-yes-reconfirmed.md. Its distinct half is the explorer keymap's non-TTY story, which overlaps ux-plan-help-keymap-hint-unframed.md - route it there."
 ---
 

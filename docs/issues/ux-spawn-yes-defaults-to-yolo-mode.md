@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: data-loss
+impact: security
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/spawn.ts:485-487 resolveSpawnMode returns 'yolo' when flags.assumeYes; help text line 99 reads '--mode <mode> Permission mode: yolo | auto | edit | read (prompted; --yes uses yolo)'. Duplicate of ux-spawn-yes-defaults-mode-to-yolo.md which carries the fix."
 comment: "Duplicate of ux-spawn-yes-defaults-mode-to-yolo.md; retire into it. Its fairness is worth carrying - it concedes the help does document the behavior - but that concession is undercut by ux-spawn-yes-not-in-options.md: the documentation lives inside another flag's parenthetical, which is not where anyone looks for the semantics of --yes."
 ---
 

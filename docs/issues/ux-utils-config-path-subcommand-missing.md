@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/config.ts:46-75 registers only show/init/edit; `npm run dev -- utils config path` prints: error: too many arguments for 'config'. Expected 0 arguments but got 1."
 comment: "Keep of this pair (better-specified ask: 'utils config path [--global|--project]' printing absolute paths). Modest but real and cheap: the paths exist inside show's output, so exposing them alone is trivial and serves both scripting and documentation. Precedent already exists - the plan-path commands print a bare path for exactly this purpose."
 ---
 

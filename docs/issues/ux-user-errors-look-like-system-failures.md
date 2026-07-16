@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/shared.ts:491 and :540 throw bare Error('Unknown agent') for user typos; src/cli/bootstrap.ts:70-80 prints 'Error: ...' plus 'See logs at .../errors.log' unless error is CliError with isUserError (src/cli/errors.ts:100 ValidationError sets it)"
 comment: "Keep as the umbrella for the largest cluster in the audit: roughly thirty filings report the same shape - a correct message dressed in system chrome with a 'See logs' pointer to a log that adds nothing. Its diagnosis names the mechanism (recoverable conditions thrown as bare Error, so bootstrap treats them as crashes) and its fix is one classification change that closes the whole family - the strongest single leverage point here alongside the constants fix. ux-editor-missing-raw-error.md and ux-sdk-getpoeapikey-throws-generic-error.md identify the same bare-throw pattern in source; ux-runtime-missing-deps-good-message-system-chrome.md is the best exemplar of good content ruined by classification."
 ---
 

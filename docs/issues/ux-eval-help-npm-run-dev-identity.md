@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- eval --help prints heading 'Poe - poe-code eval' and 'Usage: npm run dev -- eval [command] [OPTIONS]' plus footer 'Run npm run dev -- <command> --help'; source src/utils/execution-context.ts:197-201 (formatCliUsageCommand development case) via src/cli/program.ts:840-841 — same root cause as ux-development-mode-usage-intentional-but-leaks.md"
 comment: "One of many per-command npm run dev filings with no distinct content; retire into the root cause ux-development-mode-usage-intentional-but-leaks.md."
 ---
 

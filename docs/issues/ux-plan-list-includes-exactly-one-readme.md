@@ -2,6 +2,9 @@
 severity: medium
 impact: correctness
 comment: "One of five filings that README.md appears in plan list, this one via --output json; consolidate. The underlying defect is real and slightly worse than 'noise': README is classified as a plan by discovery, which is the same error that makes ux-plan-archive-allows-readme.md and ux-plan-delete-allows-readme.md dangerous - if README is a plan, it is archivable and deletable. Fix the classification once and all five plus the two destructive filings improve."
+reproduced: y
+recommendation: fix
+evidence: "packages/plan-browser/src/discovery.ts:60-63 isSupportedPlanFile accepts any .md with no README exclusion; npm run dev -- plan list --output json emits name README.md, path docs/plans/README.md among 13 entries"
 ---
 
 # UX: plan list includes exactly one README.md among 11 entries (reconfirmed)

@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Duplicate of ux-memory-write-requires-reason-before-path.md and an instance of ux-raw-commander-missing-args.md; retire. Its distinct argument is worth carrying: --reason exists for provenance, a product concept, so a bare Commander error misses the chance to explain why the flag is required - the same 'explain the product rule' gap as the memory group's other terse copy."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:285 requiredOption('--reason <text>') yields raw Commander error; duplicate of ux-memory-write-requires-reason-before-path.md"
 ---
 
 # UX: memory write missing --reason is raw Commander required option

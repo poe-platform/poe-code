@@ -1,6 +1,9 @@
 ---
 severity: medium-high
-impact: security
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "run.ts:103 writes JSON.stringify(references) with untruncated titles, while render.ts:126 truncates labels to MAX_TRACE_LABEL_WIDTH=60 and run.ts renderTraceReferenceTable caps title maxLen 30; claude.ts:643 sets title from the first human message text with no length cap, so JSON emits whole prompts. No --full-titles flag exists in src/cli/commands/traces.ts."
 comment: "Legitimate privacy concern and better evidenced than most: traces --json emits title fields containing entire prompts, so a list operation exports user content into scripts and logs. Same class as the --log-content warning but worse in one respect - there is no opt-in here, listing traces is the default path. Its fix is right: truncate by default, --full-titles to opt in. Worth checking whether the human table truncates already, which would make this a JSON-only leak."
 ---
 

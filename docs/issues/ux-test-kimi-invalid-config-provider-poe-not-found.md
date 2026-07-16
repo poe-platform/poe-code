@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: correctness
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/providers/kimi.ts:118-125 writes providers.poe alongside default_model/models; providers.test.ts:1131 asserts it; unconfigure strips poe models+default_model (fix 7ec50abf4). Local ~/.kimi/config.toml lacking providers dates Apr 29, predating that fix."
 comment: "Keep as canonical of this pair and more serious than its framing suggests: 'Provider poe not found in providers' means our own configure wrote a kimi config whose default_model references a provider it never defined - poe-code produced an internally inconsistent config. That is a correctness bug in configure rather than a test problem, and it connects to the kimi namespace cluster (ux-kimi-default-model-id-mismatches-catalog-namespace.md): default_model is written as poe/kimi-k2.5 while no poe provider block exists. The raw pydantic error is secondary."
 ---
 

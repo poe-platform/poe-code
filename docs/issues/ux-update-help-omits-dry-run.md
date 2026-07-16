@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- update --help lists only --force/--no-version-check/--package-manager; src/cli/commands/update.ts:57 honors flags.dryRun from global option at src/cli/program.ts:853"
 comment: "Instance of the global-flags-not-listed family; retire into ux-global-flags-hidden-on-subcommand-help.md. It does note the oddity that update documents three local flags and omits the global one that matters most for a command that mutates the installation - a good argument for rendering global flags on every subcommand rather than curating per command."
 ---
 

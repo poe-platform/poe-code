@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "COLUMNS=80 'npm run dev -- plan --help' prints stacked options/commands while 'configure --help' prints two columns; stacking triggered by formatHelpItem remainingWidth < minWidthToWrap (src/cli/program.ts:198-207) inflated by long terms; markdown-read/markdown-read-section/markdown-reader-mcp registered beside browse/list/edit/delete at src/cli/commands/plan.ts:655-692"
 comment: "Careful filing with two independent findings, the second being the more valuable: markdown-read, markdown-read-section and markdown-reader-mcp are internal utilities listed beside browse/list/edit/delete, so the plan group's actual commands compete with plumbing. That is a real IA problem and its 'Advanced:' section idea is a reasonable fix. The stacked-layout half is another manifestation of ux-dual-help-systems.md - two help renderers in one binary. Split the two."
 ---
 

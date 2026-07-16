@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/spawn.ts:113-117 offers --hooks-strategy choices auto|symlink|transform with no capability filtering; packages/agent-hook-config/src/bridge-hooks.ts:278-281 throws 'Transforming hooks to \"<id>\" is not supported yet; only codex-hook targets can be written' at run time when target format is not codex-hooks-json"
 comment: "Real and worth keeping alongside the codex-source twin: help lists transform as a valid --hooks-strategy choice, users pick it, and it fails with 'only codex-hook targets can be written' - informative but too late, and wearing system chrome. Consolidate with ux-hooks-from-codex-to-claude-transform-unsupported.md into one capability-matrix issue: both are the same defect from the target and source sides, where choice lists are not filtered by what is implemented."
 ---
 

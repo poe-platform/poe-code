@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/constants.ts:31 KIMI_MODELS[0]='novitaai/kimi-k2.5' vs live probe 'npm run dev -- models --search kimi-k2' listing 'novita ai/kimi-k2.5'; src/providers/kimi.ts:38-40,115 providerModel() strips namespace and writes default_model='poe/kimi-k2.5' into ~/.kimi/config.toml (PROVIDER_NAME='poe', constants.ts:43) - three id spaces confirmed."
 comment: "Keep as canonical of this pair - the more complete statement, naming all three namespaces for one model family (poe/kimi-k2.5 written, novita ai/kimi-k2.5 in the catalog, novitaai/kimi-k2.5 in constants). That three-way split is the finding, and it explains ux-configure-kimi-ignores-explicit-novita-namespace.md: with no single id space, a rewrite is unavoidable and invisible. Fix by normalising to catalog ids and documenting any agent-local alias the kimi CLI requires."
 ---
 

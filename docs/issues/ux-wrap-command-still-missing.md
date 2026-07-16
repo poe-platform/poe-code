@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- wrap prints 'Unknown command: wrap' with no did-you-mean; absence is intentional and asserted by src/cli/ui/ui.test.ts:107,138-143; README already cleaned (commit c72cec70d), so this file duplicates docs/issues/ux-readme-features-wrap-but-cli-missing.md which owns the resolution"
 comment: "Retire into ux-readme-features-wrap-but-cli-missing.md, which handles this properly: wrap's removal is intentional, the README was already fixed by a concurrent commit, and the residual risk is external references. Its own ask ('restore wrap') contradicts that resolution and should not survive - the decision is made. A did-you-mean for wrap is the useful mitigation."
 ---
 

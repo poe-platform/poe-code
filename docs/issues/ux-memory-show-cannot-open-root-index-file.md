@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: crash
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/memory.ts:48 rewrites every show path to pages/<input> and memory.ts:253 then reports 'Page not found', packages/memory/src/pages.ts:15-18 listPages scans only MEMORY_PAGES_DIR_RELPATH, while packages/memory/src/init.ts:17-26 writes INDEX.md and LOG.md at the memory root - root files are unreachable by show and ls."
 comment: "Keep as canonical of the four-file INDEX cluster and correctly Critical: init creates .poe-code/memory/INDEX.md and LOG.md and neither show nor ls can address them, so only the pages/ subtree is reachable. Its framing is the sharpest of the four because it names the actual contract question rather than the symptom - either INDEX/LOG are pages and must be listable, or they are not and init should stop advertising them. That is the decision the fix needs. Absorbs the three reconfirms."
 ---
 

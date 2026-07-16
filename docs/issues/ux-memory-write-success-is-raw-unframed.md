@@ -2,6 +2,9 @@
 severity: medium
 impact: polish
 comment: "Duplicate within the memory write bare-output cluster; retire into ux-memory-ls-search-show-raw-unframed.md. Its evidence is the most detailed of the four - the write echoes the path, the frontmatter, the body and a path:line snippet, which is more dump than success line - and its suggested card (path, reason, bytes) is the best-specified fix in the cluster."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:282-299 memory write action prints nothing on success (no dump, no panel); writePage in packages/memory/src/write.ts emits no stdout. The quoted frontmatter/body/path:line output does not exist; memory init uses resources.context.complete at memory.ts:206-210."
 ---
 
 # UX: memory write success output is raw unframed text

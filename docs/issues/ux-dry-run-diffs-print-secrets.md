@@ -1,6 +1,9 @@
 ---
 severity: critical
 impact: security
+reproduced: y
+recommendation: fix
+evidence: "src/utils/dry-run.ts:380-388 redactContentForDiff redacts only .json and .toml and returns all other content verbatim; goose keeps CUSTOM_POE_API_KEY in secrets.yaml (src/providers/goose.ts:30-31,305-311) and unconfigure prunes that key (src/providers/goose.ts:327-332), so the .yaml dry-run diff emits the full credential. TOML experimental_bearer_token is already redacted (src/utils/dry-run.ts:18), so redaction is inconsistent rather than absent, as claimed."
 comment: "Correctly the #1 issue: dry-run is the flag users reach for precisely to be safe, and it emits full sk-poe- and cfut_ tokens across unconfigure, logout and provider-logout. Its sharpest observation is that redaction is inconsistent rather than absent - utils config show redacts while the mutation diff formatter does not - and ux-configure-api-key-dry-run-redacts-bearer.md confirms redaction already works in the configure path. That reframes the fix from 'build redaction' to 'route every dry-run diff through the existing redactor', far cheaper than Critical usually implies. Ship with the regression tests it asks for."
 ---
 

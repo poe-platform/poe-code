@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: correctness
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:372-376 filters --provider via owned_by substring match with no validation; :396-402 validates --endpoint against availableEndpoints and throws ValidationError 'Unsupported endpoint ... Available endpoints: ...'; unknown provider falls through to :433 'No models match the given filters.'"
 comment: "Keep for the specific evidence it uniquely carries: it contrasts --provider (silently empty) with --endpoint (validates and lists valid values) in the same command, proving the inconsistency is internal to models rather than a missing capability. That contrast is the strongest argument in the whole silent-filter cluster and must survive consolidation. Note providers are catalog-derived, so the allow-list can be generated rather than hard-coded."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- unconfigure --help prints Options: only '-h, --help'; src/cli/program.ts:852-854 defines -y/--yes and --dry-run on the root program and src/cli/commands/unconfigure.ts:44 consumes flags.dryRun, but configureHelp never sets showGlobalOptions (src/cli/program.ts:320). Duplicate of ux-unconfigure-help-omits-yes-and-dry-run.md."
 comment: "One of three near-identical filings of the unconfigure help gap; consolidate into ux-unconfigure-help-omits-yes-and-dry-run.md. All three make the same fair point: the most destructive per-agent command documents nothing but -h, so users cannot learn --dry-run exists before running it - and the dry-run is exactly what would show them the blast radius."
 ---
 

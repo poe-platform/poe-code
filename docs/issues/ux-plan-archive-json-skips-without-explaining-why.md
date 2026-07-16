@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: correctness
+impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:465-478 emits {confirmationRequired:true,skipped:true} with no reason field; but that field is the only skip cause - invalid paths throw ValidationError at plan.ts:320, and no README/already-archived protection exists, so the skip is unambiguous"
 comment: "Good catch, correctly High: the JSON says skipped:true and confirmationRequired:true with no reason field, so neither a human nor a script can tell whether the path was invalid, needed --yes, was already archived, or is protected. For a machine contract on a destructive command, an unexplained skip is worse than an error. Its suggested reason enum is exactly right. It is also the best evidence on whether README is protected (ux-plan-archive-allows-readme.md) - the skip may be the protection."
 ---
 

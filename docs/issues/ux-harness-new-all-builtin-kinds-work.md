@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "The most useful positive in the harness set, because it establishes the fact the whole kinds cluster needs: the complete list of working kinds (ralph-demo, experiment-demo, superintendent-demo, coverage-demo, pipeline-demo). That list is the fix content for ux-harness-new-kinds-undocumented-must-guess-demo-names.md. Its own suggestion - put the kinds in the help argument description - is exactly right. Keep and link."
+reproduced: n
+recommendation: no-fix
+evidence: "packages/agent-harness/src/templates/index.ts:9-17 lists all five demo kinds; src/cli/commands/harness.ts:99-107 registers harness new; positive note, no defect"
 ---
 
 # UX: harness new works for all builtin kinds (positive)

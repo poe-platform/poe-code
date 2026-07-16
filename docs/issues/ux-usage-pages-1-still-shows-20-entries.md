@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/usage.ts:285 hardcodes '/usage/points_history?limit=20' per page; :187 option help is 'Number of pages to load automatically' with no page size documented and no --limit flag exists"
 comment: "Keep as canonical of the --pages pair: it supplies the concrete number the other lacks (a page is 20 entries) and states the misreading precisely - users expect --pages 1 to bound the output and it does not. Consolidate ux-usage-list-pages-exposes-pagination-internals.md into it. The best fix is its alternative: add --limit and let --pages remain an implementation detail, matching traces."
 ---
 

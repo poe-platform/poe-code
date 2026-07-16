@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/auth.ts:26 description is 'Display stored API key.' with no warning or mask/--reveal option; src/cli/commands/auth.ts:116 writes the raw key to stdout. Duplicate of docs/issues/ux-auth-api-key-help-no-danger-or-mask-flag.md."
 comment: "Duplicate within the help-warning sub-cluster; retire into a single consolidated help issue. Its one distinct argument - that users discover the leak only by running the command - is the strongest point in the sub-cluster and should survive the merge."
 ---
 

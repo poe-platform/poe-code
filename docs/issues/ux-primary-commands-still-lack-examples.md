@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:299 has 'Examples:' via addHelpText; rg 'addHelpText' src/cli shows only models.ts and plan.ts, so spawn/configure/gaslight have none; 'npm run dev -- configure --help' output ends at options with no Examples section and 'spawn --help' matched 0 lines for 'example'"
 comment: "Keep as canonical of this pair and of the missing-examples family (with ux-configure-help-missing-examples.md and the spawn variants). Its argument is the right one: the highest-traffic commands are the hardest to learn from help alone. Copy the models structure - but note ux-models-help-duplicate-sections-unstyled.md: copy the content, not the unstyled rendering."
 ---
 

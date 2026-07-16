@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; third filing of the plan list enum-validation praise. Consolidate into the one that covers both flags. Its 'use for all enum flags' direction is the actionable half and is exactly what the models and hooks enum filings need."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/plan.ts:113 throws ValidationError with message 'Invalid --output value \"<value>\". Expected one of: terminal, md, json.' after resolveOutputOption rejects unknown values"
 ---
 
 # UX: plan list invalid --output validates cleanly (positive)

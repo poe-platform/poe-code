@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: capability-gap
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "src/providers/gemini-cli.ts:87 maps GEMINI_API_KEY to providerCredential in isolatedEnv, but the test health check at src/providers/gemini-cli.ts:105-111 invokes the raw gemini binary with only env GEMINI_SANDBOX=false, so no Poe credential reaches it; premise that gemini is not wired to Poe at all is wrong - only the test path skips injection"
 comment: "The clearest statement of the gemini problem and it reframes the whole gemini cluster: test demands GEMINI_API_KEY, so gemini-cli is not wired to Poe credentials at all - which means ux-spawn-gemini-provider-credential-opaque-error.md is a capability gap wearing an error message, not a copy defect. Consolidate the gemini filings under this reading and answer the product question first: is gemini meant to work via Poe? The correct error text depends entirely on the answer."
 ---
 

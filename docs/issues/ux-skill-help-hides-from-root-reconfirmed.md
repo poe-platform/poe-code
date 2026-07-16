@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- --help lists 19 commands with no skill line, while npm run dev -- skill --help works; command registered at src/cli/program.ts:883"
 comment: "Duplicate within the root help discoverability cluster; retire into ux-root-help-hides-skill-memory-runtime-eval-and-more.md, which enumerates all thirteen hidden commands. Coverage only."
 ---
 

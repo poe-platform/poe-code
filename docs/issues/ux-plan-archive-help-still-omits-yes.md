@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- plan archive --help lists only --kind, --output, -h; src/cli/commands/plan.ts:717-731 registers no --yes while plan.ts:479 errors 'plan archive requires --yes when running without an interactive TTY'"
 comment: "Reconfirm duplicate within the plan archive help trio; retire. No new evidence."
 ---
 

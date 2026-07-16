@@ -2,6 +2,9 @@
 severity: medium
 impact: security
 comment: "Member of the four-surface --api-key argv class; retire into the umbrella ux-auth-login-api-key-shell-history-risk.md. Its fallback suggestion is the pragmatic one and worth carrying: if the flag must stay, warn at runtime that the key will land in shell history - a one-line mitigation that does not require removing the flag."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/provider.ts:54 declares .option(--api-key <key>, API key for the provider) on provider login; rg for 'shell history|process listing' across src/ and packages/ returns no matches, so no runtime warning exists. Duplicate of umbrella docs/issues/ux-auth-login-api-key-shell-history-risk.md."
 ---
 
 # UX: provider login --api-key flag encourages shell history leak

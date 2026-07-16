@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/runtime/jobs/ls.ts:9-15 registers 'ls' with only description/action; no .option() calls, so help shows only -h"
 comment: "Reconfirm duplicate; retire into ux-runtime-jobs-ls-help-no-limit-or-since.md. It adds --status to the wish list, worth carrying: given the zombie-running problem, filtering by status is how users would find live jobs."
 ---
 

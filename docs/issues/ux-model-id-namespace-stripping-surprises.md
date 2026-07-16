@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: polish
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- configure claude --model anthropic/claude-sonnet-4.6 --yes --dry-run prints 'anthropic/claude-sonnet-4.6' but diffs +\"model\": \"claude-sonnet-4-6\"; src/providers/claude-code.ts:118 stripModelNamespace(...).replaceAll('.', '-') while src/cli/constants.ts:21-28 documents only strip+lowercase. Duplicate of ux-configure-haiku-full-id-rewrites-to-haiku-4-5.md (reproduced y, fix)"
 comment: "Duplicate in substance of ux-configure-haiku-full-id-rewrites-to-haiku-4-5.md; consolidate. Same correct conclusion: the rewrite is intentional and required by the agent's id format, so the only real gap is that it happens silently - users paste a catalog id and a different string is written. Show the resolved id. Its extra nuance is worth keeping: the dot-to-hyphen change goes beyond what stripModelNamespace documents, so the normalisation is under-specified even in source."
 ---
 

@@ -2,6 +2,9 @@
 severity: high
 impact: usability
 comment: "Instance of the POE_NO_PROMPT-versus---yes family; retire into ux-non-tty-prompt-wrong-guidance.md. Its evidence is valuable for the sibling issue and should be carried: --yes works and clears 21 entries, which both proves the flag exists and quantifies what an unguarded clear destroys."
+reproduced: y
+recommendation: no-fix
+evidence: "packages/toolcraft-design/src/prompts/interactive/core.ts:133 non-TTY error names only POE_NO_PROMPT=1; src/cli/commands/runtime/templates/clear.ts:47 skips confirm when flags.assumeYes, so --yes works but is unmentioned"
 ---
 
 # UX: runtime templates clear non-TTY demands POE_NO_PROMPT not --yes first

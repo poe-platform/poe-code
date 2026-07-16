@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: polish
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/gaslight.ts:307-370 registers gaslight with argument [plan-paths...] and no run subcommand (unlike src/cli/commands/ralph.ts:768, pipeline.ts:881, harness.ts:78). Probe 'npm run dev -- gaslight run --help' prints 'Poe - gaslight' plus 'Usage: poe-code gaslight [options] [plan-paths...]' because run is swallowed as a plan path, so the title correctly names gaslight and Commands lists gaslight's real children ingest and install, not siblings of a nonexistent run."
 comment: "Careful observation with two findings, the second being the more substantive: the Commands: section under 'gaslight run --help' lists ingest and install, which are siblings rather than children, so the help asserts a hierarchy that does not exist. That is a consequence of the hybrid shape in ux-gaslight-hybrid-command-confusing-structure.md and should be fixed with it. The title breadcrumb half is cosmetic. Note this file is absent from MASTER.md."
 ---
 

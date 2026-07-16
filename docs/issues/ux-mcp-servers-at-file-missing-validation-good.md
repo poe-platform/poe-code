@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "One of five near-identical positives about --mcp-servers validation; consolidate the set into one note, with ux-mcp-servers-file-and-json-validation-good.md surviving since it covers two cases at once. Filing one well-validated flag five times is the clearest example of count inflation in the audit."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/mcp-spawn-config.ts:26-31 wraps readFile ENOENT in ValidationError '--mcp-servers could not read file ...'; positive note, no defect"
 ---
 
 # UX: --mcp-servers @missing-file validation is good (positive)

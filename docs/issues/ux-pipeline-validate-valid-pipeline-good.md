@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/pipeline.ts:1320-1325 logs Plan, Tasks N tasks (M done), Steps, then success Plan is valid. — confirms positive note, no defect; duplicate of ux-pipeline-validate-good-plan-positive.md"
 comment: "Duplicate of ux-pipeline-validate-good-plan-positive.md; retire into it. One of the two should survive as the validate-output reference."
 ---
 

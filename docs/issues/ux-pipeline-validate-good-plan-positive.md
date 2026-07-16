@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate of ux-pipeline-validate-valid-pipeline-good.md (same command, output and conclusion). Consolidate. The output it praises is genuinely good and worth citing as the validate template: path, task counts, steps, verdict - the shape eval's empty-source errors lack."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/pipeline.ts:1320-1325 emits resolved Plan/Tasks/Steps then success 'Plan is valid.' - positive note, no defect"
 ---
 
 # UX: pipeline validate on valid pipeline plan is clear (positive)

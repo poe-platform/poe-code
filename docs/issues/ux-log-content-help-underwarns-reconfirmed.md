@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: security
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/spawn.ts:131 shows --log-content help text as 'Include message and tool content in ACP JSONL spawn logs' with no secrets/PII warning; rg for secret|pii|sensitive in src/cli/commands/spawn.ts finds no runtime notice. Duplicate of ux-log-content-flag-no-danger-warning.md (canonical, recommendation=fix)."
 comment: "Reconfirm duplicate within the --log-content trio; retire into ux-log-content-flag-no-danger-warning.md. Its 'warn at runtime once' suggestion is the better half of the fix and should survive - help warnings are missed precisely by the users who paste flags from CI examples."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: polish
+reproduced: y
+recommendation: fix
+evidence: "packages/toolcraft-design/src/prompts/primitives/spinner.ts:49-51 fallback start() writes bare '${currentMessage}\n' at column 0, while stop() at :95/:99 writes '${symbol}  ${currentMessage}' and intro.ts writes '┌  title' - both prefixed and indented, so the start line is unframed"
 comment: "Concrete and well-evidenced: the 'Checking authentication...' progress line renders at column 0 outside the panel bracket while the result is indented inside it. Cosmetic but systemic - the same spinner-to-panel ordering will hit every command that shows progress before a framed result, so fix it in the design system lifecycle rather than in the auth command. Given how fast status resolves, suppressing the line is the simpler option."
 ---
 

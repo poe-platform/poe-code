@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "`npm run dev -- login --help` prints only '--api-key <key>' and '-h, --help'; src/cli/commands/login.ts:31 registers only --api-key while -y/--yes is program-level (src/cli/program.ts:852) and consumed via flags.assumeYes (login.ts:56). Duplicate of docs/issues/ux-login-help-omits-yes.md."
 comment: "Reconfirm duplicate within the login help cluster with no new evidence; retire. Five filings of one sparse help panel, spanning Low-Medium and Medium, is count inflation."
 ---
 

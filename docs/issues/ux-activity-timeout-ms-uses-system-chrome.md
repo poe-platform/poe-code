@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Canonical filing for timeout-as-system-error. Valid: an activity timeout is an expected user condition, so system error chrome plus a 'See logs' tease sends users to logs that explain nothing. Fix is UserError plus an actionable hint to raise --activity-timeout-ms. Absorbs ux-activity-timeout-1ms-works-but-chrome.md."
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-harness-tools/src/run-poe-command.ts:635-639 creates a plain Error (name ActivityTimeoutError), and src/cli/bootstrap.ts:71-81 prefixes 'Error:' plus 'See logs at ...' for any non-CliError/non-UserError; src/cli/commands/spawn.ts never wraps it as UserError."
 ---
 
 # UX: --activity-timeout-ms timeout uses system error chrome

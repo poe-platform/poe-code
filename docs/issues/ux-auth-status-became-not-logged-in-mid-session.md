@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: n
+recommendation: no-fix
+evidence: "No credential-clearing path in dry-run: logout.ts/unconfigure.ts gate deletes on flags.dryRun and pass readOnly: flags.dryRun; MigratingSecretStore.get (packages/auth-store/src/provider-store.ts:15-33) never deletes and returns legacy value even when readOnly. Only src/cli/commands/login.ts:95 calls deleteApiKey. Mid-session loss unverifiable from source; the reasonless message is real at src/cli/commands/auth.ts:70 ('Not logged in')."
 comment: "Weakest-evidence High in the auth set: the report itself admits the cause is unknown (expiry vs a concurrent process vs an audit side effect) and the session had been running dry-run unconfigure commands, so the observation is contaminated. Do not schedule a fix from this - it needs reproduction. The durable residue is the diagnosis gap it exposes: 'Not logged in' never says why. File that (reason codes for missing vs expired vs cleared, plus a doctor check) and close this."
 ---
 

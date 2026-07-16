@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: data-loss
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "packages/pipeline/src/plan/discovery.ts:188-190 returns candidates[0] (alphabetical, ignoring done/total) when assumeYes and no explicit plan; src/cli/commands/pipeline.ts:1087-1091 logs 'Nothing to run.' then continues to logger.success('Pipeline run finished.') with exit code 0"
 comment: "Duplicate in substance of ux-pipeline-run-autopicks-plan-and-ignores-missing-task-context.md; consolidate into one autopick issue. Its evidence is the better of the two because it names the plan silently chosen, showing the selection is real rather than inferred. Benign here only because that plan was already complete - the same autopick with pending tasks would run an agent against a plan the user never named. Its exit-code question (0 or 2 when nothing is pending) is worth answering in the survivor."
 ---
 

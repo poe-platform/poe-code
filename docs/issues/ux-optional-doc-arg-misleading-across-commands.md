@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/ralph.ts:400-445 and src/cli/commands/experiment.ts:581-626 resolveDocPath auto-discovers docs, selects interactively, or takes docs[0] with --yes; only errors when no docs exist. Probe: 'poe-code ralph run --help' shows 'Usage: poe-code ralph run [options] [docs...]' and 'poe-code experiment run --help' shows '[docs...]', not [doc]; only 'ralph init' uses [doc], which is genuinely optional."
 comment: "Honest about its own weakness and should be verified before scheduling: it explicitly reasons by analogy ('Based on the established pattern with experiment journal') rather than running the three commands, so the claim that [doc] is really required is inferred, not tested. The convention point is sound though - square brackets mean optional, and if omitting reliably errors the help is lying. Cheap to confirm: run ralph init, ralph run and experiment run with no doc. Note this file is absent from MASTER.md."
 ---
 

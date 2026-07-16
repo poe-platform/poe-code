@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate within the models filter-composition positives. Retire into the consolidated note."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:372-392 composes --provider substring filter then --feature filter; positive note, no defect"
 ---
 
 # UX: models --feature tools --provider anthropic works (positive)

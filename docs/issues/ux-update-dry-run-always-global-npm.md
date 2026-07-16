@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: y
+recommendation: no-fix
+evidence: "src/services/update.ts:46-80 createPoeCodeUpdatePlan returns -g/global add for every package manager; src/cli/commands/update.ts:58-59 dry-run echoes formatPoeCodeUpdateCommand(plan)"
 comment: "Positive-with-a-caveat; consolidate with ux-update-dry-run-clean-good.md. The dry-run itself is exemplary - it echoes the exact command it would run, the clearest possible preview - and the caveat (always -g) is the real issue, better stated in ux-update-always-suggests-npm-install-g.md. Cite the command-echo pattern as a dry-run template; it is more useful than a diff for command-executing operations."
 ---
 

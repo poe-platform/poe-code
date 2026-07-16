@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-skill-config/src/configs.ts:34-35 goose localSkillDir '.agents/skills' vs :14-15 claude-code '.claude/skills'; src/cli/commands/skill.ts:284 success message is only 'Configured skills for X at <path>'; 'npm run dev -- skill configure --help' lists agents but no per-agent skill directory table"
 comment: "Keep of this pair as the one with the actionable ask. Correctly diagnosed: the per-agent paths (.agents/skills for goose, .claude/skills for claude) are right and undocumented, so users cannot find their skills without trial and error. A table of skill directories per agent is the fix, and it belongs with the capability-matrix work since it is the same 'per-agent facts live nowhere' problem."
 ---
 

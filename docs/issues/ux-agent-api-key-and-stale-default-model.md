@@ -2,6 +2,9 @@
 severity: medium
 impact: security
 comment: "Two unrelated defects bundled in one file; split before scheduling. (a) agent --help advertises --api-key, the same shell-history/ps exposure class as configure and provider login - duplicates ux-agent-api-key-flag-on-help.md. (b) help hard-codes a stale default model (opus-4.7), a help-accuracy bug with a different owner and fix. The Medium severity also understates (a) relative to the High/Critical secrets filings; re-rate after the split."
+reproduced: y
+recommendation: no-fix
+evidence: "(a) real but duplicate - src/cli/commands/agent.ts:23 declares --option(--api-key <key>), already filed as ux-agent-api-key-flag-on-help.md (plus ux-api-key-flags-encourage-shell-history-leaks.md). (b) claim is false - agent.ts:22 interpolates ${DEFAULT_FRONTIER_MODEL} into the help string and agent.ts:45 passes the same constant as the runtime default (src/cli/constants.ts:9), so help cannot drift; opus-4.7 vs 4.8 is catalog freshness, not a help-accuracy defect. POE_API_KEY env var already supported (src/sdk/credentials.ts)."
 ---
 
 # UX: agent --help exposes --api-key flag and shows potentially stale default model

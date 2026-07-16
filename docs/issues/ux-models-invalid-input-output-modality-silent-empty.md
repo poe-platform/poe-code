@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: correctness
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:203-211 parseModalityFilter only rejects empty parts; no allow-list check, so --input bogus filters to zero matches at lines 413-420"
 comment: "Duplicate within the silent-filter-validation cluster (modality variant); retire into ux-models-feature-bogus-silent-empty.md, carrying over the concrete allow-list it names (text, image, audio, video) which the canonical lacks. Rated High against its Medium twins for the same behavior; normalise. The strongest member of this modality sub-family is ux-models-output-json-search-returns-empty-inconsistently.md, which shows the flag name itself invites the mistake."
 ---
 

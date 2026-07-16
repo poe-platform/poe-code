@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "`npm run dev -- plan archive --help` lists only [path], --kind, --output, -h; global -y/--yes declared at src/cli/program.ts:852 is not shown; src/cli/commands/plan.ts:329-330 returns options.plans[0] when assumeYes and no path"
 comment: "Duplicate within the plan archive help trio; retire into ux-plan-archive-delete-help-still-omit-yes-reconfirmed.md, which covers delete too. Its framing is the sharpest of the three: destructive help must document the non-interactive contract, because that is precisely where the footgun fires."
 ---
 

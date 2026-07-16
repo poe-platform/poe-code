@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-harness/src/loader/pair.ts:27 MissingPairError extends plain Error, never wrapped as CliError user error (src/cli/commands/harness.ts:129), so src/cli/bootstrap.ts:71-79 prints 'Error: ...' plus 'See logs'"
 comment: "Keep as canonical of this pair. Standard instance of the systemic UserError chrome issue - message right, 'See logs' wrong - so retire into ux-user-errors-look-like-system-failures.md. The harness-specific residue worth keeping is the recovery: suggest harness list or harness new, which is more valuable here than elsewhere because both kinds and paths are hard to discover."
 ---
 

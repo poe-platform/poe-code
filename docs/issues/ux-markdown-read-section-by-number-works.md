@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern, no action; its value is bounding ux-markdown-read-section-wrong-recovery-command.md - the section lookup works, so only the miss path is broken. Keep as the control case for that fix."
+reproduced: n
+recommendation: no-fix
+evidence: "Positive note, no defect: packages/markdown-reader/src/core/resolve.ts:11 matches section by number; 'npm run dev -- plan markdown-read-section docs/plans/32-agent-goal.md 1' printed section 1 body"
 ---
 
 # UX: plan markdown-read-section by number works (positive)

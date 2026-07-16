@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/skill.ts:41-46 silently returns DEFAULT_SKILL_AGENT 'claude-code' under --yes; src/cli/commands/skill.ts:400-407 warns 'has files. Use --force to remove.' and returns without removing"
 comment: "Two known issues combined: the silent default agent (the silent-defaults family) and the non-empty-dir refusal, which ux-skill-unconfigure-refuses-nonempty-without-force-good.md correctly reads as good safety. Its fair point is the interaction - a silent default plus a two-step force is easy to get wrong in scripts, and getting it wrong is how the Critical (ux-skill-unconfigure-force-deletes-entire-skills-dir.md) fires. Retire into those two, keeping that observation."
 ---
 

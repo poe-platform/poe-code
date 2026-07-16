@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "usage list declares only --filter and --pages (src/cli/commands/usage.ts:186-187) and no --json/--output, while traces (src/cli/commands/traces.ts:86), tasks (src/cli/commands/tasks.ts:66,80,120) and plan (src/cli/commands/plan.ts:595,612,659) do expose machine output; duplicate of umbrella ux-json-flag-inconsistent-across-commands.md"
 comment: "Member of the --json inconsistency family; retire into ux-json-flag-inconsistent-across-commands.md. Its case is among the better ones and worth carrying: usage is cost data, so CI cost reporting is a real scripting need, and it correctly notes traces/tasks/plan already have machine output - making this the odd one out rather than a new feature."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: low-medium
-impact: discoverability
+impact: polish
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/pipeline.ts:1377 and src/cli/commands/experiment.ts:1086 register .command(\"plan-path\") with no args/options; `npm run dev -- pipeline --help` lists 'plan-path' between 'validate [options] <file>' and 'install [options]'"
 comment: "Careful and correct, though small: plan-path is a noun among action verbs and reads as a placeholder rather than a command. Its own diagnosis is the useful part - it has no verb and no options/argument suffix, so it looks structurally different from its siblings. The 'Utilities:' section idea is the better fix since renaming breaks an existing command. Same help-structure family as ux-group-commands-usage-shows-options-not-command.md."
 ---
 

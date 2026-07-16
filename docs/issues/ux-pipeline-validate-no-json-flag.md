@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "pipeline validate declares only --preview (src/cli/commands/pipeline.ts:1267-1271); no --json option and no global --json in resolveCommandFlags, so the flag errors as unknown"
 comment: "Member of the --json inconsistency family (ux-json-flag-inconsistent-across-commands.md); retire into it. Its case is among the strongest in that family: validate exists to be run in CI, so a machine-readable verdict is closer to a core requirement than a nicety - and plan archive already returns JSON (ux-plan-archive-json-output-good.md), so the convention exists."
 ---
 

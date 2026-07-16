@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "packages/agent-hook-config/src/symlink-hooks.ts:167 throws 'Refuse to replace user-authored hook file' with no --force escape and no hint toward auto; src/cli/commands/spawn.ts:113-117 still advertises symlink as a valid --hooks-strategy choice; no force/hooksForce flag exists in symlink-hooks.ts or bridge-hooks.ts. Duplicate of ux-hooks-auto-strategy-still-refuses-user-settings.md, which is canonical."
 comment: "Fourth 'refuse to replace' filing; retire into ux-hooks-auto-strategy-still-refuses-user-settings.md. It is the fairest of the group in conceding the refusal is good safety and the recovery is the weak part, and it names the two missing pieces precisely: no --force and no pointer to auto. Keep that framing - while noting auto does not work either, which is why the auto file is canonical."
 ---
 

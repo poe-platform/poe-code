@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/plan.ts:788 throws ValidationError(`Unsupported agent: ${agent}`) with no supported list; packages/agent-skill-config/src/configs.ts:12-36 registry omits pi and kimi while packages/agent-defs/src/agents/pi.ts and kimi.ts define both agents"
 comment: "Keep as the allow-list ask for plan install and pair with ux-plan-install-pi-clearer-than-unknown.md: the noun is already right ('Unsupported'), only the list of supported agents is missing. Its kimi observation is the interesting one - kimi is configurable elsewhere but unsupported here, exactly the per-command divergence ux-agent-capability-matrix-spawn-vs-configure-vs-install.md wants a single source for."
 ---
 

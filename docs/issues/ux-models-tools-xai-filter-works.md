@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; duplicate within the models filter-composition positives. Retire into the consolidated note."
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/models.ts:372-373 provider filter and :408-409 --tools filter compose cumulatively on `filtered`; positive note, no defect"
 ---
 
 # UX: models --tools --provider xai works (positive)

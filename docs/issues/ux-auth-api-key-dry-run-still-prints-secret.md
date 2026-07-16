@@ -1,7 +1,10 @@
 ---
 severity: critical
-impact: security
 comment: "Keep as canonical of the four-file cluster; correctly Critical and the sharpest framing in the whole auth set. The defect is not that a reveal command reveals - it is that --dry-run, the flag users reach for precisely to check something safely, is silently ignored for the one command whose output is a credential. The whoami --dry-run contrast in the evidence proves dry-run is honoured elsewhere, making this an inconsistency rather than a missing feature. Fix: --dry-run must never emit secret material; print a would-display line instead."
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/auth.ts:110 passes flags.dryRun only as readOnly, then :116 process.stdout.write(apiKey) unconditionally; contrast whoami :138-140 and status :75-76 which short-circuit via logger.dryRun"
 ---
 
 # UX: auth api-key --dry-run still prints the full secret

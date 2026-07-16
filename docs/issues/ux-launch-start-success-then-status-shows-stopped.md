@@ -2,6 +2,9 @@
 severity: high
 impact: correctness
 comment: "Duplicate of ux-launch-start-claims-running-then-status-stopped.md; consolidate into one issue about start not verifying liveness before claiming success, and keep the survivor focused on that single question - both files dilute it with turbo noise that is a dev-mode artefact. Its 'verify process still alive before success; surface exit reason' is the right fix."
+reproduced: y
+recommendation: no-fix
+evidence: "supervisor.ts:182 transitions to 'running' right after spawn when no readyCheck; launcher.ts:140-145 accepts that single state read as success with no liveness/uptime recheck, so an immediately-exiting child yields 'is running' then status stopped"
 ---
 
 # UX: launch start reports running then status immediately shows stopped

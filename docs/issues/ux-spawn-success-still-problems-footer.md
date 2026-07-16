@@ -2,6 +2,9 @@
 severity: low-medium
 impact: polish
 comment: "Instance of ux-problems-footer-on-every-success.md; retire into it. Its multi-agent evidence (pi, claude, goose all ending the same way) usefully confirms the footer is unconditional in finalize rather than per-command, which is what makes the fix a single change."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/context.ts:69,119 finalize() always logs 'Problems?' FEEDBACK_URL; src/cli/commands/spawn.ts:312,347,456 calls finalize() on success paths"
 ---
 
 # UX: Successful spawn still ends with Problems? footer

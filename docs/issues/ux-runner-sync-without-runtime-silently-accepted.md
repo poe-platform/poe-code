@@ -1,6 +1,9 @@
 ---
 severity: medium
 impact: correctness
+reproduced: y
+recommendation: no-fix
+evidence: "packages/agent-harness-tools/src/poe-command-execution.ts:110 merges runnerSync into runner.sync with no dependency check; :58 drops detach when runtime lacks supportsDetach; no warn/error path exists for runnerSync (rg over *.ts). Duplicate of ux-runner-sync-without-detach-silently-ignored.md."
 comment: "Duplicate of ux-runner-sync-without-detach-silently-ignored.md; retire into it. Rated Medium against that file's High for identical behavior; normalise. Its own note that this is 'similar to --detach without runtime' is the useful observation - these should be one flag-dependency issue rather than four."
 ---
 

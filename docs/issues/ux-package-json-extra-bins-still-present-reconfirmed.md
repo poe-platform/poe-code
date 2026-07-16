@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "package.json bin exposes all 7 claimed keys (poe, poe-code, poe-code-configure, poe-agent, poe-superintendent-mcp, tiny-oauth-test-server, tiny-stdio-mcp-test-server); duplicate of ux-extra-npm-bins-still-published-reconfirmed.md"
 comment: "One of four filings of the same package.json bin list; consolidate into ux-extra-npm-bins-still-published-reconfirmed.md. Four reconfirms of one static file's contents adds nothing - a single check would settle it."
 ---
 

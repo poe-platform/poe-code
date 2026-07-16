@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/process-launcher/src/launcher.ts:144 throws a static 'Managed process \"id\" failed to start.' with no stderr tail, and src/cli/commands/launch.ts start path (lines 47-90) never tails stderr on failure; turbo half is package.json:36 predev (dev-mode artefact, not product)"
 comment: "Two things bundled and only one is real. The turbo build is a dev-mode artefact (npm run dev predev), not a product defect - retire that half. The genuine finding is the failure it reveals: 'launch start foo -- echo hi' fails with 'Managed process failed to start' and never surfaces the command's own stderr, so a legitimate-looking command fails opaquely. Keep that, merged with ux-launch-start-opaque-failure.md; note 'echo hi' exiting immediately may itself be the liveness-check bug from the false-success pair rather than a start failure."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: capability-gap
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/harness.ts:103 harness new declares --dir; src/cli/commands/harness.ts:110-114 harness list registers no options; executeHarnessList uses discoverProjectThenUserHarnesses only (line 656). Duplicate of ux-harness-list-only-cwd-not-created-dir.md."
 comment: "Duplicate in substance of ux-harness-list-only-cwd-not-created-dir.md, which demonstrates the consequence rather than merely the missing flag; retire into it. The asymmetry it names is the crisp statement of the bug: harness new accepts --dir and harness list does not, so the tool can create things it cannot find."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- superintendent builder --help prints 'Usage: npm run dev -- superintendent builder [command] [OPTIONS]'; same for inspector. Root cause src/utils/execution-context.ts:197-201 formatCliUsageCommand returns 'npm run dev --' for mode development, consumed at src/cli/program.ts:840 with toolcraftRoots including superintendentGroup at src/cli/program.ts:845. Named symbol displayBinaryName does not exist in src/ or packages/. Duplicate of ux-superintendent-builder-inspector-npm-run-dev.md; root-cause file is ux-development-mode-usage-intentional-but-leaks.md"
 comment: "Duplicate of ux-superintendent-builder-inspector-npm-run-dev.md; retire. Rated High against that file's Medium for identical output; normalise. Its 'displayBinaryName for all toolcraft groups' framing is the correct scope and matches the root cause."
 ---
 

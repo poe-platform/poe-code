@@ -2,6 +2,9 @@
 severity: low
 impact: polish
 comment: "Duplicate of ux-group-commands-usage-shows-options-not-command.md, which catches the same pattern across six groups including utils; retire into it. Its own note says as much ('same issue documented for poe-code skill')."
+reproduced: y
+recommendation: no-fix
+evidence: "npm run dev -- utils --help prints 'Usage: poe-code utils [options]' despite src/cli/commands/utils.ts registering config+symlink subcommands; cause is src/cli/program.ts:175 formatCanonicalCommandUsage stripping [command] from all group usage lines - already tracked in ux-group-commands-usage-shows-options-not-command.md"
 ---
 
 # UX: utils --help Usage line says [options] instead of [command]

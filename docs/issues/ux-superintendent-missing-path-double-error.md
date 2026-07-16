@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- superintendent validate prints 'error: missing required argument path' twice (raw Commander + design-system); packages/toolcraft/src/cli.ts:6116 outputError only suppresses unknown command/option, so cli.ts:5738 logger.error re-renders it"
 comment: "Duplicate in shape of ux-code-review-drafts-missing-arg-double-error.md; consolidate into one issue about the toolcraft double-error. Its contribution is the pattern claim - superintendent and code-review both double-render and both misidentify the binary - which localises the fix to the shared toolcraft Commander integration rather than either command. With ux-models-endpoint-bogus-double-error-and-stack.md and ux-runtime-templates-parent-no-default-subcommand.md that makes four double-render sightings; worth checking they share one cause."
 ---
 

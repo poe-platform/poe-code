@@ -1,6 +1,9 @@
 ---
 severity: high
 impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/models.ts:378-381 filters with m.id.toLowerCase() === term (bare id only), while rows render theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`) at models.ts:492 and 522; zero-match path at models.ts:433 prints 'No models match the given filters.' with no --search hint."
 comment: "Keep as canonical for the namespaced-id filter gap and correctly High: the product prints ids as anthropic/claude-opus-4.7, configure accepts that form, and models --model rejects it with a bare 0/341 - so users copy an id from the tool's own output and get an empty result that looks like the model does not exist. That copy-from-our-own-output path is what makes it worse than ordinary strictness. Absorbs the capabilities/pricing/parameters/raw reconfirms. Its 'suggest --search on zero matches' is the cheapest mitigation."
 ---
 

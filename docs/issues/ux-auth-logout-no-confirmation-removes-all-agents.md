@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: data-loss
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/auth.ts:50-55 registers auth logout with an action calling executeLogout directly - no prompt; src/cli/commands/logout.ts:43-49 loops every configured service calling executeUnconfigure; no confirm/assumeYes reference in logout.ts or unconfigure.ts. Note: global --dry-run exists (src/cli/program.ts:853) and logout.ts honours flags.dryRun, so the doc's no --dry-run claim is wrong; the missing confirmation gate is real."
 comment: "Strongest filing in the destructive-command set: a real transcript proving auth logout removes every agent configuration with no prompt, no --yes and no --dry-run. Critical is right. Two issues are bundled - (a) no confirmation gate on the most destructive command in the CLI, (b) the 'Problems?' footer repeating once per sub-operation; split (b) out as it duplicates ux-problems-footer-on-every-success.md. Overlaps ux-logout-overclaims-scope.md and ux-auth-logout-same-as-logout-help.md, which show the copy also understates the blast radius: one change should land gate, copy and --dry-run together."
 ---
 

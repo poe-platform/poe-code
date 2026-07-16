@@ -2,6 +2,9 @@
 severity: medium
 impact: usability
 comment: "Keep as canonical of the eval empty-source cluster: it is the only filing that shows the same condition rendered two different ways in the same product - bare text from check/lint, design-system error plus a --debug tease from report. That side-by-side is the argument; the other three each see one half. Fix once: one ValidationError, no --debug tease, suggest eval init."
+reproduced: y
+recommendation: fix
+evidence: "Same message from open.ts:40 / lint.ts:113; check.ts:36 and lint.ts:46 write bare error.message to stderr, while report (commands.ts:199 openSource) throws to toolcraft cli.ts:4144 which renders design-system error plus 'Use --debug for a stack trace.'"
 ---
 
 # UX: eval empty source messages use mixed skins

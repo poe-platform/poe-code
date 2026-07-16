@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: crash
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "packages/plan-browser/src/actions.ts:9-13 resolveEditor falls back to 'vi'; editFile spawnSync stdio inherit (line 24) via src/cli/commands/plan.ts:451 blocks, while src/cli/commands/config.ts:234 throws 'Set $EDITOR'"
 comment: "Valid and well argued by contrast: utils config edit fails fast with 'Set $EDITOR' while plan edit hangs, so the inconsistency proves the good behavior already exists (ux-editor-missing-raw-error.md identifies the bare throw behind it). A hang is worse than an error, especially non-interactively. Its evidence is a timed-out probe rather than a confirmed infinite wait, so bound the re-check - the fix is clear either way: detect the missing editor before spawning anything."
 ---
 

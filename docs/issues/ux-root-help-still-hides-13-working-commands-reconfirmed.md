@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/program.ts:81-100 ROOT_HELP_COMMAND_SPECS allowlists only 19 commands; skill/memory/worktree/eval/maestro/superintendent/code-review/runtime/launch/approvals/tasks/provider/utils are registered in bootstrapProgram (src/cli/program.ts:700-780) but absent from root help. Duplicate of ux-root-help-hides-skill-memory-runtime-eval-and-more.md."
 comment: "Reconfirm duplicate of ux-root-help-hides-skill-memory-runtime-eval-and-more.md, near word-for-word; retire. Its only addition is the exit-0 confirmation for each hidden command, worth folding into the canonical as proof these are working surfaces rather than stubs."
 ---
 

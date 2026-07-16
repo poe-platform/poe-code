@@ -1,7 +1,10 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
 comment: "Instance of the bare-group family; retire into ux-many-parent-groups-only-dump-help.md, which enumerates all nine affected groups and names the in-product counterexamples. Its specific suggestion is good and worth carrying: the onboarding path here is configure-then-skill-configure, which nothing states."
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/commands/skill.ts:80 bare action calls this.help(); no addHelpText; `npm run dev -- skill` prints only install/configure/unconfigure with no next-step blurb. Duplicate of umbrella ux-many-parent-groups-only-dump-help.md."
 ---
 
 # UX: bare `skill` only dumps help with no next-step guidance

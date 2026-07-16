@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/skill.ts:85 bare skill calls this.help(); provider.ts:40, launch.ts:42, worktree.ts:20, utils.ts:8, braintrust.ts:13, tasks.ts:56, runtime/index.ts register groups with no bare action (commander prints help), while auth.ts:13 defaults to executeStatus and usage.ts:172 to executeBalance"
 comment: "Keep as canonical of the bare-group family and retire ux-group-commands-print-help-only.md into it: this enumerates the full set (skill, memory, provider, runtime, launch, worktree, utils, braintrust, tasks) and, more usefully, names the in-product counterexamples - auth defaults to status, usage to balance. That turns the ask from a design question into propagating an existing convention. Its 'Most common: ...' next-step line is a cheap alternative where a default action would be presumptuous."
 ---
 

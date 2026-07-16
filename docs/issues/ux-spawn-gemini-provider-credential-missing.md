@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: usability
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "packages/agent-defs/src/agents/gemini-cli.ts:11 apiShapes ['google-generations'] is served only by cloudflare (packages/providers/src/providers/cloudflare.ts:36); poe declares openai/anthropic shapes only (packages/providers/src/providers/poe.ts:27), so shared.ts:294-313 resolveActiveProviderForService returns undefined and isolated-env.ts:131 throws 'Cannot resolve providerCredential: no active provider on context'. gemini-cli.ts defines no runtimeEnv, so non-isolated test.ts:106-125 injects only GEMINI_SANDBOX and gemini demands GEMINI_API_KEY."
 comment: "One of three filings of the gemini credential failure; consolidate. Its distinct and more serious claim is that gemini fails even while poe is logged in, and that test gemini demands GEMINI_API_KEY - suggesting gemini-cli is not wired to the poe provider at all rather than merely erroring badly. If so this is a capability gap, not a copy problem. Verify first; it changes the fix entirely."
 ---
 

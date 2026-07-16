@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: crash
+impact: correctness
+reproduced: y
+recommendation: fix
+evidence: "init.ts:20 defaultTargetRepo = 'git+https://github.com/poe-platform/poe-code.git'; clone.ts:38-44 passes repo unmodified to git clone with no scheme normalization; `git ls-remote git+https://github.com/poe-platform/poe-code.git` exits 128: fatal: remote helper 'git+https' aborted session"
 comment: "The most serious eval filing and the only one about broken behavior rather than presentation: the scaffold produced by eval init cannot survive its own suggested next command, and it fails with a git remote-helper error that says nothing about the real cause (a placeholder target URL). Two fixes, both needed: scaffold a runnable target, and validate the target with a UserError instead of letting git fail raw. Prioritise over the eval help/framing cluster - this breaks the documented first-run path."
 ---
 

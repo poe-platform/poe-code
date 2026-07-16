@@ -1,6 +1,9 @@
 ---
 severity: critical
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- eval --help prints 'Poe - poe-code eval', 'Usage: npm run dev -- eval [command] [OPTIONS]', all-caps 'COMMANDS', and a wrapped 'run --agent <value...> --model <value...> [-C, --cwd <value>] ...' row; toolcraft help fed rootDisplayName/rootUsageName at src/cli/program.ts:725-726 via registerForwardedToolcraftCommand (src/cli/program.ts:701), bypassing formatSubcommandHelp's 'Commands:' casing (src/cli/program.ts:341)"
 comment: "Critical is not defensible for help formatting when this audit rates broken first-run behavior (ux-eval-check-fails-on-placeholder-target-git-remote.md) merely High - re-rate down and align with the identity cluster. That said, it is the best-argued help filing: of the four problems it bundles, the unreadable inline run flags line is genuinely distinct and worth keeping, since users cannot discover eval flags at any normal terminal width. The npm run dev, title and casing halves duplicate the identity cluster rooted in ux-development-mode-usage-intentional-but-leaks.md. Its closing observation is the valuable one: eval and superintendent share a command-registration pattern, so fix at the source."
 ---
 

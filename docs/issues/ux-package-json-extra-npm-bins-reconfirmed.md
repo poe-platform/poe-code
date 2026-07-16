@@ -1,7 +1,10 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
 comment: "Fourth filing of the identical bin list, essentially word-for-word with its sibling; retire into ux-extra-npm-bins-still-published-reconfirmed.md. The strongest argument in the family remains that test servers land on the user's PATH."
+reproduced: y
+recommendation: no-fix
+evidence: "package.json:97-105 bin maps poe, poe-code, poe-code-configure, poe-agent, poe-superintendent-mcp, tiny-oauth-test-server, tiny-stdio-mcp-test-server; duplicate of ux-extra-npm-bins-still-published-reconfirmed.md, ux-extra-npm-bins-confusing.md, ux-extra-npm-bins-still-shipped.md"
 ---
 
 # UX: package.json publishes extra npm bins (reconfirmed)

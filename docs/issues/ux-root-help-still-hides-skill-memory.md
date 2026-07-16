@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: no-fix
+evidence: "src/cli/program.ts:81-100 ROOT_HELP_COMMAND_SPECS lists gaslight and plan but omits skill and memory, though both are registered and unhidden (src/cli/commands/skill.ts:71, src/cli/commands/memory.ts:172)"
 comment: "Narrow duplicate within the root help discoverability cluster (skill and memory only); retire into the canonical. Its framing is the sharpest small version of the argument: root help lists plan and gaslight while omitting skill and memory, so the curation is not obviously principled - a reader cannot infer why one made the cut."
 ---
 

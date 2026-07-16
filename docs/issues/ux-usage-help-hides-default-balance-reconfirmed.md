@@ -1,6 +1,9 @@
 ---
 severity: medium
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "src/cli/commands/usage.ts:177 registers balance with { hidden: true } while usage.action() at :170 runs executeBalance; `npm run dev -- usage --help` prints only 'Commands: list [options]' with no balance or default-action mention"
 comment: "Keep of this pair (better evidence: it shows the default working and the help omitting it). Real and slightly ironic: the one group that gets the default-action question right is the one that never documents it, so users cannot discover the behavior the rest of the CLI should copy. Fix is small - list balance as a command or state the default."
 ---
 

@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "npm run dev -- superintendent run --help still prints toolcraft 'OPTIONS' block with positional [docs...] inline, then a second commander 'Options: -v, --verbose' block; packages/toolcraft/src/cli.ts:2263-2279 merges positionals into the options list, src/cli/program.ts:317 emits the second Options section. Note: --doc does exist today (packages/superintendent/src/commands/run.ts:162), so the doc's '--doc fails' rationale is inaccurate."
 comment: "Good catch, and the second finding is the actionable one: [doc] is listed inside OPTIONS despite being positional, so users will try --doc <path> and fail - the help actively teaches a wrong invocation. That is worse than the duplicated section header, though the split OPTIONS/Options: blocks are themselves evidence of the two-help-systems problem rendering both formats in one panel. Its fix is right: one Options section, [doc] under Arguments."
 ---
 

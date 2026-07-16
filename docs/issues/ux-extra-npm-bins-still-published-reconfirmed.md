@@ -1,6 +1,9 @@
 ---
 severity: high
-impact: discoverability
+impact: usability
+reproduced: y
+recommendation: fix
+evidence: "package.json:97-105 bin has poe, poe-code, poe-code-configure, poe-agent, poe-superintendent-mcp, tiny-oauth-test-server, tiny-stdio-mcp-test-server; files[] includes packages/tiny-oauth-test-server/dist and packages/tiny-stdio-mcp-test-server/dist, so test-server bins ship on PATH"
 comment: "Keep as canonical of the three bin filings (fullest key list). The concern is real and worse than cosmetic: a global install places tiny-oauth-test-server and tiny-stdio-mcp-test-server on the user's PATH, so test fixtures ship as user-facing commands - a packaging defect rather than IA noise. Resolve alongside ux-binary-wrappers-undocumented.md, which asks to document these same bins: decide what ships first, then document only the survivors."
 ---
 

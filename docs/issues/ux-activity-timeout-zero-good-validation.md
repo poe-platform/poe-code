@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/spawn.ts:137 parsePositiveInt(--activity-timeout-ms); spawn.ts:601 throws ValidationError 'Expected a positive integer.' for 0 — positive note, no defect"
 comment: "Positive pattern, no code change. Keep this as the canonical of the three duplicate 0/-1 validation filings: it has the fullest repro and is the only one that states the reusable rule (apply this ValidationError style to all numeric/enum flags), which is the actual value here. Retire the other two."
 ---
 

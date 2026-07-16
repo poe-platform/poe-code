@@ -1,6 +1,9 @@
 ---
 severity: low
 impact: none
+reproduced: n
+recommendation: no-fix
+evidence: "src/cli/commands/memory.ts:478 memory status calls assertInitialized; src/cli/commands/memory.ts:83 throws 'Memory is not initialized. Run \"poe-code memory init\" in this project.' — positive note, no defect"
 comment: "Third filing of the same not-initialized positive; consolidate with ux-memory-ingest-not-init-good.md and ux-memory-search-not-initialized-good.md into one note. Its parenthetical contrast is apt and worth keeping: the group's not-initialized copy is exemplary while its initialized state is Critically broken."
 ---
 

@@ -2,6 +2,9 @@
 severity: low
 impact: none
 comment: "Positive pattern; consolidate with the other test-works positives. Its framing is the useful one and states the sonnet-5 conclusion precisely: the health check works once the model is valid, so the default is the only defect."
+reproduced: n
+recommendation: no-fix
+evidence: "Positive note, no defect: src/cli/commands/test.ts:33,228 expose --model and emit 'Tested <label>.'; src/providers/claude-code.ts:91 honours context.model over DEFAULT_CLAUDE_CODE_MODEL."
 ---
 
 # UX: test with valid --model succeeds (positive after stale model)

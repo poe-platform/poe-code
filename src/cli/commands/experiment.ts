@@ -24,11 +24,11 @@ import {
   skillPlanConfigSection
 } from "@poe-code/agent-harness-tools";
 import {
-  installSkill,
   resolveAgentSupport,
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
+import { installSkillFile } from "./install-skill-file.js";
 import { discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import { isFrontmatterKindError } from "@poe-code/frontmatter";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
@@ -1238,26 +1238,18 @@ export function registerExperimentCommand(program: Command, container: CliContai
             }
           }
 
-          const skillResult = await installSkill(
-            support.id,
-            {
+          await installSkillFile({
+            container,
+            logger: resources.logger,
+            agentId: support.id,
+            skill: {
               name: "poe-code-experiment-plan",
               content: templates.skillPlan + "\n\n" + skillPlanConfigSection("experiment")
             },
-            {
-              fs: container.fs,
-              cwd: container.env.cwd,
-              homeDir: container.env.homeDir,
-              scope,
-              dryRun: flags.dryRun
-            }
-          );
-
-          if (flags.dryRun) {
-            resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
-          } else {
-            resources.logger.info(`Create: ${skillResult.displayPath}`);
-          }
+            scope,
+            force: options.force === true,
+            dryRun: flags.dryRun
+          });
         } catch (error) {
           if (!flags.dryRun) {
             if (createdRunYaml) {

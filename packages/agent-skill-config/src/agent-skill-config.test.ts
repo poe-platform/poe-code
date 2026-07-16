@@ -628,6 +628,37 @@ describe("installSkill", () => {
       "user"
     );
   });
+
+  it("overwrites an existing skill when force is set", async () => {
+    vol.mkdirSync(`${cwd}/.claude/skills/existing`, { recursive: true });
+    await memFs.writeFile(`${cwd}/.claude/skills/existing/SKILL.md`, "user", { encoding: "utf8" });
+
+    const result = await installSkill(
+      "claude-code",
+      { name: "existing", content: "generated" },
+      { fs: memFs, cwd, homeDir, scope: "local", force: true }
+    );
+
+    expect(result.displayPath).toBe(".claude/skills/existing/SKILL.md");
+    await expect(memFs.readFile(`${cwd}/.claude/skills/existing/SKILL.md`, "utf8")).resolves.toBe(
+      "generated"
+    );
+  });
+
+  it("keeps an existing skill when force is set while dry running", async () => {
+    vol.mkdirSync(`${cwd}/.claude/skills/existing`, { recursive: true });
+    await memFs.writeFile(`${cwd}/.claude/skills/existing/SKILL.md`, "user", { encoding: "utf8" });
+
+    await installSkill(
+      "claude-code",
+      { name: "existing", content: "generated" },
+      { fs: memFs, cwd, homeDir, scope: "local", force: true, dryRun: true }
+    );
+
+    await expect(memFs.readFile(`${cwd}/.claude/skills/existing/SKILL.md`, "utf8")).resolves.toBe(
+      "user"
+    );
+  });
 });
 
 // --- templates.test.ts ---

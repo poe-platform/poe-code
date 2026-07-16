@@ -454,6 +454,28 @@ describe("memory command", () => {
     writeSpy.mockRestore();
   });
 
+  it("forwards --force to the memory install so an existing skill is overwritten", async () => {
+    memoryModuleMocks.installMemoryMock.mockResolvedValue({ skillInstalled: true, mcpConfigured: false });
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "memory",
+      "install",
+      "--agent",
+      "codex",
+      "--skill-only",
+      "--force"
+    ]);
+
+    expect(memoryModuleMocks.installMemoryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "codex", skillOnly: true, force: true })
+    );
+  });
+
   it("rejects non-decimal ingest timeout values", async () => {
     const handle = {
       statusOf: vi.fn().mockResolvedValue({ initialized: true }),

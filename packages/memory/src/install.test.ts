@@ -95,6 +95,25 @@ describe("installMemory", () => {
     });
   });
 
+  it("forwards force to the skill install so an existing skill is overwritten", async () => {
+    await installMemory({
+      agent: "claude-code",
+      skillContent: "# skill",
+      fs: {} as FileSystem,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      platform: "darwin",
+      skillOnly: true,
+      force: true
+    });
+
+    expect(installSkill).toHaveBeenCalledWith(
+      "claude-code",
+      expect.anything(),
+      expect.objectContaining({ force: true })
+    );
+  });
+
   it("supports skill-only installs", async () => {
     const result = await installMemory({
       agent: "claude-code",

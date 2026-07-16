@@ -16,6 +16,8 @@ export type MemoryInstallOptions = {
   skillOnly?: boolean;
   mcpOnly?: boolean;
   allowWrites?: boolean;
+  /** Overwrite an existing memory SKILL.md instead of failing. */
+  force?: boolean;
   dryRun?: boolean;
   observers?: MutationObservers;
 };
@@ -44,6 +46,7 @@ export async function installMemory(
         cwd: options.cwd,
         homeDir: options.homeDir,
         scope,
+        force: options.force,
         dryRun: options.dryRun,
         observers: options.observers
       }

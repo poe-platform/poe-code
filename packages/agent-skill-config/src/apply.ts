@@ -146,6 +146,8 @@ export type InstallSkillOptions = {
   scope: ApplyOptions["scope"];
   dryRun?: boolean;
   observers?: ApplyOptions["observers"];
+  /** Overwrite an existing SKILL.md instead of refusing to install over it. */
+  force?: boolean;
 };
 
 export type InstallSkillResult = {
@@ -193,7 +195,7 @@ export async function installSkill(
   const displayPath = `${scope === "global" ? config.globalSkillDir : config.localSkillDir}/${skill.name}/SKILL.md`;
   const absoluteSkillPath = `${scope === "global" ? options.homeDir : options.cwd}/${skillFilePath.slice(2)}`;
 
-  if (await pathExists(options.fs, absoluteSkillPath)) {
+  if (!options.force && (await pathExists(options.fs, absoluteSkillPath))) {
     throw new Error(`Skill already exists: ${displayPath}`);
   }
 

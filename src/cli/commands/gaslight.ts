@@ -24,6 +24,7 @@ import {
 import { resolveServiceArgument } from "./configure.js";
 import { ValidationError } from "../errors.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
+import { renderUnifiedDiff } from "../../utils/dry-run.js";
 import { addWorktreeOptions, pickWorktreeOptions } from "./worktree-options.js";
 import { gaslightConfigScope } from "../../services/config.js";
 
@@ -270,12 +271,15 @@ async function resolveInstallScope(
   return selected as GaslightConfigScope;
 }
 
+// The diff shown before a forced overwrite must be the exact bytes written.
+const gaslightConfigFileContent = `${GASLIGHT_CONFIG_EXAMPLE}\n`;
+
 async function scaffoldConfig(
   container: CliContainer,
   scope: GaslightConfigScope,
   force: boolean,
   dryRun: boolean
-): Promise<{ path: string; changed: boolean }> {
+): Promise<{ path: string; changed: boolean; previousContent: string | null }> {
   const root = scope === "global" ? container.env.homeDir : container.env.cwd;
   const configPath = path.join(root, ".poe-code", "gaslight.yaml");
   const configDirectory = path.dirname(configPath);
@@ -289,10 +293,11 @@ async function scaffoldConfig(
       throw error;
     }
   }
+  let previousContent: string | null = null;
   try {
-    await container.fs.stat(configPath);
+    previousContent = await container.fs.readFile(configPath, "utf8");
     if (!force) {
-      return { path: configPath, changed: false };
+      return { path: configPath, changed: false, previousContent };
     }
   } catch (error) {
     if (!hasOwnErrorCode(error, "ENOENT")) {
@@ -301,11 +306,11 @@ async function scaffoldConfig(
   }
   if (!dryRun) {
     await container.fs.mkdir(configDirectory, { recursive: true });
-    await container.fs.writeFile(configPath, `${GASLIGHT_CONFIG_EXAMPLE}\n`, {
+    await container.fs.writeFile(configPath, gaslightConfigFileContent, {
       encoding: "utf8"
     });
   }
-  return { path: configPath, changed: true };
+  return { path: configPath, changed: true, previousContent };
 }
 
 export function registerGaslightCommand(program: Command, container: CliContainer): void {
@@ -445,8 +450,20 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         resources.logger.intro(`gaslight install (${scope})`);
         const config = await scaffoldConfig(container, scope, options.force === true, flags.dryRun);
         if (config.changed) {
+          if (config.previousContent !== null) {
+            resources.logger.info(
+              renderUnifiedDiff(
+                config.path,
+                config.previousContent,
+                gaslightConfigFileContent
+              ).join("\n")
+            );
+          }
+          const verb = config.previousContent !== null ? "overwrite" : "create";
           resources.logger[flags.dryRun ? "dryRun" : "info"](
-            `${flags.dryRun ? "Would create" : "Create"}: ${config.path}`
+            flags.dryRun
+              ? `Would ${verb}: ${config.path}`
+              : `${verb === "overwrite" ? "Overwrite" : "Create"}: ${config.path}`
           );
         }
         resources.context.complete({

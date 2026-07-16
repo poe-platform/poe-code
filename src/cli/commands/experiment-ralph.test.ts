@@ -1985,6 +1985,112 @@ describe("experiment install command", () => {
     );
   });
 
+  it("skips an existing experiment skill instead of failing without --force", async () => {
+    const fs = createMemFs({
+      "/repo/.claude/skills/poe-code-experiment-plan/SKILL.md": "# Customized\n"
+    });
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe("# Customized\n");
+    expect(
+      logs.some((message) =>
+        message.includes("Skip: .claude/skills/poe-code-experiment-plan/SKILL.md (already exists)")
+      )
+    ).toBe(true);
+  });
+
+  it("overwrites an existing experiment skill with --force and shows the diff", async () => {
+    const fs = createMemFs({
+      "/repo/.claude/skills/poe-code-experiment-plan/SKILL.md": "# Customized\n"
+    });
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local",
+      "--force"
+    ]);
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe(experimentSkillPlan + "\n\n" + skillPlanConfigSection("experiment"));
+    expect(
+      logs.some((message) =>
+        message.includes("Overwrite: .claude/skills/poe-code-experiment-plan/SKILL.md")
+      )
+    ).toBe(true);
+    expect(logs.some((message) => message.includes("# Customized"))).toBe(true);
+  });
+
+  it("reports a forced experiment skill overwrite as a dry-run overwrite", async () => {
+    const fs = createMemFs({
+      "/repo/.claude/skills/poe-code-experiment-plan/SKILL.md": "# Customized\n"
+    });
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "experiment",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local",
+      "--force"
+    ]);
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).resolves.toBe("# Customized\n");
+    expect(
+      logs.some((message) =>
+        message.includes("Would overwrite: .claude/skills/poe-code-experiment-plan/SKILL.md")
+      )
+    ).toBe(true);
+  });
+
   it("does not treat inherited stat codes as missing experiment install paths", async () => {
     const fs = createMemFs();
     const statError = new Error("experiment stat denied");

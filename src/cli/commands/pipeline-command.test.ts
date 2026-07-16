@@ -2840,6 +2840,58 @@ describe("pipeline install command", () => {
     );
   });
 
+  it("overwrites an existing pipeline skill with --force and shows the diff", async () => {
+    const skillPath = "/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md";
+    const fs = createMemFs({ [skillPath]: "# Customized\n" });
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    await expect(fs.readFile(skillPath, "utf8")).resolves.toBe("# Customized\n");
+    expect(
+      logs.some((message) =>
+        message.includes("Skip: .claude/skills/poe-code-pipeline-plan/SKILL.md (already exists)")
+      )
+    ).toBe(true);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local",
+      "--force"
+    ]);
+
+    await expect(fs.readFile(skillPath, "utf8")).resolves.toBe(
+      pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline")
+    );
+    expect(
+      logs.some((message) =>
+        message.includes("Overwrite: .claude/skills/poe-code-pipeline-plan/SKILL.md")
+      )
+    ).toBe(true);
+    expect(logs.some((message) => message.includes("# Customized"))).toBe(true);
+  });
+
   it("cleans a partial steps.yaml when initial scaffold creation fails", async () => {
     const stepsPath = "/repo/.poe-code/pipeline/steps.yaml";
     const fs = createMemFs();

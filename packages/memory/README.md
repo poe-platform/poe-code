@@ -260,8 +260,9 @@ await stop();
 1. Run `poe-code memory install --agent <name>` to install the `poe-code-memory` skill and register the MCP server for that agent.
 2. Add `--allow-writes` if the MCP client should advertise `append_to_page`.
 3. Use `--skill-only` or `--mcp-only` for partial installs.
-4. Use `--dry-run` to print the planned changes without touching disk.
-5. After install, run `poe-code memory init` in the repo before the first write.
+4. Use `--force` to overwrite an already installed `poe-code-memory` skill (`installMemory({ force: true })`); without it an existing skill is left alone.
+5. Use `--dry-run` to print the planned changes without touching disk.
+6. After install, run `poe-code memory init` in the repo before the first write.
 
 ## Notes
 

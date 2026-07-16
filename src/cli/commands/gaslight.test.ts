@@ -699,6 +699,55 @@ describe("gaslight command", () => {
     );
   });
 
+  it("reports a forced overwrite of an existing config and shows the diff", async () => {
+    const logger = vi.fn();
+    const container = createContainer(vi.fn().mockResolvedValue({}), logger, {
+      "/repo/.poe-code/gaslight.yaml": "prompt: Replace me\n"
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--local", "--force"]);
+
+    const logs = logger.mock.calls.map(([message]) => String(message));
+    expect(logs.some((message) => message.includes("Overwrite: /repo/.poe-code/gaslight.yaml"))).toBe(
+      true
+    );
+    expect(logs.some((message) => message.includes("prompt: Replace me"))).toBe(true);
+    expect(logs.some((message) => message.includes("Create: /repo/.poe-code/gaslight.yaml"))).toBe(
+      false
+    );
+  });
+
+  it("previews a forced overwrite as an overwrite and leaves the config untouched", async () => {
+    const logger = vi.fn();
+    const container = createContainer(vi.fn().mockResolvedValue({}), logger, {
+      "/repo/.poe-code/gaslight.yaml": "prompt: Replace me\n"
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "--dry-run",
+      "gaslight",
+      "install",
+      "--local",
+      "--force"
+    ]);
+
+    await expect(container.fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toBe(
+      "prompt: Replace me\n"
+    );
+    const logs = logger.mock.calls.map(([message]) => String(message));
+    expect(
+      logs.some((message) => message.includes("Would overwrite: /repo/.poe-code/gaslight.yaml"))
+    ).toBe(true);
+    expect(logs.some((message) => message.includes("Would create"))).toBe(false);
+  });
+
   it("rejects a symlinked local config directory when installing locally", async () => {
     const container = createContainer();
     await container.fs.mkdir("/outside", { recursive: true });

@@ -20,12 +20,8 @@ import {
 } from "@poe-code/agent-defs";
 import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
-import {
-  installSkill,
-  resolveAgentSupport,
-  resolveSkillDir,
-  type SkillScope
-} from "@poe-code/agent-skill-config";
+import { resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
+import { installSkillFile } from "./install-skill-file.js";
 import {
   mergePipelineCallbacks,
   readMergedDocument,
@@ -1461,15 +1457,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const templates = await loadPipelineTemplates();
         const pipelinePaths = resolvePipelinePaths(scope, container.env.cwd, container.env.homeDir);
-        const skillDisplayPath = `${
-          scope === "global" ? support.config.globalSkillDir : support.config.localSkillDir
-        }/poe-code-pipeline-plan/SKILL.md`;
-        const skillPath = path.join(
-          resolveSkillDir(support.config, scope, container.env.cwd, container.env.homeDir),
-          "poe-code-pipeline-plan",
-          "SKILL.md"
-        );
-        const skillExists = await pathExists(container.fs, skillPath);
         const plansExists = await pathExists(container.fs, pipelinePaths.plansPath);
         const legacyDefaultStepsExists = await pathExists(
           container.fs,
@@ -1534,30 +1521,18 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             }
           }
 
-          if (skillExists) {
-            resources.logger.info(`Skip: ${skillDisplayPath} (already exists)`);
-          } else {
-            const skillResult = await installSkill(
-              support.id,
-              {
-                name: "poe-code-pipeline-plan",
-                content: templates.skillPlan + "\n\n" + skillPlanConfigSection("pipeline")
-              },
-              {
-                fs: container.fs,
-                cwd: container.env.cwd,
-                homeDir: container.env.homeDir,
-                scope,
-                dryRun: flags.dryRun
-              }
-            );
-
-            if (flags.dryRun) {
-              resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
-            } else {
-              resources.logger.info(`Create: ${skillResult.displayPath}`);
-            }
-          }
+          await installSkillFile({
+            container,
+            logger: resources.logger,
+            agentId: support.id,
+            skill: {
+              name: "poe-code-pipeline-plan",
+              content: templates.skillPlan + "\n\n" + skillPlanConfigSection("pipeline")
+            },
+            scope,
+            force: options.force === true,
+            dryRun: flags.dryRun
+          });
         } catch (error) {
           if (!flags.dryRun) {
             if (previousSteps !== undefined) {

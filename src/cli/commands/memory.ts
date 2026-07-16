@@ -463,7 +463,8 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .option("--skill-only", "Install only the skill")
     .option("--mcp-only", "Configure only the MCP server")
     .option("--allow-writes", "Allow MCP append writes")
-    .action(async (options: { agent: string; global?: boolean; skillOnly?: boolean; mcpOnly?: boolean; allowWrites?: boolean }) => {
+    .option("--force", "Overwrite an existing memory skill")
+    .action(async (options: { agent: string; global?: boolean; skillOnly?: boolean; mcpOnly?: boolean; allowWrites?: boolean; force?: boolean }) => {
       const flags = resolveCommandFlags(program);
       await installMemory({
         agent: options.agent,
@@ -476,6 +477,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
         skillOnly: options.skillOnly,
         mcpOnly: options.mcpOnly,
         allowWrites: options.allowWrites,
+        force: options.force,
         dryRun: flags.dryRun
       });
     });

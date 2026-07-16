@@ -645,6 +645,48 @@ describe("skill configure command", () => {
     await expect(fs.stat(`${cwd}/.codex/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 
+  it("explains the goose skill directory so the shared .agents path is not a surprise", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "configure", "goose", "--local", "--yes"]);
+
+    expect(logs).toContain("Configured skills for goose at ./.agents/skills");
+    expect(logs).toContain(
+      "Goose discovers skills from the shared .agents/skills convention, not a goose-specific directory."
+    );
+  });
+
+  it("omits the directory note for agents that use their own agent directory", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "skill", "configure", "claude", "--local", "--yes"]);
+
+    expect(logs).toContain("Configured skills for claude-code at ./.claude/skills");
+    expect(logs.some((line) => line.includes("convention"))).toBe(false);
+  });
+
   it("does not recover malformed config while previewing skill configure", async () => {
     const { fs } = createMemFs();
     const malformedConfig = "{ invalid json\n";

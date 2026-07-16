@@ -196,6 +196,19 @@ describe("getAgentConfig", () => {
       localSkillDir: ".gemini/skills"
     });
   });
+
+  it("explains why goose uses the shared .agents directory instead of a goose-specific one", () => {
+    expect(getAgentConfig("goose")).toEqual({
+      globalSkillDir: "~/.agents/skills",
+      localSkillDir: ".agents/skills",
+      dirNote:
+        "Goose discovers skills from the shared .agents/skills convention, not a goose-specific directory."
+    });
+  });
+
+  it("omits a directory note for agents that use their own agent directory", () => {
+    expect(getAgentConfig("claude-code")?.dirNote).toBeUndefined();
+  });
 });
 
 describe("resolveSkillDir", () => {

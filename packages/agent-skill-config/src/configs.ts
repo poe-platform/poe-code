@@ -5,6 +5,8 @@ import { resolveAgentId } from "@poe-code/agent-defs";
 export interface AgentSkillConfig {
   globalSkillDir: string;
   localSkillDir: string;
+  /** Set only when the directories deviate from the agent's own dot-directory. */
+  dirNote?: string;
 }
 
 export type SkillScope = "global" | "local";
@@ -32,7 +34,9 @@ const agentSkillConfigs: Record<string, AgentSkillConfig> = {
   },
   goose: {
     globalSkillDir: "~/.agents/skills",
-    localSkillDir: ".agents/skills"
+    localSkillDir: ".agents/skills",
+    dirNote:
+      "Goose discovers skills from the shared .agents/skills convention, not a goose-specific directory."
   }
 };
 

@@ -503,6 +503,10 @@ export function registerSkillCommand(program: Command, container: CliContainer):
 
       resources.logger.intro(`skill configure ${resolvedAgent}`);
 
+      if (config.dirNote) {
+        resources.logger.info(config.dirNote);
+      }
+
       await configure(resolvedAgent, {
         fs: container.fs,
         homeDir: container.env.homeDir,

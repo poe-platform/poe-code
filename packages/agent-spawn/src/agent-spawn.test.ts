@@ -1785,11 +1785,62 @@ describe("spawn", () => {
       ...openCodeSpawnConfig.modes.yolo
     ]);
     expect(spawnOptions).toMatchObject({
-      stdio: ["inherit", "pipe", "pipe"]
+      stdio: ["ignore", "pipe", "pipe"]
     });
 
     const child = spawnMock.mock.results[0]?.value as any;
     expect(child.__capturedStdin()).toBe("");
+  });
+
+  describe("stdin handling for argument prompts", () => {
+    const originalIsTTY = process.stdin.isTTY;
+
+    afterEach(() => {
+      Object.defineProperty(process.stdin, "isTTY", {
+        value: originalIsTTY,
+        configurable: true
+      });
+    });
+
+    function setStdinIsTTY(value: boolean | undefined): void {
+      Object.defineProperty(process.stdin, "isTTY", { value, configurable: true });
+    }
+
+    it("ignores stdin when the prompt is an argument and there is no tty", async () => {
+      setStdinIsTTY(undefined);
+      const spawnMock = vi
+        .mocked(spawnChildProcess)
+        .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+
+      await spawn("codex", { prompt: "say only: ok", mode: "read" });
+
+      const [, , spawnOptions] = spawnMock.mock.calls[0]!;
+      expect((spawnOptions as { stdio: string[] }).stdio[0]).toBe("ignore");
+    });
+
+    it("inherits stdin when the prompt is an argument and a tty is attached", async () => {
+      setStdinIsTTY(true);
+      const spawnMock = vi
+        .mocked(spawnChildProcess)
+        .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+
+      await spawn("codex", { prompt: "say only: ok", mode: "read" });
+
+      const [, , spawnOptions] = spawnMock.mock.calls[0]!;
+      expect((spawnOptions as { stdio: string[] }).stdio[0]).toBe("inherit");
+    });
+
+    it("pipes stdin when the prompt is sent via stdin regardless of tty", async () => {
+      setStdinIsTTY(true);
+      const spawnMock = vi
+        .mocked(spawnChildProcess)
+        .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+
+      await spawn("claude", { prompt: "hello", useStdin: true });
+
+      const [, , spawnOptions] = spawnMock.mock.calls[0]!;
+      expect((spawnOptions as { stdio: string[] }).stdio[0]).toBe("pipe");
+    });
   });
 
   describe("activityTimeoutMs", () => {

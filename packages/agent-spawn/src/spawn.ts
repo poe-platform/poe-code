@@ -301,7 +301,7 @@ async function runSpawn(
       openSpec: {
         execution: {
           wrapForLogTee: false,
-          stdin: stdinMode ? "pipe" : "inherit",
+          stdin: stdinMode ? "pipe" : process.stdin.isTTY ? "inherit" : "ignore",
           stdout: "pipe",
           stderr: "pipe",
           env: processEnv as Record<string, string> | undefined,

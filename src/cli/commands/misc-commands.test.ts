@@ -697,6 +697,112 @@ describe("config command", () => {
     ).rejects.toThrow("Set $EDITOR to use this command");
   });
 
+  it("prints the project config path when a project config exists", async () => {
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(projectConfigPath, "{}\n", { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith(`${projectConfigPath}\n`);
+    writeSpy.mockRestore();
+  });
+
+  it("falls back to the global config path when no project config exists", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith(`${globalConfigPath}\n`);
+    writeSpy.mockRestore();
+  });
+
+  it("prints the global config path when --global is passed", async () => {
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(projectConfigPath, "{}\n", { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "path", "--global"]);
+
+    expect(writeSpy).toHaveBeenCalledWith(`${globalConfigPath}\n`);
+    writeSpy.mockRestore();
+  });
+
+  it("prints the project config path when --project is passed and the file is missing", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "path", "--project"]);
+
+    expect(writeSpy).toHaveBeenCalledWith(`${projectConfigPath}\n`);
+    writeSpy.mockRestore();
+  });
+
+  it("does not create a config file when printing the path", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "path", "--project"]);
+
+    await expect(fs.readdir(cwd)).resolves.toEqual([]);
+    writeSpy.mockRestore();
+  });
+
+  it("rejects passing both --global and --project", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "utils", "config", "path", "--global", "--project"])
+    ).rejects.toThrow("Choose either --global or --project, not both.");
+  });
+
 });
 
 // ---------------------------------------------------------------------------

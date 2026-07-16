@@ -7,7 +7,8 @@ import {
   readDocument,
   readDocumentReadonly,
   resolveEditTarget,
-  type ConfigDocument
+  type ConfigDocument,
+  type EditTargetOptions
 } from "@poe-code/poe-code-config";
 import { text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
@@ -18,11 +19,6 @@ import {
   resolveMergedDocument,
   shlexQuote
 } from "./shared.js";
-
-interface ConfigEditCommandOptions {
-  global?: boolean;
-  project?: boolean;
-}
 
 const REDACTED_CONFIG_VALUE = "<redacted>";
 const SENSITIVE_CONFIG_KEY_NAMES = new Set([
@@ -66,11 +62,26 @@ export function registerConfigCommand(program: Command, container: CliContainer)
     });
 
   config
+    .command("path")
+    .description("Print the resolved config file path.")
+    .option("--global", "Print the global config file path.")
+    .option("--project", "Print the project config file path.")
+    .action(async (options: EditTargetOptions) => {
+      const targetPath = await resolveEditTarget(
+        container.fs,
+        container.env.configPath,
+        container.env.projectConfigPath,
+        options
+      );
+      process.stdout.write(`${targetPath}\n`);
+    });
+
+  config
     .command("edit")
     .description("Open a config file in $EDITOR.")
     .option("--global", "Open the global config file.")
     .option("--project", "Open the project config file.")
-    .action(async (options: ConfigEditCommandOptions) => {
+    .action(async (options: EditTargetOptions) => {
       await executeConfigEdit(program, container, options);
     });
 }
@@ -139,7 +150,7 @@ async function executeConfigInit(program: Command, container: CliContainer): Pro
 async function executeConfigEdit(
   program: Command,
   container: CliContainer,
-  options: ConfigEditCommandOptions
+  options: EditTargetOptions
 ): Promise<void> {
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, "config:edit");

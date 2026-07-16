@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { codeReviewGroup, listCodeReviewProfilesCommand, readCodeReviewDraftCommand } from "./cli.js";
+import { UserError } from "toolcraft";
+import {
+  codeReviewGroup,
+  listCodeReviewProfilesCommand,
+  readCodeReviewDraftCommand,
+  runCodeReviewCommand
+} from "./cli.js";
 import { discoverCodeReviewProfiles } from "./assets.js";
 import { loadCodeReviewRuntimeConfig } from "./config.js";
 
@@ -40,6 +46,17 @@ describe("code-review command group", () => {
         }
       } as never)
     ).rejects.toThrow("No active code review draft found");
+  });
+
+  it("rejects an invalid prUrl argument before resolving the review agent", async () => {
+    const invocation = runCodeReviewCommand.handler({
+      params: { prUrl: "not-a-url", cwd: "/repo" }
+    } as never);
+
+    await expect(invocation).rejects.toBeInstanceOf(UserError);
+    await expect(invocation).rejects.toThrow(
+      'Invalid prUrl argument. Expected a GitHub pull request URL like https://github.com/<owner>/<repo>/pull/<number>, received "not-a-url".'
+    );
   });
 
   it("lists profiles from configured external catalogs", async () => {

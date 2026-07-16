@@ -1,4 +1,5 @@
-import { S, defineCommand, defineGroup } from "toolcraft";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft";
+import { canonicalPullRequestUrl } from "github-review";
 import { discoverCodeReviewProfiles, installCodeReviewAssets } from "./assets.js";
 import {
   type CodeReviewCommitResult,
@@ -21,6 +22,16 @@ import {
   type CodeReviewSpawnPromptPreview,
   type PreviewCodeReviewSpawnPromptInput
 } from "./prompt-preview.js";
+
+function requirePrUrlParam(prUrl: string): string {
+  try {
+    return canonicalPullRequestUrl(prUrl);
+  } catch (error) {
+    throw new UserError(
+      `Invalid prUrl argument. ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
 
 type RunCodeReviewHandler = (input: CodeReviewOrchestrationInput) => Promise<CodeReviewResult>;
 type CommitCodeReviewDraftsHandler = (
@@ -117,7 +128,7 @@ export const readCodeReviewDraftCommand = defineCommand({
   scope: ["cli"],
   handler: async ({ params }) => {
     const draft = await readCodeReviewDraft({
-      prUrl: params.prUrl,
+      prUrl: requirePrUrlParam(params.prUrl),
       cwd: params.cwd?.trim() || process.cwd(),
       ...(params.draftStore ? { draftStore: params.draftStore } : {})
     });
@@ -181,7 +192,7 @@ function createRunCodeReviewCommand(run: RunCodeReviewHandler = (input) => runCo
     scope: ["cli"],
     handler: async ({ params }) =>
       run({
-        prUrl: params.prUrl,
+        prUrl: requirePrUrlParam(params.prUrl),
         cwd: params.cwd?.trim() || process.cwd(),
         ...(params.agent ? { agent: params.agent } : {}),
         ...(params.draftStore ? { draftStore: params.draftStore } : {}),
@@ -216,7 +227,7 @@ function createCommitCodeReviewDraftsCommand(
     scope: ["cli"],
     handler: async ({ params }) =>
       commit({
-        prUrl: params.prUrl,
+        prUrl: requirePrUrlParam(params.prUrl),
         cwd: params.cwd?.trim() || process.cwd(),
         ...(params.draftStore ? { draftStore: params.draftStore } : {}),
         ...(params.actor ? { actor: params.actor } : {}),

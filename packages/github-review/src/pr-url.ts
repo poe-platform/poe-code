@@ -69,7 +69,9 @@ export function parseGitHubPullRequestRef(prUrl: string): GitHubPullRequestRef |
 export function canonicalPullRequestUrl(prUrl: string): string {
   const ref = parseGitHubPullRequestRef(prUrl);
   if (!ref) {
-    return prUrl;
+    throw new Error(
+      `Expected a GitHub pull request URL like https://github.com/<owner>/<repo>/pull/<number>, received "${prUrl}".`
+    );
   }
   return ref.url;
 }

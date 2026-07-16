@@ -162,6 +162,7 @@
     "@poe-code/task-list": "*",
     "@poe-code/agent-defs": "*",
     "@poe-code/config-mutations": "*",
+    "@poe-code/user-error": "*",
     "@poe-code/process-runner": "*",
     "mcp-oauth-server": "*",
     "tiny-http-mcp-server": "*",

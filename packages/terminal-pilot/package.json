@@ -85,6 +85,7 @@
   "optionalDependencies": {
     "@poe-code/agent-defs": "*",
     "@poe-code/config-mutations": "*",
+    "@poe-code/user-error": "*",
     "toolcraft-design": "*",
     "@poe-code/frontmatter": "*"
   },

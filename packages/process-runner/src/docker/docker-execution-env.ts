@@ -45,6 +45,11 @@ interface DetachedJobContext {
   argv: string[];
 }
 
+type DetachedState =
+  | { kind: "running" }
+  | { kind: "exited"; exitCode: number }
+  | { kind: "unreachable" };
+
 interface DockerOpenedEnv extends OpenedEnv {
   setDetachedJobContext(context: DetachedJobContext): void;
 }
@@ -74,6 +79,7 @@ const containerCommand = ["sh", "-c", "while :; do sleep 3600; done"] as const;
 export const dockerExecutionEnvFactory: ExecutionEnvFactory = {
   type: "docker",
   supportsDetach: true,
+  supportsWorkspaceTransfer: true,
   async open(spec): Promise<OpenedEnv> {
     const runtime = parseDockerRuntime(spec.runtime);
     const runner = spec.hostRunner ?? createHostRunner();
@@ -673,8 +679,11 @@ function createContainerJob(
     argv: detachedJobContext?.argv ?? ["attach", containerId],
     async status() {
       if (detachedJobContext !== null) {
-        const exitCode = await readDetachedExitCode(containerId, jobId, runner, engine, context);
-        return exitCode === null ? ("running" as const) : ("exited" as const);
+        const detached = await readDetachedState(containerId, jobId, runner, engine, context);
+        if (detached.kind === "unreachable") {
+          return "lost" as const;
+        }
+        return detached.kind === "exited" ? ("exited" as const) : ("running" as const);
       }
 
       const handle = runner.exec({
@@ -743,9 +752,14 @@ function createContainerJob(
     async wait() {
       if (detachedJobContext !== null) {
         while (true) {
-          const exitCode = await readDetachedExitCode(containerId, jobId, runner, engine, context);
-          if (exitCode !== null) {
-            return { exitCode };
+          const detached = await readDetachedState(containerId, jobId, runner, engine, context);
+          if (detached.kind === "exited") {
+            return { exitCode: detached.exitCode };
+          }
+          if (detached.kind === "unreachable") {
+            // The container is gone, so the command can never report its own exit
+            // code: treat it as terminated with an unknown failure.
+            return { exitCode: 1 };
           }
           await new Promise<void>((resolve) => setTimeout(resolve, 25));
         }
@@ -843,13 +857,13 @@ function utf8SequenceLength(byte: number): number {
   return 0;
 }
 
-async function readDetachedExitCode(
+async function readDetachedState(
   containerId: string,
   jobId: string,
   runner: Runner,
   engine: Engine,
   context: string | null
-): Promise<number | null> {
+): Promise<DetachedState> {
   const exitFile = shellQuote(`/tmp/poe-jobs/${jobId}.exit`);
   const handle = runner.exec({
     command: engine,
@@ -867,10 +881,13 @@ async function readDetachedExitCode(
   const stdout = await readStream(handle.stdout);
   const result = await handle.result;
   if (result.exitCode !== 0) {
-    return null;
+    return { kind: "unreachable" };
   }
   const text = stdout.trim();
-  return text.length === 0 ? null : parseCompleteDecimalExitCode(text, "detached exit marker");
+  if (text.length === 0) {
+    return { kind: "running" };
+  }
+  return { kind: "exited", exitCode: parseCompleteDecimalExitCode(text, "detached exit marker") };
 }
 
 function createAttachedSpec(cwd = "/workspace"): OpenSpec {

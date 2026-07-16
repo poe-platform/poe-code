@@ -775,7 +775,7 @@ describe("runtime command", () => {
     expect(logs.join("\n")).not.toContain("Dry run");
   });
 
-  it("errors with candidate jobs when the omitted job id is ambiguous", async () => {
+  it("errors with candidate jobs when the omitted job id stays ambiguous", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-one.json")]: `${JSON.stringify(
         createJobEntry({
@@ -792,7 +792,7 @@ describe("runtime command", () => {
           id: "job-two",
           env_id: "env-two",
           status: "running",
-          started_at: "2026-05-03T13:00:00.000Z"
+          started_at: "2026-05-03T12:00:00.000Z"
         }),
         null,
         2
@@ -805,8 +805,8 @@ describe("runtime command", () => {
     await expect(program.parseAsync(["node", "cli", "runtime", "jobs", "logs"])).rejects.toThrow(
       [
         "More than one detached runtime job matches this command. Pass a job id.",
-        "- job-two codex running 2026-05-03T13:00:00.000Z",
-        "- job-one codex running 2026-05-03T12:00:00.000Z"
+        "- job-one codex running 2026-05-03T12:00:00.000Z",
+        "- job-two codex running 2026-05-03T12:00:00.000Z"
       ].join("\n")
     );
   });

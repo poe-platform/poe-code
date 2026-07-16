@@ -12,6 +12,7 @@ import {
   type OpenedEnv
 } from "@poe-code/agent-harness-tools";
 import type { CliContainer } from "../../../container.js";
+import { ValidationError } from "../../../errors.js";
 
 export type JobIntent = "running" | "pullable";
 
@@ -32,10 +33,10 @@ export async function resolveJob(
   if (jobId !== undefined) {
     const entry = await state.jobs.get(jobId);
     if (entry === null) {
-      throw new Error(`No runtime job found for "${jobId}".`);
+      throw new ValidationError(`No runtime job found for "${jobId}".`);
     }
     if (!allowedStatuses.has(entry.status) || entry.env_id.trim() === "") {
-      throw new Error(`Runtime job "${jobId}" is not available for this command.`);
+      throw new ValidationError(`Runtime job "${jobId}" is not available for this command.`);
     }
     return entry;
   }
@@ -44,18 +45,21 @@ export async function resolveJob(
     .filter((entry) => allowedStatuses.has(entry.status) && entry.env_id.trim() !== "")
     .sort(compareLatestFirst);
 
-  if (candidates.length === 1) {
-    return candidates[0];
+  const [newest, runnerUp] = candidates;
+  if (newest === undefined) {
+    throw new ValidationError("No detached runtime jobs match this command.");
+  }
+  if (runnerUp === undefined || isStrictlyNewer(newest, runnerUp)) {
+    return newest;
   }
 
-  if (candidates.length === 0) {
-    throw new Error("No detached runtime jobs match this command.");
-  }
-
-  throw new Error(
+  const shown = candidates.slice(0, 5);
+  const hidden = candidates.length - shown.length;
+  throw new ValidationError(
     [
       "More than one detached runtime job matches this command. Pass a job id.",
-      ...candidates.map((entry) => `- ${entry.id} ${entry.tool} ${entry.status} ${entry.started_at}`)
+      ...shown.map((entry) => `- ${entry.id} ${entry.tool} ${entry.status} ${entry.started_at}`),
+      ...(hidden > 0 ? [`and ${hidden} more - run "poe-code runtime jobs ls" to see them all.`] : [])
     ].join("\n")
   );
 }
@@ -230,6 +234,12 @@ export async function waitForGracefulStop(
 
 function compareLatestFirst(left: JobEntry, right: JobEntry): number {
   return Date.parse(right.started_at) - Date.parse(left.started_at);
+}
+
+function isStrictlyNewer(left: JobEntry, right: JobEntry): boolean {
+  const leftStart = Date.parse(left.started_at);
+  const rightStart = Date.parse(right.started_at);
+  return Number.isFinite(leftStart) && Number.isFinite(rightStart) && leftStart > rightStart;
 }
 
 function sleep(ms: number): Promise<"timeout"> {

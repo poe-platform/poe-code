@@ -893,6 +893,28 @@ describe("dockerExecutionEnvFactory", () => {
     );
   });
 
+  it("reports an unreachable container as lost instead of running", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 1, stderr: ["No such container: container-id\n"] },
+      { exitCode: 1, stderr: ["No such container: container-id\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node", "app.js"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    await expect(job.status()).resolves.toBe("lost");
+    await expect(job.wait()).resolves.toEqual({ exitCode: 1 });
+  });
+
   it("rejects malformed attached detached command completion markers", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["42abc\n"] },

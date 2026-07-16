@@ -1306,7 +1306,7 @@ describe("harness command", () => {
   it("fails new when the template kind is missing", async () => {
     await expect(
       runHarnessCommand(["--yes", "harness", "new", "missing", "example"])
-    ).rejects.toThrow(/unknown harness template/i);
+    ).rejects.toThrow(/value 'missing' is invalid for argument 'kind'/);
   });
 
   it("scaffolds a new pair from a built-in template", async () => {
@@ -1494,7 +1494,7 @@ describe("harness command", () => {
   it("names the available kinds when the template kind is unknown", async () => {
     await expect(
       runHarnessCommand(["--yes", "harness", "new", "safejs", "example"])
-    ).rejects.toThrow(/Unknown harness template "safejs"\..*demo/s);
+    ).rejects.toThrow(/value 'safejs' is invalid for argument 'kind'\..*Allowed choices are .*demo/s);
   });
 
   it("prints the run command for the pair that new created", async () => {

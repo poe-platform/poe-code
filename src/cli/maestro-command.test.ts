@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CommanderError } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
 
@@ -138,11 +137,8 @@ describe("maestro command", () => {
   ])("rejects invalid positive integer option %s %s", async (flag, value) => {
     const program = createTestProgram();
 
-    await expect(program.parseAsync(["node", "cli", "maestro", flag, value])).rejects.toMatchObject(
-      {
-        exitCode: 1,
-        code: "commander.invalidArgument"
-      }
+    await expect(program.parseAsync(["node", "cli", "maestro", flag, value])).rejects.toThrow(
+      `Invalid ${flag} "${value}". Expected a positive integer.`
     );
     expect(runMaestroMock).not.toHaveBeenCalled();
   });
@@ -299,10 +295,9 @@ describe("maestro command", () => {
   it("requires task and transition for maestro tick", async () => {
     const program = createTestProgram();
 
-    await expect(program.parseAsync(["node", "cli", "maestro", "tick"])).rejects.toMatchObject({
-      exitCode: 1,
-      code: "commander.missingMandatoryOptionValue"
-    });
+    await expect(program.parseAsync(["node", "cli", "maestro", "tick"])).rejects.toThrow(
+      /--task <qualifiedId>[\s\S]*--transition <fromState:toState>/
+    );
     expect(runMaestroTickMock).not.toHaveBeenCalled();
   });
 
@@ -421,7 +416,7 @@ describe("maestro command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "maestro", "--log-level", "verbose"])
-    ).rejects.toBeInstanceOf(CommanderError);
+    ).rejects.toThrow(/Allowed choices are trace, debug, info, warn, error/);
     expect(runMaestroMock).not.toHaveBeenCalled();
   });
 });

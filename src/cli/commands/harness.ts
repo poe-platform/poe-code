@@ -1,6 +1,6 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import type { Command } from "commander";
+import { Argument, type Command } from "commander";
 import {
   discoverHarnesses,
   listBuiltinTemplates,
@@ -101,7 +101,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
   harness
     .command("new")
     .description("Scaffold a harness pair from a built-in template.")
-    .argument("<kind>", `Built-in template kind (${formatBuiltinKinds()})`)
+    .addArgument(new Argument("<kind>", "Built-in template kind").choices(builtinKinds()))
     .argument("<basename>", "New harness basename")
     .option("--dir <path>", "Output directory for the harness pair")
     .option("-y, --yes", "Accept defaults without prompting.")
@@ -571,7 +571,7 @@ async function executeHarnessNew(
 
   if (!template) {
     throw new ValidationError(
-      `Unknown harness template "${kind}". Available kinds: ${formatBuiltinKinds()}.`
+      `Unknown harness template "${kind}". Available kinds: ${builtinKinds().join(", ")}.`
     );
   }
 
@@ -764,10 +764,8 @@ function formatSearchedRoots(container: CliContainer, dir: string | undefined): 
     .join(", ");
 }
 
-function formatBuiltinKinds(): string {
-  return listBuiltinTemplates()
-    .map((template) => template.kind)
-    .join(", ");
+function builtinKinds(): string[] {
+  return listBuiltinTemplates().map((template) => template.kind);
 }
 
 // `harness new --dir <path>` writes `<path>/<basename>.md`, so each root can hold pairs

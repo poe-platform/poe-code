@@ -1,5 +1,6 @@
 import { basename, join } from "node:path";
 import { Command, Help, InvalidArgumentError, Option } from "commander";
+import { interceptCommanderInputErrors } from "./commander-input-errors.js";
 import type { CommandNode, Group } from "toolcraft";
 import { S, type Static } from "toolcraft-schema";
 import { runCLI } from "toolcraft/cli";
@@ -774,9 +775,16 @@ export function createProgram(dependencies: CliDependencies): Command {
 
   interceptUnknownHelpPaths(program, container);
 
-  if (dependencies.exitOverride ?? true) {
-    applyExitOverride(program);
-  }
+  // Help and version exits are not errors: callers that asked for exitOverride
+  // see Commander's own error, the real CLI keeps Commander's process exit.
+  interceptCommanderInputErrors(
+    program,
+    (dependencies.exitOverride ?? true)
+      ? (error) => {
+          throw error;
+        }
+      : (error) => process.exit(error.exitCode)
+  );
 
   if (dependencies.suppressCommanderOutput) {
     suppressCommanderOutput(program);
@@ -974,13 +982,6 @@ function bootstrapProgram(container: CliContainer): Command {
 }
 
 export type { CliDependencies };
-
-function applyExitOverride(command: Command): void {
-  command.exitOverride();
-  for (const child of command.commands) {
-    applyExitOverride(child);
-  }
-}
 
 function suppressCommanderOutput(command: Command): void {
   command.configureOutput({

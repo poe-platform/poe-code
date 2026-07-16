@@ -2,7 +2,8 @@ import path from "node:path";
 import * as fs from "node:fs/promises";
 import { execSync } from "node:child_process";
 import parseDuration from "parse-duration";
-import type { Command } from "commander";
+import { Option, type Command } from "commander";
+import { listAgentsWithCapability } from "@poe-code/agent-defs";
 import { confirmOrCancel } from "toolcraft-design";
 import { DEFAULT_QUERY_BUDGET_TOKENS, defaultQueryBudget } from "@poe-code/poe-code-config";
 import {
@@ -26,6 +27,15 @@ import {
   resolveCommandFlags,
   shlexQuote
 } from "./shared.js";
+
+function memoryInstallAgents(): string[] {
+  return [
+    ...new Set([
+      ...listAgentsWithCapability("skill", { includeAliases: true }),
+      ...listAgentsWithCapability("mcp", { includeAliases: true })
+    ])
+  ];
+}
 
 async function resolveRoot(container: CliContainer): Promise<string> {
   return resolveConfiguredMemoryRoot({
@@ -462,7 +472,14 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
   memory
     .command("install")
     .description("Install the memory skill and MCP server configuration.")
-    .requiredOption("--agent <agent>", "Target agent")
+    // The skill and the MCP server support different agents, and --skill-only /
+    // --mcp-only ask for one of them, so every agent with either capability is
+    // accepted here; installMemory reports a real capability gap.
+    .addOption(
+      new Option("--agent <agent>", "Target agent")
+        .choices(memoryInstallAgents())
+        .makeOptionMandatory()
+    )
     .option("--global", "Install skill globally")
     .option("--skill-only", "Install only the skill")
     .option("--mcp-only", "Configure only the MCP server")

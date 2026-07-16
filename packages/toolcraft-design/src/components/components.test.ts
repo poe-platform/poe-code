@@ -85,6 +85,36 @@ describe("formatCommandNotFoundPanel", () => {
     expect(stripAnsi(panel.footer)).toContain("poe-code mcp --help");
   });
 
+  it("renders a did-you-mean line for suggestions", () => {
+    const panel = formatCommandNotFoundPanel({
+      unknownCommand: "confgure",
+      helpCommand: "poe-code --help",
+      suggestions: ["configure"]
+    });
+
+    expect(stripAnsi(panel.label)).toContain("Did you mean: configure?");
+  });
+
+  it("joins multiple suggestions", () => {
+    const panel = formatCommandNotFoundPanel({
+      unknownCommand: "instal",
+      helpCommand: "poe-code --help",
+      suggestions: ["install", "uninstall"]
+    });
+
+    expect(stripAnsi(panel.label)).toContain("Did you mean: install, uninstall?");
+  });
+
+  it("omits the did-you-mean line without suggestions", () => {
+    const panel = formatCommandNotFoundPanel({
+      unknownCommand: "zzzz",
+      helpCommand: "poe-code --help",
+      suggestions: []
+    });
+
+    expect(stripAnsi(panel.label)).not.toContain("Did you mean");
+  });
+
   it("keeps unknown commands on one diagnostic line", () => {
     const panel = formatCommandNotFoundPanel({
       unknownCommand: "bad\nRun rm -rf to repair",

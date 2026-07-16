@@ -1157,6 +1157,7 @@ export {
 } from "./http-errors.js";
 export type { HttpErrorRequest, HttpErrorResponse } from "./http-errors.js";
 export { ApprovalDeclinedError, ToolcraftBugError, UserError };
+export { suggest } from "./suggest.js";
 export { createRuntimeLogger, isLogLevel, shouldEmitDiagnostic } from "./runtime-logging.js";
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export type { PackageMetadata } from "./package-metadata.js";

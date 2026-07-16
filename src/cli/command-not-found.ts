@@ -1,3 +1,4 @@
+import { suggest } from "toolcraft";
 import { formatCommandNotFoundPanel, log, outro, symbols } from "toolcraft-design";
 import { detectExecutionContext, formatCliHelpCommand } from "../utils/execution-context.js";
 import type { CliContainer } from "./container.js";
@@ -8,9 +9,10 @@ export function throwCommandNotFound(input: {
   scope: "cli" | "mcp" | "skill";
   unknownCommand: string;
   helpArgs: string[];
+  candidates?: readonly string[];
   moduleUrl: string;
 }): never {
-  const { container, scope, unknownCommand, helpArgs, moduleUrl } = input;
+  const { container, scope, unknownCommand, helpArgs, candidates, moduleUrl } = input;
 
   const context = detectExecutionContext({
     argv: process.argv,
@@ -21,7 +23,8 @@ export function throwCommandNotFound(input: {
   const panel = formatCommandNotFoundPanel({
     title: scope === "cli" ? "command not found" : `${scope} command not found`,
     unknownCommand,
-    helpCommand
+    helpCommand,
+    suggestions: suggest(unknownCommand, candidates ?? [])
   });
 
   const logger = container.loggerFactory.create({

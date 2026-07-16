@@ -4,6 +4,7 @@ import type { Command } from "commander";
 import {
   discoverHarnesses,
   listBuiltinTemplates,
+  MissingPairError,
   resolvePair,
   runHarnessPair,
   type HarnessImportMeta,
@@ -48,6 +49,7 @@ import {
 
 type HarnessRunOptions = {
   agent?: string;
+  dir?: string;
   fix?: boolean;
   mode?: string;
   model?: string;
@@ -78,6 +80,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
       .command("run")
       .description("Run a harness pair.")
       .argument("[md-paths...]", "Paths to harness .md files to run sequentially")
+      .option("--dir <path>", "Directory to search for harness pairs when no md-path is given.")
       .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
       .option("--snapshot-path <path>", "File to write/read harness snapshots.")
       .option("--resume", "Resume from the snapshot file when it exists.")
@@ -98,7 +101,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
   harness
     .command("new")
     .description("Scaffold a harness pair from a built-in template.")
-    .argument("<kind>", "Built-in template kind")
+    .argument("<kind>", `Built-in template kind (${formatBuiltinKinds()})`)
     .argument("<basename>", "New harness basename")
     .option("--dir <path>", "Output directory for the harness pair")
     .option("-y, --yes", "Accept defaults without prompting.")
@@ -109,8 +112,9 @@ export function registerHarnessCommand(program: Command, container: CliContainer
   harness
     .command("list")
     .description("List discovered harness pairs.")
-    .action(async () => {
-      await executeHarnessList(program, container);
+    .option("--dir <path>", "Additional directory to search for harness pairs.")
+    .action(async (options: { dir?: string }) => {
+      await executeHarnessList(program, container, options.dir);
     });
 }
 
@@ -124,7 +128,7 @@ async function executeHarnessRun(
   const resources = createExecutionResources(container, flags, "harness:run");
   const selectedPath = mdPath
     ? path.resolve(container.env.cwd, mdPath)
-    : (await resolveDiscoveredHarness(container, flags.assumeYes)).mdPath;
+    : (await resolveDiscoveredHarness(container, options.dir, flags.assumeYes)).mdPath;
   if (flags.dryRun) {
     await resolvePair(selectedPath, container.fs);
     resources.logger.dryRun(
@@ -566,7 +570,9 @@ async function executeHarnessNew(
   resources.logger.intro("harness new");
 
   if (!template) {
-    throw new ValidationError(`Unknown harness template "${kind}".`);
+    throw new ValidationError(
+      `Unknown harness template "${kind}". Available kinds: ${formatBuiltinKinds()}.`
+    );
   }
 
   if (
@@ -615,6 +621,7 @@ async function executeHarnessNew(
     success: `Created harness pair at ${formatDisplayPath(container, resolvedDir)}`,
     dry: `Would create harness pair at ${formatDisplayPath(container, resolvedDir)}`
   });
+  resources.logger.info(`Next: poe-code harness run ${formatDisplayPath(container, mdPath)}`);
   resources.context.finalize();
 }
 
@@ -647,15 +654,21 @@ async function tryUnlinkHarnessScaffoldFile(
   await fs.unlink(filePath).catch(() => undefined);
 }
 
-async function executeHarnessList(program: Command, container: CliContainer): Promise<void> {
+async function executeHarnessList(
+  program: Command,
+  container: CliContainer,
+  dir: string | undefined
+): Promise<void> {
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, "harness:list");
 
   resources.logger.intro("harness list");
 
-  const pairs = await discoverProjectThenUserHarnesses(container);
+  const pairs = await discoverProjectThenUserHarnesses(container, dir);
   if (pairs.length === 0) {
-    resources.logger.info("No harness pairs found.");
+    resources.logger.info(
+      `No harness pairs found in ${formatSearchedRoots(container, dir)}. Scaffold one with poe-code harness new <kind> <basename>, or pass --dir <path> to search another directory.`
+    );
     return;
   }
 
@@ -692,12 +705,15 @@ function resolveHarnessFlags(
 
 async function resolveDiscoveredHarness(
   container: CliContainer,
+  dir: string | undefined,
   assumeYes: boolean
 ): Promise<HarnessPairWithLocation> {
-  const pairs = await discoverProjectThenUserHarnesses(container);
+  const pairs = await discoverProjectThenUserHarnesses(container, dir);
 
   if (pairs.length === 0) {
-    throw new ValidationError("No harness pairs found.");
+    throw new ValidationError(
+      `No harness pairs found in ${formatSearchedRoots(container, dir)}. Pass a path (poe-code harness run path/to/harness.md), search another directory with --dir <path>, or scaffold a pair with poe-code harness new <kind> <basename>.`
+    );
   }
 
   if (pairs.length === 1) {
@@ -734,20 +750,69 @@ async function resolveDiscoveredHarness(
   return pair;
 }
 
-async function discoverProjectThenUserHarnesses(
-  container: CliContainer
-): Promise<HarnessPairWithLocation[]> {
+function harnessDiscoveryRoots(container: CliContainer, dir: string | undefined): string[] {
   const roots = [
     path.join(container.env.cwd, ".poe-code", "harnesses"),
     path.join(container.env.homeDir, ".poe-code", "harnesses")
   ];
+  return dir === undefined ? roots : [path.resolve(container.env.cwd, dir), ...roots];
+}
+
+function formatSearchedRoots(container: CliContainer, dir: string | undefined): string {
+  return harnessDiscoveryRoots(container, dir)
+    .map((root) => formatDisplayPath(container, root))
+    .join(", ");
+}
+
+function formatBuiltinKinds(): string {
+  return listBuiltinTemplates()
+    .map((template) => template.kind)
+    .join(", ");
+}
+
+// `harness new --dir <path>` writes `<path>/<basename>.md`, so each root can hold pairs
+// directly as well as in the `<root>/<basename>/<basename>.md` layout discoverHarnesses scans.
+async function discoverPairsDirectlyIn(
+  container: CliContainer,
+  root: string
+): Promise<HarnessPair[]> {
+  let entries: string[];
+  try {
+    entries = await container.fs.readdir(root);
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT") || hasErrorCode(error, "ENOTDIR")) {
+      return [];
+    }
+    throw error;
+  }
+
+  const pairs: HarnessPair[] = [];
+  for (const entry of entries.filter((name) => name.endsWith(".md")).sort()) {
+    try {
+      pairs.push(
+        await resolvePair(path.join(root, entry), container.fs as Parameters<typeof resolvePair>[1])
+      );
+    } catch (error) {
+      if (error instanceof MissingPairError) {
+        continue;
+      }
+      throw error;
+    }
+  }
+  return pairs;
+}
+
+async function discoverProjectThenUserHarnesses(
+  container: CliContainer,
+  dir: string | undefined
+): Promise<HarnessPairWithLocation[]> {
   const discovered: HarnessPairWithLocation[] = [];
 
-  for (const root of roots) {
-    const pairs = await discoverHarnesses(
-      root,
-      container.fs as Parameters<typeof discoverHarnesses>[1]
-    );
+  for (const root of harnessDiscoveryRoots(container, dir)) {
+    const pairs = [
+      ...(await discoverHarnesses(root, container.fs as Parameters<typeof discoverHarnesses>[1])),
+      ...(await discoverPairsDirectlyIn(container, root))
+    ];
     for (const pair of pairs) {
       const stat = await container.fs.stat(pair.mdPath);
       discovered.push({

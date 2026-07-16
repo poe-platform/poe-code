@@ -1470,12 +1470,65 @@ describe("harness command", () => {
     ).resolves.toBe("# Existing\n");
   });
 
-  it("lists empty discovery results", async () => {
+  it("lists empty discovery results with the searched roots", async () => {
     const logs: string[] = [];
 
     await runHarnessCommand(["harness", "list"], logs);
 
-    expect(logs.join("\n")).toContain("No harness pairs found.");
+    const output = logs.join("\n");
+    expect(output).toContain("No harness pairs found");
+    expect(output).toContain(".poe-code/harnesses");
+    expect(output).toContain("~/.poe-code/harnesses");
+  });
+
+  it("documents the built-in template kinds in new help", () => {
+    const program = createBaseProgram();
+    registerHarnessCommand(program, createContainer());
+    const newCommand = program.commands
+      .find((command) => command.name() === "harness")
+      ?.commands.find((command) => command.name() === "new");
+
+    expect(newCommand?.helpInformation()).toContain("demo");
+  });
+
+  it("names the available kinds when the template kind is unknown", async () => {
+    await expect(
+      runHarnessCommand(["--yes", "harness", "new", "safejs", "example"])
+    ).rejects.toThrow(/Unknown harness template "safejs"\..*demo/s);
+  });
+
+  it("prints the run command for the pair that new created", async () => {
+    const logs: string[] = [];
+
+    await runHarnessCommand(["harness", "new", "demo", "demo4", "--dir", "/tmp/h4"], logs);
+
+    expect(logs.join("\n")).toContain("harness run /tmp/h4/demo4.md");
+  });
+
+  it("lists a harness pair created in an explicit --dir", async () => {
+    const logs: string[] = [];
+    await runHarnessCommand(["harness", "new", "demo", "demo4", "--dir", "/tmp/h4"]);
+
+    await runHarnessCommand(["harness", "list", "--dir", "/tmp/h4"], logs);
+
+    expect(logs.join("\n")).toContain("demo4");
+  });
+
+  it("runs a harness discovered from an explicit --dir", async () => {
+    await runHarnessCommand(["harness", "new", "demo", "demo4", "--dir", "/tmp/h4"]);
+
+    await runHarnessCommand(["--yes", "harness", "run", "--dir", "/tmp/h4"]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/tmp/h4/demo4.md",
+      expect.objectContaining({ modulesFor: expect.any(Function) })
+    );
+  });
+
+  it("explains how to supply a harness when run finds no pairs", async () => {
+    await expect(runHarnessCommand(["--yes", "harness", "run"])).rejects.toThrow(
+      /No harness pairs found.*\.poe-code\/harnesses.*harness new/s
+    );
   });
 
   it("lists multiple discovered harness pairs", async () => {

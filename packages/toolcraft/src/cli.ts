@@ -4083,11 +4083,11 @@ function isHumanInLoopPending(result: unknown): result is HumanInLoopPending {
   );
 }
 
-function renderHumanInLoopPending(pending: HumanInLoopPending): void {
+function renderHumanInLoopPending(pending: HumanInLoopPending, rootUsageName: string): void {
   process.stdout.write(
     `✓ Queued for human approval (id: ${pending.approvalId})\n` +
       `  Message: ${pending.message}\n` +
-      `  Track:   toolcraft approvals show ${pending.approvalId}\n`
+      `  Track:   ${rootUsageName} approvals show --approval-id ${pending.approvalId}\n`
   );
 }
 
@@ -5104,6 +5104,7 @@ function getResolvedFlags(command: CommanderCommand): ResolvedFlags {
 
 async function executeCommand<TServices extends object>(
   state: ExecutionState<TServices>,
+  rootUsageName: string,
   services: TServices,
   requirementOptions: CommandRequirementOptions,
   runtimeFetch: typeof globalThis.fetch,
@@ -5312,7 +5313,7 @@ async function executeCommand<TServices extends object>(
       }
 
       if (isHumanInLoopPending(result)) {
-        renderHumanInLoopPending(result);
+        renderHumanInLoopPending(result, rootUsageName);
         return;
       }
 
@@ -6249,6 +6250,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       resolvedCommandPath = formatCliCommandPath(state.commandPath);
       await executeCommand(
         state,
+        rootUsageName,
         servicesWithBuiltIns,
         requirementOptions,
         runtimeFetch,

@@ -159,21 +159,30 @@ describe("standalone package publish metadata", () => {
     expect(rootPackage.files).toContain("packages/superintendent/dist");
   });
 
-  it("publishes root tiny test-server bins with package metadata", () => {
+  it("publishes only the supported bins", () => {
     const rootPackage = readPackageJson("package.json");
 
-    expect(rootPackage.bin?.["tiny-oauth-test-server"]).toBe(
-      "packages/tiny-oauth-test-server/dist/cli.js"
-    );
-    expect(rootPackage.bin?.["tiny-stdio-mcp-test-server"]).toBe(
-      "packages/tiny-stdio-mcp-test-server/dist/cli.js"
-    );
-    expect(rootPackage.files).toEqual(
+    expect(Object.keys(rootPackage.bin ?? {}).sort()).toEqual([
+      "poe",
+      "poe-agent",
+      "poe-code",
+      "poe-superintendent-mcp"
+    ]);
+  });
+
+  it("keeps dev-only tiny test servers out of the published package", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.files).not.toEqual(
       expect.arrayContaining([
         "packages/tiny-oauth-test-server/package.json",
-        "packages/tiny-stdio-mcp-test-server/package.json"
+        "packages/tiny-oauth-test-server/dist",
+        "packages/tiny-stdio-mcp-test-server/package.json",
+        "packages/tiny-stdio-mcp-test-server/dist"
       ])
     );
+    expect(rootPackage.devDependencies?.["tiny-oauth-test-server"]).toBe("*");
+    expect(rootPackage.devDependencies?.["tiny-stdio-mcp-test-server"]).toBe("*");
   });
 
   it("brands the sandboxed JavaScript package as SafeJS", () => {

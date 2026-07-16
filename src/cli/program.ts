@@ -60,6 +60,9 @@ import {
 /** Shared by the commander and toolcraft help renderers so their titles cannot drift apart. */
 const POE_HELP_TITLE_PREFIX = "Poe";
 
+/** The one product tagline: the root command description and the help body render it. */
+const POE_TAGLINE = "Configure coding agents to use the Poe API.";
+
 function formatCommandHeader(cmd: Command): string {
   const parts: string[] = [];
   let current: Command | null = cmd;
@@ -244,7 +247,7 @@ function formatHelpText(input: {
   return [
     text.heading(input.heading),
     "",
-    "Configure coding agents to use the Poe API.",
+    POE_TAGLINE,
     "",
     `${text.section("Usage:")} ${text.usageCommand(input.usageCommand)} ${text.argument("<command> [...args]")}`,
     "",
@@ -793,6 +796,7 @@ function interceptUnknownHelpPaths(program: Command, container: CliContainer): v
           scope: "cli",
           unknownCommand: rootToken,
           helpArgs: ["--help"],
+          candidates: commandCandidates(program),
           moduleUrl: import.meta.url
         });
       }
@@ -809,6 +813,7 @@ function interceptUnknownHelpPaths(program: Command, container: CliContainer): v
             scope: rootToken,
             unknownCommand: subcommandToken,
             helpArgs: [rootToken, "--help"],
+            candidates: commandCandidates(group),
             moduleUrl: import.meta.url
           });
         }
@@ -822,6 +827,10 @@ function findCommand(parent: Command, name: string): Command | undefined {
   return parent.commands.find(
     (command) => command.name() === name || command.aliases().includes(name)
   );
+}
+
+function commandCandidates(parent: Command): string[] {
+  return parent.commands.flatMap((command) => [command.name(), ...command.aliases()]);
 }
 
 function bootstrapProgram(container: CliContainer): Command {
@@ -843,7 +852,7 @@ function bootstrapProgram(container: CliContainer): Command {
 
   program
     .name("poe-code")
-    .description("Configure Poe API integrations for local developer tooling.")
+    .description(POE_TAGLINE)
     .option("-y, --yes", "Accept defaults without prompting.")
     .option("--dry-run", "Simulate commands without writing changes.")
     .option("--verbose", "Show verbose logs.")
@@ -952,6 +961,7 @@ function bootstrapProgram(container: CliContainer): Command {
         scope: "cli",
         unknownCommand: args.at(0) ?? "",
         helpArgs: ["--help"],
+        candidates: commandCandidates(program),
         moduleUrl: import.meta.url
       });
     }

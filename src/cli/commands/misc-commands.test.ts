@@ -835,6 +835,23 @@ describe("root command", () => {
     expect(plainOutput).not.toContain("unconfigure<agent>");
   });
 
+  it("describes the root program with the same tagline the help body renders", async () => {
+    const plainOutput = await renderHelp([]);
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test",
+        variables: {}
+      },
+      logger: () => {}
+    });
+
+    expect(program.description()).toBe("Configure coding agents to use the Poe API.");
+    expect(plainOutput).toContain(program.description());
+  });
+
   it("omits the raw [command] placeholder from parent command help usage", async () => {
     const usageHelp = await renderHelp(["usage", "--help"]);
     expect(usageHelp).toContain("Usage: poe-code usage [options]");
@@ -1229,6 +1246,64 @@ describe("root command", () => {
     expect(plainLogger).toContain("Unknown command:");
     expect(plainLogger).toContain("nope");
     expect(plainLogger).toContain(help);
+  });
+
+  it.each([
+    { args: ["confgure"], expected: "Did you mean: configure?" },
+    { args: ["spwn"], expected: "Did you mean: spawn?" }
+  ])("suggests registered root commands for typos: $args", async ({ args, expected }) => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+    let loggerOutput = "";
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", ...args])).rejects.toBeInstanceOf(SilentError);
+
+    expect(stripAnsi(loggerOutput)).toContain(expected);
+  });
+
+  it("scopes suggestions to sibling subcommands of the group", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+    let loggerOutput = "";
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "instal", "--help"])
+    ).rejects.toBeInstanceOf(SilentError);
+
+    expect(stripAnsi(loggerOutput)).toContain("Did you mean: install?");
+  });
+
+  it("does not suggest unrelated root commands inside a group", async () => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+    let loggerOutput = "";
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "spwn", "--help"])
+    ).rejects.toBeInstanceOf(SilentError);
+
+    expect(stripAnsi(loggerOutput)).not.toContain("Did you mean");
   });
 
   it("uses the development invocation in help hints when running via npm run dev", async () => {

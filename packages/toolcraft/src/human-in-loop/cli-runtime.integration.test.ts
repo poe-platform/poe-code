@@ -1,8 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
+import { openTaskList } from "@poe-code/task-list";
+import type { TaskList, TaskListFs } from "@poe-code/task-list";
+import { createFsFromVolume, Volume } from "memfs";
 import { defineCommand, defineGroup } from "../index.js";
 import { createHumanInLoop } from "./runtime.js";
+import { approvalStateMachine } from "./state-machine.js";
+
+const spawnApprovalRunnerMock = vi.hoisted(() => vi.fn());
+
+vi.mock("./spawn.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./spawn.js")>()),
+  spawnApprovalRunner: spawnApprovalRunnerMock
+}));
 
 const loggerState = {
   error: [] as string[]
@@ -62,9 +73,42 @@ function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
   return stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
 }
 
+async function openApprovalTaskList(): Promise<TaskList> {
+  return openTaskList({
+    type: "yaml-file",
+    path: "/repo/approvals.yaml",
+    create: true,
+    fs: createFsFromVolume(Volume.fromJSON({}, "/")).promises as unknown as TaskListFs,
+    stateMachine: approvalStateMachine
+  });
+}
+
+function createAsyncApprovalRoot(): ReturnType<typeof defineGroup> {
+  return defineGroup({
+    name: "toolcraft",
+    children: [
+      defineGroup({
+        name: "deploy",
+        children: [
+          defineCommand({
+            name: "prod",
+            params: S.Object({}),
+            humanInLoop: {
+              mode: "async",
+              message: ({ commandPath }) => `Queue ${commandPath}?`
+            },
+            handler: vi.fn(async () => "should not run")
+          })
+        ]
+      })
+    ]
+  });
+}
+
 describe("human-in-loop CLI runtime", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    spawnApprovalRunnerMock.mockReset();
     loggerState.error.length = 0;
     process.argv = [...originalArgv];
     process.exitCode = undefined;
@@ -203,5 +247,39 @@ describe("human-in-loop CLI runtime", () => {
     expect(loggerState.error).toContain("Declined.");
     expect(process.exitCode).toBe(1);
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("tracks queued approvals with the host usage name provided by the caller", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
+    await runCLI(createAsyncApprovalRoot(), {
+      controls: { yes: true },
+      rootUsageName: "poe-code",
+      humanInLoop: createHumanInLoop({
+        provider: { id: "fake", requestApproval: vi.fn(async () => ({ outcome: "approved" })) },
+        taskList: await openApprovalTaskList()
+      })
+    });
+
+    const stdout = readStdout(stdoutWrite);
+    expect(stdout).toContain("Queued for human approval");
+    expect(stdout).toMatch(/Track: {3}poe-code approvals show --approval-id \S+/);
+    expect(stdout).not.toContain("toolcraft approvals show");
+  });
+
+  it("tracks queued approvals with the program name inferred from argv", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "/usr/local/bin/my-cli", "deploy", "prod", "--yes"];
+    await runCLI(createAsyncApprovalRoot(), {
+      controls: { yes: true },
+      humanInLoop: createHumanInLoop({
+        provider: { id: "fake", requestApproval: vi.fn(async () => ({ outcome: "approved" })) },
+        taskList: await openApprovalTaskList()
+      })
+    });
+
+    expect(readStdout(stdoutWrite)).toMatch(/Track: {3}my-cli approvals show --approval-id \S+/);
   });
 });

@@ -29,6 +29,7 @@ poe-code plan markdown-reader-mcp
 ## Configuration Options
 
 - `file`: markdown file path to read.
+- `depth`: optional limit for `readMarkdown`, counted in levels of numbered sections rather than raw heading levels. Numbering starts at the shallowest numbered heading, so `depth: 1` lists the top-level sections of a document whose body starts at `##` beneath a single `#` title.
 - `section`: section id or heading path for `readSection`.
 - `fs`: optional filesystem dependency for tests and embedded hosts.
 

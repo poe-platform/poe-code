@@ -112,15 +112,15 @@ describe("resolveSection", () => {
 
     expect(() => resolveSection(sections, "overview")).toThrowError(
       new UserError(
-        "no section matching \"overview\" (try 'read-markdown' to see the table of contents)"
+        'no section matching "overview" (try \'poe-code plan markdown-read\' to see the table of contents)'
       )
     );
   });
 
-  it("throws a UserError naming the missing id", () => {
+  it("throws a UserError naming the missing id and a real recovery command", () => {
     expect(() => resolveSection(sections, "missing")).toThrowError(
       new UserError(
-        "no section matching \"missing\" (try 'read-markdown' to see the table of contents)"
+        'no section matching "missing" (try \'poe-code plan markdown-read\' to see the table of contents)'
       )
     );
   });

@@ -7,7 +7,7 @@ const readParams = S.Object({
   file: S.String({ description: "Path to the markdown file", minLength: 1 }),
   depth: S.Optional(
     S.Number({
-      description: "Limit TOC to headings at depth <= n",
+      description: "Limit TOC to <n> levels of numbered sections",
       jsonType: "integer",
       minimum: 0
     })

@@ -31,6 +31,7 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
+import { UserError } from "toolcraft";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
 import { formatAgentCapabilityError, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
@@ -374,6 +375,23 @@ async function resolveSelectedPlan(options: {
   return matched;
 }
 
+// The markdown reader reports bad input as a toolcraft UserError, which the CLI
+// would otherwise render as an internal failure with an "Error:" prefix and a log
+// pointer. Re-throwing as ValidationError matches `plan view`'s clean not-found
+// output.
+async function readWithUserErrors<T>(read: () => Promise<T>): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    if (error instanceof UserError) {
+      throw new ValidationError(
+        `${error.message.charAt(0).toUpperCase()}${error.message.slice(1)}`
+      );
+    }
+    throw error;
+  }
+}
+
 function writeOutput(format: OutputOption, value: string): void {
   if (format === "terminal") {
     process.stdout.write(value.endsWith("\n") ? value : `${value}\n`);
@@ -635,6 +653,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .option("--output <format>", "Output format: terminal, md, or json")
+    .option("--include-content", "Include the full plan body in json output")
     .action(async function (this: Command, pathArg?: string) {
       const flags = resolveCommandFlags(program);
       const options = resolvePlanCommandOptions(this);
@@ -650,9 +669,9 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         assumeYes: flags.assumeYes,
         promptMessage: "Select a plan to view"
       });
-      const markdown = await loadPlanPreviewMarkdown(plan, container.fs);
 
       if (format === "json") {
+        const includeContent = this.opts<{ includeContent?: boolean }>().includeContent === true;
         writeOutput(
           format,
           JSON.stringify(
@@ -663,7 +682,9 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
               path: plan.path,
               title: plan.title,
               detail: plan.detail,
-              content: markdown
+              ...(includeContent
+                ? { content: await loadPlanPreviewMarkdown(plan, container.fs) }
+                : {})
             },
             null,
             2
@@ -672,6 +693,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         return;
       }
 
+      const markdown = await loadPlanPreviewMarkdown(plan, container.fs);
       const output = format === "markdown" ? markdown : renderMarkdown(markdown);
       writeOutput(format, output.trimEnd());
     });
@@ -680,15 +702,17 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .command("markdown-read")
     .description("Read a markdown file and print its table of contents.")
     .argument("<file>", "Markdown file")
-    .option("--depth <n>", "Limit the table of contents to headings at depth <= n")
+    .option("--depth <n>", "Limit the table of contents to <n> levels of numbered sections")
     .option("--output <format>", "Output format: terminal, md, or json")
     .action(async function (this: Command, file: string) {
       const options = this.opts<{ depth?: string; output?: string }>();
       const format = resolveOutputOption(options.output);
-      const result = await readMarkdown({
-        file,
-        depth: parseNonNegativeInt(options.depth, "depth")
-      });
+      const result = await readWithUserErrors(() =>
+        readMarkdown({
+          file,
+          depth: parseNonNegativeInt(options.depth, "depth")
+        })
+      );
 
       writeOutput(format, formatMarkdownReadOutput(result, format));
     });
@@ -703,11 +727,13 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .action(async function (this: Command, file: string, section: string) {
       const options = this.opts<{ includeChildren?: boolean; output?: string }>();
       const format = resolveOutputOption(options.output ?? "markdown");
-      const result = await readSection({
-        file,
-        section,
-        includeChildren: options.includeChildren
-      });
+      const result = await readWithUserErrors(() =>
+        readSection({
+          file,
+          section,
+          includeChildren: options.includeChildren
+        })
+      );
 
       writeOutput(format, formatMarkdownReadSectionOutput(result, format));
     });
@@ -715,6 +741,27 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
   plan
     .command("markdown-reader-mcp")
     .description("Run the standalone markdown reader MCP server.")
+    .addHelpText(
+      "after",
+      [
+        "",
+        "The server speaks MCP over stdio: it reads requests on stdin and writes replies",
+        "on stdout, staying in the foreground until the client disconnects. It exposes",
+        "two tools: `read` (frontmatter plus table of contents) and `read-section` (one",
+        "section by number or heading text).",
+        "",
+        "Register it with an MCP client:",
+        "",
+        "  {",
+        '    "mcpServers": {',
+        '      "markdown-reader": {',
+        '        "command": "poe-code",',
+        '        "args": ["plan", "markdown-reader-mcp"]',
+        "      }",
+        "    }",
+        "  }"
+      ].join("\n")
+    )
     .action(async () => {
       await runMarkdownReaderMcp();
     });

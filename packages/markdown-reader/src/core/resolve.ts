@@ -32,6 +32,6 @@ export function resolveSection(sections: Section[], id: string): Section {
   }
 
   throw new UserError(
-    `no section matching "${id}" (try 'read-markdown' to see the table of contents)`
+    `no section matching "${id}" (try 'poe-code plan markdown-read' to see the table of contents)`
   );
 }

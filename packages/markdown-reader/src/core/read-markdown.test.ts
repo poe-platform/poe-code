@@ -77,7 +77,7 @@ describe("readMarkdown", () => {
     `);
   });
 
-  it("filters the TOC by heading depth", async () => {
+  it("filters the TOC by numbered section level, not raw heading level", async () => {
     const readMarkdown = createReadMarkdown({
       fs: createMemFs({ "/repo/docs/simple.md": simpleFixture }),
       cwd: "/repo"
@@ -86,7 +86,43 @@ describe("readMarkdown", () => {
     await expect(readMarkdown({ file: "docs/simple.md", depth: 1 })).resolves.toEqual({
       file: "docs/simple.md",
       frontmatter: {},
-      sections: [{ depth: 1, number: null, title: "Simple Document" }]
+      sections: [
+        { depth: 2, number: "1", title: "First Section" },
+        { depth: 2, number: "2", title: "Second Section" }
+      ]
+    });
+  });
+
+  it("keeps nested sections out of the top level of the TOC", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: createMemFs({
+        "/repo/docs/nested.md": [
+          "# Title",
+          "",
+          "## Parent",
+          "",
+          "### Child",
+          "",
+          "## Sibling",
+          ""
+        ].join("\n")
+      }),
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/nested.md", depth: 1 })).resolves.toMatchObject({
+      sections: [
+        { number: "1", title: "Parent" },
+        { number: "2", title: "Sibling" }
+      ]
+    });
+
+    await expect(readMarkdown({ file: "docs/nested.md", depth: 2 })).resolves.toMatchObject({
+      sections: [
+        { number: "1", title: "Parent" },
+        { number: "1.1", title: "Child" },
+        { number: "2", title: "Sibling" }
+      ]
     });
   });
 

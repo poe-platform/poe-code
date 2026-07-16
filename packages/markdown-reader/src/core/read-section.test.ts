@@ -190,7 +190,7 @@ describe("readSection", () => {
 
     await expect(readSection({ file: "docs/empty.md", section: "1" })).rejects.toThrowError(
       new UserError(
-        'no section matching "1" (try \'read-markdown\' to see the table of contents)'
+        'no section matching "1" (try \'poe-code plan markdown-read\' to see the table of contents)'
       )
     );
 
@@ -198,7 +198,7 @@ describe("readSection", () => {
       readSection({ file: "docs/frontmatter-only.md", section: "1" })
     ).rejects.toThrowError(
       new UserError(
-        'no section matching "1" (try \'read-markdown\' to see the table of contents)'
+        'no section matching "1" (try \'poe-code plan markdown-read\' to see the table of contents)'
       )
     );
   });

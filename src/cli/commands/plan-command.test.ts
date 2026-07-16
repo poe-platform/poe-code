@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { stripVTControlCharacters } from "node:util";
+import { UserError } from "toolcraft";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
+import { isUserFacingError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
 
 const {
@@ -833,6 +835,175 @@ describe("plan command", () => {
     });
     expect(confirmOrCancelMock).not.toHaveBeenCalled();
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("omits the plan body from json output by default", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": [
+          "---",
+          "kind: pipeline",
+          "version: 1",
+          "tasks:",
+          "  - id: first",
+          "    title: First task",
+          "    prompt: Ship it",
+          "    status: done",
+          "---",
+          "",
+          "# Plan A body"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "view",
+      "docs/plans/plan-a.md",
+      "--output",
+      "json"
+    ]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    const parsed = JSON.parse(output);
+    expect(parsed).toEqual({
+      kind: "pipeline",
+      type: "Pipeline",
+      runner: "pipeline",
+      path: "docs/plans/plan-a.md",
+      title: expect.any(String),
+      detail: "1/1 done"
+    });
+    expect(parsed).not.toHaveProperty("content");
+  });
+
+  it("includes the plan body in json output with --include-content", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": [
+          "---",
+          "kind: pipeline",
+          "version: 1",
+          "tasks:",
+          "  - id: first",
+          "    title: First task",
+          "    prompt: Ship it",
+          "    status: done",
+          "---",
+          "",
+          "# Plan A body"
+        ].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "view",
+      "docs/plans/plan-a.md",
+      "--output",
+      "json",
+      "--include-content"
+    ]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(output).content).toContain("First task");
+  });
+
+  it("reports a missing markdown file the same way plan view reports a missing plan", async () => {
+    readMarkdownMock.mockRejectedValueOnce(new UserError("file not found: missing.md"));
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    const error = await program
+      .parseAsync(["node", "cli", "plan", "markdown-read", "missing.md"])
+      .then(
+        () => undefined,
+        (thrown: unknown) => thrown
+      );
+
+    expect(isUserFacingError(error)).toBe(true);
+    expect((error as Error).message).toBe("File not found: missing.md");
+  });
+
+  it("reports a missing section as a clean user error", async () => {
+    readSectionMock.mockRejectedValueOnce(
+      new UserError(
+        'no section matching "nope" (try \'poe-code plan markdown-read\' to see the table of contents)'
+      )
+    );
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    const error = await program
+      .parseAsync(["node", "cli", "plan", "markdown-read-section", "doc.md", "nope"])
+      .then(
+        () => undefined,
+        (thrown: unknown) => thrown
+      );
+
+    expect(isUserFacingError(error)).toBe(true);
+    expect((error as Error).message).toBe(
+      'No section matching "nope" (try \'poe-code plan markdown-read\' to see the table of contents)'
+    );
+  });
+
+  it("documents how to run and register the markdown reader MCP server", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    const mcpCommand = program.commands
+      .find((command) => command.name() === "plan")!
+      .commands.find((command) => command.name() === "markdown-reader-mcp")!;
+
+    const helpChunks: string[] = [];
+    mcpCommand.configureOutput({
+      writeOut: (chunk) => {
+        helpChunks.push(chunk);
+      }
+    });
+    mcpCommand.outputHelp();
+
+    const help = stripVTControlCharacters(helpChunks.join(""));
+
+    expect(help).toContain("stdio");
+    expect(help).toContain("poe-code plan markdown-reader-mcp");
+    expect(help).toContain("mcpServers");
   });
 
   it("reads markdown docs as a terminal TOC", async () => {

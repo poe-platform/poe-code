@@ -383,7 +383,7 @@ const maestroCommandSchema = S.Object({
   })
 });
 
-type MaestroCommandArgs = Static<typeof maestroCommandSchema>;
+type MaestroCommandArgs = Static<typeof maestroCommandSchema> & { config?: string };
 
 interface MaestroTickCommandArgs {
   task: string;
@@ -462,6 +462,15 @@ function readCommandTreeOption<T>(command: Command, optionName: string): T | und
   return undefined;
 }
 
+function assertPathIsNotOptionName(path: string, command: Command): void {
+  const named = command.options.find((option) => option.long === `--${path}`);
+  if (named !== undefined) {
+    throw new ValidationError(
+      `\`${path}\` is not a workflow path. Did you mean \`${named.long}\`?`
+    );
+  }
+}
+
 function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
   const unsupportedOptionNames = [
     "maxConcurrent",
@@ -492,6 +501,7 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
       maestroCommandSchema.shape.path.description ?? "Path to WORKFLOW.md",
       maestroCommandSchema.shape.path.default
     )
+    .option("--config <path>", "Alias for the [path] argument")
     .option(
       "-c, --max-concurrent <n>",
       maestroCommandSchema.shape.maxConcurrent.inner.description ??
@@ -525,17 +535,13 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         .default(maestroCommandSchema.shape.logLevel.default)
     )
     .action(async (path: string, options: Omit<MaestroCommandArgs, "path">, command: Command) => {
-      if (path === "tui") {
-        throw new ValidationError(
-          "`poe-code maestro tui` only accepts --config, --workflow, or --name."
-        );
-      }
+      assertPathIsNotOptionName(path, command);
       const mergedOptions = {
         ...options,
         ...command.optsWithGlobals()
       } as Omit<MaestroCommandArgs, "path">;
       await runMaestro({
-        workflowPath: path,
+        workflowPath: mergedOptions.config ?? path,
         maxConcurrent: mergedOptions.maxConcurrent,
         pollIntervalMs: mergedOptions.pollIntervalMs,
         list: mergedOptions.list,
@@ -589,9 +595,9 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         .choices(maestroCommandSchema.shape.logLevel.values.map(String))
         .default(maestroCommandSchema.shape.logLevel.default)
     )
-    .action(async (options: MaestroRunCommandArgs) => {
+    .action(async (options: MaestroRunCommandArgs, command: Command) => {
       await runMaestro({
-        workflowPath: options.config,
+        workflowPath: readCommandTreeOption<string>(command, "config"),
         name: options.name,
         maxConcurrent: options.maxConcurrent,
         pollIntervalMs: options.pollIntervalMs,
@@ -619,7 +625,7 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         task: options.task,
         transition: options.transition,
         list: options.list ?? readCommandTreeOption<string>(command, "list"),
-        configPath: options.config,
+        configPath: readCommandTreeOption<string>(command, "config"),
         name: options.name,
         dryRun: options.dryRun ?? readCommandTreeOption<boolean>(command, "dryRun"),
         onEvent: writeMaestroEventNdjson
@@ -630,18 +636,14 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
     .command("tui")
     .description("Open the Maestro interactive task explorer.")
     .option("--config <path>", "Path to WORKFLOW.md")
-    .option("--workflow <path>", "Path to WORKFLOW.md")
+    .option("--workflow <path>", "Alias for --config")
     .option("--name <id>", "Named workflow id")
     .action(
       async (options: { config?: string; workflow?: string; name?: string }, command: Command) => {
         assertNoUnsupportedOptionsForMaestroTui(command);
-        if (options.config !== undefined && options.workflow !== undefined) {
-          throw new ValidationError("Specify only one of --config or --workflow for Maestro TUI.");
-        }
+        const workflowPath = readCommandTreeOption<string>(command, "config") ?? options.workflow;
         await runMaestroTui({
-          ...(options.config === undefined && options.workflow === undefined
-            ? {}
-            : { workflowPath: options.config ?? options.workflow }),
+          ...(workflowPath === undefined ? {} : { workflowPath }),
           ...(options.name === undefined ? {} : { name: options.name })
         });
       }

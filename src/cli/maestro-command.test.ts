@@ -147,6 +147,29 @@ describe("maestro command", () => {
     expect(runMaestroMock).not.toHaveBeenCalled();
   });
 
+  it("accepts --config as an alias for the workflow path argument", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync(["node", "cli", "maestro", "--config", "custom/WORKFLOW.md"]);
+
+    expect(runMaestroMock).toHaveBeenCalledWith(
+      expect.objectContaining({ workflowPath: "custom/WORKFLOW.md" })
+    );
+  });
+
+  it.each([
+    ["dry-run", "--dry-run"],
+    ["yes", "--yes"],
+    ["log-level", "--log-level"]
+  ])("rejects positional %s that names an option with a hint", async (positional, flag) => {
+    const program = createTestProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "maestro", positional])
+    ).rejects.toThrow(`Did you mean \`${flag}\`?`);
+    expect(runMaestroMock).not.toHaveBeenCalled();
+  });
+
   it("registers tui as a maestro subcommand", () => {
     const program = createTestProgram();
 
@@ -302,6 +325,36 @@ describe("maestro command", () => {
     expect(runMaestroTuiMock).toHaveBeenCalledWith({
       workflowPath: "custom/WORKFLOW.md"
     });
+  });
+
+  it("treats --workflow as an alias of --config for the Maestro TUI", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "maestro",
+      "tui",
+      "--config",
+      "custom/WORKFLOW.md",
+      "--workflow",
+      "other/WORKFLOW.md"
+    ]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({ workflowPath: "custom/WORKFLOW.md" });
+  });
+
+  it("documents --workflow as an alias instead of duplicating the --config description", () => {
+    const program = createTestProgram();
+
+    const tuiCommand = program.commands
+      .find((command) => command.name() === "maestro")
+      ?.commands.find((command) => command.name() === "tui");
+    const descriptionOf = (long: string) =>
+      tuiCommand?.options.find((option) => option.long === long)?.description;
+
+    expect(descriptionOf("--config")).toBe("Path to WORKFLOW.md");
+    expect(descriptionOf("--workflow")).toBe("Alias for --config");
   });
 
   it("passes --name through maestro tui", async () => {

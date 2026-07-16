@@ -45,6 +45,7 @@ import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
 import { registerBraintrustCommand } from "./commands/braintrust.js";
+import { registerDoctorCommand } from "./commands/doctor.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
 import { registerWorktreeCommand } from "./commands/worktree.js";
@@ -900,6 +901,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerHarnessCommand(program, container);
   registerWorktreeCommand(program, container);
   registerBraintrustCommand(program, container);
+  registerDoctorCommand(program, container);
   registerTasksCommand(program, container);
   registerForwardedToolcraftCommand(
     program,

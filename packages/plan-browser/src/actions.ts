@@ -31,14 +31,32 @@ export function editFile(
   }
 }
 
-export function editPlan(
+export async function editPlan(
   absolutePath: string,
   options: {
     env?: Record<string, string | undefined>;
     spawnSync?: typeof nodeSpawnSync;
-  } = {}
-): void {
+    fs: Pick<ActionFs, "readFile">;
+  }
+): Promise<{ changed: boolean }> {
+  const before = await readContent(absolutePath, options.fs);
   editFile(absolutePath, options);
+  const after = await readContent(absolutePath, options.fs);
+  return { changed: before !== after };
+}
+
+async function readContent(
+  absolutePath: string,
+  fs: Pick<ActionFs, "readFile">
+): Promise<string | undefined> {
+  try {
+    return await fs.readFile(absolutePath, "utf8");
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT")) {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 async function archiveSelectedPlan(

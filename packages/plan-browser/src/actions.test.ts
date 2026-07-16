@@ -12,8 +12,15 @@ import {
 import type { ActionFs } from "./types.js";
 
 function createMemFs(files: Record<string, string> = {}): ActionFs {
+  return createMemVolume(files).fs;
+}
+
+function createMemVolume(files: Record<string, string> = {}): {
+  fs: ActionFs;
+  volume: InstanceType<typeof Volume>;
+} {
   const volume = Volume.fromJSON(files, "/");
-  return createFsFromVolume(volume).promises as unknown as ActionFs;
+  return { fs: createFsFromVolume(volume).promises as unknown as ActionFs, volume };
 }
 
 async function withObjectPrototypeProperties<T>(
@@ -230,17 +237,50 @@ describe("plan actions", () => {
     ).toThrow("spawn failed");
   });
 
-  it("keeps editPlan as a compatibility wrapper", () => {
-    const spawnSync = vi.fn();
-
-    editPlan("/repo/.poe-code/pipeline/plans/plan.yaml", {
-      env: { EDITOR: "code" },
-      spawnSync
+  it("opens the plan in the editor and reports a change", async () => {
+    const { fs, volume } = createMemVolume({
+      "/repo/.poe-code/pipeline/plans/plan.yaml": "kind: pipeline"
     });
+    const spawnSync = vi.fn(() => {
+      volume.writeFileSync(
+        "/repo/.poe-code/pipeline/plans/plan.yaml",
+        "kind: pipeline\nversion: 1"
+      );
+      return { status: 0 };
+    });
+
+    await expect(
+      editPlan("/repo/.poe-code/pipeline/plans/plan.yaml", {
+        env: { EDITOR: "code" },
+        spawnSync,
+        fs
+      })
+    ).resolves.toEqual({ changed: true });
 
     expect(spawnSync).toHaveBeenCalledWith("code", ["/repo/.poe-code/pipeline/plans/plan.yaml"], {
       stdio: "inherit"
     });
+  });
+
+  it("reports no change when the editor leaves the plan untouched", async () => {
+    const { fs } = createMemVolume({ "/repo/docs/plans/plan.md": "# Plan" });
+    const spawnSync = vi.fn(() => ({ status: 0 }));
+
+    await expect(
+      editPlan("/repo/docs/plans/plan.md", { env: { EDITOR: "true" }, spawnSync, fs })
+    ).resolves.toEqual({ changed: false });
+  });
+
+  it("reports a change when the editor removes the plan", async () => {
+    const { fs, volume } = createMemVolume({ "/repo/docs/plans/plan.md": "# Plan" });
+    const spawnSync = vi.fn(() => {
+      volume.unlinkSync("/repo/docs/plans/plan.md");
+      return { status: 0 };
+    });
+
+    await expect(
+      editPlan("/repo/docs/plans/plan.md", { env: { EDITOR: "code" }, spawnSync, fs })
+    ).resolves.toEqual({ changed: true });
   });
 
   it("falls back to vi when no editor env is set", () => {

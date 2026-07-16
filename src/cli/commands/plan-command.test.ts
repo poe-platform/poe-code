@@ -8,11 +8,13 @@ import { registerPlanCommand } from "./plan.js";
 
 const {
   introMock,
+  outroMock,
   selectMock,
   confirmOrCancelMock,
   isCancelMock
 } = vi.hoisted(() => ({
   introMock: vi.fn(),
+  outroMock: vi.fn(),
   selectMock: vi.fn(),
   confirmOrCancelMock: vi.fn().mockResolvedValue(true),
   isCancelMock: vi.fn(() => false)
@@ -25,7 +27,7 @@ const { readMarkdownMock, readSectionMock, runMarkdownReaderMcpMock } = vi.hoist
 }));
 
 const { editPlanMock } = vi.hoisted(() => ({
-  editPlanMock: vi.fn()
+  editPlanMock: vi.fn().mockResolvedValue({ changed: true })
 }));
 
 vi.mock("toolcraft-design", async (importOriginal) => {
@@ -33,6 +35,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   return {
     ...actual,
     intro: introMock,
+    outro: outroMock,
     select: selectMock,
     confirmOrCancel: confirmOrCancelMock,
     isCancel: isCancelMock
@@ -494,6 +497,71 @@ describe("plan command", () => {
 
     expect(editPlanMock).not.toHaveBeenCalled();
     expect(writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Would edit");
+  });
+
+  it("frames an applied plan edit through the design system", async () => {
+    editPlanMock.mockResolvedValue({ changed: true });
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]);
+
+    expect(editPlanMock).toHaveBeenCalledOnce();
+    expect(outroMock).toHaveBeenCalledWith(expect.stringContaining("Edited docs/plans/plan-a.md"));
+  });
+
+  it("reports no changes when the editor leaves the plan untouched", async () => {
+    editPlanMock.mockResolvedValue({ changed: false });
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]);
+
+    expect(outroMock).toHaveBeenCalledWith(expect.stringContaining("No changes"));
+    expect(outroMock).not.toHaveBeenCalledWith(expect.stringContaining("Edited"));
+  });
+
+  it("reports the edit change state as json", async () => {
+    editPlanMock.mockResolvedValue({ changed: false });
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "plan",
+      "edit",
+      "docs/plans/plan-a.md",
+      "--output",
+      "json"
+    ]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(stripVTControlCharacters(output))).toEqual({
+      action: "edit",
+      path: "docs/plans/plan-a.md",
+      changed: false
+    });
   });
 
   it("previews archiving a plan without moving its file", async () => {

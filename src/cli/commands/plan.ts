@@ -7,6 +7,7 @@ import {
   getTheme,
   intro,
   isCancel,
+  outro,
   promptText,
   renderMarkdown,
   renderTable,
@@ -466,14 +467,20 @@ async function executePlanAction(options: {
   }
 
   if (options.action === "edit") {
-    editPlan(plan.absolutePath, {
-      env: options.container.env.variables
+    const { changed } = await editPlan(plan.absolutePath, {
+      env: options.container.env.variables,
+      fs: options.container.fs
     });
+    const message = changed ? `Edited ${plan.path}` : `No changes to ${plan.path}`;
+    if (format === "terminal") {
+      outro(message);
+      return;
+    }
     writeOutput(
       format,
       format === "json"
-        ? JSON.stringify({ action: "edit", path: plan.path }, null, 2)
-        : `Edited ${plan.path}`
+        ? JSON.stringify({ action: "edit", path: plan.path, changed }, null, 2)
+        : message
     );
     return;
   }

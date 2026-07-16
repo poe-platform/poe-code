@@ -48,7 +48,7 @@ export function spinner(): SpinnerOptions {
 
       fallback = process.env.POE_NO_SPINNER === "1" || !process.stdout.isTTY;
       if (fallback) {
-        process.stdout.write(`${currentMessage}\n`);
+        process.stdout.write(`${color.gray("│")}  ${currentMessage}\n`);
         return;
       }
 

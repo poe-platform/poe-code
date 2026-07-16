@@ -468,7 +468,7 @@ describe("prompts/primitives/spinner", () => {
     expect(output).toContain("\r\u001b[K\x1b[32m◆\x1b[0m  Done\n");
   });
 
-  it("writes plain terminal start and stop lines when spinner fallback is enabled", () => {
+  it("writes framed terminal start and stop lines when spinner fallback is enabled", () => {
     process.env.POE_NO_SPINNER = "1";
 
     const output = captureStdout(() => {
@@ -480,10 +480,12 @@ describe("prompts/primitives/spinner", () => {
       });
     });
 
-    expect(output).toBe("Loading...\n\x1b[31m■\x1b[0m  Failed\n");
+    expect(output).toBe(
+      "\x1b[90m│\x1b[0m  Loading...\n\x1b[31m■\x1b[0m  Failed\n"
+    );
   });
 
-  it("writes plain terminal start and stop lines when stdout is not a tty", () => {
+  it("writes framed terminal start and stop lines when stdout is not a tty", () => {
     Object.defineProperty(process.stdout, "isTTY", {
       value: false,
       writable: true,
@@ -498,7 +500,9 @@ describe("prompts/primitives/spinner", () => {
       });
     });
 
-    expect(output).toBe("Loading...\n\x1b[32m◆\x1b[0m  Done\n");
+    expect(output).toBe(
+      "\x1b[90m│\x1b[0m  Loading...\n\x1b[32m◆\x1b[0m  Done\n"
+    );
   });
 
   it("writes markdown start and stop output", () => {

@@ -77,7 +77,7 @@ export function createLoggerFactory(
   let errorLogger: ErrorLogger | undefined;
 
   const infoSymbol = chalk.magenta("●");
-  const successSymbol = chalk.magenta("◆");
+  const successSymbol = chalk.green("◆");
 
   const emit = (
     level: "info" | "success" | "warn" | "error",
@@ -127,8 +127,10 @@ export function createLoggerFactory(
 
     const scoped: ScopedLogger = {
       context: { dryRun, verbose, scope: context.scope },
+      // Scope tags belong on diagnostics, not on rendered content: info()
+      // carries tables and other formatted output that a prefix would corrupt.
       info(message) {
-        emit("info", formatMessage(message));
+        emit("info", message);
       },
       success(message) {
         emit("success", message);
@@ -204,7 +206,7 @@ export function createLoggerFactory(
         emit("info", formatMessage(message));
       },
       verbose(message) {
-        if (!verbose) {
+        if (!verbose || message.trim().length === 0) {
           return;
         }
         if (emitter) {

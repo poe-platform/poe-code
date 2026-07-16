@@ -40,7 +40,7 @@ describe("createLoggerFactory", () => {
     resolveOutputFormatFn.mockReturnValue("terminal");
   });
 
-  it("uses purple symbols for info and success without a custom emitter", () => {
+  it("distinguishes info and success by colour without a custom emitter", () => {
     const logger = createLoggerFactory().create();
 
     logger.info("Hello");
@@ -50,7 +50,7 @@ describe("createLoggerFactory", () => {
       symbol: chalk.magenta("●")
     });
     expect(logMessage).toHaveBeenCalledWith("Done", {
-      symbol: chalk.magenta("◆")
+      symbol: chalk.green("◆")
     });
   });
 
@@ -146,6 +146,31 @@ describe("createLoggerFactory", () => {
     const logger = createLoggerFactory().create({ verbose: false });
 
     logger.verbose("Create /path/to/dir");
+
+    expect(logMessage).not.toHaveBeenCalled();
+  });
+
+  it("does not tag rendered info content with the scope when verbose", () => {
+    const logger = createLoggerFactory().create({
+      verbose: true,
+      scope: "models"
+    });
+
+    logger.info("model  created\nClaude-Sonnet-4.5  2025-09-29");
+
+    expect(logMessage).toHaveBeenCalledWith(
+      "model  created\nClaude-Sonnet-4.5  2025-09-29",
+      { symbol: chalk.magenta("●") }
+    );
+  });
+
+  it("skips verbose messages that carry no text", () => {
+    const logger = createLoggerFactory().create({
+      verbose: true,
+      scope: "spawn:claude-code"
+    });
+
+    logger.verbose("   ");
 
     expect(logMessage).not.toHaveBeenCalled();
   });

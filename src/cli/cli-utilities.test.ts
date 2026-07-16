@@ -153,7 +153,7 @@ describe("--verbose flag logging behavior", () => {
     expect(emitter).toHaveBeenCalledWith("Configured Claude Code.");
   });
 
-  it("includes scope prefixes when verbose is enabled", () => {
+  it("includes scope prefixes on diagnostics when verbose is enabled", () => {
     const emitter = vi.fn();
     const factory = createLoggerFactory(emitter);
     const logger = factory.create({
@@ -162,8 +162,10 @@ describe("--verbose flag logging behavior", () => {
     });
 
     logger.info("Configured Claude Code.");
+    logger.verbose("Wrote settings.json.");
 
-    expect(emitter).toHaveBeenCalledWith("[configure:claude-code] Configured Claude Code.");
+    expect(emitter).toHaveBeenCalledWith("Configured Claude Code.");
+    expect(emitter).toHaveBeenCalledWith("[configure:claude-code] Wrote settings.json.");
   });
 });
 

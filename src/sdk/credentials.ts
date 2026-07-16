@@ -1,5 +1,5 @@
 import { createSecretStore } from "auth-store";
-import { ApiError } from "../cli/errors.js";
+import { ApiError, AuthenticationError } from "../cli/errors.js";
 import type { HttpClient } from "../cli/http.js";
 import { resolvePoeApiBaseUrl } from "../cli/environment.js";
 
@@ -30,7 +30,7 @@ export interface GetPoeAuthIdentityOptions {
  * 2. Auth store (`auth-store`)
  *
  * @returns The API key
- * @throws Error if no credentials found
+ * @throws AuthenticationError if no credentials found
  */
 export async function getPoeApiKey(): Promise<string> {
   const envKey = Object.hasOwn(process.env, "POE_API_KEY") ? process.env.POE_API_KEY : undefined;
@@ -52,7 +52,7 @@ export async function getPoeApiKey(): Promise<string> {
     return storedKey.trim();
   }
 
-  throw new Error("No API key found. Set POE_API_KEY or run 'poe-code login'.");
+  throw new AuthenticationError("No API key found. Set POE_API_KEY or run 'poe-code login'.");
 }
 
 export async function ensurePoeApiKeyEnv(): Promise<void> {

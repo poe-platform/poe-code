@@ -129,6 +129,15 @@ export type {
   HookDrop
 } from "@poe-code/agent-hook-config";
 export { SpawnParallelError } from "@poe-code/agent-spawn";
+// Typed errors let SDK consumers branch on "the user has not logged in" versus a
+// bug without matching on message text.
+export {
+  ApiError,
+  AuthenticationError,
+  CliError,
+  ValidationError
+} from "./cli/errors.js";
+export { UserError, isUserError } from "@poe-code/user-error";
 export { acpToTrace, createTraceSinkMiddleware } from "./sdk/trace.js";
 export type { AcpTrace, AcpTraceSpan, TraceSink } from "./sdk/trace.js";
 export type {

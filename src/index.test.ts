@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   agent,
+  AuthenticationError,
+  isUserError,
+  UserError,
   createLogWriter,
   createStateStore,
   createSupervisor,
@@ -77,6 +80,18 @@ describe("entrypoint module", () => {
       handle: "sdk",
       name: "SDK User"
     });
+  });
+
+  it("re-exports typed errors so consumers branch without string matching", () => {
+    const authError = new AuthenticationError("No API key found.");
+
+    expect(authError).toBeInstanceOf(Error);
+    expect(authError.name).toBe("AuthenticationError");
+    expect(authError.isUserError).toBe(true);
+
+    expect(typeof isUserError).toBe("function");
+    expect(isUserError(new UserError("bad input"))).toBe(true);
+    expect(isUserError(new Error("boom"))).toBe(false);
   });
 
   it("detects direct invocation path", () => {

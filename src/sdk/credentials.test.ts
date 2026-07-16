@@ -137,6 +137,20 @@ describe("getPoeApiKey", () => {
     expect(store.get).toHaveBeenCalledTimes(1);
   });
 
+  it("throws a typed user-facing AuthenticationError when no key is found", async () => {
+    delete process.env.POE_API_KEY;
+    store.get.mockResolvedValue(null);
+
+    const { getPoeApiKey } = await import("./credentials.js");
+    const { AuthenticationError } = await import("../cli/errors.js");
+
+    await expect(getPoeApiKey()).rejects.toBeInstanceOf(AuthenticationError);
+    await expect(getPoeApiKey()).rejects.toMatchObject({
+      name: "AuthenticationError",
+      isUserError: true
+    });
+  });
+
   it("fetches Poe auth identity with an explicit API key", async () => {
     const httpClient = vi.fn(async () => ({
       ok: true,

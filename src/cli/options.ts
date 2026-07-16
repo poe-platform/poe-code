@@ -1,4 +1,4 @@
-import { ValidationError } from "./errors.js";
+import { AuthenticationError, ValidationError } from "./errors.js";
 import type { ModelChoice, PromptDescriptor, PromptLibrary } from "./prompts.js";
 import type { PromptFn } from "./types.js";
 
@@ -117,6 +117,22 @@ function unknownModelMessage(input: {
   return `Unknown model "${input.value}" for ${input.label}. ${hint}`;
 }
 
+/**
+ * A rejection only says "not accepted", so the recovery step is chosen from what
+ * the key itself shows: whitespace or control characters survive only a mangled
+ * copy-paste, while a clean key the API refuses was revoked or rotated.
+ */
+function apiKeyRejectedMessage(apiKey: string): string {
+  const mangled = Array.from(apiKey).some((character) => {
+    const code = character.codePointAt(0) ?? 0;
+    return code <= 0x20 || code === 0x7f;
+  });
+  const cause = mangled
+    ? "It contains whitespace or control characters, so it was probably truncated or wrapped when copied."
+    : "Poe did not accept it, so it was revoked or rotated.";
+  return `API key rejected. ${cause} Copy a current key from https://poe.com/api/keys`;
+}
+
 export function createOptionResolvers(
   init: OptionResolverInit
 ): OptionResolvers {
@@ -153,7 +169,7 @@ export function createOptionResolvers(
     if (input.value != null) {
       const apiKey = normalizeApiKey(input.value);
       if (!await validateApiKey(apiKey)) {
-        throw new Error("API key rejected.");
+        throw new AuthenticationError(apiKeyRejectedMessage(apiKey));
       }
       if (!input.dryRun) {
         await init.apiKeyStore.write(apiKey);
@@ -176,7 +192,7 @@ export function createOptionResolvers(
           return apiKey;
         }
         if (assumeYes) {
-          throw new Error("API key rejected.");
+          throw new AuthenticationError(apiKeyRejectedMessage(apiKey));
         }
       }
     }

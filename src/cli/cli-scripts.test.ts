@@ -13,7 +13,7 @@ import type { ProviderIsolatedEnv } from "./service-registry.js";
 import { createOptionResolvers } from "./options.js";
 import { createPromptLibrary } from "./prompts.js";
 import { createPromptRunner } from "./prompt-runner.js";
-import { OperationCancelledError, ValidationError } from "./errors.js";
+import { AuthenticationError, OperationCancelledError, ValidationError } from "./errors.js";
 import { createServiceRegistry, type ProviderService } from "./service-registry.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
 
@@ -1851,6 +1851,85 @@ describe("option resolvers", () => {
     ).rejects.toThrow("API key rejected.");
     expect(checkAuthFn).toHaveBeenCalledWith("invalid-key");
     expect(apiKeyStore.write).not.toHaveBeenCalled();
+  });
+
+  it("tells a rejected well-formed key it was revoked and where to get a new one", async () => {
+    const promptLibrary = createPromptLibrary();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts: vi.fn(),
+      promptLibrary,
+      apiKeyStore,
+      confirm: vi.fn(),
+      checkAuth: vi.fn().mockResolvedValue(false)
+    });
+
+    const error = await resolvers
+      .resolveApiKey({ value: VALID_API_KEY, dryRun: false })
+      .catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(AuthenticationError);
+    expect((error as AuthenticationError).isUserError).toBe(true);
+    expect((error as Error).message).toContain("API key rejected.");
+    expect((error as Error).message).toContain("revoked");
+    expect((error as Error).message).toContain("https://poe.com/api/keys");
+  });
+
+  it("tells a rejected mangled key it was truncated rather than revoked", async () => {
+    const promptLibrary = createPromptLibrary();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts: vi.fn(),
+      promptLibrary,
+      apiKeyStore,
+      confirm: vi.fn(),
+      checkAuth: vi.fn().mockResolvedValue(false)
+    });
+
+    const error = await resolvers
+      .resolveApiKey({ value: "vnlaoHCddCx7eAGL gdH4iS-g_1MYPsg0", dryRun: false })
+      .catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(AuthenticationError);
+    expect((error as Error).message).toContain("API key rejected.");
+    expect((error as Error).message).toContain("whitespace");
+    expect((error as Error).message).not.toContain("revoked");
+    expect((error as Error).message).toContain("https://poe.com/api/keys");
+  });
+
+  it("reports a rejected env key with the same recovery guidance under assumeYes", async () => {
+    const promptLibrary = createPromptLibrary();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts: vi.fn(),
+      promptLibrary,
+      apiKeyStore,
+      confirm: vi.fn(),
+      checkAuth: vi.fn().mockResolvedValue(false)
+    });
+
+    const error = await resolvers
+      .resolveApiKey({
+        value: undefined,
+        envValue: VALID_API_KEY,
+        dryRun: false,
+        assumeYes: true,
+        allowStored: false
+      })
+      .catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(AuthenticationError);
+    expect((error as Error).message).toContain("API key rejected.");
+    expect((error as Error).message).toContain("https://poe.com/api/keys");
   });
 
   it("validates key via checkAuth for valid keys", async () => {

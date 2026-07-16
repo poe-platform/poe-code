@@ -4,6 +4,7 @@ import { registerRuntimeJobsAttachCommand } from "./attach.js";
 import { registerRuntimeJobsLogsCommand } from "./logs.js";
 import { registerRuntimeJobsLsCommand } from "./ls.js";
 import { registerRuntimeJobsSandboxCommand } from "./sandbox.js";
+import { registerRuntimeJobsShowCommand } from "./show.js";
 import { registerRuntimeJobsStopCommand } from "./stop.js";
 import { registerRuntimeJobsSyncCommand } from "./sync.js";
 
@@ -15,6 +16,7 @@ export function registerRuntimeJobsCommand(
   const jobs = runtime.command("jobs").description("Manage detached runtime jobs.");
 
   registerRuntimeJobsLsCommand(jobs, root, container);
+  registerRuntimeJobsShowCommand(jobs, root, container);
   registerRuntimeJobsAttachCommand(jobs, root, container);
   registerRuntimeJobsLogsCommand(jobs, root, container);
   registerRuntimeJobsStopCommand(jobs, root, container);

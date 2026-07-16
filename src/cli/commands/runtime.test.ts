@@ -681,6 +681,67 @@ describe("runtime command", () => {
     await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
   });
 
+  it("snapshots runtime jobs show output for an explicitly selected job", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-exited.json")]: `${JSON.stringify(
+        {
+          ...createJobEntry({ id: "job-exited", env_id: "env-exited", status: "exited" }),
+          exit_code: 0,
+          exited_at: "2026-05-03T12:34:56.000Z",
+          log_file: "/logs/job-exited.log"
+        },
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "show", "job-exited"]);
+
+    expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
+  });
+
+  it("shows the newest job detail without acting on its sandbox when the job id is omitted", async () => {
+    const jobPath = path.join(jobsDir, "job-newest.json");
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-older.json")]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-older",
+          env_id: "env-older",
+          status: "running",
+          started_at: "2026-05-01T12:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`,
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-newest",
+          env_id: "env-newest",
+          status: "running",
+          started_at: "2026-05-09T12:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "show"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("job-newest");
+    expect(output).not.toContain("job-older");
+    expect(runtimeEvents.attached).toEqual([]);
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
+  });
+
   it("snapshots runtime jobs logs output", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(

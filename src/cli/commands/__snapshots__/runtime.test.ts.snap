@@ -15,6 +15,24 @@ exports[`runtime command > snapshots runtime jobs ls output and marks missing ru
 └──────────────────────────────┴──────────────────┴────────────┴────────────┴──────────────────────────┴──────────────────────────────┘"
 `;
 
+exports[`runtime command > snapshots runtime jobs show output for an explicitly selected job 1`] = `
+"runtime jobs show
+job-exited  codex
+exited
+
+Job
+Runtime    docker
+Sandbox    env-exited
+Started    2026-05-03T12:00:00.000Z
+Command    codex hello
+Directory  /repo
+
+Result
+Exit code  0
+Exited     2026-05-03T12:34:56.000Z
+Log file   /logs/job-exited.log"
+`;
+
 exports[`runtime command > snapshots runtime templates clear output and removes local template entries 1`] = `
 "runtime templates clear
 Cleared 1 local runtime template cache entry."

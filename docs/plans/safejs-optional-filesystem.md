@@ -189,7 +189,9 @@ tasks:
       - unknown encoding (`"utf9"`) → node's error for a bad encoding
       - `access` mode out of range / non-integer → node's `ERR_OUT_OF_RANGE` /
         `ERR_INVALID_ARG_TYPE`
-      - `truncate` negative or non-integer length → node's `ERR_OUT_OF_RANGE`
+      - `truncate` non-integer length → node's `ERR_OUT_OF_RANGE`, but only on a file that
+        exists: node opens the path before it validates the length, so a missing path answers
+        with the open's `ENOENT` first, and a negative length is accepted and truncates to zero
       - `chmod` mode as octal string (`"755"`) accepted like node; out-of-range mode → node's
         error
       - `utimes` with a numeric string, `NaN`, `Infinity`, or a non-coercible value → node's
@@ -198,16 +200,23 @@ tasks:
         error
 
       Documented SafeJS divergences (each must throw a clear unsupported-capability error naming
-      the argument and the reason, never silently coerce): a `Buffer`/`Uint8Array` path, a `URL`
-      path (`file://`) — the sandbox has neither `Buffer` nor `URL` — and an integer file
-      descriptor path. Add these to the deviations list documented in the fs-docs task.
+      the argument and the reason, never silently coerce): a `Buffer`/`Uint8Array` path and a
+      `URL` path (`file://`) — the sandbox has neither `Buffer` nor `URL`, and node accepts both.
+      An integer file descriptor path is not one of them: `fs/promises` has no descriptor path
+      form, so node blames an integer's argument type like any other non-string and the module
+      does the same. Add these to the deviations list documented in the fs-docs task.
 
-      TDD with memfs; no real files.
+      TDD; no real files. memfs is the volume, but it cannot be the reference here — it performs
+      almost no argument validation (see "Why memfs alone can't prove compliance"), so asserting
+      against it would pin the module to the wrong behavior. node validates every argument before
+      it opens anything, so real `node:fs/promises` is the reference and still creates no file:
+      the path errors the module raises itself are proven equal to node's by differential, and the
+      arguments it forwards are driven through the module over real `node:fs/promises`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-unsupported-options
     title: Reject unsupported node options loudly instead of ignoring them
@@ -630,10 +639,15 @@ tasks:
          `errno`/`syscall`/`path`/`dest`, verified against a recorded real-node fixture.
 
          List every deviation, each of which throws rather than diverging silently: Buffer
-         results (no `Buffer`/`Uint8Array` in the sandbox), `bigint: true` stats, `Buffer`/`URL`/
-         file-descriptor path arguments, the `signal` option, `FileHandle`/`open`, streams,
-         `watch`, `opendir`, callback/sync APIs, `Date` stat fields (the `*Ms` numbers are exposed
-         instead), and `error.stack` (sandbox-shaped, not a node stack). Explain the `root`
+         results (no `Buffer`/`Uint8Array` in the sandbox), `bigint: true` stats, `Buffer`/`URL`
+         path arguments (both of which node accepts; an integer path is not a deviation, it is
+         node's own `ERR_INVALID_ARG_TYPE`, as `fs/promises` has no descriptor path form), the
+         `signal` option, `FileHandle`/`open`, streams, `watch`, `opendir`, callback/sync APIs,
+         `Date` stat fields (the `*Ms` numbers are exposed instead), and `error.stack`
+         (sandbox-shaped, not a node stack). Note the one deviation that is an ordering rather
+         than a refusal: with both a bad path and another bad argument, SafeJS blames the path
+         because it validates paths itself (`root` rewrites them first), where node may blame the
+         other argument. Explain the `root`
          confinement and its node-shaped EACCES denial, note that `readdir` order is
          filesystem-dependent exactly as in node, note the resume policies (reads re-issue,
          mutations read-side-effect), state the platform-support decision from
@@ -674,15 +688,23 @@ behavior:
 1. **No binary results.** `SandboxValue` has no `Buffer`/`Uint8Array`, so any call whose node
    answer would be a `Buffer` is rejected with an unsupported-capability `TypeError`. Every
    string encoding node supports is supported.
-2. **No binary/URL/fd path arguments.** The sandbox has no `Buffer`, no `URL`, and no file
-   descriptors, so those path forms are rejected rather than coerced.
+2. **No binary/URL path arguments.** The sandbox has no `Buffer` and no `URL`, so those path
+   forms — both of which node accepts — are rejected rather than coerced. `fs/promises` has
+   no file-descriptor path form (only the callback API takes one), so an integer path is
+   node's own `ERR_INVALID_ARG_TYPE` like any other non-string and needs no SafeJS refusal.
 3. **No handles/streams/watchers.** `open`/`FileHandle`, streams, `watch`, `opendir`, `bigint`
    stats, `Date` stat fields, the `signal` option, and the callback/sync APIs are not exported.
    They don't survive snapshot/restore, and YAGNI until a harness needs them.
 4. **Sandbox-shaped `error.stack`.** Everything else on a system error matches node; the stack is
    rewritten to sandbox frames by `normalizeSurfacedSubsetError`, because a node stack is neither
    available nor meaningful inside a script.
-5. **Optional root confinement.** With `root` set, escapes (via `..`, absolute paths, symlink
+5. **Which of two invalid arguments is blamed.** The module raises node's path errors itself
+   (it must: a `root` rewrites the path before node sees it, and an injected implementation
+   validates however it likes), so a call invalid in both its path and another argument is
+   blamed on the path where node would blame the other — `readFile(42, "utf9")` reports the
+   encoding in node and the path in SafeJS. Each error is node's own, shaped exactly as node
+   shapes it; only the order two invalid arguments are reported in can differ.
+6. **Optional root confinement.** With `root` set, escapes (via `..`, absolute paths, symlink
    targets, or hardlinks) reject with a node-shaped `EACCES` so scripts branch on `error.code` as
    usual. Without `root`, no confinement.
 
@@ -693,6 +715,19 @@ rejects rather than passing through unvalidated (`fs-unsupported-options`).
 
 memfs is the test filesystem (tests never touch the real disk), but memfs is not node — it
 approximates errno behavior. A module-vs-memfs differential only proves the module matches memfs.
+
+Argument validation is the sharpest case: memfs performs almost none. A NUL-bearing path is an
+`ENOENT` to memfs, an integer path is a file descriptor, an out-of-range `access`/`chmod` mode is
+accepted, `truncate(path, -1)` leaves a size of `-1`, and its own argument errors carry no `code`
+at all. So memfs can never be the reference for `fs-arg-validation`: node validates every argument
+_before_ it opens anything, which is what lets real `node:fs/promises` be the reference in a test
+that still creates no file. The module raises node's path errors itself and is proven equal to
+node's by differential; every other argument is forwarded untouched and driven through the module
+over real `node:fs/promises`. The one argument that resists this is `truncate`'s `len`: node opens
+the path before validating it, so it is only reachable on a file that exists — its recorded truth
+(`1.5`/`Infinity` → `ERR_OUT_OF_RANGE`, `"3"` → `ERR_INVALID_ARG_TYPE`, `-1` → truncates to zero)
+belongs to `fs-node-truth-fixture`, and what the memfs suite proves is that the length arrives
+unmodified.
 So `fs-node-truth-fixture` records the case table's real-node outcomes via a **script** in
 `os.tmpdir()` into a committed fixture, and the suite compares against that fixture. Cases memfs
 cannot reproduce are marked as reference gaps and skipped loudly; a case can never be silently

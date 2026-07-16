@@ -1,4 +1,6 @@
 import { constants as nodeFsConstants } from "node:fs";
+import * as nodeFsPromises from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { getSystemErrorMap, getSystemErrorName } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
@@ -60,6 +62,9 @@ const BUFFER_MESSAGE = (operation: string): string =>
 const BIGINT_MESSAGE = (operation: string): string =>
   `fs.${operation} cannot return BigInt fields inside SafeJS; omit bigint and read the *Ms timestamps instead.`;
 
+const UNSUPPORTED_PATH_MESSAGE = (operation: string, form: string, argument: string): string =>
+  `fs.${operation} cannot accept ${form} as the '${argument}' argument inside SafeJS; pass the path as a string.`;
+
 function createFs(
   files: Record<string, string> = {},
   root?: string,
@@ -75,7 +80,10 @@ function createFs(
 
 // memfs keeps its operations on a prototype and reads its own receiver, so an
 // override is layered on rather than spread into a copy.
-function withRealpath(base: FsImplementation, realpath: FsImplementation["realpath"]): FsImplementation {
+function withRealpath(
+  base: FsImplementation,
+  realpath: FsImplementation["realpath"]
+): FsImplementation {
   return new Proxy(base, {
     get: (target, property) =>
       property === "realpath" ? realpath : Reflect.get(target, property, target)
@@ -119,9 +127,9 @@ function createCaseInsensitiveFs(files: Record<string, string>): FsImplementatio
 }
 
 function createLoopError(path: string): NodeJS.ErrnoException {
-  const [errno] =
-    [...getSystemErrorMap()].find(([, [name]]) => name === "ELOOP") ??
-    /* c8 ignore next */ [-62];
+  const [errno] = [...getSystemErrorMap()].find(
+    ([, [name]]) => name === "ELOOP"
+  ) ?? /* c8 ignore next */ [-62];
   const error: NodeJS.ErrnoException = new Error(
     `ELOOP: too many symbolic links encountered, realpath '${path}'`
   );
@@ -437,6 +445,11 @@ describe("makeFsModule", () => {
       "no options": (fs) => fs.readFile("/repo/file.txt"),
       "null options": (fs) => fs.readFile("/repo/file.txt", null),
       "empty options": (fs) => fs.readFile("/repo/file.txt", {}),
+      // node reads the encoding off anything it can hold a property on, so these are
+      // options carrying no encoding — a Buffer answer — rather than a shape node
+      // rejects. Both recorded from node.
+      "array options": (fs) => fs.readFile("/repo/file.txt", []),
+      "function options": (fs) => fs.readFile("/repo/file.txt", () => {}),
       "a null encoding": (fs) => fs.readFile("/repo/file.txt", { encoding: null }),
       "an undefined encoding": (fs) => fs.readFile("/repo/file.txt", { encoding: undefined }),
       'the "buffer" encoding': (fs) => fs.readFile("/repo/file.txt", "buffer"),
@@ -524,6 +537,415 @@ describe("makeFsModule", () => {
       const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
 
       expect(typeof (await fs.stat("/repo/file.txt", { bigint: false })).size).toBe("number");
+    });
+  });
+
+  // node rejects a malformed argument before it opens anything, so every rejection
+  // here is reached without reading or creating a file — which is what lets real
+  // node:fs/promises be the reference without touching the disk.
+  //
+  // memfs cannot be that reference: it performs almost no argument validation. A
+  // NUL path is an ENOENT to memfs, an out-of-range mode is accepted, and
+  // truncate(path, -1) leaves a size of -1. So the arguments SafeJS rewrites itself
+  // (the paths) are proven equal to node's error by differential, while the
+  // arguments SafeJS forwards untouched are driven through the module over real
+  // node:fs/promises, where node's own validator throws before any syscall.
+  describe("argument validation", () => {
+    // Never created, and never reached by a call that fails validation.
+    const MISSING_PATH = "/safejs-argument-validation-missing";
+
+    // node:fs/promises itself, untyped the same way the module is: these tests
+    // drive both through calls TypeScript would reject.
+    const reference = nodeFsPromises as unknown as Record<
+      string,
+      (...args: readonly unknown[]) => Promise<unknown>
+    >;
+
+    // The fields node's argument errors carry. `code` is what a script branches on,
+    // and `name` separates an argument error (TypeError/RangeError) from a system
+    // error (a plain Error).
+    async function readArgumentError(
+      operation: Promise<unknown>
+    ): Promise<{ name: string; code: unknown; message: string }> {
+      try {
+        await operation;
+      } catch (error) {
+        const { name, message } = error as Error;
+        return { name, code: (error as NodeJS.ErrnoException).code, message };
+      }
+
+      throw new Error("Expected the operation to reject.");
+    }
+
+    // One call per name node blames for a path argument, in node's own argument
+    // order, so a rename that fails on its second path is blamed as 'newPath'.
+    const PATH_ARGUMENT_CALLS: Record<
+      string,
+      (fs: ReturnType<typeof untyped>, value: unknown) => Promise<unknown>
+    > = {
+      path: (fs, value) => fs.stat(value),
+      oldPath: (fs, value) => fs.readlink(value),
+      prefix: (fs, value) => fs.mkdtemp(value),
+      src: (fs, value) => fs.copyFile(value, MISSING_PATH),
+      dest: (fs, value) => fs.copyFile(MISSING_PATH, value),
+      existingPath: (fs, value) => fs.link(value, MISSING_PATH),
+      newPath: (fs, value) => fs.rename(MISSING_PATH, value),
+      target: (fs, value) => fs.symlink(value, MISSING_PATH)
+    };
+
+    // node describes the value it rejected, and spells each shape differently: an
+    // instance by its constructor, a function by its name, a primitive by its type
+    // and inspected form. Every shape is here so the module's rendering of node's
+    // message is proven against node rather than against the shapes a test happened
+    // to reach for.
+    const NON_STRING_PATHS: Record<string, unknown> = {
+      "a number": 42,
+      "a negative zero": -0,
+      "a NaN": NaN,
+      "an object": {},
+      "a null-prototype object": Object.create(null),
+      "a class instance": new Volume(),
+      null: null,
+      undefined: undefined,
+      "a boolean": true,
+      "an array": [],
+      "a function": function received() {},
+      "a symbol": Symbol("path"),
+      "a bigint": 10n
+    };
+
+    describe("paths node rejects by type", () => {
+      for (const [argument, call] of Object.entries(PATH_ARGUMENT_CALLS)) {
+        it(`blames the '${argument}' argument exactly as node does`, async () => {
+          const { fs } = createFs();
+
+          for (const value of Object.values(NON_STRING_PATHS)) {
+            expect(await readArgumentError(call(untyped(fs), value))).toEqual(
+              await readArgumentError(call(reference, value))
+            );
+          }
+        });
+      }
+
+      for (const [description, value] of Object.entries(NON_STRING_PATHS)) {
+        it(`rejects ${description} path with node's ERR_INVALID_ARG_TYPE`, async () => {
+          const { fs } = createFs();
+
+          expect(await readArgumentError(untyped(fs).stat(value))).toEqual({
+            ...(await readArgumentError(reference.stat(value))),
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_TYPE"
+          });
+        });
+      }
+
+      // The module rewrites path arguments when a root is set, so it has to raise
+      // node's error itself rather than let a resolved path reach the filesystem.
+      it("blames the argument before resolving it against root", async () => {
+        const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT }, "/repo");
+
+        expect(await readArgumentError(untyped(fs).stat(42))).toEqual(
+          await readArgumentError(reference.stat(42))
+        );
+      });
+
+      // readFile answers with a Buffer when no encoding is given, but node blames a
+      // bad path before it decides what to return, so the path error has to win over
+      // SafeJS's own unsupported-Buffer refusal.
+      it("blames a bad path ahead of an unsupported Buffer result", async () => {
+        const { fs } = createFs();
+
+        expect(await readArgumentError(untyped(fs).readFile(42))).toEqual(
+          await readArgumentError(reference.readFile(42))
+        );
+      });
+    });
+
+    describe("paths carrying a NUL byte", () => {
+      for (const [argument, call] of Object.entries(PATH_ARGUMENT_CALLS)) {
+        it(`blames the '${argument}' argument exactly as node does`, async () => {
+          const { fs } = createFs();
+          const value = `a${NUL_BYTE}b`;
+
+          expect(await readArgumentError(call(untyped(fs), value))).toEqual(
+            await readArgumentError(call(reference, value))
+          );
+        });
+      }
+
+      it("carries node's ERR_INVALID_ARG_VALUE with no root set", async () => {
+        const { fs } = createFs();
+
+        expect(await readArgumentError(untyped(fs).stat(`a${NUL_BYTE}b`))).toMatchObject({
+          name: "TypeError",
+          code: "ERR_INVALID_ARG_VALUE"
+        });
+      });
+    });
+
+    // An empty path is a well-formed argument, so node takes it to the filesystem
+    // and answers with an errno rather than refusing the argument.
+    it("leaves an empty path to node's errno result", async () => {
+      const fs = makeFsModule();
+
+      expect(await readArgumentError(untyped(fs).stat(""))).toEqual({
+        ...(await readArgumentError(reference.stat(""))),
+        name: "Error",
+        code: "ENOENT"
+      });
+    });
+
+    // Each case is an argument the module hands to node untouched. Driving the
+    // module over real node:fs/promises proves node's own error is what surfaces:
+    // the expected value is read back from the reference, and `code` pins which
+    // validator node ran.
+    const FORWARDED_ARGUMENTS: Record<
+      string,
+      { call: (fs: ReturnType<typeof untyped>) => Promise<unknown>; code: string }
+    > = {
+      "an access mode above node's range": {
+        call: (fs) => fs.access(MISSING_PATH, 8),
+        code: "ERR_OUT_OF_RANGE"
+      },
+      "a negative access mode": {
+        call: (fs) => fs.access(MISSING_PATH, -1),
+        code: "ERR_OUT_OF_RANGE"
+      },
+      "a NaN access mode": {
+        call: (fs) => fs.access(MISSING_PATH, NaN),
+        code: "ERR_OUT_OF_RANGE"
+      },
+      "a non-numeric access mode": {
+        call: (fs) => fs.access(MISSING_PATH, "4"),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "a negative chmod mode": {
+        call: (fs) => fs.chmod(MISSING_PATH, -1),
+        code: "ERR_OUT_OF_RANGE"
+      },
+      "a chmod mode above node's range": {
+        call: (fs) => fs.chmod(MISSING_PATH, 2 ** 32),
+        code: "ERR_OUT_OF_RANGE"
+      },
+      "a chmod mode that is not an octal string": {
+        call: (fs) => fs.chmod(MISSING_PATH, "zzz"),
+        code: "ERR_INVALID_ARG_VALUE"
+      },
+      "a NaN utimes time": {
+        call: (fs) => fs.utimes(MISSING_PATH, NaN, NaN),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "an Infinity utimes time": {
+        call: (fs) => fs.utimes(MISSING_PATH, Infinity, Infinity),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "a non-coercible utimes time": {
+        call: (fs) => fs.utimes(MISSING_PATH, {}, {}),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "a non-numeric utimes time": {
+        call: (fs) => fs.utimes(MISSING_PATH, "abc", "abc"),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "an unknown encoding": {
+        call: (fs) => fs.readFile(MISSING_PATH, "utf9"),
+        code: "ERR_INVALID_ARG_VALUE"
+      },
+      "an unknown readdir encoding": {
+        call: (fs) => fs.readdir(MISSING_PATH, "utf9"),
+        code: "ERR_INVALID_ARG_VALUE"
+      },
+      "a numeric options argument": {
+        call: (fs) => fs.readFile(MISSING_PATH, 42),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "a non-boolean mkdir recursive option": {
+        call: (fs) => fs.mkdir(MISSING_PATH, { recursive: "yes" }),
+        code: "ERR_INVALID_ARG_TYPE"
+      }
+    };
+
+    describe("arguments node validates itself", () => {
+      for (const [description, { call, code }] of Object.entries(FORWARDED_ARGUMENTS)) {
+        it(`surfaces node's own error for ${description}`, async () => {
+          const error = await readArgumentError(call(untyped(makeFsModule())));
+
+          expect(error).toEqual(await readArgumentError(call(reference)));
+          expect(error.code).toBe(code);
+        });
+      }
+    });
+
+    // An argument node accepts has to reach the filesystem, and an ENOENT on a path
+    // that does not exist is the proof: node ran the syscall rather than refusing
+    // the argument.
+    describe("arguments node accepts", () => {
+      const ACCEPTED_ARGUMENTS: Record<
+        string,
+        (fs: ReturnType<typeof untyped>) => Promise<unknown>
+      > = {
+        "an octal string chmod mode": (fs) => fs.chmod(MISSING_PATH, "755"),
+        "a numeric string utimes time": (fs) => fs.utimes(MISSING_PATH, "1", "2"),
+        "a Date utimes time": (fs) => fs.utimes(MISSING_PATH, new Date(0), new Date(0)),
+        "an omitted access mode": (fs) => fs.access(MISSING_PATH),
+        // Recorded from node: 1.5 is coerced to int32 rather than refused.
+        "a non-integer access mode": (fs) => fs.access(MISSING_PATH, 1.5)
+      };
+
+      for (const [description, call] of Object.entries(ACCEPTED_ARGUMENTS)) {
+        it(`takes ${description} to the filesystem as node does`, async () => {
+          const error = await readArgumentError(call(untyped(makeFsModule())));
+
+          expect(error).toEqual(await readArgumentError(call(reference)));
+          expect(error.code).toBe("ENOENT");
+        });
+      }
+
+      it("applies an octal string chmod mode exactly as node does", async () => {
+        const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
+
+        await fs.chmod("/repo/file.txt", "755");
+
+        expect((await fs.stat("/repo/file.txt")).mode & 0o777).toBe(0o755);
+      });
+
+      // Recorded from node: a numeric string is read as seconds, so "1"/"2" land on
+      // 1000ms/2000ms rather than being refused or read as milliseconds.
+      it("coerces a numeric string utimes time exactly as node does", async () => {
+        const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
+
+        await fs.utimes("/repo/file.txt", "1", "2");
+        const stats = await fs.stat("/repo/file.txt");
+
+        expect({ atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs }).toEqual({
+          atimeMs: 1000,
+          mtimeMs: 2000
+        });
+      });
+    });
+
+    // truncate is the one operation whose non-path argument node cannot reach here:
+    // node opens the path before it validates the length, so a missing path answers
+    // with the open's ENOENT and the length validator never runs. Recorded from node
+    // against an existing file, which no test may create: 1.5 and Infinity reject
+    // with ERR_OUT_OF_RANGE, "3" with ERR_INVALID_ARG_TYPE, and -1 is accepted and
+    // truncates to zero. memfs reproduces none of those — it accepts 1.5 and leaves
+    // a size of -1 — so they belong to the recorded node-truth fixture, and what is
+    // provable here is that the module hands the length over untouched.
+    it("leaves a bad truncate length to node behind the open it does first", async () => {
+      const fs = makeFsModule();
+
+      for (const length of [1.5, "3", Infinity, -1]) {
+        const error = await readArgumentError(untyped(fs).truncate(MISSING_PATH, length));
+
+        expect(error).toEqual(await readArgumentError(reference.truncate(MISSING_PATH, length)));
+        expect(error.code).toBe("ENOENT");
+      }
+    });
+
+    // The arguments above are node's to validate, which only holds while the module
+    // passes them through as written: a coercion here would be a divergence node
+    // could never report.
+    it("hands every argument it does not resolve to the implementation as written", async () => {
+      const calls: unknown[][] = [];
+      const { fs } = createFs(
+        { "/repo/file.txt": SAMPLE_TEXT },
+        undefined,
+        (base) =>
+          new Proxy(base, {
+            get: (target, property) => {
+              const operation = Reflect.get(target, property, target);
+
+              return typeof operation !== "function"
+                ? operation
+                : (...args: readonly unknown[]) => {
+                    calls.push([...args]);
+                    return (operation as (...call: readonly unknown[]) => unknown).apply(
+                      target,
+                      args
+                    );
+                  };
+            }
+          })
+      );
+      const times = new Date(0);
+      const options = { recursive: true, mode: 0o755 };
+      // What memfs makes of an argument it never validates is beside the point: the
+      // assertion is the arguments it was handed, not what it answered.
+      const ignoringResult = (operation: Promise<unknown>): Promise<unknown> =>
+        operation.catch(() => undefined);
+
+      await ignoringResult(untyped(fs).truncate("/repo/file.txt", 1.5));
+      await ignoringResult(untyped(fs).access("/repo/file.txt", 1.5));
+      await ignoringResult(fs.chmod("/repo/file.txt", "755"));
+      await ignoringResult(fs.utimes("/repo/file.txt", times, "2"));
+      await ignoringResult(fs.mkdir("/repo/sub", options));
+
+      expect(calls).toEqual([
+        ["/repo/file.txt", 1.5],
+        ["/repo/file.txt", 1.5],
+        ["/repo/file.txt", "755"],
+        ["/repo/file.txt", times, "2"],
+        ["/repo/sub", options]
+      ]);
+    });
+
+    // The sandbox has no Buffer and no URL, so a script cannot spell these path
+    // forms at all — but node accepts every one of them, so the module refuses them
+    // by name rather than coercing a path the caller did not write.
+    describe("path forms the sandbox cannot hold", () => {
+      const UNSUPPORTED_PATHS: Record<string, { value: unknown; form: string }> = {
+        "a Buffer": { value: Buffer.from("/repo/file.txt"), form: "a Buffer or Uint8Array" },
+        "a Uint8Array": {
+          value: new Uint8Array(Buffer.from("/repo/file.txt")),
+          form: "a Buffer or Uint8Array"
+        },
+        "a file:// URL": { value: pathToFileURL("/repo/file.txt"), form: "a URL" }
+      };
+
+      for (const [description, { value, form }] of Object.entries(UNSUPPORTED_PATHS)) {
+        it(`rejects ${description} path naming the argument and the reason`, async () => {
+          const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
+
+          expect(await readRejection(untyped(fs).stat(value))).toEqual({
+            name: "TypeError",
+            message: UNSUPPORTED_PATH_MESSAGE("stat", form, "path")
+          });
+        });
+      }
+
+      it("names the argument node would have blamed", async () => {
+        const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
+
+        expect(
+          await readRejection(untyped(fs).rename("/repo/file.txt", Buffer.from("/repo/moved.txt")))
+        ).toEqual({
+          name: "TypeError",
+          message: UNSUPPORTED_PATH_MESSAGE("rename", "a Buffer or Uint8Array", "newPath")
+        });
+      });
+
+      it("writes nothing when a path form is refused", async () => {
+        const { fs, volume } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
+        const before = volume.toJSON();
+
+        await readRejection(untyped(fs).writeFile(Buffer.from("/repo/new.txt"), "x"));
+        await readRejection(untyped(fs).mkdir(pathToFileURL("/repo/sub")));
+
+        expect(volume.toJSON()).toEqual(before);
+      });
+
+      // fs/promises has no file-descriptor path form — node blames the argument type
+      // for an integer path exactly as it does for any other non-string, recorded
+      // from node against a real open descriptor — so a descriptor needs no
+      // SafeJS-specific refusal.
+      it("leaves an integer file descriptor path to node's argument-type error", async () => {
+        const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
+
+        expect(await readArgumentError(untyped(fs).readFile(3, "utf8"))).toEqual(
+          await readArgumentError(reference.readFile(3, "utf8"))
+        );
+      });
     });
   });
 

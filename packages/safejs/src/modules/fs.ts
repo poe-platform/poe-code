@@ -132,6 +132,8 @@ const ACCESS_DENIED_CODE = "EACCES";
 
 const INVALID_ARGUMENT_CODE = "ERR_INVALID_ARG_VALUE";
 
+const INVALID_ARGUMENT_TYPE_CODE = "ERR_INVALID_ARG_TYPE";
+
 const NULL_BYTE = "\u0000";
 
 // libuv numbers errno differently per platform, so the errno and message paired
@@ -270,14 +272,27 @@ function bindStat<Name extends "stat" | "lstat">(fs: FsImplementation, name: Nam
   }) as FsModule[Name];
 }
 
+// Every exported operation is declared here, which makes this the one place that
+// can promise node's argument validation runs first: before an unsupported result
+// is refused, and before a root rewrites the path node would have blamed.
 function declare<TOperation extends FsHostOperation>(
   name: FsOperationName,
   policy: PendingHostCallPolicyMode,
   operation: TOperation
 ): TOperation {
-  Object.defineProperty(operation, "name", { value: name });
-  declareHostOperation(operation, policy);
-  return operation;
+  // async so a refused argument rejects rather than throwing at the call site:
+  // every node:fs/promises function answers with a promise either way.
+  const validated = async (...args: readonly unknown[]): Promise<unknown> => {
+    FS_PATH_ARGUMENTS[name].forEach((argument, index) =>
+      assertSupportedPath(name, argument, args[index])
+    );
+
+    return await operation(...args);
+  };
+
+  Object.defineProperty(validated, "name", { value: name });
+  declareHostOperation(validated, policy);
+  return validated as TOperation;
 }
 
 function invoke(fs: FsImplementation, name: FsOperationName, args: readonly unknown[]): unknown {
@@ -308,12 +323,6 @@ async function resolvePathArguments(
   name: FsOperationName,
   args: readonly unknown[]
 ): Promise<readonly unknown[]> {
-  // node rejects a malformed argument before it touches the filesystem, so
-  // validation runs ahead of any resolution and in node's argument order: a path
-  // carrying a NUL is blamed as written rather than resolved against root and
-  // refused for escaping.
-  FS_PATH_ARGUMENTS[name].forEach((argument, index) => assertNoNullByte(argument, args[index]));
-
   const canonicalRoot = await resolveCanonicalPath(readRealpath(fs), resolve(root));
   const resolved = [...args];
 
@@ -321,17 +330,17 @@ async function resolvePathArguments(
     // node stores a symlink's target verbatim and resolves a relative target
     // against the link's own directory, so only the link path is rewritten while
     // the target is checked as the link's directory would see it.
-    const linkPath = readPath(name, canonicalRoot, args[1]);
+    const linkPath = readPath(canonicalRoot, args[1]);
     resolved[1] = linkPath;
     await assertInsideRoot(fs, canonicalRoot, name, [
-      readPath(name, dirname(linkPath), args[0]),
+      readPath(dirname(linkPath), args[0]),
       linkPath
     ]);
     return resolved;
   }
 
   const paths = FS_PATH_ARGUMENTS[name].map((_, index) => {
-    const path = readPath(name, canonicalRoot, args[index]);
+    const path = readPath(canonicalRoot, args[index]);
     resolved[index] = path;
     return path;
   });
@@ -378,10 +387,36 @@ function readStat(fs: FsImplementation): Stat {
   return async (path) => (await invoke(fs, "stat", [path])) as Stats;
 }
 
-function assertNoNullByte(argument: string, value: unknown): void {
-  if (typeof value === "string" && value.includes(NULL_BYTE)) {
-    throw createNullByteError(argument, value);
+// node accepts a string, a Buffer, or a URL, and rejects everything else before it
+// touches the filesystem. The module has to raise these itself rather than leave
+// them to the injected implementation: a root rewrites the path first, and an
+// injected implementation is free to validate differently — memfs reads a
+// NUL-bearing path as a missing file and takes an integer as a descriptor.
+function assertSupportedPath(name: FsOperationName, argument: string, value: unknown): void {
+  if (typeof value === "string") {
+    if (value.includes(NULL_BYTE)) {
+      throw createNullByteError(argument, value);
+    }
+
+    return;
   }
+
+  const form = readUnsupportedPathForm(value);
+
+  throw form === undefined
+    ? createInvalidPathTypeError(argument, value)
+    : createUnsupportedPathError(name, argument, form);
+}
+
+// The path forms node accepts and the sandbox cannot spell. An integer is not one
+// of them: fs/promises has no descriptor path form, so node blames an integer's
+// type like any other non-string and so does the module.
+function readUnsupportedPathForm(value: unknown): string | undefined {
+  if (value instanceof Uint8Array) {
+    return "a Buffer or Uint8Array";
+  }
+
+  return value instanceof URL ? "a URL" : undefined;
 }
 
 // Shaped exactly like node's own ERR_INVALID_ARG_VALUE for a NUL-bearing path,
@@ -395,12 +430,56 @@ function createNullByteError(argument: string, value: string): TypeError {
   return error;
 }
 
-function readPath(name: FsOperationName, base: string, value: unknown): string {
-  if (typeof value !== "string") {
-    throw new TypeError(`fs.${name} requires a string path when the fs root is set.`);
+// Shaped exactly like node's own ERR_INVALID_ARG_TYPE for a path it cannot read.
+function createInvalidPathTypeError(argument: string, value: unknown): TypeError {
+  const error: NodeJS.ErrnoException = new TypeError(
+    `The "${argument}" argument must be of type string or an instance of Buffer or URL. Received ${describeReceivedValue(value)}`
+  );
+
+  error.code = INVALID_ARGUMENT_TYPE_CODE;
+  return error;
+}
+
+function createUnsupportedPathError(
+  name: FsOperationName,
+  argument: string,
+  form: string
+): TypeError {
+  return new TypeError(
+    `fs.${name} cannot accept ${form} as the '${argument}' argument inside SafeJS; pass the path as a string.`
+  );
+}
+
+// Ports node's own determineSpecificType (lib/internal/errors.js), which shapes the
+// "Received ..." tail of every ERR_INVALID_ARG_TYPE message. node spells out each
+// primitive case by hand; inspect already answers with the same text for all of
+// them, down to -0, NaN, and a bigint's n suffix.
+function describeReceivedValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return String(value);
   }
 
-  return isAbsolute(value) ? resolve(value) : resolve(base, value);
+  if (typeof value === "function") {
+    return `function ${value.name}`;
+  }
+
+  if (typeof value === "object") {
+    const constructorName = value.constructor?.name;
+
+    return constructorName === undefined
+      ? inspect(value, { depth: -1 })
+      : `an instance of ${constructorName}`;
+  }
+
+  return `type ${typeof value} (${inspect(value)})`;
+}
+
+// Every path argument reaches this already proven to be a NUL-free string: each
+// operation is validated as it is declared, before a root gets to rewrite it.
+function readPath(base: string, value: unknown): string {
+  const path = value as string;
+
+  return isAbsolute(path) ? resolve(path) : resolve(base, path);
 }
 
 // Shaped exactly like the system error node raises for a refused path, so a
@@ -449,7 +528,7 @@ function assertNoBufferResult(operation: keyof typeof BUFFER_BY_DEFAULT, options
 }
 
 function assertNoBigIntResult(operation: FsOperationName, options: unknown): void {
-  if (isRecord(options) && options.bigint === true) {
+  if (isObjectLike(options) && (options as { bigint?: unknown }).bigint === true) {
     throw createUnsupportedCapabilityError(
       operation,
       "BigInt fields",
@@ -478,11 +557,14 @@ function readsBuffer(options: unknown, bufferByDefault: boolean): boolean {
     return bufferByDefault;
   }
 
-  if (!isRecord(options)) {
+  // node reads the encoding off anything it can hold a property on, so an array or
+  // a function is an options object answering with a Buffer rather than a shape
+  // node rejects. Everything else is left to node's own ERR_INVALID_ARG_TYPE.
+  if (!isObjectLike(options)) {
     return false;
   }
 
-  const encoding = Object.hasOwn(options, "encoding") ? options.encoding : undefined;
+  const { encoding } = options as { encoding?: unknown };
 
   if (encoding === BUFFER_ENCODING) {
     return true;
@@ -522,6 +604,6 @@ function toFileTypePredicates(source: Stats | Dirent): FileTypePredicates {
   return predicates as FileTypePredicates;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+function isObjectLike(value: unknown): boolean {
+  return (typeof value === "object" && value !== null) || typeof value === "function";
 }

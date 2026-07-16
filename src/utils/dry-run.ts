@@ -1,20 +1,29 @@
 import { Buffer } from "node:buffer";
-import { basename, extname } from "node:path";
+import { basename } from "node:path";
 import { createTwoFilesPatch } from "diff";
 import chalk from "chalk";
 import { isNotFound } from "@poe-code/config-mutations";
 import type { FileSystem } from "./file-system.js";
 
 const REDACTED_PLACEHOLDER = "<redacted>";
-const JSON_SENSITIVE_KEYS = [
+const SENSITIVE_KEYS = [
   "apiKey",
   "api_key",
   "apiKeyHelper",
   "ANTHROPIC_API_KEY",
-  "ANTHROPIC_CUSTOM_HEADERS"
+  "ANTHROPIC_CUSTOM_HEADERS",
+  "CUSTOM_POE_API_KEY",
+  "POE_API_KEY",
+  "experimental_bearer_token",
+  "bearer_token",
+  "access_token",
+  "refresh_token",
+  "secret",
+  "token",
+  "password"
 ];
-const AUTH_SENSITIVE_KEYS = ["key"];
-const TOML_SENSITIVE_KEYS = ["experimental_bearer_token"];
+const AUTH_FILE_SENSITIVE_KEYS = ["key"];
+const SECRET_VALUE_PREFIXES = ["sk-poe-", "sk-ant-", "cfut_", "Bearer "];
 
 export type DryRunOperation =
   | {
@@ -378,41 +387,22 @@ export function renderUnifiedDiff(
 }
 
 function redactContentForDiff(targetPath: string, content: string): string {
-  const extension = extname(targetPath).toLowerCase();
-  if (extension === ".json") {
-    return redactJsonContent(content, basename(targetPath).toLowerCase());
-  }
-  if (extension === ".toml") {
-    return redactTomlContent(content);
-  }
-  return content;
-}
-
-function redactJsonContent(content: string, fileName: string): string {
-  const keys = [...JSON_SENSITIVE_KEYS];
-  if (fileName === "auth.json") {
-    keys.push(...AUTH_SENSITIVE_KEYS);
+  const keys = [...SENSITIVE_KEYS];
+  if (basename(targetPath).toLowerCase() === "auth.json") {
+    keys.push(...AUTH_FILE_SENSITIVE_KEYS);
   }
   return content
     .split("\n")
-    .map((line) => redactJsonLine(line, keys))
+    .map((line) => redactLine(line, keys))
     .join("\n");
 }
 
-function redactJsonLine(line: string, keys: string[]): string {
+function redactLine(line: string, keys: string[]): string {
   let result = line;
   for (const key of keys) {
-    if (key === "apiKeyHelper") {
-      result = redactJsonStringValue(
-        result,
-        key,
-        redactApiKeyHelperValue
-      );
-      continue;
-    }
-    result = redactJsonStringValue(result, key, () => REDACTED_PLACEHOLDER);
+    result = redactKeyedValue(result, key);
   }
-  return result;
+  return redactSecretValueTokens(result);
 }
 
 function redactApiKeyHelperValue(value: string): string {
@@ -424,66 +414,130 @@ function redactApiKeyHelperValue(value: string): string {
   return REDACTED_PLACEHOLDER;
 }
 
-function redactJsonStringValue(
-  line: string,
-  key: string,
-  redact: (value: string) => string
-): string {
-  const token = `"${key}"`;
-  const keyIndex = line.indexOf(token);
+function redactKeyedValue(line: string, key: string): string {
+  const keyIndex = findKeyIndex(line, key);
   if (keyIndex === -1) {
     return line;
   }
-  const colonIndex = line.indexOf(":", keyIndex + token.length);
-  if (colonIndex === -1) {
+  const separatorIndex = findSeparatorIndex(line, keyIndex + key.length);
+  if (separatorIndex === -1) {
     return line;
   }
-  const valueStart = line.indexOf("\"", colonIndex + 1);
-  if (valueStart === -1) {
+  const span = findValueSpan(line, separatorIndex + 1);
+  if (span == null) {
     return line;
   }
-  const valueEnd = line.indexOf("\"", valueStart + 1);
-  if (valueEnd === -1) {
-    return line;
-  }
-  const currentValue = line.slice(valueStart + 1, valueEnd);
-  const nextValue = redact(currentValue);
-  return `${line.slice(0, valueStart + 1)}${nextValue}${line.slice(valueEnd)}`;
+  const currentValue = line.slice(span.start, span.end);
+  const nextValue =
+    key === "apiKeyHelper"
+      ? redactApiKeyHelperValue(currentValue)
+      : REDACTED_PLACEHOLDER;
+  return `${line.slice(0, span.start)}${nextValue}${line.slice(span.end)}`;
 }
 
-function redactTomlContent(content: string): string {
-  return content
-    .split("\n")
-    .map((line) => redactTomlLine(line))
-    .join("\n");
+function findKeyIndex(line: string, key: string): number {
+  let searchFrom = 0;
+  while (searchFrom <= line.length - key.length) {
+    const keyIndex = line.indexOf(key, searchFrom);
+    if (keyIndex === -1) {
+      return -1;
+    }
+    const before = line.charAt(keyIndex - 1);
+    const after = line.charAt(keyIndex + key.length);
+    if (!isKeyNameChar(before) && !isKeyNameChar(after)) {
+      return keyIndex;
+    }
+    searchFrom = keyIndex + 1;
+  }
+  return -1;
 }
 
-function redactTomlLine(line: string): string {
-  const trimmed = line.trimStart();
-  for (const key of TOML_SENSITIVE_KEYS) {
-    if (!trimmed.startsWith(key)) {
-      continue;
-    }
-    const nextChar = trimmed.charAt(key.length);
-    if (nextChar && nextChar !== " " && nextChar !== "=") {
-      continue;
-    }
-    const keyIndex = line.indexOf(key);
-    const equalsIndex = line.indexOf("=", keyIndex + key.length);
-    if (equalsIndex === -1) {
-      return line;
-    }
-    const valueStart = line.indexOf("\"", equalsIndex + 1);
-    if (valueStart === -1) {
-      return line;
-    }
-    const valueEnd = line.indexOf("\"", valueStart + 1);
-    if (valueEnd === -1) {
-      return line;
-    }
-    return `${line.slice(0, valueStart + 1)}${REDACTED_PLACEHOLDER}${line.slice(valueEnd)}`;
+function isKeyNameChar(char: string): boolean {
+  if (char.length === 0) {
+    return false;
   }
-  return line;
+  const code = char.charCodeAt(0);
+  return (
+    (code >= 48 && code <= 57) ||
+    (code >= 65 && code <= 90) ||
+    (code >= 97 && code <= 122) ||
+    char === "_" ||
+    char === "-"
+  );
+}
+
+function findSeparatorIndex(line: string, searchFrom: number): number {
+  for (let index = searchFrom; index < line.length; index += 1) {
+    const char = line.charAt(index);
+    if (char === ":" || char === "=") {
+      return index;
+    }
+    if (char !== " " && char !== "\t" && char !== "\"" && char !== "'") {
+      return -1;
+    }
+  }
+  return -1;
+}
+
+function findValueSpan(
+  line: string,
+  searchFrom: number
+): { start: number; end: number } | null {
+  let start = searchFrom;
+  while (start < line.length && isValuePaddingChar(line.charAt(start))) {
+    start += 1;
+  }
+  if (start >= line.length) {
+    return null;
+  }
+  const quote = line.charAt(start);
+  if (quote === "\"" || quote === "'") {
+    const end = line.indexOf(quote, start + 1);
+    if (end === -1) {
+      return null;
+    }
+    return { start: start + 1, end };
+  }
+  let end = line.length;
+  while (end > start && isValuePaddingChar(line.charAt(end - 1))) {
+    end -= 1;
+  }
+  if (end <= start) {
+    return null;
+  }
+  return { start, end };
+}
+
+function isValuePaddingChar(char: string): boolean {
+  return char === " " || char === "\t" || char === "\r" || char === ",";
+}
+
+function redactSecretValueTokens(line: string): string {
+  let result = line;
+  for (const prefix of SECRET_VALUE_PREFIXES) {
+    let searchFrom = 0;
+    while (true) {
+      const start = result.indexOf(prefix, searchFrom);
+      if (start === -1) {
+        break;
+      }
+      let end = start + prefix.length;
+      while (end < result.length && isSecretTokenChar(result.charAt(end))) {
+        end += 1;
+      }
+      if (end === start + prefix.length) {
+        searchFrom = end;
+        continue;
+      }
+      result = `${result.slice(0, start)}${REDACTED_PLACEHOLDER}${result.slice(end)}`;
+      searchFrom = start + REDACTED_PLACEHOLDER.length;
+    }
+  }
+  return result;
+}
+
+function isSecretTokenChar(char: string): boolean {
+  return isKeyNameChar(char) || char === "." || char === "~" || char === "+" || char === "/";
 }
 
 async function tryReadText(

@@ -738,6 +738,85 @@ describe("dry run diff redaction", () => {
     expect(tomlOutput).not.toContain("sk-test");
     expect(tomlOutput).toContain("<redacted>");
   });
+
+  it("redacts api key values in goose secrets.yaml diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/goose/secrets.yaml",
+      null,
+      "CUSTOM_POE_API_KEY: sk-poe-livesecret\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-poe-livesecret");
+    expect(output).toContain("CUSTOM_POE_API_KEY: <redacted>");
+  });
+
+  it("redacts api key values removed from goose secrets.yaml on unconfigure", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/goose/secrets.yaml",
+      "CUSTOM_POE_API_KEY: sk-poe-livesecret\nOTHER: keep\n",
+      "OTHER: keep\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-poe-livesecret");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("redacts quoted api key values in yaml diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/goose/secrets.yaml",
+      null,
+      'CUSTOM_POE_API_KEY: "cfut_livesecret"\n'
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("cfut_livesecret");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("redacts api key values in env file diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/agent/.env",
+      null,
+      "CUSTOM_POE_API_KEY=sk-poe-livesecret\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-poe-livesecret");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("redacts bearer token values in ini diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/agent/config.ini",
+      null,
+      "[auth]\nexperimental_bearer_token = cfut_livesecret\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("cfut_livesecret");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("redacts poe and cloudflare token values under unknown key names in any format", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/agent/settings.conf",
+      null,
+      "some_new_credential: sk-poe-livesecret\nanother_token = cfut_livesecret\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-poe-livesecret");
+    expect(output).not.toContain("cfut_livesecret");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("leaves non-secret yaml values intact", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.config/goose/config.yaml",
+      null,
+      "GOOSE_PROVIDER: custom_poe\nGOOSE_MODEL: Claude-Sonnet-4.5\n"
+    );
+    const output = diff.join("\n");
+    expect(output).toContain("GOOSE_PROVIDER: custom_poe");
+    expect(output).toContain("GOOSE_MODEL: Claude-Sonnet-4.5");
+    expect(output).not.toContain("<redacted>");
+  });
 });
 
 describe("formatDryRunOperations symlink and rename", () => {

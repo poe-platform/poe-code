@@ -45,7 +45,7 @@ import {
   type InterpreterResult,
   type LoopIterationSnapshot
 } from "./interp/interpreter.js";
-import { createPromiseGlobals } from "./interp/promise.js";
+import { consumeSettledHostCall, createPromiseGlobals } from "./interp/promise.js";
 import {
   deepCopyToSandbox,
   isSandboxClosure,
@@ -372,9 +372,7 @@ async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promis
   await Promise.resolve();
 
   if (rejected) {
-    if (result.returnValue.hostCall !== undefined) {
-      result.returnValue.hostCallJournal?.consume(result.returnValue.hostCall);
-    }
+    consumeSettledHostCall(result.returnValue);
     throw new UnhandledRejectionError(rejectionReason, result.returnValue.span);
   }
 }

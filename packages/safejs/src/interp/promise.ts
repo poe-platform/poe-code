@@ -270,6 +270,16 @@ export function resolveSandboxValue(
   return Promise.resolve().then(() => resolveSandboxValueNow(value, options, new WeakSet()));
 }
 
+// A host call result is consumed once, when it settles. Observing the same promise
+// again is ordinary JavaScript and must not be reported as a double consumption.
+export function consumeSettledHostCall(value: SandboxPromise): void {
+  if (value.hostCall?.lifecycle !== "settled") {
+    return;
+  }
+
+  value.hostCallJournal?.consume(value.hostCall);
+}
+
 function resolveSandboxValueNow(
   value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
   options: { budget?: Budget },
@@ -286,11 +296,11 @@ function resolveSandboxValueNow(
     observeSandboxPromise(value);
     return value.promise.then(
       (resolved) => {
-        value.hostCallJournal?.consume(value.hostCall!);
+        consumeSettledHostCall(value);
         return resolveSandboxValueNow(resolved, options, seenThenables);
       },
       (reason: SandboxValue) => {
-        value.hostCallJournal?.consume(value.hostCall!);
+        consumeSettledHostCall(value);
         return Promise.reject(budgetIfNeeded(reason, options.budget));
       }
     );

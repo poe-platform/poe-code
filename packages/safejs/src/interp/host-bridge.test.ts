@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { run } from "../run.js";
 import { Budget } from "./budget.js";
-import { wrapCallerInjectedBindings } from "./host-bridge.js";
+import { declareHostOperation, wrapCallerInjectedBindings } from "./host-bridge.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -13,6 +13,56 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  // The journal consumes a host call result once, but awaiting the same promise
+  // twice is ordinary JavaScript and must not read as a double consumption.
+  it("delivers one host call result to repeated awaits", async () => {
+    const read = declareHostOperation(async () => "body", "re-issue");
+
+    await expect(
+      run(
+        [
+          'import { read } from "files";',
+          "const pending = read();",
+          "const first = await pending;",
+          "const second = await pending;",
+          "return first + '|' + second;"
+        ].join("\n"),
+        { modules: { files: { read } } }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "body|body"
+    });
+  });
+
+  it("delivers one rejected host call reason to repeated awaits", async () => {
+    const read = declareHostOperation(async () => {
+      throw Object.assign(new Error("ENOENT: no such file or directory"), { code: "ENOENT" });
+    }, "re-issue");
+
+    await expect(
+      run(
+        [
+          'import { read } from "files";',
+          "const pending = read();",
+          "const codes = [];",
+          "for (const attempt of [1, 2]) {",
+          "  try {",
+          "    await pending;",
+          "  } catch ({ code }) {",
+          "    codes.push(attempt + ':' + code);",
+          "  }",
+          "}",
+          "return codes.join('|');"
+        ].join("\n"),
+        { modules: { files: { read } } }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "1:ENOENT|2:ENOENT"
+    });
+  });
+
   it("copies non-enumerable static methods from injected functions", () => {
     const wrapped = wrapCallerInjectedBindings(
       {

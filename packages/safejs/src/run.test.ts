@@ -1039,6 +1039,31 @@ describe("run", () => {
     });
   });
 
+  // The await already accounts for the one host call result, so the boundary check must
+  // report the returned rejection rather than the journal's double-consumption error.
+  it("reports a returned rejected host call promise as unhandled after a sandbox catch", async () => {
+    const read = declareHostOperation(async () => {
+      throw Object.assign(new Error("ENOENT: no such file or directory"), { code: "ENOENT" });
+    }, "re-issue");
+
+    await expect(
+      run(
+        [
+          'import { read } from "files";',
+          "const pending = read();",
+          "try {",
+          "  await pending;",
+          "} catch {}",
+          "return pending;"
+        ].join("\n"),
+        { modules: { files: { read } } }
+      )
+    ).rejects.toMatchObject({
+      name: "UnhandledRejectionError",
+      reason: expect.objectContaining({ code: "ENOENT" })
+    });
+  });
+
   it("does not reject detached async function rejections with sandbox catches", async () => {
     const result = await run(`
       async function fail() {

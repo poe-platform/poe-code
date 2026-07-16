@@ -48,6 +48,7 @@ import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
 import { registerBraintrustCommand } from "./commands/braintrust.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
+import { registerCompletionCommand } from "./commands/completion.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
 import { registerWorktreeCommand } from "./commands/worktree.js";
@@ -998,6 +999,8 @@ function bootstrapProgram(container: CliContainer): Command {
   );
   registerUsageCommand(program, container);
   registerModelsCommand(program, container);
+  // Last: the emitted script is derived from the command tree, so every command must be registered.
+  registerCompletionCommand(program);
 
   program.allowExcessArguments().action(function (this: Command) {
     const args = this.args;

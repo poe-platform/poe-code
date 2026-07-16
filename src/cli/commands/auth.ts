@@ -5,6 +5,7 @@ import { apiKeyFlagDescription, createExecutionResources, resolveCommandFlags } 
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout, logoutScopeDescription } from "./logout.js";
 import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
+import { jsonOptionDescription, writeJson, type JsonCommandOptions } from "./json-output.js";
 
 interface ApiKeyCommandOptions {
   reveal?: boolean;
@@ -21,8 +22,9 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
   auth
     .command("status")
     .description("Show login status.")
-    .action(async () => {
-      await executeStatus(program, container);
+    .option("--json", jsonOptionDescription)
+    .action(async (options: JsonCommandOptions) => {
+      await executeStatus(program, container, options);
     });
 
   auth
@@ -45,6 +47,7 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
   auth
     .command("whoami")
     .description("Print Poe account identity as JSON (uses POE_API_KEY if set).")
+    .option("--json", "Accepted for consistency with other commands; whoami always prints JSON.")
     .action(async () => {
       await executeWhoami(program, container);
     });
@@ -67,8 +70,18 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
     });
 }
 
-async function executeStatus(program: Command, container: CliContainer): Promise<void> {
+async function executeStatus(
+  program: Command,
+  container: CliContainer,
+  options: JsonCommandOptions = {}
+): Promise<void> {
   const flags = resolveCommandFlags(program);
+
+  if (options.json === true) {
+    await writeStatusJson(container, flags);
+    return;
+  }
+
   const resources = createExecutionResources(container, flags, "auth:status");
 
   resources.logger.intro("auth status");
@@ -113,6 +126,31 @@ async function executeStatus(program: Command, container: CliContainer): Promise
     }
     throw error;
   }
+}
+
+async function writeStatusJson(
+  container: CliContainer,
+  flags: ReturnType<typeof resolveCommandFlags>
+): Promise<void> {
+  const apiKey = await resolveAuthCredential(container, { readOnly: flags.dryRun });
+  if (!apiKey) {
+    writeJson({ loggedIn: false });
+    return;
+  }
+
+  if (flags.dryRun) {
+    writeJson({ loggedIn: true, dryRun: true });
+    return;
+  }
+
+  writeJson({
+    loggedIn: true,
+    identity: await fetchPoeAuthIdentity({
+      apiKey,
+      baseUrl: container.env.poeApiBaseUrl,
+      httpClient: container.httpClient
+    })
+  });
 }
 
 async function executeApiKey(
@@ -180,10 +218,11 @@ async function executeWhoami(program: Command, container: CliContainer): Promise
     return;
   }
 
-  const identity = await fetchPoeAuthIdentity({
-    apiKey,
-    baseUrl: container.env.poeApiBaseUrl,
-    httpClient: container.httpClient
-  });
-  process.stdout.write(`${JSON.stringify(identity)}\n`);
+  writeJson(
+    await fetchPoeAuthIdentity({
+      apiKey,
+      baseUrl: container.env.poeApiBaseUrl,
+      httpClient: container.httpClient
+    })
+  );
 }

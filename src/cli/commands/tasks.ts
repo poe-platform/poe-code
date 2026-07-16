@@ -31,6 +31,7 @@ import {
   type TasksCliOptions,
   TasksOptionsError
 } from "./tasks-options.js";
+import { jsonOptionDescription, writeJson } from "./json-output.js";
 
 interface TasksCommandOptions extends TasksCliOptions {
   description?: string;
@@ -65,7 +66,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .option("--repo <owner/name>", "GitHub repository owner/name.")
     .option("--project <owner/number>", "GitHub project owner/number.")
     .option("--states <csv>", "Required task state names.")
-    .option("--json", "Print the verification report as JSON.")
+    .option("--json", jsonOptionDescription)
     .action(async (list: string, options: TasksCommandOptions, command: Command) => {
       await runVerify(list, mergeCommandOptions(options, command), container);
     });
@@ -79,7 +80,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .option("--project <owner/number>", "GitHub project owner/number.")
     .option("--states <csv>", "Required task state names.")
     .option("--title <name>", "Project title used when the project must be created.")
-    .option("--json", "Print the sync report as JSON.")
+    .option("--json", jsonOptionDescription)
     .option("--yes", "Confirm non-interactive sync.")
     .action(async (list: string, options: TasksCommandOptions, command: Command) => {
       await runSync(list, mergeCommandOptions(options, command), container);
@@ -127,7 +128,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .argument("<id>", "Qualified task id.")
     .option("--workflow <path>", "Workflow file path.", "./WORKFLOW.md")
     .option("--field <name>", "Print one task field.")
-    .option("--json", "Print the task as JSON.")
+    .option("--json", jsonOptionDescription)
     .option("--yes", "Run non-interactively.")
     .action(async (id: string, options: TasksCommandOptions, command: Command) => {
       await runGet(id, mergeCommandOptions(options, command), container);
@@ -727,10 +728,6 @@ function logTask(logger: ScopedLogger, task: Task): void {
   logger.info("description:");
   logger.info(task.description);
   logger.info(`metadata: ${JSON.stringify(task.metadata)}`);
-}
-
-function writeJson(value: VerifyGhProjectReport | SyncGhProjectReport | Task): void {
-  process.stdout.write(`${JSON.stringify(value)}\n`);
 }
 
 function writeField(task: Task, field: string): void {

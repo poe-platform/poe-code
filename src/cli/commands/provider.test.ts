@@ -122,6 +122,74 @@ describe("provider list", () => {
     expect(output).toContain("[-]");
   });
 
+  it("prints provider rows as JSON with --json and skips the table", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    vi.spyOn(container.providerRegistry, "list").mockReturnValue([
+      makeProvider({
+        id: "shape-only",
+        baseUrlEnvVar: "SHAPE_ONLY_BASE_URL",
+        apiShapes: [{ id: "openai-responses", defaultBaseUrl: "https://api.test/v1" }]
+      })
+    ]);
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "list", "--json"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    stdoutSpy.mockRestore();
+
+    expect(JSON.parse(written)).toEqual([
+      {
+        id: "shape-only",
+        loggedIn: true,
+        env: ["TEST_API_KEY", "SHAPE_ONLY_BASE_URL"],
+        apiShapes: ["openai-responses"],
+        agents: expect.any(Array)
+      }
+    ]);
+    expect(logs).toEqual([]);
+  });
+
+  it("prints untruncated agent lists in provider list --json", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "list", "--json"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    stdoutSpy.mockRestore();
+
+    const parsed = JSON.parse(written) as Array<{ id: string; agents: string[] }>;
+    const poe = parsed.find((entry) => entry.id === "poe");
+    expect(poe?.agents.length).toBeGreaterThan(0);
+    expect(written).not.toContain("…");
+    expect(written).not.toContain("\u001b[");
+  });
+
+  it("documents --json on provider list help", async () => {
+    const container = createContainer(fs, []);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    const listCommand = program
+      .commands.find((command) => command.name() === "provider")
+      ?.commands.find((command) => command.name() === "list");
+
+    expect(listCommand?.helpInformation()).toContain("--json");
+  });
+
   it("keeps every table line inside the terminal width", async () => {
     const columnsDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
     Object.defineProperty(process.stdout, "columns", { configurable: true, value: 60 });

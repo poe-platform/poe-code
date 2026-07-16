@@ -9,6 +9,7 @@ import { intro } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { resolveCommandFlags } from "./shared.js";
+import { jsonOptionDescription } from "./json-output.js";
 
 const TRACE_SOURCES = ["claude", "codex", "pi", "poe-code"] as const satisfies AgentTraceSource[];
 
@@ -83,7 +84,7 @@ export function registerTracesCommand(program: Command, container: CliContainer)
     .option("--all-workspaces", "Read traces from every workspace, not just cwd")
     .option("--since <duration>", "Only include recently updated traces")
     .option("--limit <n>", "Maximum traces listed")
-    .option("--json", "Machine-readable output")
+    .option("--json", jsonOptionDescription)
     .option("--open", "Generate HTML for a trace path and open it in the browser")
     .option("--html-out <file>", "Write HTML for a trace path without opening")
     .action(async function (this: Command, pathArg: string | undefined) {

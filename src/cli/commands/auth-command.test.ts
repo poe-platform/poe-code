@@ -274,6 +274,129 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Problems?"))).toBe(true);
   });
 
+  it("prints auth status as JSON with --json and skips human log lines", async () => {
+    await storeApiKey(fs, "test-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ user_id: 7, name: "Kamil Jopek", handle: "kamil" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status", "--json"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    stdoutSpy.mockRestore();
+
+    expect(JSON.parse(written)).toEqual({
+      loggedIn: true,
+      identity: createWhoamiResponse({ user_id: 7, name: "Kamil Jopek", handle: "kamil" })
+    });
+    expect(logs).toEqual([]);
+    expect(spinnerStopMessages).toEqual([]);
+  });
+
+  it("reports logged-out state as JSON with auth status --json", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status", "--json"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    stdoutSpy.mockRestore();
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(JSON.parse(written)).toEqual({ loggedIn: false });
+    expect(logs).toEqual([]);
+  });
+
+  it("does not fetch identity for auth status --json while previewing", async () => {
+    await storeApiKey(fs, "test-key");
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: true } as any);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "status", "--json"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    stdoutSpy.mockRestore();
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(JSON.parse(written)).toEqual({ loggedIn: true, dryRun: true });
+    expect(logs).toEqual([]);
+  });
+
+  it("accepts --json on auth whoami and prints the identity", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ handle: "kamil" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "whoami", "--json"]);
+
+    const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
+    stdoutSpy.mockRestore();
+
+    expect(JSON.parse(written)).toEqual(createWhoamiResponse({ handle: "kamil" }));
+  });
+
+  it("documents --json on auth status help", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const statusCommand = program
+      .commands.find((command) => command.name() === "auth")
+      ?.commands.find((command) => command.name() === "status");
+
+    expect(statusCommand?.helpInformation()).toContain("--json");
+  });
+
   it("masks the stored API key by default with auth api-key", async () => {
     await storeApiKey(fs, "poe-secret-abcd");
 

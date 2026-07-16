@@ -25,6 +25,7 @@ import { loadConfiguredServices, unconfigureService } from "../../services/confi
 import { createMutationReporter } from "../../services/mutation-events.js";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
 import type { ProviderContext } from "../service-registry.js";
+import { jsonOptionDescription, writeJson, type JsonCommandOptions } from "./json-output.js";
 
 const apiShapeLabels: Record<ApiShapeId, string> = {
   "openai-chat-completions": "chat-completions",
@@ -47,8 +48,9 @@ export function registerProviderCommand(program: Command, container: CliContaine
   providerCmd
     .command("list")
     .description("List available providers and their login status.")
-    .action(async () => {
-      await executeProviderList(program, container);
+    .option("--json", jsonOptionDescription)
+    .action(async (options: JsonCommandOptions) => {
+      await executeProviderList(program, container, options);
     });
 
   providerCmd
@@ -80,30 +82,45 @@ export function registerProviderCommand(program: Command, container: CliContaine
     });
 }
 
-async function executeProviderList(program: Command, container: CliContainer): Promise<void> {
+async function executeProviderList(
+  program: Command,
+  container: CliContainer,
+  options: JsonCommandOptions
+): Promise<void> {
   const flags = resolveCommandFlags(program);
+
+  const entries = await Promise.all(
+    container.providerRegistry.list().map(async (provider) => {
+      const apiShapes = provider.apiShapes?.map((shape) => shape.id) ?? [];
+      return {
+        id: provider.id,
+        loggedIn: await container.providerRegistry.isLoggedIn(provider.id, {
+          readOnly: flags.dryRun
+        }),
+        env: listProviderEnvVars(provider),
+        apiShapes,
+        agents: listShapeCompatibleAgents(apiShapes)
+      };
+    })
+  );
+
+  if (options.json === true) {
+    writeJson(entries);
+    return;
+  }
+
   const resources = createExecutionResources(container, flags, "provider:list");
 
   resources.logger.intro("provider list");
 
-  const providers = container.providerRegistry.list();
   const theme = getTheme();
-
-  const rows = await Promise.all(
-    providers.map(async (provider) => {
-      const loggedIn = await container.providerRegistry.isLoggedIn(provider.id, {
-        readOnly: flags.dryRun
-      });
-      const apiShapes = provider.apiShapes?.map((shape) => shape.id) ?? [];
-      return {
-        Provider: theme.accent(provider.id),
-        Status: loggedIn ? theme.success("[logged in]") : theme.muted("[-]"),
-        Env: formatProviderEnv(provider),
-        "API shapes": formatProviderApiShapes(apiShapes),
-        Agents: listShapeCompatibleAgents(apiShapes).join(", ")
-      };
-    })
-  );
+  const rows = entries.map((entry) => ({
+    Provider: theme.accent(entry.id),
+    Status: entry.loggedIn ? theme.success("[logged in]") : theme.muted("[-]"),
+    Env: entry.env.join(", "),
+    "API shapes": formatProviderApiShapes(entry.apiShapes),
+    Agents: entry.agents.join(", ")
+  }));
 
   const columns = [
     { name: "Provider", title: "Provider", alignment: "left" as const, maxLen: 20 },
@@ -353,15 +370,14 @@ function formatProviderApiShapes(apiShapes: readonly ApiShapeId[]): string {
   return apiShapes.map((shapeId) => apiShapeLabels[shapeId]).join(", ");
 }
 
-function formatProviderEnv(provider: {
+function listProviderEnvVars(provider: {
   auth: { kind: string; envVar?: string };
   baseUrlEnvVar?: string;
-}): string {
-  const envVars = [
+}): string[] {
+  return [
     provider.auth.kind === "api-key" ? provider.auth.envVar : undefined,
     provider.baseUrlEnvVar
   ].filter((value): value is string => typeof value === "string" && value.length > 0);
-  return envVars.join(", ");
 }
 
 function listShapeCompatibleAgents(providerApiShapes: readonly ApiShapeId[]): string[] {

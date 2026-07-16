@@ -18,6 +18,7 @@ import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 import { cursorSpawnConfig } from "./cursor.js";
 import { piSpawnConfig } from "./pi.js";
 import { serializeCodexMcpArgs, serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
+import { resolveModeConfig } from "../types.js";
 
 describe("configs/getSpawnConfig", () => {
   it("returns undefined for claude-desktop", () => {
@@ -168,6 +169,48 @@ describe("configs/auto mode", () => {
     expect(acpArgs({ mode: "auto" })).toEqual(["--acp", "--approval-mode", "default"]);
     expect(acpArgs({ mode: "edit" })).toEqual(["--acp", "--approval-mode", "auto_edit"]);
     expect(acpArgs({ mode: "read" })).toEqual(["--acp", "--approval-mode", "plan"]);
+  });
+});
+
+describe("configs/read mode is non-mutating", () => {
+  // Claude Code tools that can change the workspace: read mode must never enable one.
+  const mutatingClaudeTools = ["Bash", "Write", "Edit", "MultiEdit", "NotebookEdit"];
+
+  const readArgs = (): string[] => resolveModeConfig(claudeCodeSpawnConfig.modes.read).args;
+
+  const flagValues = (args: string[], flag: string): string[] => {
+    const index = args.indexOf(flag);
+    return index === -1 ? [] : (args[index + 1]?.split(",") ?? []);
+  };
+
+  it("pins claude-code read mode to a read-only tool allowlist", () => {
+    const allowed = flagValues(readArgs(), "--allowedTools");
+
+    expect(allowed).toEqual(["Read", "Glob", "Grep"]);
+  });
+
+  it("explicitly disallows every mutating claude-code tool in read mode", () => {
+    expect(flagValues(readArgs(), "--disallowedTools")).toEqual(mutatingClaudeTools);
+  });
+
+  it("builds claude-code read args that deny writes rather than relying on plan mode", async () => {
+    const { buildSpawnArgs } = await import("../spawn.js");
+
+    const { args } = buildSpawnArgs("claude-code", { prompt: "audit", mode: "read" });
+
+    expect(args).toEqual([
+      "-p",
+      "audit",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--permission-mode",
+      "plan",
+      "--allowedTools",
+      "Read,Glob,Grep",
+      "--disallowedTools",
+      mutatingClaudeTools.join(",")
+    ]);
   });
 });
 

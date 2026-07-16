@@ -20,7 +20,16 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
     yolo: ["--dangerously-skip-permissions"],
     auto: ["--permission-mode", "auto"],
     edit: ["--permission-mode", "acceptEdits", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep,NotebookEdit"],
-    read: ["--permission-mode", "plan"]
+    // Plan mode alone still permits writes, so read mode pins a read-only
+    // allowlist and hard-denies every mutating tool.
+    read: [
+      "--permission-mode",
+      "plan",
+      "--allowedTools",
+      "Read,Glob,Grep",
+      "--disallowedTools",
+      "Bash,Write,Edit,MultiEdit,NotebookEdit"
+    ]
   },
   stdinMode: {
     omitPrompt: true,

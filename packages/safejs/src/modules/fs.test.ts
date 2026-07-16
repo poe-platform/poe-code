@@ -5,6 +5,7 @@ import { getSystemErrorName } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 
+import { Budget } from "../interp/budget.js";
 import { digestHostCallArguments } from "../interp/host-call.js";
 import { readHostOperationPolicy } from "../interp/host-bridge.js";
 import { run } from "../run.js";
@@ -2031,6 +2032,218 @@ describe("makeFsModule", () => {
         returnValue: JSON.stringify(["TypeError", FILTER_MESSAGE])
       });
       expect(volume.existsSync("/repo/copy")).toBe(false);
+    });
+
+    // A read is the one host call whose result size the script chooses rather than the host:
+    // every other operation answers a shape the module built, while readFile answers whatever
+    // is on disk and readdir answers however many entries a directory holds. The bridge charges
+    // both against the same budget it charges a literal against, and it has to do so on the
+    // async path — the module's operations are all promises, so the charge lands inside the
+    // host call's then rather than at the call site the synchronous host cases cover.
+    //
+    // Every path and encoding here is spelled short on purpose. stringLength is charged
+    // against a string literal in the script's own source too, so a '/repo/big.txt' would
+    // blow an 8-char budget while the module was still validating the argument and the read
+    // that is under test would never be reached.
+    describe("charging a read against the run's budget", () => {
+      const STRING_BUDGET = 8;
+
+      const OVERSIZED_CONTENTS = "x".repeat(64);
+
+      const OVERSIZED_NAME = `${"n".repeat(32)}.txt`;
+
+      const READ_SCRIPT = [
+        'import * as fs from "fs";',
+        'const text = await fs.readFile("/b.txt", "utf8");',
+        "return text.length;"
+      ].join("\n");
+
+      it("refuses a file larger than the string budget", async () => {
+        const { fs } = createFs({ "/b.txt": OVERSIZED_CONTENTS });
+
+        await expect(
+          run(READ_SCRIPT, {
+            budget: new Budget({ stringLength: STRING_BUDGET }),
+            modules: { fs }
+          })
+        ).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "stringLength",
+          current: OVERSIZED_CONTENTS.length,
+          limit: STRING_BUDGET
+        });
+      });
+
+      it("refuses a directory holding more entries than the array budget", async () => {
+        const { fs } = createFs({ "/d/a.txt": "a", "/d/b.txt": "b", "/d/c.txt": "c" });
+
+        await expect(
+          run(
+            [
+              'import * as fs from "fs";',
+              'const entries = await fs.readdir("/d", "utf8");',
+              "return entries.length;"
+            ].join("\n"),
+            { budget: new Budget({ arrayLength: 2 }), modules: { fs } }
+          )
+        ).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "arrayLength",
+          current: 3,
+          limit: 2
+        });
+      });
+
+      // withFileTypes answers objects rather than strings, so the entry count is charged
+      // where the array is copied rather than where a string is.
+      //
+      // The count is all the script asks for, deliberately: returning the array would hand it
+      // to the charge every produced sandbox value goes through on its way out of the run
+      // (allocateProducedSandboxValue), and the refusal would stand even if the bridge charged
+      // nothing. Reading .length leaves the bridge's own charge as the only one that can fire.
+      //
+      // Three entries against a budget of two, rather than two against one, for the same
+      // reason: arrayLength is charged against a call's own argument list as well, so a
+      // budget of one refuses the two-argument readdir before it reaches the filesystem.
+      it("refuses a directory of dirents larger than the array budget", async () => {
+        const { fs } = createFs({ "/d/a.txt": "a", "/d/b.txt": "b", "/d/c.txt": "c" });
+
+        await expect(
+          run(
+            [
+              'import * as fs from "fs";',
+              'const entries = await fs.readdir("/d", { withFileTypes: true });',
+              "return entries.length;"
+            ].join("\n"),
+            { budget: new Budget({ arrayLength: 2 }), modules: { fs } }
+          )
+        ).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "arrayLength",
+          current: 3,
+          limit: 2
+        });
+      });
+
+      // An entry name is a string the host chose rather than one the script spelled, so it is
+      // charged like a file's contents even though the array itself fits.
+      it("refuses an entry name longer than the string budget", async () => {
+        const { fs } = createFs({ [`/d/${OVERSIZED_NAME}`]: "a" });
+
+        await expect(
+          run(
+            [
+              'import * as fs from "fs";',
+              'const entries = await fs.readdir("/d", "utf8");',
+              "return entries.length;"
+            ].join("\n"),
+            {
+              budget: new Budget({ stringLength: STRING_BUDGET, arrayLength: 4 }),
+              modules: { fs }
+            }
+          )
+        ).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "stringLength",
+          current: OVERSIZED_NAME.length,
+          limit: STRING_BUDGET
+        });
+      });
+
+      // The refusal is the run's to fail on rather than the script's to catch: a script that
+      // wraps the read cannot turn the budget error into a value it goes on to use, which is
+      // what stops a script from reading a file too big for it and carrying on regardless.
+      it("does not let a script catch the refusal", async () => {
+        const { fs } = createFs({ "/b.txt": OVERSIZED_CONTENTS });
+
+        await expect(
+          run(
+            [
+              'import * as fs from "fs";',
+              "try {",
+              '  await fs.readFile("/b.txt", "utf8");',
+              "} catch {",
+              '  return "caught";',
+              "}",
+              'return "read";'
+            ].join("\n"),
+            { budget: new Budget({ stringLength: STRING_BUDGET }), modules: { fs } }
+          )
+        ).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "stringLength"
+        });
+      });
+
+      // stringLength answers for one value's size and dataSize for everything the run holds at
+      // once, so a file under the per-string limit is still charged against the aggregate.
+      // Two charges land on a read rather than one — the bridge provisions the result as it
+      // crosses (copyHostResultToSandbox) and the interpreter reconciles what the run retains
+      // afterwards — so this asserts the refusal rather than which of them raised it, and it
+      // stands if either one is dropped.
+      //
+      // The limit is measured rather than written down: dataSize counts the fs module's own
+      // bindings too, so a literal here would be a number that quietly means something else as
+      // soon as the module gains an operation. The baseline is what the same script retains
+      // reading an empty file, which leaves the contents as the only difference between the
+      // run that fits and the run that does not.
+      it("refuses a file that overruns the data budget", async () => {
+        const baseline = new Budget();
+        await run(READ_SCRIPT, {
+          budget: baseline,
+          modules: { fs: createFs({ "/b.txt": "" }).fs }
+        });
+
+        const { fs } = createFs({ "/b.txt": OVERSIZED_CONTENTS });
+
+        await expect(
+          run(READ_SCRIPT, {
+            budget: new Budget({ dataSize: baseline.peakDataSize }),
+            modules: { fs }
+          })
+        ).rejects.toMatchObject({
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "dataSize"
+        });
+      });
+
+      // The other side of the same budget: the empty read the baseline was measured from still
+      // fits under it, so it is the contents that overran the limit above rather than the
+      // module's own bindings leaving no room for any read at all.
+      it("hands a script a file that fits the measured data budget", async () => {
+        const baseline = new Budget();
+        await run(READ_SCRIPT, {
+          budget: baseline,
+          modules: { fs: createFs({ "/b.txt": "" }).fs }
+        });
+
+        const result = await run(READ_SCRIPT, {
+          budget: new Budget({ dataSize: baseline.peakDataSize }),
+          modules: { fs: createFs({ "/b.txt": "" }).fs }
+        });
+
+        expect(result).toMatchObject({ ok: true, returnValue: 0 });
+      });
+
+      // The refusal is the size's alone: the same script under the same budget reads a file
+      // that fits, so it is the limit refusing the big one rather than the module or the
+      // bridge refusing every read.
+      it("hands a script a file that fits the same budget", async () => {
+        const { fs } = createFs({ "/s.txt": "fits" });
+
+        const result = await run(
+          ['import * as fs from "fs";', 'return await fs.readFile("/s.txt", "utf8");'].join("\n"),
+          { budget: new Budget({ stringLength: STRING_BUDGET }), modules: { fs } }
+        );
+
+        expect(result).toMatchObject({ ok: true, returnValue: "fits" });
+      });
     });
   });
 

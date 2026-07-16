@@ -236,6 +236,51 @@ describe("createCliMain", () => {
     expect(vi.mocked(log.message)).not.toHaveBeenCalled();
   });
 
+  it("renders a UserError thrown by a workspace package as a plain message", async () => {
+    const { UserError } = await import("@poe-code/user-error");
+    const parseAsync = vi.fn(async () => {
+      throw new UserError('Unknown agent "clyde". Try: claude, codex.');
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
+    };
+    const { log } = await import("toolcraft-design");
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(vi.mocked(log.error)).toHaveBeenCalledWith(
+      'Unknown agent "clyde". Try: claude, codex.'
+    );
+    expect(vi.mocked(log.message)).not.toHaveBeenCalled();
+  });
+
+  it("renders a cross-bundle UserError as a plain message", async () => {
+    // toolcraft ships its own UserError class, so instances arriving from it
+    // fail instanceof and must be recognised by error name.
+    const parseAsync = vi.fn(async () => {
+      const error = new Error("No editor found. Set $EDITOR.");
+      error.name = "UserError";
+      throw error;
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
+    };
+    const { log } = await import("toolcraft-design");
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(vi.mocked(log.error)).toHaveBeenCalledWith("No editor found. Set $EDITOR.");
+    expect(vi.mocked(log.message)).not.toHaveBeenCalled();
+  });
+
   it("exits without rendering or logging errors already reported by a command", async () => {
     const parseAsync = vi.fn(async () => {
       throw new ReportedError("already shown");

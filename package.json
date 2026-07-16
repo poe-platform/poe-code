@@ -247,6 +247,7 @@
     "@poe-code/safejs": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",
+    "@poe-code/user-error": "*",
     "@poe-code/workspace-resolver": "*",
     "@poe-code/worktree": "*",
     "@types/mustache": "^4.2.6",

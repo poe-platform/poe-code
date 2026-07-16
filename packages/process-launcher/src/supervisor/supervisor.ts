@@ -22,6 +22,7 @@ type SubscribableLog = LogListener & {
   publishPartial(line: string, stream: "stdout" | "stderr"): void;
 };
 
+const DEFAULT_START_SETTLE_MS = 250;
 const WORKSPACE_COMMAND_TIMEOUT_MS = 10 * 60_000;
 const WORKSPACE_COMMAND_KILL_GRACE_MS = 1_000;
 
@@ -179,6 +180,15 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
       return;
     }
 
+    const settleMs = options.startSettleMs ?? DEFAULT_START_SETTLE_MS;
+    if (!(await hasSurvivedSettleWindow(nextHandle, settleMs))) {
+      return;
+    }
+
+    if (runId !== nextRunId || handle !== nextHandle || stopRequested) {
+      return;
+    }
+
     await transitionTo("running");
   }
 
@@ -207,13 +217,13 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     state.lastStoppedAt = new Date().toISOString();
 
     if (stopRequested || options.signal?.aborted) {
-      await transitionTo("stopped");
+      await transitionTo("stopped", true);
       await cleanupWorkspace();
       return;
     }
 
     if (!shouldRestart(result.exitCode, spec.restart)) {
-      await transitionTo("stopped");
+      await transitionTo("stopped", true);
       await cleanupWorkspace();
       return;
     }
@@ -403,6 +413,25 @@ function createRunSpec(spec: SupervisorOptions["spec"], cwdOverride?: string): R
     stderr: "pipe",
     stdout: "pipe"
   };
+}
+
+async function hasSurvivedSettleWindow(activeHandle: RunHandle, settleMs: number): Promise<boolean> {
+  if (settleMs <= 0) {
+    return true;
+  }
+
+  let timer: NodeJS.Timeout | undefined;
+  const survived = new Promise<boolean>(resolve => {
+    timer = setTimeout(() => resolve(true), settleMs);
+  });
+
+  try {
+    return await Promise.race([activeHandle.result.then(() => false, () => false), survived]);
+  } finally {
+    if (timer !== undefined) {
+      clearTimeout(timer);
+    }
+  }
 }
 
 function shouldRestart(exitCode: number, policy: SupervisorOptions["spec"]["restart"]): boolean {

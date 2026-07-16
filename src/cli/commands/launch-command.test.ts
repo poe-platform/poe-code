@@ -357,6 +357,19 @@ describe("launch command", () => {
     expect(logs).toContain("Dry run: would start managed process api.");
   });
 
+  it("rejects launch start ids that can never name a managed process", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await expect(program.parseAsync([
+      "node", "cli", "--dry-run", "--yes", "launch", "start", "slee:\n#", "--", "echo", "hi"
+    ])).rejects.toThrow(/process id/i);
+
+    expect(startLaunchMock).not.toHaveBeenCalled();
+    expect(logs).toEqual([]);
+  });
+
   it("previews launch stop without changing running state", async () => {
     const logs: string[] = [];
     listLaunchesMock.mockResolvedValue([{ id: "api" }]);

@@ -51,7 +51,8 @@ export type SimulationEnv = {
 export function createSimulation(
   spec: ProcessSpec,
   behaviors: MockRunBehavior[],
-  options: Pick<SupervisorOptions, "signal"> & Partial<Pick<SupervisorOptions, "stateDir">> = {}
+  options: Pick<SupervisorOptions, "signal"> &
+    Partial<Pick<SupervisorOptions, "startSettleMs" | "stateDir">> = {}
 ): SimulationEnv {
   const fs = createMemFs();
   const stateDir = options.stateDir ?? "/state";
@@ -71,6 +72,7 @@ export function createSimulation(
     stateDir,
     fs,
     runner,
+    startSettleMs: options.startSettleMs ?? 0,
     ...(options.signal ? { signal: options.signal } : {}),
     onLog: (line, stream) => {
       logLines.push({ line, stream });

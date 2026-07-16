@@ -20,6 +20,7 @@ Options are passed by the caller:
 - `cwd`: working directory for launched commands.
 - `env`: extra environment values for the child process.
 - `restart`: restart policy for supervised processes.
+- `startSettleMs`: how long a started process must stay alive before it is reported as `running` (default `250`; `0` disables the check). Processes without a `readyCheck` are only reported `running` once they survive this window.
 - `stdout` / `stderr`: output sinks.
 
 ## Environment Variables

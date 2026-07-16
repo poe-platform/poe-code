@@ -16,6 +16,7 @@ import {
 } from "../../sdk/launch.js";
 import type { ManagedProcessRecord, ProcessSpec } from "../../sdk/launch.js";
 import type { DockerMount, DockerPortMapping, Engine } from "@poe-code/process-runner";
+import { isValidManagedProcessId } from "@poe-code/process-launcher";
 
 interface StartCommandOptions {
   restart?: ProcessSpec["restart"];
@@ -316,7 +317,7 @@ async function resolveProcessId(
   assumeYes: boolean
 ): Promise<string | null> {
   if (value && value.trim().length > 0) {
-    return value.trim();
+    return assertUsableProcessId(value.trim());
   }
 
   if (assumeYes) {
@@ -338,6 +339,16 @@ async function resolveProcessId(
   const id = typeof entered === "string" ? entered.trim() : "";
   if (id.length === 0) {
     throw new ValidationError("Process ID is required.");
+  }
+
+  return assertUsableProcessId(id);
+}
+
+function assertUsableProcessId(id: string): string {
+  if (!isValidManagedProcessId(id)) {
+    throw new ValidationError(
+      `Invalid process id ${JSON.stringify(id)}. Expected a single name without path separators or control characters.`
+    );
   }
 
   return id;

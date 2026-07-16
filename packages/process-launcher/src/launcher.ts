@@ -5,8 +5,12 @@ import { TextDecoder } from "node:util";
 import { hasOwnErrorCode } from "./errors.js";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
-import { assertValidManagedProcessId } from "./process-id.js";
-import { assertValidProcessStateDocument, createStateStore } from "./state/state-store.js";
+import { assertValidManagedProcessId, isValidManagedProcessId } from "./process-id.js";
+import {
+  REMOVED_STATE_PREFIX,
+  assertValidProcessStateDocument,
+  createStateStore
+} from "./state/state-store.js";
 import { createSupervisor } from "./supervisor/supervisor.js";
 import type { LauncherFileSystem, ProcessSpec, ProcessState } from "./types.js";
 
@@ -141,7 +145,7 @@ export async function startManagedProcess(options: StartManagedProcessOptions): 
     });
 
     if (started.state?.status !== "running") {
-      throw new Error(`Managed process "${spec.id}" failed to start.`);
+      throw new Error(await describeStartFailure(fs, options.baseDir, spec.id, started));
     }
 
     return started;
@@ -250,6 +254,24 @@ export async function restartManagedProcess(
   });
 }
 
+async function describeStartFailure(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string,
+  record: ManagedProcessRecord
+): Promise<string> {
+  const state = record.state;
+  const cause = state === null
+    ? "no state was recorded"
+    : state.lastExitCode === null
+      ? `it is ${state.status}`
+      : `exited with code ${state.lastExitCode}`;
+  const stderr = await readManagedLogs({ baseDir, fs, id, lines: 5, stream: "stderr" });
+  const details = stderr.length === 0 ? "" : `\nstderr:\n${stderr.join("\n")}`;
+
+  return `Managed process "${id}" failed to start: ${cause}.${details}`;
+}
+
 async function cleanupFailedStart(options: {
   baseDir: string;
   daemonPid: number | null;
@@ -277,14 +299,16 @@ export async function listManagedProcesses(
   const records: ManagedProcessRecord[] = [];
 
   for (const id of ids) {
-    records.push(
-      await readManagedProcess({
-        baseDir: options.baseDir,
-        fs,
-        id,
-        isPidRunning: options.isPidRunning
-      })
-    );
+    const record = await readManagedProcess({
+      baseDir: options.baseDir,
+      fs,
+      id,
+      isPidRunning: options.isPidRunning
+    });
+
+    if (record.spec !== null || record.state !== null) {
+      records.push(record);
+    }
   }
 
   return records.sort((left, right) => {
@@ -805,6 +829,10 @@ async function listIds(fs: LauncherFileSystem, baseDir: string): Promise<string[
     const ids: string[] = [];
 
     for (const entry of entries) {
+      if (entry.startsWith(REMOVED_STATE_PREFIX) || !isValidManagedProcessId(entry)) {
+        continue;
+      }
+
       const entryPath = path.join(baseDir, entry);
       try {
         await assertPathNotSymbolicLink(fs, entryPath);

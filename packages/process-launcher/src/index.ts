@@ -11,6 +11,7 @@ export type {
   SupervisorOptions
 } from "./types.js";
 
+export { isValidManagedProcessId } from "./process-id.js";
 export { createStateStore } from "./state/state-store.js";
 export { createLogWriter } from "./logs/log-writer.js";
 export { waitForReady } from "./health/health-check.js";

@@ -1,14 +1,18 @@
 import path from "node:path";
 
+export function isValidManagedProcessId(id: string): boolean {
+  return (
+    id.length > 0 &&
+    id === id.trim() &&
+    id !== "." &&
+    id !== ".." &&
+    path.basename(id) === id &&
+    !hasControlCharacter(id)
+  );
+}
+
 export function assertValidManagedProcessId(id: string): void {
-  if (
-    id.length === 0 ||
-    id !== id.trim() ||
-    id === "." ||
-    id === ".." ||
-    path.basename(id) !== id ||
-    hasControlCharacter(id)
-  ) {
+  if (!isValidManagedProcessId(id)) {
     throw new Error(`Invalid managed process id: ${id}`);
   }
 }

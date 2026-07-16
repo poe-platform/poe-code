@@ -7,6 +7,7 @@ import {
   createLogWriter,
   createStateStore,
   createSupervisor,
+  isValidManagedProcessId,
   listManagedProcesses,
   readManagedLogs,
   removeManagedProcess,
@@ -128,6 +129,7 @@ describe("@poe-code/process-launcher public exports", () => {
     expect(api).not.toHaveProperty("ProcessSpec");
     expect(api).not.toHaveProperty("SupervisorOptions");
     expect(api).not.toHaveProperty("StateStore");
+    expect(api.isValidManagedProcessId).toBe(isValidManagedProcessId);
     expect(api.createStateStore).toBe(createStateStore);
     expect(api.createLogWriter).toBe(createLogWriter);
     expect(api.waitForReady).toBe(waitForReady);
@@ -141,6 +143,7 @@ describe("@poe-code/process-launcher public exports", () => {
     expect(api.startManagedProcess).toBe(startManagedProcess);
     expect(api.stopManagedProcess).toBe(stopManagedProcess);
     expect(Object.keys(api)).toEqual([
+      "isValidManagedProcessId",
       "createStateStore",
       "createLogWriter",
       "waitForReady",
@@ -724,6 +727,63 @@ describe("process launcher manager", () => {
         })
       })
     ]);
+  });
+
+  it("ignores removal tombstones and unusable ids when listing", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(fs, baseDir, spec, createState(spec, { status: "stopped" }), null);
+    const tombstone = path.join(baseDir, ".state-removed-ghost-b292f3a8");
+    await fs.mkdir(tombstone, { recursive: true });
+    await fs.writeFile(
+      path.join(tombstone, "spec.json"),
+      `${JSON.stringify({ id: "ghost", command: "npm", restart: "never" })}\n`
+    );
+    await fs.mkdir(path.join(baseDir, "slee:\n#"), { recursive: true });
+
+    const records = await listManagedProcesses({ baseDir, fs });
+
+    expect(records.map(record => record.spec?.id)).toEqual(["api"]);
+  });
+
+  it("omits directories without a persisted spec or state when listing", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(fs, baseDir, spec, createState(spec, { status: "stopped" }), null);
+    await fs.mkdir(path.join(baseDir, "residue", "logs"), { recursive: true });
+
+    const records = await listManagedProcesses({ baseDir, fs });
+
+    expect(records.map(record => record.spec?.id)).toEqual(["api"]);
+  });
+
+  it("reports the recorded exit and stderr tail when a start fails", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "echo", restart: "never" };
+
+    await expect(
+      startManagedProcess({
+        baseDir,
+        fs,
+        pollIntervalMs: 1,
+        spec,
+        spawnDaemon: async () => {
+          await fs.mkdir(path.join(baseDir, "api", "logs"), { recursive: true });
+          await fs.writeFile(
+            path.join(baseDir, "api", "logs", "stderr.log"),
+            "echo: command not found\n"
+          );
+          await fs.writeFile(
+            path.join(baseDir, "api", "state.json"),
+            `${JSON.stringify(createState(spec, { lastExitCode: 127, pid: null, status: "crashed" }))}\n`
+          );
+          return null;
+        }
+      })
+    ).rejects.toThrow(/failed to start: exited with code 127[\s\S]*echo: command not found/);
   });
 
   it("tails logs and removes stopped processes", async () => {

@@ -6,6 +6,8 @@ import { hasOwnErrorCode } from "../errors.js";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 import { assertValidManagedProcessId } from "../process-id.js";
 
+export const REMOVED_STATE_PREFIX = ".state-removed-";
+
 function isNotFoundError(error: unknown): boolean {
   return hasOwnErrorCode(error, "ENOENT");
 }
@@ -65,7 +67,7 @@ async function removeDirectory(fs: LauncherFileSystem, directoryPath: string): P
     return;
   }
 
-  await fs.rm(directoryPath, { force: true });
+  await fs.rm(directoryPath, { force: true, recursive: true });
 }
 
 async function assertRemovalTreeHasNoSymbolicLinks(
@@ -156,7 +158,7 @@ export function createStateStore(
     const states: ProcessState[] = [];
 
     for (const entry of [...entries].sort()) {
-      if (entry.startsWith(".state-removed-")) {
+      if (entry.startsWith(REMOVED_STATE_PREFIX)) {
         continue;
       }
       const entryPath = path.join(stateDir, entry);
@@ -187,7 +189,7 @@ export function createStateStore(
 
   async function remove(id: string): Promise<void> {
     const processDir = resolveProcessDir(stateDir, id);
-    const removedDir = path.join(stateDir, `.state-removed-${id}-${randomUUID()}`);
+    const removedDir = path.join(stateDir, `${REMOVED_STATE_PREFIX}${id}-${randomUUID()}`);
     await assertPathHasNoSymbolicLinks(fs, processDir);
     await assertRemovalTreeHasNoSymbolicLinks(fs, processDir);
 

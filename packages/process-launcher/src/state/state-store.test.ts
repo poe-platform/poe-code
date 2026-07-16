@@ -243,6 +243,24 @@ describe("createStateStore", () => {
     ]));
   });
 
+  it("remove() leaves no tombstone behind for a file system without rmdir", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const { rmdir: ignoredRmdir, ...fsWithoutRmdir } = rawFs as unknown as Record<string, unknown>;
+    void ignoredRmdir;
+    const fs = fsWithoutRmdir as unknown as LauncherFileSystem;
+    const stateDir = "/state";
+    const store = createStateStore(stateDir, fs);
+    const state = createProcessState("alpha");
+    await store.write(state.id, state);
+    await fs.mkdir(path.join(stateDir, state.id, "logs"), { recursive: true });
+    await fs.writeFile(path.join(stateDir, state.id, "logs", "stdout.log"), "hello\n");
+
+    await store.remove(state.id);
+
+    await expect(rawFs.readdir(stateDir)).resolves.toEqual([]);
+  });
+
   it("remove() is safe to call for non-existent id", async () => {
     const store = createStateStore("/state", createMemFs());
 

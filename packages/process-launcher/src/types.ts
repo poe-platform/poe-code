@@ -9,7 +9,7 @@ export interface LauncherFileSystem {
     options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
-  rm(path: string, options?: { force?: boolean }): Promise<void>;
+  rm(path: string, options?: { force?: boolean; recursive?: boolean }): Promise<void>;
   rename(sourcePath: string, destinationPath: string): Promise<void>;
   stat(path: string): Promise<{ isFile(): boolean; mtimeMs: number; size?: number; dev?: number; ino?: number }>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
@@ -59,6 +59,7 @@ export interface SupervisorOptions {
   runner?: Runner;
   fs?: LauncherFileSystem;
   signal?: AbortSignal;
+  startSettleMs?: number;
   onStatusChange?: (state: ProcessState) => void;
   onLog?: (line: string, stream: "stdout" | "stderr") => void;
   onError?: (error: unknown) => void;

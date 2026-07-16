@@ -93,6 +93,54 @@ describe("createSupervisor", () => {
     await supervisor.stop();
   });
 
+  it("persists the exit that killed a process before it could report running", async () => {
+    vi.useFakeTimers();
+    const changes: ProcessState[] = [];
+    const { fs } = createMemFs();
+    const supervisor = createSupervisor({
+      fs,
+      onStatusChange: state => {
+        changes.push(state);
+      },
+      runner: createMockRunner([{ pid: 321, exitCode: 3, exitAfterMs: 5 }]),
+      spec: createSpec({ restart: "never" }),
+      stateDir: "/state"
+    });
+
+    const started = supervisor.start();
+    await vi.advanceTimersByTimeAsync(250);
+    await started;
+
+    expect(changes.map(state => state.status)).not.toContain("running");
+    expect(supervisor.getState()).toMatchObject({
+      lastExitCode: 3,
+      pid: null,
+      status: "stopped"
+    });
+    await expect(fs.readFile("/state/process/state.json", "utf8")).resolves.toContain(
+      '"lastExitCode": 3'
+    );
+  });
+
+  it("reports running once the process survives the start settle window", async () => {
+    vi.useFakeTimers();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([{ pid: 123, exitCode: 0, exitAfterMs: 10_000 }]),
+      startSettleMs: 250
+    });
+
+    const started = supervisor.start();
+    await vi.advanceTimersByTimeAsync(249);
+    expect(supervisor.getState().status).not.toBe("running");
+
+    await vi.advanceTimersByTimeAsync(1);
+    await started;
+
+    expect(supervisor.getState()).toMatchObject({ pid: 123, status: "running" });
+
+    await supervisor.stop();
+  });
+
   it("process exits 0 with restart never and stays stopped", async () => {
     vi.useFakeTimers();
     const supervisor = createTestSupervisor({
@@ -961,6 +1009,7 @@ describe("createSupervisor", () => {
         cwd: "github://poe-platform/poe-code",
         restart: "on-failure"
       }),
+      startSettleMs: 0,
       stateDir: "/home/test/.poe-code/launch"
     });
 
@@ -1113,6 +1162,7 @@ function createTestSupervisor(overrides: TestSupervisorOptions = {}) {
     stateDir: "/state",
     fs,
     runner: createMockRunner([{ exitCode: 0, exitAfterMs: 10_000 }]),
+    startSettleMs: 0,
     ...optionOverrides
   });
 }

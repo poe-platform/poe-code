@@ -1583,7 +1583,7 @@ describe("runCLI", () => {
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
-          list [--state <value>]  List queued approvals.
+          list [--state <value...>]  List queued approvals.
           show --approval-id <id>  Show one approval.
           run --approval-id <id>  Run one queued approval.
 
@@ -1708,7 +1708,7 @@ describe("runCLI", () => {
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
-          list [--state <value>]  List queued approvals.
+          list [--state <value...>]  List queued approvals.
           show --approval-id <id>  Show one approval.
           run --approval-id <id>  Run one queued approval.
 
@@ -5947,10 +5947,10 @@ describe("runCLI", () => {
 
       Commands
         deploy
-        approvals                   Inspect and execute queued approvals.
-          list [--state <value>]    List queued approvals.
-          show --approval-id <id>   Show one approval.
-          run --approval-id <id>    Run one queued approval.
+        approvals                     Inspect and execute queued approvals.
+          list [--state <value...>]   List queued approvals.
+          show --approval-id <id>     Show one approval.
+          run --approval-id <id>      Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
@@ -6115,13 +6115,13 @@ describe("runCLI", () => {
       Usage: toolcraft [command] [OPTIONS]
 
       Commands
-        child                       Child group
-          grandchild                Nested leaf
-        sibling                     Sibling leaf
-        approvals                   Inspect and execute queued approvals.
-          list [--state <value>]    List queued approvals.
-          show --approval-id <id>   Show one approval.
-          run --approval-id <id>    Run one queued approval.
+        child                         Child group
+          grandchild                  Nested leaf
+        sibling                       Sibling leaf
+        approvals                     Inspect and execute queued approvals.
+          list [--state <value...>]   List queued approvals.
+          show --approval-id <id>     Show one approval.
+          run --approval-id <id>      Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 
@@ -6245,7 +6245,7 @@ describe("runCLI", () => {
                                         summarize changes.
         approvals                       Inspect and execute queued
                                         approvals.
-          list [--state <value>]        List queued approvals.
+          list [--state <value...>]     List queued approvals.
           show --approval-id <id>       Show one approval.
           run --approval-id <id>        Run one queued approval.
 
@@ -6284,11 +6284,11 @@ describe("runCLI", () => {
       Usage: toolcraft [command] [OPTIONS]
 
       Commands
-        deploy                      Deploy a service
-        approvals                   Inspect and execute queued approvals.
-          list [--state <value>]    List queued approvals.
-          show --approval-id <id>   Show one approval.
-          run --approval-id <id>    Run one queued approval.
+        deploy                        Deploy a service
+        approvals                     Inspect and execute queued approvals.
+          list [--state <value...>]   List queued approvals.
+          show --approval-id <id>     Show one approval.
+          run --approval-id <id>      Run one queued approval.
 
       Options: --yes  --output <rich|md|markdown|json>  -v, --verbose
 

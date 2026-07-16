@@ -4,6 +4,7 @@ import type { CommandNode, Group, RenderPrimitives } from "../index.js";
 import { hasOwnErrorCode } from "../error-codes.js";
 import { UserError, defineCommand, defineGroup } from "../index.js";
 import { ensureApprovalList } from "./approval-tasks.js";
+import { approvalStateMachine, type ApprovalState } from "./state-machine.js";
 import { runApproval } from "./runner.js";
 import type { HumanInLoopRuntimeInstance } from "./runtime-options.js";
 
@@ -16,8 +17,9 @@ interface ApprovalBuiltInServices {
 
 const listScope = ["cli", "mcp", "sdk"] as const;
 const runScope = ["cli"] as const;
+const approvalStateValues = approvalStateMachine.states as readonly [ApprovalState, ...ApprovalState[]];
 const listParams = S.Object({
-  state: S.Optional(S.String())
+  state: S.Optional(S.Array(S.Enum(approvalStateValues)))
 });
 const showParams = S.Object({
   approvalId: S.String()
@@ -159,10 +161,8 @@ function isApprovalsBuiltIn(node: CommandNode<any>): boolean {
 
 async function loadApprovals(
   tasks: Awaited<ReturnType<typeof ensureApprovalList>>["tasks"],
-  stateFilter?: string
+  states: readonly ApprovalState[] = []
 ): Promise<Task[]> {
-  const states = splitStateFilter(stateFilter);
-
   if (states.length === 0) {
     return tasks.all();
   }
@@ -186,28 +186,6 @@ async function loadApprovals(
   }
 
   return approvals;
-}
-
-function splitStateFilter(stateFilter: string | undefined): string[] {
-  if (stateFilter === undefined) {
-    return [];
-  }
-
-  const seen = new Set<string>();
-  const states: string[] = [];
-
-  for (const value of stateFilter.split(",")) {
-    const trimmed = value.trim();
-
-    if (trimmed.length === 0 || seen.has(trimmed)) {
-      continue;
-    }
-
-    seen.add(trimmed);
-    states.push(trimmed);
-  }
-
-  return states;
 }
 
 function renderApprovalList(

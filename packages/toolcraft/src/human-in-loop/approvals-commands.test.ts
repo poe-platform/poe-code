@@ -223,7 +223,7 @@ describe("approvals built-in commands", () => {
       listCommand.handler({
         ...baseContext,
         params: {
-          state: "pending"
+          state: ["pending"]
         }
       } as unknown as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual([expect.objectContaining({ id: pendingId, state: "pending" })]);
@@ -232,13 +232,58 @@ describe("approvals built-in commands", () => {
       listCommand.handler({
         ...baseContext,
         params: {
-          state: "pending, declined"
+          state: ["pending", "declined"]
         }
       } as unknown as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual([
       expect.objectContaining({ id: pendingId, state: "pending" }),
       expect.objectContaining({ id: declinedId, state: "declined" })
     ]);
+  });
+
+  it("rejects an invalid --state with the list of valid states instead of a silent empty list", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    await enqueueDemoApproval(taskList, { message: "pending" });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: []
+    });
+
+    process.argv = ["node", "toolcraft", "approvals", "list", "--state", "bogus"];
+    await runCLI(root, {
+      approvals: true,
+      humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList })
+    });
+
+    const errorOutput = loggerState.error.join("\n");
+    expect(errorOutput).not.toContain("No approvals found.");
+    expect(errorOutput).toContain("bogus");
+    for (const state of approvalStateMachine.states) {
+      expect(errorOutput).toContain(state);
+    }
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("accepts a comma-separated list of valid states from the CLI", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    const declinedId = await enqueueDemoApproval(taskList, { message: "declined" });
+    await tasks.fire(declinedId, "claim");
+    await tasks.fire(declinedId, "decline");
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: []
+    });
+
+    process.argv = ["node", "toolcraft", "approvals", "list", "--state", "pending,declined"];
+    await runCLI(root, {
+      approvals: true,
+      humanInLoop: createHumanInLoop({ provider: stubProvider(), taskList })
+    });
+
+    expect(loggerState.error.join("\n")).toBe("");
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("shows a single approval and throws TaskNotFoundError for an unknown id", async () => {

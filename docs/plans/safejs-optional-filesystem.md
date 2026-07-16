@@ -840,10 +840,48 @@ tasks:
       the harness dir; `--fs-root` overrides the root; `--fs-root` alone errors. Then spot check
       with `npm run dev -- harness run --help` and a screenshot via
       `npm run screenshot-poe-code -- harness run --help` to confirm the help renders well.
+
+      Implementation notes from the completed task:
+
+      The SDK half of this prompt rests on a false premise: there is no SDK harness-run path to
+      add `fs?: { root?: string }` to. `runHarnessPair` is imported from @poe-code/agent-harness
+      by src/cli/commands/harness.ts alone, nothing under src/sdk/ runs a harness, and
+      src/index.ts exports no harness surface at all. So the registry is already assembled
+      exactly once and there is no second assembly to remove. Adding an SDK wrapper now would be
+      a function that only forwards to the package — forbidden outright by AGENTS.md — for no
+      caller, so it is not done. An SDK harness-run path is the thing to build first if one is
+      ever wanted; the `fs` option is then one more field on its options, not a rewrite of this.
+
+      Two bugs the edge-case pass found, each fixed with a test first:
+
+      - `--fs-root ""` silently rooted the harness at the whole cwd. `path.resolve(cwd, "")` is
+        the cwd, so an unset shell variable (`--fs-root "$ROOT"`) widened confinement from the
+        harness directory to the entire project — the precise opposite of what the flag is for,
+        and silently. A blank root is now a ValidationError, matching `makeRootedFs`'s own
+        non-empty rule but raised at the CLI layer where the argument was typed, rather than as
+        a bare Error from inside the run. Whitespace-only is refused with it: `path.resolve`
+        reads `"   "` as a real directory name, so it fails the same way rather than differently.
+      - the dry-run fs line printed a raw absolute path where every other line of the command
+        uses `formatDisplayPath`, so `--fs-root .poe-code` reported back as
+        `/Users/.../poe-code/.poe-code`. It relativizes now like its neighbours.
+
+      Deliberately left as node's own behaviour rather than pre-validated: an `--fs-root` naming
+      a directory that does not exist, or naming a file, is not refused at the CLI. Each surfaces
+      node's errno from the first call that reads it (`ENOENT` / `ENOTDIR`), naming the resolved
+      path, which a script can branch on exactly as it would against real node. Confinement holds
+      either way, and stat-ing the root at startup would put filesystem logic in the CLI for a
+      typo node already reports precisely.
+
+      Verified against the real CLI, not just the mocked registry: without `--fs` the import is
+      `AS004: Unknown module 'fs'`, and the lint surface derives from the runtime registry, so
+      `--fs` retires that diagnostic without an fs-specific lint rule. With `--fs` a read of the
+      harness directory resolves, `../outside.txt` denies with `code=EACCES syscall=open` inside
+      the script's own `catch`, and two positional paths in different directories each get their
+      own root.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: safejs-cli-fs-flag

@@ -13,6 +13,7 @@ import {
 import {
   makeAgentModule,
   makeFailModule,
+  makeFsModule,
   makeGitModule,
   makeHarnessModule,
   makeLogModule,
@@ -51,6 +52,8 @@ type HarnessRunOptions = {
   agent?: string;
   dir?: string;
   fix?: boolean;
+  fs?: boolean;
+  fsRoot?: string;
   mode?: string;
   model?: string;
   resume?: boolean;
@@ -62,6 +65,10 @@ type HarnessRunOptions = {
 type HarnessNewOptions = {
   dir?: string;
   yes?: boolean;
+};
+
+type HarnessFsOptions = {
+  root?: string;
 };
 
 type ModuleExports = ReadonlyMap<string, unknown> | Record<string, unknown>;
@@ -82,6 +89,11 @@ export function registerHarnessCommand(program: Command, container: CliContainer
       .argument("[md-paths...]", "Paths to harness .md files to run sequentially")
       .option("--dir <path>", "Directory to search for harness pairs when no md-path is given.")
       .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
+      .option("--fs", "Give the harness a real filesystem module, confined to --fs-root.")
+      .option(
+        "--fs-root <path>",
+        "Directory --fs confines the harness to (default: the harness directory)."
+      )
       .option("--snapshot-path <path>", "File to write/read harness snapshots.")
       .option("--resume", "Resume from the snapshot file when it exists.")
       .option("--agent <name>", "Override the agent id from the harness frontmatter agent block.")
@@ -126,6 +138,7 @@ async function executeHarnessRun(
 ): Promise<void> {
   const flags = resolveHarnessFlags(program, options.yes);
   const resources = createExecutionResources(container, flags, "harness:run");
+  const fsOptions = resolveHarnessFsOptions(container, options);
   const selectedPath = mdPath
     ? path.resolve(container.env.cwd, mdPath)
     : (await resolveDiscoveredHarness(container, options.dir, flags.assumeYes)).mdPath;
@@ -134,6 +147,11 @@ async function executeHarnessRun(
     resources.logger.dryRun(
       `Dry run: would run ${formatDisplayPath(container, selectedPath)} without executing its script or applying fixes.`
     );
+    if (fsOptions !== undefined) {
+      resources.logger.dryRun(
+        `Dry run: would enable the fs module rooted at ${formatDisplayPath(container, resolveFsRoot(fsOptions, path.dirname(selectedPath)))}.`
+      );
+    }
     return;
   }
   const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
@@ -171,11 +189,24 @@ async function executeHarnessRun(
               snapshotPath,
               worktreeCwd
             );
+            const runFsOptions =
+              fsOptions?.root === undefined
+                ? fsOptions
+                : {
+                    root: mapSourcePathIntoWorktree(container.env.cwd, fsOptions.root, worktreeCwd)
+                  };
             return await runHarnessPair(runSelectedPath, {
               modulesFor: (frontmatter, meta) =>
-                createHarnessModules(container, resources.logger, frontmatter, meta, (error) => {
-                  reportedSpawnFailures.add(error);
-                }),
+                createHarnessModules(
+                  container,
+                  resources.logger,
+                  frontmatter,
+                  meta,
+                  (error) => {
+                    reportedSpawnFailures.add(error);
+                  },
+                  runFsOptions
+                ),
               onDiagnostics: (diagnostics) => {
                 lintDiagnostics.push(...diagnostics);
               },
@@ -865,12 +896,50 @@ async function assertFilesDoNotExist(container: CliContainer, filePaths: string[
   }
 }
 
+// undefined is the default: SafeJS exposes no filesystem unless --fs asked for one. An
+// enabled module with no root of its own is confined to the harness directory, which is
+// only known once the pair is loaded, so the root is resolved per run rather than here.
+function resolveHarnessFsOptions(
+  container: CliContainer,
+  options: HarnessRunOptions
+): HarnessFsOptions | undefined {
+  if (options.fs !== true) {
+    if (options.fsRoot === undefined) {
+      return undefined;
+    }
+
+    throw new ValidationError(
+      "--fs-root requires --fs. Pass --fs to give the harness a filesystem confined to that root, or drop --fs-root."
+    );
+  }
+
+  if (options.fsRoot === undefined) {
+    return {};
+  }
+
+  // An unset shell variable expands to an empty argument and path.resolve reads that as the
+  // cwd, so a blank root would silently confine the harness to the whole project instead of
+  // the directory the caller meant to name.
+  if (options.fsRoot.trim().length === 0) {
+    throw new ValidationError(
+      "--fs-root needs a directory path. Pass --fs-root <path> to confine the harness to that directory, or drop --fs-root to confine it to the harness directory."
+    );
+  }
+
+  return { root: path.resolve(container.env.cwd, options.fsRoot) };
+}
+
+function resolveFsRoot(fsOptions: HarnessFsOptions, harnessDir: string): string {
+  return fsOptions.root ?? harnessDir;
+}
+
 function createHarnessModules(
   container: CliContainer,
   logger: ReturnType<typeof createExecutionResources>["logger"],
   frontmatter: Record<string, unknown>,
   meta: HarnessImportMeta,
-  onSpawnFailure: (error: string) => void
+  onSpawnFailure: (error: string) => void,
+  fsOptions: HarnessFsOptions | undefined
 ): ModuleRegistry {
   const harnessMeta = {
     kind: meta.kind,
@@ -926,6 +995,9 @@ function createHarnessModules(
   return {
     agent: toModuleExports(agent),
     fail: toModuleExports(new Map([["default", fail]])),
+    ...(fsOptions === undefined
+      ? {}
+      : { fs: toModuleExports(makeFsModule({ root: resolveFsRoot(fsOptions, meta.dirname) })) }),
     git: toModuleExports(git),
     harness: toModuleExports(harness),
     log: toModuleExports(log),

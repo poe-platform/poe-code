@@ -62,6 +62,13 @@ vi.mock("../../providers/index.js", () => ({
 const { registerHarnessCommand } = await import("./harness.js");
 const { run: runSafeJS } = await import("@poe-code/safejs");
 
+// The registry the command hands runSafeJS, taken from runSafeJS's own signature so a
+// change to what a module may export reaches these tests as a type error.
+type SafeJSModuleRecord = Extract<
+  NonNullable<NonNullable<Parameters<typeof runSafeJS>[1]>["modules"]>,
+  Record<string, unknown>
+>;
+
 const cwd = "/repo";
 const homeDir = "/home/test";
 const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
@@ -1319,6 +1326,142 @@ describe("harness command", () => {
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
   });
 
+  it("registers no fs module by default, so an fs import fails as an unknown module", async () => {
+    let modules: SafeJSModuleRecord | undefined;
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"]);
+
+    expect(modules).toBeDefined();
+    expect(Object.keys(modules!)).not.toContain("fs");
+    // The registry is what the sandbox resolves an import against, so its absence is
+    // what makes the import unknown rather than a message this command writes.
+    await expect(
+      runSafeJS('import { readFile } from "fs";\nexport default () => readFile;\n', {
+        modules: modules!
+      })
+    ).rejects.toThrow(
+      "Unknown module 'fs'. Available modules: agent, fail, git, harness, log, metric."
+    );
+  });
+
+  it("registers fs rooted at the harness directory when --fs is given", async () => {
+    vol.fromJSON({
+      "/repo/nested/harness.md": "---\nkind: test\nversion: 1\n---\n",
+      "/repo/nested/harness.ajs": "export default () => true;\n",
+      "/repo/nested/inside.txt": "inside\n",
+      "/repo/outside.txt": "outside\n"
+    });
+    let fsModule: Map<string, unknown> | undefined;
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      fsModule = options.modulesFor(
+        { kind: "test", version: 1 },
+        {
+          kind: "test",
+          version: 1,
+          filename: "/repo/nested/harness.md",
+          dirname: "/repo/nested",
+          body: ""
+        }
+      ).fs;
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "nested/harness.md", "--fs"]);
+
+    const readFile = fsModule?.get("readFile") as (
+      filePath: string,
+      encoding: string
+    ) => Promise<string>;
+    await expect(readFile("inside.txt", "utf8")).resolves.toBe("inside\n");
+    await expect(readFile("../outside.txt", "utf8")).rejects.toMatchObject({ code: "EACCES" });
+  });
+
+  it("roots fs at --fs-root resolved against the cwd rather than the harness directory", async () => {
+    vol.fromJSON({
+      "/repo/nested/harness.md": "---\nkind: test\nversion: 1\n---\n",
+      "/repo/nested/harness.ajs": "export default () => true;\n",
+      "/repo/roots/allowed.txt": "allowed\n",
+      "/repo/nested/inside.txt": "inside\n"
+    });
+    let fsModule: Map<string, unknown> | undefined;
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      fsModule = options.modulesFor(
+        { kind: "test", version: 1 },
+        {
+          kind: "test",
+          version: 1,
+          filename: "/repo/nested/harness.md",
+          dirname: "/repo/nested",
+          body: ""
+        }
+      ).fs;
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "nested/harness.md", "--fs", "--fs-root", "roots"]);
+
+    const readFile = fsModule?.get("readFile") as (
+      filePath: string,
+      encoding: string
+    ) => Promise<string>;
+    await expect(readFile("allowed.txt", "utf8")).resolves.toBe("allowed\n");
+    await expect(readFile("/repo/nested/inside.txt", "utf8")).rejects.toMatchObject({
+      code: "EACCES"
+    });
+  });
+
+  it("refuses --fs-root without --fs rather than silently ignoring the root", async () => {
+    await expect(
+      runHarnessCommand(["harness", "run", "harness.md", "--fs-root", "roots"])
+    ).rejects.toThrow(/--fs-root requires --fs/i);
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+  });
+
+  it("reports the fs root a dry run would enable without running the harness", async () => {
+    const logs: string[] = [];
+
+    await runHarnessCommand(["--dry-run", "harness", "run", "harness.md", "--fs"], logs);
+
+    expect(logs.join("\n")).toContain("would enable the fs module rooted at /repo");
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+  });
+
+  it("reports a dry run's fs root the way it reports every other path", async () => {
+    vol.fromJSON({
+      "/repo/nested/harness.md": "---\nkind: test\nversion: 1\n---\n",
+      "/repo/nested/harness.ajs": "export default () => true;\n"
+    });
+    const logs: string[] = [];
+
+    await runHarnessCommand(["--dry-run", "harness", "run", "nested/harness.md", "--fs"], logs);
+
+    expect(logs.join("\n")).toContain("would enable the fs module rooted at nested");
+  });
+
+  // An unset shell variable expands to an empty argument, and path.resolve reads that as
+  // the cwd, so accepting it would silently widen the root from the harness directory to
+  // the whole project — the opposite of what --fs-root is for.
+  it("refuses an empty --fs-root rather than widening the root to the whole cwd", async () => {
+    await expect(
+      runHarnessCommand(["harness", "run", "harness.md", "--fs", "--fs-root", ""])
+    ).rejects.toThrow(/--fs-root needs a directory path/i);
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a blank --fs-root, which resolves to a directory nobody asked for", async () => {
+    await expect(
+      runHarnessCommand(["harness", "run", "harness.md", "--fs", "--fs-root", "   "])
+    ).rejects.toThrow(/--fs-root needs a directory path/i);
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+  });
+
   it("fails new when the template kind is missing", async () => {
     await expect(
       runHarnessCommand(["--yes", "harness", "new", "missing", "example"])
@@ -1510,7 +1653,9 @@ describe("harness command", () => {
   it("names the available kinds when the template kind is unknown", async () => {
     await expect(
       runHarnessCommand(["--yes", "harness", "new", "safejs", "example"])
-    ).rejects.toThrow(/value 'safejs' is invalid for argument 'kind'\..*Allowed choices are .*demo/s);
+    ).rejects.toThrow(
+      /value 'safejs' is invalid for argument 'kind'\..*Allowed choices are .*demo/s
+    );
   });
 
   it("prints the run command for the pair that new created", async () => {

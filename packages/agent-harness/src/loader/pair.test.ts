@@ -1,5 +1,6 @@
 import { isAbsolute, resolve } from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
+import { isUserError } from "@poe-code/user-error";
 import { describe, expect, it } from "vitest";
 
 import * as api from "../index.js";
@@ -94,7 +95,7 @@ describe("resolvePair", () => {
     });
 
     await expect(resolvePair("/repo/harness/review.md", fs)).rejects.toMatchObject({
-      name: "MissingPairError",
+      name: "UserError",
       side: "ajs",
       path: "/repo/harness/review.ajs"
     });
@@ -109,7 +110,7 @@ describe("resolvePair", () => {
     });
 
     await expect(resolvePair("/repo/harness/review.md", fs)).rejects.toMatchObject({
-      name: "MissingPairError",
+      name: "UserError",
       side: "md",
       path: "/repo/harness/review.md"
     });
@@ -135,7 +136,7 @@ describe("resolvePair", () => {
     });
 
     await expect(resolvePair("/repo/harness/review.ajs", fs)).rejects.toMatchObject({
-      name: "MissingPairError",
+      name: "UserError",
       side: "md",
       path: "/repo/harness/review.md"
     });
@@ -148,7 +149,7 @@ describe("resolvePair", () => {
     });
 
     await expect(resolvePair("/repo/harness/review.ajs", fs)).rejects.toMatchObject({
-      name: "MissingPairError",
+      name: "UserError",
       side: "ajs",
       path: "/repo/harness/review.ajs"
     });
@@ -176,10 +177,29 @@ describe("resolvePair", () => {
     });
 
     await expect(resolvePair("/repo/harness/review.md", fs)).rejects.toMatchObject({
-      name: "MissingPairError",
+      name: "UserError",
       side: "md",
       path: "/repo/harness/review.md"
     });
+  });
+
+  it("reports a missing pair as a user error that points at harness discovery", async () => {
+    const fs = memfs({
+      "/repo/harness/review.ajs": "return true;"
+    });
+
+    const error = await resolvePair("/repo/harness/review.md", fs).catch(
+      (reason: unknown) => reason
+    );
+
+    expect(isUserError(error)).toBe(true);
+    expect(error).toBeInstanceOf(MissingPairError);
+    // The CLI renders only `message`, so the recovery has to travel in it.
+    expect((error as MissingPairError).message).toContain(
+      "Missing harness md file: /repo/harness/review.md"
+    );
+    expect((error as MissingPairError).message).toContain("poe-code harness list");
+    expect((error as MissingPairError).message).toContain("poe-code harness new");
   });
 
   it("preserves filesystem errors when a pair file cannot be inspected", async () => {

@@ -1,6 +1,8 @@
 import nodeFs from "node:fs/promises";
 import { basename as pathBasename, dirname, extname, join } from "node:path";
 
+import { UserError } from "@poe-code/user-error";
+
 import { hasOwnErrorCode } from "../error-codes.js";
 
 export type HarnessPair = {
@@ -19,13 +21,21 @@ export type HarnessFs = {
 
 type HarnessPairSide = "ajs" | "md";
 
-export class MissingPairError extends Error {
+/**
+ * A harness pair is two files sharing a basename, so a missing side is a user
+ * mistake, not a system failure. Both kinds and search paths are hard to
+ * discover, so the message carries the recovery: the CLI renders `message` only.
+ */
+export class MissingPairError extends UserError {
   readonly side: HarnessPairSide;
   readonly path: string;
 
   constructor(side: HarnessPairSide, path: string) {
-    super(`Missing harness ${side} file: ${path}`);
-    this.name = "MissingPairError";
+    super(
+      `Missing harness ${side} file: ${path}\n` +
+        "Run `poe-code harness list` to see available harnesses, " +
+        "or `poe-code harness new <name>` to scaffold this pair."
+    );
     this.side = side;
     this.path = path;
   }

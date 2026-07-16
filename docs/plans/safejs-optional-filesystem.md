@@ -246,10 +246,10 @@ tasks:
 
       TDD with memfs; no real files.
     notes: |
-      `cp` is not part of this module's surface (see fs-module-core), so its options are not
-      classified here. Adding `cp` is separate work: its `filter` option is a callback the
-      sandbox would have to call back into, and a recursive copy needs its own root-confinement
-      design.
+      `cp` was not part of the module's surface when this task ran (see fs-module-core), so its
+      options are not classified here — fs-copy-rename-edges added it and classified them, and
+      refused `filter` for the snapshot-digest reason rather than the callback one it was expected
+      to hit.
 
       The audit reads @types/node, which is ahead of the runtime node: it has already dropped
       `rmdir`'s options argument, while node 22 still validates `maxRetries`/`retryDelay`. The
@@ -408,11 +408,51 @@ tasks:
       TDD with memfs; no real files. Where memfs cannot model a case (e.g. `EXDEV` cross-device
       rename), record it as a known reference gap per fs-node-truth-fixture rather than asserting
       a made-up result.
+
+      Recorded outcome: `cp` cost four table entries and no branching — `FsOperationName`,
+      `FS_SYSCALLS` (`cp`, since node's cp is its own JavaScript layer and blames the fs function
+      by name), `FS_PATH_ARGUMENTS` (`src`/`dest`, node's own names), and `FS_OPTION_SURFACE`.
+      Everything else the module already does generically. Two shape notes worth carrying:
+      node's cp raises its own `ERR_FS_CP_*` errors, which carry a `path` alone where the
+      syscall-backed two-path operations report `dest` beside it; and a root denial for cp names
+      both paths, which is SafeJS's shape rather than an imitation of node's, since node's cp has
+      no root error to copy.
+
+      `filter` is refused rather than forwarded, and for the snapshot reason rather than the
+      callback one: a sandbox closure could cross the bridge to serve it, but the digest that
+      identifies a host call across a resume is built by stringifying the arguments and a function
+      does not survive that, so `cp(filter: keep)` and `cp(filter: drop)` are one call to the
+      resume machinery. That premise is asserted directly against `digestHostCallArguments` rather
+      than left as prose.
+
+      19 cases; memfs grounds 8 and is a reference gap for 11. Every recorded literal was replayed
+      against real node v22.22.2 on darwin and matched, including the three most easily
+      mis-recorded: darwin's `copyfile` refusing a directory source with `ENOTSUP` (-45) whose
+      libuv message names a *socket* whatever the path is (Linux answers `EISDIR` here instead),
+      `ERR_FS_EISDIR`'s *positive* errno of 21, and `ENOTEMPTY`'s darwin errno of -66.
+
+      Four of the 11 gaps are not reporting differences but data loss: memfs resolves
+      `rename` file→directory, directory→file, and directory→non-empty-directory, and hard-links a
+      directory, where node rejects each and leaves the destination intact. The case table compares
+      what an operation *answered*, so it is structurally blind to these; the effects block records
+      what each one destroys. This is the same class of blindness fs-mkdir-rm-edges hit with
+      recursive rm through a link.
+
+      Refactor: the recorded-truth harness — `createNodeTruthFs`, the outcome readers, the volume
+      driver, and the three drive loops — was by this point triplicated across the mkdir, symlink,
+      and copy/rename blocks. It is now one file-scope `driveNodeSemantics` generic over the
+      block's `Driver`, so fs-write-flag-edges consumes it rather than copying it a fourth time.
+      Unifying the recorded-truth type proved every one of the 53 recorded failures across all
+      three blocks carries both `errno` and `syscall`, so mkdir's optional typing of them was
+      looseness rather than a real case. The stub now answers every operation name via a Proxy
+      instead of a hand-maintained per-block list that duplicated the `Driver` type; the type
+      already constrains which operations a case can invoke. Mutation-checked: a module that
+      strips `errno`/`dest` on the way out fails 82 of the block's assertions.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-write-flag-edges
     title: writeFile/appendFile/truncate flag, mode, and length edge cases

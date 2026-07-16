@@ -153,6 +153,7 @@ describe("fs option surface against node's own typings", () => {
       "appendFile",
       "chmod",
       "copyFile",
+      "cp",
       "link",
       "lstat",
       "mkdir",

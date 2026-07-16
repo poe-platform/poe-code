@@ -17,6 +17,7 @@ type FsOperationName =
   | "appendFile"
   | "chmod"
   | "copyFile"
+  | "cp"
   | "link"
   | "lstat"
   | "mkdir"
@@ -62,7 +63,14 @@ const REFUSED_OPTION_REASONS = {
   // leave a script holding the ENOENT rejection the typings told it to expect
   // undefined for, so it is refused rather than dropped.
   throwIfNoEntry:
-    "only node's synchronous stat reads it and fs/promises rejects a missing path whatever it says, so catch the ENOENT rejection instead"
+    "only node's synchronous stat reads it and fs/promises rejects a missing path whatever it says, so catch the ENOENT rejection instead",
+  // cp's filter is a callback the host would invoke, which a sandbox closure can cross the
+  // bridge to serve. It is refused for what happens around the call rather than during it:
+  // the digest that identifies a host call across a snapshot is built by stringifying the
+  // arguments, and a function does not survive that, so cp(filter: keep) and
+  // cp(filter: drop) are one call to the resume machinery.
+  filter:
+    "a closure is dropped from the digest that identifies a host call across a snapshot, so a resumed run could reconcile against a copy that took a different set of files, and under a root it would read the rewritten host paths rather than the ones the script wrote — walk the tree with readdir and copy the entries you want instead"
 } as const;
 
 const UNKNOWN_OPTION_REASON =
@@ -92,6 +100,7 @@ type FsOptionSurface = {
 // already dropped rmdir's options argument for a future node that removes them.
 export const FS_OPTION_SURFACE: Record<
   | "appendFile"
+  | "cp"
   | "lstat"
   | "mkdir"
   | "mkdtemp"
@@ -111,6 +120,22 @@ export const FS_OPTION_SURFACE: Record<
     // node's appendFile forwards to writeFile, so it honours a signal even though
     // @types/node does not declare one for it.
     refused: ["signal"]
+  },
+  // node reads cp's bag from a parameter it names opts rather than options, and validates
+  // every key it knows — while still ignoring one it does not, which is what the unknown
+  // refusal covers. mode is copyFile's flag set rather than a permission.
+  cp: {
+    argument: 2,
+    honoured: [
+      "dereference",
+      "errorOnExist",
+      "force",
+      "mode",
+      "preserveTimestamps",
+      "recursive",
+      "verbatimSymlinks"
+    ],
+    refused: ["filter"]
   },
   lstat: { argument: 1, honoured: ["bigint"], refused: ["throwIfNoEntry"] },
   mkdir: { argument: 1, honoured: ["recursive", "mode"], refused: [] },
@@ -163,6 +188,9 @@ const FS_SYSCALLS = {
   appendFile: "open",
   chmod: "chmod",
   copyFile: "copyfile",
+  // node's cp is its own JavaScript layer rather than a syscall wrapper, so it blames the
+  // fs function by name: its ERR_FS_CP_* errors carry syscall 'cp'.
+  cp: "cp",
   link: "link",
   lstat: "lstat",
   mkdir: "mkdir",
@@ -184,13 +212,21 @@ const FS_SYSCALLS = {
 // The name node blames when an operation's path argument is invalid, read back
 // from node itself: several do not match the fs function name — readlink blames
 // oldPath and mkdtemp blames prefix. Listed in node's own argument order, so the
-// length also says how many leading arguments are paths: the two-path operations
-// are the ones node reports with a dest field beside path.
+// length also says how many leading arguments are paths, and every one of them is
+// resolved against root and proven inside it.
+//
+// The two-path operations are the ones node reports with a dest field beside path,
+// cp excepted: it raises its own ERR_FS_CP_* errors, which carry a path alone. A
+// root denial for cp still names both paths, which is SafeJS's own shape rather
+// than an imitation of node's — the denial reports the call that was refused, and
+// node's cp has no error to copy here because it never refuses one for a root.
 const FS_PATH_ARGUMENTS = {
   access: ["path"],
   appendFile: ["path"],
   chmod: ["path"],
   copyFile: ["src", "dest"],
+  // node blames these by the same names it uses for copyFile's two paths.
+  cp: ["src", "dest"],
   link: ["existingPath", "newPath"],
   lstat: ["path"],
   mkdir: ["path"],
@@ -293,6 +329,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
     appendFile: bind(fs, "appendFile", "read-side-effect"),
     chmod: bind(fs, "chmod", "read-side-effect"),
     copyFile: bind(fs, "copyFile", "read-side-effect"),
+    cp: bind(fs, "cp", "read-side-effect"),
     link: bind(fs, "link", "read-side-effect"),
     lstat: bindStat(fs, "lstat"),
     mkdir: bind(fs, "mkdir", "read-side-effect"),

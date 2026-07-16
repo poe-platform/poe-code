@@ -42,4 +42,12 @@ describe("github-workflows help", () => {
     expect(help).toContain("--eject");
     expect(help).toContain("[name]");
   });
+
+  it("explains what --eject writes and how to undo it", async () => {
+    const help = (await renderHelp("install")).replaceAll(/\s+/gu, " ");
+
+    expect(help).toContain(
+      "Also copy the prompt into .github/workflows and run the workflow from that editable copy instead of the built-in prompt; re-run install without --eject to go back, then delete the copied prompt file"
+    );
+  });
 });

@@ -274,7 +274,10 @@ const installCommand = defineCommand({
         }
       })
     ),
-    eject: S.Optional(S.Boolean()),
+    eject: S.Optional(S.Boolean({
+      description:
+        "Also copy the prompt into .github/workflows and run the workflow from that editable copy instead of the built-in prompt; re-run install without --eject to go back, then delete the copied prompt file"
+    })),
     dryRun: S.Optional(S.Boolean({
       description: "Preview workflow installation without writing files",
       scope: ["cli"]

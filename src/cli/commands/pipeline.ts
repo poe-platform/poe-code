@@ -33,6 +33,7 @@ import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
+import { throwSubcommandRequired } from "../subcommand-required.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { discoverPipelineInitSources } from "./pipeline-init.js";
 import {
@@ -41,6 +42,7 @@ import {
   resolveCommandFlags,
   resolveDefaultAgent
 } from "./shared.js";
+import { dashboardTuiDescription } from "./help-guidance.js";
 import { resolvePipelineLoopAgent } from "./pipeline-loop-agent.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
@@ -870,7 +872,16 @@ export function registerPipelineCommand(program: Command, container: CliContaine
   const pipeline = program
     .command("pipeline")
     .description("Run a fixed-step task pipeline plan.")
-    .addHelpCommand(false);
+    .addHelpCommand(false)
+    .action(() => {
+      throwSubcommandRequired({
+        container,
+        command: pipeline,
+        scope: "pipeline",
+        mostCommon: "run",
+        moduleUrl: import.meta.url
+      });
+    });
 
   addWorktreeOptions(
     pipeline
@@ -881,7 +892,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       .argument("[plans...]", "Paths to pipeline plan files to run sequentially")
       .option("--agent <name>", "Agent to run each pipeline step with")
       .option("--model <model>", "Model override passed to the agent")
-      .option("--tui", "Show a live dashboard while the pipeline is running")
+      .option("--tui", dashboardTuiDescription("the pipeline"))
       .option("--no-tui", "Disable the live dashboard for this pipeline run")
       .option("--archive", "Archive each plan after successful completion (default)")
       .option("--no-archive", "Leave completed plans in place")

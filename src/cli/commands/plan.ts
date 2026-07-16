@@ -37,6 +37,7 @@ import { formatAgentCapabilityError } from "@poe-code/agent-defs";
 import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
+import { setHelpGuidance } from "./help-guidance.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
 import {
@@ -576,7 +577,6 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
-    .addHelpText("after", "\nExplorer keymap: e edit, a archive, d delete, n new")
     .action(async function (this: Command, questionArg?: string) {
       const opts = this.opts<PlanCommandOptions>();
       const flags = resolveCommandFlags(program);
@@ -945,6 +945,20 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         resources.context.finalize();
       }
     });
+
+  setHelpGuidance(plan, {
+    examples: [
+      "poe-code plan",
+      'poe-code plan "add retries to the spawn runtime"',
+      "poe-code plan --kind pipeline",
+      "poe-code plan list --kind experiment",
+      "poe-code plan view docs/plans/my-plan.md",
+      "poe-code plan install --local"
+    ],
+    notes: [
+      "Interactive explorer keys: e edit, a archive, d delete, n new."
+    ]
+  });
 }
 
 async function resolvePlanQuestion(

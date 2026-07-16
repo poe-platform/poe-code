@@ -38,6 +38,7 @@ import {
   resolveCommandFlags,
   resolveDefaultAgent
 } from "./shared.js";
+import { dashboardTuiDescription } from "./help-guidance.js";
 import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import {
@@ -854,7 +855,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     .option("-C, --cwd <path>", "Working directory for the Ralph agent loop")
     .option("--archive", "Archive the doc after successful completion")
     .option("--no-archive", "Leave the completed doc in place")
-    .option("--tui", "Show a live dashboard while Ralph is running")
+    .option("--tui", dashboardTuiDescription("Ralph"))
     .option("--no-tui", "Disable the live dashboard for this Ralph run");
 
   addRuntimeOptions(addWorktreeOptions(run)).action(async function (

@@ -14,6 +14,7 @@ Options:
   --agent <agent>        Override the agent from frontmatter
   --max-experiments <n>  Limit the number of experiments to run
   --tui                  Show a live dashboard while the experiment is running
+                         (q quit, Ctrl+C force quit)
   --no-tui               Disable the live dashboard for this experiment run
   --worktree             Run in a managed git worktree and reconcile successful
                          output.
@@ -49,7 +50,8 @@ Options:
   -C, --cwd <path>       Working directory for the Ralph agent loop
   --archive              Archive the doc after successful completion
   --no-archive           Leave the completed doc in place
-  --tui                  Show a live dashboard while Ralph is running
+  --tui                  Show a live dashboard while Ralph is running (q quit,
+                         Ctrl+C force quit)
   --no-tui               Disable the live dashboard for this Ralph run
   --worktree             Run in a managed git worktree and reconcile successful
                          output.
@@ -93,9 +95,12 @@ Options:
   -i, --interactive            Launch the agent in interactive TUI mode
   --mode <mode>                Permission mode: yolo | auto | edit | read
                                (prompted; --yes uses edit)
+  -h, --help                   Display help for command
+
+Advanced:
   --resume-thread-id <id>      Resume a prior provider thread/session
-  --mcp-servers <json|@file>   MCP server config JSON (or @path/to/file.json):
-                               {name: {command, args?, env?}}
+  --mcp-servers <json|@file>   MCP server config JSON, or @path/to/file.json to
+                               load it from disk (see Examples)
   --skill <ref>                Active skill reference to bridge for this run
                                (repeatable; merged with --skills)
   --skills <refs>              Comma-separated active skill references to bridge
@@ -106,6 +111,11 @@ Options:
                                "symlink", "transform")
   --hooks-scope <scope>        Hook bridge scope (default: merged) (choices:
                                "project", "user", "merged")
+  --activity-timeout-ms <ms>   Kill the agent after N ms of inactivity
+  --worktree                   Run in a managed git worktree and reconcile
+                               successful output.
+
+Infrastructure:
   --log-dir <path>             Directory override for ACP JSONL spawn logs
                                (default: ~/.poe-code/spawn-logs)
   --log-file-name <name>       Filename override for the spawn log
@@ -116,22 +126,32 @@ Options:
                                spawned agent
   --capture-otel-content       Include prompt and tool content in native
                                OpenTelemetry
-  --activity-timeout-ms <ms>   Kill the agent after N ms of inactivity
-  --worktree                   Run in a managed git worktree and reconcile
-                               successful output.
   --runtime <runtime>          Override runtime backend: host | docker (choices:
                                "host", "docker")
   --runtime-image <ref>        Override Docker runtime image
   --detach                     Run as a detached runtime job
   --runner-sync <mode>         Override runner workspace sync: both | upload |
                                none (choices: "both", "upload", "none")
-  -h, --help                   Display help for command
 
 Global Options:
   -y, --yes                    Accept defaults without prompting.
   --dry-run                    Simulate commands without writing changes.
   --verbose                    Show verbose logs.
   -V, --version                Output the version number.
+
+Examples:
+  $ poe-code spawn claude "explain src/cli/program.ts"
+  $ poe-code spawn claude @prompt.md --model Claude-Sonnet-4.5
+  $ git diff | poe-code spawn codex --stdin --mode read
+  $ poe-code spawn claude "fix the failing test" --mode edit -C ~/repo
+  $ poe-code spawn claude -i
+  $ poe-code spawn claude ping --mcp-servers '{"docs":{"command":"mcp-docs"}}'
+  $ poe-code spawn claude @task.md --mcp-servers @mcp.json
+  $ poe-code spawn claude "and now add tests" --resume-thread-id thr_123
+
+Notes:
+  Advanced flags tune a single run: MCP servers, skills, hooks, worktrees.
+  Infrastructure flags cover logging, telemetry, and where the agent runs.
 "
 `;
 

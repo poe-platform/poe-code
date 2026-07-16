@@ -3,6 +3,7 @@ import parseDuration from "parse-duration";
 import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { setHelpGuidance } from "./help-guidance.js";
 import { ApiError, ValidationError } from "../errors.js";
 import { getTheme, renderTable, withSpinner } from "toolcraft-design";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
@@ -329,66 +330,42 @@ export function registerModelsCommand(
   program: Command,
   container: CliContainer
 ): void {
-  program
+  const modelsCommand = program
     .command("models")
     .alias("m")
     .description("List available Poe API models.")
-    .option("--provider <name>", "Filter by provider name")
-    .option("--model <name>", "Filter by exact model id (bare or provider/id)")
-    .option("--search <term>", "Search the rendered provider/id label")
+    .option("--provider <name>", "Substring match on provider/owner (e.g. anthropic, openai)")
+    .option(
+      "--model <name>",
+      "Exact model id match, bare or namespaced, case-insensitive (e.g. gpt-5.2-codex or openai/gpt-5.2-codex)"
+    )
+    .option(
+      "--search <term>",
+      "Substring match on the displayed provider/id label (e.g. sonnet, anthropic/claude)"
+    )
     .option(
       "--feature <name>",
-      "Filter by feature (tools, web_search, reasoning); repeatable, combines with AND",
+      "Exact feature match: tools, web_search, or reasoning; repeatable, combines with AND",
       (value: string, previous: string[] = []) => [...previous, value]
     )
-    .option("--endpoint <path>", "Filter by supported endpoint (e.g. /v1/responses)")
-    .option("--input <modalities>", "Filter by input modalities (e.g. text,image)")
-    .option("--output <modalities>", "Filter by output modalities (e.g. text)")
-    .option("--tools", "Show only models with tool support")
-    .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
+    .option("--endpoint <path>", "Exact supported endpoint match (e.g. /v1/responses)")
+    .option(
+      "--input <modalities>",
+      "Comma-separated input modalities: text, image, audio, video (e.g. text,image)"
+    )
+    .option("--output <modalities>", "Comma-separated output modalities: text, image, audio")
+    .option("--tools", "Shorthand for --feature tools; stacks with --feature")
+    .option(
+      "--since <duration>",
+      "Show models added within duration: s, m, h, d, w, mo, y (e.g. 7d, 2w, 3mo)"
+    )
     .option("--limit <n>", `Maximum models listed, newest first (default ${DEFAULT_MODEL_LIMIT})`)
     .addOption(
       new Option(
         "--view <name>",
-        "Table view: capabilities, pricing, parameters, or raw"
+        "Table view: capabilities (features, modalities, context window), pricing (cost per million tokens with cache pricing), parameters (per-model types and defaults), or raw (full data as YAML)"
       ).choices(Array.from(modelViewNames)).default("capabilities")
     )
-    .addHelpText("after", [
-      "",
-      "Filters:",
-      "  --provider   Substring match on provider/owner (e.g. anthropic, openai)",
-      "  --model      Exact model id match, bare or namespaced (case-insensitive,",
-      "               e.g. gpt-5.2-codex or openai/gpt-5.2-codex)",
-      "  --search     Substring match on the displayed provider/id label",
-      "               (e.g. sonnet, openai, anthropic/claude)",
-      "  --feature    Exact match: tools, web_search, or reasoning; repeatable",
-      "  --endpoint   Exact supported endpoint match (e.g. /v1/responses)",
-      "  --input      Comma-separated input modalities: text, image, audio, video",
-      "  --output     Comma-separated output modalities: text, image, audio",
-      "  --tools      Shorthand for --feature tools; stacks with --feature",
-      "  --since      Duration: s, m, h, d, w, mo, y (e.g. 7d, 2w, 3mo, 1y)",
-      `  --limit      Maximum models listed, newest first (default ${DEFAULT_MODEL_LIMIT})`,
-      "",
-      "All filters combine with AND: a model must satisfy every filter given.",
-      "Repeating --feature requires all named features (--tools counts as one).",
-      "",
-      "Views:",
-      "  capabilities  Model features, modalities, and context window (default)",
-      "  pricing       Cost per million tokens with cache pricing",
-      "  parameters    Model parameters grouped by model with type and defaults",
-      "  raw           Full model data in YAML format",
-      "",
-      "Examples:",
-      "  $ poe-code models --provider anthropic",
-      "  $ poe-code models --feature reasoning --since 3mo",
-      "  $ poe-code models --feature tools --feature web_search",
-      "  $ poe-code models --endpoint /v1/responses",
-      "  $ poe-code models --input image --view pricing",
-      "  $ poe-code models --search claude --view parameters",
-      "  $ poe-code models --model anthropic/claude-opus-4.7 --view raw",
-      "  $ poe-code models --since 2w --output text",
-      "  $ poe-code models --provider openai --limit 10"
-    ].join("\n"))
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(
@@ -673,4 +650,22 @@ export function registerModelsCommand(
         );
       }
     });
+
+  setHelpGuidance(modelsCommand, {
+    examples: [
+      "poe-code models --provider anthropic",
+      "poe-code models --feature reasoning --since 3mo",
+      "poe-code models --feature tools --feature web_search",
+      "poe-code models --endpoint /v1/responses",
+      "poe-code models --input image --view pricing",
+      "poe-code models --search claude --view parameters",
+      "poe-code models --model anthropic/claude-opus-4.7 --view raw",
+      "poe-code models --since 2w --output text",
+      "poe-code models --provider openai --limit 10"
+    ],
+    notes: [
+      "All filters combine with AND: a model must satisfy every filter given.",
+      "Repeating --feature requires all named features (--tools counts as one)."
+    ]
+  });
 }

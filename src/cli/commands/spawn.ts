@@ -72,6 +72,7 @@ import {
   pickActivityTimeoutOptions,
   type ActivityTimeoutCliOptions
 } from "./activity-timeout-options.js";
+import { groupOptionsForHelp, setHelpGuidance } from "./help-guidance.js";
 import { addSkillOptions, resolveSkillOptions, type SkillCliOptions } from "./skill-options.js";
 import {
   addWorktreeOptions,
@@ -122,7 +123,7 @@ export function registerSpawnCommand(
       .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
       .option(
         "--mcp-servers <json|@file>",
-        "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
+        "MCP server config JSON, or @path/to/file.json to load it from disk (see Examples)"
       )
   )
     .option("--hooks-from <agentId>", "Agent hook configuration to bridge for this run")
@@ -521,6 +522,48 @@ export function registerSpawnCommand(
         await workspace.cleanup?.();
       }
     });
+
+  groupOptionsForHelp(spawnCommand, {
+    Advanced: [
+      "--resume-thread-id",
+      "--mcp-servers",
+      "--skill",
+      "--skills",
+      "--hooks-from",
+      "--hooks-strategy",
+      "--hooks-scope",
+      "--activity-timeout-ms",
+      "--worktree"
+    ],
+    Infrastructure: [
+      "--log-dir",
+      "--log-file-name",
+      "--log-content",
+      "--capture-otel",
+      "--capture-otel-content",
+      "--runtime",
+      "--runtime-image",
+      "--detach",
+      "--runner-sync"
+    ]
+  });
+
+  setHelpGuidance(spawnCommand, {
+    examples: [
+      'poe-code spawn claude "explain src/cli/program.ts"',
+      "poe-code spawn claude @prompt.md --model Claude-Sonnet-4.5",
+      'git diff | poe-code spawn codex --stdin --mode read',
+      'poe-code spawn claude "fix the failing test" --mode edit -C ~/repo',
+      "poe-code spawn claude -i",
+      `poe-code spawn claude ping --mcp-servers '{"docs":{"command":"mcp-docs"}}'`,
+      "poe-code spawn claude @task.md --mcp-servers @mcp.json",
+      'poe-code spawn claude "and now add tests" --resume-thread-id thr_123'
+    ],
+    notes: [
+      "Advanced flags tune a single run: MCP servers, skills, hooks, worktrees.",
+      "Infrastructure flags cover logging, telemetry, and where the agent runs."
+    ]
+  });
 }
 
 async function traceSpawnRun<T>(

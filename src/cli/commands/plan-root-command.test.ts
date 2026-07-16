@@ -6,6 +6,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { SilentError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
+import { helpGuidance } from "./help-guidance.js";
 
 const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, selectMock, isCancelMock, spawnResult } = vi.hoisted(
   () => ({
@@ -207,7 +208,12 @@ describe("plan root and browse commands", () => {
     });
     planCommand?.outputHelp();
 
-    expect(helpChunks.join("")).toContain("Explorer keymap: e edit, a archive, d delete, n new");
+    // The keymap is declared as help guidance so the program help renderer can label it as a
+    // section; help-guidance.test.ts covers how it renders.
+    expect(helpChunks.join("")).not.toContain("Explorer keymap:");
+    expect(helpGuidance(planCommand!)?.notes).toContain(
+      "Interactive explorer keys: e edit, a archive, d delete, n new."
+    );
   });
 
   it("throws when --yes is passed without a question", async () => {

@@ -18,6 +18,7 @@ import {
 import { runMaestroTui } from "@poe-code/maestro-tui";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "toolcraft-design";
+import { helpGuidance, optionHelpGroup } from "./commands/help-guidance.js";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
@@ -305,13 +306,25 @@ function formatSubcommandHelp(cmd: Command, helper: Help): string {
     output.push(text.section("Arguments:"), formatList(argumentList), "");
   }
 
-  const optionList = helper
-    .visibleOptions(cmd)
-    .map((option) =>
-      formatItem(helper.optionTerm(option), helper.optionDescription(option), text.option)
+  const optionSections = new Map<string, string[]>([["Options", []]]);
+  for (const option of helper.visibleOptions(cmd)) {
+    const heading = optionHelpGroup(option) ?? "Options";
+    const item = formatItem(
+      helper.optionTerm(option),
+      helper.optionDescription(option),
+      text.option
     );
-  if (optionList.length > 0) {
-    output.push(text.section("Options:"), formatList(optionList), "");
+    const section = optionSections.get(heading);
+    if (section === undefined) {
+      optionSections.set(heading, [item]);
+      continue;
+    }
+    section.push(item);
+  }
+  for (const [heading, items] of optionSections) {
+    if (items.length > 0) {
+      output.push(text.section(`${heading}:`), formatList(items), "");
+    }
   }
 
   if (helper.showGlobalOptions) {
@@ -336,6 +349,29 @@ function formatSubcommandHelp(cmd: Command, helper: Help): string {
     );
   if (commandList.length > 0) {
     output.push(text.section("Commands:"), formatList(commandList), "");
+  }
+
+  const guidance = helpGuidance(cmd);
+  if (guidance !== undefined) {
+    output.push(
+      text.section("Examples:"),
+      formatList(
+        guidance.examples.map(
+          (example) => `  ${text.muted("$")} ${text.usageCommand(example)}`
+        )
+      ),
+      ""
+    );
+    if (guidance.notes !== undefined) {
+      const noteWidth = Math.max(1, (helper.helpWidth ?? 80) - 2);
+      output.push(
+        text.section("Notes:"),
+        formatList(
+          guidance.notes.map((note) => `  ${helper.boxWrap(note, noteWidth).replace(/\n/g, "\n  ")}`)
+        ),
+        ""
+      );
+    }
   }
 
   return output.join("\n");

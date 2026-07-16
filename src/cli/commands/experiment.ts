@@ -41,6 +41,7 @@ import {
   resolveCommandFlags,
   resolveDefaultAgent
 } from "./shared.js";
+import { dashboardTuiDescription } from "./help-guidance.js";
 import {
   runExperiment as sdkRunExperiment,
   readExperimentJournal as sdkReadExperimentJournal,
@@ -752,7 +753,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .argument("[docs...]", "Experiment doc paths to run sequentially")
     .option("--agent <agent>", "Override the agent from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
-    .option("--tui", "Show a live dashboard while the experiment is running")
+    .option("--tui", dashboardTuiDescription("the experiment"))
     .option("--no-tui", "Disable the live dashboard for this experiment run");
 
   addRuntimeOptions(addWorktreeOptions(run)).action(async function (

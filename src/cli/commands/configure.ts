@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import path from "node:path";
+import { setHelpGuidance } from "./help-guidance.js";
 import type { Stats } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { parseAgentSpecifier, type AgentDefinition } from "@poe-code/agent-defs";
@@ -92,6 +93,20 @@ export function registerConfigureCommand(program: Command, container: CliContain
       });
       await executeConfigure(command, container, resolved, options);
     });
+
+  setHelpGuidance(configureCommand, {
+    examples: [
+      "poe-code configure",
+      "poe-code configure claude --model Claude-Sonnet-4.5 --yes",
+      "poe-code configure codex --reasoning-effort medium --yes",
+      "poe-code configure claude --dry-run",
+      "poe-code configure claude --skip-if-configured --yes"
+    ],
+    notes: [
+      "Omit the agent to pick agent and model interactively; --yes takes defaults.",
+      "--dry-run reports the planned config changes without writing them."
+    ]
+  });
 
   return configureCommand;
 }

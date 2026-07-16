@@ -410,6 +410,24 @@ describe("auth command", () => {
     expect(apiKeyCommand?.helpInformation()).toContain("--reveal");
   });
 
+  it("documents POE_API_KEY as the preferred path on auth login --api-key help", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const loginCommand = program
+      .commands.find((command) => command.name() === "auth")
+      ?.commands.find((command) => command.name() === "login");
+    const help = loginCommand?.helpInformation() ?? "";
+
+    expect(help).toContain("POE_API_KEY");
+    expect(help).toMatch(/shell history/i);
+  });
+
   it("sets exit code 1 when no API key is stored", async () => {
     const program = createProgram({
       fs,

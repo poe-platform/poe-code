@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { spinner } from "toolcraft-design";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { apiKeyFlagDescription, createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout } from "./logout.js";
 import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
@@ -52,7 +52,7 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
   auth
     .command("login")
     .description("Store a Poe API key for reuse across commands.")
-    .option("--api-key <key>", "Poe API key")
+    .option("--api-key <key>", apiKeyFlagDescription("POE_API_KEY"))
     .action(async (options: LoginCommandOptions) => {
       await executeLogin(program, container, options);
     });

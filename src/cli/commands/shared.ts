@@ -390,6 +390,23 @@ export function resolveCommandFlags(program: Command): CommandFlags {
   };
 }
 
+export function apiKeyFlagDescription(envVar: string): string {
+  return `API key. Passing it here records the secret in shell history and ps output; prefer ${envVar} or the interactive prompt.`;
+}
+
+export function warnApiKeyFlag(
+  logger: ScopedLogger,
+  value: string | undefined,
+  envVar: string
+): void {
+  if (resolveNonEmpty(value) === undefined) {
+    return;
+  }
+  logger.warn(
+    `--api-key was read from the command line, where shell history and ps output can capture it. Prefer ${envVar} or the interactive prompt.`
+  );
+}
+
 export function requireInteractiveStdin(message: string): void {
   if (process.stdin.isTTY !== true) {
     throw new ValidationError(message);

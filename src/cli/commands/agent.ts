@@ -7,7 +7,12 @@ import {
 } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import {
+  apiKeyFlagDescription,
+  createExecutionResources,
+  resolveCommandFlags,
+  warnApiKeyFlag
+} from "./shared.js";
 
 interface AgentCommandOptions {
   model?: string;
@@ -20,13 +25,14 @@ export function registerAgentCommand(program: Command, container: CliContainer):
     .description("Run a one-shot Poe agent prompt.")
     .argument("<prompt>", "Prompt text to send")
     .option("--model <model>", `Model identifier (default: ${DEFAULT_FRONTIER_MODEL})`)
-    .option("--api-key <key>", "Poe API key")
+    .option("--api-key <key>", apiKeyFlagDescription("POE_API_KEY"))
     .action(async function (this: Command, prompt: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "agent");
       const options = this.opts<AgentCommandOptions>();
 
       resources.logger.intro("agent");
+      warnApiKeyFlag(resources.logger, options.apiKey, "POE_API_KEY");
 
       if (flags.dryRun) {
         resources.context.complete({

@@ -1,13 +1,15 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
+  apiKeyFlagDescription,
   buildProviderContext,
   buildActiveProvider,
   createExecutionResources,
   parseProviderShapeBaseUrls,
   resolveAgentDefinition,
   resolveCommandFlags,
-  applyIsolatedConfiguration
+  applyIsolatedConfiguration,
+  warnApiKeyFlag
 } from "./shared.js";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
 import { AuthenticationError } from "../errors.js";
@@ -29,7 +31,7 @@ export function registerLoginCommand(program: Command, container: CliContainer):
   program
     .command("login")
     .description("Store a Poe API key for reuse across commands.")
-    .option("--api-key <key>", "Poe API key")
+    .option("--api-key <key>", apiKeyFlagDescription("POE_API_KEY"))
     .action(async (options: LoginCommandOptions) => {
       await executeLogin(program, container, options);
     });
@@ -44,6 +46,7 @@ export async function executeLogin(
   const resources = createExecutionResources(container, flags, "login");
 
   resources.logger.intro("login");
+  warnApiKeyFlag(resources.logger, options.apiKey, "POE_API_KEY");
 
   try {
     const apiKey = flags.dryRun

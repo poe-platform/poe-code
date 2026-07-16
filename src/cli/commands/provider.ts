@@ -3,6 +3,7 @@ import type { CliContainer } from "../container.js";
 import { allAgents, type ApiShapeId } from "@poe-code/agent-defs";
 import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config";
 import {
+  apiKeyFlagDescription,
   createExecutionResources,
   createSecretPrompter,
   applyIsolatedConfiguration,
@@ -12,6 +13,7 @@ import {
   resolveCommandFlags,
   resolveNonEmpty,
   resolveServiceAdapter,
+  warnApiKeyFlag
 } from "./shared.js";
 import { getTheme, renderTable } from "toolcraft-design";
 import type { AuthProvider } from "@poe-code/providers";
@@ -51,7 +53,10 @@ export function registerProviderCommand(program: Command, container: CliContaine
     .command("login")
     .description("Log in to a provider.")
     .argument("<id>", "Provider id (e.g. poe, anthropic)")
-    .option("--api-key <key>", "API key for the provider")
+    .option(
+      "--api-key <key>",
+      apiKeyFlagDescription("the provider API key env var shown by `poe-code provider list`")
+    )
     .option("--base-url <url>", "Provider gateway root URL")
     .option(
       "--shape-base-url <shape-id>=<url>",
@@ -124,6 +129,12 @@ async function executeProviderLogin(
       `Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`
     );
   }
+
+  warnApiKeyFlag(
+    resources.logger,
+    options.apiKey,
+    provider.auth.kind === "api-key" ? provider.auth.envVar : "the provider API key env var"
+  );
 
   const parsedShapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
   validateProviderLoginBaseUrlOptions({
@@ -437,7 +448,9 @@ async function stageProviderLogin(input: {
         envValue: preferred.envValue,
         dryRun: true,
         assumeYes: input.flags.assumeYes,
-        allowStored: false
+        // Non-interactive runs cannot authenticate, so reuse the stored credential
+        // instead of failing; an interactive login always establishes a fresh one.
+        allowStored: input.flags.assumeYes
       })
   };
   const previewStore = input.container.createPreviewProviderStore(input.id, input.fs);

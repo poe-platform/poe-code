@@ -151,6 +151,45 @@ describe("agent command", () => {
     );
   });
 
+  it("warns and documents POE_API_KEY when --api-key is passed on the command line", async () => {
+    const logs: string[] = [];
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await program.parseAsync(["node", "cli", "agent", "Say hello", "--api-key", "sk-secret"]);
+
+    const output = logs.join("\n");
+    expect(output).toMatch(/shell history/i);
+    expect(output).toContain("POE_API_KEY");
+    expect(output).not.toContain("sk-secret");
+
+    const help = program.commands.find((command) => command.name() === "agent")?.helpInformation() ?? "";
+    expect(help).toContain("POE_API_KEY");
+    expect(help).toMatch(/shell history/i);
+  });
+
+  it("does not warn about --api-key when the flag is omitted", async () => {
+    const logs: string[] = [];
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await program.parseAsync(["node", "cli", "agent", "Say hello"]);
+
+    expect(logs.join("\n")).not.toMatch(/shell history/i);
+  });
+
   it("supports global dry-run mode", async () => {
     const logs: string[] = [];
     const program = createProgram({

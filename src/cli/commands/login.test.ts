@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { executeLogin } from "./login.js";
+import { executeLogin, registerLoginCommand } from "./login.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { saveConfiguredService } from "../../services/config.js";
@@ -11,12 +11,12 @@ const cwd = "/repo";
 const homeDir = "/home/test";
 const configPath = resolveConfigPath(homeDir);
 
-function createContainer(fs: FileSystem) {
+function createContainer(fs: FileSystem, logs: string[] = []) {
   return createCliContainer({
     fs,
     prompts: vi.fn().mockResolvedValue({}),
     env: { cwd, homeDir },
-    logger: () => {}
+    logger: (message) => logs.push(message)
   });
 }
 
@@ -27,6 +27,16 @@ describe("executeLogin", () => {
     fs = createHomeFs(homeDir);
   });
 
+  it("documents POE_API_KEY as the preferred path on login --api-key help", async () => {
+    const program = createTestProgram();
+    registerLoginCommand(program, createContainer(fs));
+
+    const help = program.commands.find((command) => command.name() === "login")?.helpInformation() ?? "";
+
+    expect(help).toContain("POE_API_KEY");
+    expect(help).toMatch(/shell history/i);
+  });
+
   it("stores the resolved key", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
@@ -35,6 +45,31 @@ describe("executeLogin", () => {
     await executeLogin(program, container, { apiKey: "sk-test" });
 
     await expect(container.readApiKey()).resolves.toBe("sk-test");
+  });
+
+  it("warns that --api-key leaks into shell history and points at POE_API_KEY", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    const program = createTestProgram();
+
+    await executeLogin(program, container, { apiKey: "sk-test" });
+
+    const output = logs.join("\n");
+    expect(output).toMatch(/shell history/i);
+    expect(output).toContain("POE_API_KEY");
+    expect(output).not.toContain("sk-test");
+  });
+
+  it("does not warn about --api-key when the flag is omitted", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    const program = createTestProgram();
+
+    await executeLogin(program, container, {});
+
+    expect(logs.join("\n")).not.toMatch(/shell history/i);
   });
 
   it("does not call ProviderRegistry.login in dry-run mode", async () => {

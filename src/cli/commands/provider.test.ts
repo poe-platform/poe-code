@@ -244,6 +244,28 @@ describe("provider login", () => {
     expect(loginSpy).toHaveBeenCalledWith("poe", { apiKey: "sk-test" }, expect.any(Object));
   });
 
+  it("warns about shell history and names the provider env var when --api-key is passed", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "login", "poe", "--api-key", "sk-secret"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toMatch(/shell history/i);
+    expect(output).toContain("POE_API_KEY");
+    expect(output).not.toContain("sk-secret");
+
+    const help = program.commands
+      .find((command) => command.name() === "provider")
+      ?.commands.find((command) => command.name() === "login")
+      ?.helpInformation() ?? "";
+    expect(help).toMatch(/shell history/i);
+  });
+
   it("fails without prompting when --yes has no provider credential", async () => {
     const prompts = vi.fn();
     const container = createContainer(fs, [], prompts);
@@ -322,6 +344,31 @@ describe("provider login", () => {
 
     expect(logs.join("\n")).toContain("Dry run: would authenticate with Poe.");
     expect(logs.join("\n")).not.toContain("would save credential for poe");
+  });
+
+  it("reuses the stored credential with --yes for preferred-login providers", async () => {
+    const container = createContainer(fs);
+    await container.writeApiKey("sk-stored");
+    const prompts = vi.fn();
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "provider", "login", "poe"]);
+
+    await expect(container.providerRegistry.resolveCredential("poe")).resolves.toBe("sk-stored");
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("requires a fresh credential for preferred-login providers without --yes", async () => {
+    const container = createContainer(fs);
+    await container.writeApiKey("sk-stored");
+    const resolveSpy = vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-fresh");
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "login", "poe"]);
+
+    expect(resolveSpy).toHaveBeenCalledWith(expect.objectContaining({ allowStored: false }));
   });
 
   it("stores per-shape base URLs outside the credential store", async () => {

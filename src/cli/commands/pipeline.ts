@@ -21,7 +21,7 @@ import {
 import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import { resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
-import { installSkillFile } from "./install-skill-file.js";
+import { installSkillFile, type SkillInstallOutcome } from "./install-skill-file.js";
 import {
   mergePipelineCallbacks,
   readMergedDocument,
@@ -990,6 +990,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         selectedAgent: agent,
         worktree: pickWorktreeOptions(options as Record<string, unknown>),
         run: async ({ worktreeCwd }) => {
+          let ranWork = false;
           for (const [index, planPath] of planPaths.entries()) {
             const totalPlans = planPaths.length;
             if (totalPlans > 1) {
@@ -1081,10 +1082,16 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             }
 
             if (result.stopReason === "nothing_to_run") {
-              resources.logger.info("Nothing to run.");
+              // With one plan the terminal outcome says this already; only a sequence
+              // needs to attribute the no-op to a specific plan.
+              if (totalPlans > 1) {
+                resources.logger.info("Nothing to run.");
+              }
               resources.logger.resolved("Run summary", summary);
               continue;
             }
+
+            ranWork = true;
 
             if (result.stopReason === "max_runs") {
               resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
@@ -1095,7 +1102,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             resources.logger.resolved("Run summary", summary);
           }
 
-          return "finished";
+          return ranWork ? "finished" : "nothing_to_run";
         }
       });
 
@@ -1103,6 +1110,20 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         resources.logger.success(
           planPaths.length > 1 ? "Pipeline sequence finished." : "Pipeline run finished."
         );
+      }
+
+      // Every plan was already complete: nothing ran, so the terminal state is the
+      // no-op outcome plus a way forward, not a success claim.
+      if (sequence.value === "nothing_to_run") {
+        resources.logger.info(
+          planPaths.length > 1
+            ? "Nothing to run: all tasks in every plan are already complete."
+            : "Nothing to run: all tasks in the plan are already complete."
+        );
+        resources.logger.nextSteps([
+          "Re-run a task: set its status back to open in the plan, then run pipeline run again.",
+          "Start new work: poe-code pipeline init to generate a new plan."
+        ]);
       }
     } finally {
       await integrations?.shutdown();
@@ -1470,6 +1491,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         let createdPlans = false;
         let createdSteps = false;
         let migratedSteps = false;
+        let skillOutcome: SkillInstallOutcome | undefined;
 
         try {
           let finalStepsExists = stepsExists;
@@ -1521,7 +1543,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             }
           }
 
-          await installSkillFile({
+          skillOutcome = await installSkillFile({
             container,
             logger: resources.logger,
             agentId: support.id,
@@ -1554,9 +1576,20 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           throw error;
         }
 
+        // Existing steps/plans and an existing skill are skipped, so a re-run can
+        // reach here without changing anything: report that no-op instead of
+        // claiming an install the two Skip lines above contradict.
+        const performedWork =
+          !stepsExists || options.force === true || !plansExists || skillOutcome !== "skipped";
+        const alreadyInstalled = `Pipeline skill for ${support.id} and ${scope} pipeline files already installed (nothing to do)`;
+
         resources.context.complete({
-          success: `Installed Pipeline skill for ${support.id} and scaffolded ${scope} pipeline files`,
-          dry: `Would install Pipeline skill for ${support.id} and scaffold ${scope} pipeline files`
+          success: performedWork
+            ? `Installed Pipeline skill for ${support.id} and scaffolded ${scope} pipeline files`
+            : alreadyInstalled,
+          dry: performedWork
+            ? `Would install Pipeline skill for ${support.id} and scaffold ${scope} pipeline files`
+            : alreadyInstalled
         });
       } finally {
         resources.context.finalize();

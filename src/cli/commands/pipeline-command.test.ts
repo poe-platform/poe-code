@@ -1061,6 +1061,61 @@ describe("pipeline run command", () => {
     expect(logs.some((message) => message.includes("Pipeline blocked at"))).toBe(false);
   });
 
+  it("reports nothing to run as an informational outcome with next steps", async () => {
+    const logs: string[] = [];
+    vi.mocked(sdkRunPipeline).mockResolvedValueOnce({
+      stopReason: "nothing_to_run",
+      planPath: ".poe-code/pipeline/plans/plan.md",
+      runsCompleted: 0,
+      totalDurationMs: 5,
+      metrics: {
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+        totalCachedTokens: 0,
+        tasksCompleted: 0,
+        tasksFailed: 0,
+        stepsCompleted: 0
+      }
+    });
+
+    const fs = createMemFs();
+    await fs.mkdir("/repo/docs/plans", { recursive: true });
+    await fs.writeFile("/repo/docs/plans/plan.md", PIPELINE_MD_EMPTY, {
+      encoding: "utf8"
+    });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "run",
+      "--agent",
+      "codex",
+      "--plan",
+      "docs/plans/plan.md"
+    ]);
+
+    expect(logs.some((message) => message.includes("Pipeline run finished."))).toBe(false);
+    expect(
+      logs.some((message) =>
+        message.includes("Nothing to run: all tasks in the plan are already complete.")
+      )
+    ).toBe(true);
+    expect(logs.some((message) => message.includes("status back to open"))).toBe(true);
+    expect(logs.filter((message) => message === "Nothing to run.")).toEqual([]);
+    expect(process.exitCode).toBeUndefined();
+  });
+
   it("runs multiple explicit plans sequentially", async () => {
     vi.mocked(sdkRunPipeline)
       .mockResolvedValueOnce({
@@ -2791,6 +2846,109 @@ describe("pipeline install command", () => {
       )
     ).rejects.toThrow(
       "Pipeline install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+    );
+  });
+
+  it("reports already installed instead of claiming an install when every step is skipped", async () => {
+    const logs: string[] = [];
+    const fs = createMemFs({
+      "/repo/.poe-code/pipeline/steps.yaml": pipelineStepsTemplate,
+      "/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md":
+        pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline")
+    });
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    expect(logs.some((message) => message.includes("Installed Pipeline skill"))).toBe(false);
+    expect(
+      logs.some((message) =>
+        message.includes(
+          "Pipeline skill for claude-code and local pipeline files already installed (nothing to do)"
+        )
+      )
+    ).toBe(true);
+  });
+
+  it("reports an install when the skill and pipeline files are created", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    expect(
+      logs.some((message) =>
+        message.includes(
+          "Installed Pipeline skill for claude-code and scaffolded local pipeline files"
+        )
+      )
+    ).toBe(true);
+  });
+
+  it("does not claim a would-install dry run when every step is skipped", async () => {
+    const logs: string[] = [];
+    const fs = createMemFs({
+      "/repo/.poe-code/pipeline/steps.yaml": pipelineStepsTemplate,
+      "/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md":
+        pipelineSkillPlan + "\n\n" + skillPlanConfigSection("pipeline")
+    });
+    await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "pipeline",
+      "install",
+      "--agent",
+      "claude-code",
+      "--local"
+    ]);
+
+    expect(logs.some((message) => message.includes("Would install Pipeline skill"))).toBe(false);
+    expect(logs.some((message) => message.includes("already installed (nothing to do)"))).toBe(
+      true
     );
   });
 

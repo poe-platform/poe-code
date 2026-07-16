@@ -699,7 +699,7 @@
           "gap": "memfs names the copyFile function where node names the copyfile syscall"
         },
         {
-          "title": "copyFile where the source is a directory rejects with ENOTSUP",
+          "title": "copyFile where the source is a directory rejects with darwin's own code",
           "resolved": false,
           "node": {
             "name": "Error",

@@ -9,6 +9,7 @@ import {
   type NodeTruthFixture,
   readObserved,
   readRecordedOutcome,
+  readSystemError,
   toRecordedObserved
 } from "./fs.conformance-cases.js";
 
@@ -82,6 +83,29 @@ describe("fs module conformance against the reference implementation", () => {
 
     expect([...new Set(titles)]).toEqual(titles);
   });
+
+  // The one claim about another platform's errno that this platform can check: every system
+  // error the table declares carries the errno *this* platform gives that code. An errno is the
+  // platform's number — ENOTEMPTY is -66 on darwin and -39 on linux — so a typed-out one is a
+  // claim only the platform it was typed on keeps, and it would keep it quietly here while
+  // failing wherever CI runs. Truth composed through systemErrorTruth passes by construction;
+  // a literal typed back in over it is what this catches.
+  //
+  // node's own ERR_FS_* errors are excluded by name: those are its JavaScript layer's, carry a
+  // positive constant rather than an OS errno, and are the same on every platform.
+  it("carries the running platform's errno for every system error the table claims", () => {
+    const disagreeing = FS_CONFORMANCE_CASES.filter((entry) => {
+      const truth = entry.node;
+
+      return (
+        !("result" in truth) &&
+        truth.name === "Error" &&
+        truth.errno !== readSystemError(truth.code).errno
+      );
+    }).map((entry) => entry.title);
+
+    expect(disagreeing).toEqual([]);
+  });
 });
 
 // The node-truth half. The differential above proves the module answers exactly what the
@@ -91,15 +115,31 @@ describe("fs module conformance against the reference implementation", () => {
 // So every case is driven through the module over memfs once more and held against what real node
 // answered, recorded from real node:fs/promises by scripts/record-fs-conformance.ts.
 //
-// Recording and refreshing:
+// Which platform this is recorded on, and how to refresh it:
 //
 //   npm run record:fs-conformance
 //
-// The recorder stages each case in os.tmpdir() and removes it again; nothing here touches the real
-// disk. The fixture is keyed by process.platform because node's fs errors are the platform's, and
-// a recording is only ever read for the platform the suite is running on — this suite fails rather
-// than passes when that platform has none, and fails when the recording is missing a case the
-// table defines, so adding a case forces a re-record.
+// The committed fixture holds **darwin** alone, recorded on node v22.22.2. node's fs errors are
+// the platform's — an errno is the platform's number for a code (ENOTEMPTY is -66 on darwin and
+// -39 on linux) and which code an operation fails with is the platform's choice too (darwin's
+// copyfile refuses a directory source with ENOTSUP where linux answers EISDIR) — so a recording
+// describes the platform that made it and no other. The fixture is therefore keyed by
+// process.platform, a recording is only ever read for the platform the suite is running on, and
+// this suite fails rather than passes when that platform has none: an unrecorded platform is
+// reported, never assumed to behave like a recorded one.
+//
+// A contributor on a platform the fixture does not hold runs the recorder on that platform and
+// commits the result. It merges rather than replaces, so recording on linux leaves darwin's entry
+// untouched and vice versa; neither can be produced from the other, since only real node on that
+// platform knows what it answers. The recorder stages each case in os.tmpdir() and removes it
+// again — it is the one thing here allowed near the real disk, which is why it is a script rather
+// than a test. It also refuses to run as root, since root ignores the modes the EACCES cases turn
+// on. Adding a case to the table forces a re-record: this suite fails when the recording is
+// missing a case the table defines.
+//
+// CI runs `test:unit` on ubuntu-latest, so it reads a linux recording. Until one is committed the
+// node-truth half of this suite is what reports that absence — it fails there rather than
+// quietly proving nothing.
 //
 // A case memfs cannot reproduce is a reference gap: the fixture carries the reason, and the case
 // is skipped by name so the run reports it. That is the whole of what may be skipped — where the

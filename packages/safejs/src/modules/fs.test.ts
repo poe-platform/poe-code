@@ -22,6 +22,7 @@ import {
   readObserved,
   readRecordedOutcome,
   readSystemError,
+  type RecordedTruth,
   stageLoop,
   STRING_ENCODINGS,
   SYMLINK_CASES,
@@ -77,6 +78,12 @@ const UNSUPPORTED_PATH_MESSAGE = (operation: string, form: string, argument: str
 // the messages above.
 const FILTER_MESSAGE =
   "fs.cp cannot honour the 'filter' option inside SafeJS; a closure is dropped from the digest that identifies a host call across a snapshot, so a resumed run could reconcile against a copy that took a different set of files, and under a root it would read the rewritten host paths rather than the ones the script wrote — walk the tree with readdir and copy the entries you want instead.";
+
+// The whole of what the win32 refusal says, asserted rather than matched by substring: it is
+// the only thing an embedder on win32 ever gets from this module, so it has to name the
+// platform, why the module will not guess at it, and what to do instead.
+const UNSUPPORTED_PLATFORM_MESSAGE =
+  "SafeJS's fs module does not support win32: node's fs answers a different code there (EPERM or UNKNOWN where darwin and linux answer EISDIR or ENOTEMPTY), a path carries a drive letter that root confinement has no rule for, and a symlink needs a privilege a script cannot hold. Run on darwin or linux, or build a host module for the surface you need.";
 
 // dereference is cp's alone too, and unlike filter it is refused only under a root.
 const DEREFERENCE_MESSAGE =
@@ -220,9 +227,11 @@ async function readRejection(operation: Promise<unknown>): Promise<{
 //   - a case memfs models differently proves only that the module forwards memfs untouched,
 //     and its reason is reported so a gap can never be silently absent.
 //
-// Every literal was recorded from real node v22.22.2 on darwin. Re-record with
-// scripts/record-fs-conformance.ts once fs-node-truth-fixture lands; until then a memfs
-// upgrade that closes a gap fails the divergence assertion rather than passing silently.
+// Every case's semantics were recorded from real node v22.22.2 on darwin, and none of them
+// states an errno: the table composes each through node's own error table, so what is replayed
+// below is the running platform's number rather than the one darwin gave. Re-record the fixture
+// the other half of this drive reads with `npm run record:fs-conformance`. A memfs upgrade that
+// closes a gap fails the divergence assertion rather than passing silently.
 
 // Registers every assertion a node-semantics case carries. expectedGaps is asserted whole
 // rather than per case, so closing a gap in memfs or adding a case forces the reason list to
@@ -446,6 +455,124 @@ describe("makeFsModule", () => {
 
     for (const name of ["open", "opendir", "watch", "glob", "createReadStream", "readFileSync"]) {
       expect(Object.hasOwn(fs, name)).toBe(false);
+    }
+  });
+
+  // The platform decision: darwin and linux are supported and node's truth is recorded for
+  // each, win32 is out of scope. It is refused where the module is built rather than where a
+  // path is read, so an embedder is told before a script runs rather than by the first call
+  // that lands. win32 is not a platform this module can forward faithfully: node answers EPERM
+  // or UNKNOWN where the supported two answer EISDIR or ENOTEMPTY, a path carries a drive
+  // letter that root confinement has no rule for, and a symlink needs a privilege a script
+  // cannot hold — so none of what the suite records describes it. Only win32 is refused: every
+  // other platform node runs on is POSIX and answers the way the recorded two do, and the one
+  // that has no recording is reported by the conformance suite rather than by a runtime guard.
+  describe("platform support", () => {
+    const onPlatform = (platform: string, body: () => void): void => {
+      const original = process.platform;
+
+      Object.defineProperty(process, "platform", { value: platform });
+
+      try {
+        body();
+      } finally {
+        Object.defineProperty(process, "platform", { value: original });
+      }
+    };
+
+    it("refuses to build the module on win32", () => {
+      onPlatform("win32", () => {
+        expect(() => makeFsModule()).toThrow(UNSUPPORTED_PLATFORM_MESSAGE);
+      });
+    });
+
+    for (const platform of ["darwin", "linux"]) {
+      it(`builds the module on ${platform}`, () => {
+        onPlatform(platform, () => {
+          expect(() => makeFsModule()).not.toThrow();
+        });
+      });
+    }
+  });
+
+  // node's error is the platform's: the errno is the number that platform gives the code, and
+  // which code an operation fails with is that platform's choice too. The module forwards both
+  // rather than normalising them to one platform's answer, which is what lets a script read
+  // `error.code` against SafeJS the way it would against node wherever it runs.
+  //
+  // Driven through an injected reference raising each platform's own answer for the same call,
+  // because that is the only way one process can be asked both questions: node's error table
+  // answers for the platform the suite is running on and cannot be asked what the other one
+  // says. The numbers below are therefore written out rather than derived — the whole point is
+  // that they are the answer this platform would not give.
+  describe("platform-specific errors", () => {
+    // Recorded from real node: darwin numbers ENOTEMPTY -66 where linux numbers it -39, so the
+    // same code carries a different errno; and unlinking a directory is EPERM on darwin where
+    // linux refuses it as EISDIR, so the same call fails with a different code. rm is how the
+    // module reaches unlink, which node implements it with.
+    const PLATFORM_ANSWERS: readonly {
+      readonly platform: string;
+      readonly invoke: (fs: FsCaseDriver) => Promise<unknown>;
+      readonly truth: RecordedTruth;
+    }[] = [
+      {
+        platform: "darwin",
+        invoke: (fs) => fs.rmdir("/repo/d"),
+        truth: {
+          name: "Error",
+          message: "ENOTEMPTY: directory not empty, rmdir '/repo/d'",
+          code: "ENOTEMPTY",
+          errno: -66,
+          syscall: "rmdir",
+          path: "/repo/d"
+        }
+      },
+      {
+        platform: "linux",
+        invoke: (fs) => fs.rmdir("/repo/d"),
+        truth: {
+          name: "Error",
+          message: "ENOTEMPTY: directory not empty, rmdir '/repo/d'",
+          code: "ENOTEMPTY",
+          errno: -39,
+          syscall: "rmdir",
+          path: "/repo/d"
+        }
+      },
+      {
+        platform: "darwin",
+        invoke: (fs) => fs.rm("/repo/d"),
+        truth: {
+          name: "Error",
+          message: "EPERM: operation not permitted, unlink '/repo/d'",
+          code: "EPERM",
+          errno: -1,
+          syscall: "unlink",
+          path: "/repo/d"
+        }
+      },
+      {
+        platform: "linux",
+        invoke: (fs) => fs.rm("/repo/d"),
+        truth: {
+          name: "Error",
+          message: "EISDIR: illegal operation on a directory, unlink '/repo/d'",
+          code: "EISDIR",
+          errno: -21,
+          syscall: "unlink",
+          path: "/repo/d"
+        }
+      }
+    ];
+
+    for (const { platform, truth, invoke } of PLATFORM_ANSWERS) {
+      const { code, errno } = truth as { code: string; errno: number };
+
+      it(`surfaces ${platform}'s ${code} (errno ${errno}) verbatim`, async () => {
+        const fs = makeFsModule({ fs: createNodeTruthFs(truth) }) as unknown as FsCaseDriver;
+
+        expect(await readRecordedOutcome(invoke(fs))).toEqual(truth);
+      });
     }
   });
 
@@ -2445,7 +2572,7 @@ describe("makeFsModule", () => {
     driveNodeSemantics(COPY_RENAME_CASES, [
       "copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST: memfs names the copyFile function where node names the copyfile syscall",
       "copyFile onto itself with COPYFILE_EXCL rejects with EEXIST: memfs names the copyFile function where node names the copyfile syscall",
-      "copyFile where the source is a directory rejects with ENOTSUP: memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP",
+      "copyFile where the source is a directory rejects with darwin's own code: memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP",
       "copyFile where the destination is a directory rejects with EISDIR: memfs blames the destination it opened where node blames the source and reports the destination as dest",
       "cp non-recursive on a directory rejects with ERR_FS_EISDIR: memfs raises a plain EISDIR where node raises its own ERR_FS_EISDIR",
       "cp with errorOnExist and force off onto an existing file rejects with ERR_FS_CP_EEXIST: memfs raises a plain EEXIST where node raises its own ERR_FS_CP_EEXIST",

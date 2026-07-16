@@ -706,11 +706,15 @@ tasks:
         was recorded on and how a contributor on another platform refreshes it.
 
       TDD with memfs and injected reference implementations; no real files.
+
+      Decided: darwin and linux are supported, win32 is out of scope and `makeFsModule` throws
+      there. See the Platform variance section for what a case may state and what it must derive,
+      and for the outstanding linux recording.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-concurrency-and-snapshot-edges
     title: Concurrent fs calls, cancellation, and snapshot/restore edges
@@ -920,9 +924,41 @@ behavior:
 6. **Optional root confinement.** With `root` set, escapes (via `..`, absolute paths, symlink
    targets, or hardlinks) reject with a node-shaped `EACCES` so scripts branch on `error.code` as
    usual. Without `root`, no confinement.
+7. **darwin and linux only; win32 is out of scope.** `makeFsModule` throws on win32 rather than
+   half-supporting it, so an embedder is told at startup rather than by the first call that lands.
+   Compliance is measured against a recorded fixture, and no fixture can describe win32: node
+   answers a different code there (`EPERM`/`UNKNOWN` where darwin and linux answer `EISDIR`/
+   `ENOTEMPTY`), a path carries a drive letter root confinement has no rule for, and a symlink
+   needs a privilege a script cannot hold. Only win32 is refused — every other platform node runs
+   on is POSIX and fails the way the recorded two do, and one whose truth nobody has recorded is
+   reported by the conformance suite rather than guessed at by a runtime guard.
 
 An ignored option is a worse deviation than a rejected one, so an unknown or unhandled option key
 rejects rather than passing through unvalidated (`fs-unsupported-options`).
+
+## Platform variance
+
+node's fs errors are the platform's, so what a case may state and what it must derive is the whole
+of how the suite stays honest across platforms (`fs-platform-variance`):
+
+- An **errno** is never stated. It is the number the running platform gives a code (`ENOTEMPTY` is
+  -66 on darwin, -39 on linux), so `systemErrorTruth` composes it from node's own error table and
+  `fs.conformance.test.ts` fails any case whose errno disagrees with the running platform's.
+- **Message text** is composed the same way, though libuv carries its own description strings, so
+  only the number moves between platforms.
+- A **code** can still be the platform's choice — darwin's `copyfile` refuses a directory source
+  with `ENOTSUP` where linux answers `EISDIR`. No derivation settles that; the per-platform
+  fixture does. The one such case names darwin in its title rather than claiming a code every
+  platform gives.
+- `fs.ts` **normalizes nothing**: node's error crosses untouched, proven by injecting a reference
+  that raises darwin's answer and linux's answer for the same call.
+
+The committed fixture holds **darwin** (node v22.22.2) alone. CI runs `test:unit` on
+ubuntu-latest, so **a linux recording is outstanding** — until it is committed, the node-truth half
+of the conformance suite fails there rather than quietly proving nothing. It cannot be derived from
+darwin's: only real node on linux knows what linux answers. A contributor on linux runs
+`npm run record:fs-conformance` and commits the result, which merges into the fixture rather than
+replacing it.
 
 ## Why memfs alone can't prove compliance
 

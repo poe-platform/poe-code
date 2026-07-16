@@ -331,6 +331,8 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
 };
 
 export function makeFsModule(options: FsModuleOptions = {}): FsModule {
+  assertSupportedPlatform();
+
   const implementation = options.fs ?? nodeFsPromises;
   // Without a root the module is node's fs/promises untouched; a root turns every
   // path argument into one that has to resolve inside it.
@@ -370,6 +372,26 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
       COPYFILE_EXCL: nodeFsConstants.COPYFILE_EXCL
     }
   };
+}
+
+// The module forwards node's error rather than translating it, which makes node's answer the
+// module's answer and node's answer the platform's. That holds across darwin and linux — the
+// errno differs, the code and the message do not — and stops holding on win32: node answers a
+// different code there, a path carries a drive letter root confinement has no rule for, and a
+// symlink needs a privilege a script cannot hold. Rather than half-support it, the module
+// refuses to build there, and refuses it here so an embedder is told before a script runs.
+//
+// Only win32 is named. Every other platform node runs on is POSIX and fails the way the
+// recorded two do, and a platform whose truth nobody has recorded is reported by the
+// conformance suite rather than guessed at by a guard here.
+function assertSupportedPlatform(): void {
+  if (process.platform !== "win32") {
+    return;
+  }
+
+  throw new Error(
+    "SafeJS's fs module does not support win32: node's fs answers a different code there (EPERM or UNKNOWN where darwin and linux answer EISDIR or ENOTEMPTY), a path carries a drive letter that root confinement has no rule for, and a symlink needs a privilege a script cannot hold. Run on darwin or linux, or build a host module for the surface you need."
+  );
 }
 
 function bind<Name extends FsOperationName>(

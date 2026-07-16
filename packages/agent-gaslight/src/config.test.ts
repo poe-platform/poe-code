@@ -78,6 +78,27 @@ describe("loadGaslightConfig", () => {
     });
   });
 
+  it("names the --config path as a user error when it does not exist", async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+
+    const error = await loadGaslightConfig("/repo", "/home/me", fs, "/tmp/no-gaslight.yaml").catch(
+      (thrown: unknown) => thrown as Error
+    );
+
+    expect(error.name).toBe("UserError");
+    expect(error.message).toContain("/tmp/no-gaslight.yaml");
+    expect(error.message).not.toContain("ENOENT");
+    expect(error.message).toContain("poe-code gaslight install");
+  });
+
+  it("resolves a relative --config path before naming it as missing", async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+
+    await expect(
+      loadGaslightConfig("/repo", "/home/me", fs, "custom/gaslight.yaml")
+    ).rejects.toThrow("/repo/custom/gaslight.yaml");
+  });
+
   it("reports both searched paths when config is missing", async () => {
     const fs = createFsFromVolume(new Volume()).promises;
 

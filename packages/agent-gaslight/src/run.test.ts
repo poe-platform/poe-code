@@ -406,6 +406,23 @@ describe("runGaslight", () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
+  it("reports a missing plan as a user error", async () => {
+    const spawn = vi.fn();
+
+    const error = await runGaslight({
+      cwd: "/repo",
+      planPaths: ["missing.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Again"],
+      fs: createFsFromVolume(new Volume()).promises,
+      spawn
+    }).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.name).toBe("UserError");
+    expect(error.message).toContain("Plan file not found: missing.md");
+  });
+
   it("rejects a whitespace-only agent before spawning", async () => {
     const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
     const spawn = vi.fn();

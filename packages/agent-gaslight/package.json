@@ -23,6 +23,7 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-traces": "*",
     "@poe-code/agent-spawn": "*",
+    "@poe-code/user-error": "*",
     "parse-duration": "^2.1.5",
     "yaml": "^2.8.2"
   }

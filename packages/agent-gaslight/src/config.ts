@@ -1,6 +1,7 @@
 import { promises as nodeFs } from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
+import { UserError } from "@poe-code/user-error";
 import type { GaslightConfig, GaslightFileSystem } from "./types.js";
 
 export const GASLIGHT_CONFIG_EXAMPLE = [
@@ -114,8 +115,21 @@ export async function loadGaslightConfig(
     const absoluteConfigPath = path.isAbsolute(configPath)
       ? configPath
       : path.join(cwd, configPath);
+    let content: string;
+    try {
+      content = await fs.readFile(absoluteConfigPath, "utf8");
+    } catch (error) {
+      if (isMissingFile(error)) {
+        throw new UserError(
+          `Gaslight config not found: ${absoluteConfigPath}\n\nCreate one with "poe-code gaslight install", or point --config at an existing file.`,
+          { cause: error }
+        );
+      }
+      throw error;
+    }
+
     return {
-      ...parseGaslightConfig(await fs.readFile(absoluteConfigPath, "utf8"), absoluteConfigPath),
+      ...parseGaslightConfig(content, absoluteConfigPath),
       path: absoluteConfigPath
     };
   }

@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawn as defaultSpawn, type SpawnUsage } from "@poe-code/agent-spawn";
 import { archivePlan as archivePlanShared } from "@poe-code/agent-harness-tools";
+import { UserError } from "@poe-code/user-error";
 import { loadGaslightConfig } from "./config.js";
 import type {
   GaslightFileSystem,
@@ -48,7 +49,7 @@ async function requirePlan(
       throw new Error("not a file");
     }
   } catch (error) {
-    throw new Error(`Plan file not found: ${planPath}`, { cause: error });
+    throw new UserError(`Plan file not found: ${planPath}`, { cause: error });
   }
 }
 

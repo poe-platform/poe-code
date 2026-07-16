@@ -101,10 +101,10 @@ tasks:
       TDD with memfs as the injected fs; no real files. Assert the unsupported-capability
       errors by message and by the fact that nothing is written.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-root-confinement
     title: Confine the fs module to an optional root with node-shaped denials

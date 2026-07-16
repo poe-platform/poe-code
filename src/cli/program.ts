@@ -73,53 +73,27 @@ function formatCommandHeader(cmd: Command): string {
   return `Poe - ${parts.reverse().join(" ")}`;
 }
 
-interface RootHelpCommandSpec {
-  path: readonly string[];
-  args?: string;
-}
-
-const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
-  { path: ["install"] },
-  { path: ["update"] },
-  { path: ["configure"] },
-  { path: ["unconfigure"] },
-  { path: ["login"] },
-  { path: ["logout"] },
-  { path: ["auth"] },
-  { path: ["agent"] },
-  { path: ["spawn"] },
-  { path: ["gaslight"], args: "[plan-path]" },
-  { path: ["test"] },
-  { path: ["models"] },
-  { path: ["pipeline"] },
-  { path: ["plan"], args: "[question]" },
-  { path: ["traces"], args: "[path]" },
-  { path: ["harness"] },
-  { path: ["experiment"] },
-  { path: ["ralph"] },
-  { path: ["usage"] }
-] as const;
-
-function findCommandByPath(root: Command, path: readonly string[]): Command {
-  let current = root;
-
-  for (const segment of path) {
-    const next = current.commands.find(
-      (command) => Reflect.get(command, "_hidden") !== true && command.name() === segment
-    );
-    if (!next) {
-      throw new Error(`Root help command is missing: ${path.join(" ")}`);
-    }
-    current = next;
-  }
-
-  return current;
-}
-
-function formatRootHelpCommandName(path: readonly string[], command: Command): string {
-  const leaf = [command.name(), ...command.aliases()].join(", ");
-  return path.length > 1 ? [...path.slice(0, -1), leaf].join(" ") : leaf;
-}
+const ROOT_HELP_PRIMARY_COMMANDS: readonly string[] = [
+  "install",
+  "update",
+  "configure",
+  "unconfigure",
+  "login",
+  "logout",
+  "auth",
+  "agent",
+  "spawn",
+  "gaslight",
+  "test",
+  "models",
+  "pipeline",
+  "plan",
+  "traces",
+  "harness",
+  "experiment",
+  "ralph",
+  "usage"
+];
 
 function splitUsageParts(usage: string): string[] {
   return usage
@@ -135,22 +109,34 @@ function formatUsage(usage: string, excludedParts: readonly string[]): string {
 }
 
 function formatRootHelpCommandArgs(command: Command): string {
-  return formatUsage(command.usage(), ["[options]", "[command]"]);
+  return formatUsage(command.usage(), ["[options]", "[command]", "[args...]"]);
 }
 
-function buildRootHelpRows(root: Command): Array<{
+interface RootHelpRow {
   name: string;
   args: string;
   description: string;
-}> {
-  return ROOT_HELP_COMMAND_SPECS.map((spec) => {
-    const command = findCommandByPath(root, spec.path);
-    return {
-      name: formatRootHelpCommandName(spec.path, command),
-      args: spec.args ?? formatRootHelpCommandArgs(command),
-      description: command.description()
-    };
+}
+
+function buildRootHelpSections(root: Command): Array<{ heading: string; rows: RootHelpRow[] }> {
+  const visible = root.commands.filter((command) => Reflect.get(command, "_hidden") !== true);
+  const toRow = (command: Command): RootHelpRow => ({
+    name: [command.name(), ...command.aliases()].join(", "),
+    args: formatRootHelpCommandArgs(command),
+    description: command.description()
   });
+  const primary = ROOT_HELP_PRIMARY_COMMANDS.flatMap((name) => {
+    const command = visible.find((candidate) => candidate.name() === name);
+    return command === undefined ? [] : [toRow(command)];
+  });
+  const advanced = visible
+    .filter((command) => !ROOT_HELP_PRIMARY_COMMANDS.includes(command.name()))
+    .map(toRow);
+
+  return [
+    { heading: "Commands:", rows: primary },
+    ...(advanced.length > 0 ? [{ heading: "Advanced:", rows: advanced }] : [])
+  ];
 }
 
 function formatCanonicalCommandPath(cmd: Command): string {
@@ -223,7 +209,8 @@ function formatHelpText(input: {
   helpCommand: string;
   helper: Help;
 }): string {
-  const commandRows = buildRootHelpRows(input.command);
+  const commandSections = buildRootHelpSections(input.command);
+  const commandRows = commandSections.flatMap((section) => section.rows);
   const optionRows = input.helper.visibleOptions(input.command);
   const optionWidth = Math.max(
     0,
@@ -261,9 +248,11 @@ function formatHelpText(input: {
     text.section("Options:"),
     ...optionRows.map(option),
     "",
-    text.section("Commands:"),
-    ...commandRows.map(cmd),
-    "",
+    ...commandSections.flatMap((section) => [
+      text.section(section.heading),
+      ...section.rows.map(cmd),
+      ""
+    ]),
     `${text.muted("Run")} ${text.usageCommand(input.helpCommand)} ${text.muted("for command options.")}`,
     "",
     `${text.muted("Learn more about Poe:")}            ${text.link("https://poe.com/api")}`,

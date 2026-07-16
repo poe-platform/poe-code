@@ -99,7 +99,48 @@ describe("createProgram", () => {
     stdoutSpy.mockRestore();
   });
 
-  it("registers the code-review command group without advertising it in root help", () => {
+  it("lists every registered command in root help", () => {
+    const fs = createMemFs(homeDir);
+    const program = createProgram({
+      fs,
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    const help = program.helpInformation();
+    const visibleNames = program.commands
+      .filter((command) => Reflect.get(command, "_hidden") !== true)
+      .map((command) => command.name());
+
+    expect(visibleNames.length).toBeGreaterThan(19);
+    const missing = visibleNames.filter((name) => !help.includes(name));
+    expect(missing).toEqual([]);
+  });
+
+  it("groups less-common commands under an Advanced heading in root help", () => {
+    const fs = createMemFs(homeDir);
+    const program = createProgram({
+      fs,
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    const help = program.helpInformation();
+
+    expect(help).toContain("Advanced:");
+    expect(help.indexOf("install")).toBeLessThan(help.indexOf("Advanced:"));
+    for (const name of ["skill", "memory", "runtime", "eval", "provider", "tasks", "launch"]) {
+      expect(help.indexOf("Advanced:")).toBeLessThan(help.indexOf(name));
+    }
+  });
+
+  it("registers the code-review command group", () => {
     const fs = createMemFs(homeDir);
     const program = createProgram({
       fs,
@@ -111,7 +152,6 @@ describe("createProgram", () => {
     });
 
     expect(program.commands.find((command) => command.name() === "code-review")).toBeDefined();
-    expect(program.helpInformation()).not.toContain("code-review");
   });
 
   it("forwards code-review help through the root command", async () => {

@@ -128,10 +128,10 @@ tasks:
       and on write, `rename` denied when only the destination escapes, and root itself
       readable. No real files.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-root-confinement-edges
     title: Close the root-confinement edge cases

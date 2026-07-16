@@ -1,4 +1,5 @@
 import { constants as nodeFsConstants } from "node:fs";
+import { getSystemErrorName } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 
@@ -57,7 +58,10 @@ const BUFFER_MESSAGE = (operation: string): string =>
 const BIGINT_MESSAGE = (operation: string): string =>
   `fs.${operation} cannot return BigInt fields inside SafeJS; omit bigint and read the *Ms timestamps instead.`;
 
-function createFs(files: Record<string, string> = {}): {
+function createFs(
+  files: Record<string, string> = {},
+  root?: string
+): {
   fs: ReturnType<typeof makeFsModule>;
   volume: Volume;
 } {
@@ -65,6 +69,7 @@ function createFs(files: Record<string, string> = {}): {
   return {
     volume,
     fs: makeFsModule({
+      root,
       fs: createFsFromVolume(volume).promises as unknown as FsImplementation
     })
   };
@@ -87,6 +92,26 @@ async function readCode(operation: Promise<unknown>): Promise<unknown> {
     await operation;
   } catch (error) {
     return (error as { code?: unknown }).code;
+  }
+
+  throw new Error("Expected the operation to reject.");
+}
+
+// Reads back the node system-error fields a denial has to carry. errno is read
+// back through node's own reverse lookup so the assertion pins errno to EACCES
+// rather than to a number this platform may not use.
+async function readDenial(operation: Promise<unknown>): Promise<Record<string, unknown>> {
+  try {
+    await operation;
+  } catch (error) {
+    const denial = error as NodeJS.ErrnoException & { dest?: string };
+    return {
+      code: denial.code,
+      errno: getSystemErrorName(denial.errno as number),
+      syscall: denial.syscall,
+      path: denial.path,
+      ...(Object.hasOwn(denial, "dest") ? { dest: denial.dest } : {})
+    };
   }
 
   throw new Error("Expected the operation to reject.");
@@ -658,6 +683,359 @@ describe("makeFsModule", () => {
           reads.includes(name) ? "re-issue" : "read-side-effect"
         );
       }
+    });
+  });
+
+  describe("root", () => {
+    const ROOT = "/repo";
+    const TREE = {
+      "/repo/file.txt": "contents",
+      "/repo/sub/nested.txt": "nested",
+      "/outside/secret.txt": "secret"
+    };
+
+    it("leaves paths untouched when root is omitted", async () => {
+      const { fs } = createFs(TREE);
+
+      expect(await fs.readFile("/outside/secret.txt", "utf8")).toBe("secret");
+    });
+
+    it("rejects a root that is not a non-empty string", () => {
+      expect(() => createFs(TREE, "")).toThrow("fs module root must be a non-empty string.");
+    });
+
+    describe("resolution", () => {
+      it("resolves a relative read against root rather than the process cwd", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(await fs.readFile("file.txt", "utf8")).toBe("contents");
+        expect(await fs.readFile("./sub/nested.txt", "utf8")).toBe("nested");
+      });
+
+      it("resolves a relative write against root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        await fs.writeFile("created.txt", "written");
+
+        expect(volume.readFileSync("/repo/created.txt", "utf8")).toBe("written");
+      });
+
+      it("allows an absolute path inside root", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(await fs.readFile("/repo/file.txt", "utf8")).toBe("contents");
+      });
+
+      it("allows root itself", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(new Set(await fs.readdir(ROOT))).toEqual(new Set(["file.txt", "sub"]));
+        expect(new Set(await fs.readdir("."))).toEqual(new Set(["file.txt", "sub"]));
+        expect((await fs.stat(ROOT)).isDirectory()).toBe(true);
+        expect(await fs.realpath(ROOT)).toBe(ROOT);
+      });
+
+      it("allows a path that walks up but stays inside root", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(await fs.readFile("sub/../file.txt", "utf8")).toBe("contents");
+      });
+
+      it("allows a path through a symlink that stays inside root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        volume.symlinkSync("/repo/sub", "/repo/link");
+
+        expect(await fs.readFile("/repo/link/nested.txt", "utf8")).toBe("nested");
+      });
+    });
+
+    describe("denials", () => {
+      // Each operation's syscall and dest presence is node's own, recorded from
+      // node's errors rather than assumed from the fs function name.
+      const cases: Record<
+        string,
+        {
+          call: (fs: ReturnType<typeof makeFsModule>) => Promise<unknown>;
+          syscall: string;
+          path: string;
+          dest?: string;
+        }
+      > = {
+        access: {
+          call: (fs) => fs.access("../outside/secret.txt"),
+          syscall: "access",
+          path: "/outside/secret.txt"
+        },
+        appendFile: {
+          call: (fs) => fs.appendFile("../outside/secret.txt", "x"),
+          syscall: "open",
+          path: "/outside/secret.txt"
+        },
+        chmod: {
+          call: (fs) => fs.chmod("../outside/secret.txt", 0o600),
+          syscall: "chmod",
+          path: "/outside/secret.txt"
+        },
+        copyFile: {
+          call: (fs) => fs.copyFile("file.txt", "../outside/copy.txt"),
+          syscall: "copyfile",
+          path: "/repo/file.txt",
+          dest: "/outside/copy.txt"
+        },
+        link: {
+          call: (fs) => fs.link("file.txt", "../outside/hard.txt"),
+          syscall: "link",
+          path: "/repo/file.txt",
+          dest: "/outside/hard.txt"
+        },
+        lstat: {
+          call: (fs) => fs.lstat("../outside/secret.txt"),
+          syscall: "lstat",
+          path: "/outside/secret.txt"
+        },
+        mkdir: {
+          call: (fs) => fs.mkdir("../outside/nested"),
+          syscall: "mkdir",
+          path: "/outside/nested"
+        },
+        mkdtemp: {
+          call: (fs) => fs.mkdtemp("../outside/tmp-"),
+          syscall: "mkdtemp",
+          path: "/outside/tmp-"
+        },
+        readFile: {
+          call: (fs) => fs.readFile("../outside/secret.txt", "utf8"),
+          syscall: "open",
+          path: "/outside/secret.txt"
+        },
+        readdir: {
+          call: (fs) => fs.readdir("../outside"),
+          syscall: "scandir",
+          path: "/outside"
+        },
+        readlink: {
+          call: (fs) => fs.readlink("../outside/link.txt"),
+          syscall: "readlink",
+          path: "/outside/link.txt"
+        },
+        realpath: {
+          call: (fs) => fs.realpath("../outside/secret.txt"),
+          syscall: "realpath",
+          path: "/outside/secret.txt"
+        },
+        rename: {
+          call: (fs) => fs.rename("file.txt", "../outside/moved.txt"),
+          syscall: "rename",
+          path: "/repo/file.txt",
+          dest: "/outside/moved.txt"
+        },
+        rm: {
+          call: (fs) => fs.rm("../outside/secret.txt"),
+          syscall: "lstat",
+          path: "/outside/secret.txt"
+        },
+        rmdir: {
+          call: (fs) => fs.rmdir("../outside"),
+          syscall: "rmdir",
+          path: "/outside"
+        },
+        stat: {
+          call: (fs) => fs.stat("../outside/secret.txt"),
+          syscall: "stat",
+          path: "/outside/secret.txt"
+        },
+        symlink: {
+          call: (fs) => fs.symlink("../outside/secret.txt", "link.txt"),
+          syscall: "symlink",
+          path: "/outside/secret.txt",
+          dest: "/repo/link.txt"
+        },
+        truncate: {
+          call: (fs) => fs.truncate("../outside/secret.txt", 0),
+          syscall: "open",
+          path: "/outside/secret.txt"
+        },
+        utimes: {
+          call: (fs) => fs.utimes("../outside/secret.txt", 0, 0),
+          syscall: "utime",
+          path: "/outside/secret.txt"
+        },
+        writeFile: {
+          call: (fs) => fs.writeFile("../outside/secret.txt", "x"),
+          syscall: "open",
+          path: "/outside/secret.txt"
+        }
+      };
+
+      for (const [name, { call, syscall, path, dest }] of Object.entries(cases)) {
+        it(`${name} rejects a '..' escape with a node-shaped EACCES`, async () => {
+          const { fs } = createFs(TREE, ROOT);
+
+          expect(await readDenial(call(fs))).toEqual({
+            code: "EACCES",
+            errno: "EACCES",
+            syscall,
+            path,
+            ...(dest === undefined ? {} : { dest })
+          });
+        });
+      }
+
+      it("denies an absolute path outside root", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.readFile("/outside/secret.txt", "utf8"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: "/outside/secret.txt"
+        });
+      });
+
+      it("denies a sibling directory sharing root's name prefix", async () => {
+        const { fs } = createFs({ ...TREE, "/repo-other/secret.txt": "secret" }, ROOT);
+
+        expect(await readDenial(fs.readFile("/repo-other/secret.txt", "utf8"))).toMatchObject({
+          code: "EACCES",
+          path: "/repo-other/secret.txt"
+        });
+      });
+
+      it("denies rename when only the destination escapes root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.rename("/repo/file.txt", "/outside/moved.txt"))).toEqual({
+          code: "EACCES",
+          errno: "EACCES",
+          syscall: "rename",
+          path: "/repo/file.txt",
+          dest: "/outside/moved.txt"
+        });
+        expect(volume.readFileSync("/repo/file.txt", "utf8")).toBe("contents");
+        expect(volume.existsSync("/outside/moved.txt")).toBe(false);
+      });
+
+      it("denies a symlink whose target escapes root", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        expect(await readDenial(fs.symlink("/outside", "/repo/link"))).toMatchObject({
+          code: "EACCES",
+          syscall: "symlink",
+          path: "/outside",
+          dest: "/repo/link"
+        });
+        expect(volume.existsSync("/repo/link")).toBe(false);
+      });
+
+      it("writes nothing when a call is denied", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+        const before = volume.toJSON();
+
+        await readDenial(fs.writeFile("../outside/secret.txt", "overwritten"));
+        await readDenial(fs.rm("../outside/secret.txt"));
+        await readDenial(fs.mkdir("../outside/nested"));
+
+        expect(volume.toJSON()).toEqual(before);
+      });
+    });
+
+    describe("symlinks pointing outside root", () => {
+      // The escaping links are created straight on the volume: the module itself
+      // refuses to create them, so a host-made link is the case that matters.
+      function createEscapingFs(): ReturnType<typeof createFs> {
+        const created = createFs(TREE, ROOT);
+        created.volume.symlinkSync("/outside", "/repo/dir-link");
+        created.volume.symlinkSync("/outside/secret.txt", "/repo/file-link.txt");
+        return created;
+      }
+
+      it("denies reading through an escaping symlink", async () => {
+        const { fs } = createEscapingFs();
+
+        expect(await readDenial(fs.readFile("/repo/file-link.txt", "utf8"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: "/repo/file-link.txt"
+        });
+        expect(await readDenial(fs.readFile("/repo/dir-link/secret.txt", "utf8"))).toMatchObject({
+          code: "EACCES",
+          path: "/repo/dir-link/secret.txt"
+        });
+      });
+
+      it("denies writing through an escaping symlink", async () => {
+        const { fs, volume } = createEscapingFs();
+
+        expect(await readDenial(fs.writeFile("/repo/file-link.txt", "overwritten"))).toMatchObject({
+          code: "EACCES",
+          syscall: "open",
+          path: "/repo/file-link.txt"
+        });
+        expect(await readDenial(fs.writeFile("/repo/dir-link/planted.txt", "x"))).toMatchObject({
+          code: "EACCES",
+          path: "/repo/dir-link/planted.txt"
+        });
+        expect(volume.readFileSync("/outside/secret.txt", "utf8")).toBe("secret");
+        expect(volume.existsSync("/outside/planted.txt")).toBe(false);
+      });
+    });
+
+    // node resolves a relative symlink target against the link's own directory
+    // and stores it verbatim, so root must not rewrite the target.
+    describe("symlink targets", () => {
+      it("stores a relative target inside root verbatim", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        await fs.symlink("./file.txt", "/repo/link.txt");
+
+        expect(await fs.readlink("/repo/link.txt")).toBe("./file.txt");
+        expect(await fs.readFile("/repo/link.txt", "utf8")).toBe("contents");
+      });
+
+      it("resolves a relative target against the link's directory, not root", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        await fs.symlink("../file.txt", "/repo/sub/link.txt");
+
+        expect(await fs.readlink("/repo/sub/link.txt")).toBe("../file.txt");
+        expect(await fs.readFile("/repo/sub/link.txt", "utf8")).toBe("contents");
+      });
+
+      it("denies a relative target that escapes root from the link's directory", async () => {
+        const { fs, volume } = createFs(TREE, ROOT);
+
+        expect(
+          await readDenial(fs.symlink("../../outside/secret.txt", "/repo/sub/link.txt"))
+        ).toMatchObject({
+          code: "EACCES",
+          syscall: "symlink",
+          path: "/outside/secret.txt",
+          dest: "/repo/sub/link.txt"
+        });
+        expect(volume.existsSync("/repo/sub/link.txt")).toBe(false);
+      });
+    });
+
+    describe("inside a SafeJS script", () => {
+      it("hands a script an EACCES it can branch on by code", async () => {
+        const { fs } = createFs(TREE, ROOT);
+
+        const result = await run(
+          [
+            'import * as fs from "fs";',
+            "try {",
+            '  await fs.readFile("../outside/secret.txt", "utf8");',
+            "} catch (error) {",
+            "  return JSON.stringify(Array.of(error.code, error.syscall, error.path));",
+            "}"
+          ].join("\n"),
+          { modules: { fs } }
+        );
+
+        expect(result).toMatchObject({
+          ok: true,
+          returnValue: JSON.stringify(["EACCES", "open", "/outside/secret.txt"])
+        });
+      });
     });
   });
 });

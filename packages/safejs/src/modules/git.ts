@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { mkdir, realpath, rm } from "node:fs/promises";
-import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
-import { hasOwnErrorCode } from "../error-codes.js";
+import { dirname, isAbsolute, resolve } from "node:path";
+import { containsPath, resolveCanonicalPath } from "./canonical-path.js";
 
 export type GitSavepoint = {
   head: string;
@@ -319,48 +319,15 @@ async function resolveWorktreePath(repoRoot: string, path: string, label: string
   const resolvedRoot = resolve(repoRoot);
   const resolvedPath = isAbsolute(path) ? resolve(path) : resolve(resolvedRoot, path);
   const canonicalRoot = await realpath(resolvedRoot);
-  const canonicalPath = await resolveCanonicalPath(resolvedPath);
-  const relativePath = relative(canonicalRoot, canonicalPath);
+  const canonicalPath = await resolveCanonicalPath(realpath, resolvedPath);
 
-  if (
-    relativePath.length === 0 ||
-    relativePath === ".." ||
-    relativePath.startsWith(`..${sep}`) ||
-    isAbsolute(relativePath)
-  ) {
+  // A worktree lives somewhere under the repository, never at the repository root
+  // itself, so root-itself is rejected alongside anything outside it.
+  if (!containsPath(canonicalRoot, canonicalPath) || canonicalPath === canonicalRoot) {
     throw new Error(`${label} must be inside the git repository.`);
   }
 
   return canonicalPath;
-}
-
-async function resolveCanonicalPath(path: string): Promise<string> {
-  const missingSegments: string[] = [];
-  let current = path;
-
-  while (true) {
-    try {
-      const canonicalCurrent = await realpath(current);
-      return resolve(canonicalCurrent, ...missingSegments.reverse());
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-
-      const parent = dirname(current);
-
-      if (parent === current) {
-        return resolve(path);
-      }
-
-      missingSegments.push(basename(current));
-      current = parent;
-    }
-  }
-}
-
-function isNotFoundError(error: unknown): boolean {
-  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isBranchAlreadyExistsError(error: unknown, branch: string): boolean {

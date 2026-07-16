@@ -1,7 +1,10 @@
 import { constants as nodeFsConstants, type Dirent, type PathLike, type Stats } from "node:fs";
 import * as nodeFsPromises from "node:fs/promises";
+import { dirname, isAbsolute, resolve } from "node:path";
+import { getSystemErrorMap } from "node:util";
 
 import { declareHostOperation } from "../interp/host-bridge.js";
+import { containsPath, type Realpath, resolveCanonicalPath } from "./canonical-path.js";
 import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
 
 type FsOperationName =
@@ -72,6 +75,42 @@ const FILE_TYPE_PREDICATES = [
 // invalid encoding node rejects on its own.
 const BUFFER_ENCODING = "buffer";
 
+// The syscall node blames when each operation fails, read back from node itself:
+// several do not match the fs function name, so they cannot be derived from it.
+const FS_SYSCALLS = {
+  access: "access",
+  appendFile: "open",
+  chmod: "chmod",
+  copyFile: "copyfile",
+  link: "link",
+  lstat: "lstat",
+  mkdir: "mkdir",
+  mkdtemp: "mkdtemp",
+  readFile: "open",
+  readdir: "scandir",
+  readlink: "readlink",
+  realpath: "realpath",
+  rename: "rename",
+  rm: "lstat",
+  rmdir: "rmdir",
+  stat: "stat",
+  symlink: "symlink",
+  truncate: "open",
+  utimes: "utime",
+  writeFile: "open"
+} as const satisfies Record<FsOperationName, string>;
+
+// The operations that take a second path at argument 1. node reports these with a
+// dest field beside path, and reports the pair in argument order. symlink also
+// takes two, but resolves them differently — see resolvePathArguments.
+const TWO_PATH_OPERATIONS: readonly FsOperationName[] = ["copyFile", "link", "rename"];
+
+const ACCESS_DENIED_CODE = "EACCES";
+
+// libuv numbers errno differently per platform, so the errno and message paired
+// with EACCES come from node's own table rather than a hardcoded -13.
+const [ACCESS_DENIED_ERRNO, ACCESS_DENIED_MESSAGE] = readSystemError(ACCESS_DENIED_CODE);
+
 export type FsImplementation = Pick<typeof nodeFsPromises, FsOperationName>;
 
 type FsHostOperation = (...args: readonly unknown[]) => unknown;
@@ -132,7 +171,11 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
 };
 
 export function makeFsModule(options: FsModuleOptions = {}): FsModule {
-  const fs = options.fs ?? nodeFsPromises;
+  const implementation = options.fs ?? nodeFsPromises;
+  // Without a root the module is node's fs/promises untouched; a root turns every
+  // path argument into one that has to resolve inside it.
+  const fs =
+    options.root === undefined ? implementation : makeRootedFs(implementation, options.root);
 
   return {
     access: bind(fs, "access", "re-issue"),
@@ -212,6 +255,130 @@ function declare<TOperation extends FsHostOperation>(
 
 function invoke(fs: FsImplementation, name: FsOperationName, args: readonly unknown[]): unknown {
   return Reflect.apply(fs[name] as (...operationArgs: readonly unknown[]) => unknown, fs, args);
+}
+
+// Wraps every operation so its path arguments resolve against root and are proven
+// to stay inside it. The wrapped operations keep node's own signatures and
+// results, so the bindings above are unaware a root is in play.
+function makeRootedFs(fs: FsImplementation, root: string): FsImplementation {
+  if (root.trim().length === 0) {
+    throw new Error("fs module root must be a non-empty string.");
+  }
+
+  const rooted: Record<string, FsHostOperation> = {};
+
+  for (const name of Object.keys(FS_SYSCALLS) as FsOperationName[]) {
+    rooted[name] = async (...args: readonly unknown[]) =>
+      invoke(fs, name, await resolvePathArguments(fs, root, name, args));
+  }
+
+  return rooted as unknown as FsImplementation;
+}
+
+async function resolvePathArguments(
+  fs: FsImplementation,
+  root: string,
+  name: FsOperationName,
+  args: readonly unknown[]
+): Promise<readonly unknown[]> {
+  const canonicalRoot = await resolveCanonicalPath(readRealpath(fs), resolve(root));
+  const resolved = [...args];
+
+  if (name === "symlink") {
+    // node stores a symlink's target verbatim and resolves a relative target
+    // against the link's own directory, so only the link path is rewritten while
+    // the target is checked as the link's directory would see it.
+    const linkPath = readPath(name, canonicalRoot, args[1]);
+    resolved[1] = linkPath;
+    await assertInsideRoot(fs, canonicalRoot, name, [
+      readPath(name, dirname(linkPath), args[0]),
+      linkPath
+    ]);
+    return resolved;
+  }
+
+  const indexes = TWO_PATH_OPERATIONS.includes(name) ? [0, 1] : [0];
+  const paths = indexes.map((index) => {
+    const path = readPath(name, canonicalRoot, args[index]);
+    resolved[index] = path;
+    return path;
+  });
+
+  await assertInsideRoot(fs, canonicalRoot, name, paths);
+  return resolved;
+}
+
+// paths carries the operation's path arguments in node's order, so a denial names
+// the whole attempted call even when only one of them escapes.
+async function assertInsideRoot(
+  fs: FsImplementation,
+  canonicalRoot: string,
+  name: FsOperationName,
+  paths: readonly string[]
+): Promise<void> {
+  for (const path of paths) {
+    if (await escapesRoot(fs, canonicalRoot, path)) {
+      throw createAccessDeniedError(name, paths[0], paths[1]);
+    }
+  }
+}
+
+async function escapesRoot(
+  fs: FsImplementation,
+  canonicalRoot: string,
+  path: string
+): Promise<boolean> {
+  return !containsPath(canonicalRoot, await resolveCanonicalPath(readRealpath(fs), path));
+}
+
+// realpath is handed over as a bound call: the injected implementation may be a
+// method that needs its own receiver, and node's overloads widen the result to
+// Buffer, which only the no-encoding call used here can never return.
+function readRealpath(fs: FsImplementation): Realpath {
+  return async (path) => (await invoke(fs, "realpath", [path])) as string;
+}
+
+function readPath(name: FsOperationName, base: string, value: unknown): string {
+  if (typeof value !== "string") {
+    throw new TypeError(`fs.${name} requires a string path when the fs root is set.`);
+  }
+
+  return isAbsolute(value) ? resolve(value) : resolve(base, value);
+}
+
+// Shaped exactly like the system error node raises for a refused path, so a
+// script's `error.code` branch reads the same against SafeJS and against node.
+function createAccessDeniedError(
+  name: FsOperationName,
+  path: string,
+  dest?: string
+): NodeJS.ErrnoException {
+  const syscall = FS_SYSCALLS[name];
+  const target = dest === undefined ? `'${path}'` : `'${path}' -> '${dest}'`;
+  const error: NodeJS.ErrnoException & { dest?: string } = new Error(
+    `${ACCESS_DENIED_CODE}: ${ACCESS_DENIED_MESSAGE}, ${syscall} ${target}`
+  );
+
+  error.code = ACCESS_DENIED_CODE;
+  error.errno = ACCESS_DENIED_ERRNO;
+  error.syscall = syscall;
+  error.path = path;
+
+  if (dest !== undefined) {
+    error.dest = dest;
+  }
+
+  return error;
+}
+
+function readSystemError(code: string): [number, string] {
+  for (const [errno, [name, message]] of getSystemErrorMap()) {
+    if (name === code) {
+      return [errno, message];
+    }
+  }
+
+  throw new Error(`node does not define the ${code} system error.`);
 }
 
 function assertNoBufferResult(operation: keyof typeof BUFFER_BY_DEFAULT, options: unknown): void {

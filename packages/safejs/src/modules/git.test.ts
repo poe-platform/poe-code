@@ -696,6 +696,19 @@ describe("makeGitModule", () => {
     expect(mkdir).not.toHaveBeenCalled();
   });
 
+  // A worktree has to live under the repository, so the repository root is not a
+  // legal worktree path even though it is trivially "inside" itself.
+  it("rejects the repository root itself as a worktree path", async () => {
+    mockExecFileSequence([() => ({ stdout: "/repo\n" })]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.worktreeCreate("feature/root", { path: "/repo" })).rejects.toThrow(
+      "Git worktree path must be inside the git repository."
+    );
+    expect(mkdir).not.toHaveBeenCalled();
+  });
+
   it("accepts a worktree path through a symlinked repo path after canonical validation", async () => {
     vi.mocked(realpath).mockImplementation(async (path) => {
       if (

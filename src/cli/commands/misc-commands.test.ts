@@ -853,21 +853,24 @@ describe("root command", () => {
   });
 
   it("omits the raw [command] placeholder from parent command help usage", async () => {
+    // Scoped to the usage line: commander always lists its own `help [command]`
+    // row under Commands, which is not the placeholder this guards against.
+    const usageLineOf = (help: string): string =>
+      help.split("\n").find((line) => line.startsWith("Usage:")) ?? "";
+
     const usageHelp = await renderHelp(["usage", "--help"]);
-    expect(usageHelp).toContain("Usage: poe-code usage [options]");
-    expect(usageHelp).not.toContain("[command]");
+    expect(usageLineOf(usageHelp)).toBe("Usage: poe-code usage [options]");
 
     const launchHelp = await renderHelp(["launch", "--help"]);
-    expect(launchHelp).toContain("Usage: poe-code launch [options]");
-    expect(launchHelp).not.toContain("[command]");
+    expect(usageLineOf(launchHelp)).toBe("Usage: poe-code launch [options]");
 
     const utilsConfigHelp = await renderHelp(["utils", "config", "--help"]);
-    expect(utilsConfigHelp).toContain("Usage: poe-code utils config [options]");
-    expect(utilsConfigHelp).not.toContain("[command]");
+    expect(usageLineOf(utilsConfigHelp)).toBe("Usage: poe-code utils config [options]");
 
     const experimentJournalHelp = await renderHelp(["experiment", "journal", "--help"]);
-    expect(experimentJournalHelp).toContain("Usage: poe-code experiment journal [options] [doc]");
-    expect(experimentJournalHelp).not.toContain("[command]");
+    expect(usageLineOf(experimentJournalHelp)).toBe(
+      "Usage: poe-code experiment journal [options] [doc]"
+    );
   });
 
   it("shows markdown reader subcommands in plan help", async () => {

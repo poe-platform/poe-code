@@ -423,9 +423,14 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await expect(program.parseAsync(["node", "cli", "--yes", "plan", "archive"])).rejects.toThrow(
-      /docs\/plans\/plan-a\.md[\s\S]*docs\/plans\/plan-b\.md/
-    );
+    // Plans are listed newest-first, so their relative order depends on mtime.
+    // Assert both candidates are listed without pinning the order.
+    const error = await program
+      .parseAsync(["node", "cli", "--yes", "plan", "archive"])
+      .catch((thrown: unknown) => thrown as Error);
+
+    expect(error.message).toContain("docs/plans/plan-a.md");
+    expect(error.message).toContain("docs/plans/plan-b.md");
 
     expect(writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")).not.toContain("Archived");
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");

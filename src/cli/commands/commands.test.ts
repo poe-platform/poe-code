@@ -2027,7 +2027,10 @@ describe("version command", () => {
     expect(logs.some((log) => log.includes(packageJson.version))).toBe(true);
   });
 
-  it("shows update available message when newer version exists", async () => {
+  it("never nags this dev build about published releases", async () => {
+    // This program reports package.json's 0.0.0-dev version, so it must not reach the
+    // registry or suggest an upgrade. The nag itself is covered against real semver
+    // versions in version-command.test.ts.
     const httpClient: HttpClient = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -2046,8 +2049,9 @@ describe("version command", () => {
 
     await parseWithVersionExit(program, ["node", "cli", "--version"]);
 
-    expect(logs.some((log) => log.includes("99.0.0"))).toBe(true);
-    expect(logs.some((log) => log.includes("npm install -g poe-code@latest"))).toBe(true);
+    expect(logs.some((log) => log.includes("99.0.0"))).toBe(false);
+    expect(logs.some((log) => log.includes("poe-code@latest"))).toBe(false);
+    expect(httpClient).not.toHaveBeenCalled();
   });
 
   it("does not show update message when version is current", async () => {

@@ -96,7 +96,25 @@ describe("update command", () => {
       })
     );
     expect(commandRunner).toHaveBeenCalledWith("bun", ["install", "-g", "poe-code@latest"]);
-    expect(logs).toContain("Updated poe-code to 99.0.0.");
+    expect(logs).toContain("Updated poe-code.");
+  });
+
+  it("installs a local dev build without blaming the npm registry", async () => {
+    const logs: string[] = [];
+    const commandRunner = vi.fn(async () => ({ exitCode: 0, stdout: "updated", stderr: "" }));
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: async () => ({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message),
+      commandRunner,
+      httpClient: createHttpClient("99.0.0")
+    });
+
+    await program.parseAsync(["node", "cli", "update"]);
+
+    expect(commandRunner).toHaveBeenCalledWith("npm", ["install", "-g", "poe-code@latest"]);
+    expect(logs.join("\n")).not.toContain("Could not check the npm registry");
   });
 
   it("supports overriding package manager detection", async () => {

@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { checkForUpdate } from "../../services/version.js";
+import { createPoeCodeUpdatePlan, formatPoeCodeUpdateCommand } from "../../services/update.js";
 import { VersionExit } from "../exit-signals.js";
 
 export function registerVersionOption(
@@ -25,7 +26,7 @@ async function displayVersion(
   currentVersion: string,
   options: { dryRun: boolean }
 ): Promise<void> {
-  const { loggerFactory, httpClient } = container;
+  const { loggerFactory, httpClient, env } = container;
   const logger = loggerFactory.create({
     dryRun: options.dryRun,
     verbose: false,
@@ -53,6 +54,9 @@ async function displayVersion(
     logger.warn(
       `Update available: ${result.currentVersion} -> ${result.latestVersion}`
     );
-    logger.resolved("Update", `npm install -g poe-code@latest`);
+    logger.resolved(
+      "Update",
+      formatPoeCodeUpdateCommand(createPoeCodeUpdatePlan({ env: env.variables }))
+    );
   }
 }

@@ -18,10 +18,26 @@ interface NpmRegistryResponse {
   };
 }
 
+/**
+ * Local builds (0.0.0-dev and friends) have no meaningful relationship to the
+ * published versions, so comparing them only produces noise for contributors.
+ */
+export function isLocalBuildVersion(version: string): boolean {
+  const parsed = semver.parse(version);
+  if (!parsed) {
+    return true;
+  }
+  return parsed.prerelease.some((part) => String(part).startsWith("dev"));
+}
+
 export async function checkForUpdate(
   options: CheckForUpdateOptions
 ): Promise<VersionCheckResult | null> {
   const { currentVersion, httpClient } = options;
+
+  if (isLocalBuildVersion(currentVersion)) {
+    return null;
+  }
 
   try {
     const response = await httpClient("https://registry.npmjs.org/poe-code", {

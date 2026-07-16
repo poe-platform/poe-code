@@ -9,6 +9,7 @@ import {
   updatePoeCode,
   type PoeCodePackageManager
 } from "../../services/update.js";
+import { isLocalBuildVersion } from "../../services/version.js";
 
 interface UpdateCommandOptions {
   force?: boolean;
@@ -80,7 +81,11 @@ export async function executeUpdate(
     return;
   }
 
-  if (options.versionCheck !== false && result.version === null) {
+  if (
+    options.versionCheck !== false &&
+    result.version === null &&
+    !isLocalBuildVersion(currentVersion)
+  ) {
     resources.logger.warn("Could not check the npm registry; ran the installer anyway.");
   }
 

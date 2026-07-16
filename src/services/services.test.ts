@@ -1443,7 +1443,7 @@ describe("version service", () => {
       expect(result).toBeNull();
     });
 
-    it("handles dev version correctly", async () => {
+    it("skips the check for a local dev build instead of nagging about published releases", async () => {
       const httpClient = createMockHttpClient({
         ok: true,
         status: 200,
@@ -1455,11 +1455,7 @@ describe("version service", () => {
         httpClient
       });
 
-      expect(result).toEqual<VersionCheckResult>({
-        currentVersion: "0.0.0-dev",
-        latestVersion: "1.0.0",
-        updateAvailable: true
-      });
+      expect(result).toBeNull();
     });
   });
 });

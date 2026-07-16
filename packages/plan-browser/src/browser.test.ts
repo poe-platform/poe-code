@@ -166,17 +166,21 @@ describe("plan browser", () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     setStdinTTY(false);
 
-    await expect(
-      runPlanBrowser({
-        cwd,
-        homeDir,
-        configPath: resolveConfigPath(homeDir),
-        projectConfigPath: resolveProjectConfigPath(cwd),
-        fs,
-        variables: {},
-        runExplorerImpl
-      })
-    ).rejects.toThrow(/docs\/plans\/feature\.md[\s\S]*docs\/plans\/second\.md/);
+    // Plans are listed newest-first, so their relative order depends on mtime.
+    // Assert both candidates are listed without pinning the order.
+    const error = await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      runExplorerImpl
+    }).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.message).toContain("Plan browsing needs an interactive terminal");
+    expect(error.message).toContain("docs/plans/feature.md");
+    expect(error.message).toContain("docs/plans/second.md");
 
     expect(runExplorerImpl).not.toHaveBeenCalled();
     expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).not.toContain(

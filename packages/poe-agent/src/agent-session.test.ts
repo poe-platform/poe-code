@@ -600,6 +600,7 @@ describe("createAgentSession", () => {
     });
 
     await expect(session.sendMessage(prompt)).rejects.toThrow("Prompt must not be empty.");
+    await expect(session.sendMessage(prompt)).rejects.toMatchObject({ name: "UserError" });
     expect(acpMock).not.toHaveBeenCalled();
   });
 
@@ -860,7 +861,7 @@ describe("createAgentSession", () => {
     await createAgentSession({ model: "Claude-Sonnet-4.5" });
   });
 
-  it("throws clear error when model is missing", async () => {
+  it("rejects a missing model as a user error without naming the internal API", async () => {
     const { createAgentSession } = await import("./agent-session.js");
 
     await expect(
@@ -868,7 +869,10 @@ describe("createAgentSession", () => {
         apiKey: "provided-api-key",
         model: "   "
       })
-    ).rejects.toThrow("Missing model. Provide a non-empty model to createAgentSession.");
+    ).rejects.toMatchObject({
+      name: "UserError",
+      message: "Model must not be empty. Pass --model <id>."
+    });
   });
 
   it("surfaces ACP API-key resolution errors during sendMessage", async () => {

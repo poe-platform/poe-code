@@ -18,6 +18,7 @@
   "dependencies": {
     "@poe-code/agent-spawn": "*",
     "@poe-code/poe-acp-client": "*",
+    "@poe-code/user-error": "*",
     "auth-store": "*",
     "fast-glob": "^3.3.3",
     "openai": "^6.34.0",

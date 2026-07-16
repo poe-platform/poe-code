@@ -7,7 +7,7 @@ import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-
 import { createCliContainer } from "../container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import { registerUtilsCommand } from "./utils.js";
-import { SilentError } from "../errors.js";
+import { SilentError, ValidationError } from "../errors.js";
 import type { FileSystem } from "../utils/file-system.js";
 
 // ---------------------------------------------------------------------------
@@ -192,6 +192,114 @@ describe("agent command", () => {
       program.parseAsync(["node", "cli", "agent", "Say hello", ...flagArgs])
     ).rejects.toThrow(message);
     expect(createAgentSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("names an unknown model and points at the catalog command instead of sending it", async () => {
+    const logs: string[] = [];
+    const httpClient = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [
+          { id: "Claude-Sonnet-4.5", owned_by: "anthropic" },
+          { id: "GPT-5", owned_by: "openai" }
+        ]
+      }),
+      text: async () => ""
+    });
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      httpClient
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "agent",
+        "Say hello",
+        "--model",
+        "not-real",
+        "--api-key",
+        "test-api-key"
+      ])
+    ).rejects.toThrow('Unknown model "not-real"');
+
+    expect(createAgentSessionMock).not.toHaveBeenCalled();
+    const output = logs.join("\n");
+    expect(output).toContain('Unknown model "not-real"');
+    expect(output).toContain("poe-code models");
+  });
+
+  it("sends a model the catalog lists", async () => {
+    const httpClient = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: [{ id: "Claude-Sonnet-4.5", owned_by: "anthropic" }] }),
+      text: async () => ""
+    });
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      httpClient
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "agent",
+      "Say hello",
+      "--model",
+      "anthropic/Claude-Sonnet-4.5",
+      "--api-key",
+      "test-api-key"
+    ]);
+
+    expect(createAgentSessionMock).toHaveBeenCalledWith({
+      model: "anthropic/Claude-Sonnet-4.5",
+      apiKey: "test-api-key",
+      cwd
+    });
+  });
+
+  it("runs the prompt when the catalog cannot be read", async () => {
+    const httpClient = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+      text: async () => ""
+    });
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      httpClient
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "agent",
+      "Say hello",
+      "--model",
+      "not-real",
+      "--api-key",
+      "test-api-key"
+    ]);
+
+    expect(createAgentSessionMock).toHaveBeenCalledWith({
+      model: "not-real",
+      apiKey: "test-api-key",
+      cwd
+    });
   });
 
   it("warns and documents POE_API_KEY when --api-key is passed on the command line", async () => {
@@ -779,6 +887,25 @@ describe("config command", () => {
     await expect(
       program.parseAsync(["node", "cli", "utils", "config", "edit"])
     ).rejects.toThrow("Set $EDITOR to use this command");
+  });
+
+  it("reports the missing editor as a user error rather than a system failure", async () => {
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    const error = await program.parseAsync(["node", "cli", "utils", "config", "edit"]).then(
+      () => undefined,
+      (thrown: unknown) => thrown
+    );
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect((error as ValidationError).isUserError).toBe(true);
   });
 
   it("prints the project config path when a project config exists", async () => {

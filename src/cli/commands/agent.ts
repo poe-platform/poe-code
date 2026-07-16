@@ -5,9 +5,11 @@ import {
   sessionUpdateToEvents,
   type SessionUpdate
 } from "@poe-code/agent-spawn";
+import { POE_PROVIDER_ID } from "@poe-code/providers";
+import { isUserError } from "@poe-code/user-error";
 import type { CliContainer } from "../container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
-import { ReportedError, isSilentError } from "../errors.js";
+import { ReportedError, ValidationError, isSilentError } from "../errors.js";
 import { requireNonEmpty } from "../options.js";
 import {
   apiKeyFlagDescription,
@@ -19,6 +21,64 @@ import {
 interface AgentCommandOptions {
   model?: string;
   apiKey?: string;
+}
+
+/**
+ * Rejects a model id the Poe catalog does not list before the run reaches the
+ * API. An unknown id is a typo, and the upstream 404 names neither the id nor
+ * the command that lists the valid ones. Best effort: when the catalog cannot be
+ * read the run proceeds rather than blocking on an unrelated failure.
+ */
+async function assertModelIsInCatalog(
+  container: CliContainer,
+  model: string,
+  apiKey: string | undefined
+): Promise<void> {
+  let credential = apiKey;
+  if (credential === undefined) {
+    try {
+      credential =
+        (await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
+          envVars: container.env.variables,
+          readOnly: true
+        })) ?? undefined;
+    } catch {
+      return;
+    }
+  }
+
+  const ids = new Set<string>();
+  try {
+    const response = await container.httpClient(`${container.env.poeBaseUrl}/v1/models`, {
+      method: "GET",
+      headers: credential ? { Authorization: `Bearer ${credential}` } : {}
+    });
+    if (!response.ok) {
+      return;
+    }
+
+    const body = (await response.json()) as { data?: Array<{ id?: string; owned_by?: string }> };
+    for (const entry of body.data ?? []) {
+      if (typeof entry.id !== "string") {
+        continue;
+      }
+      const id = entry.id.toLowerCase();
+      ids.add(id);
+      if (typeof entry.owned_by === "string") {
+        ids.add(`${entry.owned_by.toLowerCase()}/${id}`);
+      }
+    }
+  } catch {
+    return;
+  }
+
+  if (ids.size === 0 || ids.has(model.toLowerCase())) {
+    return;
+  }
+
+  throw new ValidationError(
+    `Unknown model "${model}". Run "poe-code models" to list the available model ids.`
+  );
 }
 
 export function registerAgentCommand(program: Command, container: CliContainer): void {
@@ -54,9 +114,12 @@ export function registerAgentCommand(program: Command, container: CliContainer):
         | undefined;
 
       try {
+        const requestedModel = model ?? DEFAULT_FRONTIER_MODEL;
+        await assertModelIsInCatalog(container, requestedModel, apiKey);
+
         const { createAgentSession } = await import("@poe-code/poe-agent");
         session = await createAgentSession({
-          model: model ?? DEFAULT_FRONTIER_MODEL,
+          model: requestedModel,
           apiKey,
           cwd: container.env.cwd
         });
@@ -83,7 +146,10 @@ export function registerAgentCommand(program: Command, container: CliContainer):
         }
         // Render the failure before finalize() closes the panel, otherwise the
         // panel reads as a success and the error lands outside it.
-        const failure = error instanceof Error ? error : new Error(String(error));
+        const raw = error instanceof Error ? error : new Error(String(error));
+        // A user error carries its own guidance: rendering it as a validation
+        // failure keeps the stack trace and the log pointer out of the panel.
+        const failure = isUserError(raw) ? new ValidationError(raw.message) : raw;
         resources.logger.errorWithStack(failure);
         throw new ReportedError(failure.message);
       } finally {

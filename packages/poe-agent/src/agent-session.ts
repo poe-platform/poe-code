@@ -4,6 +4,7 @@ import type {
   ToolCall as AcpToolCall,
   ToolCallUpdate as AcpToolCallUpdate
 } from "@poe-code/agent-spawn";
+import { UserError } from "@poe-code/user-error";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -95,7 +96,7 @@ export async function createAgentSession(
 ): Promise<AgentSession> {
   const model = normalizeNonEmptyString(options.model);
   if (!model) {
-    throw new Error("Missing model. Provide a non-empty model to createAgentSession.");
+    throw new UserError("Model must not be empty. Pass --model <id>.");
   }
 
   if (options.plugins && options.pluginsConfig) {
@@ -188,7 +189,7 @@ async function adaptAcpToLegacySession(
       }
 
       if (!normalizeNonEmptyString(prompt)) {
-        throw new Error("Prompt must not be empty.");
+        throw new UserError("Prompt must not be empty.");
       }
 
       const onSessionUpdate = sendOptions.onSessionUpdate;

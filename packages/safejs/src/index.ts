@@ -58,6 +58,8 @@ export type {
 } from "./modules/agent.js";
 export { makeEnvModule } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";
+export { makeFsModule } from "./modules/fs.js";
+export type { FsImplementation, FsModule, FsModuleOptions } from "./modules/fs.js";
 export { makeGitModule } from "./modules/git.js";
 export { makeHarnessModule } from "./modules/harness.js";
 export { makeLogModule } from "./modules/log.js";

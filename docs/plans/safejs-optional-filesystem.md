@@ -65,10 +65,10 @@ tasks:
       implementation — tests must not touch the real disk. Cover the happy path of each
       operation and the errno path for a missing file.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-encodings-and-values
     title: Match node's encoding, Stats, and Dirent shapes inside the sandbox

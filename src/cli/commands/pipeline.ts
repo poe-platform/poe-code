@@ -883,7 +883,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       .option("--model <model>", "Model override passed to the agent")
       .option("--tui", "Show a live dashboard while the pipeline is running")
       .option("--no-tui", "Disable the live dashboard for this pipeline run")
-      .option("--archive", "Archive each plan after successful completion")
+      .option("--archive", "Archive each plan after successful completion (default)")
       .option("--no-archive", "Leave completed plans in place")
       .option("--task <id>", "Run only the specified task")
       .option("--plan <path>", "Path to the pipeline plan file")

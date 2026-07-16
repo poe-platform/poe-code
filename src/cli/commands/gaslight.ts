@@ -323,10 +323,13 @@ export function registerGaslightCommand(program: Command, container: CliContaine
   const gaslight = program
     .command("gaslight")
     .description("Run a plan through a resumable sequence of agent follow-ups.")
-    .argument("[plan-paths...]", "Markdown plans to implement sequentially")
+    .argument(
+      "[plan-paths...]",
+      "Markdown plans to run sequentially; each plan is sent with the configured prompt (default: Implement)"
+    )
     .option("--agent <agent>", "Agent to run")
     .option("--archive", "Archive each plan after all gaslight rounds succeed")
-    .option("--no-archive", "Leave plans in place after gaslight rounds succeed")
+    .option("--no-archive", "Leave plans in place after gaslight rounds succeed (default)")
     .option("--config <path>", "gaslight.yaml variant to use")
     .option("--model <model>", "Model to run")
     .option("--plans <paths...>", "Markdown plans to run sequentially")

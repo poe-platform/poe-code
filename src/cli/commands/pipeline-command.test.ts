@@ -270,6 +270,24 @@ describe("pipeline run command", () => {
     vi.useRealTimers();
   });
 
+  it("documents that plans are archived by default", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    const pipelineCommand = program.commands.find((cmd) => cmd.name() === "pipeline");
+    const runCommand = pipelineCommand?.commands.find((cmd) => cmd.name() === "run");
+    const help = (runCommand?.helpInformation() ?? "").replace(/\s+/g, " ");
+
+    expect(help).toContain("Archive each plan after successful completion (default)");
+    expect(help).toContain("--no-archive");
+  });
+
   it("calls the pipeline SDK with the CLI options", async () => {
     const fs = createMemFs();
     await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });

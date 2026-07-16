@@ -103,6 +103,20 @@ describe("gaslight command", () => {
     spawnPrettyMock.mockReset();
   });
 
+  it("documents the archive default and what the plan argument actually does", () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    const help = (
+      program.commands.find((command) => command.name() === "gaslight")?.helpInformation() ?? ""
+    ).replace(/\s+/g, " ");
+
+    expect(help).toContain("--no-archive");
+    expect(help).toContain("Leave plans in place after gaslight rounds succeed (default)");
+    expect(help).not.toContain("Markdown plans to implement sequentially");
+    expect(help).toContain("configured prompt (default: Implement)");
+  });
+
   it("does not prompt when plan, agent, and model are provided", async () => {
     const prompts = vi.fn();
     const program = createProgram();

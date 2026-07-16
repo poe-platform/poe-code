@@ -32,7 +32,7 @@ import {
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
-import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import { formatAgentCapabilityError, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
@@ -808,7 +808,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
         const support = resolveAgentSupport(agent);
         if (support.status !== "supported" || !support.id) {
-          throw new ValidationError(`Unsupported agent: ${agent}`);
+          throw new ValidationError(formatAgentCapabilityError({ agent, capability: "skill" }));
         }
 
         const scope = await resolvePlanScope(options, flags.assumeYes);

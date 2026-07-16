@@ -14,6 +14,7 @@ export const claudeCodeAgent: AgentDefinition = {
     }
   },
   configPath: "~/.claude.json",
+  capabilities: ["spawn", "configure", "install", "test", "skill", "mcp"],
   branding: {
     colors: {
       dark: "#C15F3C",

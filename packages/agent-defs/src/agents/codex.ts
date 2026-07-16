@@ -18,6 +18,7 @@ export const codexAgent: AgentDefinition = {
     ]
   },
   configPath: "~/.codex/config.toml",
+  capabilities: ["spawn", "configure", "install", "test", "skill", "mcp"],
   branding: {
     colors: {
       dark: "#D5D9DF",

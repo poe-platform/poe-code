@@ -11,6 +11,7 @@ export const claudeDesktopAgent: AgentDefinition = {
     linux: "~/.config/Claude/claude_desktop_config.json",
     win32: "~/AppData/Roaming/Claude/claude_desktop_config.json"
   },
+  capabilities: ["mcp"],
   branding: {
     colors: {
       dark: "#D97757",

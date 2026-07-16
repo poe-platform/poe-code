@@ -9,6 +9,7 @@ export const kimiAgent: AgentDefinition = {
   binaryName: "kimi",
   apiShapes: ["openai-chat-completions"],
   configPath: "~/.kimi/mcp.json",
+  capabilities: ["spawn", "configure", "install", "test", "mcp"],
   branding: {
     colors: {
       dark: "#7B68EE",

@@ -7,6 +7,7 @@ export const poeAgentAgent: AgentDefinition = {
   summary: "Run one-shot prompts with the built-in Poe agent runtime.",
   apiShapes: ["openai-responses", "openai-chat-completions"],
   configPath: "~/.poe-code/config.json",
+  capabilities: ["configure"],
   branding: {
     colors: {
       dark: "#A465F7",

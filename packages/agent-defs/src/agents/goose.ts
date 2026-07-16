@@ -9,6 +9,7 @@ export const gooseAgent: AgentDefinition = {
   apiShapes: ["openai-chat-completions"],
   otelCapture: {},
   configPath: "~/.config/goose/config.yaml",
+  capabilities: ["spawn", "configure", "install", "test", "skill", "mcp"],
   branding: {
     colors: {
       dark: "#FF6B35",

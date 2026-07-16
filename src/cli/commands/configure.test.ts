@@ -219,16 +219,14 @@ describe("configure provider resolution", () => {
     fs = createHomeFs(homeDir);
   });
 
-  it("rejects Pi because it is not a configure service", async () => {
+  it("rejects Pi as spawn-only rather than unknown", async () => {
     const container = createContainer(fs);
 
-    await expect(
-      executeConfigure(createTestProgram(), container, "pi", {})
-    ).rejects.toThrow('Unknown agent "pi".');
-
-    await expect(
-      executeUnconfigure(createTestProgram(), container, "pi", {})
-    ).rejects.toThrow('Unknown agent "pi".');
+    for (const run of [executeConfigure, executeUnconfigure]) {
+      await expect(run(createTestProgram(), container, "pi", {})).rejects.toThrow(
+        'Agent "pi" does not support configure. pi supports: spawn.'
+      );
+    }
   });
 
   it("does not offer Pi in configure, install, or test selection", async () => {

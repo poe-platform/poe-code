@@ -487,11 +487,11 @@ describe("spawnCore", () => {
     }
   }
 
-  it("throws error for unknown service", async () => {
+  it("throws error for unknown agent", async () => {
     const { container } = createContainerWithDependencies({ fs });
 
     await expect(spawnCore(container, "unknown-service", { prompt: "test" })).rejects.toThrow(
-      'Unknown service "unknown-service".'
+      /^Unknown agent "unknown-service"\. Agents supporting spawn: /
     );
   });
 

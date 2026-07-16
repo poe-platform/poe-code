@@ -7,6 +7,7 @@ export const piAgent: AgentDefinition = {
   label: "Pi",
   summary: "Minimal AI coding agent for the terminal.",
   binaryName: "pi",
+  capabilities: ["spawn"],
   branding: {
     colors: {
       dark: "#F2F2F2",

@@ -1,4 +1,9 @@
-export type { AgentDefinition, ApiShapeId, OtelCaptureDefinition } from "./types.js";
+export type {
+  AgentCapability,
+  AgentDefinition,
+  ApiShapeId,
+  OtelCaptureDefinition
+} from "./types.js";
 export type { AgentSpecifier } from "./specifier.js";
 export {
   claudeCodeAgent,
@@ -13,4 +18,9 @@ export {
   poeAgentAgent
 } from "./agents/index.js";
 export { allAgents, resolveAgentId } from "./registry.js";
+export {
+  agentSupportsCapability,
+  formatAgentCapabilityError,
+  listAgentsWithCapability
+} from "./capabilities.js";
 export { parseAgentSpecifier, formatAgentSpecifier, normalizeAgentId } from "./specifier.js";

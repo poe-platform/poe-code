@@ -44,7 +44,7 @@ export async function executeInstall(
   container: CliContainer,
   service: string
 ): Promise<void> {
-  const adapter = resolveServiceAdapter(container, service);
+  const adapter = resolveServiceAdapter(container, service, "install");
   const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(

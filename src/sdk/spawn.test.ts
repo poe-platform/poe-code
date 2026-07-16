@@ -2332,7 +2332,7 @@ describe("spawn.autonomous()", () => {
 
     const { result } = spawn("unknown", "test prompt");
 
-    await expect(result).rejects.toThrow('Unknown service "unknown".');
+    await expect(result).rejects.toThrow(/^Unknown agent "unknown"\. Agents supporting spawn: /);
     expect(process.env.POE_API_KEY).toBeUndefined();
   });
 

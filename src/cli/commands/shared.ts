@@ -24,9 +24,11 @@ import {
 } from "@poe-code/agent-spawn";
 import {
   allAgents,
+  formatAgentCapabilityError,
   formatAgentSpecifier,
   parseAgentSpecifier,
   resolveAgentId,
+  type AgentCapability,
   type AgentDefinition
 } from "@poe-code/agent-defs";
 import { knownConfigScopes, loadConfiguredServices } from "../../services/config.js";
@@ -512,10 +514,14 @@ export function listServiceNames(services: Array<{ name: string; aliases?: strin
   return names;
 }
 
-export function resolveServiceAdapter(container: CliContainer, service: string): ProviderService {
+export function resolveServiceAdapter(
+  container: CliContainer,
+  service: string,
+  capability: AgentCapability = "configure"
+): ProviderService {
   const adapter = container.registry.get(service);
   if (!adapter) {
-    throw new Error(`Unknown agent "${service}".`);
+    throw new ValidationError(formatAgentCapabilityError({ agent: service, capability }));
   }
   return adapter;
 }
@@ -564,7 +570,7 @@ export function resolveSpawnTarget(container: CliContainer, service: string): Sp
     };
   }
 
-  throw new Error(`Unknown agent "${service}".`);
+  throw new ValidationError(formatAgentCapabilityError({ agent: service, capability: "spawn" }));
 }
 
 export function listSpawnTargets(

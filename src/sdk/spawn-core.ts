@@ -1,7 +1,12 @@
 import chalk from "chalk";
-import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
+import {
+  formatAgentCapabilityError,
+  resolveAgentId,
+  parseAgentSpecifier
+} from "@poe-code/agent-defs";
 import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../cli/container.js";
+import { ValidationError } from "../cli/errors.js";
 import type { SpawnResult } from "./types.js";
 import {
   buildProviderContext,
@@ -58,7 +63,7 @@ export async function spawnCore(
 ): Promise<SpawnResult> {
   const adapter = container.registry.get(service);
   if (!adapter) {
-    throw new Error(`Unknown service "${service}".`);
+    throw new ValidationError(formatAgentCapabilityError({ agent: service, capability: "spawn" }));
   }
 
   const model = await resolveConfiguredModel(container, service, options.model, {

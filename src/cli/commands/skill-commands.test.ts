@@ -84,8 +84,8 @@ describe("skill unconfigure command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "skill", "unconfigure", "unknown"])
-    ).rejects.toEqual(new ValidationError("Unknown agent: unknown"));
-    expect(logs).not.toContain("Unknown agent: unknown");
+    ).rejects.toThrow(/^Unknown agent "unknown"\. Agents supporting skill: /);
+    expect(logs.join("\n")).not.toContain("Unknown agent");
   });
 
   it("rejects conflicting unconfigure scopes", async () => {
@@ -450,7 +450,7 @@ describe("skill configure command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "skill", "configure", "unknown", "--yes"])
-    ).rejects.toEqual(new ValidationError("Unknown agent: unknown"));
+    ).rejects.toThrow(/^Unknown agent "unknown"\. Agents supporting skill: /);
   });
 
   it("rejects conflicting configure scopes", async () => {
@@ -484,8 +484,8 @@ describe("skill configure command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "skill", "configure", "invalid-provider"])
-    ).rejects.toEqual(new ValidationError("Unknown agent: invalid-provider"));
-    expect(logs).not.toContain("Unknown agent: invalid-provider");
+    ).rejects.toThrow(/^Unknown agent "invalid-provider"\. Agents supporting skill: /);
+    expect(logs.join("\n")).not.toContain("Unknown agent");
   });
 
   it("configures skills for an agent and reports the target path", async () => {

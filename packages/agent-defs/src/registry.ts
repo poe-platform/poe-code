@@ -19,6 +19,9 @@ function freezeAgent(agent: AgentDefinition): AgentDefinition {
   if (agent.apiShapes !== undefined) {
     Object.freeze(agent.apiShapes);
   }
+  if (agent.capabilities !== undefined) {
+    Object.freeze(agent.capabilities);
+  }
   if (agent.otelCapture?.env !== undefined) {
     Object.freeze(agent.otelCapture.env);
   }

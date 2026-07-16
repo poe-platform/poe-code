@@ -13,6 +13,7 @@ export const openCodeAgent: AgentDefinition = {
     }
   },
   configPath: "~/.config/opencode/opencode.json",
+  capabilities: ["spawn", "configure", "install", "test", "skill", "mcp"],
   branding: {
     colors: {
       dark: "#4A4F55",

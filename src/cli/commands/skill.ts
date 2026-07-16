@@ -1,7 +1,11 @@
 import type { Command } from "commander";
 import * as path from "node:path";
 import { select, isCancel, cancel } from "toolcraft-design";
-import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import {
+  formatAgentCapabilityError,
+  listAgentsWithCapability,
+  parseAgentSpecifier
+} from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import {
   supportedAgents,
@@ -26,6 +30,11 @@ interface SkillCommandOptions {
 interface SkillInstallCommandOptions extends SkillCommandOptions {
   name: string;
   file: string;
+}
+
+/** Aliases included so the list matches what `configure --help` advertises. */
+function skillAgentHelpList(): string {
+  return listAgentsWithCapability("skill", { includeAliases: true }).join(" | ");
 }
 
 async function resolveSkillAgent(input: {
@@ -87,7 +96,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
   skill
     .command("install")
     .description("Install an arbitrary skill for an agent.")
-    .argument("[agent]", `Agent to install the skill for (${supportedAgents.join(" | ")})`)
+    .argument("[agent]", `Agent to install the skill for (${skillAgentHelpList()})`)
     .requiredOption("--name <name>", "Skill folder name to install")
     .requiredOption("--file <path>", "Path to a SKILL.md file to install")
     .option("-y, --yes", "Accept defaults, skip prompts")
@@ -116,11 +125,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       }
 
       const support = resolveAgentSupport(agent);
-      if (support.status === "unknown") {
-        throw new ValidationError(`Unknown agent: ${agent}`);
-      }
-      if (support.status === "unsupported") {
-        throw new ValidationError(`Skills not supported for ${support.id}.`);
+      if (support.status !== "supported") {
+        throw new ValidationError(formatAgentCapabilityError({ agent, capability: "skill" }));
       }
 
       let scope: SkillScope;
@@ -193,7 +199,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
   skill
     .command("configure")
     .description("Install skill directories for an agent.")
-    .argument("[agent]", `Agent to configure skills for (${supportedAgents.join(" | ")})`)
+    .argument("[agent]", `Agent to configure skills for (${skillAgentHelpList()})`)
     .option("-y, --yes", "Accept defaults, skip prompts")
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
@@ -216,11 +222,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       }
 
       const support = resolveAgentSupport(agent);
-      if (support.status === "unknown") {
-        throw new ValidationError(`Unknown agent: ${agent}`);
-      }
-      if (support.status === "unsupported") {
-        throw new ValidationError(`Skills not supported for ${support.id}.`);
+      if (support.status !== "supported") {
+        throw new ValidationError(formatAgentCapabilityError({ agent, capability: "skill" }));
       }
 
       const resolvedAgent = support.id ?? agent;
@@ -290,7 +293,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
   skill
     .command("unconfigure")
     .description("Remove skill directories for an agent.")
-    .argument("[agent]", `Agent to unconfigure skills for (${supportedAgents.join(" | ")})`)
+    .argument("[agent]", `Agent to unconfigure skills for (${skillAgentHelpList()})`)
     .option("--local", "Use local scope (in the current project)")
     .option("--global", "Use global scope (in the user home directory)")
     .option("--force", "Remove poe-code managed skills even if they were modified locally")
@@ -313,11 +316,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       }
 
       const support = resolveAgentSupport(agent);
-      if (support.status === "unknown") {
-        throw new ValidationError(`Unknown agent: ${agent}`);
-      }
-      if (support.status === "unsupported") {
-        throw new ValidationError(`Skills not supported for ${support.id}.`);
+      if (support.status !== "supported") {
+        throw new ValidationError(formatAgentCapabilityError({ agent, capability: "skill" }));
       }
 
       const resolvedAgent = support.id ?? agent;

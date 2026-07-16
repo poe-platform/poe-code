@@ -71,6 +71,10 @@ const UNSUPPORTED_PATH_MESSAGE = (operation: string, form: string, argument: str
 const FILTER_MESSAGE =
   "fs.cp cannot honour the 'filter' option inside SafeJS; a closure is dropped from the digest that identifies a host call across a snapshot, so a resumed run could reconcile against a copy that took a different set of files, and under a root it would read the rewritten host paths rather than the ones the script wrote — walk the tree with readdir and copy the entries you want instead.";
 
+// dereference is cp's alone too, and unlike filter it is refused only under a root.
+const DEREFERENCE_MESSAGE =
+  "fs.cp cannot honour the 'dereference' option inside SafeJS; a root canonicalizes cp's src and dest but never the paths nested inside the tree, so node would copy an escaping link's target inside root where the script could read it — copy without dereference and a nested link stays a link the root still refuses to read through.";
+
 function createFs(
   files: Record<string, string> = {},
   root?: string,
@@ -3217,6 +3221,18 @@ describe("makeFsModule", () => {
       expect(await fs.readFile("/outside/secret.txt", "utf8")).toBe("secret");
     });
 
+    // cp's dereference is refused under a root because it copies a nested escaping link's
+    // target inside it. With no root there is no boundary to cross, so the option reaches
+    // the implementation as node declares it rather than being refused everywhere for a
+    // reason that only holds under a root.
+    it("honours cp's dereference option when root is omitted", async () => {
+      const { fs } = createFs(TREE);
+
+      await fs.cp("/repo/sub", "/repo/copy", { recursive: true, dereference: true });
+
+      expect(await fs.readFile("/repo/copy/nested.txt", "utf8")).toBe("nested");
+    });
+
     it("rejects a root that is not a non-empty string", () => {
       expect(() => createFs(TREE, "")).toThrow("fs module root must be a non-empty string.");
     });
@@ -3532,6 +3548,37 @@ describe("makeFsModule", () => {
         });
         expect(volume.readFileSync("/outside/secret.txt", "utf8")).toBe("secret");
         expect(volume.existsSync("/outside/planted.txt")).toBe(false);
+      });
+
+      // cp is the one operation that reads a whole tree in a single call, so the two paths
+      // the root check canonicalizes are not the only ones it touches: a link nested inside
+      // the tree is never checked. With dereference, node copies what that link points at
+      // rather than the link, which lands the target's contents inside root under a name the
+      // root check then reads as contained — the exact read the denial above refuses.
+      // Recorded from real node v22.22.2 on darwin, where cp('/repo/tree', '/repo/copy',
+      // { recursive: true, dereference: true }) over a nested '/repo/tree/leak' ->
+      // '/outside/secret.txt' leaves '/repo/copy/leak' holding 'secret', readable through
+      // the module. A nested link to a directory copies the whole outside tree in.
+      //
+      // memfs cannot show that escape: it is the option that is refused, whatever the
+      // filesystem underneath would have done with it, because production runs on node's.
+      it("refuses cp's dereference option, which would copy an escaping link's target inside root", async () => {
+        const { fs, volume } = createEscapingFs();
+
+        await expect(
+          fs.cp("/repo/sub", "/repo/copy", { recursive: true, dereference: true })
+        ).rejects.toThrow(DEREFERENCE_MESSAGE);
+        expect(volume.existsSync("/repo/copy")).toBe(false);
+      });
+
+      // The refusal is the root's rather than the option's: a copy that keeps a nested link
+      // a link plants nothing readable, so cp stays usable for the tree it was pointed at.
+      it("copies a tree under a root when dereference is off", async () => {
+        const { fs } = createEscapingFs();
+
+        await fs.cp("/repo/sub", "/repo/copy", { recursive: true, dereference: false });
+
+        expect(await fs.readFile("/repo/copy/nested.txt", "utf8")).toBe("nested");
       });
     });
 

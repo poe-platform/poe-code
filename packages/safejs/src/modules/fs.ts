@@ -76,6 +76,19 @@ const REFUSED_OPTION_REASONS = {
 const UNKNOWN_OPTION_REASON =
   "node declares no such option for it, and an unrecognised option is refused rather than silently ignored";
 
+// Refused by the root rather than by the module, so it is kept apart from the refusals
+// above: with no root there is no boundary to cross and node's own option is honoured.
+//
+// cp is the one operation that reads a whole tree in a single call, which makes it the one
+// whose src and dest are not the only paths it touches. Those two are canonicalized and
+// proven inside root; a symlink nested inside the tree is never seen. With dereference node
+// copies what such a link points at rather than the link, landing content from outside root
+// inside it under a name every later check reads as contained — so the option would hand a
+// script the reads the root exists to refuse. Without dereference the link is copied as a
+// link, which stays unreadable, so only this option is refused.
+const ROOT_REFUSED_DEREFERENCE_REASON =
+  "a root canonicalizes cp's src and dest but never the paths nested inside the tree, so node would copy an escaping link's target inside root where the script could read it — copy without dereference and a nested link stays a link the root still refuses to read through";
+
 type FsOptionSurface = {
   // Which argument node reads the options bag from.
   readonly argument: number;
@@ -434,11 +447,29 @@ function makeRootedFs(fs: FsImplementation, root: string): FsImplementation {
   const rooted: Record<string, FsHostOperation> = {};
 
   for (const name of Object.keys(FS_SYSCALLS) as FsOperationName[]) {
-    rooted[name] = async (...args: readonly unknown[]) =>
-      invoke(fs, name, await resolvePathArguments(fs, root, name, args));
+    rooted[name] = async (...args: readonly unknown[]) => {
+      assertRootCanConfineOptions(name, args);
+
+      return invoke(fs, name, await resolvePathArguments(fs, root, name, args));
+    };
   }
 
   return rooted as unknown as FsImplementation;
+}
+
+// Refuses the one option a root cannot confine, before any path is resolved so a refused
+// call writes nothing. node reads dereference off its own defaults with a spread and
+// validates it as a boolean, so only `true` asks for the copy that escapes.
+function assertRootCanConfineOptions(name: FsOperationName, args: readonly unknown[]): void {
+  if (name !== "cp") {
+    return;
+  }
+
+  const options = args[FS_OPTION_SURFACE.cp.argument];
+
+  if (isObjectLike(options) && (options as { dereference?: unknown }).dereference === true) {
+    throw createUnsupportedOptionError("cp", "dereference", ROOT_REFUSED_DEREFERENCE_REASON);
+  }
 }
 
 async function resolvePathArguments(

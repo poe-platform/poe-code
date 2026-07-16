@@ -425,6 +425,36 @@ tasks:
       resume machinery. That premise is asserted directly against `digestHostCallArguments` rather
       than left as prose.
 
+      `dereference` is refused too, but by the *root* rather than by the module, and adding `cp` is
+      what opened the hole it closes. Every other operation is confined because the root
+      canonicalizes its path arguments; `cp` is the only one that reads a whole tree in a single
+      call, so its `src` and `dest` are not the only paths it touches. A symlink nested inside the
+      tree is never canonicalized, and `dereference: true` copies what it points at rather than the
+      link — landing content from outside the root *inside* it, under a name every later check reads
+      as contained. Confirmed against real node v22.22.2 before the fix: with the root guard active,
+      reading a nested escaping link directly rejects `EACCES` while
+      `cp(tree, copy, { recursive: true, dereference: true })` resolves and the copy reads back the
+      outside file's contents; a nested link to an outside *directory* pulls the whole tree in.
+      Refused in `makeRootedFs` rather than in `FS_OPTION_SURFACE.refused`, because with no root
+      there is no boundary to cross and node's option is honoured as declared — the option stays
+      classified as `honoured`, which keeps the typings audit exact. Walking the tree to validate
+      each entry was rejected as the alternative: it re-implements node's cp and is racy (a link can
+      be swapped mid-copy), so the refusal fails closed and names the remedy. The narrower vectors
+      were probed and are *not* holes: `verbatimSymlinks: true` keeps the link a link (read still
+      denied), a top-level escaping `src` is already canonicalized and denied, and the write
+      direction is safe because node's cp unlinks a destination symlink rather than writing through
+      it. Cost: `dereference: true` under a root is refused even when every link in the tree stays
+      inside it.
+
+      Two probes that looked like bugs and are node's own behavior, recorded so they are not
+      re-litigated: `cp` with `mode: COPYFILE_EXCL` onto an existing destination *resolves*, because
+      cp's default `force: true` unlinks the destination before `mode` is ever consulted (`EXCL` is
+      unreachable through cp unless `force: false`, which errors for its own reason); and
+      `fs.constants` exposes `COPYFILE_EXCL` alone, so `cp({ mode: fs.constants.COPYFILE_FICLONE })`
+      reads `undefined` and node's `getValidMode` defaults it to a plain copy. The latter is a
+      pre-existing curation choice, not `cp`'s to change: it is inert for `FICLONE` (a hint that
+      falls back to a copy anyway) and only observable for `FICLONE_FORCE`.
+
       19 cases; memfs grounds 8 and is a reference gap for 11. Every recorded literal was replayed
       against real node v22.22.2 on darwin and matched, including the three most easily
       mis-recorded: darwin's `copyfile` refusing a directory source with `ENOTSUP` (-45) whose

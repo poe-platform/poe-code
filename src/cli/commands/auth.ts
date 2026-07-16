@@ -44,13 +44,8 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
       await executeApiKey(program, container, options);
     });
 
-  auth
-    .command("whoami")
-    .description("Print Poe account identity as JSON (uses POE_API_KEY if set).")
-    .option("--json", "Accepted for consistency with other commands; whoami always prints JSON.")
-    .action(async () => {
-      await executeWhoami(program, container);
-    });
+  registerWhoamiCommand(auth, program, container);
+  registerWhoamiCommand(program, program, container);
 
   auth
     .command("login")
@@ -67,6 +62,17 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
     )
     .action(async () => {
       await executeLogout(program, container);
+    });
+}
+
+/** Declared once for both `poe-code whoami` and `poe-code auth whoami`, which must not drift. */
+function registerWhoamiCommand(parent: Command, program: Command, container: CliContainer): void {
+  parent
+    .command("whoami")
+    .description("Print Poe account identity as JSON (uses POE_API_KEY if set).")
+    .option("--json", "Accepted for consistency with other commands; whoami always prints JSON.")
+    .action(async () => {
+      await executeWhoami(program, container);
     });
 }
 

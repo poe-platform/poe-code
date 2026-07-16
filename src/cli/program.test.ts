@@ -50,6 +50,63 @@ describe("createProgram", () => {
     expect(loginCommand).toBeDefined();
   });
 
+  it("prints root help for the `help` command", async () => {
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      writes.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write);
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "help"]);
+
+    const output = stripVTControlCharacters(writes.join(""));
+    expect(output).toContain("Configure coding agents to use the Poe API.");
+    expect(output).toContain("configure");
+  });
+
+  it("prints command help for `help <command>`", async () => {
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      writes.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write);
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "help", "maestro", "tui"]);
+
+    const output = stripVTControlCharacters(writes.join(""));
+    expect(output).toContain("Poe - maestro tui");
+    expect(output).toContain("--workflow");
+  });
+
+  it("reports command not found for `help <unknown>`", async () => {
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    await expect(program.parseAsync(["node", "cli", "help", "bogus"])).rejects.toThrow();
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+  });
+
   it("registers configure command", () => {
     const fs = createMemFs(homeDir);
     const program = createProgram({
@@ -120,6 +177,23 @@ describe("createProgram", () => {
     const missing = visibleNames.filter((name) => !help.includes(name));
     expect(missing).toEqual([]);
   });
+
+  it.each(["help", "whoami", "version", "dashboard"])(
+    "lists the conventional %s command in root help",
+    (name) => {
+      const program = createProgram({
+        fs: createMemFs(homeDir),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir },
+        logger: () => {},
+        exitOverride: true,
+        suppressCommanderOutput: true
+      });
+
+      expect(program.commands.some((command) => command.name() === name)).toBe(true);
+      expect(stripVTControlCharacters(program.helpInformation())).toContain(name);
+    }
+  );
 
   it("groups less-common commands under an Advanced heading in root help", () => {
     const fs = createMemFs(homeDir);

@@ -32,7 +32,7 @@ import { registerUpdateCommand } from "./commands/update.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerSkillCommand } from "./commands/skill.js";
-import { registerVersionOption } from "./commands/version.js";
+import { registerVersionCommand } from "./commands/version.js";
 import { registerUsageCommand } from "./commands/usage.js";
 import { registerModelsCommand } from "./commands/models.js";
 import { registerPipelineCommand } from "./commands/pipeline.js";
@@ -102,7 +102,11 @@ const ROOT_HELP_PRIMARY_COMMANDS: readonly string[] = [
   "harness",
   "experiment",
   "ralph",
-  "usage"
+  "usage",
+  "dashboard",
+  "whoami",
+  "version",
+  "help"
 ];
 
 function splitUsageParts(usage: string): string[] {
@@ -513,7 +517,7 @@ function assertPathIsNotOptionName(path: string, command: Command): void {
   }
 }
 
-function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
+function assertNoUnsupportedOptionsForMaestroTui(command: Command, commandPath: string): void {
   const unsupportedOptionNames = [
     "maxConcurrent",
     "pollIntervalMs",
@@ -524,10 +528,34 @@ function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
     "logLevel"
   ];
   if (unsupportedOptionNames.some((name) => hasCliOptionSource(command, name))) {
-    throw new ValidationError(
-      "`poe-code maestro tui` only accepts --config, --workflow, or --name."
-    );
+    throw new ValidationError(`\`${commandPath}\` only accepts --config, --workflow, or --name.`);
   }
+}
+
+/** Shared by `maestro tui` and its conventional root alias `dashboard`. */
+function registerMaestroTuiCommand(
+  parent: Command,
+  options: { name: string; description: string }
+): void {
+  parent
+    .command(options.name)
+    .description(options.description)
+    .option("--config <path>", "Path to WORKFLOW.md")
+    .option("--workflow <path>", "Alias for --config")
+    .option("--name <id>", "Named workflow id")
+    .action(
+      async (
+        tuiOptions: { config?: string; workflow?: string; name?: string },
+        command: Command
+      ) => {
+        assertNoUnsupportedOptionsForMaestroTui(command, formatCanonicalCommandPath(command));
+        const workflowPath = readCommandTreeOption<string>(command, "config") ?? tuiOptions.workflow;
+        await runMaestroTui({
+          ...(workflowPath === undefined ? {} : { workflowPath }),
+          ...(tuiOptions.name === undefined ? {} : { name: tuiOptions.name })
+        });
+      }
+    );
 }
 
 function writeMaestroEventNdjson(event: MaestroEvent): void {
@@ -596,7 +624,7 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
 
   maestro.hook("preSubcommand", (command, subCommand) => {
     if (subCommand.name() === "tui") {
-      assertNoUnsupportedOptionsForMaestroTui(command);
+      assertNoUnsupportedOptionsForMaestroTui(command, "poe-code maestro tui");
     }
   });
 
@@ -674,22 +702,10 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
       });
     });
 
-  maestro
-    .command("tui")
-    .description("Open the Maestro interactive task explorer.")
-    .option("--config <path>", "Path to WORKFLOW.md")
-    .option("--workflow <path>", "Alias for --config")
-    .option("--name <id>", "Named workflow id")
-    .action(
-      async (options: { config?: string; workflow?: string; name?: string }, command: Command) => {
-        assertNoUnsupportedOptionsForMaestroTui(command);
-        const workflowPath = readCommandTreeOption<string>(command, "config") ?? options.workflow;
-        await runMaestroTui({
-          ...(workflowPath === undefined ? {} : { workflowPath }),
-          ...(options.name === undefined ? {} : { name: options.name })
-        });
-      }
-    );
+  registerMaestroTuiCommand(maestro, {
+    name: "tui",
+    description: "Open the Maestro interactive task explorer."
+  });
 }
 
 function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): string[] {
@@ -879,6 +895,33 @@ function commandCandidates(parent: Command): string[] {
   return parent.commands.flatMap((command) => [command.name(), ...command.aliases()]);
 }
 
+// The root action handler suppresses commander's implicit help command, so `poe-code help`
+// needs an explicit registration to answer the conventional invocation.
+function registerHelpCommand(program: Command, container: CliContainer): void {
+  program
+    .command("help")
+    .description("Display help for a command.")
+    .argument("[command...]", "Command path to describe, for example `maestro tui`.")
+    .action((path: string[]) => {
+      let target = program;
+      for (const name of path) {
+        const child = findCommand(target, name);
+        if (child === undefined) {
+          throwCommandNotFound({
+            container,
+            scope: "cli",
+            unknownCommand: name,
+            helpArgs: [...path.slice(0, path.indexOf(name)), "--help"],
+            candidates: commandCandidates(target),
+            moduleUrl: import.meta.url
+          });
+        }
+        target = child;
+      }
+      target.outputHelp();
+    });
+}
+
 function bootstrapProgram(container: CliContainer): Command {
   const program = new Command();
   const executionContext = detectExecutionContext({
@@ -915,7 +958,8 @@ function bootstrapProgram(container: CliContainer): Command {
       }
     });
 
-  registerVersionOption(program, container, packageJson.version);
+  registerVersionCommand(program, container, packageJson.version);
+  registerHelpCommand(program, container);
   registerInstallCommand(program, container);
   registerUpdateCommand(program, container, packageJson.version);
   registerConfigureCommand(program, container);
@@ -934,6 +978,10 @@ function bootstrapProgram(container: CliContainer): Command {
   registerSkillCommand(program, container);
   registerPipelineCommand(program, container);
   registerMaestroCommand(program, container);
+  registerMaestroTuiCommand(program, {
+    name: "dashboard",
+    description: "Open the Maestro interactive task explorer."
+  });
   registerPlanCommand(program, container);
   registerTracesCommand(program, container);
   registerRalphCommand(program, container);

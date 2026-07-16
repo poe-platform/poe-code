@@ -812,4 +812,69 @@ describe("auth command", () => {
       program.parseAsync(["node", "cli", "auth", "whoami"])
     ).rejects.toBeInstanceOf(ApiError);
   });
+
+  it("registers whoami at the root next to login and logout", () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const whoami = program.commands.find((command) => command.name() === "whoami");
+
+    expect(whoami?.description()).toBe(
+      "Print Poe account identity as JSON (uses POE_API_KEY if set)."
+    );
+  });
+
+  it("prints whoami identity as JSON from the root command", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ user_id: 42, handle: "kamil" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "whoami"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/whoami"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer stored-key" })
+      })
+    );
+    expect(JSON.parse(stdoutSpy.mock.calls.map((call) => call[0]).join(""))).toMatchObject({
+      user_id: 42,
+      handle: "kamil"
+    });
+    stdoutSpy.mockRestore();
+  });
+
+  it("honours --dry-run on root whoami", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "env-key" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "whoami"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would fetch identity from Poe API.");
+  });
 });

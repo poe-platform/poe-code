@@ -5,12 +5,21 @@ import { checkForUpdate } from "../../services/version.js";
 import { createPoeCodeUpdatePlan, formatPoeCodeUpdateCommand } from "../../services/update.js";
 import { VersionExit } from "../exit-signals.js";
 
-export function registerVersionOption(
+export function registerVersionCommand(
   program: Command,
   container: CliContainer,
   currentVersion: string
 ): void {
   program.option("-V, --version", "Output the version number.");
+
+  program
+    .command("version")
+    .description("Output the version number.")
+    .action(async (_options: unknown, command: Command) => {
+      await displayVersion(container, currentVersion, {
+        dryRun: Boolean(command.optsWithGlobals().dryRun)
+      });
+    });
 
   program.hook("preAction", async (thisCommand) => {
     const opts = thisCommand.optsWithGlobals();

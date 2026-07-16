@@ -378,6 +378,46 @@ describe("maestro command", () => {
     expect(runMaestroMock).not.toHaveBeenCalled();
   });
 
+  it("opens the Maestro TUI from the root dashboard command", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync(["node", "cli", "dashboard", "--workflow", "custom/WORKFLOW.md"]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({ workflowPath: "custom/WORKFLOW.md" });
+    expect(runMaestroMock).not.toHaveBeenCalled();
+  });
+
+  it("passes --name and --config through the root dashboard command", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "dashboard",
+      "--config",
+      "other/WORKFLOW.md",
+      "--name",
+      "bugs"
+    ]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({
+      workflowPath: "other/WORKFLOW.md",
+      name: "bugs"
+    });
+  });
+
+  it.each(["--dry-run", "--yes", "--verbose"])(
+    "names the dashboard command, not maestro tui, when rejecting global %s",
+    async (flag) => {
+      const program = createTestProgram();
+
+      await expect(program.parseAsync(["node", "cli", flag, "dashboard"])).rejects.toThrow(
+        "`poe-code dashboard` only accepts --config, --workflow, or --name."
+      );
+      expect(runMaestroTuiMock).not.toHaveBeenCalled();
+    }
+  );
+
   it("rejects unsupported Maestro TUI flags", async () => {
     const program = createTestProgram();
 

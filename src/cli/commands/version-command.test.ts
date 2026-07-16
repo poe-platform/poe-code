@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
 import { createCliContainer } from "../container.js";
-import { registerVersionOption } from "./version.js";
+import { registerVersionCommand } from "./version.js";
 import { VersionExit } from "../exit-signals.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type { HttpClient } from "../http.js";
@@ -29,6 +29,7 @@ async function runVersion(options: {
   currentVersion: string;
   httpClient: HttpClient;
   variables?: Record<string, string | undefined>;
+  args?: string[];
 }): Promise<string[]> {
   const logs: string[] = [];
   const container = createCliContainer({
@@ -42,14 +43,17 @@ async function runVersion(options: {
   const program = new Command();
   program.exitOverride();
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
+  program.option("--dry-run", "Simulate commands without writing changes.");
   program.action(() => {});
-  registerVersionOption(program, container, options.currentVersion);
+  registerVersionCommand(program, container, options.currentVersion);
 
-  await program.parseAsync(["node", "cli", "--version"]).catch((error: unknown) => {
-    if (!(error instanceof VersionExit)) {
-      throw error;
-    }
-  });
+  await program
+    .parseAsync(["node", "cli", ...(options.args ?? ["--version"])])
+    .catch((error: unknown) => {
+      if (!(error instanceof VersionExit)) {
+        throw error;
+      }
+    });
 
   return logs;
 }
@@ -74,5 +78,31 @@ describe("version option", () => {
 
     expect(logs.join("\n")).toContain("Update available: 3.9.0 -> 4.0.0");
     expect(logs.join("\n")).toContain("pnpm add -g poe-code@latest");
+  });
+});
+
+describe("version command", () => {
+  it("reports the version for the `version` subcommand, like -V does", async () => {
+    const logs = await runVersion({
+      currentVersion: "3.9.0",
+      httpClient: createHttpClient("4.0.0"),
+      args: ["version"]
+    });
+
+    expect(logs.join("\n")).toContain("3.9.0");
+    expect(logs.join("\n")).toContain("Update available: 3.9.0 -> 4.0.0");
+  });
+
+  it("skips the update check for the `version` subcommand under --dry-run", async () => {
+    const httpClient = createHttpClient("4.0.0");
+
+    const logs = await runVersion({
+      currentVersion: "3.9.0",
+      httpClient,
+      args: ["--dry-run", "version"]
+    });
+
+    expect(logs.join("\n")).toContain("3.9.0");
+    expect(httpClient).not.toHaveBeenCalled();
   });
 });

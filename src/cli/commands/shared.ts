@@ -79,6 +79,10 @@ export async function buildActiveProvider(input: {
 
   const providerBaseUrlEnv = resolveProviderBaseUrlEnv(input.container, input.provider);
   const environmentBaseUrl = resolveBaseUrlRoot(providerBaseUrlEnv, input.provider.baseUrlEnvPath);
+  const explicitBaseUrlRoot = resolveBaseUrlRoot(
+    resolveNonEmpty(input.explicitBaseUrl),
+    input.provider.baseUrlEnvPath
+  );
 
   const configuredBaseUrl =
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
@@ -108,7 +112,13 @@ export async function buildActiveProvider(input: {
     );
   }
   assertHttpBaseUrl(input.provider.id, baseUrl);
+  const declaresAgentBaseUrl =
+    input.provider.agentBaseUrlPath !== undefined || input.provider.agentBaseUrl !== undefined;
   const agentBaseUrl =
+    resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
+    (declaresAgentBaseUrl
+      ? resolveShapeBaseUrl(explicitBaseUrlRoot, input.provider.agentBaseUrlPath)
+      : undefined) ??
     resolveShapeBaseUrl(environmentBaseUrl, input.provider.agentBaseUrlPath) ??
     input.provider.agentBaseUrl ??
     baseUrl;

@@ -78,7 +78,7 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .option("--provider <id>", "Provider to use for this agent")
     .option(
       "--shape-base-url <shape-id>=<url>",
-      "Base URL for one provider API shape",
+      "Override --base-url for a single provider API shape, e.g. --shape-base-url anthropic-messages=https://gateway.example/anthropic. Repeatable; passing an unknown shape id lists the shapes the provider exposes.",
       collectRepeatedOption
     )
     .option("--skip-if-configured", "Exit without writes when current config already matches")

@@ -60,7 +60,7 @@ export function registerProviderCommand(program: Command, container: CliContaine
     .option("--base-url <url>", "Provider gateway root URL")
     .option(
       "--shape-base-url <shape-id>=<url>",
-      "Base URL for one provider API shape",
+      "Override --base-url for a single provider API shape, e.g. --shape-base-url anthropic-messages=https://gateway.example/anthropic. Repeatable; passing an unknown shape id lists the shapes the provider exposes.",
       collectRepeatedOption
     )
     .action(async (id: string, options: ProviderLoginOptions) => {

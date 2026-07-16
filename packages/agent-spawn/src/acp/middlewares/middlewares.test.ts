@@ -552,6 +552,82 @@ describe("acp/middlewares/spawnLog", () => {
     expect(observed).toEqual(sourceEvents);
   });
 
+  it("reports an unwritable log directory instead of ignoring it", async () => {
+    const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "first" }];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+
+    vi.spyOn(fs, "mkdir").mockRejectedValue(new Error("EACCES: permission denied"));
+
+    const ctx = createContext({
+      logDir: "/no/perm/dir",
+      logFileName: "probe.jsonl",
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toEqual(sourceEvents);
+    expect(ctx.logError).toContain("/no/perm/dir/probe.jsonl");
+    expect(ctx.logError).toContain("EACCES: permission denied");
+    expect(ctx.logFile).toBeUndefined();
+  });
+
+  it("reports an append failure while keeping the partially written log path", async () => {
+    const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "first" }];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+
+    const ctx = createContext({
+      logDir: "/tmp/spawn-logs",
+      logFileName: "probe.jsonl",
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    await fs.mkdir("/tmp/spawn-logs", { recursive: true });
+    const handle = await fs.open("/tmp/spawn-logs/probe.jsonl", "a");
+    vi.spyOn(handle, "appendFile").mockRejectedValue(new Error("ENOSPC: no space left"));
+    vi.spyOn(fs, "open").mockResolvedValue(handle);
+
+    await collect(ctx.eventStream!);
+
+    expect(ctx.logError).toContain("ENOSPC: no space left");
+    expect(ctx.logFile).toBe("/tmp/spawn-logs/probe.jsonl");
+  });
+
+  it("does not report a log error when logging succeeds", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "ok" } as AcpEvent;
+      })();
+    };
+
+    const ctx = createContext({
+      logDir: "/tmp/spawn-logs",
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    await collect(ctx.eventStream!);
+
+    expect(ctx.logError).toBeUndefined();
+    expect(ctx.logFile).toBeDefined();
+  });
+
   it("rolls back a partial append before disabling event logging", async () => {
     const sourceEvents: AcpEvent[] = [
       { event: "agent_message", text: "first" },

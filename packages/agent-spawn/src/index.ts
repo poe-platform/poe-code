@@ -99,6 +99,7 @@ export { spawnStreaming } from "./acp/spawn.js";
 export type { SpawnAcpOptions, SpawnAcpResult } from "./acp/spawn-acp.js";
 export { spawnAcp } from "./acp/spawn-acp.js";
 export { readLines } from "./acp/line-reader.js";
+export { getDefaultSpawnLogDir } from "./acp/spawn-log-path.js";
 export { applyMiddlewares } from "./acp/middleware.js";
 export type {
   AcpMiddleware,

@@ -286,8 +286,10 @@ describe("spawn command", () => {
       runtimeConfigCwd: cwd
     });
 
+    // Agent text is prefixed with a neutral bullet, not a success glyph: this stream
+    // emits no terminal spawn_result, so the run's outcome is not known when it flushes.
     const plainChunks = chunks.map((chunk) => stripAnsi(chunk));
-    expect(plainChunks).toEqual(["  → exec: npm test\n", "  ✓ exec\n", "✓ agent: Hi\n"]);
+    expect(plainChunks).toEqual(["  → exec: npm test\n", "  ✓ exec\n", "· agent: Hi\n"]);
     expect(logs.length).toBeGreaterThan(0);
   });
 
@@ -352,6 +354,114 @@ describe("spawn command", () => {
 
     expect(stripAnsi(chunks.join(""))).toBe("");
     expect(logs.some((line) => line.includes("Final output"))).toBe(true);
+  });
+
+  it("prints the resolved spawn log path when logging is active", async () => {
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: emptyAsyncIterable(),
+      result: Promise.resolve({
+        stdout: "done\n",
+        stderr: "",
+        exitCode: 0,
+        logFile: "/tmp/spawn-logs/ux-probe.jsonl"
+      })
+    }));
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "codex",
+      "hello",
+      "--log-file-name",
+      "ux-probe.jsonl"
+    ]);
+
+    expect(stripAnsi(logs.join("\n"))).toContain("/tmp/spawn-logs/ux-probe.jsonl");
+  });
+
+  it("warns when the spawn log could not be written", async () => {
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: emptyAsyncIterable(),
+      result: Promise.resolve({
+        stdout: "done\n",
+        stderr: "",
+        exitCode: 0,
+        logError: "Spawn log could not be written to /no/perm/dir/x.jsonl: EACCES"
+      })
+    }));
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "codex",
+      "hello",
+      "--log-dir",
+      "/no/perm/dir"
+    ]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("Spawn log could not be written to /no/perm/dir/x.jsonl: EACCES");
+  });
+
+  it("warns that --log-content records prompts and tool content to disk", async () => {
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: emptyAsyncIterable(),
+      result: Promise.resolve({ stdout: "done\n", stderr: "", exitCode: 0 })
+    }));
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", "hello", "--log-content"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("--log-content");
+    expect(output.toLowerCase()).toContain("secret");
+  });
+
+  it("documents the sensitive-data risk of --log-content in help", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    const spawnCommand = program.commands.find((command) => command.name() === "spawn");
+    const help = stripAnsi(spawnCommand!.helpInformation());
+
+    expect(help.toLowerCase()).toContain("secret");
   });
 
   it("passes runtime flags to the spawn SDK", async () => {

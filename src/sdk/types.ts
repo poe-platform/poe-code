@@ -172,6 +172,8 @@ export interface SpawnResult {
   usage?: SpawnUsage;
   /** Path to the JSONL spawn log file (if logging was active) */
   logFile?: string;
+  /** Reason the JSONL spawn log could not be written (if logging failed) */
+  logError?: string;
   /** Detached runtime job details when detach mode is used */
   detached?: { jobId: string; envId: string };
   /** Captured session messages and tool calls (ACP streaming only) */

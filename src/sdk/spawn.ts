@@ -2,6 +2,8 @@ import * as nodeFs from "node:fs/promises";
 import os from "node:os";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
+import { ValidationError } from "../cli/errors.js";
+import { formatAgentCapabilityError } from "@poe-code/agent-defs";
 import { spawnAutonomous, type AutonomousSpawnOptions } from "./autonomous.js";
 import {
   getAcpSpawnConfig,
@@ -297,6 +299,7 @@ export function spawn(
           ...(threadId ? { threadId } : {}),
           ...(final.usage ? { usage: final.usage } : {}),
           ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
+          ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -369,6 +372,7 @@ export function spawn(
           ...(threadId ? { threadId } : {}),
           ...(usage ? { usage } : {}),
           ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
+          ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -406,7 +410,9 @@ export function spawn(
       resolveEventsOnce(emptyEvents);
 
       if (!registeredService) {
-        throw new Error(`Unknown service "${service}".`);
+        throw new ValidationError(
+          formatAgentCapabilityError({ agent: service, capability: "spawn" })
+        );
       }
 
       const model = await resolveModel();

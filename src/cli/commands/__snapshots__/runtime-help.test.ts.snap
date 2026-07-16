@@ -94,9 +94,11 @@ Options:
   --hooks-scope <scope>        Hook bridge scope (default: merged) (choices:
                                "project", "user", "merged")
   --log-dir <path>             Directory override for ACP JSONL spawn logs
+                               (default: ~/.poe-code/spawn-logs)
   --log-file-name <name>       Filename override for the spawn log
   --log-content                Include message and tool content in ACP JSONL
-                               spawn logs
+                               spawn logs (danger: writes prompts and tool
+                               arguments, which may contain secrets, to disk)
   --capture-otel               Capture native OpenTelemetry emitted by the
                                spawned agent
   --capture-otel-content       Include prompt and tool content in native
@@ -113,12 +115,14 @@ Options:
 `;
 
 exports[`runtime option help > snapshots superintendent help 1`] = `
-"Poe - poe-code superintendent run — Run the full superintendent loop.
+"Poe - superintendent run — Run the full superintendent loop.
 
 Usage: poe-code superintendent run [OPTIONS] [docs...]
 
-OPTIONS
-  [docs...]                 Paths to superintendent markdown documents to run sequentially
+Arguments:
+  [docs...]   Paths to superintendent markdown documents to run sequentially
+
+Options:
   --doc <value>             Path to the superintendent markdown document
   --agent <value>           Override the builder agent for this run. Precedence: --agent > plan
                             frontmatter builder.agent.
@@ -130,6 +134,6 @@ OPTIONS
   --tui                     Show a live dashboard while Superintendent is running
   --worktree                Run in a managed git worktree and reconcile successful output
 
-Options: -v, --verbose
+Global Options: -v, --verbose
 "
 `;

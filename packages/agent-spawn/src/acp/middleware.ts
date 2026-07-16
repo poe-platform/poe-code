@@ -33,6 +33,8 @@ export interface SpawnContext {
   cwd?: string;
   startedAt?: Date;
   logFile?: string;
+  /** Reason the spawn log could not be written, when logging failed. */
+  logError?: string;
   metadata?: Record<string, unknown>;
 }
 

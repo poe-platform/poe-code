@@ -75,12 +75,19 @@ function resolveLogFilePath(ctx: SpawnContext): string | undefined {
   return path.join(baseDir, fileName);
 }
 
+function describeLogFailure(filePath: string, error: unknown): string {
+  const reason = error instanceof Error ? error.message : String(error);
+  return `Spawn log could not be written to ${filePath}: ${reason}`;
+}
+
 class SpawnLogWriter {
   private fileHandle: FileHandle | undefined;
 
   private isDisabled = false;
 
   readonly filePath: string | undefined;
+
+  private readonly ctx: SpawnContext;
 
   private readonly logDirPath: string;
 
@@ -89,6 +96,7 @@ class SpawnLogWriter {
   private readonly includeContent: boolean;
 
   constructor(ctx: SpawnContext) {
+    this.ctx = ctx;
     this.filePath = resolveLogFilePath(ctx);
     this.logDirPath = this.filePath ? path.dirname(this.filePath) : "";
     this.usesDefaultLogDir = ctx.logPath === undefined && ctx.logDir === undefined;
@@ -114,8 +122,9 @@ class SpawnLogWriter {
       const eventForLog = prepareEventForLog(event, this.includeContent);
       previousSize = (await this.fileHandle.stat()).size;
       await this.fileHandle.appendFile(`${JSON.stringify(eventForLog)}\n`, "utf8");
-    } catch {
+    } catch (error) {
       this.isDisabled = true;
+      this.ctx.logError ??= describeLogFailure(this.filePath, error);
       if (this.fileHandle && previousSize !== undefined) {
         try {
           await this.fileHandle.truncate(previousSize);
@@ -155,8 +164,12 @@ class SpawnLogWriter {
         await mkdir(this.logDirPath, { recursive: true });
       }
       this.fileHandle = await open(filePath, "a");
-    } catch {
+    } catch (error) {
       this.isDisabled = true;
+      this.ctx.logError ??= describeLogFailure(filePath, error);
+      if (this.ctx.logFile === filePath) {
+        delete this.ctx.logFile;
+      }
     }
   }
 }

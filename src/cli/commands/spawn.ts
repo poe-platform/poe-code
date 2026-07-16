@@ -1,4 +1,5 @@
 import path from "node:path";
+import { homedir } from "node:os";
 import { randomUUID } from "node:crypto";
 import type { Command } from "commander";
 import { Option } from "commander";
@@ -6,6 +7,7 @@ import type { CliContainer } from "../container.js";
 import {
   renderAcpEvent,
   spawnInteractive,
+  getDefaultSpawnLogDir,
   getSpawnConfig,
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
@@ -133,9 +135,15 @@ export function registerSpawnCommand(
     .addOption(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
-    .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
+    .option(
+      "--log-dir <path>",
+      `Directory override for ACP JSONL spawn logs (default: ${getDefaultSpawnLogDir().replace(homedir(), "~")})`
+    )
     .option("--log-file-name <name>", "Filename override for the spawn log")
-    .option("--log-content", "Include message and tool content in ACP JSONL spawn logs")
+    .option(
+      "--log-content",
+      "Include message and tool content in ACP JSONL spawn logs (danger: writes prompts and tool arguments, which may contain secrets, to disk)"
+    )
     .option("--capture-otel", "Capture native OpenTelemetry emitted by the spawned agent")
     .option("--capture-otel-content", "Include prompt and tool content in native OpenTelemetry")
     .option(
@@ -383,6 +391,12 @@ export function registerSpawnCommand(
             );
           }
 
+          if (shouldEmitUiOutput && spawnOptions.logContent) {
+            resources.logger.warn(
+              "--log-content records prompts and tool content to the spawn log; they may contain secrets."
+            );
+          }
+
           const final = await traceSpawnRun(integrations, canonicalService, () =>
             spawnAutonomous(spawnSdk, {
               service: canonicalService,
@@ -428,6 +442,14 @@ export function registerSpawnCommand(
               ...(final.usage ? { usage: final.usage } : {}),
               protocolVersion: 1
             });
+          }
+
+          if (shouldEmitUiOutput) {
+            if (final.logError) {
+              resources.logger.warn(final.logError);
+            } else if (final.logFile) {
+              resources.logger.info(text.muted(`Log: ${final.logFile}`));
+            }
           }
 
           if (final.exitCode !== 0) {

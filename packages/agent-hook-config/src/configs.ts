@@ -27,6 +27,10 @@ export interface AgentHookConfig {
   /** Project-relative path, may be undefined for agents without project scope. */
   localHookPath?: string;
   format: HookFormat;
+  /** Hooks can be read out of this agent's config, making it usable as a transform source. */
+  transformReadable?: boolean;
+  /** Hooks can be written into this agent's config, making it usable as a transform target. */
+  transformWritable?: boolean;
   /** Events the agent honors. Anything outside this set is dropped at bridge time. */
   supportedEvents: readonly HookEvent[];
   /** Handler types the agent executes. Anything outside this set is dropped. */
@@ -51,6 +55,7 @@ const agentHookConfigs: Record<string, AgentHookConfig> = {
     globalHookPath: "~/.claude/settings.json",
     localHookPath: ".claude/settings.json",
     format: "claude-settings-json",
+    transformReadable: true,
     supportedEvents: [
       "SessionStart",
       "SessionEnd",
@@ -77,6 +82,7 @@ const agentHookConfigs: Record<string, AgentHookConfig> = {
     globalHookPath: "~/.codex/hooks.json",
     localHookPath: ".codex/hooks.json",
     format: "codex-hooks-json",
+    transformWritable: true,
     supportedEvents: [
       "SessionStart",
       "UserPromptSubmit",
@@ -120,6 +126,50 @@ export function resolveAgentSupport(
   }
 
   return { status: "supported", input, id: resolvedId, config: cloneAgentHookConfig(config) };
+}
+
+export interface TransformPair {
+  source: string;
+  target: string;
+}
+
+/**
+ * A transform can run when hooks can be read out of the source, written into
+ * the target, and the two speak different formats (same format is a symlink).
+ */
+export function canTransform(source: AgentHookConfig, target: AgentHookConfig): boolean {
+  return (
+    source.transformReadable === true &&
+    target.transformWritable === true &&
+    source.format !== target.format
+  );
+}
+
+/**
+ * Source→target pairs the transform strategy can actually bridge, derived from
+ * which agents expose readable and writable hook configs.
+ */
+export function supportedTransformPairs(
+  registry: Record<string, AgentHookConfig> = agentHookConfigs
+): TransformPair[] {
+  const entries = Object.entries(registry);
+  return entries.flatMap(([source, sourceConfig]) =>
+    entries
+      .filter(([, targetConfig]) => canTransform(sourceConfig, targetConfig))
+      .map(([target]) => ({ source, target }))
+  );
+}
+
+export function formatSupportedTransformPairs(): string {
+  return supportedTransformPairs()
+    .map((pair) => `${pair.source} -> ${pair.target}`)
+    .join(", ");
+}
+
+export function isTransformSupported(sourceInput: string, targetInput: string): boolean {
+  const source = resolveAgentSupport(sourceInput).config;
+  const target = resolveAgentSupport(targetInput).config;
+  return source !== undefined && target !== undefined && canTransform(source, target);
 }
 
 export function getAgentConfig(agentId: string): AgentHookConfig | undefined {

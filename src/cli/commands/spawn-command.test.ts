@@ -1298,6 +1298,33 @@ describe("spawn command", () => {
     });
   });
 
+  it("rejects an unsupported hook transform pair before spawning and names the supported pairs", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--hooks-from",
+        "codex",
+        "--hooks-strategy",
+        "transform",
+        "claude-code",
+        "List files"
+      ])
+    ).rejects.toThrow(/claude-code -> codex/);
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("passes --hooks-from through without CLI agent-id normalization", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

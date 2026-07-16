@@ -12,6 +12,9 @@ import { getAgentConfig, resolveHookPath, type AgentHookConfig } from "./configs
 import { hasOwnErrorCode } from "./error-codes.js";
 import { assertNoSymbolicLink } from "./path-safety.js";
 
+/** Marks the refusal to clobber a hook file poe-code did not generate. */
+export const userAuthoredHookFileCode = "POE_USER_AUTHORED_HOOK_FILE";
+
 export interface SymlinkResult {
   /** Where the symlink was placed. */
   symlinkPath: string;
@@ -164,7 +167,9 @@ export function symlinkHooks(
       unlinkSync(symlinkPath);
       replaced = "generated-file";
     } else {
-      throw new Error(`Refuse to replace user-authored hook file at ${symlinkPath}`);
+      throw Object.assign(new Error(`Refuse to replace user-authored hook file at ${symlinkPath}`), {
+        code: userAuthoredHookFileCode
+      });
     }
   } catch (error) {
     if (!hasOwnErrorCode(error, "ENOENT")) {

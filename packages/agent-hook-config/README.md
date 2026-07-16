@@ -9,6 +9,15 @@
 | claude-code | codex       | transform | event subset, command-only handlers, placeholder rewrite |
 | claude-code | claude-code | symlink   | identity (share between project and user)                |
 
+Transform pairs are derived from the registry: a source must set `transformReadable`, a target must set `transformWritable`, and the two formats must differ. `supportedTransformPairs()`, `formatSupportedTransformPairs()`, and `isTransformSupported(source, target)` expose that matrix so callers can reject unsupported combinations up front instead of failing mid-run.
+
+## Strategy Selection
+
+`bridgeHooks` accepts `strategy: "auto" | "symlink" | "transform"` (default `auto`).
+
+- `auto` picks `symlink` for matching formats and `transform` otherwise. When `symlink` would clobber a user-authored hook file, `auto` resolves to `skip`: the existing file is left untouched, the manifest reports `strategy: "skip"`, and the reason is returned in `warnings` rather than thrown.
+- `symlink` and `transform` are explicit requests and fail loudly when they cannot be honored.
+
 ## Transform Contract: `claude-code` → `codex`
 
 - Dropped events: `SessionEnd` and `StopFailure` because `codex` does not expose those lifecycle results; `Notification` because `codex` does not expose notification hooks; `PreCompact` and `PostCompact` because `codex` does not expose compaction hooks; `SubagentStart` and `SubagentStop` because `codex` does not expose subagent lifecycle hooks.
@@ -20,7 +29,7 @@
 
 - Used only when source and target share the registry `format`.
 - Replaces a stale symlink or a 100%-generated regular file.
-- Refuses to clobber a user-authored file at the symlink path.
+- Refuses to clobber a user-authored file at the symlink path; the error carries `code: "POE_USER_AUTHORED_HOOK_FILE"` so `auto` can skip instead of failing.
 
 ## Marker Convention
 

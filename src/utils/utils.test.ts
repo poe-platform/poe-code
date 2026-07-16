@@ -529,7 +529,8 @@ describe("createSpawnHealthCheck", () => {
     const check = createSpawnHealthCheck("codex", {
       model: "test-model",
       expectedOutput: "CODEX_OK",
-      hooks: { from: "claude-code", strategy: "transform", scope: "project" }
+      hooks: { from: "claude-code", strategy: "transform", scope: "project" },
+      host: { command: "poe-code", args: [] }
     });
     await check.run({ isDryRun: false, runCommand, logWarning });
 
@@ -550,6 +551,37 @@ describe("createSpawnHealthCheck", () => {
     ]);
     expect(logWarning).toHaveBeenCalledWith(expect.stringContaining('handler type "http"'));
     expect(logWarning).toHaveBeenCalledWith(expect.stringContaining('event "SessionEnd"'));
+  });
+
+  it("runs hook-enabled health checks through the resolved host command", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: "CODEX_OK",
+      stderr: "",
+      exitCode: 0
+    });
+
+    const check = createSpawnHealthCheck("codex", {
+      expectedOutput: "CODEX_OK",
+      hooks: { from: "claude-code" },
+      host: { command: "npm", args: ["--silent", "--prefix", "/repo", "run", "dev", "--"] }
+    });
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith("npm", [
+      "--silent",
+      "--prefix",
+      "/repo",
+      "run",
+      "dev",
+      "--",
+      "spawn",
+      "--hooks-from",
+      "claude-code",
+      "--mode",
+      "yolo",
+      "codex",
+      "Output exactly: CODEX_OK"
+    ]);
   });
 
   it("passes when expected output is found in stdout", async () => {

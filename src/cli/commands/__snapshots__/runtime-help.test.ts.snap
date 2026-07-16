@@ -88,8 +88,9 @@ Options:
   --skills [refs]              Comma-separated active skill references to bridge
                                for this run
   --hooks-from <agentId>       Agent hook configuration to bridge for this run
-  --hooks-strategy <strategy>  Hook bridge strategy (default: auto) (choices:
-                               "auto", "symlink", "transform")
+  --hooks-strategy <strategy>  Hook bridge strategy (default: auto; transform
+                               supports claude-code -> codex) (choices: "auto",
+                               "symlink", "transform")
   --hooks-scope <scope>        Hook bridge scope (default: merged) (choices:
                                "project", "user", "merged")
   --log-dir <path>             Directory override for ACP JSONL spawn logs

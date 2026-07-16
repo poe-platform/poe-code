@@ -1,10 +1,13 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  formatSupportedTransformPairs,
   getAgentConfig,
+  isTransformSupported,
   resolveAgentSupport,
   resolveHookPath,
   supportedHookAgents,
+  supportedTransformPairs,
   type AgentHookConfig
 } from "./index.js";
 
@@ -18,6 +21,7 @@ describe("getAgentConfig", () => {
       globalHookPath: "~/.codex/hooks.json",
       localHookPath: ".codex/hooks.json",
       format: "codex-hooks-json",
+      transformWritable: true,
       supportedEvents: [
         "SessionStart",
         "UserPromptSubmit",
@@ -105,5 +109,22 @@ describe("resolveHookPath", () => {
     expect(resolveHookPath(config!, "local", "/repo/worktree")).toBe(
       path.resolve("/repo/worktree/.codex/hooks.json")
     );
+  });
+});
+
+describe("supportedTransformPairs", () => {
+  it("derives the readable-source to writable-target matrix from the registry", () => {
+    expect(supportedTransformPairs()).toEqual([{ source: "claude-code", target: "codex" }]);
+  });
+
+  it("formats the matrix for help text and user errors", () => {
+    expect(formatSupportedTransformPairs()).toBe("claude-code -> codex");
+  });
+
+  it("reports whether a source and target pair can be transformed", () => {
+    expect(isTransformSupported("claude-code", "codex")).toBe(true);
+    expect(isTransformSupported("codex", "claude-code")).toBe(false);
+    expect(isTransformSupported("claude-code", "claude-code")).toBe(false);
+    expect(isTransformSupported("claude-code", "not-an-agent")).toBe(false);
   });
 });

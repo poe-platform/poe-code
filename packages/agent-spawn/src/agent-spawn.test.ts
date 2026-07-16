@@ -1497,7 +1497,7 @@ describe("spawn", () => {
       "/repo",
       expect.any(String),
       expect.any(String),
-      { strategy: undefined, scope: "project" }
+      { strategy: "auto", scope: "project" }
     );
     expect(skillBridgeMock.bridgeActiveSkills.mock.calls[0]?.[4]).toBe(
       hookBridgeMock.bridgeHooks.mock.calls[0]?.[4]

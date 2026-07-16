@@ -41,9 +41,12 @@ export function bridgeResourcesForRun(
 
     if (hooks) {
       manifests.hooks = bridgeHooks(hooks.from, agentId, cwd, os.homedir(), runId, {
-        strategy: hooks.strategy === "auto" ? undefined : hooks.strategy,
+        strategy: hooks.strategy,
         scope: hooks.scope
       });
+      for (const warning of manifests.hooks.warnings ?? []) {
+        logger.warn(warning);
+      }
       for (const drop of manifests.hooks.drops) {
         logger.warn(
           `Dropped bridged hook event "${drop.source.event}" with handler type "${drop.source.handler.type}": ${drop.detail}`

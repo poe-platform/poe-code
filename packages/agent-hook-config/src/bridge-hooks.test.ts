@@ -197,6 +197,47 @@ describe("bridgeHooks", () => {
     expect(vol.readFileSync(excludePath, "utf8") as string).toContain(".claude/settings.json");
   });
 
+  it("skips rather than failing when auto meets a user-authored target hook file", () => {
+    vol.mkdirSync(path.dirname(userSourcePath), { recursive: true });
+    vol.writeFileSync(userSourcePath, JSON.stringify({ hooks: {} }));
+    vol.mkdirSync(path.dirname(identityPath), { recursive: true });
+    vol.writeFileSync(
+      identityPath,
+      JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "user-authored" }] }] } })
+    );
+
+    const manifest = bridgeHooks("claude-code", "claude-code", cwd, homeDir, runId, {
+      strategy: "auto"
+    });
+
+    expect(manifest).toMatchObject({ strategy: "skip" });
+    expect(manifest.warnings?.join("\n")).toContain(identityPath);
+    expect(JSON.parse(vol.readFileSync(identityPath, "utf8") as string)).toMatchObject({
+      hooks: { Stop: [{ hooks: [{ command: "user-authored" }] }] }
+    });
+    expect(() => cleanupBridgedHooks(manifest)).not.toThrow();
+    expect(JSON.parse(vol.readFileSync(identityPath, "utf8") as string)).toMatchObject({
+      hooks: { Stop: [{ hooks: [{ command: "user-authored" }] }] }
+    });
+  });
+
+  it("still refuses a user-authored target hook file for an explicit symlink strategy", () => {
+    vol.mkdirSync(path.dirname(userSourcePath), { recursive: true });
+    vol.writeFileSync(userSourcePath, JSON.stringify({ hooks: {} }));
+    vol.mkdirSync(path.dirname(identityPath), { recursive: true });
+    vol.writeFileSync(identityPath, JSON.stringify({ hooks: { Stop: [] }, extra: true }));
+
+    expect(() =>
+      bridgeHooks("claude-code", "claude-code", cwd, homeDir, runId, { strategy: "symlink" })
+    ).toThrow(/Refuse to replace user-authored hook file/);
+  });
+
+  it("names the supported transform pairs when the source cannot be read", () => {
+    expect(() => bridgeHooks("codex", "claude-code", cwd, homeDir, runId)).toThrow(
+      /claude-code -> codex/
+    );
+  });
+
   it("preserves a pre-existing same-format hook symlink during cleanup", () => {
     vol.mkdirSync(path.dirname(identityPath), { recursive: true });
     vol.mkdirSync(path.dirname(userSourcePath), { recursive: true });

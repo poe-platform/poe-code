@@ -24,6 +24,9 @@ import {
 import {
   bridgeHooks,
   cleanupBridgedHooks,
+  formatSupportedTransformPairs,
+  isTransformSupported,
+  resolveAgentSupport,
   type BridgeHookManifest
 } from "@poe-code/agent-hook-config";
 import {
@@ -114,11 +117,10 @@ export function registerSpawnCommand(
     )
     .option("--hooks-from <agentId>", "Agent hook configuration to bridge for this run")
     .addOption(
-      new Option("--hooks-strategy <strategy>", "Hook bridge strategy (default: auto)").choices([
-        "auto",
-        "symlink",
-        "transform"
-      ])
+      new Option(
+        "--hooks-strategy <strategy>",
+        `Hook bridge strategy (default: auto; transform supports ${formatSupportedTransformPairs()})`
+      ).choices(["auto", "symlink", "transform"])
     )
     .addOption(
       new Option("--hooks-scope <scope>", "Hook bridge scope (default: merged)").choices([
@@ -184,6 +186,7 @@ export function registerSpawnCommand(
         commandOptions.hooksFrom,
         commandOptions.hooksStrategy,
         commandOptions.hooksScope,
+        service,
         this
       );
       let integrations: Integrations | null = null;
@@ -635,6 +638,7 @@ function resolveHookOptions(
   from: string | undefined,
   strategy: "auto" | "symlink" | "transform" | undefined,
   scope: HookBridgeOptions["scope"] | undefined,
+  target: string,
   command: Command
 ): NonNullable<SpawnCommandOptions["hooks"]> | undefined {
   if (!from) {
@@ -653,11 +657,40 @@ function resolveHookOptions(
     return undefined;
   }
 
+  assertHookPairIsBridgeable(from, target, strategy ?? "auto");
+
   return {
     from,
     strategy: strategy ?? "auto",
     ...(scope ? { scope } : {})
   };
+}
+
+/**
+ * Rejects source/target combinations the bridge cannot serve before the agent
+ * runs. Unknown agents fall through to the bridge's own "unsupported agent"
+ * reporting.
+ */
+function assertHookPairIsBridgeable(
+  from: string,
+  target: string,
+  strategy: "auto" | "symlink" | "transform"
+): void {
+  const source = resolveAgentSupport(from);
+  const resolvedTarget = resolveAgentSupport(target);
+  if (source.config === undefined || resolvedTarget.config === undefined) {
+    return;
+  }
+
+  const sameFormat = source.config.format === resolvedTarget.config.format;
+  const needsTransform = strategy === "transform" || (strategy === "auto" && !sameFormat);
+  if (!needsTransform || isTransformSupported(from, target)) {
+    return;
+  }
+
+  throw new ValidationError(
+    `Cannot transform hooks from "${source.id}" to "${resolvedTarget.id}". Supported transforms: ${formatSupportedTransformPairs()}.`
+  );
 }
 
 function validateDryRunBridgeResources(
@@ -690,7 +723,7 @@ function validateDryRunBridgeResources(
         container.env.homeDir,
         runId,
         {
-          strategy: options.hooks.strategy === "auto" ? undefined : options.hooks.strategy,
+          strategy: options.hooks.strategy,
           ...(options.hooks.scope !== undefined ? { scope: options.hooks.scope } : {})
         }
       );

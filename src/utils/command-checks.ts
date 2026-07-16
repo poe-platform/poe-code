@@ -5,6 +5,7 @@ import type {
 } from "@poe-code/agent-spawn";
 import { buildSpawnArgs, type HookBridgeOptions } from "@poe-code/agent-spawn";
 import { createBinaryExistsDetectors } from "@poe-code/agent-harness-tools";
+import { getCurrentExecutionContext, type ExecutionCommand } from "./execution-context.js";
 
 export type {
   CommandRunner,
@@ -152,16 +153,20 @@ export function createSpawnHealthCheck(
     expectedOutput: string;
     hooks?: HookBridgeOptions;
     invocation?: { command: string; args: string[]; env?: Record<string, string> };
+    /** How to re-invoke poe-code itself; defaults to the current execution context. */
+    host?: ExecutionCommand;
   }
 ): CommandCheck {
+  const host = options.host ?? getCurrentExecutionContext(import.meta.url).command;
   const {
     binaryName,
     args,
     env: modeEnv
   } = options.hooks
     ? {
-        binaryName: "poe-code",
+        binaryName: host.command,
         args: [
+          ...host.args,
           "spawn",
           "--hooks-from",
           options.hooks.from,

@@ -3,6 +3,8 @@ import * as fs from "node:fs";
 import path from "node:path";
 import { appendExcludeBlock, removeExcludeBlock } from "@poe-code/agent-skill-config";
 import {
+  canTransform,
+  formatSupportedTransformPairs,
   resolveAgentSupport,
   resolveHookPath,
   supportedHookAgents,
@@ -11,11 +13,14 @@ import {
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readClaudeHooks } from "./read-hooks.js";
 import { assertNoSymbolicLink } from "./path-safety.js";
-import { symlinkHooks } from "./symlink-hooks.js";
+import { symlinkHooks, userAuthoredHookFileCode, type SymlinkResult } from "./symlink-hooks.js";
 import { transformHooks, type HookDrop } from "./transform-hooks.js";
 import { writeCodexHooks } from "./write-hooks.js";
 
-export type BridgeStrategy = "symlink" | "transform";
+/** Strategy a caller can ask for; `auto` picks a working one. */
+export type BridgeStrategyRequest = "auto" | "symlink" | "transform";
+/** Strategy a run actually resolved to; `skip` means existing hooks were left alone. */
+export type BridgeStrategy = "symlink" | "transform" | "skip";
 
 export interface BridgeHookManifest {
   sourceAgentId: string;
@@ -30,6 +35,8 @@ export interface BridgeHookManifest {
   symlinkTarget?: string;
   symlinkReplaced?: "none" | "stale-symlink" | "generated-file";
   symlinkCreated?: boolean;
+  /** Non-fatal notices raised while bridging, e.g. why `auto` skipped. */
+  warnings?: string[];
   createdParents?: string[];
   preExistingEvents?: string[];
   preExistingMatchers?: Array<{ event: string; matcher?: string }>;
@@ -230,12 +237,17 @@ export function bridgeHooks(
   cwd: string,
   homeDir: string,
   runId: string,
-  opts?: { strategy?: BridgeStrategy; scope?: "project" | "user" | "merged" }
+  opts?: { strategy?: BridgeStrategyRequest; scope?: "project" | "user" | "merged" }
 ): BridgeHookManifest {
   const source = requireSupport(sourceAgentId, "source");
   const target = requireSupport(targetAgentId, "target");
-  const strategy =
-    opts?.strategy ?? (source.config.format === target.config.format ? "symlink" : "transform");
+  const requested = opts?.strategy ?? "auto";
+  const strategy: BridgeStrategy =
+    requested === "auto"
+      ? source.config.format === target.config.format
+        ? "symlink"
+        : "transform"
+      : requested;
   const manifest: BridgeHookManifest = {
     sourceAgentId,
     targetAgentId,
@@ -250,7 +262,19 @@ export function bridgeHooks(
     assertNoSymbolicLink(path.dirname(symlinkPath), { root: cwd });
     const preExistingSymlinkTarget = readSymlinkTarget(symlinkPath);
     manifest.createdParents = collectMissingParents(symlinkPath);
-    const result = symlinkHooks(source.id, target.id, cwd, homeDir, "project");
+    let result: SymlinkResult;
+    try {
+      result = symlinkHooks(source.id, target.id, cwd, homeDir, "project");
+    } catch (error) {
+      if (requested !== "auto" || !hasOwnErrorCode(error, userAuthoredHookFileCode)) {
+        throw error;
+      }
+      manifest.strategy = "skip";
+      manifest.warnings = [
+        `Skipped bridging hooks from "${source.id}": kept the user-authored hook file at ${symlinkPath}. Move or remove that file to bridge hooks for this run.`
+      ];
+      return manifest;
+    }
     manifest.symlinkPath = result.symlinkPath;
     manifest.symlinkTarget = result.targetPath;
     manifest.symlinkReplaced = result.replaced;
@@ -271,13 +295,9 @@ export function bridgeHooks(
     return manifest;
   }
 
-  if (source.id !== "claude-code") {
-    throw new Error(`Transforming hooks from "${source.id}" is not supported yet`);
-  }
-
-  if (target.config.format !== "codex-hooks-json") {
+  if (!canTransform(source.config, target.config)) {
     throw new Error(
-      `Transforming hooks to "${target.id}" is not supported yet; only codex-hook targets can be written`
+      `Cannot transform hooks from "${source.id}" to "${target.id}". Supported transforms: ${formatSupportedTransformPairs()}.`
     );
   }
 

@@ -1,3 +1,4 @@
+import { UserError } from "toolcraft";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -8,7 +9,7 @@ vi.mock("../init/init.js", () => ({
   evalInit: mocks.evalInit,
   validateInitName: (name: string) => {
     if (name === "bad_name") {
-      throw new Error(
+      throw new UserError(
         "Eval name must be kebab-case: lowercase letters, digits, and dashes; start with a letter."
       );
     }
@@ -64,14 +65,15 @@ describe("runInitCli", () => {
     expect(stdout()).toContain("next: poe-code eval check smoke-task");
   });
 
-  it("refuses bad names before scaffolding", async () => {
-    const exitCode = await runInitCli({ name: "bad_name" });
+  it("refuses bad names before scaffolding, leaving rendering to one skin", async () => {
+    await expect(runInitCli({ name: "bad_name" })).rejects.toMatchObject({
+      name: "UserError",
+      message:
+        "Eval name must be kebab-case: lowercase letters, digits, and dashes; start with a letter."
+    });
 
-    expect(exitCode).toBe(1);
     expect(mocks.evalInit).not.toHaveBeenCalled();
-    expect(stderr()).toContain(
-      "Eval name must be kebab-case: lowercase letters, digits, and dashes; start with a letter."
-    );
+    expect(stderr()).toBe("");
   });
 });
 

@@ -1,9 +1,11 @@
 import nodeFs from "node:fs/promises";
 import path from "node:path";
+import { UserError } from "toolcraft";
 import { color, getTheme, renderTable, withOutputFormat } from "toolcraft-design";
 
 import { hasOwnErrorCode } from "../error-codes.js";
 import { evalLint, type LintIssue, type LintResult } from "../lint/lint.js";
+import { emptySourceMessage } from "../source/open.js";
 import { listEvals } from "../source/registry.js";
 import { resolveEvalCliTarget } from "./target.js";
 import type { EvalFs } from "../types.js";
@@ -21,31 +23,24 @@ const columns: TableColumn[] = [
 ];
 
 export async function runLintCli(input: LintCliInput): Promise<number> {
-  try {
-    const target = resolveEvalCliTarget(input);
-    const sourceDir = target.sourceDir;
-    const fs = nodeFs as unknown as EvalFs;
-    await assertSourceDirectory(sourceDir, fs);
+  const target = resolveEvalCliTarget(input);
+  const sourceDir = target.sourceDir;
+  const fs = nodeFs as unknown as EvalFs;
+  await assertSourceDirectory(sourceDir, fs);
 
-    const evalIds =
-      target.evalId === undefined ? await resolveDefaultEvalIds(sourceDir, fs) : [target.evalId];
-    const results = await Promise.all(
-      evalIds.map((evalId) =>
-        evalLint({
-          sourceDir,
-          evalId
-        })
-      )
-    );
+  const evalIds =
+    target.evalId === undefined ? await resolveDefaultEvalIds(sourceDir, fs) : [target.evalId];
+  const results = await Promise.all(
+    evalIds.map((evalId) =>
+      evalLint({
+        sourceDir,
+        evalId
+      })
+    )
+  );
 
-    process.stdout.write(`${renderLintResults(results, sourceDir)}\n`);
-    return results.some((result) => result.issues.some((issue) => issue.severity === "error"))
-      ? 1
-      : 0;
-  } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-    return 1;
-  }
+  process.stdout.write(`${renderLintResults(results, sourceDir)}\n`);
+  return results.some((result) => result.issues.some((issue) => issue.severity === "error")) ? 1 : 0;
 }
 
 export function renderLintResults(results: readonly LintResult[], sourceDir?: string): string {
@@ -109,9 +104,7 @@ function formatIssuePath(issuePath: string | undefined, sourceDir: string | unde
 async function resolveDefaultEvalIds(sourceDir: string, fs: EvalFs): Promise<readonly string[]> {
   const evalIds = await listEvals({ rootDir: sourceDir }, fs);
   if (evalIds.length === 0) {
-    throw new Error(
-      `Eval source "${sourceDir}" does not contain any first-level <id>/eval.yaml files.`
-    );
+    throw new UserError(emptySourceMessage(sourceDir));
   }
 
   return evalIds.length === 1 ? [evalIds[0] as string] : evalIds;
@@ -123,13 +116,13 @@ async function assertSourceDirectory(sourceDir: string, fs: EvalFs): Promise<voi
     stat = await fs.stat(sourceDir);
   } catch (error) {
     if (isMissingPath(error)) {
-      throw new Error(`Eval source "${sourceDir}" does not exist or is not a directory.`);
+      throw new UserError(`Eval source "${sourceDir}" does not exist or is not a directory.`);
     }
     throw error;
   }
 
   if (!stat.isDirectory()) {
-    throw new Error(`Eval source "${sourceDir}" is not a directory.`);
+    throw new UserError(`Eval source "${sourceDir}" is not a directory.`);
   }
 }
 

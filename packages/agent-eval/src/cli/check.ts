@@ -1,3 +1,4 @@
+import { UserError } from "toolcraft";
 import {
   color,
   getTheme,
@@ -24,18 +25,13 @@ const columns: TableColumn[] = [
 ];
 
 export async function runCheckCli(input: CheckCliInput): Promise<number> {
-  try {
-    const target = resolveEvalCliTarget(input);
-    const source = await openSource(target.sourceDir);
-    const evalId = target.evalId ?? (await resolveDefaultEvalId(source.rootDir));
-    const result = await evalCheck({ sourceDir: source.rootDir, evalId });
+  const target = resolveEvalCliTarget(input);
+  const source = await openSource(target.sourceDir);
+  const evalId = target.evalId ?? (await resolveDefaultEvalId(source.rootDir));
+  const result = await evalCheck({ sourceDir: source.rootDir, evalId });
 
-    process.stdout.write(`${renderCheckResultTable(result)}\n`);
-    return result.tests.passed === result.tests.total ? 0 : 1;
-  } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-    return 1;
-  }
+  process.stdout.write(`${renderCheckResultTable(result)}\n`);
+  return result.tests.passed === result.tests.total ? 0 : 1;
 }
 
 export function renderCheckResultTable(result: CheckResult): string {
@@ -67,7 +63,7 @@ async function resolveDefaultEvalId(sourceDir: string): Promise<string> {
     return evalIds[0] as string;
   }
 
-  throw new Error(
+  throw new UserError(
     [
       "Multiple evals found. Pass an eval id to check.",
       `Available eval ids: ${evalIds.length === 0 ? "(none)" : evalIds.join(", ")}`

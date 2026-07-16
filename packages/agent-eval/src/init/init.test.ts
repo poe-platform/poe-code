@@ -337,6 +337,25 @@ describe("validateInitName", () => {
       );
     }
   );
+
+  it("rejects an invalid name as a user error carrying an example name", () => {
+    expect(() => validateInitName("task_name")).toThrow(
+      expect.objectContaining({ name: "UserError" })
+    );
+    expect(() => validateInitName("task_name")).toThrow("my-eval");
+  });
+
+  it.each(["/tmp/ux-eval-test", "./evals/smoke", "evals/smoke", "C:\\evals\\smoke"])(
+    "names %s as path-like instead of restating the kebab-case rule",
+    (name) => {
+      expect(() => validateInitName(name)).toThrow(
+        expect.objectContaining({ name: "UserError" })
+      );
+      expect(() => validateInitName(name)).toThrow("looks like a path");
+      expect(() => validateInitName(name)).toThrow("my-eval");
+      expect(() => validateInitName(name)).not.toThrow("must be kebab-case");
+    }
+  );
 });
 
 async function read(relativePath: string): Promise<string> {

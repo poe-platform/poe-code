@@ -81,12 +81,25 @@ describe("runCheckCli", () => {
       Volume.fromJSON(createSourceFiles(["alpha", "beta"]), "/")
     ).promises;
 
-    const exitCode = await runCheckCli({});
+    const error = await runCheckCli({}).catch((thrown: unknown) => thrown);
 
-    expect(exitCode).toBe(1);
+    expect(error).toMatchObject({ name: "UserError" });
+    expect((error as Error).message).toContain("Multiple evals found. Pass an eval id to check.");
+    expect((error as Error).message).toContain("Available eval ids: alpha, beta");
     expect(mocks.evalCheck).not.toHaveBeenCalled();
-    expect(stderr()).toContain("Multiple evals found. Pass an eval id to check.");
-    expect(stderr()).toContain("Available eval ids: alpha, beta");
+    expect(stderr()).toBe("");
+  });
+
+  it("reports an empty eval source as a user error instead of bare stderr text", async () => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo/evals/.keep": "" }, "/")).promises;
+
+    await expect(runCheckCli({})).rejects.toMatchObject({
+      name: "UserError",
+      message: expect.stringContaining(
+        'Eval source "/repo/evals" does not contain any first-level <id>/eval.yaml files.'
+      )
+    });
+    expect(stderr()).toBe("");
   });
 
   it("returns 1 when any case fails", async () => {

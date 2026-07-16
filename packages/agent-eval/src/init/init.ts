@@ -1,5 +1,6 @@
 import { lstat, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { UserError } from "toolcraft";
 import { stringify as stringifyYaml } from "yaml";
 import { hasOwnErrorCode } from "../error-codes.js";
 import { assertClonableTargetRepo } from "../target-repo.js";
@@ -26,15 +27,20 @@ const initFiles = [
   "oracle/solution/OUTPUT.md",
   "starter/.gitkeep"
 ] as const;
-const invalidNameMessage =
-  "Eval name must be kebab-case: lowercase letters, digits, and dashes; start with a letter.";
+function invalidNameMessage(name: string): string {
+  if (name.includes("/") || name.includes("\\")) {
+    return `Eval name "${name}" looks like a path; pass a name such as my-eval and choose the directory with --cwd.`;
+  }
+
+  return "Eval name must be kebab-case: lowercase letters, digits, and dashes; start with a letter. For example: my-eval.";
+}
 
 export async function evalInit(opts: InitOptions): Promise<InitResult> {
   validateInitName(opts.name);
   const targetRepo = requireClonableTargetRepo(opts.targetRepo);
 
   if (!path.isAbsolute(opts.sourceDir)) {
-    throw new Error("sourceDir must be absolute.");
+    throw new UserError("sourceDir must be absolute.");
   }
 
   await assertSafeSourceDirectory(opts.sourceDir);
@@ -45,7 +51,7 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     await mkdir(evalDir);
   } catch (error) {
     if (isPathAlreadyPresent(error)) {
-      throw new Error(`Eval folder already exists: ${evalDir}`);
+      throw new UserError(`Eval folder already exists: ${evalDir}`);
     }
     throw error;
   }
@@ -95,14 +101,14 @@ async function assertSafeSourceDirectory(sourceDir: string): Promise<void> {
 
 export function validateInitName(name: string): void {
   if (!isValidInitName(name)) {
-    throw new Error(invalidNameMessage);
+    throw new UserError(invalidNameMessage(name));
   }
 }
 
 function requireClonableTargetRepo(targetRepo: string | undefined): string {
   const repo = targetRepo?.trim() ?? "";
   if (repo.length === 0) {
-    throw new Error(
+    throw new UserError(
       "Target repository is required. Pass --target-repo <git-url>, for example --target-repo https://github.com/owner/repo.git."
     );
   }

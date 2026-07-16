@@ -64,6 +64,26 @@ describe("openSource", () => {
     );
   });
 
+  it("reports an empty source as a user error that suggests eval init", async () => {
+    const fs = memfs({
+      "/repo/evals": null
+    });
+
+    await expect(openSource("/repo/evals", fs)).rejects.toMatchObject({
+      name: "UserError"
+    });
+    await expect(openSource("/repo/evals", fs)).rejects.toThrow("poe-code eval init");
+  });
+
+  it("reports a missing source directory as a user error", async () => {
+    const fs = memfs({ "/repo/other": null });
+
+    await expect(openSource("/repo/evals", fs)).rejects.toMatchObject({
+      name: "UserError",
+      message: 'Eval source "/repo/evals" does not exist or is not a directory.'
+    });
+  });
+
   it("rejects a source path that is not absolute", async () => {
     const fs = memfs(
       {

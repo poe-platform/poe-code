@@ -122,11 +122,32 @@ describe("runLintCli", () => {
     mocks.failedStatTarget = "/repo/evals";
 
     await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
-      await expect(runLintCli({ sourceDir: "/repo/evals" })).resolves.toBe(1);
+      await expect(runLintCli({ sourceDir: "/repo/evals" })).rejects.toThrow("source stat denied");
     });
 
-    expect(stderr()).toContain("source stat denied");
+    expect(stderr()).toBe("");
     expect(mocks.evalLint).not.toHaveBeenCalled();
+  });
+
+  it("reports an empty eval source as a user error instead of bare stderr text", async () => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo/evals/.keep": "" }, "/")).promises;
+
+    await expect(runLintCli({ sourceDir: "/repo/evals" })).rejects.toMatchObject({
+      name: "UserError",
+      message: expect.stringContaining(
+        'Eval source "/repo/evals" does not contain any first-level <id>/eval.yaml files.'
+      )
+    });
+    expect(stderr()).toBe("");
+    expect(mocks.evalLint).not.toHaveBeenCalled();
+  });
+
+  it("reports a missing eval source as a user error", async () => {
+    await expect(runLintCli({ sourceDir: "/repo/missing" })).rejects.toMatchObject({
+      name: "UserError",
+      message: 'Eval source "/repo/missing" does not exist or is not a directory.'
+    });
+    expect(stderr()).toBe("");
   });
 
   it("lints all evals when evalId is omitted and multiple evals exist", async () => {

@@ -1402,6 +1402,31 @@ describe("makeFsModule", () => {
       "a non-boolean mkdir recursive option": {
         call: (fs) => fs.mkdir(MISSING_PATH, { recursive: "yes" }),
         code: "ERR_INVALID_ARG_TYPE"
+      },
+      // node validates data before it opens the path, so these reach its validator
+      // without creating MISSING_PATH — which is also what makes them assertable here
+      // rather than only in the recorded truth. Every shape node spells differently is
+      // covered: a primitive by type and inspected form, an instance by its
+      // constructor, null by name.
+      "a number as writeFile data": {
+        call: (fs) => fs.writeFile(MISSING_PATH, 42),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "an object as writeFile data": {
+        call: (fs) => fs.writeFile(MISSING_PATH, { a: 1 }),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "null as writeFile data": {
+        call: (fs) => fs.writeFile(MISSING_PATH, null),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "a boolean as writeFile data": {
+        call: (fs) => fs.writeFile(MISSING_PATH, true),
+        code: "ERR_INVALID_ARG_TYPE"
+      },
+      "a number as appendFile data": {
+        call: (fs) => fs.appendFile(MISSING_PATH, 42),
+        code: "ERR_INVALID_ARG_TYPE"
       }
     };
 
@@ -2315,6 +2340,287 @@ describe("makeFsModule", () => {
 
         // node reports 0o777 & ~umask here; memfs reports the mode verbatim.
         expect((await fs.stat("/repo/open")).mode & 0o777).toBe(0o777);
+      });
+    });
+  });
+
+  // The write side is where a flag decides whether a call creates, truncates, appends, or
+  // refuses, and node settles all four in the open it does first — so it blames 'open'
+  // rather than writeFile, appendFile, or truncate for every failure below but one, the
+  // exception being a write that the open allowed and the descriptor did not.
+  describe("writeFile, appendFile, and truncate node semantics", () => {
+    type Driver = Pick<ReturnType<typeof makeFsModule>, "appendFile" | "truncate" | "writeFile">;
+
+    type SemanticsCase = NodeSemanticsCase<Driver>;
+
+    const CASES: readonly SemanticsCase[] = [
+      {
+        title: "writeFile with flag wx onto an existing path rejects with EEXIST",
+        setup: (volume) => volume.writeFileSync("/repo/f.txt", "original"),
+        invoke: (fs) => fs.writeFile("/repo/f.txt", "next", { flag: "wx" }),
+        node: {
+          name: "Error",
+          message: "EEXIST: file already exists, open '/repo/f.txt'",
+          code: "EEXIST",
+          errno: -17,
+          syscall: "open",
+          path: "/repo/f.txt"
+        }
+      },
+      {
+        // r+ opens for writing without creating, so the flag that makes writeFile
+        // non-creating is also the one that makes a missing path an error.
+        title: "writeFile with flag r+ onto a missing path rejects with ENOENT",
+        invoke: (fs) => fs.writeFile("/repo/missing.txt", "next", { flag: "r+" }),
+        node: {
+          name: "Error",
+          message: "ENOENT: no such file or directory, open '/repo/missing.txt'",
+          code: "ENOENT",
+          errno: -2,
+          syscall: "open",
+          path: "/repo/missing.txt"
+        }
+      },
+      {
+        title: "writeFile onto a directory rejects with EISDIR",
+        setup: (volume) => volume.mkdirSync("/repo/d"),
+        invoke: (fs) => fs.writeFile("/repo/d", "x"),
+        node: {
+          name: "Error",
+          message: "EISDIR: illegal operation on a directory, open '/repo/d'",
+          code: "EISDIR",
+          errno: -21,
+          syscall: "open",
+          path: "/repo/d"
+        }
+      },
+      {
+        // The one write-side failure node does not blame on the open: r opens
+        // read-only and succeeds, so it is the write against that descriptor that
+        // fails, and node reports it with no path at all.
+        title: "appendFile with flag r rejects with EBADF",
+        setup: (volume) => volume.writeFileSync("/repo/log.txt", "first"),
+        invoke: (fs) => fs.appendFile("/repo/log.txt", "-second", { flag: "r" }),
+        node: {
+          name: "Error",
+          message: "EBADF: bad file descriptor, write",
+          code: "EBADF",
+          errno: -9,
+          syscall: "write"
+        },
+        gap: {
+          reason: "memfs ignores the read-only flag and appends where node refuses the write",
+          memfs: { result: undefined }
+        }
+      },
+      {
+        title: "truncate on a missing path rejects with ENOENT",
+        invoke: (fs) => fs.truncate("/repo/nope.txt", 0),
+        node: {
+          name: "Error",
+          message: "ENOENT: no such file or directory, open '/repo/nope.txt'",
+          code: "ENOENT",
+          errno: -2,
+          syscall: "open",
+          path: "/repo/nope.txt"
+        }
+      },
+      {
+        title: "truncate on a directory rejects with EISDIR",
+        setup: (volume) => volume.mkdirSync("/repo/d"),
+        invoke: (fs) => fs.truncate("/repo/d", 0),
+        node: {
+          name: "Error",
+          message: "EISDIR: illegal operation on a directory, open '/repo/d'",
+          code: "EISDIR",
+          errno: -21,
+          syscall: "open",
+          path: "/repo/d"
+        }
+      }
+    ];
+
+    driveNodeSemantics(CASES, [
+      "appendFile with flag r rejects with EBADF: memfs ignores the read-only flag and appends where node refuses the write"
+    ]);
+
+    // The case table compares what an operation answered, which for a write is almost
+    // nothing: every call below resolves with undefined on both node and memfs, so what
+    // the flag actually did is only visible in the file it left behind. memfs agrees with
+    // node on each of these, so they are driven rather than recorded.
+    describe("effects", () => {
+      it("creates the file when writeFile is given no flag", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+
+        await fs.writeFile("/repo/new.txt", "written");
+
+        expect(await fs.readFile("/repo/new.txt", "utf8")).toBe("written");
+      });
+
+      // A write that only replaced the leading bytes would leave the tail of a longer
+      // file behind, so a shorter payload is the case that proves w truncates.
+      it("truncates a longer existing file rather than leaving a tail", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "the longer original contents" });
+
+        await fs.writeFile("/repo/f.txt", "short");
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("short");
+      });
+
+      // The contrast that proves the truncation above is the default flag's doing rather
+      // than something every write does: r+ writes over the leading bytes in place and
+      // leaves exactly the tail w removes.
+      it("leaves a longer file's tail behind when the flag is r+", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "the longer original contents" });
+
+        await fs.writeFile("/repo/f.txt", "short", { flag: "r+" });
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("shortonger original contents");
+      });
+
+      it("creates an empty file when writeFile is given an empty string", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+
+        await fs.writeFile("/repo/empty.txt", "");
+
+        expect(await fs.readFile("/repo/empty.txt", "utf8")).toBe("");
+      });
+
+      it("appends rather than truncates when writeFile's flag is a", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "first" });
+
+        await fs.writeFile("/repo/f.txt", "-second", { flag: "a" });
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("first-second");
+      });
+
+      it("creates the file when writeFile's flag is a and the path is missing", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+
+        await fs.writeFile("/repo/appended.txt", "only", { flag: "a" });
+
+        expect(await fs.readFile("/repo/appended.txt", "utf8")).toBe("only");
+      });
+
+      // The EEXIST case above answered before it wrote, which is only worth anything if
+      // the file it refused to create is untouched.
+      it("leaves an existing file untouched when writeFile's wx rejects", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "original" });
+
+        await expect(fs.writeFile("/repo/f.txt", "next", { flag: "wx" })).rejects.toThrow();
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("original");
+      });
+
+      it("creates the file when appendFile's path is missing", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+
+        await fs.appendFile("/repo/log.txt", "line");
+
+        expect(await fs.readFile("/repo/log.txt", "utf8")).toBe("line");
+      });
+
+      it("appends to the file when appendFile's path exists", async () => {
+        const { fs } = createFs({ "/repo/log.txt": "first" });
+
+        await fs.appendFile("/repo/log.txt", "-second");
+
+        expect(await fs.readFile("/repo/log.txt", "utf8")).toBe("first-second");
+      });
+
+      it("drops the tail when truncate shrinks a file", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "abcdefghij" });
+
+        await fs.truncate("/repo/f.txt", 4);
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("abcd");
+      });
+
+      // The grown region is a hole rather than absent bytes: node reads it back as NUL,
+      // which through utf8 is a string of U+0000 rather than a shorter string. The code
+      // points are asserted beside the text because a NUL in an expected literal is
+      // invisible in a diff.
+      it("fills the grown region with NUL bytes when truncate grows a file", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "abc" });
+
+        await fs.truncate("/repo/f.txt", 6);
+        const text = await fs.readFile("/repo/f.txt", "utf8");
+
+        expect(text).toBe(`abc${NUL_BYTE.repeat(3)}`);
+        expect([...text].map((character) => character.charCodeAt(0))).toEqual([
+          97, 98, 99, 0, 0, 0
+        ]);
+      });
+
+      it("empties the file when truncate is given a length of zero", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "abcdef" });
+
+        await fs.truncate("/repo/f.txt", 0);
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("");
+      });
+
+      // node defaults len to 0, so an omitted length empties the file rather than
+      // leaving it alone.
+      it("empties the file when truncate is given no length at all", async () => {
+        const { fs } = createFs({ "/repo/f.txt": "abcdef" });
+
+        await fs.truncate("/repo/f.txt");
+
+        expect(await fs.readFile("/repo/f.txt", "utf8")).toBe("");
+      });
+    });
+
+    // node applies mode when it creates a file and never when it opens an existing one, so
+    // the two calls have to be told apart by what stat reports rather than by what either
+    // answered. The modes are masked because node applies the process umask to a created
+    // file's mode and memfs does not: masking first is what makes one expectation hold for
+    // both, the same way the mkdir block does it.
+    describe("mode", () => {
+      const umask = process.umask();
+      const created = 0o600 & ~umask;
+      const rewritten = 0o666 & ~umask;
+
+      it("applies the mode only when writeFile creates the file", async () => {
+        const { fs } = createFs({ "/repo/keep.txt": "" });
+        // A umask folding the two modes together would leave the rewrite below
+        // unfalsifiable, so the premise is asserted rather than assumed.
+        expect(rewritten).not.toBe(created);
+
+        await fs.writeFile("/repo/new.txt", "x", { mode: created });
+
+        expect((await fs.stat("/repo/new.txt")).mode & 0o777).toBe(created);
+
+        await fs.writeFile("/repo/new.txt", "y", { mode: rewritten });
+
+        // The write landed, so the dropped mode is the mode alone rather than the call.
+        expect(await fs.readFile("/repo/new.txt", "utf8")).toBe("y");
+        expect((await fs.stat("/repo/new.txt")).mode & 0o777).toBe(created);
+      });
+    });
+
+    // node refuses a non-string data argument before it opens the path, which the
+    // FORWARDED_ARGUMENTS cases prove against real node. memfs runs its own String()
+    // over it instead, so a script that writes a number gets a file rather than the
+    // TypeError node promised — a silent write rather than a reporting gap, which is why
+    // it is recorded here rather than left to the case table.
+    it("records that memfs stringifies the data node refuses by type", async () => {
+      const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+
+      for (const [name, data] of [
+        ["number.txt", 42],
+        ["object.txt", { a: 1 }],
+        ["null.txt", null]
+      ] as const) {
+        await untyped(fs).writeFile(`/repo/${name}`, data);
+      }
+
+      // node rejects every one of these with ERR_INVALID_ARG_TYPE and creates no file.
+      expect(volume.toJSON()).toEqual({
+        "/repo/keep.txt": "",
+        "/repo/number.txt": "42",
+        "/repo/object.txt": "[object Object]",
+        "/repo/null.txt": "null"
       });
     });
   });

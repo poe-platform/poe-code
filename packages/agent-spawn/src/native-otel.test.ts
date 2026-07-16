@@ -36,6 +36,18 @@ describe("startNativeOtelCapture", () => {
     ]);
   });
 
+  it("reports the resolved receiver endpoint when capture is enabled", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const capture = await startNativeOtelCapture("codex");
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining(capture!.env.OTEL_EXPORTER_OTLP_ENDPOINT!)
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("OTel capture enabled"));
+
+    await capture?.drain();
+  });
+
   it("warns and continues for unsupported agents", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     await expect(startNativeOtelCapture("kimi")).resolves.toBeUndefined();

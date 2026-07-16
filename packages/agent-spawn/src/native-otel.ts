@@ -41,6 +41,9 @@ export async function startNativeOtelCapture(
   }
 
   const endpoint = `http://127.0.0.1:${address.port}`;
+  console.warn(
+    `OTel capture enabled: receiving OTLP from "${agentId}" at ${endpoint}${content ? " (including prompt and tool content)" : ""}`
+  );
   const correlationId = randomUUID();
   const env = {
     ...(definition.env ?? {}),

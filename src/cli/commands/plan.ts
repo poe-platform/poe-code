@@ -9,11 +9,13 @@ import {
   isCancel,
   outro,
   promptText,
+  renderDetailCard,
   renderMarkdown,
   renderTable,
   select,
   text,
-  withOutputFormat
+  withOutputFormat,
+  type DetailCardRow
 } from "toolcraft-design";
 import {
   archivePlan,
@@ -177,15 +179,14 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   return Number.parseInt(trimmed, 10);
 }
 
-function formatFrontmatterLines(frontmatter: Record<string, unknown>): string[] {
-  if (Object.keys(frontmatter).length === 0) {
-    return ["  (none)"];
-  }
-
-  return stringifyYaml(frontmatter)
-    .trimEnd()
-    .split("\n")
-    .map((line) => `  ${line}`);
+function formatFrontmatterRows(frontmatter: Record<string, unknown>): DetailCardRow[] {
+  return Object.entries(frontmatter).map(([key, value]) => ({
+    label: key,
+    value:
+      value === null || typeof value !== "object"
+        ? String(value)
+        : stringifyYaml(value).trimEnd()
+  }));
 }
 
 function getDisplayedSections(result: MarkdownReadResult): MarkdownReadResult["sections"] {
@@ -205,23 +206,29 @@ function formatDisplayedSectionTitle(section: MarkdownReadResult["sections"][num
 
 function formatMarkdownReadTerminalOutput(result: MarkdownReadResult): string {
   const sections = getDisplayedSections(result);
-  const numberWidth = Math.max(0, ...sections.map((section) => section.number?.length ?? 0));
-  const sectionLines =
-    sections.length === 0
-      ? ["  (none)"]
-      : sections.map((section) => {
-          const number = (section.number ?? "").padEnd(numberWidth);
-          const separator = numberWidth > 0 ? "    " : "";
-          return `  ${number}${separator}${formatDisplayedSectionTitle(section)}`.trimEnd();
-        });
+  const frontmatterRows = formatFrontmatterRows(result.frontmatter);
 
-  return [
-    `file: ${result.file}`,
-    "frontmatter:",
-    ...formatFrontmatterLines(result.frontmatter),
-    "sections:",
-    ...sectionLines
-  ].join("\n");
+  return renderDetailCard({
+    theme: getTheme(),
+    title: result.file,
+    subtitle: `${sections.length} ${sections.length === 1 ? "section" : "sections"}`,
+    sections: [
+      {
+        title: "Frontmatter",
+        rows: frontmatterRows.length === 0 ? [{ label: "(none)", value: "" }] : frontmatterRows
+      },
+      {
+        title: "Sections",
+        rows:
+          sections.length === 0
+            ? [{ label: "(none)", value: "" }]
+            : sections.map((section) => ({
+                label: section.number ?? "",
+                value: formatDisplayedSectionTitle(section)
+              }))
+      }
+    ]
+  });
 }
 
 function formatMarkdownReadMarkdownOutput(result: MarkdownReadResult): string {

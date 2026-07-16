@@ -1050,6 +1050,44 @@ describe("plan command", () => {
     expect(help).toContain("mcpServers");
   });
 
+  it("frames the terminal TOC with the design system instead of yaml-ish lines", async () => {
+    readMarkdownMock.mockResolvedValueOnce({
+      file: "docs/plans/markdown-reader.md",
+      frontmatter: { kind: "plan" },
+      sections: [{ number: "1", title: "What we're building", depth: 2 }]
+    });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "plan", "markdown-read", "docs/plans/markdown-reader.md"
+    ]);
+
+    const output = stripVTControlCharacters(
+      writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")
+    );
+
+    // The old output was YAML-ish but not YAML: neither framed nor parseable.
+    expect(output).not.toContain("file: docs/plans/markdown-reader.md");
+    expect(output).not.toMatch(/^sections:$/m);
+    expect(output).not.toMatch(/^frontmatter:$/m);
+
+    expect(output).toContain("docs/plans/markdown-reader.md");
+    expect(output).toContain("Sections");
+    expect(output).toContain("What we're building");
+    expect(output).toContain("Frontmatter");
+    expect(output).toContain("kind");
+    expect(output).toContain("plan");
+  });
+
   it("reads markdown docs as a terminal TOC", async () => {
     readMarkdownMock.mockResolvedValueOnce({
       file: "docs/plans/markdown-reader.md",
@@ -1085,12 +1123,15 @@ describe("plan command", () => {
       depth: 3
     });
 
-    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
-    expect(output).toContain("file: docs/plans/markdown-reader.md");
-    expect(output).toContain("frontmatter:");
+    const output = stripVTControlCharacters(
+      writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")
+    );
+    expect(output).toContain("docs/plans/markdown-reader.md");
+    expect(output).toContain("Frontmatter");
     expect(output).toContain("(none)");
-    expect(output).toContain("sections:");
-    expect(output).toContain("2.1    Command: plan markdown-read");
+    expect(output).toContain("Sections");
+    expect(output).toContain("2.1");
+    expect(output).toContain("Command: plan markdown-read");
   });
 
   it("reads a markdown section with markdown output by default", async () => {

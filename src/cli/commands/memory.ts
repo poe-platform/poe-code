@@ -4,7 +4,7 @@ import { execSync } from "node:child_process";
 import parseDuration from "parse-duration";
 import { Option, type Command } from "commander";
 import { listAgentsWithCapability } from "@poe-code/agent-defs";
-import { confirmOrCancel } from "toolcraft-design";
+import { confirmOrCancel, getTheme, renderTable } from "toolcraft-design";
 import { DEFAULT_QUERY_BUDGET_TOKENS, defaultQueryBudget } from "@poe-code/poe-code-config";
 import {
   cacheStatus,
@@ -233,23 +233,36 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .alias("ls")
     .description("List every memory file with a one-line description.")
     .action(async () => {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "memory:list");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
       await assertInitialized(mem);
 
       const pages = await mem.listMemoryFiles();
+
+      resources.logger.intro("memory list");
+
       if (pages.length === 0) {
-        process.stdout.write("No memory pages yet.\n");
+        resources.logger.info("No memory pages yet.");
+        resources.logger.nextSteps(['Run "poe-code memory write <page> --reason <text>" to add one.']);
         return;
       }
 
-      for (const page of pages) {
-        const description = page.frontmatter.description?.trim() ?? "";
-        process.stdout.write(
-          `${displayPageRelPath(page.relPath)}${description.length > 0 ? ` — ${description}` : ""}\n`
-        );
-      }
+      resources.logger.info(
+        renderTable({
+          theme: getTheme(),
+          columns: [
+            { name: "Page", title: "Page", alignment: "left", maxLen: 48 },
+            { name: "Description", title: "Description", alignment: "left", maxLen: 72 }
+          ],
+          rows: pages.map((page) => ({
+            Page: displayPageRelPath(page.relPath),
+            Description: page.frontmatter.description?.trim() ?? ""
+          }))
+        })
+      );
     });
 
   memory
@@ -285,21 +298,37 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .description("Search over memory files for a substring.")
     .argument("<query>", "Search query")
     .action(async (query: string) => {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "memory:search");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
       await assertInitialized(mem);
 
       const hits = await mem.searchMemory(query);
+
+      resources.logger.intro("memory search");
+
       if (hits.length === 0) {
-        process.stdout.write("No matches.\n");
+        resources.logger.info(`No matches for "${query}".`);
         return;
       }
 
-      for (const hit of hits) {
-        const displayPath = displayPageRelPath(hit.relPath);
-        process.stdout.write(`${displayPath}:${hit.lineNumber}: ${hit.line}\n`);
-      }
+      resources.logger.info(
+        renderTable({
+          theme: getTheme(),
+          columns: [
+            { name: "Page", title: "Page", alignment: "left", maxLen: 40 },
+            { name: "Line", title: "Line", alignment: "right", maxLen: 6 },
+            { name: "Match", title: "Match", alignment: "left", maxLen: 72 }
+          ],
+          rows: hits.map((hit) => ({
+            Page: displayPageRelPath(hit.relPath),
+            Line: String(hit.lineNumber),
+            Match: hit.line.trim()
+          }))
+        })
+      );
     });
 
   memory
@@ -315,11 +344,13 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       await assertInitialized(mem);
       const relPath = resolvePageRelPath(pagePath);
       const content = await readCommandContent(options.content);
+      const resources = createExecutionResources(container, flags, "memory:write");
       if (flags.dryRun) {
-        createExecutionResources(container, flags, "memory:write").logger.dryRun(`Would write ${relPath}.`);
+        resources.logger.dryRun(`Would write ${relPath}.`);
         return;
       }
       await mem.writePage(relPath, content, { reason: options.reason });
+      resources.logger.success(`Wrote ${relPath} (${options.reason})`);
     });
 
   memory
@@ -335,11 +366,13 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       await assertInitialized(mem);
       const relPath = resolvePageRelPath(pagePath);
       const content = await readCommandContent(options.content);
+      const resources = createExecutionResources(container, flags, "memory:append");
       if (flags.dryRun) {
-        createExecutionResources(container, flags, "memory:append").logger.dryRun(`Would append to ${relPath}.`);
+        resources.logger.dryRun(`Would append to ${relPath}.`);
         return;
       }
       await mem.appendToPage(relPath, content, { reason: options.reason });
+      resources.logger.success(`Appended to ${relPath} (${options.reason})`);
     });
 
   memory
@@ -397,19 +430,32 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .command("lint")
     .description("Audit memory confidence and provenance claims.")
     .action(async () => {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "memory:lint");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       await assertInitialized(mem);
       const audits = await mem.auditClaims({ repoRoot: container.env.cwd });
+
+      resources.logger.intro("memory lint");
+
       if (audits.length === 0) {
-        process.stdout.write("No memory lint issues.\n");
+        resources.logger.success("No memory lint issues.");
         return;
       }
-      for (const audit of audits) {
-        for (const issue of audit.issues) {
-          process.stdout.write(`${audit.page}: ${issue}\n`);
-        }
-      }
+
+      resources.logger.info(
+        renderTable({
+          theme: getTheme(),
+          columns: [
+            { name: "Page", title: "Page", alignment: "left", maxLen: 40 },
+            { name: "Issue", title: "Issue", alignment: "left", maxLen: 72 }
+          ],
+          rows: audits.flatMap((audit) =>
+            audit.issues.map((issue) => ({ Page: audit.page, Issue: issue }))
+          )
+        })
+      );
     });
 
   memory
@@ -514,26 +560,35 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
 
       await assertInitialized(mem);
 
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "memory:status");
       const status = await mem.statusOf();
 
-      process.stdout.write(`Pages: ${status.pageCount}\n`);
-      process.stdout.write(`Bytes: ${status.totalBytes}\n`);
-      if (status.lastWriteAt) {
-        process.stdout.write(`Last write: ${status.lastWriteAt}\n`);
-      }
+      resources.logger.intro("memory status");
+      resources.logger.resolved("Pages", String(status.pageCount));
+      resources.logger.resolved("Bytes", String(status.totalBytes));
+      resources.logger.resolved("Last write", status.lastWriteAt ?? "never");
 
       if (options.tokens) {
         const tokens = await mem.computeTokenStats();
         const ratio = Number.isFinite(tokens.reductionRatio)
           ? `${tokens.reductionRatio.toFixed(2)}×`
           : "0×";
-        process.stdout.write(
-          `Tokens: memory=${tokens.memoryTokens}, sources=${tokens.sourceTokens}, ratio=${ratio}\n`
+        resources.logger.resolved(
+          "Tokens",
+          `memory=${tokens.memoryTokens}, sources=${tokens.sourceTokens}, ratio=${ratio}`
+        );
+        resources.logger.info(
+          "Ratio is source tokens divided by memory tokens: how much source text each memory token stands in for. It stays 0 until pages record sources."
         );
         if (tokens.missingSources.length > 0) {
-          process.stdout.write(`Missing sources: ${tokens.missingSources.join(", ")}\n`);
+          resources.logger.warn(`Missing sources: ${tokens.missingSources.join(", ")}`);
         }
       }
+
+      resources.logger.nextSteps([
+        'Run "poe-code memory list" to see pages, or "poe-code memory search <query>" to find one.'
+      ]);
     });
 
   const cache = memory

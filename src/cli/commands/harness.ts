@@ -256,7 +256,10 @@ function logHarnessResult(
   result: Awaited<ReturnType<typeof runHarnessPair>>
 ): void {
   if (result.ok) {
-    logger.success(`Result: ${formatResultValue(result.returnValue)}`);
+    // The outcome is stated outright: the result summary below names keys, not values,
+    // so on its own it cannot tell the reader whether the run succeeded.
+    logger.success("Harness passed");
+    logger.info(`Result: ${formatResultValue(result.returnValue)}`);
   } else {
     logger.error(`Harness failed: ${formatSpawnFailureText(formatUnknownError(result.error))}`);
   }

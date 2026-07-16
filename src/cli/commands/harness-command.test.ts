@@ -942,6 +942,22 @@ describe("harness command", () => {
     expect(logs.join("\n")).toContain("Total cost: $0.13");
   });
 
+  it("states the run outcome in plain language next to the result summary", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: { kind: "coverage", version: 1, message: "ok" },
+      usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0, spawnCount: 0 }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const output = logs.join("\n");
+    // "Result: object · kind, version" is a shape dump: the outcome must be stated outright.
+    expect(output).toContain("Harness passed");
+    expect(output).not.toContain("coverage");
+  });
+
   it("prints a concise harness result without dumping snapshots or internal agent stderr", async () => {
     const logs: string[] = [];
     harnessMocks.runHarnessPairMock.mockResolvedValue({

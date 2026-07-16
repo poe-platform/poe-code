@@ -138,6 +138,69 @@ describe("memory command", () => {
     expect(memoryModuleMocks.openMemoryMock).not.toHaveBeenCalled();
   });
 
+  it("frames list, search, lint, status and write output through the design-system logger", async () => {
+    const logs: string[] = [];
+    const container = createContainer(logs);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]:
+        "---\ndescription: First page\nsources:\n  - path: src/example.ts\n---\nalpha match\n",
+      "/repo/src/example.ts": "const x = 1;\n"
+    });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "list"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "search", "match"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "status"]);
+    await program.parseAsync([
+      "node", "cli", "--yes", "memory", "write", "one", "--reason", "rewrite", "--content", "Fresh\n"
+    ]);
+
+    // Every one of these commands must go through the logger, never raw stdout.
+    expect(writeSpy).not.toHaveBeenCalled();
+
+    const output = logs.join("\n");
+    expect(logs).toContain("memory list");
+    expect(output).toContain("one.md");
+    expect(output).toContain("First page");
+    expect(logs).toContain("memory search");
+    expect(output).toContain("alpha match");
+    expect(logs).toContain("memory status");
+    expect(output).toMatch(/Pages: 1/);
+    // The ratio is meaningless without a gloss of what it compares.
+    expect(output).toMatch(/source tokens/i);
+    expect(output).toMatch(/Wrote .*one\.md/);
+
+    writeSpy.mockRestore();
+  });
+
+  it("frames memory lint results through the design-system logger", async () => {
+    const logs: string[] = [];
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      auditClaims: vi.fn().mockResolvedValue([{ page: "pages/one.md", issues: ["Missing source"] }])
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer(logs));
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "lint"]);
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(logs).toContain("memory lint");
+    const output = logs.join("\n");
+    expect(output).toContain("pages/one.md");
+    expect(output).toContain("Missing source");
+
+    writeSpy.mockRestore();
+  });
+
   it("refuses to list pages when memory is not initialized", async () => {
     const container = createContainer();
     const program = createBaseProgram();
@@ -189,7 +252,8 @@ describe("memory command", () => {
   });
 
   it("lists pages with descriptions", async () => {
-    const container = createContainer();
+    const logs: string[] = [];
+    const container = createContainer(logs);
     const program = createBaseProgram();
     registerMemoryCommand(program, container);
 
@@ -200,17 +264,16 @@ describe("memory command", () => {
       [`${memoryRoot}/pages/two.md`]: "# Two\n"
     });
 
-    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-
     await program.parseAsync(["node", "cli", "--yes", "memory", "list"]);
 
-    expect(writeSpy).toHaveBeenCalledWith("INDEX.md\n");
-    expect(writeSpy).toHaveBeenCalledWith("LOG.md\n");
-    expect(writeSpy).toHaveBeenCalledWith("one.md — First page\n");
-    expect(writeSpy).toHaveBeenCalledWith("two.md\n");
+    const output = logs.join("\n");
+    expect(output).toContain("INDEX.md");
+    expect(output).toContain("LOG.md");
+    expect(output).toContain("one.md");
+    expect(output).toContain("First page");
+    expect(output).toContain("two.md");
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
-    writeSpy.mockRestore();
   });
 
   it("shows a page by relative path", async () => {
@@ -316,7 +379,8 @@ describe("memory command", () => {
   });
 
   it("searches memory pages", async () => {
-    const container = createContainer();
+    const logs: string[] = [];
+    const container = createContainer(logs);
     const program = createBaseProgram();
     registerMemoryCommand(program, container);
 
@@ -327,15 +391,15 @@ describe("memory command", () => {
       [`${memoryRoot}/pages/two.md`]: "match again\n"
     });
 
-    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-
     await program.parseAsync(["node", "cli", "--yes", "memory", "search", "match"]);
 
-    expect(writeSpy).toHaveBeenCalledWith("one.md:2: beta match\n");
-    expect(writeSpy).toHaveBeenCalledWith("two.md:1: match again\n");
+    const output = logs.join("\n");
+    expect(output).toContain("one.md");
+    expect(output).toContain("beta match");
+    expect(output).toContain("two.md");
+    expect(output).toContain("match again");
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
-    writeSpy.mockRestore();
   });
 
   it("registers the documented authoring and retrieval commands", () => {
@@ -372,8 +436,9 @@ describe("memory command", () => {
       auditClaims: vi.fn().mockResolvedValue([{ page: "pages/one.md", issues: ["Missing source"] }])
     };
     memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const logs: string[] = [];
     const program = createBaseProgram();
-    registerMemoryCommand(program, createContainer());
+    registerMemoryCommand(program, createContainer(logs));
     const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
     await program.parseAsync(["node", "cli", "--yes", "memory", "query", "what?", "--budget", "256"]);
@@ -385,7 +450,8 @@ describe("memory command", () => {
     expect(handle.auditClaims).toHaveBeenCalledWith({ repoRoot: cwd });
     expect(writeSpy).toHaveBeenCalledWith("Known.\n");
     expect(writeSpy).toHaveBeenCalledWith("Page.\n");
-    expect(writeSpy).toHaveBeenCalledWith("pages/one.md: Missing source\n");
+    expect(logs.join("\n")).toContain("pages/one.md");
+    expect(logs.join("\n")).toContain("Missing source");
     writeSpy.mockRestore();
   });
 
@@ -557,7 +623,8 @@ describe("memory command", () => {
   });
 
   it("shows token output by default and supports --no-tokens", async () => {
-    const container = createContainer();
+    const logs: string[] = [];
+    const container = createContainer(logs);
     const program = createBaseProgram();
     registerMemoryCommand(program, container);
 
@@ -569,20 +636,16 @@ describe("memory command", () => {
       "/repo/src/example.ts": "const x = 1;\n"
     });
 
-    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-
     await program.parseAsync(["node", "cli", "--yes", "memory", "status"]);
-    expect(writeSpy).toHaveBeenCalledWith(expect.stringMatching(/tokens/i));
+    expect(logs.join("\n")).toMatch(/tokens/i);
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledTimes(1);
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
 
-    writeSpy.mockClear();
+    logs.length = 0;
     await program.parseAsync(["node", "cli", "--yes", "memory", "status", "--no-tokens"]);
-    expect(writeSpy).not.toHaveBeenCalledWith(expect.stringMatching(/tokens/i));
+    expect(logs.join("\n")).not.toMatch(/tokens/i);
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledTimes(2);
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledTimes(2);
-
-    writeSpy.mockRestore();
   });
 
   it("reports memory cache status", async () => {

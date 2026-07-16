@@ -17,6 +17,12 @@ export function registerMemoryMcpCommand(program: Command, container: CliContain
     .action(async (options: { allowWrites?: boolean; printMcpConfig?: boolean }) => {
       if (options.printMcpConfig === true) {
         process.stdout.write(`${printMcpConfig()}\n`);
+        // Guidance goes to stderr so the snippet stays pasteable when stdout is piped.
+        if (process.stdout.isTTY === true) {
+          process.stderr.write(
+            'Merge this block into your MCP client config, or run "poe-code memory install --agent <agent>" to write it for you.\n'
+          );
+        }
         return;
       }
 

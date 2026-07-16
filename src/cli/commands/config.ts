@@ -10,7 +10,7 @@ import {
   type ConfigDocument,
   type EditTargetOptions
 } from "@poe-code/poe-code-config";
-import { text } from "toolcraft-design";
+import { getTheme, renderTable, text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { knownConfigScopes } from "../../services/config.js";
 import {
@@ -19,6 +19,10 @@ import {
   resolveMergedDocument,
   shlexQuote
 } from "./shared.js";
+import { jsonOptionDescription, writeJson, type JsonCommandOptions } from "./json-output.js";
+
+/** Settings nested deeper than this are summarized; --json carries the full documents. */
+const CONFIG_SUMMARY_MAX_DEPTH = 2;
 
 const REDACTED_CONFIG_VALUE = "<redacted>";
 const SENSITIVE_CONFIG_KEY_NAMES = new Set([
@@ -50,8 +54,9 @@ export function registerConfigCommand(program: Command, container: CliContainer)
   config
     .command("show")
     .description("Show config inputs and the merged result.")
-    .action(async () => {
-      await executeConfigShow(program, container);
+    .option("--json", jsonOptionDescription)
+    .action(async (options: JsonCommandOptions) => {
+      await executeConfigShow(program, container, options);
     });
 
   config
@@ -106,14 +111,32 @@ async function executeConfigInfo(program: Command, container: CliContainer): Pro
   ]);
 }
 
-async function executeConfigShow(program: Command, container: CliContainer): Promise<void> {
+async function executeConfigShow(
+  program: Command,
+  container: CliContainer,
+  options: JsonCommandOptions = {}
+): Promise<void> {
   const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(container, flags, "config:show");
   const readConfigDocument = flags.dryRun ? readDocumentReadonly : readDocument;
   const globalDocument = await readConfigDocument(container.fs, container.env.configPath);
   const projectDocument = await readConfigDocument(container.fs, container.env.projectConfigPath);
   const envOverrides = collectEnvOverrides(knownConfigScopes, container.env.variables);
   const resolvedDocument = await resolveMergedDocument(container, { readOnly: flags.dryRun });
+
+  if (options.json === true) {
+    writeJson({
+      global: { path: container.env.configPath, document: redactConfigDocument(globalDocument) },
+      project: {
+        path: container.env.projectConfigPath,
+        document: redactConfigDocument(projectDocument)
+      },
+      env: envOverrides.entries.map(redactEnvEntry),
+      resolved: redactConfigDocument(resolvedDocument)
+    });
+    return;
+  }
+
+  const resources = createExecutionResources(container, flags, "config:show");
 
   resources.logger.intro("config show");
   resources.logger.info(
@@ -124,6 +147,9 @@ async function executeConfigShow(program: Command, container: CliContainer): Pro
       formatDocumentSection("Resolved (merged)", undefined, resolvedDocument)
     ].join("\n\n")
   );
+  resources.logger.nextSteps([
+    'Run "poe-code utils config show --json" for the full config documents.'
+  ]);
 }
 
 async function executeConfigInit(program: Command, container: CliContainer): Promise<void> {
@@ -185,11 +211,51 @@ function formatDocumentSection(
   document: ConfigDocument
 ): string {
   const headingText = filePath ? `${title} (${filePath})` : title;
-  const displayDocument = redactConfigDocument(document);
   const body = Object.keys(document).length === 0
     ? text.muted("(empty)")
-    : JSON.stringify(displayDocument, null, 2);
+    : renderTable({
+        theme: getTheme(),
+        columns: [
+          { name: "Setting", title: "Setting", alignment: "left", maxLen: 44 },
+          { name: "Value", title: "Value", alignment: "left", maxLen: 60 }
+        ],
+        rows: flattenConfigRows(redactConfigDocument(document))
+      });
   return `${text.heading(`── ${headingText} ──`)}\n${body}`;
+}
+
+/** Flattens a redacted document into dotted Setting/Value rows, summarizing deep branches. */
+function flattenConfigRows(
+  value: unknown,
+  prefix = "",
+  depth = 0
+): Array<Record<string, string>> {
+  if (value === null || typeof value !== "object") {
+    return [{ Setting: prefix, Value: String(value) }];
+  }
+
+  if (Array.isArray(value)) {
+    return [{ Setting: prefix, Value: `${value.length} ${value.length === 1 ? "item" : "items"}` }];
+  }
+
+  const entries = Object.entries(value);
+  if (entries.length === 0) {
+    return [{ Setting: prefix, Value: "(empty)" }];
+  }
+
+  if (depth >= CONFIG_SUMMARY_MAX_DEPTH) {
+    const keys = entries.map(([key]) => key);
+    return [
+      {
+        Setting: prefix,
+        Value: `${keys.length} ${keys.length === 1 ? "key" : "keys"}: ${keys.join(", ")}`
+      }
+    ];
+  }
+
+  return entries.flatMap(([key, entryValue]) =>
+    flattenConfigRows(entryValue, prefix ? `${prefix}.${key}` : key, depth + 1)
+  );
 }
 
 function formatEnvSection(entries: string[]): string {

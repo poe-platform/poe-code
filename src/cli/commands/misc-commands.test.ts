@@ -1,6 +1,7 @@
 import { beforeEach, describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command, CommanderError } from "commander";
+import { stripVTControlCharacters } from "node:util";
 import { createProgram } from "../program.js";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer } from "../container.js";
@@ -461,22 +462,96 @@ describe("config command", () => {
 
     await program.parseAsync(["node", "cli", "utils", "config", "show"]);
 
-    const output = logs.join("\n");
+    const output = stripVTControlCharacters(logs.join("\n"));
     expect(output).toContain("Global config");
     expect(output).toContain("Project config");
     expect(output).toContain("Environment variable overrides");
     expect(output).toContain("Resolved (merged)");
-    expect(output).toContain('"apiKey": "<redacted>"');
-    expect(output).toContain('"defaultAgent": "claude"');
-    expect(output).toContain('"defaultAgent": "codex:gpt-5.4"');
+    expect(output).toContain("core.apiKey");
+    expect(output).toContain("<redacted>");
+    expect(output).toContain("core.defaultAgent");
+    expect(output).toContain("claude");
+    expect(output).toContain("codex:gpt-5.4");
     expect(output).toContain("POE_API_KEY = <redacted>");
     expect(output).toContain("POE_DEFAULT_AGENT = opencode:o4-mini");
-    expect(output).toContain('"defaultAgent": "opencode:o4-mini"');
-    expect(output).toContain('"poeBaseUrl": "https://global.example.test"');
-    expect(output).toContain('"default": "anthropic/claude-sonnet-4.5"');
+    expect(output).toContain("opencode:o4-mini");
+    expect(output).toContain("core.poeBaseUrl");
+    expect(output).toContain("https://global.example.test");
+    expect(output).toContain("models.default");
+    expect(output).toContain("anthropic/claude-sonnet-4.5");
     expect(output).not.toContain("sk-global");
     expect(output).not.toContain("sk-project");
     expect(output).not.toContain("sk-env");
+  });
+
+  it("summarizes resolved config as scannable rows instead of a nested JSON dump", async () => {
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify({
+        core: { apiKey: "sk-project", defaultAgent: "codex" },
+        configured_services: {
+          claude: { model: "Claude-Sonnet-4.5", baseUrl: "https://example.test" }
+        }
+      })}\n`,
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "show"]);
+
+    const output = stripVTControlCharacters(logs.join("\n"));
+    // The nested JSON dump is machine output and belongs behind --json.
+    expect(output).not.toContain('"configured_services": {');
+    expect(output).not.toContain('"defaultAgent": "codex"');
+    expect(output).toContain("core.defaultAgent");
+    expect(output).toContain("codex");
+    expect(output).toContain("configured_services.claude");
+    expect(output).toContain("<redacted>");
+    expect(output).not.toContain("sk-project");
+    expect(output).toContain("--json");
+  });
+
+  it("prints the full redacted config document with --json", async () => {
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify({ core: { apiKey: "sk-project", defaultAgent: "codex" } })}\n`,
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-env" } },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "show", "--json"]);
+
+    const stdout = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    writeSpy.mockRestore();
+    const payload = JSON.parse(stdout) as {
+      project: { document: { core: { apiKey: string; defaultAgent: string } } };
+      resolved: Record<string, unknown>;
+    };
+
+    expect(payload.project.document.core.defaultAgent).toBe("codex");
+    expect(payload.project.document.core.apiKey).toBe("<redacted>");
+    expect(payload.resolved).toBeDefined();
+    expect(stdout).not.toContain("sk-project");
+    expect(stdout).not.toContain("sk-env");
   });
 
   it("redacts secret-bearing plugin headers when showing config", async () => {
@@ -516,19 +591,28 @@ describe("config command", () => {
     });
     const program = createBaseProgram();
     registerUtilsCommand(program, container);
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+    // --json is the surface that prints whole documents, so redaction must hold there.
+    await program.parseAsync(["node", "cli", "utils", "config", "show", "--json"]);
+    const jsonOutput = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    writeSpy.mockRestore();
 
     await program.parseAsync(["node", "cli", "utils", "config", "show"]);
+    const humanOutput = stripVTControlCharacters(logs.join("\n"));
 
-    const output = logs.join("\n");
-    expect(output).toContain('"Authorization": "<redacted>"');
-    expect(output).toContain('"proxy-authorization": "<redacted>"');
-    expect(output).toContain('"x-api-key": "<redacted>"');
-    expect(output).toContain('"x-auth-token": "<redacted>"');
-    expect(output).toContain('"x-trace-id": "trace-123"');
-    expect(output).not.toContain("sk-header-secret");
-    expect(output).not.toContain("proxy-secret");
-    expect(output).not.toContain("sk-proxy-secret");
-    expect(output).not.toContain("token-secret");
+    expect(jsonOutput).toContain('"Authorization":"<redacted>"');
+    expect(jsonOutput).toContain('"proxy-authorization":"<redacted>"');
+    expect(jsonOutput).toContain('"x-api-key":"<redacted>"');
+    expect(jsonOutput).toContain('"x-auth-token":"<redacted>"');
+    expect(jsonOutput).toContain('"x-trace-id":"trace-123"');
+
+    for (const output of [jsonOutput, humanOutput]) {
+      expect(output).not.toContain("sk-header-secret");
+      expect(output).not.toContain("proxy-secret");
+      expect(output).not.toContain("sk-proxy-secret");
+      expect(output).not.toContain("token-secret");
+    }
   });
 
   it("shows empty sections when config files are missing", async () => {
@@ -958,25 +1042,24 @@ describe("root command", () => {
     expect(plainOutput).toContain(program.description());
   });
 
-  it("omits the raw [command] placeholder from parent command help usage", async () => {
-    // Scoped to the usage line: commander always lists its own `help [command]`
-    // row under Commands, which is not the placeholder this guards against.
+  it("names the required subcommand in parent command help usage", async () => {
+    // Scoped to the usage line: a group requires a subcommand, so it says <command>
+    // rather than commander's raw [command] placeholder or a bare [options].
     const usageLineOf = (help: string): string =>
       help.split("\n").find((line) => line.startsWith("Usage:")) ?? "";
 
     const usageHelp = await renderHelp(["usage", "--help"]);
-    expect(usageLineOf(usageHelp)).toBe("Usage: poe-code usage [options]");
+    expect(usageLineOf(usageHelp)).toBe("Usage: poe-code usage <command>");
 
     const launchHelp = await renderHelp(["launch", "--help"]);
-    expect(usageLineOf(launchHelp)).toBe("Usage: poe-code launch [options]");
+    expect(usageLineOf(launchHelp)).toBe("Usage: poe-code launch <command>");
 
     const utilsConfigHelp = await renderHelp(["utils", "config", "--help"]);
-    expect(usageLineOf(utilsConfigHelp)).toBe("Usage: poe-code utils config [options]");
+    expect(usageLineOf(utilsConfigHelp)).toBe("Usage: poe-code utils config <command>");
 
+    // journal runs standalone on a doc, so it advertises its own argument, not a subcommand.
     const experimentJournalHelp = await renderHelp(["experiment", "journal", "--help"]);
-    expect(usageLineOf(experimentJournalHelp)).toBe(
-      "Usage: poe-code experiment journal [options] [doc]"
-    );
+    expect(usageLineOf(experimentJournalHelp)).toBe("Usage: poe-code experiment journal [doc]");
   });
 
   it("shows markdown reader subcommands in plan help", async () => {

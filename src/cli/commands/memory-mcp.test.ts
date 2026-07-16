@@ -41,6 +41,32 @@ describe("memory-mcp command", () => {
     expect(memoryMocks.startMemoryMcpServer).not.toHaveBeenCalled();
   });
 
+  it("hints where to paste the config on a TTY without contaminating piped stdout", async () => {
+    const program = new Command().exitOverride();
+    const container = { env: { cwd: "/repo", variables: {}, configPath: "/home/config", projectConfigPath: "/repo/.poe-code/config.json" }, fs: {} } as never;
+    registerMemoryMcpCommand(program, container);
+    const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const errorWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const isTTY = process.stdout.isTTY;
+
+    try {
+      process.stdout.isTTY = true;
+      await program.parseAsync(["node", "cli", "memory-mcp", "--print-mcp-config"]);
+
+      // stdout stays the pasteable snippet; guidance goes to stderr.
+      expect(write).toHaveBeenCalledWith('{"mcpServers":{}}\n');
+      expect(errorWrite).toHaveBeenCalledWith(expect.stringMatching(/memory install/));
+
+      errorWrite.mockClear();
+      process.stdout.isTTY = false;
+      await program.parseAsync(["node", "cli", "memory-mcp", "--print-mcp-config"]);
+
+      expect(errorWrite).not.toHaveBeenCalled();
+    } finally {
+      process.stdout.isTTY = isTTY;
+    }
+  });
+
   it("starts the stdio server with configured writes", async () => {
     const listen = vi.fn().mockResolvedValue(undefined);
     memoryMocks.startMemoryMcpServer.mockResolvedValue({ server: { listen } });

@@ -292,10 +292,34 @@ tasks:
 
       TDD with memfs; no real files. Where memfs disagrees with node, the node behavior wins and
       the divergence is recorded per the fs-node-truth-fixture task.
+
+      Recorded outcome: the module needed no change — mkdir/rm/rmdir are pure passthrough and
+      already surface node's answer untouched. The work was the assertions, and memfs turned out
+      unable to ground 10 of the 22 cases, including every headline bullet. The recorded gaps
+      (darwin, node v22.22.2, umask 0o022) now live as data in the `mkdir, rm, and rmdir node
+      semantics` block of packages/safejs/src/modules/fs.test.ts for fs-node-truth-fixture to lift:
+
+      - mkdir recursive returns the requested path, not the first directory created
+      - mkdir recursive on an existing *file* resolves instead of `EEXIST`
+      - mkdir blames the missing parent / file segment rather than the path it was given
+      - rm blames `stat` where node's rm `lstat`s first
+      - rm on a directory raises a plain `Error` with the code prefixed to node's message, where
+        node raises a `SystemError` (`ERR_FS_EISDIR`, a positive errno of 21)
+      - rm on a symlink to a directory follows the link instead of unlinking it
+      - memfs applies no umask to mkdir's mode
+      - memfs sets neither `errno` nor `syscall` on any error
+
+      Two consequences worth carrying forward. First, a memfs-only assertion of the headline case
+      is unfalsifiable: memfs already returns mkdir's requested path, so a module that returned the
+      requested path passes. Mutation-testing proved this, so each case is additionally driven over
+      a reference that replays node's recorded answer — that is what makes `errno`/`syscall` and the
+      first-created-directory assertable with no real disk, and it catches that mutation. Second,
+      the pre-existing "returns the implementation's result untouched" test asserts memfs's wrong
+      mkdir answer; it is honestly named and proves transparency, not node parity, so it stays.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: fs-symlink-edges

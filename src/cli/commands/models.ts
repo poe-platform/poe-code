@@ -140,14 +140,32 @@ function normalizeEndpoint(endpoint: string): string {
 function preprocessModels(models: ModelEntry[]): {
   models: PreprocessedModelEntry[];
   availableEndpoints: string[];
+  availableProviders: string[];
+  availableFeatures: string[];
+  availableInputModalities: string[];
+  availableOutputModalities: string[];
 } {
   const availableEndpoints = new Set<string>();
+  const availableProviders = new Set<string>();
+  const availableFeatures = new Set<string>(["reasoning"]);
+  const availableInputModalities = new Set<string>();
+  const availableOutputModalities = new Set<string>();
   const preprocessedModels = models.map((model) => {
     const normalizedSupportedEndpoints = (model.supported_endpoints ?? [])
       .map(normalizeEndpoint);
 
     for (const endpoint of normalizedSupportedEndpoints) {
       availableEndpoints.add(endpoint);
+    }
+    availableProviders.add(model.owned_by.toLowerCase());
+    for (const feature of model.supported_features ?? []) {
+      availableFeatures.add(feature);
+    }
+    for (const modality of model.architecture?.input_modalities ?? []) {
+      availableInputModalities.add(modality);
+    }
+    for (const modality of model.architecture?.output_modalities ?? []) {
+      availableOutputModalities.add(modality);
     }
 
     return {
@@ -158,7 +176,11 @@ function preprocessModels(models: ModelEntry[]): {
 
   return {
     models: preprocessedModels,
-    availableEndpoints: Array.from(availableEndpoints).sort()
+    availableEndpoints: Array.from(availableEndpoints).sort(),
+    availableProviders: Array.from(availableProviders).sort(),
+    availableFeatures: Array.from(availableFeatures).sort(),
+    availableInputModalities: Array.from(availableInputModalities).sort(),
+    availableOutputModalities: Array.from(availableOutputModalities).sort()
   };
 }
 
@@ -198,6 +220,19 @@ function normalizeRequiredFilter(name: string, value: string): string {
     throw new ValidationError(`Invalid ${name} value: must be non-empty.`);
   }
   return normalized;
+}
+
+function unknownFilterError(flag: string, value: string, known: string[]): ValidationError {
+  const prefix = value.slice(0, 3);
+  const suggestions = known.filter((candidate) =>
+    candidate.includes(value) ||
+    value.includes(candidate) ||
+    (prefix.length === 3 && candidate.startsWith(prefix))
+  );
+  const hint = suggestions.length > 0 ? ` Did you mean: ${suggestions.join(", ")}?` : "";
+  return new ValidationError(
+    `Unknown ${flag} value "${value}".${hint} Known ${flag} values: ${known.length > 0 ? known.join(", ") : "none"}`
+  );
 }
 
 function parseModalityFilter(name: string, value: string): string[] {
@@ -321,6 +356,18 @@ export function registerModelsCommand(
 
       try {
         const sinceDuration = parseSinceDuration(commandOptions.since);
+        const providerFilter = commandOptions.provider !== undefined
+          ? normalizeRequiredFilter("--provider", commandOptions.provider)
+          : undefined;
+        const modelFilter = commandOptions.model !== undefined
+          ? normalizeRequiredFilter("--model", commandOptions.model)
+          : undefined;
+        const searchFilter = commandOptions.search !== undefined
+          ? normalizeRequiredFilter("--search", commandOptions.search)
+          : undefined;
+        const endpointFilter = commandOptions.endpoint !== undefined
+          ? normalizeEndpoint(normalizeRequiredFilter("--endpoint", commandOptions.endpoint))
+          : undefined;
         const featureFilter = commandOptions.feature !== undefined
           ? normalizeRequiredFilter("--feature", commandOptions.feature)
           : undefined;
@@ -361,48 +408,69 @@ export function registerModelsCommand(
           });
 
         validateModelsResponse(result.data);
-        const { models: allModels, availableEndpoints } = preprocessModels(result.data);
+        const {
+          models: allModels,
+          availableEndpoints,
+          availableProviders,
+          availableFeatures,
+          availableInputModalities,
+          availableOutputModalities
+        } = preprocessModels(result.data);
 
         if (!rawView && allModels.length === 0) {
           resources.logger.info("No models found.");
           return;
         }
 
+        if (providerFilter !== undefined &&
+          !availableProviders.some((provider) => provider.includes(providerFilter))) {
+          throw unknownFilterError("--provider", providerFilter, availableProviders);
+        }
+        if (featureFilter !== undefined && !availableFeatures.includes(featureFilter)) {
+          throw unknownFilterError("--feature", featureFilter, availableFeatures);
+        }
+        for (const modality of inputFilter ?? []) {
+          if (!availableInputModalities.includes(modality)) {
+            throw unknownFilterError("--input", modality, availableInputModalities);
+          }
+        }
+        for (const modality of outputFilter ?? []) {
+          if (!availableOutputModalities.includes(modality)) {
+            throw unknownFilterError("--output", modality, availableOutputModalities);
+          }
+        }
+
         let filtered = allModels;
-        if (commandOptions.provider) {
-          const term = commandOptions.provider.toLowerCase();
+        if (providerFilter !== undefined) {
           filtered = filtered.filter((m) =>
-            m.owned_by.toLowerCase().includes(term)
+            m.owned_by.toLowerCase().includes(providerFilter)
           );
         }
-        if (commandOptions.model) {
-          const term = commandOptions.model.toLowerCase();
+        if (modelFilter !== undefined) {
           filtered = filtered.filter((m) =>
-            m.id.toLowerCase() === term
+            m.id.toLowerCase() === modelFilter
           );
         }
-        if (commandOptions.search) {
-          const term = commandOptions.search.toLowerCase();
+        if (searchFilter !== undefined) {
           filtered = filtered.filter((m) =>
-            m.id.toLowerCase().includes(term) ||
-            m.owned_by.toLowerCase().includes(term)
+            m.id.toLowerCase().includes(searchFilter) ||
+            m.owned_by.toLowerCase().includes(searchFilter)
           );
         }
         if (featureFilter !== undefined) {
           filtered = filtered.filter((m) => hasFeature(m, featureFilter));
         }
-        if (commandOptions.endpoint) {
-          const endpoint = normalizeEndpoint(commandOptions.endpoint);
-          if (!availableEndpoints.includes(endpoint)) {
+        if (endpointFilter !== undefined) {
+          if (!availableEndpoints.includes(endpointFilter)) {
             const availableLabel = availableEndpoints.length > 0
               ? availableEndpoints.join(", ")
               : "none";
             throw new ValidationError(
-              `Unsupported endpoint "${endpoint}". Available endpoints: ${availableLabel}`
+              `Unsupported endpoint "${endpointFilter}". Available endpoints: ${availableLabel}`
             );
           }
           filtered = filtered.filter((m) =>
-            m.normalized_supported_endpoints.includes(endpoint)
+            m.normalized_supported_endpoints.includes(endpointFilter)
           );
         }
         if (commandOptions.tools) {
@@ -420,6 +488,7 @@ export function registerModelsCommand(
             return outputFilter.every((r) => modalities.includes(r));
           });
         }
+        const beforeSinceCount = filtered.length;
         if (sinceDuration !== undefined) {
           const cutoff = Date.now() - sinceDuration;
           filtered = filtered.filter((m) => m.created >= cutoff);
@@ -430,7 +499,11 @@ export function registerModelsCommand(
         }
 
         if (!rawView && filtered.length === 0) {
-          resources.logger.info("No models match the given filters.");
+          resources.logger.info(
+            sinceDuration !== undefined && beforeSinceCount > 0
+              ? `No models added in the last ${commandOptions.since} (of ${beforeSinceCount} total).`
+              : "No models match the given filters."
+          );
           return;
         }
 

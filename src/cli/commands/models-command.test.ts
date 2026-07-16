@@ -243,6 +243,136 @@ describe("models command", () => {
     expect(output).not.toContain("openai/gpt-5");
   });
 
+  it("rejects empty --provider, --model, --search, and --endpoint values before fetching", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })]
+      })
+    });
+
+    for (const flag of ["--provider", "--model", "--search", "--endpoint"]) {
+      await expect(
+        runModels({ fs, httpClient, logs, args: [flag, ""] })
+      ).rejects.toThrow(`Invalid ${flag} value: must be non-empty.`);
+    }
+
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty --model in raw view instead of dumping the whole catalog", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [createModelEntry({ id: "claude-opus-4.7", owned_by: "Anthropic" })]
+      })
+    });
+
+    await expect(
+      runModelsWithStdout({ fs, httpClient, args: ["--view", "raw", "--model", ""] })
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects unknown --provider against catalog-derived providers with suggestions", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" }),
+      createModelEntry({ id: "gpt-5", owned_by: "OpenAI" })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--provider", "not-a-provider"] })
+    ).rejects.toThrow(
+      'Unknown --provider value "not-a-provider". Known --provider values: anthropic, openai'
+    );
+
+    logs = [];
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--provider", "anthropik"] })
+    ).rejects.toThrow('Did you mean: anthropic?');
+  });
+
+  it("rejects unknown --feature against catalog-derived features with suggestions", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "with-tools", owned_by: "A", supported_features: ["tools"] }),
+      createModelEntry({ id: "searcher", owned_by: "B", supported_features: ["web_search"] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--feature", "bogus"] })
+    ).rejects.toThrow(
+      'Unknown --feature value "bogus". Known --feature values: reasoning, tools, web_search'
+    );
+
+    logs = [];
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--feature", "tool"] })
+    ).rejects.toThrow('Did you mean: tools?');
+  });
+
+  it("rejects unknown --output modality such as json", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "gen-image",
+        owned_by: "A",
+        architecture: { input_modalities: ["text"], output_modalities: ["image", "text"] }
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--output", "json"] })
+    ).rejects.toThrow(
+      'Unknown --output value "json". Known --output values: image, text'
+    );
+  });
+
+  it("rejects unknown --input modality", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "multimodal",
+        owned_by: "A",
+        architecture: { input_modalities: ["text", "image"], output_modalities: ["text"] }
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--input", "text,bogus"] })
+    ).rejects.toThrow(
+      'Unknown --input value "bogus". Known --input values: image, text'
+    );
+  });
+
   it("filters by --model exact match (case-insensitive)", async () => {
     fs = await createConfigVolume("test-key");
     const models = [
@@ -809,7 +939,7 @@ describe("models command", () => {
       json: async () => ({ object: "list", data: models })
     });
 
-    await runModels({ fs, httpClient, logs, args: ["--provider", "xyz"] });
+    await runModels({ fs, httpClient, logs, args: ["--model", "claude-opus-9"] });
 
     expect(logs.some((m) => m.includes("No models match the given filters."))).toBe(true);
   });
@@ -1103,10 +1233,11 @@ describe("models command", () => {
     expect(output).not.toContain("b/old");
   });
 
-  it("shows no-match message when --since excludes all models", async () => {
+  it("explains the time window when --since excludes all models", async () => {
     fs = await createConfigVolume("test-key");
     const models = [
-      createModelEntry({ id: "old", owned_by: "A", created: 1600000000000 })
+      createModelEntry({ id: "old", owned_by: "A", created: 1600000000000 }),
+      createModelEntry({ id: "older", owned_by: "B", created: 1500000000000 })
     ];
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
@@ -1116,7 +1247,8 @@ describe("models command", () => {
 
     await runModels({ fs, httpClient, logs, args: ["--since", "1d"] });
 
-    expect(logs.some((m) => m.includes("No models match the given filters."))).toBe(true);
+    expect(logs.some((m) => m.includes("No models added in the last 1d (of 2 total)."))).toBe(true);
+    expect(logs.some((m) => m.includes("No models match the given filters."))).toBe(false);
   });
 
   it("--view pricing shows pricing columns without features", async () => {
@@ -1307,7 +1439,7 @@ describe("models command", () => {
     const output = await runModelsWithStdout({
       fs,
       httpClient,
-      args: ["--view", "raw", "--provider", "openai"]
+      args: ["--view", "raw", "--model", "claude-opus-9"]
     });
 
     expect(yamlParse(output)).toEqual([]);

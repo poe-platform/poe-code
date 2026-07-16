@@ -82,7 +82,7 @@ export interface SpawnOptions {
   cwd?: string;
   /** Model identifier override */
   model?: string;
-  /** Permission mode: yolo | auto | edit | read (default: yolo) */
+  /** Permission mode: yolo | auto | edit | read (default: edit; yolo must be requested explicitly) */
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];

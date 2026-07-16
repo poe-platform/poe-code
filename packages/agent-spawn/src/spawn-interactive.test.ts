@@ -83,7 +83,7 @@ describe("spawnInteractive", () => {
   it("builds positional prompt args for claude-code", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    const result = await spawnInteractive("claude-code", { prompt: "test prompt" });
+    const result = await spawnInteractive("claude-code", { prompt: "test prompt", mode: "yolo" });
 
     expect(result).toEqual({ stdout: "", stderr: "", exitCode: 0 });
     const [command, args] = spawnMock.mock.calls[0];
@@ -98,7 +98,7 @@ describe("spawnInteractive", () => {
   it("builds positional prompt args for codex", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("codex", { prompt: "test prompt" });
+    await spawnInteractive("codex", { prompt: "test prompt", mode: "yolo" });
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("codex");
@@ -127,7 +127,7 @@ describe("spawnInteractive", () => {
   it("builds flag-based prompt args for kimi", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("kimi", { prompt: "test prompt" });
+    await spawnInteractive("kimi", { prompt: "test prompt", mode: "yolo" });
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("kimi");
@@ -142,7 +142,7 @@ describe("spawnInteractive", () => {
   it("builds goose interactive args with the session subcommand before the prompt", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("goose", { prompt: "test prompt" });
+    await spawnInteractive("goose", { prompt: "test prompt", mode: "yolo" });
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("goose");
@@ -181,7 +181,7 @@ describe("spawnInteractive", () => {
   it("includes model flag when model is provided", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("claude-code", { prompt: "test", model: "sonnet" });
+    await spawnInteractive("claude-code", { prompt: "test", model: "sonnet", mode: "yolo" });
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
@@ -244,7 +244,7 @@ describe("spawnInteractive", () => {
   it("omits prompt args when prompt is empty", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("claude-code", { prompt: "" });
+    await spawnInteractive("claude-code", { prompt: "", mode: "yolo" });
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
@@ -269,7 +269,7 @@ describe("spawnInteractive", () => {
   it("appends extra args from options", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("codex", { prompt: "test", args: ["--extra", "flag"] });
+    await spawnInteractive("codex", { prompt: "test", args: ["--extra", "flag"], mode: "yolo" });
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
@@ -286,6 +286,7 @@ describe("spawnInteractive", () => {
 
     await spawnInteractive("codex", {
       prompt: "test",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",

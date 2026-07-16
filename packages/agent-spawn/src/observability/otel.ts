@@ -1,3 +1,4 @@
+import { DEFAULT_SPAWN_MODE } from "../types.js";
 import type { OtelSink, OtelSpan, SpawnMode, SpawnResult } from "../types.js";
 
 export const noopOtelSink: OtelSink = {
@@ -23,7 +24,7 @@ export function observeAgentSpawn(
 ): Promise<SpawnResult> {
   const span = safeStartSpan(input.otelSink, "agent.spawn", {
     agent: input.agent,
-    mode: input.mode ?? "yolo",
+    mode: input.mode ?? DEFAULT_SPAWN_MODE,
     cwd: input.cwd ?? process.cwd()
   });
   safeAddEvent(span, "prompt", { prompt: input.prompt });

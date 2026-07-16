@@ -759,7 +759,22 @@ describe("spawnAcp", () => {
     await expect(done).resolves.toMatchObject({ exitCode: 0 });
   });
 
-  it("auto-approves permission requests only in yolo mode", async () => {
+  it("auto-approves permission requests only in explicitly requested yolo mode", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+      mode: "yolo"
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClientOptions.autoApprove).toBe(true);
+    expect(lastMockAcpClientOptions.permissionHandler).toBeUndefined();
+  });
+
+  it("does not auto-approve permission requests when no mode is requested", async () => {
     const { events, done } = spawnAcp({
       agentId: "opencode",
       prompt: "test",
@@ -769,8 +784,7 @@ describe("spawnAcp", () => {
     await collect(events);
     await done;
 
-    expect(lastMockAcpClientOptions.autoApprove).toBe(true);
-    expect(lastMockAcpClientOptions.permissionHandler).toBeUndefined();
+    expect(lastMockAcpClientOptions.autoApprove).toBe(false);
   });
 
   it("rejects permission requests in auto mode and emits a permission_rejected event", async () => {
@@ -1744,7 +1758,8 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "codex",
       prompt: "hello from stdin",
-      useStdin: true
+      useStdin: true,
+      mode: "yolo"
     });
 
     await expect(collect(events).then(stripMeta)).resolves.toEqual([
@@ -1787,7 +1802,8 @@ describe("acp/spawnStreaming", () => {
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
-      prompt
+      prompt,
+      mode: "yolo"
     });
 
     await collect(events);
@@ -1895,6 +1911,7 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "codex",
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",

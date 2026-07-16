@@ -8,6 +8,14 @@ export const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
 
 export type SpawnMode = (typeof SPAWN_MODES)[number];
 
+/**
+ * The single source of truth for the permission mode used when a caller does not
+ * ask for one. `edit` is the safe default: it allows edits while keeping the
+ * provider's own permission prompts. `yolo` must always be requested explicitly.
+ * Every agent config is required to define `edit`, so this is always supported.
+ */
+export const DEFAULT_SPAWN_MODE: SpawnMode = "edit";
+
 export type SpawnModeConfig = string[] | { args?: string[]; env?: Record<string, string> };
 
 /**
@@ -38,7 +46,7 @@ export function resolveAgentModeConfig(
   args: string[];
   env?: Record<string, string>;
 } {
-  const selected = mode ?? "yolo";
+  const selected = mode ?? DEFAULT_SPAWN_MODE;
   const modeConfig = config.modes[selected];
   if (modeConfig === undefined) {
     const supported = SPAWN_MODES.filter((name) => config.modes[name] !== undefined);

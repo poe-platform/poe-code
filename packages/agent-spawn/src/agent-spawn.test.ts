@@ -211,10 +211,21 @@ describe("buildSpawnArgs", () => {
     );
   });
 
-  it("builds args with promptFlag + prompt + defaultArgs + modes.yolo by default", () => {
+  it("builds args with promptFlag + prompt + defaultArgs + modes.edit by default", () => {
     const result = buildSpawnArgs("claude-code", { prompt: "test" });
 
     expect(result.binaryName).toBe("claude");
+    expect(result.args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "test",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.edit
+    ]);
+  });
+
+  it("builds args with modes.yolo only when yolo is explicitly requested", () => {
+    const result = buildSpawnArgs("claude-code", { prompt: "test", mode: "yolo" });
+
     expect(result.args).toEqual([
       claudeCodeSpawnConfig.promptFlag,
       "test",
@@ -348,7 +359,7 @@ describe("buildSpawnArgs", () => {
 
   it("redacts prompt arguments from display args without changing execution args", () => {
     const prompt = "investigate api_key=sk-secret";
-    const result = buildSpawnArgs("claude-code", { prompt });
+    const result = buildSpawnArgs("claude-code", { prompt, mode: "yolo" });
 
     expect(result.args).toContain(prompt);
     expect(result.displayArgs).toEqual([
@@ -371,7 +382,7 @@ describe("buildSpawnArgs", () => {
   });
 
   it("includes model flag when model is provided", () => {
-    const result = buildSpawnArgs("codex", { prompt: "hello", model: "o3" });
+    const result = buildSpawnArgs("codex", { prompt: "hello", model: "o3", mode: "yolo" });
 
     expect(result.binaryName).toBe("codex");
     expect(result.args).toEqual([
@@ -415,7 +426,8 @@ describe("buildSpawnArgs", () => {
     const result = buildSpawnArgs("codex", {
       prompt: "continue",
       resumeThreadId: "thread_abc123",
-      useStdin: true
+      useStdin: true,
+      mode: "yolo"
     });
 
     expect(result.args).toEqual([
@@ -433,7 +445,8 @@ describe("buildSpawnArgs", () => {
   it("builds claude-code resume args from resumeThreadId", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "continue",
-      resumeThreadId: "thread_abc123"
+      resumeThreadId: "thread_abc123",
+      mode: "yolo"
     });
 
     expect(result.args).toEqual([
@@ -492,7 +505,8 @@ describe("buildSpawnArgs", () => {
   it("appends extra args after mode args", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "test",
-      args: ["--extra", "arg"]
+      args: ["--extra", "arg"],
+      mode: "yolo"
     });
 
     expect(result.args).toEqual([
@@ -564,7 +578,7 @@ describe("buildSpawnArgs", () => {
   });
 
   it("builds correct args for kimi", () => {
-    const result = buildSpawnArgs("kimi", { prompt: "hello" });
+    const result = buildSpawnArgs("kimi", { prompt: "hello", mode: "yolo" });
 
     expect(result.binaryName).toBe("kimi");
     expect(result.args).toEqual([
@@ -578,7 +592,8 @@ describe("buildSpawnArgs", () => {
   it("builds goose args with the run subcommand before prompt and model flags", () => {
     const result = buildSpawnArgs("goose", {
       prompt: "hello",
-      model: "openai/gpt-5.4"
+      model: "openai/gpt-5.4",
+      mode: "yolo"
     });
 
     expect(result.binaryName).toBe("goose");
@@ -614,7 +629,7 @@ describe("buildSpawnArgs", () => {
   });
 
   it("builds stdin args for claude-code when useStdin is true", () => {
-    const result = buildSpawnArgs("claude-code", { prompt: "test", useStdin: true });
+    const result = buildSpawnArgs("claude-code", { prompt: "test", useStdin: true, mode: "yolo" });
 
     expect(result.args).toEqual([
       claudeCodeSpawnConfig.promptFlag,
@@ -638,7 +653,7 @@ describe("buildSpawnArgs", () => {
   });
 
   it("builds stdin args for codex when useStdin is true", () => {
-    const result = buildSpawnArgs("codex", { prompt: "test", useStdin: true });
+    const result = buildSpawnArgs("codex", { prompt: "test", useStdin: true, mode: "yolo" });
 
     expect(result.args).toEqual([
       codexSpawnConfig.promptFlag,
@@ -651,7 +666,7 @@ describe("buildSpawnArgs", () => {
 
   it("uses stdin args for codex when the prompt contains a null byte", () => {
     const prompt = 'Test "a\0b" literal';
-    const result = buildSpawnArgs("codex", { prompt });
+    const result = buildSpawnArgs("codex", { prompt, mode: "yolo" });
 
     expect(result.args).toEqual([
       codexSpawnConfig.promptFlag,
@@ -686,7 +701,7 @@ describe("buildSpawnArgs", () => {
 
   it("uses stdin args for codex when the prompt exceeds the safe argv byte limit", () => {
     const prompt = "x".repeat(64 * 1024 + 1);
-    const result = buildSpawnArgs("codex", { prompt });
+    const result = buildSpawnArgs("codex", { prompt, mode: "yolo" });
 
     expect(result.args).toEqual([
       codexSpawnConfig.promptFlag,
@@ -743,6 +758,7 @@ describe("buildSpawnArgs", () => {
   it("adds claude-code MCP config as --mcp-config JSON before mode args", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -769,6 +785,7 @@ describe("buildSpawnArgs", () => {
   it("adds codex MCP config as repeated -c TOML overrides before the subcommand", () => {
     const result = buildSpawnArgs("codex", {
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -797,6 +814,7 @@ describe("buildSpawnArgs", () => {
   it("adds kimi MCP config as --mcp-config JSON before mode args", () => {
     const result = buildSpawnArgs("kimi", {
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -821,6 +839,7 @@ describe("buildSpawnArgs", () => {
   it("adds goose MCP config as --with-extension args before the prompt flag", () => {
     const result = buildSpawnArgs("goose", {
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "uvx",
@@ -919,7 +938,8 @@ describe("spawn", () => {
 
     const result = await spawn("claude-code", {
       prompt: "test",
-      args: ["--extra", "arg"]
+      args: ["--extra", "arg"],
+      mode: "yolo"
     });
 
     expect(result).toEqual({ stdout: "ok\n", stderr: "", exitCode: 0 });
@@ -941,7 +961,7 @@ describe("spawn", () => {
       .mocked(spawnChildProcess)
       .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
 
-    await spawn("codex", { prompt: "hello", model: "o3" });
+    await spawn("codex", { prompt: "hello", model: "o3", mode: "yolo" });
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args] = spawnMock.mock.calls[0];
@@ -963,7 +983,8 @@ describe("spawn", () => {
 
     await spawn("claude-code", {
       prompt: "continue",
-      resumeThreadId: "thread_abc123"
+      resumeThreadId: "thread_abc123",
+      mode: "yolo"
     });
 
     const [command, args] = spawnMock.mock.calls[0];
@@ -985,6 +1006,7 @@ describe("spawn", () => {
 
     await spawn("codex", {
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -1070,7 +1092,7 @@ describe("spawn", () => {
       .mocked(spawnChildProcess)
       .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
-    const result = await spawn("codex", { prompt: "hello", cwd, useStdin: true });
+    const result = await spawn("codex", { prompt: "hello", cwd, useStdin: true, mode: "yolo" });
 
     expect(result).toEqual({ stdout: "ok\n", stderr: "", exitCode: 0 });
     expect(spawnMock).toHaveBeenCalledTimes(1);
@@ -1097,7 +1119,7 @@ describe("spawn", () => {
     const child = createMockChildProcess({ stdout: "ok\n", exitCode: 0 });
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(child);
 
-    await spawn("codex", { prompt });
+    await spawn("codex", { prompt, mode: "yolo" });
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [, args, spawnOptions] = spawnMock.mock.calls[0]!;
@@ -1116,7 +1138,7 @@ describe("spawn", () => {
       .mocked(spawnChildProcess)
       .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
-    await spawn("claude-code", { prompt: "hi", useStdin: true });
+    await spawn("claude-code", { prompt: "hi", useStdin: true, mode: "yolo" });
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args, spawnOptions] = spawnMock.mock.calls[0]!;
@@ -1726,7 +1748,7 @@ describe("spawn", () => {
 
     const { events, result } = spawn.retry(
       "codex",
-      { prompt: "hello", cwd: "/repo", otelSink: createRecordingOtelSink(otelEvents) },
+      { prompt: "hello", cwd: "/repo", mode: "yolo", otelSink: createRecordingOtelSink(otelEvents) },
       { maxAttempts: 2, backoffMs: 1 }
     );
 

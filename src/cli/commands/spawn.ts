@@ -10,6 +10,7 @@ import {
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
   supportsSpawnMode,
+  DEFAULT_SPAWN_MODE,
   type HookBridgeOptions,
   type McpSpawnConfig,
   type SpawnMode
@@ -96,7 +97,10 @@ export function registerSpawnCommand(
     .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
-    .option("--mode <mode>", "Permission mode: yolo | auto | edit | read (prompted; --yes uses yolo)")
+    .option(
+      "--mode <mode>",
+      `Permission mode: yolo | auto | edit | read (prompted; --yes uses ${DEFAULT_SPAWN_MODE})`
+    )
     .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
     .option(
       "--mcp-servers <json|@file>",
@@ -483,12 +487,12 @@ async function resolveSpawnMode(
   }
 
   if (flags.assumeYes) {
-    return "yolo";
+    return DEFAULT_SPAWN_MODE;
   }
 
   if (process.stdin.isTTY !== true) {
     throw new ValidationError(
-      "spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode auto, --mode edit, or --mode read; or pass --yes to use yolo."
+      `spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode auto, --mode edit, or --mode read; or pass --yes to use ${DEFAULT_SPAWN_MODE}.`
     );
   }
 
@@ -502,7 +506,7 @@ async function resolveSpawnMode(
 
   const selected = await select<SpawnMode>({
     message: "Select permission mode:",
-    initialValue: "edit",
+    initialValue: DEFAULT_SPAWN_MODE,
     options: modeOptions
   });
   if (isCancel(selected)) {

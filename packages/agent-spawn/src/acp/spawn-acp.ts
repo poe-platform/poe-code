@@ -6,6 +6,7 @@ import {
   type RequestPermissionOutcome
 } from "@poe-code/poe-acp-client";
 import { getAcpSpawnConfig } from "../configs/index.js";
+import { DEFAULT_SPAWN_MODE } from "../types.js";
 import type { McpSpawnConfig, OtelSink, SpawnMode, SpawnResult } from "../types.js";
 import type { AcpEvent } from "./types.js";
 import { stampReceiveTime } from "./meta.js";
@@ -182,7 +183,7 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
       cwd,
       env,
       skipAuth: skipAuth ?? false,
-      autoApprove: (options.mode ?? "yolo") === "yolo",
+      autoApprove: (options.mode ?? DEFAULT_SPAWN_MODE) === "yolo",
       ...(options.mode === "auto"
         ? {
             permissionHandler: (args: {

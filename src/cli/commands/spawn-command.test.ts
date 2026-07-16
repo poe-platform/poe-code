@@ -918,7 +918,8 @@ describe("spawn command", () => {
     expect(help).toContain("poe-code");
     expect(help).toContain("beta-agent");
     expect(help).toContain("prompted;");
-    expect(help).toContain("--yes uses yolo");
+    expect(help).toContain("--yes uses edit");
+    expect(help).not.toContain("--yes uses yolo");
   });
 
   it("prompts for permission mode when omitted in an interactive terminal", async () => {
@@ -951,7 +952,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "read" }));
   });
 
-  it("uses yolo for omitted permission mode when --yes is passed", async () => {
+  it("uses the safe default mode for omitted permission mode when --yes is passed", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -964,6 +965,30 @@ describe("spawn command", () => {
     await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
 
     expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "edit" }));
+  });
+
+  it("grants yolo with --yes only when --mode yolo is explicit", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "spawn",
+      "--mode",
+      "yolo",
+      "codex",
+      "hello"
+    ]);
+
     expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "yolo" }));
   });
 

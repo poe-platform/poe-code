@@ -12,7 +12,12 @@ export {
   type CommandRunnerResult
 } from "./run-command.js";
 
-export { resolveModeConfig, resolveAgentModeConfig, SPAWN_MODES } from "./types.js";
+export {
+  resolveModeConfig,
+  resolveAgentModeConfig,
+  SPAWN_MODES,
+  DEFAULT_SPAWN_MODE
+} from "./types.js";
 export { mergeSpawnEnvironment, type SpawnEnvironment } from "./environment.js";
 
 export type {

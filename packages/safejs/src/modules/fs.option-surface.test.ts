@@ -108,6 +108,43 @@ describe("fs option surface against node's own typings", () => {
     });
   }
 
+  // The mirror of the audit above: an option the module claims to honour that node
+  // never declares is one node ignores, so forwarding it drops it silently — the very
+  // thing the refusals exist to prevent. A typo in `honoured` is the way in, and it
+  // would otherwise read as support.
+  //
+  // rmdir is the one exemption, and the gap is in the typings rather than in node:
+  // @types/node has already dropped rmdir's options argument for a future node that
+  // removes it, while the node this runs on still validates maxRetries and retryDelay
+  // and still honours recursive. fs.test.ts proves the bag reaches the implementation.
+  const HONOURED_WITHOUT_TYPINGS: Record<string, readonly string[]> = {
+    rmdir: ["recursive", "maxRetries", "retryDelay"]
+  };
+
+  for (const [operation, surface] of Object.entries(FS_OPTION_SURFACE)) {
+    it(`honours nothing node does not declare for ${operation}`, () => {
+      const declared = nodeOptionKeys.get(operation) ?? new Set<string>();
+      const exempt = new Set(HONOURED_WITHOUT_TYPINGS[operation] ?? []);
+      const undeclared = surface.honoured.filter(
+        (option) => !declared.has(option) && !exempt.has(option)
+      );
+
+      expect(undeclared).toEqual([]);
+    });
+  }
+
+  // An exemption is a standing claim that node's typings are behind node, so it has to
+  // stay a claim about an option the typings really do not declare. Once @types/node
+  // declares rmdir's options again, this fails and the exemption goes.
+  it("exempts only options node's typings genuinely omit", () => {
+    for (const [operation, options] of Object.entries(HONOURED_WITHOUT_TYPINGS)) {
+      const declared = nodeOptionKeys.get(operation) ?? new Set<string>();
+      const nowDeclared = options.filter((option) => declared.has(option));
+
+      expect(nowDeclared, `node's typings now declare ${operation} options`).toEqual([]);
+    }
+  });
+
   // The operations the module leaves out of its option surface must be the ones node
   // gives no options bag, not ones whose options were forgotten.
   it("gives an options surface to every operation node declares options for", () => {

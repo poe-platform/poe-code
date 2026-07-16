@@ -556,6 +556,9 @@ describe("makeFsModule", () => {
     const UNKNOWN_MESSAGE = (operation: string, option: string): string =>
       `fs.${operation} cannot honour the '${option}' option inside SafeJS; node declares no such option for it, and an unrecognised option is refused rather than silently ignored.`;
 
+    const THROW_IF_NO_ENTRY_MESSAGE = (operation: string): string =>
+      `fs.${operation} cannot honour the 'throwIfNoEntry' option inside SafeJS; only node's synchronous stat reads it and fs/promises rejects a missing path whatever it says, so catch the ENOENT rejection instead.`;
+
     // Records the arguments each operation is handed, which is what separates an
     // option that reached node from one the module dropped on the way.
     function createRecordingFs(files: Record<string, string> = {}): {
@@ -644,13 +647,13 @@ describe("makeFsModule", () => {
       {
         operation: "stat",
         index: 1,
-        options: { bigint: false, throwIfNoEntry: true },
+        options: { bigint: false },
         call: (fs, options) => fs.stat("/repo/file.txt", options)
       },
       {
         operation: "lstat",
         index: 1,
-        options: { bigint: false, throwIfNoEntry: true },
+        options: { bigint: false },
         call: (fs, options) => fs.lstat("/repo/file.txt", options)
       },
       {
@@ -839,6 +842,46 @@ describe("makeFsModule", () => {
         )
       ).toEqual({ name: "TypeError", message: SIGNAL_MESSAGE("readFile") });
     });
+
+    // node reads an option by name rather than by enumerating the bag, so a
+    // non-enumerable key is one node honours and an enumeration cannot see. The
+    // refusal has to be spelled the way node reads it or it is bypassable.
+    it("refuses a non-enumerable refused option key", async () => {
+      const { fs, calls } = await createOptionFs();
+      const options: Record<string, unknown> = { encoding: "utf8" };
+      Object.defineProperty(options, "signal", {
+        value: new AbortController().signal,
+        enumerable: false
+      });
+
+      expect(await readRejection(untyped(fs).readFile("/repo/file.txt", options))).toEqual({
+        name: "TypeError",
+        message: SIGNAL_MESSAGE("readFile")
+      });
+      expect(calls).toEqual([]);
+    });
+
+    // Only node's synchronous stat reads throwIfNoEntry, so forwarding it to
+    // fs/promises drops it: the script gets the ENOENT rejection that @types/node's
+    // `Stats | undefined` told it to expect undefined for. "proves node's fs/promises
+    // ignores throwIfNoEntry" below measures that against real node.
+    //
+    // memfs is why the premise cannot be measured here: it honours the option node
+    // ignores, so a forwarded `throwIfNoEntry: false` answers with undefined and
+    // crashes the module's own Stats mapping. Refusing the key covers both.
+    for (const operation of ["stat", "lstat"] as const) {
+      it(`${operation} with throwIfNoEntry rejects rather than promising undefined`, async () => {
+        const { fs, calls } = await createOptionFs();
+
+        expect(
+          await readRejection(untyped(fs)[operation]("/repo/file.txt", { throwIfNoEntry: false }))
+        ).toEqual({ name: "TypeError", message: THROW_IF_NO_ENTRY_MESSAGE(operation) });
+        expect(
+          await readRejection(untyped(fs)[operation]("/repo/file.txt", { throwIfNoEntry: true }))
+        ).toEqual({ name: "TypeError", message: THROW_IF_NO_ENTRY_MESSAGE(operation) });
+        expect(calls).toEqual([]);
+      });
+    }
 
     // The options argument node reads as an encoding, not as a bag of keys.
     it("leaves a string encoding and a numeric mode to node", async () => {
@@ -1096,6 +1139,22 @@ describe("makeFsModule", () => {
           expect(error).toEqual(await readArgumentError(call(reference)));
           expect(error.code).toBe(code);
         });
+      }
+    });
+
+    // The premise the module's throwIfNoEntry refusal rests on, measured rather than
+    // remembered. @types/node declares the option on fs/promises stat and lstat and
+    // types `throwIfNoEntry: false` as answering `Stats | undefined`, but only the
+    // synchronous API reads it: node rejects the missing path either way. Were a node
+    // to start honouring it here, this is what fails and says the refusal can be
+    // dropped.
+    it("proves node's fs/promises ignores throwIfNoEntry", async () => {
+      for (const operation of ["stat", "lstat"]) {
+        const error = await readArgumentError(
+          reference[operation](MISSING_PATH, { throwIfNoEntry: false })
+        );
+
+        expect(error.code, `node's ${operation} honoured throwIfNoEntry`).toBe("ENOENT");
       }
     });
 

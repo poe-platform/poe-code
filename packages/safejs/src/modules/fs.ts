@@ -46,11 +46,18 @@ const BUFFER_BY_DEFAULT = {
   mkdtemp: false
 } as const;
 
-// Why each option node honours cannot be honoured here, written once for every
+// Why each option node declares cannot be honoured here, written once for every
 // operation that declares it.
 const REFUSED_OPTION_REASONS = {
   signal:
-    "the sandbox has no AbortController, and cancelling a run is the host's to request rather than the script's"
+    "the sandbox has no AbortController, and cancelling a run is the host's to request rather than the script's",
+  // @types/node declares this on fs/promises stat and lstat and types
+  // `throwIfNoEntry: false` as answering `Stats | undefined`, but the typings are
+  // ahead of node: only the synchronous API reads the option. Forwarding it would
+  // leave a script holding the ENOENT rejection the typings told it to expect
+  // undefined for, so it is refused rather than dropped.
+  throwIfNoEntry:
+    "only node's synchronous stat reads it and fs/promises rejects a missing path whatever it says, so catch the ENOENT rejection instead"
 } as const;
 
 const UNKNOWN_OPTION_REASON =
@@ -100,7 +107,7 @@ export const FS_OPTION_SURFACE: Record<
     // @types/node does not declare one for it.
     refused: ["signal"]
   },
-  lstat: { argument: 1, honoured: ["bigint", "throwIfNoEntry"], refused: [] },
+  lstat: { argument: 1, honoured: ["bigint"], refused: ["throwIfNoEntry"] },
   mkdir: { argument: 1, honoured: ["recursive", "mode"], refused: [] },
   mkdtemp: { argument: 1, honoured: ["encoding"], refused: [] },
   readFile: { argument: 1, honoured: ["encoding", "flag"], refused: ["signal"] },
@@ -109,7 +116,7 @@ export const FS_OPTION_SURFACE: Record<
   realpath: { argument: 1, honoured: ["encoding"], refused: [] },
   rm: { argument: 1, honoured: ["force", "recursive", "maxRetries", "retryDelay"], refused: [] },
   rmdir: { argument: 1, honoured: ["recursive", "maxRetries", "retryDelay"], refused: [] },
-  stat: { argument: 1, honoured: ["bigint", "throwIfNoEntry"], refused: [] },
+  stat: { argument: 1, honoured: ["bigint"], refused: ["throwIfNoEntry"] },
   writeFile: { argument: 2, honoured: ["encoding", "mode", "flag", "flush"], refused: ["signal"] }
 };
 
@@ -608,14 +615,24 @@ function assertSupportedOptions(name: FsOperationName, args: readonly unknown[])
     return;
   }
 
-  // for...in rather than own keys: node reads an option off the prototype chain too.
-  for (const option in args[surface.argument] as object) {
-    const refused = surface.refused.find((name) => name === option);
+  const options = args[surface.argument] as object;
 
-    if (refused !== undefined) {
-      throw createUnsupportedOptionError(name, refused, REFUSED_OPTION_REASONS[refused]);
+  // `in` rather than an enumeration: node reads an option by name, so a refused one
+  // counts however it is spelled — own or inherited, enumerable or not. An
+  // enumeration would answer for the keys a script wrote and miss the ones node
+  // would still honour, which is the one way a refusal here could be bypassed.
+  for (const option of surface.refused) {
+    if (option in options) {
+      throw createUnsupportedOptionError(name, option, REFUSED_OPTION_REASONS[option]);
     }
+  }
 
+  // Unknown keys are the ones node cannot be asked about, so they are enumerated
+  // instead: for...in reads the own and inherited enumerable keys a script can
+  // plausibly have written, which is where a typo for an option node does declare
+  // shows up. Walking every own key of the whole chain would reach Object.prototype
+  // and refuse `toString` on every options bag.
+  for (const option in options) {
     if (!surface.honoured.includes(option)) {
       throw createUnsupportedOptionError(name, option, UNKNOWN_OPTION_REASON);
     }

@@ -23,6 +23,20 @@ const erase = {
 
 export type PromptStateName = "initial" | "active" | "submit" | "cancel" | "error";
 
+/**
+ * Builds the non-TTY rejection message, naming the documented `--yes` flag for the
+ * command being run and keeping `POE_NO_PROMPT=1` as the secondary CI alternative.
+ */
+export function nonTtyPromptMessage(argv: string[] = process.argv): string {
+  const tokens: string[] = [];
+  for (const arg of argv.slice(2)) {
+    if (arg.startsWith("-")) break;
+    tokens.push(arg);
+  }
+  const retry = [...tokens, "--yes"].join(" ");
+  return `Interactive prompt requires a TTY. Re-run with \`${retry}\` to accept defaults non-interactively, or set POE_NO_PROMPT=1 in CI.`;
+}
+
 export interface PromptState<Value> {
   state: PromptStateName;
   value: Value | undefined;
@@ -130,7 +144,7 @@ export class Prompt<Value> extends EventEmitter {
   }
 
   protected promptNonTty(): Promise<Value | typeof CANCEL> {
-    return Promise.reject(new Error("Interactive prompt requires a TTY. Set POE_NO_PROMPT=1 to accept defaults non-interactively."));
+    return Promise.reject(new Error(nonTtyPromptMessage()));
   }
 
   protected readNonTtyLine(): Promise<string> {

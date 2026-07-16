@@ -926,7 +926,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: fs-docs
     title: Document the optional filesystem capability
@@ -968,9 +968,35 @@ tasks:
 
       Do not restate anything derivable elsewhere and do not add code examples that the lint
       subset would reject. This is a docs-only task: no source changes.
+
+      Implementation notes from the completed task:
+
+      packages/agent-harness/README.md was left alone: the conditional in the prompt is false.
+      The `--fs`/`--fs-root` wiring lives in src/cli/commands/harness.ts, and agent-harness has
+      no fs surface at all — `runHarnessPair` takes `modulesFor`, so the registry (and therefore
+      fs) is the caller's, which its Configuration section already says. Documenting `fs` there
+      would describe an option the package does not have. This is the same false premise
+      harness-run-fs-flag recorded for the SDK half: there is no SDK harness-run path either, so
+      the safejs README's Configuration section is where `makeFsModule({ root, fs })` is
+      documented, and the CLI flags are noted as the two things that register it.
+
+      Three claims in the prompt were checked against the source rather than transcribed, since
+      the prompt's own lists have been wrong before (see fs-error-message-parity and
+      harness-run-fs-flag). The operation list is taken from `makeFsModule`'s return rather than
+      from fs-module-core's prompt, which is now stale: it predates `cp`, added by
+      fs-copy-rename-edges. The read/re-issue list is the seven operations that actually declare
+      `"re-issue"` — `mkdtemp` is a string-result operation but creates a directory, so it is
+      `read-side-effect` and is not among the reads. And `throwIfNoEntry` is refused rather than
+      forwarded, reversing fs-unsupported-options' recorded outcome, so the deviations list says
+      "any option node declares that the module cannot honour" rather than naming a set that
+      would go stale again.
+
+      Two refusals the prompt's deviation list omits are documented because a script hits them
+      as hard as the listed ones: an unknown or unhandled option key, and `cp`'s
+      `dereference: true` under a root (the one refusal the root makes rather than the module).
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 # Context

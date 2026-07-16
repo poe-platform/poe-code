@@ -9,16 +9,49 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 ## Why use it
 
 - **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — run as a JavaScript subset. No DSL, no JSON state machine, no per-step LLM round trip.
-- **Deterministic & sandboxed.** No `eval`, no `Function` constructor, no `class`, no dynamic import, no `globalThis`, and no built-in filesystem, process, subprocess, or network access. Imports are limited to modules you register. Budgets cap steps, depth, deadlines, string, array, and collection sizes.
+- **Deterministic & sandboxed.** No `eval`, no `Function` constructor, no `class`, no dynamic import, no `globalThis`, and no filesystem, process, subprocess, or network access unless you register a module for it. Imports are limited to modules you register. Budgets cap steps, depth, deadlines, string, array, and collection sizes.
 - **Crash-safe long runs.** Every `await` yields a snapshot. The scheduler writes them atomically to disk on an interval. A run can be resumed against the original source — the source hash is verified before restore.
 - **File-based plans.** A `.safejs` file, legacy `.ajs` file, or markdown file with YAML frontmatter and a `js` fenced block is the unit of work. Frontmatter holds the plan; the script walks it.
 - **MCP code mode.** Connect to an MCP server once, then call tools imperatively from the script — no LLM in the loop for the orchestration layer.
 
 ## Sandbox by design
 
-SafeJS runs untrusted-by-default code. The interpreter ships **no** `fs`, `exec`, `process`, or network primitives, and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
+SafeJS runs untrusted-by-default code. Nothing reaches the host by default — no filesystem, `exec`, `process`, or network primitives — and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
 
-When you need filesystem, subprocess, or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific paths, commands, or URLs) and register it explicitly. Don't ship a generic `fs` module — narrow the capability to what the harness needs. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add.
+When you need subprocess or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific commands or URLs) and register it explicitly. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add. The same advice holds for the filesystem: when a harness only needs a few paths, a purpose-built module naming them is narrower — and better — than the `fs` module below.
+
+### The optional `fs` module
+
+`makeFsModule({ root, fs })` is bundled but never registered for you. It exists only once an embedder puts it in the registry; `poe-code harness run --fs` and `poe-safejs --fs` are the flags that do that.
+
+Its surface is `node:fs/promises`, not a poe-shaped subset of it: `access`, `appendFile`, `chmod`, `copyFile`, `cp`, `link`, `lstat`, `mkdir`, `mkdtemp`, `readFile`, `readdir`, `readlink`, `realpath`, `rename`, `rm`, `rmdir`, `stat`, `symlink`, `truncate`, `utimes`, `writeFile`, plus `constants` (`F_OK`, `R_OK`, `W_OK`, `X_OK`, `COPYFILE_EXCL`).
+
+**Compliance rule.** For any call the module accepts, the observable answer is node's: identical return values, and identical error `name`, `message`, `code`, `errno`, `syscall`, `path`, and `dest`. node's error is forwarded, never translated. A differential conformance suite drives each case against both the module and the reference API, and compares the outcome against a recorded real-node fixture — so parity is measured against node rather than against the in-memory filesystem the tests run on. Anything that differs from node and is not listed below is a bug.
+
+**Deviations that throw.** Each names the unsupported capability rather than coercing, ignoring, or approximating it:
+
+- Buffer results. The sandbox has no `Buffer`/`Uint8Array`, so a call whose node answer would be one (no encoding, `encoding: "buffer"`, `encoding: null`) is refused. Every string encoding node supports is supported.
+- `bigint: true` on `stat`/`lstat`.
+- `Buffer` and `URL` path arguments, both of which node accepts. An integer path is **not** a deviation: `fs/promises` has no descriptor path form, so node blames its argument type like any other non-string and the module says the same thing.
+- The `signal` option — cancelling a run is the host's to request via `run({ signal })`, not the script's.
+- `FileHandle`/`open`, streams, `watch`, `opendir`, and the callback/sync APIs: not exported.
+- `Date` stat fields — the `*Ms` numbers are exposed instead.
+- Any option node declares that the module cannot honour, and any option node does not declare at all. A silently ignored option is a worse deviation than a refused one.
+
+**Deviations that diverge.** Neither announces itself the way the refusals above do:
+
+- `error.stack` is sandbox-shaped rather than a node stack. The bridge rewrites the frames to the script's own, so node's frames are neither available to a script nor meaningful to one that ran none of them; node's text survives only in the `name: message` header the stack is still headed by. Reading a property is not a call there is anything to refuse.
+- Given both a bad path and another bad argument, SafeJS blames the path where node may blame the other. The module validates paths itself — `root` rewrites them before node sees them — so `readFile(42, "utf9")` reports the encoding in node and the path here. Each error is still node's own, shaped as node shapes it; only which of two invalid arguments is reported can differ.
+
+**`root` confinement.** Without `root`, the module is `node:fs/promises` untouched. With it, every path argument — including the second path of `rename`, `copyFile`, `cp`, `link`, and `symlink`, and the `mkdtemp` prefix — resolves against `root` and must land inside it. Escapes via `..`, absolute paths, symlink targets, or hardlinks reject with a node-shaped `EACCES` carrying the matching `errno`, the attempted `syscall`, `path`, and `dest`, so a script branches on `error.code` exactly as it would against real node. node's own errnos survive the check: a symlink loop inside root still surfaces `ELOOP`. `cp`'s `dereference: true` is refused under a root — `cp` is the one call that reads a whole tree, a link nested inside it is never canonicalized, and node would copy an escaping target inside root under a name every later check reads as contained.
+
+**`readdir` order** is filesystem-dependent, exactly as in node: node does not sort, and neither does this. Compare names as a set.
+
+**Resume policies** are declared per operation. Reads (`access`, `lstat`, `readFile`, `readdir`, `readlink`, `realpath`, `stat`) re-issue after a restore; every operation that mutates the filesystem is `read-side-effect` and is not blindly re-applied.
+
+**Platforms.** darwin and linux. `makeFsModule` throws on win32 rather than half-supporting it: node answers a different code there, a path carries a drive letter confinement has no rule for, and a symlink needs a privilege a script cannot hold — so an embedder is told at startup rather than by the first call that lands.
+
+**Refreshing the node-truth fixture.** `npm run record:fs-conformance` drives the shared case table against real `node:fs/promises` under `os.tmpdir()`, cleans up after itself, and writes the entry for the platform it ran on, leaving every other platform's recording untouched. Run it on each platform the suite runs on, since node's fs errors are the platform's. The suite fails — rather than quietly proving nothing — when the running platform has no recording, or when a recording is missing a case the table defines, so adding a case forces a re-record. Never hand-edit the fixture.
 
 ## Scripts are JavaScript
 
@@ -68,6 +101,10 @@ summary, `git` and `metric` are deterministic fakes, and logs are printed as
 JSONL. If a markdown file has no `js` block, the CLI keeps backwards-compatible
 demo mode and dispatches `kind: pipeline`, `superintendent`, or `experiment`
 frontmatter to the bundled shapes. Use `runHarness()` for raw `.safejs` or legacy `.ajs` files.
+
+`--fs` registers the [`fs` module](#the-optional-fs-module) — a real filesystem, unlike the
+stubs above — confined to `--fs-root <path>`, which defaults to the script's directory.
+`--fs-root` without `--fs` is a usage error.
 
 Use `poe-code harness run` when you want the same lint-and-run flow against real
 configured agents and host integrations.
@@ -132,17 +169,18 @@ Method coverage on plain values follows ECMAScript with a few removals. Arrays i
 
 Registered by the caller via the factory functions exported from the package. None of them are auto-installed — you choose which to wire up per run.
 
-| Import    | Factory                                | What it gives the script                                                                     |
-| --------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })`                            |
-| `git`     | `makeGitModule(cwd)`                   | `head`, `checkpoint`, `commit`, `revert`, `diff`                                             |
-| `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)` |
-| `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                  |
-| `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                            |
-| `mcp`     | `makeMcpModule(connectMcp)`            | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }`                         |
-| `env`     | `makeEnvModule(allowList)`             | `get(name)` — only for names in the allowlist                                                |
-| `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                |
-| `fail`    | `makeFailModule()`                     | `default(message)` — throws `HarnessFailure`                                                 |
+| Import    | Factory                                | What it gives the script                                                                                    |
+| --------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })`                                           |
+| `git`     | `makeGitModule(cwd)`                   | `head`, `checkpoint`, `commit`, `revert`, `diff`                                                            |
+| `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                |
+| `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                                 |
+| `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                                           |
+| `mcp`     | `makeMcpModule(connectMcp)`            | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }`                                        |
+| `env`     | `makeEnvModule(allowList)`             | `get(name)` — only for names in the allowlist                                                               |
+| `fs`      | `makeFsModule({ root?, fs? })`         | `node:fs/promises`, optionally confined to `root` — see [the optional `fs` module](#the-optional-fs-module) |
+| `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                               |
+| `fail`    | `makeFailModule()`                     | `default(message)` — throws `HarnessFailure`                                                                |
 
 ## Quick start
 
@@ -302,12 +340,12 @@ no module bodies to inspect.
 - No async generators. Synchronous generators work, but a generator suspended mid-iteration cannot be snapshotted.
 - Regex support covers common literals, `RegExp`, and string methods, but not backreferences, lookaround, named groups, or Unicode property escapes.
 - `Map` and `Set` work at runtime, but their constructors require `new`, so linted harnesses need an explicit suppression to construct them directly.
-- No filesystem, network, or process modules in the box. Build them as host modules with the surface you want to expose.
+- No network or process modules in the box. Build them as host modules with the surface you want to expose. The bundled `fs` module is off until registered, and a narrower module is preferable when a harness only needs a few paths.
 - No multi-file imports — a script is a single module body. Compose by registering more modules.
 
 ## Environment Variables
 
-This package does not read package-level environment variables. `makeEnvModule(allowList)` reads from `process.env`, but only for names in `allowList`. `parse`, `lint`, `run`, `dump`, `restore`, and `runHarness` do not read environment variables on their own.
+This package does not read package-level environment variables. `makeEnvModule(allowList)` reads from `process.env`, but only for names in `allowList`. `parse`, `lint`, `run`, `dump`, `restore`, `runHarness`, and `makeFsModule` do not read environment variables on their own.
 
 ## Configuration
 
@@ -316,3 +354,6 @@ This package does not read package-level config files. Runner options come throu
 - `lint({ filename, modules })`
 - `run({ bindings, budget, modules, randomSeed, signal, snapshot, snapshotIntervalMs, snapshotPath, sink })`
 - `runHarness({ modulesFor, signal, snapshotPath })`
+- `makeFsModule({ root, fs })` — `root` confines every path argument to that directory, and is unconfined when omitted; `fs` injects the implementation to delegate to, defaulting to `node:fs/promises`. Registering the returned module under a name in `run({ modules })` is what gives a script a filesystem at all.
+
+`poe-safejs` exposes the module through `--fs` and `--fs-root <path>`; `poe-code harness run` exposes the same pair, rooted at the harness directory by default.

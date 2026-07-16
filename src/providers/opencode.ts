@@ -22,6 +22,11 @@ import type { ActiveProvider } from "../cli/commands/shared.js";
 import type { ProviderContext } from "../cli/service-registry.js";
 import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
 
+/**
+ * OpenCode resolves models as `<provider>/<model>`, and the Poe provider exposes the
+ * catalog ids verbatim, so a catalog id like `anthropic/claude-opus-4.7` becomes
+ * `poe/anthropic/claude-opus-4.7`. Case is significant; the id is passed through as-is.
+ */
 function providerModel(model?: string): string {
   const value = model ?? DEFAULT_FRONTIER_MODEL;
   const prefix = `${PROVIDER_NAME}/`;
@@ -185,6 +190,7 @@ export const openCodeService = createProvider({
     return context.runCheck(
       createSpawnHealthCheck("opencode", {
         expectedOutput: "OPEN_CODE_OK",
+        model: providerModel(context.model),
         invocation: {
           command: "opencode",
           args: [

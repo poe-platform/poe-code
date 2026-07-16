@@ -104,6 +104,24 @@ export const provider = createProvider<ConfigureCtx, UnconfigureCtx, SpawnCtx>({
 });
 ```
 
+#### Model ids
+
+The catalog and `poe-code models` use `<owner>/<model>` (for example `anthropic/claude-opus-4.7`).
+An agent that namespaces models by provider needs that id rewritten, so the id written to the
+agent's config and passed to its `--model` flag is not always the id the user typed:
+
+| Agent      | Model id sent to the agent | Example                            |
+| ---------- | -------------------------- | ---------------------------------- |
+| opencode   | `poe/<owner>/<model>`      | `poe/anthropic/claude-opus-4.7`    |
+
+Rewrite rules:
+
+- Keep the catalog id's case. Model ids are case-sensitive to the agent.
+- Keep the rewrite in the provider file, next to the config it feeds.
+- Pass the rewritten id to `createSpawnHealthCheck` as `model`. When the agent reports that it
+  cannot find the model, the health check raises a `ValidationError` naming that resolved id
+  instead of dumping the agent's stack, so users can see what poe-code actually sent.
+
 ### Spawn config (`packages/agent-spawn/src/configs/<agent>.ts`)
 
 ```ts

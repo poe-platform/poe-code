@@ -40,6 +40,7 @@ import {
   FRONTIER_MODELS,
   PROVIDER_NAME
 } from "../cli/constants.js";
+import { ValidationError } from "../cli/errors.js";
 
 const createAgentSessionMock = vi.hoisted(() => vi.fn());
 const sendMessageMock = vi.hoisted(() => vi.fn());
@@ -1456,7 +1457,7 @@ describe("opencode service", () => {
 
   function createProviderTestContext(
     runCommand: ReturnType<typeof vi.fn>,
-    options: { dryRun?: boolean } = {}
+    options: { dryRun?: boolean; model?: string } = {}
   ): { context: ProviderContext; logs: string[] } {
     const logs: string[] = [];
     const logger = createLoggerFactory((message) => {
@@ -1474,6 +1475,7 @@ describe("opencode service", () => {
         fs: mockFsObj
       },
       logger,
+      model: options.model,
       activeProvider: {
         id: PROVIDER_NAME,
         apiShape: "openai-chat-completions",
@@ -1874,6 +1876,73 @@ describe("opencode service", () => {
     const { context } = createProviderTestContext(runCommand);
 
     await expect(opencodeService.openCodeService.test?.(context)).rejects.toThrow(/OPEN_CODE_OK/);
+  });
+
+  const MODEL_NOT_FOUND_STDERR = [
+    "Model not found: poe/anthropic/claude-haiku-4.5. Did you mean: opencode?",
+    "ProviderModelNotFoundError: Model not found",
+    "    at <anonymous> (/opt/opencode/node_modules/effect/dist/index.js:1:1)",
+    "    at bun:main:1:1"
+  ].join("\n");
+
+  async function captureTestError(context: ProviderContext): Promise<unknown> {
+    return opencodeService.openCodeService.test?.(context).then(
+      () => undefined,
+      (error: unknown) => error
+    );
+  }
+
+  it("raises a clean user error echoing the resolved model id when OpenCode cannot find it", async () => {
+    const runCommand = createOpenCodeHealthRunner({
+      stdout: "",
+      stderr: MODEL_NOT_FOUND_STDERR,
+      exitCode: 1
+    });
+    const { context } = createProviderTestContext(runCommand, {
+      model: "anthropic/claude-haiku-4.5"
+    });
+
+    const error = await captureTestError(context);
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect((error as ValidationError).isUserError).toBe(true);
+    const message = (error as Error).message;
+    expect(message).toContain(withProviderPrefix("anthropic/claude-haiku-4.5"));
+    expect(message).toContain("poe-code models");
+    expect(message).toContain("poe-code configure opencode");
+  });
+
+  it("omits the raw agent stack from the OpenCode model-not-found error", async () => {
+    const runCommand = createOpenCodeHealthRunner({
+      stdout: "",
+      stderr: MODEL_NOT_FOUND_STDERR,
+      exitCode: 1
+    });
+    const { context } = createProviderTestContext(runCommand, {
+      model: "anthropic/claude-haiku-4.5"
+    });
+
+    const message = ((await captureTestError(context)) as Error).message;
+
+    expect(message).not.toContain("ProviderModelNotFoundError");
+    expect(message).not.toContain("at bun:main");
+    expect(message).not.toContain("effect/dist");
+  });
+
+  it("maps a model-not-found reported on stdout with a zero exit code", async () => {
+    const runCommand = createOpenCodeHealthRunner({
+      stdout: 'Model not found: poe/anthropic/claude-haiku-4.5\nProviderModelNotFoundError\n',
+      stderr: "",
+      exitCode: 0
+    });
+    const { context } = createProviderTestContext(runCommand, {
+      model: "anthropic/claude-haiku-4.5"
+    });
+
+    const error = await captureTestError(context);
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect((error as Error).message).toContain(withProviderPrefix("anthropic/claude-haiku-4.5"));
   });
 });
 

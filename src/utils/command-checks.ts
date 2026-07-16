@@ -5,6 +5,7 @@ import type {
 } from "@poe-code/agent-spawn";
 import { buildSpawnArgs, type HookBridgeOptions } from "@poe-code/agent-spawn";
 import { createBinaryExistsDetectors } from "@poe-code/agent-harness-tools";
+import { ValidationError } from "../cli/errors.js";
 import { getCurrentExecutionContext, type ExecutionCommand } from "./execution-context.js";
 
 export type {
@@ -146,9 +147,36 @@ export interface CommandCheck {
   run(context: CommandCheckContext): Promise<void>;
 }
 
+/**
+ * Agents report an unresolvable model id in their own words, but they all name it the
+ * same way. Matching the shared wording keeps this mapping agent-agnostic.
+ */
+const MODEL_NOT_FOUND_SIGNALS = ["model not found", "modelnotfounderror"];
+
+function indicatesModelNotFound(result: CommandRunnerResult): boolean {
+  const output = `${result.stdout}\n${result.stderr}`.toLowerCase();
+  return MODEL_NOT_FOUND_SIGNALS.some((signal) => output.includes(signal));
+}
+
+/**
+ * Echoes the model id poe-code actually sent. Providers may namespace the id the user
+ * asked for (OpenCode receives `poe/<owner>/<model>`), so the sent id is the one the
+ * agent rejected and the one the user cannot otherwise see.
+ */
+function createModelNotFoundError(agentId: string, model: string | undefined): ValidationError {
+  const subject = model === undefined ? "the model" : `model id "${model}"`;
+  return new ValidationError(
+    [
+      `${agentId} could not find ${subject}, which is the id poe-code sent to it.`,
+      `Run "poe-code models" to list available model ids, then "poe-code configure ${agentId} --model <id>".`
+    ].join("\n")
+  );
+}
+
 export function createSpawnHealthCheck(
   agentId: string,
   options: {
+    /** Model id sent to the agent; echoed back when the agent cannot resolve it. */
     model?: string;
     expectedOutput: string;
     hooks?: HookBridgeOptions;
@@ -212,6 +240,12 @@ export function createSpawnHealthCheck(
             context.logWarning?.(line);
           }
         }
+      }
+
+      const failed =
+        result.exitCode !== 0 || !result.stdout.includes(options.expectedOutput);
+      if (failed && indicatesModelNotFound(result)) {
+        throw createModelNotFoundError(agentId, options.model);
       }
 
       if (result.exitCode !== 0) {

@@ -1194,6 +1194,13 @@ describe("makeFsModule", () => {
     // Never created, and never reached by a call that fails validation.
     const MISSING_PATH = "/safejs-argument-validation-missing";
 
+    // A path under MISSING_PATH, which does not exist either: the open of a path whose
+    // parent is missing fails on every platform, so a write node accepts the data of
+    // still creates nothing. MISSING_PATH itself would not do — it names an entry
+    // directly under the real filesystem root, which a write node accepts would try to
+    // create rather than refuse.
+    const MISSING_PARENT_PATH = `${MISSING_PATH}/nested.txt`;
+
     // node:fs/promises itself, untyped the same way the module is: these tests
     // drive both through calls TypeScript would reject.
     const reference = nodeFsPromises as unknown as Record<
@@ -1522,6 +1529,41 @@ describe("makeFsModule", () => {
         expect(error).toEqual(await readArgumentError(reference.truncate(MISSING_PATH, length)));
         expect(error.code).toBe("ENOENT");
       }
+    });
+
+    // An array is the one non-string data shape node does not refuse: it reads any
+    // iterable as a sequence of chunks and writes each one, so ["ab", "cd"] is a write of
+    // "abcd" rather than an ERR_INVALID_ARG_TYPE. It is also the only such shape a script
+    // can reach — node's other iterable data forms need a generator or a Symbol.iterator,
+    // and the sandbox has neither.
+    //
+    // node looks at a chunk only once the file is open, which is what separates the two
+    // calls below: a number handed over as data is refused by node's own data validator
+    // before any open, while the same number as an array's second chunk is not looked at
+    // until the open has already run — so a missing parent answers with the open's ENOENT
+    // and the chunk validator never runs.
+    //
+    // The ordering is the whole reason this is asserted against a path that cannot be
+    // opened. Recorded from node against an openable path, which no test may create: the
+    // bad chunk rejects with ERR_INVALID_ARG_TYPE *after* the open has truncated the file
+    // and the good chunks ahead of it have landed, so writeFile("f", ["good", 1]) leaves
+    // "good" where "original" was and appendFile leaves "originalgood". A rejected write
+    // is not an untouched file here, which is why this cannot be driven over a volume the
+    // way the effects above are.
+    it("proves node validates an array's chunks only after the open, unlike plain data", async () => {
+      const fs = untyped(makeFsModule());
+
+      const chunked = await readArgumentError(fs.writeFile(MISSING_PARENT_PATH, ["good", 1]));
+
+      expect(chunked).toEqual(
+        await readArgumentError(reference.writeFile(MISSING_PARENT_PATH, ["good", 1]))
+      );
+      expect(chunked.code).toBe("ENOENT");
+
+      const plain = await readArgumentError(fs.writeFile(MISSING_PARENT_PATH, 1));
+
+      expect(plain).toEqual(await readArgumentError(reference.writeFile(MISSING_PARENT_PATH, 1)));
+      expect(plain.code).toBe("ERR_INVALID_ARG_TYPE");
     });
 
     // The arguments above are node's to validate, which only holds while the module
@@ -2618,6 +2660,26 @@ describe("makeFsModule", () => {
         "/repo/number.txt": "42",
         "/repo/object.txt": "[object Object]",
         "/repo/null.txt": "null"
+      });
+    });
+
+    // The data shape node honours rather than refuses, proven accepted against real node by
+    // the chunk-ordering case in the argument-validation block. memfs stringifies the array
+    // the same way it stringifies the shapes above, which for an array is a join: a script
+    // that writes ["ab", "cd"] gets the comma memfs inserted where node wrote the chunks
+    // back to back. Both calls answer undefined, so the divergence lives in the file rather
+    // than in what either reported — the case table compares answers, so it cannot hold this.
+    it("records that memfs joins the array data node concatenates", async () => {
+      const { fs, volume } = createFs({ "/repo/keep.txt": "" });
+
+      await untyped(fs).writeFile("/repo/chunks.txt", ["ab", "cd"]);
+      await untyped(fs).writeFile("/repo/empty.txt", []);
+
+      // node writes "abcd" and "" here.
+      expect(volume.toJSON()).toEqual({
+        "/repo/keep.txt": "",
+        "/repo/chunks.txt": "ab,cd",
+        "/repo/empty.txt": ""
       });
     });
   });

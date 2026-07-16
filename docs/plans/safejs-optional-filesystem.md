@@ -245,7 +245,9 @@ tasks:
       not handle — an unknown key must reject, never pass through unvalidated.
 
       TDD with memfs; no real files.
-    notes: |
+
+      Implementation notes from the completed task:
+
       `cp` was not part of the module's surface when this task ran (see fs-module-core), so its
       options are not classified here — fs-copy-rename-edges added it and classified them, and
       refused `filter` for the snapshot-digest reason rather than the callback one it was expected
@@ -507,6 +509,37 @@ tasks:
         a stringified write
 
       TDD with memfs; no real files.
+
+      Implementation notes from the completed task:
+
+      The data list above is incomplete in a way worth recording: an array is a non-string data
+      argument node does *not* refuse. node reads any iterable as a sequence of chunks, so
+      `writeFile(p, ["ab", "cd"])` is a write of `"abcd"`. It is also the only iterable form a
+      script can reach — node's others need a generator or a `Symbol.iterator`, and the sandbox
+      has neither (`Symbol` is unbound, and a generator crossing the bridge is refused with
+      "Sandbox generators cannot cross into host values"). memfs stringifies the array instead,
+      which for an array is a *join*, so a script writing `["ab", "cd"]` gets `"ab,cd"` where node
+      wrote `"abcd"` — an unrecorded gap of the same silent-write class as the number/object/null
+      stringify already recorded, now recorded beside it.
+
+      node validates an array's chunks only *after* the open, unlike plain data which it refuses
+      before it. That ordering is what makes the acceptance provable with no real files: a path
+      whose parent is missing answers with the open's `ENOENT` for `["good", 1]` while the bare
+      `1` is refused with `ERR_INVALID_ARG_TYPE`. The consequence cannot be driven over a volume
+      and stays recorded: against an openable path the bad chunk rejects *after* the open has
+      truncated the file and the good chunks have landed, so `writeFile("f", ["good", 1])` leaves
+      `"good"` where `"original"` was and `appendFile` leaves `"originalgood"`. A rejected write
+      is not an untouched file here.
+
+      Probed and *not* holes, recorded so they are not re-litigated: node's iterable data forms
+      collapse in the host-call digest (two generators, and a generator against no data at all,
+      digest identically) — the same hazard that got cp's `filter` refused, but unreachable from
+      a sandbox for the expressibility reason above, so `writeFile` needs no refusal; arrays
+      digest distinctly, so they are snapshot-safe. Whether the digest should refuse an iterable
+      if the sandbox ever gains one belongs to fs-concurrency-and-snapshot-edges. The write side
+      under a root was probed too and confines correctly: `writeFile`, `appendFile`, and
+      `truncate` through a symlink escaping root, through a *dangling* symlink escaping root, and
+      via a `..` traversal are each denied `EACCES` with the outside file intact.
     status:
       implement: done
       refactor: done

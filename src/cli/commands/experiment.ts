@@ -1098,8 +1098,11 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }
     });
 
+  // `plan-path` stays an alias: scripts interpolate it and it is the name every other plan-owning
+  // command group uses.
   experiment
-    .command("plan-path")
+    .command("show-plan-path")
+    .alias("plan-path")
     .description("Print the directory where experiment plan files should be placed.")
     .action(async function () {
       const commandConfig = await resolveExperimentCommandConfig(container, { readonly: true });
@@ -1115,8 +1118,8 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
   experiment
     .command("install")
-    .description("Install the Experiment /experiment skill and scaffold experiment files.")
-    .option("--agent <name>", "Agent to install the Experiment skill for")
+    .description("Install the Experiment skill and scaffold experiment files.")
+    .option("--agent <name>", "Target agent")
     .option("--local", "Install project-local skill and experiment files")
     .option("--global", "Install user-global skill and experiment files")
     .option("--force", "Overwrite existing files")

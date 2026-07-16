@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { Command } from "commander";
+import { Command, Help } from "commander";
 import { createCliContainer, type CliContainer } from "../container.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
@@ -1895,9 +1895,83 @@ describe("experiment validate command", () => {
   });
 });
 
+describe("experiment plan directory help surface", () => {
+  it("lists the plan directory query as a verb command keeping plan-path as an alias", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    const experiment = program.commands.find((command) => command.name() === "experiment")!;
+    const visible = new Help().visibleCommands(experiment);
+
+    expect(visible.map((command) => command.name())).not.toContain("plan-path");
+    expect(visible.map((command) => command.name())).toContain("show-plan-path");
+    expect(visible.find((command) => command.name() === "show-plan-path")?.aliases()).toEqual([
+      "plan-path"
+    ]);
+  });
+
+  it("does not add plan-path to the options of experiment subcommands", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    const experiment = program.commands.find((command) => command.name() === "experiment")!;
+
+    expect(experiment.options.map((option) => option.long)).not.toContain("--plan-path");
+  });
+
+  it("describes install without leaking the internal skill path", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    const install = program.commands
+      .find((command) => command.name() === "experiment")!
+      .commands.find((command) => command.name() === "install")!;
+
+    expect(install.description()).toBe("Install the Experiment skill and scaffold experiment files.");
+    expect(install.options.find((option) => option.long === "--agent")?.description).toBe(
+      "Target agent"
+    );
+  });
+});
+
 describe("experiment plan-path command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("prints the resolved plans path for the verb-form command", async () => {
+    const fs = createMemFs();
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "experiment", "show-plan-path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
   });
 
   it("prints the resolved plans path", async () => {

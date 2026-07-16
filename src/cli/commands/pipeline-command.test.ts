@@ -2,7 +2,7 @@ import path from "node:path";
 import { stripVTControlCharacters } from "node:util";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { Command } from "commander";
+import { Command, Help } from "commander";
 import { createCliContainer } from "../container.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
@@ -2650,9 +2650,85 @@ describe("pipeline validate command", () => {
   });
 });
 
+describe("pipeline plan directory help surface", () => {
+  it("lists the plan directory query as a verb command keeping plan-path as an alias", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    const pipeline = program.commands.find((command) => command.name() === "pipeline")!;
+    const visible = new Help().visibleCommands(pipeline);
+
+    expect(visible.map((command) => command.name())).not.toContain("plan-path");
+    expect(visible.map((command) => command.name())).toContain("show-plan-path");
+    expect(visible.find((command) => command.name() === "show-plan-path")?.aliases()).toEqual([
+      "plan-path"
+    ]);
+  });
+
+  it("does not add plan-path to the options of pipeline subcommands", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    const pipeline = program.commands.find((command) => command.name() === "pipeline")!;
+
+    expect(pipeline.options.map((option) => option.long)).not.toContain("--plan-path");
+  });
+
+  it("describes install without leaking the internal skill path", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    const install = program.commands
+      .find((command) => command.name() === "pipeline")!
+      .commands.find((command) => command.name() === "install")!;
+
+    expect(install.description()).toBe("Install the Pipeline skill and scaffold pipeline files.");
+    expect(install.options.find((option) => option.long === "--agent")?.description).toBe(
+      "Target agent"
+    );
+  });
+});
+
 describe("pipeline plan-path command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("prints the shared plans path for the verb-form command", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/repo/.poe-code", { recursive: true });
+
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "pipeline", "show-plan-path"]);
+
+    expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
   });
 
   it("prints the shared plans path", async () => {

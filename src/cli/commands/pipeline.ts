@@ -1401,8 +1401,11 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       }
     });
 
+  // `plan-path` stays an alias: scripts interpolate it and it is the name every other plan-owning
+  // command group uses.
   pipeline
-    .command("plan-path")
+    .command("show-plan-path")
+    .alias("plan-path")
     .description("Print the directory where pipeline plan files should be placed.")
     .action(async function () {
       const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
@@ -1418,8 +1421,8 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
   pipeline
     .command("install")
-    .description("Install the Pipeline /plan skill and scaffold pipeline files.")
-    .option("--agent <name>", "Agent to install the Pipeline skill for")
+    .description("Install the Pipeline skill and scaffold pipeline files.")
+    .option("--agent <name>", "Target agent")
     .option("--local", "Install project-local skill and pipeline files")
     .option("--global", "Install user-global skill and pipeline files")
     .option("--force", "Overwrite an existing default step config scaffold")

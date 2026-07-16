@@ -1,6 +1,6 @@
 import type { AcpMiddleware, McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
-import type { HookBridgeOptions } from "../sdk/types.js";
+import type { HookBridgeOptions, WorktreeExecutionOptions } from "../sdk/types.js";
 
 export interface SpawnCommandOptions {
   prompt: string;
@@ -29,6 +29,7 @@ export interface SpawnCommandOptions {
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  worktree?: WorktreeExecutionOptions;
 }
 
 export type ProviderSpawnOptions<Extra extends Record<string, unknown> = Record<string, never>> =

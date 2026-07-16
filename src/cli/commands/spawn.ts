@@ -67,7 +67,18 @@ import {
   pickRuntimeOptions,
   type RuntimeCliOptions
 } from "./runtime-options.js";
-import { isDecimalIntegerLiteral } from "./decimal-integer.js";
+import {
+  addActivityTimeoutOption,
+  pickActivityTimeoutOptions,
+  type ActivityTimeoutCliOptions
+} from "./activity-timeout-options.js";
+import { addSkillOptions, resolveSkillOptions, type SkillCliOptions } from "./skill-options.js";
+import {
+  addWorktreeOptions,
+  isWorktreeRequested,
+  pickWorktreeOptions,
+  type WorktreeCliOptions
+} from "./worktree-options.js";
 import { parseMcpSpawnConfig, resolveMcpSpawnInput } from "../mcp-spawn-config.js";
 
 export interface CustomSpawnHandlerContext {
@@ -95,29 +106,25 @@ export function registerSpawnCommand(
   const serviceList = listServiceNames(spawnTargets);
   const serviceDescription = `Agent to spawn${formatServiceList(serviceList)}`;
 
-  const spawnCommand = program
-    .command("spawn")
-    .alias("s")
-    .description("Run a single prompt through an agent CLI.")
-    .option("--model <model>", "Model identifier override passed to the agent CLI")
-    .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
-    .option("--stdin", "Read the prompt from stdin")
-    .option("-i, --interactive", "Launch the agent in interactive TUI mode")
-    .option(
-      "--mode <mode>",
-      `Permission mode: ${SPAWN_MODES.join(" | ")} (prompted; --yes uses ${DEFAULT_SPAWN_MODE})`
-    )
-    .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
-    .option(
-      "--mcp-servers <json|@file>",
-      "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
-    )
-    .option("--skill <ref>", "Active skill reference to bridge for this run", collectSkillOption)
-    .option(
-      "--skills <refs>",
-      "Comma-separated active skill references to bridge for this run",
-      collectSkillsOption
-    )
+  const spawnCommand = addSkillOptions(
+    program
+      .command("spawn")
+      .alias("s")
+      .description("Run a single prompt through an agent CLI.")
+      .option("--model <model>", "Model identifier override passed to the agent CLI")
+      .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
+      .option("--stdin", "Read the prompt from stdin")
+      .option("-i, --interactive", "Launch the agent in interactive TUI mode")
+      .option(
+        "--mode <mode>",
+        `Permission mode: ${SPAWN_MODES.join(" | ")} (prompted; --yes uses ${DEFAULT_SPAWN_MODE})`
+      )
+      .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
+      .option(
+        "--mcp-servers <json|@file>",
+        "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
+      )
+  )
     .option("--hooks-from <agentId>", "Agent hook configuration to bridge for this run")
     .addOption(
       new Option(
@@ -145,14 +152,9 @@ export function registerSpawnCommand(
       "Include message and tool content in ACP JSONL spawn logs (danger: writes prompts and tool arguments, which may contain secrets, to disk)"
     )
     .option("--capture-otel", "Capture native OpenTelemetry emitted by the spawned agent")
-    .option("--capture-otel-content", "Include prompt and tool content in native OpenTelemetry")
-    .option(
-      "--activity-timeout-ms <ms>",
-      "Kill the agent after N ms of inactivity",
-      (value: string) => parsePositiveInt(value, "--activity-timeout-ms")
-    );
+    .option("--capture-otel-content", "Include prompt and tool content in native OpenTelemetry");
 
-  addRuntimeOptions(spawnCommand)
+  addRuntimeOptions(addWorktreeOptions(addActivityTimeoutOption(spawnCommand)))
     .argument("<agent>", serviceDescription)
     .argument(
       "[prompt]",
@@ -186,8 +188,10 @@ export function registerSpawnCommand(
           logContent?: boolean;
           captureOtel?: boolean;
           captureOtelContent?: boolean;
-          activityTimeoutMs?: number;
-        } & RuntimeCliOptions
+        } & RuntimeCliOptions &
+          ActivityTimeoutCliOptions &
+          SkillCliOptions &
+          WorktreeCliOptions
       >();
       const runtimeOptions = pickRuntimeOptions(commandOptions);
       const model =
@@ -198,7 +202,7 @@ export function registerSpawnCommand(
         commandOptions.resumeThreadId === undefined
           ? undefined
           : requireNonEmpty(commandOptions.resumeThreadId, "--resume-thread-id");
-      const skills = resolveSkillOptions(commandOptions.skill, commandOptions.skills);
+      const skills = resolveSkillOptions(commandOptions);
       const hooks = resolveHookOptions(
         commandOptions.hooksFrom,
         commandOptions.hooksStrategy,
@@ -267,6 +271,14 @@ export function registerSpawnCommand(
           await resolveMergedDocument(container, { readOnly: flags.dryRun })
         );
         if (commandOptions.interactive) {
+          // A worktree run reconciles output after the agent exits, which an interactive
+          // TUI session has no defined success signal for. Refuse rather than accept the
+          // flag and silently run in the original checkout.
+          if (isWorktreeRequested(commandOptions)) {
+            throw new ValidationError(
+              "spawn --worktree cannot be combined with --interactive. Drop --interactive to run the agent in a managed worktree."
+            );
+          }
           // An interactive agent TUI inherits stdio and drives a terminal it does not
           // have here, so it would greet a script that can never answer.
           requireInteractiveStdin(
@@ -319,7 +331,10 @@ export function registerSpawnCommand(
           ...(commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
             ? { captureOtelContent: true }
             : {}),
-          activityTimeoutMs: commandOptions.activityTimeoutMs,
+          ...pickActivityTimeoutOptions(commandOptions),
+          ...(isWorktreeRequested(commandOptions)
+            ? { worktree: pickWorktreeOptions(commandOptions) }
+            : {}),
           ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
           ...runtimeOptions,
@@ -431,6 +446,7 @@ export function registerSpawnCommand(
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
+              ...(spawnOptions.worktree ? { worktree: spawnOptions.worktree } : {}),
               ...(spawnOptions.useStdin ? { useStdin: spawnOptions.useStdin } : {}),
               runtimeConfigCwd: container.env.cwd,
               ...runtimeOptions
@@ -638,38 +654,6 @@ function assertMcpSpawnSupport(
     `${label} does not support MCP servers at spawn time.\n` +
       `Agents with spawn-time MCP support: ${supported.join(", ")}`
   );
-}
-
-function parsePositiveInt(value: string, fieldName: string): number {
-  const normalized = value.trim();
-  const parsed = Number.parseInt(normalized, 10);
-  if (!isDecimalIntegerLiteral(normalized) || !Number.isInteger(parsed) || parsed < 1) {
-    throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
-  }
-  return parsed;
-}
-
-function collectSkillOption(value: string, previous: string[] | undefined): string[] {
-  return [...(previous ?? []), requireNonEmpty(value, "--skill")];
-}
-
-function collectSkillsOption(value: string, previous: string[] | undefined): string[] {
-  const entries = value
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-  if (entries.length === 0) {
-    throw new ValidationError("--skills cannot be empty.");
-  }
-  return [...(previous ?? []), ...entries];
-}
-
-function resolveSkillOptions(
-  skill: string[] | undefined,
-  skills: string[] | undefined
-): string[] | undefined {
-  const resolved = [...(skill ?? []), ...(skills ?? [])];
-  return resolved.length > 0 ? resolved : undefined;
 }
 
 function resolveHookOptions(

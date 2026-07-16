@@ -1278,6 +1278,56 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes --worktree through to SDK spawn so spawn matches gaslight", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "--worktree", "codex", "List files"]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({ worktree: true })
+    );
+  });
+
+  it("omits worktree from SDK spawn when --worktree is absent", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", "List files"]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "codex",
+      expect.not.objectContaining({ worktree: expect.anything() })
+    );
+  });
+
+  it("documents that --skill and --skills merge into one skill list", () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const spawnCommand = program.commands.find((command) => command.name() === "spawn");
+    const help = spawnCommand?.helpInformation() ?? "";
+
+    expect(stripAnsi(help)).toContain("repeatable; merged with --skills");
+    expect(stripAnsi(help)).toContain("repeatable; merged with --skill");
+  });
+
   it("passes active skills from repeated --skill flags to SDK spawn", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -3059,6 +3109,33 @@ describe("spawn command", () => {
         runtimeConfigCwd: cwd
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
+    it("refuses --worktree with --interactive instead of ignoring the worktree", async () => {
+      setProcessStdinIsTTY(true);
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "--interactive",
+          "--worktree",
+          "claude-code",
+          "hello"
+        ])
+      ).rejects.toThrow(
+        "spawn --worktree cannot be combined with --interactive. Drop --interactive to run the agent in a managed worktree."
+      );
+      expect(spawnInteractive).not.toHaveBeenCalled();
     });
 
     it("passes --resume-thread-id to interactive spawns", async () => {

@@ -26,11 +26,17 @@ import { ValidationError } from "../errors.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { renderUnifiedDiff } from "../../utils/dry-run.js";
 import { addWorktreeOptions, pickWorktreeOptions } from "./worktree-options.js";
+import {
+  addActivityTimeoutOption,
+  pickActivityTimeoutOptions,
+  type ActivityTimeoutCliOptions
+} from "./activity-timeout-options.js";
+import { addSkillOptions, resolveSkillOptions, type SkillCliOptions } from "./skill-options.js";
 import { gaslightConfigScope } from "../../services/config.js";
 
 const DEFAULT_AGENT = "claude-code";
 
-interface GaslightCommandOptions {
+interface GaslightCommandOptions extends ActivityTimeoutCliOptions, SkillCliOptions {
   agent?: string;
   archive?: boolean;
   config?: string;
@@ -314,20 +320,20 @@ async function scaffoldConfig(
 }
 
 export function registerGaslightCommand(program: Command, container: CliContainer): void {
-  const gaslight = addWorktreeOptions(
-    program
-      .command("gaslight")
-      .description("Run a plan through a resumable sequence of agent follow-ups.")
-      .argument("[plan-paths...]", "Markdown plans to implement sequentially")
-      .option("--agent <agent>", "Agent to run")
-      .option("--archive", "Archive each plan after all gaslight rounds succeed")
-      .option("--no-archive", "Leave plans in place after gaslight rounds succeed")
-      .option("--config <path>", "gaslight.yaml variant to use")
-      .option("--model <model>", "Model to run")
-      .option("--plans <paths...>", "Markdown plans to run sequentially")
-      .addOption(
-        new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]).default("auto")
-      )
+  const gaslight = program
+    .command("gaslight")
+    .description("Run a plan through a resumable sequence of agent follow-ups.")
+    .argument("[plan-paths...]", "Markdown plans to implement sequentially")
+    .option("--agent <agent>", "Agent to run")
+    .option("--archive", "Archive each plan after all gaslight rounds succeed")
+    .option("--no-archive", "Leave plans in place after gaslight rounds succeed")
+    .option("--config <path>", "gaslight.yaml variant to use")
+    .option("--model <model>", "Model to run")
+    .option("--plans <paths...>", "Markdown plans to run sequentially")
+    .addOption(new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]).default("auto"));
+
+  addSkillOptions(
+    addActivityTimeoutOption(addWorktreeOptions(gaslight))
   ).action(async function (this: Command, providedPlanPaths: string[]) {
     const flags = resolveCommandFlags(program);
     const options = this.opts<GaslightCommandOptions>();
@@ -338,6 +344,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       optionPlanPaths: options.plans
     });
     const commandConfig = await resolveGaslightCommandConfig(container);
+    const skills = resolveSkillOptions(options);
     const { agent, model } = await resolveAgentAndModel(program, container, options);
     const logger = container.loggerFactory.create();
 
@@ -359,7 +366,11 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         }
       },
       spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
-        await sdkSpawn.pretty(spawnAgent, spawnOptions)
+        await sdkSpawn.pretty(spawnAgent, {
+          ...spawnOptions,
+          ...pickActivityTimeoutOptions(options),
+          ...(skills ? { skills } : {})
+        })
     });
     const finished =
       planPaths.length > 1

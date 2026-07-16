@@ -97,8 +97,9 @@ Options:
   --mcp-servers <json|@file>   MCP server config JSON (or @path/to/file.json):
                                {name: {command, args?, env?}}
   --skill <ref>                Active skill reference to bridge for this run
+                               (repeatable; merged with --skills)
   --skills <refs>              Comma-separated active skill references to bridge
-                               for this run
+                               for this run (repeatable; merged with --skill)
   --hooks-from <agentId>       Agent hook configuration to bridge for this run
   --hooks-strategy <strategy>  Hook bridge strategy (default: auto; transform
                                supports claude-code -> codex) (choices: "auto",
@@ -116,6 +117,8 @@ Options:
   --capture-otel-content       Include prompt and tool content in native
                                OpenTelemetry
   --activity-timeout-ms <ms>   Kill the agent after N ms of inactivity
+  --worktree                   Run in a managed git worktree and reconcile
+                               successful output.
   --runtime <runtime>          Override runtime backend: host | docker (choices:
                                "host", "docker")
   --runtime-image <ref>        Override Docker runtime image

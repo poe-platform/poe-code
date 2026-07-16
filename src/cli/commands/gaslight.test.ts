@@ -246,6 +246,74 @@ describe("gaslight command", () => {
     );
   });
 
+  it("bounds each gaslight round spawn with --activity-timeout-ms", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--activity-timeout-ms",
+      "1500"
+    ]);
+
+    const options = runGaslightMock.mock.calls[0]?.[0];
+    await options.spawn("codex", { prompt: "Implement docs/plans/a.md" });
+
+    expect(spawnPrettyMock).toHaveBeenCalledWith("codex", {
+      prompt: "Implement docs/plans/a.md",
+      activityTimeoutMs: 1500
+    });
+  });
+
+  it("rejects a non-positive --activity-timeout-ms", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "gaslight",
+        "docs/plans/a.md",
+        "--agent",
+        "codex",
+        "--activity-timeout-ms",
+        "0"
+      ])
+    ).rejects.toThrow('Invalid --activity-timeout-ms "0". Expected a positive integer.');
+  });
+
+  it("bridges --skill and --skills into each gaslight round spawn", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--skill",
+      "foo",
+      "--skills",
+      "bar,claude/baz"
+    ]);
+
+    const options = runGaslightMock.mock.calls[0]?.[0];
+    await options.spawn("codex", { prompt: "Implement docs/plans/a.md" });
+
+    expect(spawnPrettyMock).toHaveBeenCalledWith("codex", {
+      prompt: "Implement docs/plans/a.md",
+      skills: ["foo", "bar", "claude/baz"]
+    });
+  });
+
   it("forwards an explicit gaslight mode to the runner", async () => {
     const program = createProgram();
     registerGaslightCommand(program, createContainer());

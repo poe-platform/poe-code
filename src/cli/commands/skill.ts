@@ -184,6 +184,8 @@ function formatUnresolvedRefs(failures: SkillResolutionFailure[]): string {
 export function registerSkillCommand(program: Command, container: CliContainer): void {
   const skill = program
     .command("skill")
+    // spawn teaches the plural through --skill/--skills, so "skills" must not be an unknown command.
+    .alias("skills")
     .description("Skill directory commands.")
     .allowExcessArguments()
     .action(function (this: Command) {

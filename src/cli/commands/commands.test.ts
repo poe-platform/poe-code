@@ -1234,6 +1234,21 @@ describe("skill command", () => {
     expect(plain).toContain("unconfigure [options] [agent]");
     expect(plain).toContain("Install skill directories");
   });
+
+  it("accepts the plural 'skills' alias that --skill/--skills teach", async () => {
+    const fs = createMemFs();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "skills", "unconfigure", "unknown"])
+    ).rejects.toThrow(/^Unknown agent "unknown"\. Agents supporting skill: /);
+  });
 });
 
 // ─── test command (isolated) ─────────────────────────────────────────────────

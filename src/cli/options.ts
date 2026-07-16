@@ -194,6 +194,15 @@ export function createOptionResolvers(
       );
     }
 
+    // Authenticating from here on needs a human: OAuth waits on a browser redirect
+    // and the prompt loop waits on typed input. Without a TTY both block forever,
+    // which is worse than an error a script or CI job can act on.
+    if (process.stdin.isTTY !== true) {
+      throw new ValidationError(
+        "No API key found. Pass --api-key, set POE_API_KEY, or run in an interactive terminal to authenticate."
+      );
+    }
+
     if (init.loginViaOAuth) {
       const apiKey = await init.loginViaOAuth();
       const normalized = normalizeApiKey(apiKey);

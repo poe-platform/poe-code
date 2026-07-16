@@ -499,6 +499,28 @@ describe("plan command", () => {
     expect(writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Would edit");
   });
 
+  it("refuses to open an editor for plan edit without a TTY", async () => {
+    editPlanMock.mockResolvedValue({ changed: true });
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/plans/plan-a.md": "# Plan" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(
+      () =>
+        expect(
+          program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"])
+        ).rejects.toThrow(/interactive TTY/),
+      false
+    );
+
+    expect(editPlanMock).not.toHaveBeenCalled();
+  });
+
   it("frames an applied plan edit through the design system", async () => {
     editPlanMock.mockResolvedValue({ changed: true });
     const container = createCliContainer({
@@ -510,7 +532,11 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]),
+      true
+    );
 
     expect(editPlanMock).toHaveBeenCalledOnce();
     expect(outroMock).toHaveBeenCalledWith(expect.stringContaining("Edited docs/plans/plan-a.md"));
@@ -527,7 +553,11 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]),
+      true
+    );
 
     expect(outroMock).toHaveBeenCalledWith(expect.stringContaining("No changes"));
     expect(outroMock).not.toHaveBeenCalledWith(expect.stringContaining("Edited"));
@@ -545,16 +575,20 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "plan",
-      "edit",
-      "docs/plans/plan-a.md",
-      "--output",
-      "json"
-    ]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "plan",
+          "edit",
+          "docs/plans/plan-a.md",
+          "--output",
+          "json"
+        ]),
+      true
+    );
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(stripVTControlCharacters(output))).toEqual({

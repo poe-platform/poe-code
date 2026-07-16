@@ -64,6 +64,20 @@ function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | nul
   return store.get();
 }
 
+async function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: isTTY });
+  try {
+    return await run();
+  } finally {
+    if (descriptor !== undefined) {
+      Object.defineProperty(process.stdin, "isTTY", descriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  }
+}
+
 describe("login command", () => {
   const cwd = "/repo";
   const homeDir = "/home/test";
@@ -180,7 +194,7 @@ describe("login command", () => {
       }
     });
 
-    await program.parseAsync(["node", "cli", "login"]);
+    await withMockedStdin(() => program.parseAsync(["node", "cli", "login"]), true);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBe(PROMPT_KEY);
@@ -255,7 +269,7 @@ describe("login command", () => {
       }
     });
 
-    await program.parseAsync(["node", "cli", "login"]);
+    await withMockedStdin(() => program.parseAsync(["node", "cli", "login"]), true);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBe(OAUTH_KEY);
@@ -281,6 +295,34 @@ describe("login command", () => {
 
     await expect(program.parseAsync(["node", "cli", "--yes", "login"])).rejects.toThrow(
       "No API key found. Pass --api-key, set POE_API_KEY"
+    );
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("rejects bare login without starting OAuth when stdin is not a TTY", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await withMockedStdin(
+      () =>
+        expect(program.parseAsync(["node", "cli", "login"])).rejects.toThrow(
+          "No API key found. Pass --api-key, set POE_API_KEY, or run in an interactive terminal to authenticate."
+        ),
+      false
     );
 
     expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();

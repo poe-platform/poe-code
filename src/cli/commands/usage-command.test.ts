@@ -248,6 +248,9 @@ describe("usage balance command", () => {
     // Accept the non-standard format so resolveApiKey doesn't loop forever.
     confirmMock.mockResolvedValueOnce(true);
 
+    // Prompting for a key only happens for a human at a terminal.
+    const restoreStdin = setProcessStdinIsTTY(true);
+
     const program = createProgram({
       fs,
       prompts: vi.fn().mockResolvedValue({ apiKey: "prompted-key" }),
@@ -259,7 +262,11 @@ describe("usage balance command", () => {
     const optsSpy = vi.spyOn(program, "optsWithGlobals");
     optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await program.parseAsync(["node", "cli", "usage", "balance"]);
+    try {
+      await program.parseAsync(["node", "cli", "usage", "balance"]);
+    } finally {
+      restoreStdin();
+    }
 
     expect(httpClient).toHaveBeenCalledWith(
       expect.stringContaining("/usage/current_balance"),

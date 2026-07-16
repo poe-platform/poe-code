@@ -7,10 +7,17 @@ import type { ActionFs, PlanFormat, SavedForLaterMetadata } from "./types.js";
 
 const LATER_DIRECTORY = "later";
 
+/**
+ * Guessing an editor is how this hangs: `vi` inherits stdio and waits for keystrokes
+ * that never arrive when nobody configured an editor. Demand an explicit one, like
+ * `utils config edit` and `memory edit` already do.
+ */
 export function resolveEditor(env: Record<string, string | undefined> = process.env): string {
-  const editor =
-    getOwnEnvValue(env, "VISUAL")?.trim() || getOwnEnvValue(env, "EDITOR")?.trim() || "vi";
-  return editor.length > 0 ? editor : "vi";
+  const editor = getOwnEnvValue(env, "VISUAL")?.trim() || getOwnEnvValue(env, "EDITOR")?.trim();
+  if (editor === undefined || editor.length === 0) {
+    throw new Error("Set $EDITOR or $VISUAL to edit plans.");
+  }
+  return editor;
 }
 
 export function editFile(

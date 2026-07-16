@@ -1246,6 +1246,98 @@ describe("option resolvers", () => {
   const VALID_API_KEY = "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo";
   const VALID_SK_POE_API_KEY = "sk-poe-vnlaoHCddCx7eAGLgdH4iSg1MYPsg0JnTRPF1qMuo";
 
+  async function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+    const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: isTTY });
+    try {
+      return await run();
+    } finally {
+      if (descriptor !== undefined) {
+        Object.defineProperty(process.stdin, "isTTY", descriptor);
+      } else {
+        Reflect.deleteProperty(process.stdin, "isTTY");
+      }
+    }
+  }
+
+  it("fails fast instead of starting OAuth when stdin is not a TTY", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const loginViaOAuth = vi.fn().mockResolvedValue(VALID_API_KEY);
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore,
+      confirm: vi.fn(),
+      checkAuth: vi.fn(),
+      loginViaOAuth
+    });
+
+    await withMockedStdin(
+      () =>
+        expect(resolvers.resolveApiKey({ dryRun: false })).rejects.toThrow(
+          "No API key found. Pass --api-key, set POE_API_KEY, or run in an interactive terminal to authenticate."
+        ),
+      false
+    );
+
+    expect(loginViaOAuth).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
+    expect(apiKeyStore.write).not.toHaveBeenCalled();
+  });
+
+  it("fails fast instead of prompting for a key when stdin is not a TTY", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore,
+      confirm: vi.fn(),
+      checkAuth: vi.fn()
+    });
+
+    await withMockedStdin(
+      () => expect(resolvers.resolveApiKey({ dryRun: false })).rejects.toThrow("No API key found"),
+      false
+    );
+
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("starts OAuth when stdin is an interactive TTY", async () => {
+    const promptLibrary = createPromptLibrary();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const loginViaOAuth = vi.fn().mockResolvedValue(VALID_API_KEY);
+    const resolvers = createOptionResolvers({
+      prompts: vi.fn(),
+      promptLibrary,
+      apiKeyStore,
+      confirm: vi.fn(),
+      checkAuth: vi.fn(),
+      loginViaOAuth
+    });
+
+    const result = await withMockedStdin(
+      () => resolvers.resolveApiKey({ dryRun: false }),
+      true
+    );
+
+    expect(result).toBe(VALID_API_KEY);
+    expect(loginViaOAuth).toHaveBeenCalledTimes(1);
+  });
+
   it("uses the login API key prompt when a key is missing", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi
@@ -1267,10 +1359,14 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: undefined,
-      dryRun: false
-    });
+    const result = await withMockedStdin(
+      () =>
+        resolvers.resolveApiKey({
+          value: undefined,
+          dryRun: false
+        }),
+      true
+    );
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(1);
@@ -1560,11 +1656,15 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: undefined,
-      dryRun: false,
-      allowStored: false
-    });
+    const result = await withMockedStdin(
+      () =>
+        resolvers.resolveApiKey({
+          value: undefined,
+          dryRun: false,
+          allowStored: false
+        }),
+      true
+    );
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(1);
@@ -1597,11 +1697,15 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: undefined,
-      dryRun: false,
-      allowStored: false
-    });
+    const result = await withMockedStdin(
+      () =>
+        resolvers.resolveApiKey({
+          value: undefined,
+          dryRun: false,
+          allowStored: false
+        }),
+      true
+    );
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(2);
@@ -1631,11 +1735,15 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: undefined,
-      dryRun: false,
-      allowStored: false
-    });
+    const result = await withMockedStdin(
+      () =>
+        resolvers.resolveApiKey({
+          value: undefined,
+          dryRun: false,
+          allowStored: false
+        }),
+      true
+    );
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(2);
@@ -1667,11 +1775,15 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: undefined,
-      dryRun: false,
-      allowStored: false
-    });
+    const result = await withMockedStdin(
+      () =>
+        resolvers.resolveApiKey({
+          value: undefined,
+          dryRun: false,
+          allowStored: false
+        }),
+      true
+    );
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(2);
@@ -1700,11 +1812,15 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    const result = await resolvers.resolveApiKey({
-      value: undefined,
-      envValue: "env-key",
-      dryRun: false
-    });
+    const result = await withMockedStdin(
+      () =>
+        resolvers.resolveApiKey({
+          value: undefined,
+          envValue: "env-key",
+          dryRun: false
+        }),
+      true
+    );
 
     expect(result).toBe(VALID_API_KEY);
     expect(prompts).toHaveBeenCalledTimes(1);

@@ -9,6 +9,12 @@ import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
 import type { MemoryPage, MemoryRoot, QueryOptions, QueryResult } from "./types.js";
 
+/**
+ * A memory query agent inherits stdin when it has no stdin mode, so an agent that
+ * never speaks would otherwise stall the caller forever. Bound the silence.
+ */
+const DEFAULT_QUERY_ACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
+
 export type QueryContext = {
   prompt: string;
   selectedPages: MemoryPage[];
@@ -36,7 +42,10 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
   const context = await selectQueryContext(root, options.question, options.budget);
-  const spawned = await spawn(agentId, { prompt: context.prompt });
+  const spawned = await spawn(agentId, {
+    prompt: context.prompt,
+    activityTimeoutMs: options.activityTimeoutMs ?? DEFAULT_QUERY_ACTIVITY_TIMEOUT_MS
+  });
   const result = parseMemoryAgentResponse(spawned.stdout);
 
   return {

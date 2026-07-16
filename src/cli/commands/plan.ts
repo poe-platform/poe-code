@@ -467,6 +467,8 @@ async function executePlanAction(options: {
   }
 
   if (options.action === "edit") {
+    requireInteractiveStdin("plan edit opens $EDITOR and requires an interactive TTY.");
+
     const { changed } = await editPlan(plan.absolutePath, {
       env: options.container.env.variables,
       fs: options.container.fs
@@ -981,6 +983,10 @@ async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
     );
     return;
   }
+
+  requireInteractiveStdin(
+    "A plan session runs the agent interactively and requires an interactive TTY. Use `poe-code spawn` to draft a plan non-interactively."
+  );
 
   const { result } = sdkSpawn(options.agent, prompt, {
     interactive: true,

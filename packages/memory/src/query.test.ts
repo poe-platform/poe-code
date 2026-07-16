@@ -194,6 +194,53 @@ describe("queryMemory", () => {
     });
   });
 
+  it("bounds the agent spawn with a default activity timeout", async () => {
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({ answer: "ok", citations: [], tokensUsed: 1 }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/note.md": "# Note\n\nbody\n"
+    });
+
+    await queryMemory("/repo/.poe-code/memory", {
+      question: "what?",
+      budget: 4096
+    });
+
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({ activityTimeoutMs: 10 * 60 * 1000 })
+    );
+  });
+
+  it("forwards an explicit activity timeout to the agent spawn", async () => {
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({ answer: "ok", citations: [], tokensUsed: 1 }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/note.md": "# Note\n\nbody\n"
+    });
+
+    await queryMemory("/repo/.poe-code/memory", {
+      question: "what?",
+      budget: 4096,
+      activityTimeoutMs: 1_500
+    });
+
+    expect(mockedAgentSpawn.spawnMock!.spawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({ activityTimeoutMs: 1_500 })
+    );
+  });
+
   it("rejects malformed agent citations and impossible token counts", async () => {
     mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
       stdout: JSON.stringify({

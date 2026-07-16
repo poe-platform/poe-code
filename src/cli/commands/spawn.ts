@@ -47,6 +47,7 @@ import {
   listServiceNames,
   buildResumeCommand,
   resolveMergedDocument,
+  requireInteractiveStdin,
   type CommandFlags,
   type ExecutionResources,
   type SpawnTarget
@@ -261,6 +262,11 @@ export function registerSpawnCommand(
           await resolveMergedDocument(container, { readOnly: flags.dryRun })
         );
         if (commandOptions.interactive) {
+          // An interactive agent TUI inherits stdio and drives a terminal it does not
+          // have here, so it would greet a script that can never answer.
+          requireInteractiveStdin(
+            "spawn --interactive requires an interactive TTY. Drop --interactive to run the agent non-interactively."
+          );
           const target = resolveSpawnTarget(container, service);
           const canonicalService = target.name;
           assertInteractiveSupport(target.label, canonicalService);

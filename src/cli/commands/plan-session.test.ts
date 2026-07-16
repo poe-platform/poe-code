@@ -120,7 +120,10 @@ describe("plan <question> root command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]),
+      true
+    );
 
     expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
     const [agent, prompt, options] = sdkSpawnMock.mock.calls[0]!;
@@ -182,7 +185,10 @@ describe("plan <question> root command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]),
+      true
+    );
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(sdkSpawnMock).toHaveBeenCalledWith(
@@ -211,7 +217,10 @@ describe("plan <question> root command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "Build feature X"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "Build feature X"]),
+      true
+    );
 
     expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
     const prompt = sdkSpawnMock.mock.calls[0]![1] as string;
@@ -233,14 +242,18 @@ describe("plan <question> root command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "plan",
-      "question",
-      "--agent",
-      "codex"
-    ]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          "question",
+          "--agent",
+          "codex"
+        ]),
+      true
+    );
 
     expect(sdkSpawnMock).toHaveBeenCalledWith(
       "codex",
@@ -274,6 +287,62 @@ describe("plan <question> root command", () => {
     expect(sdkSpawnMock).not.toHaveBeenCalled();
     expect(logs.join("\n")).toContain("Dry run");
     expect(logs.join("\n")).toContain("codex");
+  });
+
+  it("refuses to launch an interactive plan session without a TTY", async () => {
+    sdkSpawnMock.mockReturnValue({
+      events: (async function* () {})(),
+      result: Promise.resolve(spawnResult)
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(
+      () =>
+        expect(
+          program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"])
+        ).rejects.toThrow(/interactive TTY/),
+      false
+    );
+
+    expect(sdkSpawnMock).not.toHaveBeenCalled();
+  });
+
+  it("previews a plan session without a TTY because dry run never spawns", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "--dry-run",
+          "--yes",
+          "plan",
+          "Design a todo CLI",
+          "--agent",
+          "codex"
+        ]),
+      false
+    );
+
+    expect(sdkSpawnMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run");
   });
 
   it("does not spawn when no question is given and --yes is passed", async () => {

@@ -79,7 +79,19 @@ describe("createCliContainer", () => {
       env: { cwd, homeDir, variables: { POE_BASE_URL: "https://gateway.example.test/v1" } }
     });
 
-    await container.options.resolveApiKey({ dryRun: true, allowStored: false });
+    // OAuth waits on a browser redirect, so it only runs for a human at a terminal.
+    const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+
+    try {
+      await container.options.resolveApiKey({ dryRun: true, allowStored: false });
+    } finally {
+      if (stdinDescriptor !== undefined) {
+        Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+      } else {
+        Reflect.deleteProperty(process.stdin, "isTTY");
+      }
+    }
 
     expect(resolveApiKeyViaOAuthMock).toHaveBeenCalledWith({
       tokenEndpoint: "https://gateway.example.test/token"

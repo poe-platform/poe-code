@@ -283,13 +283,26 @@ describe("plan actions", () => {
     ).resolves.toEqual({ changed: true });
   });
 
-  it("falls back to vi when no editor env is set", () => {
-    expect(resolveEditor({})).toBe("vi");
+  it("fails fast when no editor env is set instead of guessing an editor", () => {
+    expect(() => resolveEditor({})).toThrow("Set $EDITOR");
+  });
+
+  it("treats a blank editor env value as unset", () => {
+    expect(() => resolveEditor({ EDITOR: "   " })).toThrow("Set $EDITOR");
+  });
+
+  it("does not spawn anything when no editor env is set", () => {
+    const spawnSync = vi.fn();
+
+    expect(() => editFile("/repo/docs/plans/plan.md", { env: {}, spawnSync })).toThrow(
+      "Set $EDITOR"
+    );
+    expect(spawnSync).not.toHaveBeenCalled();
   });
 
   it("ignores inherited editor env values", async () => {
     await withObjectPrototypeProperties({ EDITOR: "polluted-editor" }, () => {
-      expect(resolveEditor({})).toBe("vi");
+      expect(() => resolveEditor({})).toThrow("Set $EDITOR");
     });
   });
 

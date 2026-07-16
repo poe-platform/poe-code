@@ -98,7 +98,10 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]),
+      true
+    );
 
     expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
     expect(runPlanBrowserMock).not.toHaveBeenCalled();

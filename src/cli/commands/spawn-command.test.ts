@@ -2934,6 +2934,34 @@ describe("spawn command", () => {
   });
 
   describe("--interactive flag", () => {
+    it("refuses --interactive without a TTY instead of launching the agent", async () => {
+      setProcessStdinIsTTY(false);
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "claude-code",
+          "hi",
+          "--mode",
+          "read",
+          "--interactive"
+        ])
+      ).rejects.toThrow("spawn --interactive requires an interactive TTY");
+
+      expect(spawnInteractive).not.toHaveBeenCalled();
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
     it("calls spawnInteractive when --interactive is set", async () => {
       vi.mocked(spawnInteractive).mockResolvedValue({
         stdout: "",

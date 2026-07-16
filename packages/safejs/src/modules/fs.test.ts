@@ -1550,7 +1550,7 @@ describe("makeFsModule", () => {
         options?: { recursive?: boolean; mode?: number }
       ): Promise<string | undefined>;
       rm(path: string, options?: { force?: boolean; recursive?: boolean }): Promise<void>;
-      rmdir(path: string): Promise<void>;
+      rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
     };
 
     type SemanticsCase = {
@@ -1580,6 +1580,18 @@ describe("makeFsModule", () => {
         gap: {
           reason: "memfs returns the requested path rather than the first directory created",
           memfs: { result: "/repo/a/b/c" }
+        }
+      },
+      {
+        // node builds the answer from the path it was handed rather than a normalised
+        // one, so './' survives in the result. Recorded from node, which answers
+        // '/repo/./d1' here and 'repo/x' for a relative 'repo/x/y'.
+        title: "mkdir recursive returns the first directory it created as the path was spelled",
+        invoke: (fs) => fs.mkdir("/repo/./d1/../d1/d2", { recursive: true }),
+        node: { result: "/repo/./d1" },
+        gap: {
+          reason: "memfs returns the requested path rather than the first directory created",
+          memfs: { result: "/repo/./d1/../d1/d2" }
         }
       },
       {
@@ -1714,6 +1726,30 @@ describe("makeFsModule", () => {
         node: { result: undefined }
       },
       {
+        // force forgives a missing path and nothing else: the lstat that fails here
+        // fails with ENOTDIR, so force does not swallow it.
+        title: "rm force through a file segment still rejects with ENOTDIR",
+        setup: (volume) => volume.writeFileSync("/repo/f", "x"),
+        invoke: (fs) => fs.rm("/repo/f/leaf", { force: true }),
+        node: {
+          name: "Error",
+          message: "ENOTDIR: not a directory, lstat '/repo/f/leaf'",
+          code: "ENOTDIR",
+          errno: -20,
+          syscall: "lstat",
+          path: "/repo/f/leaf"
+        },
+        gap: {
+          reason: "memfs blames stat where node's rm lstats the path first",
+          memfs: {
+            name: "Error",
+            message: "ENOTDIR: not a directory, stat '/repo/f/leaf'",
+            code: "ENOTDIR",
+            path: "/repo/f/leaf"
+          }
+        }
+      },
+      {
         title: "rm on a directory without recursive rejects with ERR_FS_EISDIR",
         setup: (volume) => volume.mkdirSync("/repo/d"),
         invoke: (fs) => fs.rm("/repo/d"),
@@ -1788,6 +1824,23 @@ describe("makeFsModule", () => {
         }
       },
       {
+        // node's rm lstats the path, so a link whose target is gone is still a link to
+        // unlink. force is not needed for that.
+        title: "rm on a dangling symlink without force unlinks the link",
+        setup: (volume) => volume.symlinkSync("/repo/ghost", "/repo/dangle"),
+        invoke: (fs) => fs.rm("/repo/dangle"),
+        node: { result: undefined },
+        gap: {
+          reason: "memfs stats through the link and reports the missing target as ENOENT",
+          memfs: {
+            name: "Error",
+            message: "ENOENT: no such file or directory, stat '/repo/dangle'",
+            code: "ENOENT",
+            path: "/repo/dangle"
+          }
+        }
+      },
+      {
         title: "rmdir on a non-empty directory rejects with ENOTEMPTY",
         setup: (volume) => {
           volume.mkdirSync("/repo/d");
@@ -1843,6 +1896,29 @@ describe("makeFsModule", () => {
           syscall: "rmdir",
           path: "/repo/link"
         }
+      },
+      {
+        // rmdir does not lstat the way rm does; it hands the link to the rmdir syscall,
+        // which refuses a non-directory.
+        title: "rmdir on a dangling symlink rejects with ENOTDIR",
+        setup: (volume) => volume.symlinkSync("/repo/ghost", "/repo/dangle"),
+        invoke: (fs) => fs.rmdir("/repo/dangle"),
+        node: {
+          name: "Error",
+          message: "ENOTDIR: not a directory, rmdir '/repo/dangle'",
+          code: "ENOTDIR",
+          errno: -20,
+          syscall: "rmdir",
+          path: "/repo/dangle"
+        }
+      },
+      {
+        // node still honours rmdir's deprecated recursive option on v22 (it warns via
+        // DEP0147), so the module forwards it rather than refusing it.
+        title: "rmdir recursive on a non-empty directory resolves",
+        setup: (volume) => volume.mkdirSync("/repo/d/e", { recursive: true }),
+        invoke: (fs) => fs.rmdir("/repo/d", { recursive: true }),
+        node: { result: undefined }
       }
     ];
 
@@ -1973,14 +2049,33 @@ describe("makeFsModule", () => {
       expect(gaps).toEqual([
         "mkdir recursive returns the first directory it created: memfs returns the requested path rather than the first directory created",
         "mkdir recursive returns the first directory created below an existing parent: memfs returns the requested path rather than the first directory created",
+        "mkdir recursive returns the first directory it created as the path was spelled: memfs returns the requested path rather than the first directory created",
         "mkdir non-recursive with a missing parent rejects with ENOENT: memfs blames the missing parent rather than the path mkdir was given",
         "mkdir non-recursive through a file segment rejects with ENOTDIR: memfs blames the file segment rather than the path mkdir was given",
         "mkdir recursive on an existing file rejects with EEXIST: memfs forgives an existing file when mkdir is recursive and resolves",
         "rm on a missing path without force rejects with ENOENT: memfs blames stat where node's rm lstats the path first",
+        "rm force through a file segment still rejects with ENOTDIR: memfs blames stat where node's rm lstats the path first",
         "rm on a directory without recursive rejects with ERR_FS_EISDIR: memfs raises a plain Error and prefixes the code to node's message",
         "rm force on a directory without recursive still rejects with ERR_FS_EISDIR: memfs raises a plain Error and prefixes the code to node's message",
-        "rm on a symlink to a directory unlinks the link: memfs follows the link and refuses it as a directory instead of unlinking it"
+        "rm on a symlink to a directory unlinks the link: memfs follows the link and refuses it as a directory instead of unlinking it",
+        "rm on a dangling symlink without force unlinks the link: memfs stats through the link and reports the missing target as ENOENT"
       ]);
+    });
+
+    // The case table compares what an operation answered, which is blind to a
+    // divergence in what it did: recursive rm of a link to a directory resolves on both
+    // node and memfs, so the table would call them agreed while memfs deletes the
+    // target node leaves alone. Recorded from node, where the link is unlinked and
+    // '/repo/d/keep' survives.
+    it("records that memfs deletes the target recursive rm only unlinks a link to", async () => {
+      const { fs, volume } = createFs({ "/repo/d/keep": "x" });
+      volume.symlinkSync("/repo/d", "/repo/link");
+
+      await fs.rm("/repo/link", { recursive: true });
+
+      expect(volume.existsSync("/repo/link")).toBe(false);
+      // node keeps the target here; memfs recurses through the link and destroys it.
+      expect(volume.existsSync("/repo/d/keep")).toBe(false);
     });
 
     // Why errno and syscall are absent from every comparison above rather than
@@ -2006,16 +2101,32 @@ describe("makeFsModule", () => {
     });
 
     describe("mode and umask", () => {
-      // node applies the process umask to mkdir's mode, so the permission bits are
-      // environment-dependent and the relationship is asserted rather than a literal.
-      // Recorded from node: mode 0o777 under umask 0o022 reports 0o755, while mode
-      // 0o700 reports 0o700 under the same umask. memfs applies no umask at all, so
-      // only the relationship node and memfs agree on is driven here.
+      // node applies the process umask to mkdir's mode, so the bits stat reports back
+      // are environment-dependent and the relationship is asserted rather than a
+      // literal. memfs applies no umask, so node's rule can only be asserted against
+      // what node answered: recorded from real node on darwin by setting the umask
+      // around each mkdir and reading stat().mode back.
       const umask = process.umask();
+      const MODE_TRUTH = [
+        { mode: 0o777, umask: 0o022, reported: 0o755 },
+        { mode: 0o700, umask: 0o022, reported: 0o700 },
+        { mode: 0o777, umask: 0o077, reported: 0o700 },
+        { mode: 0o700, umask: 0o277, reported: 0o500 }
+      ] as const;
 
-      it("reports node's mode unmasked when the umask clears no requested bit", async () => {
+      it("clears exactly the umask's bits from the mode node reports back", () => {
+        for (const { mode, umask: recorded, reported } of MODE_TRUTH) {
+          expect(mode & ~recorded).toBe(reported);
+        }
+      });
+
+      // The mode is taken from the umask rather than hardcoded, so the premise holds
+      // whatever this environment's umask is: node reports `mode & ~umask`, which for
+      // an already-masked mode is the mode itself, and memfs reports it verbatim. A
+      // literal mode here would fail under a umask that clears one of its bits.
+      it("forwards the mode to mkdir when the umask clears no requested bit", async () => {
         const { fs } = createFs({ "/repo/keep.txt": "" });
-        const mode = 0o700;
+        const mode = 0o777 & ~umask;
 
         await fs.mkdir("/repo/masked", { mode });
 

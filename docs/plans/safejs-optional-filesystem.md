@@ -295,7 +295,7 @@ tasks:
 
       Recorded outcome: the module needed no change — mkdir/rm/rmdir are pure passthrough and
       already surface node's answer untouched. The work was the assertions, and memfs turned out
-      unable to ground 10 of the 22 cases, including every headline bullet. The recorded gaps
+      unable to ground 13 of the 24 cases, including every headline bullet. The recorded gaps
       (darwin, node v22.22.2, umask 0o022) now live as data in the `mkdir, rm, and rmdir node
       semantics` block of packages/safejs/src/modules/fs.test.ts for fs-node-truth-fixture to lift:
 
@@ -306,8 +306,35 @@ tasks:
       - rm on a directory raises a plain `Error` with the code prefixed to node's message, where
         node raises a `SystemError` (`ERR_FS_EISDIR`, a positive errno of 21)
       - rm on a symlink to a directory follows the link instead of unlinking it
+      - rm on a *dangling* symlink stats through the link and raises `ENOENT`, where node unlinks
+        the link and resolves without needing `force`
       - memfs applies no umask to mkdir's mode
       - memfs sets neither `errno` nor `syscall` on any error
+
+      Every recorded literal above was afterwards replayed against real node v22.22.2 on darwin and
+      matched, including the two most easily mis-recorded: rm-on-a-directory's positive errno 21 and
+      `ENOTEMPTY`'s darwin errno of -66 (Linux uses -39, so a fixture that asserts errno must record
+      the platform). Four cases the first pass missed, each a semantic the passthrough gets right
+      only because it forwards:
+
+      - `force` forgives `ENOENT` and nothing else — `rm('/f/leaf', {force: true})` through a file
+        segment still raises `ENOTDIR` from the `lstat`
+      - mkdir recursive builds its answer from the path it was handed, not a normalised one:
+        `/repo/./d1/../d1/d2` answers `/repo/./d1`, and a relative path answers a relative one.
+        Mutation-testing showed the already-normalised cases cannot catch a module that resolves its
+        result, so this case is the only guard against one
+      - node still honours rmdir's deprecated `recursive` (DEP0147) on v22, and rmdir refuses a
+        dangling symlink with `ENOTDIR` — memfs agrees on both, so both assert over memfs
+      - recursive rm of a link to a directory resolves on node *and* memfs while memfs deletes the
+        target node leaves alone. The case table compares what an operation answered, so it is
+        structurally blind to this; it needs a test that asserts the effect, and it is the one gap
+        where memfs silently destroys data rather than reporting differently
+
+      mode/umask is asserted as node's rule (`reported === mode & ~umask`) over four umask/mode pairs
+      recorded from real node, because memfs applies no umask and so cannot ground the relationship.
+      The one mode assertion driven over memfs takes its mode from the live umask rather than a
+      literal, so its premise holds under any umask — a literal `0o700` fails under `0o277`, where
+      node reports `0o500`.
 
       Two consequences worth carrying forward. First, a memfs-only assertion of the headline case
       is unfalsifiable: memfs already returns mkdir's requested path, so a module that returned the

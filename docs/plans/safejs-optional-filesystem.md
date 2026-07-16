@@ -508,10 +508,10 @@ tasks:
 
       TDD with memfs; no real files.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: fs-error-message-parity
     title: Match node's error message text, and document the stack deviation

@@ -2576,27 +2576,24 @@ describe("makeFsModule", () => {
     // answered. The modes are masked because node applies the process umask to a created
     // file's mode and memfs does not: masking first is what makes one expectation hold for
     // both, the same way the mkdir block does it.
-    describe("mode", () => {
+    it("applies the mode only when writeFile creates the file", async () => {
       const umask = process.umask();
       const created = 0o600 & ~umask;
       const rewritten = 0o666 & ~umask;
+      const { fs } = createFs({ "/repo/keep.txt": "" });
+      // A umask folding the two modes together would leave the rewrite below
+      // unfalsifiable, so the premise is asserted rather than assumed.
+      expect(rewritten).not.toBe(created);
 
-      it("applies the mode only when writeFile creates the file", async () => {
-        const { fs } = createFs({ "/repo/keep.txt": "" });
-        // A umask folding the two modes together would leave the rewrite below
-        // unfalsifiable, so the premise is asserted rather than assumed.
-        expect(rewritten).not.toBe(created);
+      await fs.writeFile("/repo/new.txt", "x", { mode: created });
 
-        await fs.writeFile("/repo/new.txt", "x", { mode: created });
+      expect((await fs.stat("/repo/new.txt")).mode & 0o777).toBe(created);
 
-        expect((await fs.stat("/repo/new.txt")).mode & 0o777).toBe(created);
+      await fs.writeFile("/repo/new.txt", "y", { mode: rewritten });
 
-        await fs.writeFile("/repo/new.txt", "y", { mode: rewritten });
-
-        // The write landed, so the dropped mode is the mode alone rather than the call.
-        expect(await fs.readFile("/repo/new.txt", "utf8")).toBe("y");
-        expect((await fs.stat("/repo/new.txt")).mode & 0o777).toBe(created);
-      });
+      // The write landed, so the dropped mode is the mode alone rather than the call.
+      expect(await fs.readFile("/repo/new.txt", "utf8")).toBe("y");
+      expect((await fs.stat("/repo/new.txt")).mode & 0o777).toBe(created);
     });
 
     // node refuses a non-string data argument before it opens the path, which the

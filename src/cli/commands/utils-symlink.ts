@@ -14,20 +14,6 @@ export function registerUtilsSymlinkCommand(
     .usage("[options] [command]")
     .addHelpCommand(false)
     .allowExcessArguments()
-    .configureHelp({
-      formatHelp: () => [
-        "Poe - utils symlink",
-        "",
-        "Usage: poe-code utils symlink [options] [command]",
-        "",
-        "Keep agent tool files interchangeable via symlinks.",
-        "",
-        "Commands:",
-        "  agents   Symlink CLAUDE.md <- AGENTS.md (AGENTS.md is canonical).",
-        "  skills   Move .claude/skills into .agents/skills and symlink it back.",
-        ""
-      ].join("\n")
-    })
     .action(function (this: Command) {
       if (this.args.length > 0) {
         throwCommandNotFound({
@@ -44,4 +30,9 @@ export function registerUtilsSymlinkCommand(
 
   registerUtilsSymlinkAgentsCommand(symlink, container);
   registerUtilsSymlinkSkillsCommand(symlink, container);
+
+  // `utils symlink-skills` is the common guess for the nested command, so register the
+  // same command on the parent under that name instead of failing as unknown.
+  registerUtilsSymlinkSkillsCommand(parent, container);
+  parent.commands.find((command) => command.name() === "skills")?.name("symlink-skills");
 }

@@ -1,5 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { text } from "toolcraft-design";
 import type { FileSystem } from "../../utils/file-system.js";
 
 const { selectMock, cancelMock } = vi.hoisted(() => ({
@@ -363,6 +364,33 @@ describe("applySymlinkOps", () => {
   });
 });
 
+describe("utils symlink help", () => {
+  const findSymlink = (fs: FileSystem) => {
+    const program = createCliProgram(fs, []);
+    const utils = program.commands.find((c) => c.name() === "utils");
+    return { utils, symlink: utils?.commands.find((c) => c.name() === "symlink") };
+  };
+
+  it("renders through the shared design-system help formatter", () => {
+    const { utils, symlink } = findSymlink(createMemFs());
+
+    expect(symlink?.configureHelp().formatHelp).toBe(utils?.configureHelp().formatHelp);
+  });
+
+  it("documents its options and commands with design-system styling", () => {
+    const { symlink } = findSymlink(createMemFs());
+    const help = symlink?.helpInformation() ?? "";
+
+    expect(help).toContain(text.heading("Poe - utils symlink"));
+    expect(help).toContain(text.section("Usage:"));
+    expect(help).toContain(text.section("Options:"));
+    expect(help).toContain("-h, --help");
+    expect(help).toContain(text.section("Commands:"));
+    expect(help).toContain(text.command("agents [options]"));
+    expect(help).toContain(text.command("skills [options]"));
+  });
+});
+
 describe("utils symlink subcommand help", () => {
   it.each(["agents", "skills"])("%s --help shows its own flags, not the parent help", (sub) => {
     const fs = createMemFs();
@@ -387,6 +415,20 @@ describe("utils symlink skills command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     process.exitCode = undefined;
+  });
+
+  it("runs the skills command through the utils symlink-skills alias", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const lstatSpy = vi.spyOn(fs, "lstat");
+    const program = createCliProgram(fs, logs);
+
+    await program.parseAsync(["node", "cli", "utils", "symlink-skills", "--global"]);
+
+    const checkedPaths = lstatSpy.mock.calls.map(([path]) => path);
+    expect(checkedPaths).toContain(globalTargets.claudeDir);
+    expect(checkedPaths).toContain(globalTargets.agentsDir);
+    expect(process.exitCode).toBe(0);
   });
 
   it("errors when both --local and --global are passed", async () => {

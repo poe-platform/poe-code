@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Command } from "commander";
 import { CommanderError } from "commander";
-import { OperationCancelledError, ReportedError, SilentError } from "./errors.js";
+import {
+  OperationCancelledError,
+  ReportedError,
+  SilentError,
+  ValidationError
+} from "./errors.js";
 import { VersionExit } from "./exit-signals.js";
 
 const logErrorWithStackTrace = vi.fn();
@@ -207,6 +212,27 @@ describe("createCliMain", () => {
     await expect(main()).rejects.toThrow("exit:1");
 
     expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(vi.mocked(log.message)).not.toHaveBeenCalled();
+  });
+
+  it("renders user errors as a plain message without stack diagnostics", async () => {
+    const parseAsync = vi.fn(async () => {
+      throw new ValidationError('Invalid --since duration "bogus". Use 7d.');
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
+    };
+    const { log } = await import("toolcraft-design");
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(vi.mocked(log.error)).toHaveBeenCalledWith(
+      'Invalid --since duration "bogus". Use 7d.'
+    );
     expect(vi.mocked(log.message)).not.toHaveBeenCalled();
   });
 

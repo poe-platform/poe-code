@@ -1317,6 +1317,21 @@ describe("models command", () => {
     expect(httpClient).not.toHaveBeenCalled();
   });
 
+  it("reports validation failures once without operation chrome", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: [createModelEntry({ id: "gpt-5" })] })
+    });
+
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--endpoint", "bogus"] })
+    ).rejects.toThrow(ValidationError);
+
+    expect(logs.join("\n")).not.toContain("Error during models");
+  });
+
   it("filters by --since with long-form duration (e.g. '30 days')", async () => {
     fs = await createConfigVolume("test-key");
     const now = Date.now();

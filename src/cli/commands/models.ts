@@ -371,269 +371,260 @@ export function registerModelsCommand(
         resources.logger.intro("models");
       }
 
+      const sinceDuration = parseSinceDuration(commandOptions.since);
+      const providerFilter = commandOptions.provider !== undefined
+        ? normalizeRequiredFilter("--provider", commandOptions.provider)
+        : undefined;
+      const modelFilter = commandOptions.model !== undefined
+        ? normalizeRequiredFilter("--model", commandOptions.model)
+        : undefined;
+      const searchFilter = commandOptions.search !== undefined
+        ? normalizeSearchFilter(commandOptions.search)
+        : undefined;
+      const endpointFilter = commandOptions.endpoint !== undefined
+        ? normalizeEndpoint(normalizeRequiredFilter("--endpoint", commandOptions.endpoint))
+        : undefined;
+      const featureFilter = commandOptions.feature !== undefined
+        ? normalizeRequiredFilter("--feature", commandOptions.feature)
+        : undefined;
+      const inputFilter = commandOptions.input !== undefined
+        ? parseModalityFilter("--input", commandOptions.input)
+        : undefined;
+      const outputFilter = commandOptions.output !== undefined
+        ? parseModalityFilter("--output", commandOptions.output)
+        : undefined;
+      let apiKey: string | null = null;
       try {
-        const sinceDuration = parseSinceDuration(commandOptions.since);
-        const providerFilter = commandOptions.provider !== undefined
-          ? normalizeRequiredFilter("--provider", commandOptions.provider)
-          : undefined;
-        const modelFilter = commandOptions.model !== undefined
-          ? normalizeRequiredFilter("--model", commandOptions.model)
-          : undefined;
-        const searchFilter = commandOptions.search !== undefined
-          ? normalizeSearchFilter(commandOptions.search)
-          : undefined;
-        const endpointFilter = commandOptions.endpoint !== undefined
-          ? normalizeEndpoint(normalizeRequiredFilter("--endpoint", commandOptions.endpoint))
-          : undefined;
-        const featureFilter = commandOptions.feature !== undefined
-          ? normalizeRequiredFilter("--feature", commandOptions.feature)
-          : undefined;
-        const inputFilter = commandOptions.input !== undefined
-          ? parseModalityFilter("--input", commandOptions.input)
-          : undefined;
-        const outputFilter = commandOptions.output !== undefined
-          ? parseModalityFilter("--output", commandOptions.output)
-          : undefined;
-        let apiKey: string | null = null;
-        try {
-          apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
-            envVars: container.env.variables,
-            readOnly: flags.dryRun
-          });
-        } catch {
-          apiKey = null;
-        }
-
-        if (flags.dryRun) {
-          resources.logger.dryRun(
-            "Dry run: would fetch models from Poe API."
-          );
-          return;
-        }
-
-        const headers: Record<string, string> = {};
-        if (apiKey) {
-          headers.Authorization = `Bearer ${apiKey}`;
-        }
-
-        const result = rawView
-          ? await fetchModels(container, headers)
-          : await withSpinner<{ object: string; data: ModelEntry[] }>({
-            message: "Fetching models...",
-            fn: () => fetchModels(container, headers),
-            stopMessage: (r) => `${r.data.length} models fetched`
-          });
-
-        validateModelsResponse(result.data);
-        const {
-          models: allModels,
-          availableEndpoints,
-          availableProviders,
-          availableFeatures,
-          availableInputModalities,
-          availableOutputModalities
-        } = preprocessModels(result.data);
-
-        if (!rawView && allModels.length === 0) {
-          resources.logger.info("No models found.");
-          return;
-        }
-
-        if (providerFilter !== undefined &&
-          !availableProviders.some((provider) => provider.includes(providerFilter))) {
-          throw unknownFilterError("--provider", providerFilter, availableProviders);
-        }
-        if (featureFilter !== undefined && !availableFeatures.includes(featureFilter)) {
-          throw unknownFilterError("--feature", featureFilter, availableFeatures);
-        }
-        for (const modality of inputFilter ?? []) {
-          if (!availableInputModalities.includes(modality)) {
-            throw unknownFilterError("--input", modality, availableInputModalities);
-          }
-        }
-        for (const modality of outputFilter ?? []) {
-          if (!availableOutputModalities.includes(modality)) {
-            throw unknownFilterError("--output", modality, availableOutputModalities);
-          }
-        }
-
-        let filtered = allModels;
-        if (providerFilter !== undefined) {
-          filtered = filtered.filter((m) =>
-            m.owned_by.toLowerCase().includes(providerFilter)
-          );
-        }
-        if (modelFilter !== undefined) {
-          filtered = filtered.filter((m) =>
-            m.id.toLowerCase() === modelFilter ||
-            namespacedModelId(m) === modelFilter
-          );
-        }
-        if (searchFilter !== undefined) {
-          filtered = filtered.filter((m) =>
-            namespacedModelId(m).includes(searchFilter)
-          );
-        }
-        if (featureFilter !== undefined) {
-          filtered = filtered.filter((m) => hasFeature(m, featureFilter));
-        }
-        if (endpointFilter !== undefined) {
-          if (!availableEndpoints.includes(endpointFilter)) {
-            const availableLabel = availableEndpoints.length > 0
-              ? availableEndpoints.join(", ")
-              : "none";
-            throw new ValidationError(
-              `Unsupported endpoint "${endpointFilter}". Available endpoints: ${availableLabel}`
-            );
-          }
-          filtered = filtered.filter((m) =>
-            m.normalized_supported_endpoints.includes(endpointFilter)
-          );
-        }
-        if (commandOptions.tools) {
-          filtered = filtered.filter((m) => hasFeature(m, "tools"));
-        }
-        if (inputFilter !== undefined) {
-          filtered = filtered.filter((m) => {
-            const modalities = m.architecture?.input_modalities ?? [];
-            return inputFilter.every((r) => modalities.includes(r));
-          });
-        }
-        if (outputFilter !== undefined) {
-          filtered = filtered.filter((m) => {
-            const modalities = m.architecture?.output_modalities ?? [];
-            return outputFilter.every((r) => modalities.includes(r));
-          });
-        }
-        const beforeSinceCount = filtered.length;
-        if (sinceDuration !== undefined) {
-          const cutoff = Date.now() - sinceDuration;
-          filtered = filtered.filter((m) => m.created >= cutoff);
-        }
-
-        if (!rawView && hasActiveFilters(commandOptions)) {
-          resources.logger.info(`${filtered.length}/${allModels.length} models`);
-        }
-
-        if (!rawView && filtered.length === 0) {
-          resources.logger.info(
-            sinceDuration !== undefined && beforeSinceCount > 0
-              ? `No models added in the last ${commandOptions.since} (of ${beforeSinceCount} total).`
-              : "No models match the given filters."
-          );
-          return;
-        }
-
-        filtered.sort((a, b) => b.created - a.created);
-
-        if (rawView) {
-          writeYaml(filtered.map(toRawModel));
-          return;
-        }
-
-        const theme = getTheme();
-
-        let columns;
-        let rows;
-
-        if (commandOptions.view === "parameters") {
-          const withParams = filtered.filter((m) => m.parameters.length > 0);
-          if (withParams.length === 0) {
-            resources.logger.info("No models with parameters match the given filters.");
-            return;
-          }
-
-          columns = [
-            { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
-            { name: "Parameter", title: "Parameter", alignment: "left" as const, maxLen: 28 },
-            { name: "Type", title: "Type", alignment: "left" as const, maxLen: 9 },
-            { name: "Default", title: "Default", alignment: "left" as const, maxLen: 12 },
-            { name: "Values", title: "Values/Range", alignment: "left" as const, maxLen: 35 }
-          ];
-
-          rows = [];
-          for (const model of withParams) {
-            const modelLabel = theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`);
-            rows.push({ Model: modelLabel, Parameter: "", Type: "", Default: "", Values: "" });
-            for (const param of model.parameters) {
-              rows.push({
-                Model: "",
-                Parameter: param.name,
-                Type: formatParameterType(param.schema),
-                Default: formatDefaultValue(param.default_value),
-                Values: formatParameterValues(param.schema)
-              });
-            }
-          }
-        } else if (commandOptions.view === "pricing") {
-          columns = [
-            { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
-            { name: "Context", title: "Context", alignment: "right" as const, maxLen: 9 },
-            { name: "Input", title: "Input $/MTok", alignment: "right" as const, maxLen: 12 },
-            { name: "Output", title: "Output $/MTok", alignment: "right" as const, maxLen: 13 },
-            { name: "CacheRead", title: "Cache Read", alignment: "right" as const, maxLen: 10 },
-            { name: "CacheWrite", title: "Cache Write", alignment: "right" as const, maxLen: 11 },
-            { name: "Request", title: "Request", alignment: "right" as const, maxLen: 9 }
-          ];
-
-          rows = filtered.map((model) => {
-            const pricing = model.pricing;
-            return {
-              Model: theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`),
-              Context: model.context_window?.context_length != null ? formatTokenCount(model.context_window.context_length) : "-",
-              Input: formatOptionalPrice(pricing?.prompt ?? null),
-              Output: formatOptionalPrice(pricing?.completion ?? null),
-              CacheRead: formatOptionalPrice(pricing?.input_cache_read ?? null),
-              CacheWrite: formatOptionalPrice(pricing?.input_cache_write ?? null),
-              Request: formatOptionalPrice(pricing?.request ?? null)
-            };
-          });
-        } else {
-          const allFeatures = Array.from(
-            new Set(filtered.flatMap((m) => m.supported_features ?? []))
-          ).sort();
-
-          columns = [
-            { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
-            { name: "Date", title: "Date Added", alignment: "left" as const, maxLen: 12 },
-            { name: "Modality", title: "Modality", alignment: "left" as const, maxLen: 24 },
-            { name: "Context", title: "Context", alignment: "right" as const, maxLen: 9 },
-            { name: "Reasoning", title: "Reasoning", alignment: "left" as const, maxLen: 9 },
-            ...allFeatures.map((feature) => ({
-              name: feature,
-              title: feature,
-              alignment: "left" as const,
-              maxLen: Math.max(feature.length, 3)
-            }))
-          ];
-
-          rows = filtered.map((model) => {
-            const row: Record<string, string> = Object.assign(Object.create(null), {
-              Model: theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`),
-              Date: theme.muted(formatDate(model.created)),
-              Modality: model.architecture
-                ? `${model.architecture.input_modalities.join(",")}->${model.architecture.output_modalities.join(",")}`
-                : "-",
-              Context: model.context_window?.context_length != null ? formatTokenCount(model.context_window.context_length) : "-",
-              Reasoning: model.reasoning ? theme.success("✓") : ""
-            });
-            for (const feature of allFeatures) {
-              row[feature] = (model.supported_features ?? []).includes(feature)
-                ? theme.success("✓")
-                : "";
-            }
-            return row;
-          });
-        }
-
-        resources.logger.info(renderTable({ theme, columns, rows }));
-      } catch (error) {
-        if (error instanceof Error) {
-          resources.logger.logException(error, "models", {
-            operation: "fetch-models"
-          });
-        }
-        throw error;
+        apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
+          envVars: container.env.variables,
+          readOnly: flags.dryRun
+        });
+      } catch {
+        apiKey = null;
       }
+
+      if (flags.dryRun) {
+        resources.logger.dryRun(
+          "Dry run: would fetch models from Poe API."
+        );
+        return;
+      }
+
+      const headers: Record<string, string> = {};
+      if (apiKey) {
+        headers.Authorization = `Bearer ${apiKey}`;
+      }
+
+      const result = rawView
+        ? await fetchModels(container, headers)
+        : await withSpinner<{ object: string; data: ModelEntry[] }>({
+          message: "Fetching models...",
+          fn: () => fetchModels(container, headers),
+          stopMessage: (r) => `${r.data.length} models fetched`
+        });
+
+      validateModelsResponse(result.data);
+      const {
+        models: allModels,
+        availableEndpoints,
+        availableProviders,
+        availableFeatures,
+        availableInputModalities,
+        availableOutputModalities
+      } = preprocessModels(result.data);
+
+      if (!rawView && allModels.length === 0) {
+        resources.logger.info("No models found.");
+        return;
+      }
+
+      if (providerFilter !== undefined &&
+        !availableProviders.some((provider) => provider.includes(providerFilter))) {
+        throw unknownFilterError("--provider", providerFilter, availableProviders);
+      }
+      if (featureFilter !== undefined && !availableFeatures.includes(featureFilter)) {
+        throw unknownFilterError("--feature", featureFilter, availableFeatures);
+      }
+      for (const modality of inputFilter ?? []) {
+        if (!availableInputModalities.includes(modality)) {
+          throw unknownFilterError("--input", modality, availableInputModalities);
+        }
+      }
+      for (const modality of outputFilter ?? []) {
+        if (!availableOutputModalities.includes(modality)) {
+          throw unknownFilterError("--output", modality, availableOutputModalities);
+        }
+      }
+
+      let filtered = allModels;
+      if (providerFilter !== undefined) {
+        filtered = filtered.filter((m) =>
+          m.owned_by.toLowerCase().includes(providerFilter)
+        );
+      }
+      if (modelFilter !== undefined) {
+        filtered = filtered.filter((m) =>
+          m.id.toLowerCase() === modelFilter ||
+          namespacedModelId(m) === modelFilter
+        );
+      }
+      if (searchFilter !== undefined) {
+        filtered = filtered.filter((m) =>
+          namespacedModelId(m).includes(searchFilter)
+        );
+      }
+      if (featureFilter !== undefined) {
+        filtered = filtered.filter((m) => hasFeature(m, featureFilter));
+      }
+      if (endpointFilter !== undefined) {
+        if (!availableEndpoints.includes(endpointFilter)) {
+          const availableLabel = availableEndpoints.length > 0
+            ? availableEndpoints.join(", ")
+            : "none";
+          throw new ValidationError(
+            `Unsupported endpoint "${endpointFilter}". Available endpoints: ${availableLabel}`
+          );
+        }
+        filtered = filtered.filter((m) =>
+          m.normalized_supported_endpoints.includes(endpointFilter)
+        );
+      }
+      if (commandOptions.tools) {
+        filtered = filtered.filter((m) => hasFeature(m, "tools"));
+      }
+      if (inputFilter !== undefined) {
+        filtered = filtered.filter((m) => {
+          const modalities = m.architecture?.input_modalities ?? [];
+          return inputFilter.every((r) => modalities.includes(r));
+        });
+      }
+      if (outputFilter !== undefined) {
+        filtered = filtered.filter((m) => {
+          const modalities = m.architecture?.output_modalities ?? [];
+          return outputFilter.every((r) => modalities.includes(r));
+        });
+      }
+      const beforeSinceCount = filtered.length;
+      if (sinceDuration !== undefined) {
+        const cutoff = Date.now() - sinceDuration;
+        filtered = filtered.filter((m) => m.created >= cutoff);
+      }
+
+      if (!rawView && hasActiveFilters(commandOptions)) {
+        resources.logger.info(`${filtered.length}/${allModels.length} models`);
+      }
+
+      if (!rawView && filtered.length === 0) {
+        resources.logger.info(
+          sinceDuration !== undefined && beforeSinceCount > 0
+            ? `No models added in the last ${commandOptions.since} (of ${beforeSinceCount} total).`
+            : "No models match the given filters."
+        );
+        return;
+      }
+
+      filtered.sort((a, b) => b.created - a.created);
+
+      if (rawView) {
+        writeYaml(filtered.map(toRawModel));
+        return;
+      }
+
+      const theme = getTheme();
+
+      let columns;
+      let rows;
+
+      if (commandOptions.view === "parameters") {
+        const withParams = filtered.filter((m) => m.parameters.length > 0);
+        if (withParams.length === 0) {
+          resources.logger.info("No models with parameters match the given filters.");
+          return;
+        }
+
+        columns = [
+          { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
+          { name: "Parameter", title: "Parameter", alignment: "left" as const, maxLen: 28 },
+          { name: "Type", title: "Type", alignment: "left" as const, maxLen: 9 },
+          { name: "Default", title: "Default", alignment: "left" as const, maxLen: 12 },
+          { name: "Values", title: "Values/Range", alignment: "left" as const, maxLen: 35 }
+        ];
+
+        rows = [];
+        for (const model of withParams) {
+          const modelLabel = theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`);
+          rows.push({ Model: modelLabel, Parameter: "", Type: "", Default: "", Values: "" });
+          for (const param of model.parameters) {
+            rows.push({
+              Model: "",
+              Parameter: param.name,
+              Type: formatParameterType(param.schema),
+              Default: formatDefaultValue(param.default_value),
+              Values: formatParameterValues(param.schema)
+            });
+          }
+        }
+      } else if (commandOptions.view === "pricing") {
+        columns = [
+          { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
+          { name: "Context", title: "Context", alignment: "right" as const, maxLen: 9 },
+          { name: "Input", title: "Input $/MTok", alignment: "right" as const, maxLen: 12 },
+          { name: "Output", title: "Output $/MTok", alignment: "right" as const, maxLen: 13 },
+          { name: "CacheRead", title: "Cache Read", alignment: "right" as const, maxLen: 10 },
+          { name: "CacheWrite", title: "Cache Write", alignment: "right" as const, maxLen: 11 },
+          { name: "Request", title: "Request", alignment: "right" as const, maxLen: 9 }
+        ];
+
+        rows = filtered.map((model) => {
+          const pricing = model.pricing;
+          return {
+            Model: theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`),
+            Context: model.context_window?.context_length != null ? formatTokenCount(model.context_window.context_length) : "-",
+            Input: formatOptionalPrice(pricing?.prompt ?? null),
+            Output: formatOptionalPrice(pricing?.completion ?? null),
+            CacheRead: formatOptionalPrice(pricing?.input_cache_read ?? null),
+            CacheWrite: formatOptionalPrice(pricing?.input_cache_write ?? null),
+            Request: formatOptionalPrice(pricing?.request ?? null)
+          };
+        });
+      } else {
+        const allFeatures = Array.from(
+          new Set(filtered.flatMap((m) => m.supported_features ?? []))
+        ).sort();
+
+        columns = [
+          { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
+          { name: "Date", title: "Date Added", alignment: "left" as const, maxLen: 12 },
+          { name: "Modality", title: "Modality", alignment: "left" as const, maxLen: 24 },
+          { name: "Context", title: "Context", alignment: "right" as const, maxLen: 9 },
+          { name: "Reasoning", title: "Reasoning", alignment: "left" as const, maxLen: 9 },
+          ...allFeatures.map((feature) => ({
+            name: feature,
+            title: feature,
+            alignment: "left" as const,
+            maxLen: Math.max(feature.length, 3)
+          }))
+        ];
+
+        rows = filtered.map((model) => {
+          const row: Record<string, string> = Object.assign(Object.create(null), {
+            Model: theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`),
+            Date: theme.muted(formatDate(model.created)),
+            Modality: model.architecture
+              ? `${model.architecture.input_modalities.join(",")}->${model.architecture.output_modalities.join(",")}`
+              : "-",
+            Context: model.context_window?.context_length != null ? formatTokenCount(model.context_window.context_length) : "-",
+            Reasoning: model.reasoning ? theme.success("✓") : ""
+          });
+          for (const feature of allFeatures) {
+            row[feature] = (model.supported_features ?? []).includes(feature)
+              ? theme.success("✓")
+              : "";
+          }
+          return row;
+        });
+      }
+
+      resources.logger.info(renderTable({ theme, columns, rows }));
     });
 }

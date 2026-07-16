@@ -9,7 +9,7 @@ import chalk from "chalk";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";
 import { ErrorLogger } from "./error-logger.js";
-import { CliError, isReportedError, isSilentError } from "./errors.js";
+import { isReportedError, isSilentError, isUserFacingError } from "./errors.js";
 import type { CliDependencies } from "./program.js";
 import { createPromptRunner } from "./prompt-runner.js";
 
@@ -59,7 +59,10 @@ export function createCliMain(
       const normalizedError = normalizeThrownError(error);
       if (normalizedError !== undefined) {
         const isDryRun = Boolean(program.optsWithGlobals().dryRun);
-        if (!isDryRun) {
+        const isUserError = isUserFacingError(normalizedError);
+        // A user error is bad input, not a failure to diagnose: no stack trace,
+        // no log file, no log pointer - just the message and its recovery hint.
+        if (!isDryRun && !isUserError) {
           errorLogger.logErrorWithStackTrace(normalizedError, "CLI execution", {
             component: "main",
             argv: redactSensitiveArgv(process.argv)
@@ -68,7 +71,7 @@ export function createCliMain(
 
         // Display user-friendly message
         const displayMessage = formatTerminalError(normalizedError.message);
-        if (normalizedError instanceof CliError && normalizedError.isUserError) {
+        if (isUserError) {
           log.error(displayMessage);
         } else {
           log.error(`Error: ${displayMessage}`);

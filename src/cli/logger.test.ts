@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import chalk from "chalk";
-import { SilentError } from "./errors.js";
+import { SilentError, ValidationError } from "./errors.js";
 
 const logMessage = vi.hoisted(() => vi.fn());
 const logWarn = vi.hoisted(() => vi.fn());
@@ -184,6 +184,46 @@ describe("createLoggerFactory", () => {
 
     expect(logError).not.toHaveBeenCalled();
     expect(logMessage).not.toHaveBeenCalled();
+  });
+
+  it("reports user errors without stack traces or operation chrome", () => {
+    const logErrorWithStackTrace = vi.fn();
+    const factory = createLoggerFactory();
+    factory.setErrorLogger({ logErrorWithStackTrace } as never);
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    factory
+      .create()
+      .logException(new ValidationError('Invalid --since duration "bogus".'), "models");
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(consoleError).not.toHaveBeenCalled();
+    expect(logError).not.toHaveBeenCalledWith(
+      expect.stringContaining("Error during models")
+    );
+    consoleError.mockRestore();
+  });
+
+  it("renders user errors via errorWithStack without persisting a stack trace", () => {
+    const logErrorFn = vi.fn();
+    const factory = createLoggerFactory();
+    factory.setErrorLogger({ logError: logErrorFn } as never);
+
+    factory.create().errorWithStack(new ValidationError("Missing API key."));
+
+    expect(logError).toHaveBeenCalledWith("Missing API key.");
+    expect(logErrorFn).not.toHaveBeenCalled();
+  });
+
+  it("still logs stack traces for system errors", () => {
+    const logErrorWithStackTrace = vi.fn();
+    const factory = createLoggerFactory();
+    factory.setErrorLogger({ logErrorWithStackTrace } as never);
+
+    factory.create().logException(new Error("socket hang up"), "models");
+
+    expect(logError).toHaveBeenCalledWith("Error during models: socket hang up");
+    expect(logErrorWithStackTrace).toHaveBeenCalled();
   });
 
   it("does not log exceptions for OperationCancelledError by name", () => {

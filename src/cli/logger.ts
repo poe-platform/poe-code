@@ -9,7 +9,7 @@ import {
 import chalk from "chalk";
 import type { LoggerFn } from "./types.js";
 import type { ErrorLogger, ErrorContext } from "./error-logger.js";
-import { isSilentError } from "./errors.js";
+import { isSilentError, isUserFacingError } from "./errors.js";
 
 export interface LoggerContext {
   dryRun?: boolean;
@@ -157,6 +157,12 @@ export function createLoggerFactory(
         }
         emit("error", formatMessage(error.message));
 
+        // User errors are the user's own input: the message plus its recovery
+        // hint is the whole story, so never attach a stack trace.
+        if (isUserFacingError(error)) {
+          return;
+        }
+
         if (errorLogger) {
           const fullContext: ErrorContext = {
             ...errorContext,
@@ -170,6 +176,11 @@ export function createLoggerFactory(
       },
       logException(error, operation, errorContext) {
         if (isSilentError(error)) {
+          return;
+        }
+        // User errors are rendered by the top-level handler as a plain message,
+        // without "Error during <operation>" chrome or a stack trace.
+        if (isUserFacingError(error)) {
           return;
         }
         emit(

@@ -69,21 +69,29 @@ Utilities are especially useful for scripting and CI/CD.
 #### Spawn a one-off prompt
 
 ```bash
-npx poe-code@latest spawn codex "Say hello"
+npx poe-code@latest spawn codex "Say hello" --mode read
 ```
+
+`--mode` is the permission mode: `yolo | auto | edit | read`. It is prompted for in an
+interactive terminal, but **required in CI**: without a TTY, `spawn` fails unless you pass
+`--mode` (or `--yes`, which uses the safe `edit` default). The same choices apply to
+`gaslight` and `harness run`, and values are case-insensitive (`--mode READ` works).
+Only `--mode yolo` skips the agent's permission prompts, so keep it out of untrusted CI jobs.
 
 #### Spawn against a GitHub repository
 
 ```bash
-npx poe-code@latest spawn codex "Fix the failing tests" --cwd github://owner/repo
-npx poe-code@latest spawn codex "Review the auth module" --cwd github://owner/repo#main:packages/auth
+npx poe-code@latest spawn codex "Fix the failing tests" --cwd github://owner/repo --mode edit
+npx poe-code@latest spawn codex "Review the auth module" --cwd github://owner/repo#main:packages/auth --mode read
 ```
 
 #### Spawn a prompt via stdin
 
 ```bash
-echo "Say hello" | npx poe-code@latest spawn codex
+echo "Say hello" | npx poe-code@latest spawn codex --mode read
 ```
+
+Stdin is piped here, so there is no TTY to prompt on — `--mode` is required.
 
 #### Review a GitHub pull request
 
@@ -213,7 +221,7 @@ Runs a single prompt through a configured service CLI.
 - `options.prompt` – The prompt to send
 - `options.cwd` – Working directory or workspace locator (optional). Supports local paths and `github://owner/repo[#ref[:subdir]]` locators. See [@poe-code/workspace-resolver](packages/workspace-resolver/) for the full locator syntax.
 - `options.model` – Model identifier override (optional)
-- `options.mode` – Permission mode: `yolo`, `edit`, or `read` (optional)
+- `options.mode` – Permission mode: `yolo`, `auto`, `edit`, or `read` (optional; defaults to `edit`. `auto` requires an agent with an approval channel)
 - `options.args` – Additional arguments forwarded to the CLI (optional)
 
 Returns `{ stdout, stderr, exitCode }`.

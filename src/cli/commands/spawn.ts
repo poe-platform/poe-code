@@ -12,6 +12,7 @@ import {
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
   supportsSpawnMode,
+  SPAWN_MODES,
   DEFAULT_SPAWN_MODE,
   type HookBridgeOptions,
   type McpSpawnConfig,
@@ -69,8 +70,6 @@ import {
 import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 import { parseMcpSpawnConfig, resolveMcpSpawnInput } from "../mcp-spawn-config.js";
 
-const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
-
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
   service: string;
@@ -106,7 +105,7 @@ export function registerSpawnCommand(
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option(
       "--mode <mode>",
-      `Permission mode: yolo | auto | edit | read (prompted; --yes uses ${DEFAULT_SPAWN_MODE})`
+      `Permission mode: ${SPAWN_MODES.join(" | ")} (prompted; --yes uses ${DEFAULT_SPAWN_MODE})`
     )
     .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
     .option(
@@ -533,7 +532,7 @@ async function resolveSpawnMode(
 
   if (process.stdin.isTTY !== true) {
     throw new ValidationError(
-      `spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode auto, --mode edit, or --mode read; or pass --yes to use ${DEFAULT_SPAWN_MODE}.`
+      `spawn requires --mode when running without an interactive TTY. Pass ${listSpawnModes("--mode ")}; or pass --yes to use ${DEFAULT_SPAWN_MODE}.`
     );
   }
 
@@ -573,15 +572,17 @@ function parseSpawnMode(input: string | undefined): SpawnMode | undefined {
     return undefined;
   }
 
-  if (isSpawnMode(input)) {
-    return input;
+  const normalized = input.trim().toLowerCase();
+  if (SPAWN_MODES.includes(normalized as SpawnMode)) {
+    return normalized as SpawnMode;
   }
 
-  throw new ValidationError(`Invalid --mode "${input}". Expected yolo, auto, edit, or read.`);
+  throw new ValidationError(`Invalid --mode "${input}". Expected ${listSpawnModes()}.`);
 }
 
-function isSpawnMode(input: string): input is SpawnMode {
-  return SPAWN_MODES.includes(input as SpawnMode);
+function listSpawnModes(prefix = ""): string {
+  const labels = SPAWN_MODES.map((mode) => `${prefix}${mode}`);
+  return `${labels.slice(0, -1).join(", ")}, or ${labels[labels.length - 1]}`;
 }
 
 function formatDetachedJob(detached: { jobId: string; envId: string }): string {

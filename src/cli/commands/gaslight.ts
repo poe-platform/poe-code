@@ -1,7 +1,7 @@
 import path from "node:path";
 import { Option, type Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
-import { spawn, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
+import { spawn, SPAWN_MODES, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
 import { readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import { cancel, intro, isCancel, multiselect, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
@@ -326,9 +326,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       .option("--model <model>", "Model to run")
       .option("--plans <paths...>", "Markdown plans to run sequentially")
       .addOption(
-        new Option("--mode <mode>", "Spawn mode")
-          .choices(["read", "edit", "yolo", "auto"])
-          .default("auto")
+        new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]).default("auto")
       )
   ).action(async function (this: Command, providedPlanPaths: string[]) {
     const flags = resolveCommandFlags(program);

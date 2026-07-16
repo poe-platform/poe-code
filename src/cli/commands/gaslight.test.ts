@@ -46,6 +46,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 });
 
 const { registerGaslightCommand } = await import("./gaslight.js");
+const { SPAWN_MODES } = await import("@poe-code/agent-spawn");
 
 function createProgram(): Command {
   return new Command()
@@ -270,6 +271,16 @@ describe("gaslight command", () => {
         mode: "read"
       })
     );
+  });
+
+  it("offers exactly the shared spawn permission modes so the sets cannot drift", () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    const gaslight = program.commands.find((command) => command.name() === "gaslight");
+    const modeOption = gaslight?.options.find((option) => option.long === "--mode");
+
+    expect(modeOption?.argChoices).toEqual([...SPAWN_MODES]);
   });
 
   it("forwards multiple gaslight plans to the runner in order", async () => {

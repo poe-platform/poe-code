@@ -1139,6 +1139,40 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
+  it("accepts permission mode values case-insensitively", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "--mode", "READ", "codex", "hello"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "read" }));
+  });
+
+  it("normalises mixed-case permission modes before checking agent support", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "--mode", "Auto", "claude-code", "hello"]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({ mode: "auto" })
+    );
+  });
+
   it("reports an unknown agent before validating --mode", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

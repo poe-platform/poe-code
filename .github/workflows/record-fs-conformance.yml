@@ -1,0 +1,23 @@
+name: Record fs conformance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  record-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm clean-install
+      - run: npm run record:fs-conformance
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fs-node-truth-linux
+          path: packages/safejs/src/modules/fs.node-truth.json
+          if-no-files-found: error

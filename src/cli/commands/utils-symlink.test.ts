@@ -378,16 +378,25 @@ describe("utils symlink help", () => {
   });
 
   it("documents its options and commands with design-system styling", () => {
-    const { symlink } = findSymlink(createMemFs());
-    const help = symlink?.helpInformation() ?? "";
+    const originalForceColor = process.env.FORCE_COLOR;
+    process.env.FORCE_COLOR = "1";
 
-    expect(help).toContain(text.heading("Poe - utils symlink"));
-    expect(help).toContain(text.section("Usage:"));
-    expect(help).toContain(text.section("Options:"));
-    expect(help).toContain("-h, --help");
-    expect(help).toContain(text.section("Commands:"));
-    expect(help).toContain(text.command("agents [options]"));
-    expect(help).toContain(text.command("skills [options]"));
+    try {
+      const { symlink } = findSymlink(createMemFs());
+      symlink?.configureOutput({ getOutHasColors: () => true });
+      const help = symlink?.helpInformation() ?? "";
+
+      expect(help).toContain(text.heading("Poe - utils symlink"));
+      expect(help).toContain(text.section("Usage:"));
+      expect(help).toContain(text.section("Options:"));
+      expect(help).toContain("-h, --help");
+      expect(help).toContain(text.section("Commands:"));
+      expect(help).toContain(text.command("agents [options]"));
+      expect(help).toContain(text.command("skills [options]"));
+    } finally {
+      if (originalForceColor === undefined) delete process.env.FORCE_COLOR;
+      else process.env.FORCE_COLOR = originalForceColor;
+    }
   });
 });
 

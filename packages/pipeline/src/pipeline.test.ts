@@ -1102,6 +1102,19 @@ describe("resolvePlanPath", () => {
     expect(result).toBe("custom.yaml");
   });
 
+  it("accepts a home-relative explicit --plan path", async () => {
+    const result = await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/home/test/.poe-code/docs/plans/feature.md": PIPELINE_MD_EMPTY
+      }),
+      plan: "~/.poe-code/docs/plans/feature.md"
+    });
+
+    expect(result).toBe("~/.poe-code/docs/plans/feature.md");
+  });
+
   it("ignores config planPath when discovering plans", async () => {
     const selectPlan = vi.fn().mockResolvedValue("docs/plans/plan-demo.md");
 

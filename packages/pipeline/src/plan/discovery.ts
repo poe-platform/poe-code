@@ -49,8 +49,13 @@ function countCompletedTasks(planPath: string, content: string): PlanCandidate {
   };
 }
 
-async function ensurePlanExists(fs: DiscoveryFs, cwd: string, planPath: string): Promise<void> {
-  const absolutePath = path.isAbsolute(planPath) ? planPath : path.resolve(cwd, planPath);
+async function ensurePlanExists(
+  fs: DiscoveryFs,
+  cwd: string,
+  homeDir: string,
+  planPath: string
+): Promise<void> {
+  const absolutePath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const stat = await fs.stat(absolutePath).catch((error: unknown) => {
     if (isNotFound(error)) {
       return undefined;
@@ -173,7 +178,7 @@ export async function resolvePlanPaths(options: {
 
   if (explicitPlans.length > 0) {
     for (const planPath of explicitPlans) {
-      await ensurePlanExists(fs, options.cwd, planPath);
+      await ensurePlanExists(fs, options.cwd, options.homeDir, planPath);
     }
     return explicitPlans;
   }

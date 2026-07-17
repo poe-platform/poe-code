@@ -16,6 +16,7 @@ jobs:
           node-version: 22
       - run: npm clean-install
       - run: npm run record:fs-conformance
+      - run: npx vitest run packages/safejs/src/modules/fs.conformance.test.ts
       - uses: actions/upload-artifact@v4
         with:
           name: fs-node-truth-linux

@@ -88,7 +88,7 @@ const result = await runGaslight({
 - `planPaths`: Required plan paths, resolved from `cwd`.
 - `agent`: Required agent identifier.
 - `model`: Optional model override.
-- `mode`: Spawn mode: `read`, `edit`, or `yolo`. Defaults to `edit`.
+- `mode`: Optional spawn mode: `yolo`, `auto`, `edit`, or `read`. When omitted, `agent-spawn` uses `auto`.
 - `archive`: Move each plan under sibling `archive/` after all rounds succeed. Defaults to `false`.
 - `cwd`: Working directory. Defaults to `process.cwd()`.
 - `homeDir`: Home directory used for global config lookup. Defaults to `os.homedir()`.

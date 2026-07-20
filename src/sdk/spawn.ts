@@ -6,6 +6,7 @@ import { ValidationError } from "../cli/errors.js";
 import { formatAgentCapabilityError } from "@poe-code/agent-defs";
 import { spawnAutonomous, type AutonomousSpawnOptions } from "./autonomous.js";
 import {
+  DEFAULT_SPAWN_MODE,
   getAcpSpawnConfig,
   getSpawnConfig,
   spawn as spawnNonStreaming,
@@ -67,10 +68,14 @@ export function spawn(
   promptOrOptions: string | SpawnOptions,
   maybeOptions?: Omit<SpawnOptions, "prompt">
 ): SpawnHandle {
-  const options =
+  const inputOptions =
     typeof promptOrOptions === "string"
       ? { ...maybeOptions, prompt: promptOrOptions }
       : promptOrOptions;
+  const options = {
+    ...inputOptions,
+    mode: inputOptions.mode ?? DEFAULT_SPAWN_MODE
+  };
 
   // Checked before any branch runs: every spawn path forwards this id to the
   // agent's own --resume, and a worktree must not be created for a run that

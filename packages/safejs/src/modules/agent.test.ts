@@ -1201,6 +1201,26 @@ describe("makeAgentModule", () => {
     ]);
   });
 
+  it("records the shared auto mode when a spawn omits mode", async () => {
+    const events: string[] = [];
+    const agent = makeAgentModule(
+      vi.fn(async () => ({
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        summary: "finished",
+        durationMs: 1
+      })),
+      { otelSink: createRecordingOtelSink(events) }
+    );
+
+    await agent.spawn("codex", { prompt: "Inspect.", cwd: "/repo" });
+
+    expect(events[0]).toBe(
+      'start:agent.spawn:{"agent":"codex","mode":"auto","cwd":"/repo"}'
+    );
+  });
+
   it("reports a controlled error when spawn default cwd cannot be resolved", async () => {
     const cwd = vi.spyOn(process, "cwd").mockImplementation(() => {
       throw Object.assign(new Error("uv_cwd"), { code: "ENOENT" });

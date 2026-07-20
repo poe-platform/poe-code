@@ -460,10 +460,11 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
 function normalizeSpawnAcpOptions(options: SpawnAcpOptions): SpawnAcpOptions {
   const normalized = createNullRecord<SpawnAcpOptions>({
     agentId: getOwnProperty(options, "agentId") as SpawnAcpOptions["agentId"],
-    prompt: getOwnProperty(options, "prompt") as SpawnAcpOptions["prompt"]
+    prompt: getOwnProperty(options, "prompt") as SpawnAcpOptions["prompt"],
+    mode: (getOwnProperty(options, "mode") ?? DEFAULT_SPAWN_MODE) as SpawnMode
   });
   const optionalNames: readonly (keyof SpawnAcpOptions)[] = [
-    "cwd", "model", "mode", "mcpServers", "skills", "hooks", "resumeThreadId", "runtime",
+    "cwd", "model", "mcpServers", "skills", "hooks", "resumeThreadId", "runtime",
     "runtimeImage", "detach", "mountPoeCode", "runnerSync", "signal",
     "otelSink", "middlewares", "env"
   ];

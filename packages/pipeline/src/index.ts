@@ -24,6 +24,7 @@ export type {
   TaskProgress,
   PlanSummary
 } from "./types.js";
+export { PIPELINE_STEP_MODES } from "./types.js";
 export { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 export {
   resolveAbsolutePlanPath,

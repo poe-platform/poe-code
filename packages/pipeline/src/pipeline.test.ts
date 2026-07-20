@@ -111,6 +111,7 @@ describe("@poe-code/pipeline public exports", () => {
 
     expect(pkg.pipelineDocumentSchema).toBe(parser.pipelineDocumentSchema);
     expect(pkg.pipelineDocumentSchemaId).toBe(parser.pipelineDocumentSchemaId);
+    expect(pkg.PIPELINE_STEP_MODES).toEqual(["yolo", "auto", "edit", "read"]);
   });
 
   it("exports SDK types", () => {
@@ -215,7 +216,6 @@ describe("loadResolvedSteps", () => {
     expect(plan.extends).toBe("default");
     expect(config.steps).toEqual({
       implement: {
-        mode: "yolo",
         prompt: "Implement {{id}}"
       }
     });
@@ -315,7 +315,7 @@ describe("loadResolvedSteps", () => {
 
     expect(Object.hasOwn(plan.stepOverrides ?? {}, "__proto__")).toBe(true);
     expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
-    expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Override prompt" });
+    expect(config.steps.__proto__).toEqual({ prompt: "Override prompt" });
   });
 
   it("loads a named step definition named __proto__", async () => {
@@ -333,7 +333,7 @@ describe("loadResolvedSteps", () => {
     });
 
     expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
-    expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Execute custom step" });
+    expect(config.steps.__proto__).toEqual({ prompt: "Execute custom step" });
     expect(Object.getPrototypeOf(config.steps)).toBe(Object.prototype);
   });
 
@@ -452,7 +452,6 @@ describe("loadResolvedSteps", () => {
 
     expect(config.steps).toEqual({
       implement: {
-        mode: "yolo",
         prompt: "Implement {{id}}\n"
       }
     });
@@ -487,11 +486,9 @@ describe("loadResolvedSteps", () => {
 
     expect(config.steps).toEqual({
       implement: {
-        mode: "yolo",
         prompt: "Project instruction"
       },
       commit: {
-        mode: "yolo",
         prompt: "Commit changes"
       }
     });
@@ -593,7 +590,7 @@ describe("loadResolvedSteps", () => {
     ).rejects.toThrow(/invalid pipeline step config yaml/i);
   });
 
-  it("defaults missing mode to yolo and still requires instruction", async () => {
+  it("leaves missing mode unset and still requires instruction", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
       homeDir: "/home/test",
@@ -612,7 +609,6 @@ describe("loadResolvedSteps", () => {
 
     expect(config.steps).toEqual({
       implement: {
-        mode: "yolo",
         prompt: "Implement"
       },
       review: {
@@ -637,6 +633,24 @@ describe("loadResolvedSteps", () => {
         })
       })
     ).rejects.toThrow(/missing prompt/i);
+  });
+
+  it("accepts auto as an explicit step mode", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  implement:",
+          "    mode: auto",
+          "    prompt: Implement",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config.steps.implement?.mode).toBe("auto");
   });
 
   it("does not accept inherited step definition fields", async () => {
@@ -679,7 +693,6 @@ describe("loadResolvedSteps", () => {
 
         expect(config.steps).toEqual({
           implement: {
-            mode: "yolo",
             prompt: "Implement"
           }
         });
@@ -730,18 +743,15 @@ describe("loadResolvedSteps", () => {
 
     expect(config.steps).toEqual({
       implement: {
-        mode: "yolo",
         prompt: "Implement",
         agent: "codex",
         model: "o3"
       },
       review: {
-        mode: "yolo",
         prompt: "Review",
         agent: "claude-code"
       },
       commit: {
-        mode: "yolo",
         prompt: "Commit"
       }
     });
@@ -766,12 +776,10 @@ describe("loadResolvedSteps", () => {
 
     expect(config.steps).toEqual({
       implement: {
-        mode: "yolo",
         prompt: "Implement",
         skills: ["foo", "claude/bar"]
       },
       review: {
-        mode: "yolo",
         prompt: "Review"
       }
     });
@@ -803,17 +811,14 @@ describe("loadResolvedSteps", () => {
 
     expect(config.steps).toEqual({
       minimal: {
-        mode: "yolo",
         prompt: "Minimal hooks",
         hooks: { from: "claude" }
       },
       full: {
-        mode: "yolo",
         prompt: "Full hooks",
         hooks: { from: "claude", strategy: "transform", scope: "merged" }
       },
       plain: {
-        mode: "yolo",
         prompt: "No hooks"
       }
     });
@@ -894,9 +899,9 @@ describe("loadResolvedSteps", () => {
       })
     });
 
-    expect(config.setup).toEqual({ mode: "yolo", prompt: "Prepare the workspace" });
+    expect(config.setup).toEqual({ prompt: "Prepare the workspace" });
     expect(config.teardown).toEqual({ mode: "read", prompt: "Verify and clean up" });
-    expect(config.steps).toEqual({ commit: { mode: "yolo", prompt: "Commit changes" } });
+    expect(config.steps).toEqual({ commit: { prompt: "Commit changes" } });
   });
 
   it("uses only project setup and teardown when the project steps directory exists", async () => {
@@ -922,7 +927,7 @@ describe("loadResolvedSteps", () => {
       })
     });
 
-    expect(config.setup).toEqual({ mode: "yolo", prompt: "Project setup" });
+    expect(config.setup).toEqual({ prompt: "Project setup" });
     expect(config.teardown).toBeUndefined();
   });
 
@@ -2029,8 +2034,22 @@ describe("parsePlan", () => {
       ])
     );
 
-    expect(plan.setup).toEqual({ mode: "yolo", prompt: "Prepare workspace" });
+    expect(plan.setup).toEqual({ prompt: "Prepare workspace" });
     expect(plan.teardown).toEqual({ mode: "read", prompt: "Run final checks" });
+  });
+
+  it("accepts auto as an explicit plan phase mode", () => {
+    const plan = parsePlan(
+      pipelinePlanYaml([
+        "setup:",
+        "  mode: auto",
+        "  prompt: Prepare workspace",
+        "tasks: []",
+        ""
+      ])
+    );
+
+    expect(plan.setup).toEqual({ mode: "auto", prompt: "Prepare workspace" });
   });
 
   it("omits setup and teardown when not present", () => {
@@ -2903,7 +2922,7 @@ describe("createPipelineSimulation", () => {
       stepsCompleted: 1
     });
     expect(prompts).toEqual(["Fix the timeout regression"]);
-    expect(runs[0]?.mode).toBe("yolo");
+    expect(runs[0]).not.toHaveProperty("mode");
     expect(plan.tasks[0]?.status).toBe("done");
   });
 

@@ -345,7 +345,6 @@ async function runDispatch(
               prompt: dispatch.prompt,
               cwd: input.cloneDir,
               model: input.model,
-              mode: "yolo",
               signal: input.signal
             },
             input.onEvent

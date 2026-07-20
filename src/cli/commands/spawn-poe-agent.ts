@@ -3,6 +3,8 @@ import { renderMarkdown, resolveOutputFormat } from "toolcraft-design";
 import { spawnPoeAgentWithAcp } from "../../providers/poe-agent.js";
 import type { CustomSpawnHandler } from "./spawn.js";
 
+export const POE_AGENT_SPAWN_SERVICE = "poe-agent";
+
 const REDACTED_PROMPT_ARG = "[prompt redacted]";
 
 export function createPoeAgentSpawnHandler(): CustomSpawnHandler {

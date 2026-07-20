@@ -44,7 +44,6 @@ describe("pipelineDriver", () => {
         agent: "workflow-agent",
         prompt: "Plan task-1",
         model: undefined,
-        mode: "yolo",
         cwd: undefined,
         signal: ctx.abort
       }
@@ -80,7 +79,6 @@ describe("pipelineDriver", () => {
         agent: "claude",
         prompt: "Implement task-1",
         model: "claude-sonnet-4-6",
-        mode: "yolo",
         cwd: undefined,
         signal: ctx.abort
       }
@@ -113,11 +111,12 @@ describe("pipelineDriver", () => {
   });
 
   it.each([
-    { state: "planned", mode: undefined, expectedMode: "yolo" },
+    { state: "planned" },
+    { state: "approval", mode: "auto", expectedMode: "auto" },
     { state: "review", mode: "read", expectedMode: "read" },
     { state: "implementation", mode: "edit", expectedMode: "edit" }
-  ] satisfies Array<{ state: string; mode?: SpawnMode; expectedMode: SpawnMode }>)(
-    "forwards mode $expectedMode for $state",
+  ] satisfies Array<{ state: string; mode?: SpawnMode; expectedMode?: SpawnMode }>)(
+    "defers or forwards mode for $state",
     async ({ state, mode, expectedMode }) => {
       const mockSpawn = createMockSpawn(successScript());
       const events: AttemptEvent[] = [];
@@ -144,9 +143,9 @@ describe("pipelineDriver", () => {
           agent: "codex",
           prompt: "Run task-1",
           model: undefined,
-          mode: expectedMode,
           cwd: undefined,
-          signal: ctx.abort
+          signal: ctx.abort,
+          ...(expectedMode === undefined ? {} : { mode: expectedMode })
         }
       ]);
       expect(events).toEqual(successEvents(state, "thread-1"));

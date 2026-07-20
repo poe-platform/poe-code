@@ -1,16 +1,17 @@
 import { parse } from "yaml";
-import type {
-  McpSpawnConfig,
-  McpSpawnServer,
-  PipelinePlan,
-  PipelineStatus,
-  PipelineTask,
-  ResolvedStepDefinitions,
-  StepDefinition,
-  StepDefinitionOverride,
-  StepDefinitionOverrides,
-  StepHooks,
-  StepMode
+import {
+  PIPELINE_STEP_MODES,
+  type McpSpawnConfig,
+  type McpSpawnServer,
+  type PipelinePlan,
+  type PipelineStatus,
+  type PipelineTask,
+  type ResolvedStepDefinitions,
+  type StepDefinition,
+  type StepDefinitionOverride,
+  type StepDefinitionOverrides,
+  type StepHooks,
+  type StepMode
 } from "../types.js";
 import { defineRecordEntry, isRecord } from "../utils.js";
 
@@ -59,8 +60,7 @@ const stepDefinitionSchema: JsonSchema = {
   properties: {
     mode: {
       type: "string",
-      enum: ["yolo", "edit", "read"],
-      default: "yolo"
+      enum: PIPELINE_STEP_MODES
     },
     prompt: {
       type: "string",
@@ -92,7 +92,7 @@ const stepDefinitionOverrideSchema: JsonSchema = {
   properties: {
     mode: {
       type: "string",
-      enum: ["yolo", "edit", "read"]
+      enum: PIPELINE_STEP_MODES
     },
     prompt: {
       type: "string",
@@ -332,10 +332,10 @@ function parseStepMode(value: unknown, label: string): StepMode | undefined {
   if (value === undefined || value === null) {
     return undefined;
   }
-  if (value === "yolo" || value === "edit" || value === "read") {
-    return value;
+  if (PIPELINE_STEP_MODES.includes(value as StepMode)) {
+    return value as StepMode;
   }
-  throw new Error(`Invalid plan YAML: "${label}.mode" must be "yolo", "edit", or "read".`);
+  throw new Error(`Invalid plan YAML: "${label}.mode" must be "yolo", "auto", "edit", or "read".`);
 }
 
 function isSkillReference(value: string): boolean {
@@ -473,8 +473,8 @@ function parseStepDef(value: unknown, label: string): StepDefinition {
   }
 
   return {
-    mode: override.mode ?? "yolo",
     prompt: override.prompt,
+    ...(override.mode ? { mode: override.mode } : {}),
     ...(override.agent ? { agent: override.agent } : {}),
     ...(override.model ? { model: override.model } : {}),
     ...(override.skills ? { skills: override.skills } : {}),

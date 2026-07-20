@@ -492,7 +492,7 @@ describe("workflow state validation", () => {
         },
         "/repo"
       )
-    ).toThrow('mode must be "yolo", "edit", or "read"');
+    ).toThrow('mode must be "yolo", "auto", "edit", or "read"');
   });
 
   it("fails when states is missing", () => {

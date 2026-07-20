@@ -79,7 +79,11 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 });
 
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { getSpawnConfig, spawnInteractive } from "@poe-code/agent-spawn";
+import {
+  DEFAULT_SPAWN_MODE,
+  getSpawnConfig,
+  spawnInteractive
+} from "@poe-code/agent-spawn";
 import { resolveWorkspace } from "@poe-code/workspace-resolver";
 
 const cwd = "/repo";
@@ -1029,7 +1033,7 @@ describe("spawn command", () => {
     expect(help).toContain("poe-code");
     expect(help).toContain("beta-agent");
     expect(help).toContain("prompted;");
-    expect(help).toContain("--yes uses edit");
+    expect(help).toContain(`--yes uses ${DEFAULT_SPAWN_MODE}`);
     expect(help).not.toContain("--yes uses yolo");
   });
 
@@ -1048,7 +1052,7 @@ describe("spawn command", () => {
 
     expect(selectMock).toHaveBeenCalledWith({
       message: "Select permission mode:",
-      initialValue: "edit",
+      initialValue: DEFAULT_SPAWN_MODE,
       options: expect.arrayContaining([
         expect.objectContaining({ value: "edit" }),
         expect.objectContaining({ value: "read" }),
@@ -1076,7 +1080,55 @@ describe("spawn command", () => {
     await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
 
     expect(selectMock).not.toHaveBeenCalled();
-    expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "edit" }));
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({ mode: DEFAULT_SPAWN_MODE })
+    );
+  });
+
+  it("rejects an unsupported default mode when --yes is passed", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "spawn", "cursor", "hello"])
+    ).rejects.toThrow(
+      `Agent "cursor" does not support --mode ${DEFAULT_SPAWN_MODE}. Supported modes: yolo, edit, read.`
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("falls back to an offered mode in the interactive prompt when auto is unsupported", async () => {
+    selectMock.mockResolvedValueOnce("edit");
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "cursor", "hello"]);
+
+    expect(selectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialValue: "edit",
+        options: expect.not.arrayContaining([expect.objectContaining({ value: "auto" })])
+      })
+    );
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "cursor",
+      expect.objectContaining({ mode: "edit" })
+    );
   });
 
   it("grants yolo with --yes only when --mode yolo is explicit", async () => {

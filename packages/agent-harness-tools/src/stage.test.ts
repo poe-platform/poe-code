@@ -187,7 +187,7 @@ describe("runWorkflowStage", () => {
     ).rejects.toThrow("Unknown participant: toString");
   });
 
-  it("throws when neither the stage nor participant define a mode", async () => {
+  it("leaves mode unset when neither the stage nor participant define one", async () => {
     const context = createContext();
 
     await expect(
@@ -198,7 +198,15 @@ describe("runWorkflowStage", () => {
         },
         context
       )
-    ).rejects.toThrow('Stage is missing mode for participant "planner".');
+    ).resolves.toEqual({ success: true });
+
+    expect(getRunAgentInput(context)).toEqual({
+      agent: "codex",
+      prompt: "Plan the work",
+      cwd: "/workspace",
+      model: "openai/gpt-5.4"
+    });
+    expect(Object.hasOwn(getRunAgentInput(context), "mode")).toBe(false);
   });
 
   it('throws on error when onFailure is "stop"', async () => {

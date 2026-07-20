@@ -15,11 +15,14 @@ class Agent(str, Enum):
     KIMI = "kimi"
     KIMI_CLI = "kimi-cli"
     OPENCODE = "opencode"
+    PI = "pi"
+    PI_AGENT = "pi-agent"
     POE_AGENT = "poe-agent"
 
 
 class SpawnMode(str, Enum):
     YOLO = "yolo"
+    AUTO = "auto"
     EDIT = "edit"
     READ = "read"
 
@@ -47,8 +50,8 @@ class ToolStartEvent:
 @dataclass
 class ToolCompleteEvent:
     event: Literal["tool_complete"]
+    kind: str
     path: str
-    kind: Optional[str] = None
     id: Optional[str] = None
 
 
@@ -65,6 +68,7 @@ class UsageEvent:
     output_tokens: int
     cached_tokens: Optional[int] = None
     cost_usd: Optional[float] = None
+    cost_source: Optional[Literal["reported", "estimated"]] = None
 
 
 @dataclass
@@ -72,6 +76,12 @@ class ErrorEvent:
     event: Literal["error"]
     message: str
     stack: Optional[str] = None
+
+
+@dataclass
+class PermissionRejectedEvent:
+    event: Literal["permission_rejected"]
+    title: str
 
 
 @dataclass
@@ -91,4 +101,5 @@ AcpEvent = Union[
     ReasoningEvent,
     UsageEvent,
     ErrorEvent,
+    PermissionRejectedEvent,
 ]

@@ -83,8 +83,7 @@ describe("SDK pipeline init", () => {
       expect.objectContaining({
         agent: "codex",
         cwd,
-        model: "gpt-5.2",
-        mode: "yolo"
+        model: "gpt-5.2"
       })
     );
     expect(runAgent.mock.calls[0]?.[0].prompt).toContain(

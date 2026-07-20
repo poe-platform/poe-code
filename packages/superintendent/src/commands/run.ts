@@ -23,7 +23,8 @@ import {
   spawnLog,
   spawnStreaming,
   usageCapture,
-  type AcpSpawnContext
+  type AcpSpawnContext,
+  type SpawnMode
 } from "@poe-code/agent-spawn";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import {
@@ -982,7 +983,6 @@ async function runSuperintendentInWorktree(input: {
       const result = await spawn(input.selectedBuilderAgent, {
         cwd: agentInput.sourceCwd,
         prompt: agentInput.prompt,
-        mode: "auto",
         useStdin: true,
         ...(agentInput.resumeThreadId ? { resumeThreadId: agentInput.resumeThreadId } : {}),
         ...(agentInput.signal ? { signal: agentInput.signal } : {})
@@ -1045,7 +1045,6 @@ async function markFailedSuperintendentWorktree(input: {
   const result = await spawn(input.selectedBuilderAgent, {
     cwd: input.sourceCwd,
     prompt: buildFailedRunCleanupPrompt(input.worktree),
-    mode: "auto",
     useStdin: true
   });
   const removed =
@@ -1375,7 +1374,7 @@ async function executeSpawnAgent(
     prompt: input.prompt,
     cwd: input.cwd,
     useStdin: true,
-    ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
+    ...(input.mode ? { mode: input.mode as SpawnMode } : {}),
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
     ...(input.logPath ? { logPath: input.logPath } : {}),
@@ -1419,7 +1418,7 @@ async function executeSpawnAgentStreaming(
     prompt: input.prompt,
     cwd: input.cwd,
     useStdin: true,
-    ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
+    ...(input.mode ? { mode: input.mode as SpawnMode } : {}),
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
     ...(input.runtime ? { runtime: input.runtime } : {}),
@@ -1440,7 +1439,7 @@ async function executeSpawnAgentStreaming(
     cwd: input.cwd,
     startedAt: new Date(),
     ...(input.logPath ? { logPath: input.logPath } : {}),
-    ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {})
+    ...(input.mode ? { mode: input.mode as SpawnMode } : {})
   };
 
   await applyMiddlewares(

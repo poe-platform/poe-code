@@ -8,7 +8,7 @@ export const schema = S.Object({
   version: S.Number(),
   agent: S.Object({
     agent: S.String(),
-    mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+    mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
     prompt: S.Optional(S.String())
   }),
   steps: S.Array(

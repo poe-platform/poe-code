@@ -37,12 +37,13 @@ export async function judgeRun(input: {
   const judgeAgent = input.spec.agent === input.agentUnderTest ? "codex" : input.spec.agent;
   const rubric = [...input.spec.rubric];
   const prompt = await buildJudgePrompt(input, rubric);
+  const mode = resolveJudgeMode(judgeAgent);
   const result = await spawnAutonomous(createJudgeStreamingSpawn(), {
     service: judgeAgent,
     prompt,
     cwd: input.cloneDir,
     model: input.spec.model,
-    mode: resolveJudgeMode(judgeAgent)
+    ...(mode ? { mode } : {})
   });
 
   return parseJudgeScores(extractFinalText(result), rubric);
@@ -66,12 +67,13 @@ export async function judgeMetric(input: {
       ? "codex"
       : (spec.agent ?? input.evalDef.judge.agent);
   const prompt = await buildMetricJudgePrompt(input);
+  const mode = resolveJudgeMode(judgeAgent);
   const result = await spawnAutonomous(createJudgeStreamingSpawn(), {
     service: judgeAgent,
     prompt,
     cwd: input.cloneDir,
     model: spec.model ?? input.evalDef.judge.model,
-    mode: resolveJudgeMode(judgeAgent)
+    ...(mode ? { mode } : {})
   });
 
   return parseJudgeMetricScore(extractFinalText(result));
@@ -256,12 +258,12 @@ function createDeferred<T>(): {
   return { promise, resolve, reject };
 }
 
-function resolveJudgeMode(agent: string): SpawnMode {
+function resolveJudgeMode(agent: string): SpawnMode | undefined {
   const config = getSpawnConfig(agent);
   if (config?.kind === "cli" && Object.hasOwn(config.modes, "read")) {
     return "read";
   }
-  return "yolo";
+  return undefined;
 }
 
 function extractFinalText(result: JudgeSpawnResult): string {

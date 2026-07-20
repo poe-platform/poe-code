@@ -989,7 +989,7 @@ describe("superintendent run command", () => {
         agent: "claude-code",
         prompt: "Build the plan",
         cwd: "/repo",
-        mode: "yolo",
+        mode: "auto",
         logPath: "/logs/builder.jsonl"
       });
       expect(result).toMatchObject({
@@ -1035,7 +1035,7 @@ describe("superintendent run command", () => {
         prompt: "Build the plan",
         cwd: "/repo",
         useStdin: true,
-        mode: "yolo"
+        mode: "auto"
       })
     );
     expect(applyMiddlewaresMock).toHaveBeenCalledTimes(1);

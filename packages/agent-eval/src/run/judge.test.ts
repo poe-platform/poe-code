@@ -103,7 +103,7 @@ describe("judgeRun", () => {
     expect(mockedAgentSpawn.spawnMock!.autonomous.mock.calls[0]?.[0]).toBe("codex");
   });
 
-  it("uses yolo mode when the judge agent does not advertise read mode", async () => {
+  it("defers to the shared spawn default when the judge agent has no read mode", async () => {
     vol.fromJSON({ "/repo/file.ts": "abc" });
     mockedAgentSpawn.spawnMock!.autonomous.mockResolvedValueOnce({
       text: JSON.stringify({
@@ -123,10 +123,8 @@ describe("judgeRun", () => {
       agentUnderTest: "claude-code"
     });
 
-    expect(mockedAgentSpawn.spawnMock!.autonomous).toHaveBeenCalledWith(
-      "custom-agent",
-      expect.objectContaining({ mode: "yolo" })
-    );
+    expect(mockedAgentSpawn.spawnMock!.autonomous.mock.calls[0]?.[0]).toBe("custom-agent");
+    expect(mockedAgentSpawn.spawnMock!.autonomous.mock.calls[0]?.[1]).not.toHaveProperty("mode");
   });
 
   it("throws when the judge output is malformed JSON", async () => {

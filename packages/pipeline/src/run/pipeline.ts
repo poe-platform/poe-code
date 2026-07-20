@@ -83,10 +83,10 @@ function isAbortError(error: unknown): boolean {
 
 function resolveMode(
   stepName: string | undefined,
-  steps: Record<string, { mode: StepMode }>
-): StepMode {
+  steps: Record<string, { mode?: StepMode }>
+): StepMode | undefined {
   if (!stepName) {
-    return "yolo";
+    return undefined;
   }
   const step = steps[stepName];
   if (!step) {
@@ -226,8 +226,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       result = await runAgent!({
         agent: phaseDef.agent ?? options.agent,
         prompt: phasePrompt,
-        mode: phaseDef.mode,
         cwd: options.cwd,
+        ...(phaseDef.mode ? { mode: phaseDef.mode } : {}),
         logDir: runLogDir,
         logFileName: makeRunLogFileName(phase),
         ...((phaseDef.model ?? options.model) ? { model: phaseDef.model ?? options.model } : {}),
@@ -438,8 +438,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         result = await runAgent({
           agent,
           prompt,
-          mode,
           cwd: options.cwd,
+          ...(mode ? { mode } : {}),
           logDir: runLogDir,
           logFileName: makeRunLogFileName(role),
           ...(model ? { model } : {}),

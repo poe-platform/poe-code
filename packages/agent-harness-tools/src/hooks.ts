@@ -1,6 +1,6 @@
 import { selectParticipantAgent, type WorkflowParticipant } from "./participant.js";
 
-export type WorkflowMode = "read" | "edit" | "yolo";
+export type WorkflowMode = "read" | "edit" | "auto" | "yolo";
 
 export interface RunAgentHooks {
   from: string;
@@ -17,7 +17,7 @@ export interface WorkflowHook {
 export interface RunAgentInput {
   agent: string;
   prompt: string;
-  mode: WorkflowMode;
+  mode?: WorkflowMode;
   cwd: string;
   model?: string;
   skills?: string[];
@@ -69,15 +69,11 @@ export async function runWorkflowHook(hook: WorkflowHook, context: HookContext):
   const participant = resolveHookParticipant(hook, context.participants);
   const mode = hook.mode ?? participant.mode;
 
-  if (mode === undefined) {
-    throw new Error(`Hook is missing mode for participant "${participant.id}".`);
-  }
-
   await context.runAgent({
     agent: selectParticipantAgent(participant, 0),
     prompt: hook.prompt,
-    mode,
     cwd: context.cwd,
+    ...(mode !== undefined ? { mode } : {}),
     ...(participant.model ? { model: participant.model } : {}),
     ...(context.signal ? { signal: context.signal } : {})
   });

@@ -94,7 +94,7 @@ Options:
   --stdin                      Read the prompt from stdin
   -i, --interactive            Launch the agent in interactive TUI mode
   --mode <mode>                Permission mode: yolo | auto | edit | read
-                               (prompted; --yes uses edit)
+                               (prompted; --yes uses auto)
   -h, --help                   Display help for command
 
 Advanced:

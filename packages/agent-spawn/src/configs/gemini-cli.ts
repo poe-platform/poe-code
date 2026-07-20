@@ -1,4 +1,4 @@
-import type { AcpSpawnConfig, SpawnMode } from "../types.js";
+import { DEFAULT_SPAWN_MODE, type AcpSpawnConfig, type SpawnMode } from "../types.js";
 
 const geminiApprovalModes: Record<SpawnMode, string> = {
   yolo: "yolo",
@@ -16,7 +16,7 @@ export const geminiCliAcpSpawnConfig: AcpSpawnConfig = {
     ...(mcpServers ? ["--allowed-mcp-server-names", Object.keys(mcpServers).join(",")] : []),
     ...(mcpServers ? ["--skip-trust"] : []),
     "--approval-mode",
-    geminiApprovalModes[mode ?? "yolo"]
+    geminiApprovalModes[mode ?? DEFAULT_SPAWN_MODE]
   ],
   env: {
     GEMINI_SANDBOX: "false"

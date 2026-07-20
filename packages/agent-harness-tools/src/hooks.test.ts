@@ -261,7 +261,7 @@ describe("runWorkflowHook", () => {
     );
   });
 
-  it("throws when neither the hook nor participant defines a mode", async () => {
+  it("leaves mode unset when neither the hook nor participant defines one", async () => {
     const context = createContext({
       participants: {
         default: {
@@ -271,13 +271,18 @@ describe("runWorkflowHook", () => {
       }
     });
 
-    await expect(
-      runWorkflowHook(
-        {
-          prompt: "Prepare the workspace"
-        },
-        context
-      )
-    ).rejects.toThrow('Hook is missing mode for participant "default".');
+    await runWorkflowHook(
+      {
+        prompt: "Prepare the workspace"
+      },
+      context
+    );
+
+    expect(getRunAgentInput(context)).toEqual({
+      agent: "claude-code",
+      prompt: "Prepare the workspace",
+      cwd: "/workspace"
+    });
+    expect(Object.hasOwn(getRunAgentInput(context), "mode")).toBe(false);
   });
 });

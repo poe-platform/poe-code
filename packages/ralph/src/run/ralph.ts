@@ -329,7 +329,6 @@ function createWorkflowFrontmatter(
   participants: {
     default: {
       agent: string | string[];
-      mode: "yolo";
     };
   };
   stages: [
@@ -349,8 +348,7 @@ function createWorkflowFrontmatter(
   return {
     participants: {
       default: {
-        agent: workflowAgents.length === 1 ? workflowAgents[0]! : workflowAgents,
-        mode: "yolo"
+        agent: workflowAgents.length === 1 ? workflowAgents[0]! : workflowAgents
       }
     },
     stages: [

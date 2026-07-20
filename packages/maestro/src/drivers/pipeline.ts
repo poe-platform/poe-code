@@ -1,4 +1,4 @@
-import { isActivityTimeoutError, type SpawnMode } from "@poe-code/agent-spawn";
+import { isActivityTimeoutError } from "@poe-code/agent-spawn";
 import type { Task } from "@poe-code/task-list";
 
 import type { StateDefinition } from "../config/schema.js";
@@ -111,7 +111,7 @@ class PipelineDriverRun {
       const result = await this.ctx.spawn(state.agent ?? this.ctx.cfg.agent.service, {
         prompt,
         model: state.model,
-        mode: (state.mode ?? "yolo") as SpawnMode,
+        ...(state.mode === undefined ? {} : { mode: state.mode }),
         signal: this.ctx.abort
       });
       this.ctx.emit({

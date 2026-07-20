@@ -99,7 +99,7 @@ const runCommandDef = defineCommand({
     name: S.Optional(S.String({ description: "Automation name to run" })),
     agent: S.Optional(S.String({ description: "Agent to run the automation with" })),
     model: S.Optional(S.String({ description: "Model override for the agent" })),
-    mode: S.Optional(S.Enum(["yolo", "edit", "read"] as const, { description: "Permission mode (yolo | edit | read)" })),
+    mode: S.Optional(S.Enum(["yolo", "auto", "edit", "read"] as const, { description: "Permission mode (yolo | auto | edit | read)" })),
     cwd: S.Optional(S.String({ description: "Working directory for the automation" })),
     dryRun: S.Optional(S.Boolean({
       description: "Preview the automation without executing source commands or agents",

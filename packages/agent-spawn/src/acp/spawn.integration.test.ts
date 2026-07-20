@@ -151,7 +151,7 @@ describe("acp/spawnStreaming integration", () => {
           promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
+          modes: { yolo: [], auto: [], edit: [], read: [] }
         }
       };
     });
@@ -187,7 +187,7 @@ describe("acp/spawnStreaming integration", () => {
         promptFlag: mockAgentExecutablePath,
         modelStripProviderPrefix: true,
         defaultArgs: [],
-        modes: { yolo: [], edit: [], read: [] }
+        modes: { yolo: [], auto: [], edit: [], read: [] }
       }
     });
     let metadata: Record<string, unknown> | undefined;
@@ -238,7 +238,7 @@ describe("acp/spawnStreaming integration", () => {
           promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
+          modes: { yolo: [], auto: [], edit: [], read: [] }
         }
       };
     });
@@ -277,7 +277,7 @@ describe("acp/spawnStreaming integration", () => {
           adapter: "native",
           promptFlag: mockAgentExecutablePath,
           defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
+          modes: { yolo: [], auto: [], edit: [], read: [] }
         }
       };
     });
@@ -317,7 +317,7 @@ describe("acp/spawnStreaming integration", () => {
           promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
+          modes: { yolo: [], auto: [], edit: [], read: [] }
         }
       };
     });
@@ -374,7 +374,7 @@ describe("acp/spawnStreaming integration", () => {
           promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
-          modes: { yolo: [], edit: [], read: [] }
+          modes: { yolo: [], auto: [], edit: [], read: [] }
         }
       };
     });

@@ -1,5 +1,6 @@
 export type PipelineStatus = "open" | "done" | "failed";
-export type StepMode = "yolo" | "edit" | "read";
+export const PIPELINE_STEP_MODES = ["yolo", "auto", "edit", "read"] as const;
+export type StepMode = (typeof PIPELINE_STEP_MODES)[number];
 
 export interface StepHooks {
   from: string;
@@ -16,7 +17,7 @@ export interface McpSpawnServer {
 export type McpSpawnConfig = Record<string, McpSpawnServer>;
 
 export interface StepDefinition {
-  mode: StepMode;
+  mode?: StepMode;
   prompt: string;
   agent?: string;
   model?: string;
@@ -89,7 +90,7 @@ export interface PipelineFileSystem {
 export interface AgentRunInput {
   agent: string;
   prompt: string;
-  mode: StepMode;
+  mode?: StepMode;
   cwd: string;
   logDir?: string;
   logFileName?: string;

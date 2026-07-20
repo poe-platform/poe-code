@@ -118,6 +118,7 @@ import {
   stopLaunch
 } from "./launch.js";
 import { resolveWorkspace } from "@poe-code/workspace-resolver";
+import { DEFAULT_SPAWN_MODE } from "@poe-code/agent-spawn";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { runExperiment } from "./experiment.js";
 
@@ -707,6 +708,26 @@ describe("spawnCore", () => {
     expect(calls.at(-1)?.options?.cwd).toBe("/tmp/workspaces/poe-code");
   });
 
+  it("resolves an omitted mode before workspace resolution", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    const { runner } = createCommandRunnerStub();
+    const { container } = createContainerWithDependencies({ fs, commandRunner: runner });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test",
+      cwd: "github://poe-platform/poe-code"
+    });
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code",
+      expect.objectContaining({ mode: DEFAULT_SPAWN_MODE })
+    );
+  });
+
   it("preserves successful provider output when workspace cleanup fails", async () => {
     vi.mocked(resolveWorkspace).mockResolvedValue({
       cwd: "/tmp/workspaces/poe-code",
@@ -848,11 +869,11 @@ describe("SDK experiment", () => {
       prompt: "Improve the metric",
       cwd: "/repo",
       model: "gpt-5.2",
-      mode: "yolo",
       runtime: "docker",
       mountPoeCode: true,
       worktree: false
     });
+    expect(spawnAutonomousMock.mock.calls[0]?.[1]).not.toHaveProperty("mode");
     expect(agentResult).toEqual({
       stdout: "done",
       stderr: "",

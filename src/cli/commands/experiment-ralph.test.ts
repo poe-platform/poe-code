@@ -1333,7 +1333,6 @@ describe("experiment run command", () => {
       expect.objectContaining({
         prompt: "Run experiment iteration",
         cwd,
-        mode: "yolo",
         signal: expect.any(AbortSignal),
         useStdin: true,
         tee: expect.objectContaining({
@@ -1341,6 +1340,7 @@ describe("experiment run command", () => {
         })
       })
     );
+    expect(vi.mocked(sdkSpawn.autonomous).mock.calls[0]?.[1]).not.toHaveProperty("mode");
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
@@ -3898,7 +3898,6 @@ describe("ralph run command", () => {
       expect.objectContaining({
         prompt: "Inspect the plan doc",
         cwd,
-        mode: "yolo",
         hooks: { from: "claude" },
         signal: expect.any(AbortSignal),
         useStdin: true,
@@ -3907,6 +3906,7 @@ describe("ralph run command", () => {
         })
       })
     );
+    expect(vi.mocked(sdkSpawn.autonomous).mock.calls[0]?.[1]).not.toHaveProperty("mode");
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(

@@ -142,7 +142,6 @@ export async function runInWorktree<T>(
       const result = await spawnAgent(input.selectedAgent, {
         cwd: agentInput.sourceCwd,
         prompt: agentInput.prompt,
-        mode: "auto",
         ...(input.selectedModel ? { model: input.selectedModel } : {}),
         ...(agentInput.resumeThreadId
           ? { resumeThreadId: agentInput.resumeThreadId }
@@ -209,7 +208,6 @@ async function handleFailedWorktreeRun(input: {
   const result = await spawnAgent(input.selectedAgent, {
     cwd: input.cwd,
     prompt: buildFailedRunCleanupPrompt(input.worktree),
-    mode: "auto",
     ...(input.selectedModel ? { model: input.selectedModel } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
     worktree: false
@@ -307,7 +305,6 @@ export async function reconcileManagedWorktree(
       return await spawnAgent(options.agent, {
         cwd: agentInput.sourceCwd,
         prompt: agentInput.prompt,
-        mode: "auto",
         ...(agentInput.resumeThreadId ? { resumeThreadId: agentInput.resumeThreadId } : {}),
         worktree: false
       });

@@ -266,7 +266,7 @@ export function createSpawnHealthCheck(
           ...(options.hooks.scope ? ["--hooks-scope", options.hooks.scope] : []),
           ...(options.model ? ["--model", options.model] : []),
           "--mode",
-          "yolo",
+          "read",
           agentId,
           `Output exactly: ${options.expectedOutput}`
         ],
@@ -281,7 +281,7 @@ export function createSpawnHealthCheck(
       : buildSpawnArgs(agentId, {
           prompt: `Output exactly: ${options.expectedOutput}`,
           model: options.model,
-          mode: "yolo"
+          mode: "read"
         });
   return {
     id: `${agentId}-cli-health`,

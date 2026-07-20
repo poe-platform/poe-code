@@ -30,15 +30,6 @@ function resolveStageParticipant(
   return participants[stage.participant]!;
 }
 
-function resolveStageMode(stage: WorkflowStage, participant: WorkflowParticipant): WorkflowMode {
-  const mode = stage.mode ?? participant.mode;
-  if (mode === undefined) {
-    throw new Error(`Stage is missing mode for participant "${participant.id}".`);
-  }
-
-  return mode;
-}
-
 function resolveStagePrompt(stage: WorkflowStage, participant: WorkflowParticipant): string {
   return stage.prompt ?? participant.prompt ?? "";
 }
@@ -52,14 +43,14 @@ export async function runWorkflowStage(
   context: StageContext
 ): Promise<{ success: boolean; error?: Error }> {
   const participant = resolveStageParticipant(stage, context.participants);
-  const mode = resolveStageMode(stage, participant);
+  const mode = stage.mode ?? participant.mode;
 
   try {
     await context.runAgent({
       agent: selectParticipantAgent(participant, context.iteration),
       prompt: resolveStagePrompt(stage, participant),
-      mode,
       cwd: context.cwd,
+      ...(mode !== undefined ? { mode } : {}),
       ...(participant.model ? { model: participant.model } : {}),
       ...(stage.skills ? { skills: stage.skills } : {}),
       ...(stage.hooks ? { hooks: stage.hooks } : {}),

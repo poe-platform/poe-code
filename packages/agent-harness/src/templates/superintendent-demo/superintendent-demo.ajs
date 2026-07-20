@@ -9,32 +9,32 @@ export const schema = S.Object({
   agents: S.Object({
     builder: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     }),
     security: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     }),
     perf: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     }),
     tests: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     }),
     judge: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     }),
     owner: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     })
   }),

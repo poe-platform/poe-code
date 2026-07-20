@@ -110,7 +110,6 @@ async function runExperimentDirect(options: ExperimentRunOptions): Promise<Exper
         prompt: input.prompt,
         cwd: input.cwd,
         model: input.model,
-        mode: "yolo",
         ...(input.logDir ? { logDir: input.logDir } : {}),
         ...(input.logFileName ? { logFileName: input.logFileName } : {}),
         ...(options.runtime ? { runtime: options.runtime } : {}),

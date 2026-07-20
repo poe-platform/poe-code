@@ -570,7 +570,7 @@ describe("gaslight command", () => {
     );
   });
 
-  it("accepts agent and mode defaults without prompts with --yes and a named plan", async () => {
+  it("defers the mode default to agent-spawn without prompts with --yes", async () => {
     const prompts = vi.fn();
     const program = createProgram();
     registerGaslightCommand(program, createContainer(prompts));
@@ -583,11 +583,11 @@ describe("gaslight command", () => {
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({
         planPaths: ["docs/plans/a.md"],
-        agent: "claude-code",
-        mode: "auto"
+        agent: "claude-code"
       })
     );
     expect(runGaslightMock.mock.calls[0]?.[0]).not.toHaveProperty("model");
+    expect(runGaslightMock.mock.calls[0]?.[0]).not.toHaveProperty("mode");
   });
 
   it("refuses to autopick a plan with --yes and lists the discovered plans", async () => {

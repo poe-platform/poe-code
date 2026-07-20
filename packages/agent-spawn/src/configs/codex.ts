@@ -14,9 +14,9 @@ export const codexSpawnConfig: CliSpawnConfig = {
   mcpArgsBeforeCommand: true,
   modes: {
     yolo: ["--dangerously-bypass-approvals-and-sandbox"],
-    // `codex exec` cannot service command/file-change approval requests, so a
-    // gaslight-style unattended edit mode must use the native bypass flag.
-    auto: ["--dangerously-bypass-approvals-and-sandbox"],
+    // `codex exec` cannot service approval prompts. Keep it unattended while
+    // retaining the native workspace sandbox so out-of-scope actions fail closed.
+    auto: ["-s", "workspace-write", "-c", 'approval_policy="never"'],
     edit: ["-s", "workspace-write"],
     read: ["-s", "read-only"]
   },

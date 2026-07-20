@@ -4,7 +4,7 @@
 #   .poe-code/pipeline/steps/fast.yaml
 # Leave it comment-only to keep the default no-step behavior.
 # Uncomment and change the example below when you want stepped tasks.
-# Add `mode` only when you want to override the default `yolo`.
+# Add `mode` only when you want to override the shared agent-spawn default (`auto`).
 # Add `agent` and/or `model` to override the pipeline-level defaults per step.
 # Use {{file 'path'}} in any prompt to inline the contents of a Markdown file (relative to project root).
 #
@@ -13,7 +13,7 @@
 #
 # setup:
 #   prompt: Prepare the workspace
-#   # mode: yolo
+#   # mode: auto
 #
 # teardown:
 #   prompt: Run final checks and clean up

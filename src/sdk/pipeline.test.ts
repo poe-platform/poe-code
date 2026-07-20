@@ -245,6 +245,7 @@ describe("SDK pipeline", () => {
 
     expect(result).toEqual(workspaceResult);
     expect(runAgent).toHaveBeenCalledTimes(1);
+    expect(runAgent.mock.calls[0]?.[0]).not.toHaveProperty("mode");
     expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
   });
 

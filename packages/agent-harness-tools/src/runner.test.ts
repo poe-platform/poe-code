@@ -397,6 +397,68 @@ describe("runDocumentWorkflow", () => {
     expect(prompts).toEqual(["Setup workspace", "Draft changes", "Review changes", "Clean up"]);
   });
 
+  it("forwards explicit auto modes and leaves omitted modes unset", async () => {
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const options = createOptions({
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude"
+          }
+        },
+        setup: {
+          prompt: "Setup workspace",
+          mode: "auto"
+        },
+        stages: [
+          {
+            id: "draft",
+            participant: "default",
+            prompt: "Draft changes"
+          },
+          {
+            id: "review",
+            participant: "default",
+            prompt: "Review changes",
+            mode: "auto"
+          }
+        ],
+        teardown: {
+          prompt: "Clean up"
+        },
+        max_iterations: 1
+      },
+      runAgent
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(runAgent.mock.calls.map(([input]) => input)).toEqual([
+      {
+        agent: "claude-code",
+        prompt: "Setup workspace",
+        mode: "auto",
+        cwd: "/repo"
+      },
+      {
+        agent: "claude-code",
+        prompt: "Draft changes",
+        cwd: "/repo"
+      },
+      {
+        agent: "claude-code",
+        prompt: "Review changes",
+        mode: "auto",
+        cwd: "/repo"
+      },
+      {
+        agent: "claude-code",
+        prompt: "Clean up",
+        cwd: "/repo"
+      }
+    ]);
+  });
+
   it("respects max_iterations", async () => {
     const prompts: string[] = [];
     const options = createOptions({

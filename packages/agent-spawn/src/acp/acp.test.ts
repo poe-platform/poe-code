@@ -18,6 +18,7 @@ import { usageCapture } from "./middlewares/usage-capture.js";
 import { spawnAcp } from "./spawn-acp.js";
 import { spawnStreaming } from "./spawn.js";
 import * as adapterModule from "../adapters/index.js";
+import { claudeCodeSpawnConfig } from "../configs/claude-code.js";
 import { codexSpawnConfig } from "../configs/codex.js";
 import { openCodeSpawnConfig } from "../configs/opencode.js";
 import { getMcpArgs } from "../mcp-args.js";
@@ -834,7 +835,7 @@ describe("spawnAcp", () => {
     expect(lastMockAcpClientOptions.permissionHandler).toBeUndefined();
   });
 
-  it("does not auto-approve permission requests when no mode is requested", async () => {
+  it("normalizes an omitted ACP mode to auto and rejects permission requests", async () => {
     const { events, done } = spawnAcp({
       agentId: "opencode",
       prompt: "test",
@@ -845,6 +846,7 @@ describe("spawnAcp", () => {
     await done;
 
     expect(lastMockAcpClientOptions.autoApprove).toBe(false);
+    expect(lastMockAcpClientOptions.permissionHandler).toBeTypeOf("function");
   });
 
   it("rejects permission requests in auto mode and emits a permission_rejected event", async () => {
@@ -1224,6 +1226,46 @@ describe("acp/spawnStreaming", () => {
     mcpFileMock.applyMcpFile.mockResolvedValue(async () => undefined);
   });
 
+  it("normalizes an omitted streaming mode to the central auto default", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [JSON.stringify({ type: "system", subtype: "init", session_id: "s1" })],
+      exitCode: 0
+    });
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    let observedMode: unknown;
+    const inspectMode: AcpMiddleware = async (ctx, next) => {
+      observedMode = ctx.mode;
+      await next();
+    };
+
+    const { events, done } = spawnStreaming({
+      agentId: "claude-code",
+      prompt: "hello",
+      middlewares: [inspectMode]
+    });
+
+    await collect(events);
+    await done;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "hello",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.auto!
+    ]);
+    expect(observedMode).toBe("auto");
+  });
+
+  it("rejects an omitted streaming mode when auto is unsupported", () => {
+    expect(() =>
+      spawnStreaming({
+        agentId: "opencode",
+        prompt: "hello"
+      })
+    ).toThrow('Agent "opencode" does not support mode "auto". Supported modes: yolo, edit, read.');
+  });
+
   it("streams OpenCode JSON events via the opencode adapter", async () => {
     const stdoutLines = [
       JSON.stringify({
@@ -1250,6 +1292,7 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "hello",
+      mode: "yolo",
       cwd: "/tmp",
       tee: {
         stdout: {
@@ -1323,7 +1366,8 @@ describe("acp/spawnStreaming", () => {
       async () => {
         const { events, done } = spawnStreaming({
           agentId: "opencode",
-          prompt: "hello"
+          prompt: "hello",
+          mode: "yolo"
         });
 
         await expect(collect(events).then(stripMeta)).resolves.toEqual([
@@ -1468,6 +1512,7 @@ describe("acp/spawnStreaming", () => {
     const { done } = spawnStreaming({
       agentId: "opencode",
       prompt: "hello",
+      mode: "yolo",
       cwd: "/tmp",
       middlewares: [middleware]
     });
@@ -1521,6 +1566,7 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "hello",
+      mode: "yolo",
       cwd: "/tmp",
       middlewares: [redactMessages]
     });
@@ -1555,6 +1601,7 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "hello",
+      mode: "yolo",
       cwd: "/tmp",
       middlewares: [inspectUsage, usageCapture]
     });
@@ -1658,6 +1705,7 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "inspect api_key=sk-secret",
+      mode: "yolo",
       cwd: "/tmp",
       env: { WORKSPACE_ID: "workspace-1" },
       runtime: "docker",
@@ -1726,7 +1774,8 @@ describe("acp/spawnStreaming", () => {
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
-      prompt: "hello"
+      prompt: "hello",
+      mode: "yolo"
     });
 
     await expect(collect(events).then(stripMeta)).resolves.toEqual([
@@ -1786,7 +1835,8 @@ describe("acp/spawnStreaming", () => {
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
-      prompt: "hello"
+      prompt: "hello",
+      mode: "yolo"
     });
 
     await expect(collect(events)).resolves.toEqual([]);
@@ -1921,7 +1971,8 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "test",
-      model: "gpt-5.2"
+      model: "gpt-5.2",
+      mode: "yolo"
     });
 
     await collect(events);
@@ -1949,7 +2000,8 @@ describe("acp/spawnStreaming", () => {
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "test",
-      model: "openai/gpt-5.2"
+      model: "openai/gpt-5.2",
+      mode: "yolo"
     });
 
     await collect(events);
@@ -2044,6 +2096,7 @@ describe("acp/spawnStreaming", () => {
       agentId: "cursor",
       prompt: "hello",
       cwd: "/repo",
+      mode: "edit",
       skills: ["example"],
       mcpServers: {
         test: { command: "node" }

@@ -772,6 +772,7 @@ describe("createRalphSimulation", () => {
         })
       });
       expect(run.logFileName).toMatch(/^\d{8}-\d{6}-\d{3}-codex\.jsonl$/);
+      expect(Object.hasOwn(run, "mode")).toBe(false);
     }
   });
 

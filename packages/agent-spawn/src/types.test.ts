@@ -11,15 +11,15 @@ const modes: SpawnModesConfig = {
 const config = { agentId: "test-agent", modes };
 
 describe("DEFAULT_SPAWN_MODE", () => {
-  it("is the safe interactive default rather than yolo", () => {
-    expect(DEFAULT_SPAWN_MODE).toBe("edit");
+  it("uses auto for every omitted spawn mode", () => {
+    expect(DEFAULT_SPAWN_MODE).toBe("auto");
   });
 });
 
 describe("resolveAgentModeConfig", () => {
-  it("falls back to the safe default mode when no mode is given", () => {
+  it("resolves an omitted mode through the central auto default", () => {
     expect(resolveAgentModeConfig(config, undefined)).toEqual({
-      args: modes.edit,
+      args: modes.auto,
       env: undefined
     });
   });

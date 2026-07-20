@@ -98,7 +98,7 @@ steps:
       {{prompt}}
 ```
 
-Each step can override `agent` and `model`. If `mode` is omitted it defaults to `yolo`.
+Each step can override `agent`, `model`, and `mode`. An omitted `mode` uses the shared `agent-spawn` default (`auto`).
 
 ## MCP Servers
 

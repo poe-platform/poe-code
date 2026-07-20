@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn/parallel";
-import type { SpawnUsage } from "@poe-code/agent-spawn/types";
+import { DEFAULT_SPAWN_MODE, type SpawnUsage } from "@poe-code/agent-spawn/types";
 import {
   bindOtelSpan,
   activateOtelSpan,
@@ -369,7 +369,7 @@ function runObservedSpawn(
   const cwd = input.cwd ?? readCurrentWorkingDirectory();
   const span = safeStartSpan(otelSink, "agent.spawn", {
     agent: input.agent,
-    mode: input.mode ?? "yolo",
+    mode: input.mode ?? DEFAULT_SPAWN_MODE,
     cwd
   });
   const deactivateSpan = activateOtelSpan(span);

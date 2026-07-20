@@ -1,9 +1,10 @@
 import { normalizeAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
+import type { WorkflowMode } from "./hooks.js";
 
 export interface WorkflowParticipant {
   id: string;
   agent: string | string[];
-  mode?: "read" | "edit" | "yolo";
+  mode?: WorkflowMode;
   model?: string;
   prompt?: string;
 }
@@ -91,8 +92,10 @@ export function normalizeParticipantConfig(id: string, value: unknown): Workflow
 
   const mode = getOwnEntry(input, "mode");
   if (mode !== undefined) {
-    if (mode !== "read" && mode !== "edit" && mode !== "yolo") {
-      throw new Error(`Participant "${id}" has invalid mode. Expected "read", "edit", or "yolo".`);
+    if (mode !== "read" && mode !== "edit" && mode !== "auto" && mode !== "yolo") {
+      throw new Error(
+        `Participant "${id}" has invalid mode. Expected "read", "edit", "auto", or "yolo".`
+      );
     }
     participant.mode = mode;
   }

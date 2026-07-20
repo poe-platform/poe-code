@@ -125,6 +125,20 @@ describe("resolveConfig", () => {
     );
   });
 
+  it("accepts auto as an explicit state mode", () => {
+    const cfg = resolveConfig(
+      {
+        states: {
+          planned: { prompt: "Plan", mode: "auto" },
+          done: { terminal: true }
+        }
+      },
+      "/repo"
+    );
+
+    expect(cfg.states.planned).toEqual({ prompt: "Plan", mode: "auto" });
+  });
+
   const originalEnv = { ...process.env };
 
   beforeEach(() => {

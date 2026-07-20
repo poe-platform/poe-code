@@ -53,7 +53,7 @@ Keyword options:
 
 - `cwd: str | None` - Working directory or workspace locator. Supports local paths and `github://owner/repo[#ref[:subdir]]`. Passed to `poe-code spawn --cwd`
 - `model: str | None` - Passed to `--model`
-- `mode: SpawnMode | str | None` - Passed to `--mode`
+- `mode: SpawnMode | str | None` - Passed to `--mode`; omission uses the shared `auto` default
 - `args: Sequence[str] | None` - Extra agent CLI args appended after the prompt
 - `mcp_servers: Mapping[str, Any] | None` - Serialized to `--mcp-servers`
 - `mcp_config: Mapping[str, Any] | None` - Deprecated alias for `mcp_servers`

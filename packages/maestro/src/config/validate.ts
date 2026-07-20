@@ -1,4 +1,5 @@
 import { verifyGhProject, type TaskList, type VerifyGhProjectOptions } from "@poe-code/task-list";
+import { SPAWN_MODES } from "@poe-code/agent-spawn/types";
 import type { ResolvedConfig, StateMode } from "./schema.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -163,7 +164,7 @@ function validateStateDefinition(name: string, definition: JsonRecord): void {
   }
 
   if (mode !== undefined && !isStateMode(mode)) {
-    throw new Error(`State "${name}" mode must be "yolo", "edit", or "read".`);
+    throw new Error(`State "${name}" mode must be "yolo", "auto", "edit", or "read".`);
   }
 }
 
@@ -172,7 +173,7 @@ function isStateMap(value: unknown): value is Record<string, JsonRecord> | Map<s
 }
 
 function isStateMode(value: unknown): value is StateMode {
-  return value === "yolo" || value === "edit" || value === "read";
+  return typeof value === "string" && SPAWN_MODES.includes(value as StateMode);
 }
 
 const taskFieldValidators: Record<string, (value: JsonRecord) => boolean> = {

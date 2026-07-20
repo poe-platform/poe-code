@@ -589,6 +589,7 @@ async function resolveSpawnMode(
   }
 
   if (flags.assumeYes) {
+    assertSpawnModeSupported(service, DEFAULT_SPAWN_MODE);
     return DEFAULT_SPAWN_MODE;
   }
 
@@ -605,10 +606,13 @@ async function resolveSpawnMode(
     { value: "yolo", label: "Yolo", hint: "Use provider full-access or skip-permission flags" }
   ];
   const modeOptions = allModeOptions.filter((option) => supportsSpawnMode(service, option.value));
+  const initialValue = supportsSpawnMode(service, DEFAULT_SPAWN_MODE)
+    ? DEFAULT_SPAWN_MODE
+    : "edit";
 
   const selected = await select<SpawnMode>({
     message: "Select permission mode:",
-    initialValue: DEFAULT_SPAWN_MODE,
+    initialValue,
     options: modeOptions
   });
   if (isCancel(selected)) {

@@ -10,11 +10,11 @@ export type SpawnMode = (typeof SPAWN_MODES)[number];
 
 /**
  * The single source of truth for the permission mode used when a caller does not
- * ask for one. `edit` is the safe default: it allows edits while keeping the
- * provider's own permission prompts. `yolo` must always be requested explicitly.
- * Every agent config is required to define `edit`, so this is always supported.
+ * ask for one. `auto` uses the provider's unattended safe-action policy.
+ * Providers without an auto mode reject the spawn instead of silently selecting
+ * a more permissive mode. `yolo` must always be requested explicitly.
  */
-export const DEFAULT_SPAWN_MODE: SpawnMode = "edit";
+export const DEFAULT_SPAWN_MODE: SpawnMode = "auto";
 
 export type SpawnModeConfig = string[] | { args?: string[]; env?: Record<string, string> };
 

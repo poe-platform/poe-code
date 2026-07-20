@@ -9,12 +9,12 @@ export const schema = S.Object({
   agents: S.Object({
     builder: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     }),
     reviewer: S.Object({
       agent: S.String(),
-      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      mode: S.Optional(S.Enum(["read", "edit", "auto", "yolo"])),
       prompt: S.Optional(S.String())
     })
   }),

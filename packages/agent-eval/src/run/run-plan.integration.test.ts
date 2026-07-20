@@ -221,6 +221,7 @@ describe("runEval plan integration", () => {
         prompt: expect.stringContaining("Implement the plan fixture.")
       })
     );
+    expect(mockedAgentSpawn.spawnStreaming.mock.calls[0]?.[0]).not.toHaveProperty("mode");
     await assertSuccessfulRun({ outDir, result, kind: "plan" });
   });
 

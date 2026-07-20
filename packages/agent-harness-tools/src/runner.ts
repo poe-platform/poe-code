@@ -121,8 +121,14 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
           `Workflow "${fieldName}" participant must define a non-empty string.`
         );
 
-  if (mode !== undefined && mode !== "read" && mode !== "edit" && mode !== "yolo") {
-    throw new Error(`Workflow "${fieldName}" mode must be "read", "edit", or "yolo".`);
+  if (
+    mode !== undefined &&
+    mode !== "read" &&
+    mode !== "edit" &&
+    mode !== "auto" &&
+    mode !== "yolo"
+  ) {
+    throw new Error(`Workflow "${fieldName}" mode must be "read", "edit", "auto", or "yolo".`);
   }
 
   return {
@@ -162,8 +168,16 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
         );
 
   const mode = getOwnEntry(value, "mode");
-  if (mode !== undefined && mode !== "read" && mode !== "edit" && mode !== "yolo") {
-    throw new Error(`Workflow stage "${normalizedId}" mode must be "read", "edit", or "yolo".`);
+  if (
+    mode !== undefined &&
+    mode !== "read" &&
+    mode !== "edit" &&
+    mode !== "auto" &&
+    mode !== "yolo"
+  ) {
+    throw new Error(
+      `Workflow stage "${normalizedId}" mode must be "read", "edit", "auto", or "yolo".`
+    );
   }
 
   const onFailure = getOwnEntry(value, "onFailure");

@@ -211,7 +211,7 @@ describe("buildSpawnArgs", () => {
     );
   });
 
-  it("builds args with promptFlag + prompt + defaultArgs + modes.edit by default", () => {
+  it("builds args with promptFlag + prompt + defaultArgs + modes.auto by default", () => {
     const result = buildSpawnArgs("claude-code", { prompt: "test" });
 
     expect(result.binaryName).toBe("claude");
@@ -219,7 +219,7 @@ describe("buildSpawnArgs", () => {
       claudeCodeSpawnConfig.promptFlag,
       "test",
       ...claudeCodeSpawnConfig.defaultArgs,
-      ...claudeCodeSpawnConfig.modes.edit
+      ...claudeCodeSpawnConfig.modes.auto!
     ]);
   });
 
@@ -253,8 +253,12 @@ describe("buildSpawnArgs", () => {
       codexSpawnConfig.promptFlag,
       "hello",
       ...codexSpawnConfig.defaultArgs,
-      "--dangerously-bypass-approvals-and-sandbox"
+      "-s",
+      "workspace-write",
+      "-c",
+      'approval_policy="never"'
     ]);
+    expect(result.args).not.toContain("--dangerously-bypass-approvals-and-sandbox");
   });
 
   it("builds Pi JSON print-mode args with a positional prompt and native model id", () => {
@@ -317,6 +321,12 @@ describe("buildSpawnArgs", () => {
 
   it("rejects Pi auto mode because print mode has no approval channel", () => {
     expect(() => buildSpawnArgs("pi", { prompt: "hello", mode: "auto" })).toThrow(
+      'Agent "pi" does not support mode "auto". Supported modes: yolo, edit, read.'
+    );
+  });
+
+  it("rejects an omitted mode when the central auto default is unsupported", () => {
+    expect(() => buildSpawnArgs("pi", { prompt: "hello" })).toThrow(
       'Agent "pi" does not support mode "auto". Supported modes: yolo, edit, read.'
     );
   });
@@ -520,7 +530,7 @@ describe("buildSpawnArgs", () => {
   });
 
   it("builds correct args for opencode", () => {
-    const result = buildSpawnArgs("opencode", { prompt: "hello" });
+    const result = buildSpawnArgs("opencode", { prompt: "hello", mode: "yolo" });
 
     expect(result.binaryName).toBe("opencode");
     expect(result.args).toEqual([
@@ -534,7 +544,8 @@ describe("buildSpawnArgs", () => {
   it("applies modelTransform for opencode claude-opus-4.6 → poe/anthropic/claude-opus-4.6", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
-      model: "anthropic/claude-opus-4.6"
+      model: "anthropic/claude-opus-4.6",
+      mode: "yolo"
     });
 
     expect(result.args).toContain("poe/anthropic/claude-opus-4.6");
@@ -543,7 +554,8 @@ describe("buildSpawnArgs", () => {
   it("preserves provider namespace for opencode models", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
-      model: "anthropic/claude-sonnet-4.6"
+      model: "anthropic/claude-sonnet-4.6",
+      mode: "yolo"
     });
 
     expect(result.args).toContain("poe/anthropic/claude-sonnet-4.6");
@@ -552,7 +564,8 @@ describe("buildSpawnArgs", () => {
   it("preserves openai namespace for opencode models", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
-      model: "openai/gpt-5.2"
+      model: "openai/gpt-5.2",
+      mode: "yolo"
     });
 
     expect(result.args).toContain("poe/openai/gpt-5.2");
@@ -561,7 +574,8 @@ describe("buildSpawnArgs", () => {
   it("adds poe/ prefix to bare opencode models", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
-      model: "gpt-5.2"
+      model: "gpt-5.2",
+      mode: "yolo"
     });
 
     expect(result.args).toContain("poe/gpt-5.2");
@@ -570,7 +584,8 @@ describe("buildSpawnArgs", () => {
   it("does not double poe/ prefix for opencode models", () => {
     const result = buildSpawnArgs("opencode", {
       prompt: "hello",
-      model: "poe/gpt-5.2"
+      model: "poe/gpt-5.2",
+      mode: "yolo"
     });
 
     expect(result.args).toContain("poe/gpt-5.2");
@@ -731,7 +746,7 @@ describe("buildSpawnArgs", () => {
     "does not automatically pipe large prompts into the %s structured-input protocol",
     (agent) => {
       const prompt = "x".repeat(64 * 1024 + 1);
-      const result = buildSpawnArgs(agent, { prompt });
+      const result = buildSpawnArgs(agent, { prompt, mode: "edit" });
 
       expect(result.args).toContain(prompt);
     }
@@ -739,13 +754,17 @@ describe("buildSpawnArgs", () => {
 
   it("keeps large prompts in argv for agents without stdinMode", () => {
     const prompt = "x".repeat(64 * 1024 + 1);
-    const result = buildSpawnArgs("opencode", { prompt });
+    const result = buildSpawnArgs("opencode", { prompt, mode: "yolo" });
 
     expect(result.args).toContain(prompt);
   });
 
   it("ignores useStdin for agents without stdinMode", () => {
-    const result = buildSpawnArgs("opencode", { prompt: "hello", useStdin: true });
+    const result = buildSpawnArgs("opencode", {
+      prompt: "hello",
+      useStdin: true,
+      mode: "yolo"
+    });
 
     expect(result.args).toEqual([
       openCodeSpawnConfig.promptFlag,
@@ -918,6 +937,7 @@ describe("spawn", () => {
       spawn("cursor", {
         prompt: "hello",
         cwd: "/repo",
+        mode: "edit",
         skills: ["example"],
         mcpServers: {
           test: { command: "node" }
@@ -1041,6 +1061,7 @@ describe("spawn", () => {
 
     await spawn("opencode", {
       prompt: "hello",
+      mode: "yolo",
       mcpServers: {
         test: { command: "tiny-stdio-mcp-test-server", args: ["serve"] }
       }
@@ -1773,7 +1794,7 @@ describe("spawn", () => {
       .mocked(spawnChildProcess)
       .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
-    await spawn("opencode", { prompt: "hello", useStdin: true });
+    await spawn("opencode", { prompt: "hello", useStdin: true, mode: "yolo" });
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args, spawnOptions] = spawnMock.mock.calls[0]!;

@@ -19,6 +19,7 @@ import { hasOwnErrorCode } from "../utils/error-codes.js";
 interface SpawnConfigLike {
   agentId: string;
   kind: string;
+  aliases?: readonly string[];
 }
 
 interface GenerateAgentSpawnPythonTypesOptions {
@@ -230,13 +231,27 @@ async function readFileIfExists(
 }
 
 async function loadSpawnConfigs(repoRoot: string): Promise<readonly SpawnConfigLike[]> {
-  const moduleUrl = pathToFileURL(
+  const configsModuleUrl = pathToFileURL(
     path.join(repoRoot, "packages", "agent-spawn", "src", "configs", "index.ts")
   ).href;
-  const module = (await import(moduleUrl)) as {
-    allSpawnConfigs: readonly SpawnConfigLike[];
-  };
-  return module.allSpawnConfigs;
+  const customSpawnModuleUrl = pathToFileURL(
+    path.join(repoRoot, "src", "cli", "commands", "spawn-poe-agent.ts")
+  ).href;
+  const [configsModule, customSpawnModule] = await Promise.all([
+    import(configsModuleUrl) as Promise<{
+      listSpawnableAgents(): readonly { id: string; aliases: readonly string[] }[];
+    }>,
+    import(customSpawnModuleUrl) as Promise<{ POE_AGENT_SPAWN_SERVICE: string }>
+  ]);
+  const agents: SpawnConfigLike[] = configsModule.listSpawnableAgents().map((agent) => ({
+    agentId: agent.id,
+    aliases: agent.aliases,
+    kind: "cli"
+  }));
+  if (!agents.some((agent) => agent.agentId === customSpawnModule.POE_AGENT_SPAWN_SERVICE)) {
+    agents.push({ agentId: customSpawnModule.POE_AGENT_SPAWN_SERVICE, kind: "cli" });
+  }
+  return agents.sort((left, right) => left.agentId.localeCompare(right.agentId));
 }
 
 function resolveKnownEventNames(sourceFile: SourceFile): string[] {
@@ -475,6 +490,10 @@ function resolveStringLiteralType(typeNode: TypeNode): string {
 function resolveStringLiteralUnion(sourceFile: SourceFile, aliasName: string): string[] {
   const alias = sourceFile.getTypeAliasOrThrow(aliasName);
   const typeNode = alias.getTypeNodeOrThrow();
+  const tupleValues = resolveConstTupleValues(sourceFile, typeNode);
+  if (tupleValues !== undefined) {
+    return tupleValues;
+  }
 
   if (!Node.isUnionTypeNode(typeNode)) {
     return [resolveStringLiteralType(typeNode)];
@@ -483,8 +502,44 @@ function resolveStringLiteralUnion(sourceFile: SourceFile, aliasName: string): s
   return typeNode.getTypeNodes().map(resolveStringLiteralType);
 }
 
+function resolveConstTupleValues(sourceFile: SourceFile, typeNode: TypeNode): string[] | undefined {
+  if (!Node.isIndexedAccessTypeNode(typeNode)) {
+    return undefined;
+  }
+  if (typeNode.getIndexTypeNode().getKind() !== SyntaxKind.NumberKeyword) {
+    return undefined;
+  }
+
+  let objectType = typeNode.getObjectTypeNode();
+  while (Node.isParenthesizedTypeNode(objectType)) {
+    objectType = objectType.getTypeNode();
+  }
+  if (!Node.isTypeQuery(objectType)) {
+    return undefined;
+  }
+
+  const tupleName = objectType.getExprName();
+  if (!Node.isIdentifier(tupleName)) {
+    return undefined;
+  }
+  const initializer = sourceFile.getVariableDeclaration(tupleName.getText())?.getInitializer();
+  const value = Node.isAsExpression(initializer) ? initializer.getExpression() : initializer;
+  if (!Node.isArrayLiteralExpression(value)) {
+    return undefined;
+  }
+
+  return value.getElements().map((element) => {
+    if (!Node.isStringLiteral(element)) {
+      throw new Error(`Expected a string literal tuple element, received ${element.getText()}.`);
+    }
+    return element.getLiteralValue();
+  });
+}
+
 function resolveSpawnableAgentIds(spawnConfigs: readonly SpawnConfigLike[]): string[] {
-  return spawnConfigs.filter((config) => config.kind === "cli").map((config) => config.agentId);
+  return spawnConfigs
+    .filter((config) => config.kind === "cli")
+    .flatMap((config) => [config.agentId, ...(config.aliases ?? [])]);
 }
 
 function shouldSkipProperty(propertyName: string): boolean {

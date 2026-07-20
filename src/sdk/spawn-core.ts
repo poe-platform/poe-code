@@ -15,7 +15,11 @@ import {
   resolveActiveProviderForService
 } from "../cli/commands/shared.js";
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
-import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
+import {
+  DEFAULT_SPAWN_MODE,
+  type McpSpawnConfig,
+  type SpawnMode
+} from "@poe-code/agent-spawn";
 import type { HookBridgeOptions } from "./types.js";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
@@ -71,13 +75,14 @@ export async function spawnCore(
     assertUsableThreadId(options.resumeThreadId);
   }
 
+  const mode = options.mode ?? DEFAULT_SPAWN_MODE;
   const model = await resolveConfiguredModel(container, service, options.model, {
     readOnly: flags.dryRun
   });
   const workspace = await resolveSpawnWorkspace(options.cwd, {
     baseDir: container.env.cwd,
     homeDir: container.env.homeDir,
-    mode: options.mode,
+    mode,
     resolveRemoteLocators: !flags.dryRun,
     fs: container.fs,
     exec: container.commandRunner
@@ -89,7 +94,7 @@ export async function spawnCore(
       prompt: options.prompt,
       args: options.args,
       model,
-      mode: options.mode,
+      mode,
       env: options.env,
       mcpServers: options.mcpServers,
       skills: options.skills,

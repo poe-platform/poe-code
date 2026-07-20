@@ -74,7 +74,7 @@ npx poe-code@latest spawn codex "Say hello" --mode read
 
 `--mode` is the permission mode: `yolo | auto | edit | read`. It is prompted for in an
 interactive terminal, but **required in CI**: without a TTY, `spawn` fails unless you pass
-`--mode` (or `--yes`, which uses the safe `edit` default). The same choices apply to
+`--mode` (or `--yes`, which uses the shared `auto` default). The same choices apply to
 `gaslight` and `harness run`, and values are case-insensitive (`--mode READ` works).
 Only `--mode yolo` skips the agent's permission prompts, so keep it out of untrusted CI jobs.
 
@@ -221,7 +221,7 @@ Runs a single prompt through a configured service CLI.
 - `options.prompt` – The prompt to send
 - `options.cwd` – Working directory or workspace locator (optional). Supports local paths and `github://owner/repo[#ref[:subdir]]` locators. See [@poe-code/workspace-resolver](packages/workspace-resolver/) for the full locator syntax.
 - `options.model` – Model identifier override (optional)
-- `options.mode` – Permission mode: `yolo`, `auto`, `edit`, or `read` (optional; defaults to `edit`. `auto` requires an agent with an approval channel)
+- `options.mode` – Permission mode: `yolo`, `auto`, `edit`, or `read` (optional; defaults to `auto`. Agents without an auto mode fail clearly)
 - `options.args` – Additional arguments forwarded to the CLI (optional)
 
 Returns `{ stdout, stderr, exitCode }`.

@@ -112,7 +112,7 @@ describe("spawnInteractive", () => {
   it("builds flag-based prompt args for opencode", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("opencode", { prompt: "test prompt" });
+    await spawnInteractive("opencode", { prompt: "test prompt", mode: "yolo" });
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("opencode");
@@ -196,7 +196,11 @@ describe("spawnInteractive", () => {
   it("applies modelTransform from config (preserves namespace + poe/ prefix)", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("opencode", { prompt: "test", model: "anthropic/claude-opus-4.6" });
+    await spawnInteractive("opencode", {
+      prompt: "test",
+      model: "anthropic/claude-opus-4.6",
+      mode: "yolo"
+    });
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toContain("poe/anthropic/claude-opus-4.6");
@@ -256,7 +260,7 @@ describe("spawnInteractive", () => {
   it("omits prompt flag when prompt is empty for flag-based agents", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
-    await spawnInteractive("opencode", { prompt: "" });
+    await spawnInteractive("opencode", { prompt: "", mode: "yolo" });
 
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
@@ -314,6 +318,7 @@ describe("spawnInteractive", () => {
 
     await spawnInteractive("opencode", {
       prompt: "test",
+      mode: "yolo",
       mcpServers: {
         test: { command: "tiny-stdio-mcp-test-server", args: ["serve"] }
       }

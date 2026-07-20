@@ -70,7 +70,8 @@ export type AcpEvent = KnownAcpEvent | { event: string };
     const spawnTypesSourceFile = project.createSourceFile(
       "/packages/agent-spawn/src/types.ts",
       `
-export type SpawnMode = "yolo" | "edit" | "read";
+export const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
+export type SpawnMode = (typeof SPAWN_MODES)[number];
 `
     );
 
@@ -78,7 +79,7 @@ export type SpawnMode = "yolo" | "edit" | "read";
       acpTypesSourceFile,
       spawnTypesSourceFile,
       spawnConfigs: [
-        { kind: "cli", agentId: "claude-code" },
+        { kind: "cli", agentId: "claude-code", aliases: ["claude"] },
         { kind: "file", agentId: "claude-desktop" },
         { kind: "cli", agentId: "codex" }
       ]
@@ -91,11 +92,13 @@ from typing import Literal, Optional, Union
 
 class Agent(str, Enum):
     CLAUDE_CODE = "claude-code"
+    CLAUDE = "claude"
     CODEX = "codex"
 
 
 class SpawnMode(str, Enum):
     YOLO = "yolo"
+    AUTO = "auto"
     EDIT = "edit"
     READ = "read"
 

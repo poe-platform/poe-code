@@ -11,7 +11,9 @@ const worktreeMocks = vi.hoisted(() => ({
 
 vi.mock("@poe-code/worktree", () => worktreeMocks);
 
-const { runInWorktree, runWithOptionalWorktree } = await import("./worktree.js");
+const { reconcileManagedWorktree, runInWorktree, runWithOptionalWorktree } = await import(
+  "./worktree.js"
+);
 
 describe("runInWorktree", () => {
   beforeEach(() => {
@@ -102,7 +104,6 @@ describe("runInWorktree", () => {
     expect(spawnAgent).toHaveBeenCalledWith("codex", {
       cwd: "/repo",
       prompt: "prompt",
-      mode: "auto",
       worktree: false
     });
     expect(agentResult.threadId).toBe("thread-1");
@@ -140,7 +141,6 @@ describe("runInWorktree", () => {
     expect(spawnAgent).toHaveBeenCalledWith("codex", {
       cwd: "/repo",
       prompt: "cleanup",
-      mode: "auto",
       model: "sonnet",
       resumeThreadId: "thread-1",
       worktree: false
@@ -177,11 +177,11 @@ describe("runInWorktree", () => {
       "codex",
       expect.objectContaining({
         cwd: "/repo",
-        mode: "auto",
         prompt: expect.stringContaining("produced no worktree changes"),
         worktree: false
       })
     );
+    expect(spawnAgent.mock.calls[0]![1]).not.toHaveProperty("mode");
   });
 
   it("leaves changed failed worktrees in place without asking cleanup", async () => {
@@ -205,6 +205,52 @@ describe("runInWorktree", () => {
 
     expect(worktreeMocks.reconcileWorktree).not.toHaveBeenCalled();
     expect(spawnAgent).not.toHaveBeenCalled();
+  });
+});
+
+describe("reconcileManagedWorktree", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    worktreeMocks.reconcileWorktree.mockResolvedValue({
+      committed: "none",
+      uncommitted: "none",
+      removed: true,
+      cleanup: "removed_by_agent",
+      conflictFiles: []
+    });
+  });
+
+  it("lets the shared spawn boundary choose the reconciliation mode", async () => {
+    const spawnAgent = vi.fn().mockResolvedValue(spawnResult());
+
+    await reconcileManagedWorktree({
+      cwd: "/repo",
+      name: "wt",
+      agent: "codex",
+      spawnAgent
+    });
+
+    const reconciliationAgent =
+      worktreeMocks.reconcileWorktree.mock.calls[0]![0].reconciliationAgent;
+    await reconciliationAgent({
+      phase: "reconcile",
+      sourceCwd: "/repo",
+      worktree: { name: "wt" },
+      prompt: "reconcile",
+      summary: {
+        committed: "present",
+        uncommitted: "none",
+        removed: false,
+        cleanup: "not_needed",
+        conflictFiles: []
+      }
+    });
+
+    expect(spawnAgent).toHaveBeenCalledWith("codex", {
+      cwd: "/repo",
+      prompt: "reconcile",
+      worktree: false
+    });
   });
 });
 

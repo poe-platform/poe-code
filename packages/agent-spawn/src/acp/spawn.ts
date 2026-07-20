@@ -14,8 +14,10 @@ import { resolveSpawnExecution } from "../runtime.js";
 import { mergeSpawnEnvironment } from "../environment.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import {
+  DEFAULT_SPAWN_MODE,
   resolveAgentModeConfig,
   type CliSpawnConfig,
+  type SpawnMode,
   type SpawnOptions,
   type SpawnResult
 } from "../types.js";
@@ -609,10 +611,11 @@ async function startCapture(
 function normalizeSpawnStreamingOptions(options: SpawnStreamingOptions): SpawnStreamingOptions {
   const normalized = createNullRecord<SpawnStreamingOptions>({
     agentId: getOwnProperty(options, "agentId") as SpawnStreamingOptions["agentId"],
-    prompt: getOwnProperty(options, "prompt") as SpawnStreamingOptions["prompt"]
+    prompt: getOwnProperty(options, "prompt") as SpawnStreamingOptions["prompt"],
+    mode: (getOwnProperty(options, "mode") ?? DEFAULT_SPAWN_MODE) as SpawnMode
   });
   const optionalNames: readonly (keyof SpawnStreamingOptions)[] = [
-    "cwd", "model", "mode", "args", "mcpServers", "skills", "hooks", "resumeThreadId",
+    "cwd", "model", "args", "mcpServers", "skills", "hooks", "resumeThreadId",
     "useStdin", "interactive", "signal", "otelSink", "captureOtel", "captureOtelContent", "env",
     "middlewares", "tee", "activityTimeoutMs", "logPath", "logDir", "logFileName", "runtime",
     "runtimeImage", "runtimeConfigCwd", "detach", "mountPoeCode", "runnerSync"

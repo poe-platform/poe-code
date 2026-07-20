@@ -88,9 +88,9 @@
             },
             "mode": {
               "type": "string",
-              "default": "yolo",
               "enum": [
                 "yolo",
+                "auto",
                 "edit",
                 "read"
               ]
@@ -169,6 +169,7 @@
             "type": "string",
             "enum": [
               "yolo",
+              "auto",
               "edit",
               "read"
             ]
@@ -282,9 +283,9 @@
             },
             "mode": {
               "type": "string",
-              "default": "yolo",
               "enum": [
                 "yolo",
+                "auto",
                 "edit",
                 "read"
               ]

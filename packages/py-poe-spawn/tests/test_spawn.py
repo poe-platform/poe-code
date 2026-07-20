@@ -419,6 +419,8 @@ class SpawnTest(unittest.TestCase):
                 "kimi",
                 "kimi-cli",
                 "opencode",
+                "pi",
+                "pi-agent",
                 "poe-agent",
             ],
         )

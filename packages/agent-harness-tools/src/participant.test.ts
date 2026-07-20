@@ -57,6 +57,19 @@ describe("normalizeParticipantConfig", () => {
     });
   });
 
+  it("accepts auto as an explicit participant mode", () => {
+    expect(
+      normalizeParticipantConfig("writer", {
+        agent: "claude",
+        mode: "auto"
+      })
+    ).toEqual({
+      id: "writer",
+      agent: "claude-code",
+      mode: "auto"
+    });
+  });
+
   it("normalizes an object with an agent array", () => {
     expect(
       normalizeParticipantConfig("ensemble", {

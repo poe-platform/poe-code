@@ -63,7 +63,6 @@ function createDefaultRalphRunAgent(
       prompt: input.prompt,
       cwd: input.cwd,
       model: input.model,
-      mode: "yolo",
       ...(input.skills ? { skills: input.skills } : {}),
       ...(input.hooks ? { hooks: input.hooks } : {}),
       ...(input.logDir !== undefined ? { logDir: input.logDir } : {}),

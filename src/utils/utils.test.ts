@@ -510,7 +510,14 @@ describe("createSpawnHealthCheck", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "claude",
-      expect.arrayContaining(["-p", "Output exactly: DEMO_OK", "--model", "test-model"])
+      expect.arrayContaining([
+        "-p",
+        "Output exactly: DEMO_OK",
+        "--model",
+        "test-model",
+        "--permission-mode",
+        "plan"
+      ])
     );
   });
 
@@ -545,7 +552,7 @@ describe("createSpawnHealthCheck", () => {
       "--model",
       "test-model",
       "--mode",
-      "yolo",
+      "read",
       "codex",
       "Output exactly: CODEX_OK"
     ]);
@@ -578,7 +585,7 @@ describe("createSpawnHealthCheck", () => {
       "--hooks-from",
       "claude-code",
       "--mode",
-      "yolo",
+      "read",
       "codex",
       "Output exactly: CODEX_OK"
     ]);

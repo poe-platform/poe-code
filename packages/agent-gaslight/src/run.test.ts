@@ -65,10 +65,10 @@ describe("runGaslight", () => {
       "codex",
       expect.objectContaining({
         prompt: "Implement docs/plans/work.md",
-        mode: "auto",
         cwd: "/repo"
       })
     );
+    expect(spawn.mock.calls[0]?.[1]).not.toHaveProperty("mode");
     expect(spawn).toHaveBeenNthCalledWith(
       2,
       "codex",

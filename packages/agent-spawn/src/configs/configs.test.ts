@@ -130,7 +130,9 @@ describe("configs/mcp support", () => {
 
   it("omits Cursor's prompt when stdin is requested", async () => {
     const { buildSpawnArgs } = await import("../spawn.js");
-    expect(buildSpawnArgs("cursor", { prompt: "secret", useStdin: true }).args).not.toContain("secret");
+    expect(
+      buildSpawnArgs("cursor", { prompt: "secret", useStdin: true, mode: "read" }).args
+    ).not.toContain("secret");
     expect(supportsMcpAtSpawn("cursor")).toBe(true);
   });
 });
@@ -138,7 +140,15 @@ describe("configs/mcp support", () => {
 describe("configs/auto mode", () => {
   it("defines auto only for agents with a usable noninteractive approval mode", () => {
     expect(claudeCodeSpawnConfig.modes.auto).toEqual(["--permission-mode", "auto"]);
-    expect(codexSpawnConfig.modes.auto).toEqual(["--dangerously-bypass-approvals-and-sandbox"]);
+    expect(codexSpawnConfig.modes.auto).toEqual([
+      "-s",
+      "workspace-write",
+      "-c",
+      'approval_policy="never"'
+    ]);
+    expect(codexSpawnConfig.modes.auto).not.toContain(
+      "--dangerously-bypass-approvals-and-sandbox"
+    );
     expect(cursorSpawnConfig.modes.auto).toBeUndefined();
     expect(openCodeSpawnConfig.modes.auto).toBeUndefined();
     expect(kimiSpawnConfig.modes.auto).toBeUndefined();
@@ -164,7 +174,7 @@ describe("configs/auto mode", () => {
     if (typeof acpArgs !== "function") {
       throw new Error("Expected gemini acpArgs to be a function");
     }
-    expect(acpArgs({})).toEqual(["--acp", "--approval-mode", "yolo"]);
+    expect(acpArgs({})).toEqual(["--acp", "--approval-mode", "default"]);
     expect(acpArgs({ mode: "yolo" })).toEqual(["--acp", "--approval-mode", "yolo"]);
     expect(acpArgs({ mode: "auto" })).toEqual(["--acp", "--approval-mode", "default"]);
     expect(acpArgs({ mode: "edit" })).toEqual(["--acp", "--approval-mode", "auto_edit"]);

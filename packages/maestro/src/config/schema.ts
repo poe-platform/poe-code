@@ -1,12 +1,13 @@
 import os from "node:os";
 import path from "node:path";
+import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
 import { resolveScope } from "@poe-code/poe-code-config";
 import type { OpenTaskListOptions } from "@poe-code/task-list";
 import { validateStateDefinitions } from "./validate.js";
 
 type JsonRecord = Record<string, unknown>;
 
-export type StateMode = "yolo" | "edit" | "read";
+export type StateMode = SpawnMode;
 
 export interface StateDefinition {
   prompt?: string;
@@ -316,11 +317,11 @@ function readMode(value: unknown): StateMode | undefined {
     return undefined;
   }
 
-  if (value === "yolo" || value === "edit" || value === "read") {
-    return value;
+  if (typeof value === "string" && SPAWN_MODES.includes(value as SpawnMode)) {
+    return value as SpawnMode;
   }
 
-  throw new Error('Expected state "mode" to be one of "yolo", "edit", or "read".');
+  throw new Error('Expected state "mode" to be one of "yolo", "auto", "edit", or "read".');
 }
 
 function isRecord(value: unknown): value is JsonRecord {

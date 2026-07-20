@@ -22,7 +22,10 @@ import { helpGuidance, optionHelpGroup } from "./commands/help-guidance.js";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
-import { createPoeAgentSpawnHandler } from "./commands/spawn-poe-agent.js";
+import {
+  createPoeAgentSpawnHandler,
+  POE_AGENT_SPAWN_SERVICE
+} from "./commands/spawn-poe-agent.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerLogoutCommand } from "./commands/logout.js";
 import { registerAuthCommand } from "./commands/auth.js";
@@ -992,9 +995,12 @@ function bootstrapProgram(container: CliContainer): Command {
   registerUpdateCommand(program, container, packageJson.version);
   registerConfigureCommand(program, container);
   registerAgentCommand(program, container);
+  const inProcessSpawnHandlers = {
+    [POE_AGENT_SPAWN_SERVICE]: createPoeAgentSpawnHandler()
+  };
   registerSpawnCommand(program, container, {
-    handlers: { "poe-agent": createPoeAgentSpawnHandler() },
-    extraServices: ["poe-agent"]
+    handlers: inProcessSpawnHandlers,
+    extraServices: Object.keys(inProcessSpawnHandlers)
   });
   registerGaslightCommand(program, container);
   registerTestCommand(program, container);

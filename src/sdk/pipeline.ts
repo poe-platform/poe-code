@@ -161,7 +161,7 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
         logDir: input.logDir,
         ...(input.logFileName ? { logFileName: input.logFileName } : {}),
         model: input.model,
-        mode: input.mode,
+        ...(input.mode ? { mode: input.mode } : {}),
         ...(input.skills ? { skills: input.skills } : {}),
         ...(input.hooks ? { hooks: input.hooks } : {}),
         ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
@@ -184,7 +184,6 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
           userRunAgent({
             agent: options.agent,
             prompt,
-            mode: "yolo",
             cwd: options.cwd,
             ...(options.model ? { model: options.model } : {}),
             ...(options.signal ? { signal: options.signal } : {})
@@ -222,7 +221,7 @@ export async function runPipelineInit(
         prompt: input.prompt,
         cwd: input.cwd,
         model: input.model,
-        mode: input.mode,
+        ...(input.mode ? { mode: input.mode } : {}),
         ...(input.signal ? { signal: input.signal } : {})
       });
     });
@@ -267,7 +266,6 @@ export async function runPipelineInit(
       const result = await runAgent({
         agent: options.agent,
         prompt,
-        mode: "yolo",
         cwd: options.cwd,
         ...(options.model ? { model: options.model } : {}),
         ...(options.signal ? { signal: options.signal } : {})

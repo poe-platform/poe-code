@@ -147,7 +147,7 @@ describe("geminiCliService ACP spawn", () => {
 
     expect(spawnChildProcess).toHaveBeenCalledWith(
       "gemini",
-      ["--acp", "--approval-mode", "yolo"],
+      ["--acp", "--approval-mode", "default"],
       expect.any(Object)
     );
   });
@@ -165,7 +165,7 @@ describe("geminiCliService ACP spawn", () => {
 
     expect(spawnChildProcess).toHaveBeenCalledWith(
       "gemini",
-      ["--acp", "--model", "gemini-2.5-pro", "--approval-mode", "yolo"],
+      ["--acp", "--model", "gemini-2.5-pro", "--approval-mode", "default"],
       {
         cwd: process.cwd(),
         stdio: ["pipe", "pipe", "pipe"],
@@ -196,7 +196,7 @@ describe("geminiCliService ACP spawn", () => {
 
     expect(spawnChildProcess).toHaveBeenCalledWith(
       "gemini",
-      ["--acp", "--allowed-mcp-server-names", "test", "--skip-trust", "--approval-mode", "yolo"],
+      ["--acp", "--allowed-mcp-server-names", "test", "--skip-trust", "--approval-mode", "default"],
       expect.any(Object)
     );
   });

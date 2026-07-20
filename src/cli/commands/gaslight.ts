@@ -334,7 +334,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     .option("--config <path>", "gaslight.yaml variant to use")
     .option("--model <model>", "Model to run")
     .option("--plans <paths...>", "Markdown plans to run sequentially")
-    .addOption(new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]).default("auto"));
+    .addOption(new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]));
 
   addSkillOptions(
     addActivityTimeoutOption(addWorktreeOptions(gaslight))
@@ -359,7 +359,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       ...(model ? { model } : {}),
       ...(options.config ? { configPath: options.config } : {}),
       archive: options.archive ?? commandConfig.archive,
-      mode: options.mode ?? "auto",
+      ...(options.mode ? { mode: options.mode } : {}),
       cwd: container.env.cwd,
       homeDir: container.env.homeDir,
       worktree: pickWorktreeOptions(options as Record<string, unknown>),

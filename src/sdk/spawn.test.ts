@@ -57,6 +57,7 @@ vi.mock("@poe-code/braintrust", () => ({
 
 import { spawn } from "./spawn.js";
 import {
+  DEFAULT_SPAWN_MODE,
   getAcpSpawnConfig,
   getSpawnConfig,
   isActivityTimeoutError,
@@ -768,7 +769,7 @@ describe("SDK spawn()", () => {
       prompt: "test prompt",
       cwd: undefined,
       model: undefined,
-      mode: undefined,
+      mode: DEFAULT_SPAWN_MODE,
       args: undefined,
       mcpServers: {
         test: {
@@ -1047,6 +1048,7 @@ describe("SDK spawn()", () => {
       prompt: "test prompt",
       cwd: undefined,
       model: undefined,
+      mode: DEFAULT_SPAWN_MODE,
       args: undefined,
       mcpServers: {
         test: {
@@ -1103,8 +1105,39 @@ describe("SDK spawn()", () => {
       prompt: "fix bug",
       cwd: "/tmp/project",
       model: "gpt-4",
+      mode: DEFAULT_SPAWN_MODE,
       args: ["--extra"]
     });
+  });
+
+  it("resolves an omitted mode before workspace and streaming dispatch", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "inspect the repo", {
+      cwd: "github://poe-platform/poe-code"
+    });
+
+    await result;
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code",
+      expect.objectContaining({ mode: DEFAULT_SPAWN_MODE })
+    );
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: DEFAULT_SPAWN_MODE })
+    );
   });
 
   it("resolves workspace locators before spawning streaming agents", async () => {
@@ -1281,7 +1314,7 @@ describe("SDK spawn()", () => {
       prompt: "test prompt",
       cwd: undefined,
       model: undefined,
-      mode: undefined,
+      mode: DEFAULT_SPAWN_MODE,
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server"
@@ -1652,7 +1685,7 @@ describe("SDK spawn()", () => {
         usage: { inputTokens: 0, outputTokens: 0 },
         prompt: "test prompt",
         model: undefined,
-        mode: undefined,
+        mode: DEFAULT_SPAWN_MODE,
         cwd: undefined,
         startedAt: expect.any(Date)
       })

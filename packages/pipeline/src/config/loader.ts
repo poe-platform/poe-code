@@ -1,16 +1,17 @@
 import path from "node:path";
 import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
-import type {
-  PipelineConfig,
-  PipelineFileSystem,
-  ResolvedStepDefinitions,
-  ResolvedStepsConfig,
-  StepDefinition,
-  StepDefinitionOverride,
-  StepDefinitionOverrides,
-  StepHooks,
-  StepMode
+import {
+  PIPELINE_STEP_MODES,
+  type PipelineConfig,
+  type PipelineFileSystem,
+  type ResolvedStepDefinitions,
+  type ResolvedStepsConfig,
+  type StepDefinition,
+  type StepDefinitionOverride,
+  type StepDefinitionOverrides,
+  type StepHooks,
+  type StepMode
 } from "../types.js";
 import { defineRecordEntry, isNotFound, isRecord, readOptionalFile } from "../utils.js";
 
@@ -56,14 +57,16 @@ function resolveNamedStepConfigName(name: string | undefined): string {
   return trimmed;
 }
 
-function asStepMode(value: unknown): StepMode {
+function asStepMode(value: unknown): StepMode | undefined {
   if (value === undefined || value === null) {
-    return "yolo";
+    return undefined;
   }
-  if (value === "yolo" || value === "edit" || value === "read") {
-    return value;
+  if (PIPELINE_STEP_MODES.includes(value as StepMode)) {
+    return value as StepMode;
   }
-  throw new Error(`Invalid step mode "${String(value)}". Expected "yolo", "edit", or "read".`);
+  throw new Error(
+    `Invalid step mode "${String(value)}". Expected "yolo", "auto", "edit", or "read".`
+  );
 }
 
 function isSkillReference(value: string): boolean {
@@ -164,9 +167,10 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
     const model = getOwnEntry(value, "model");
     const skills = getOwnEntry(value, "skills");
     const hooks = getOwnEntry(value, "hooks");
+    const mode = asStepMode(getOwnEntry(value, "mode"));
     return {
-      mode: asStepMode(getOwnEntry(value, "mode")),
       prompt,
+      ...(mode ? { mode } : {}),
       ...(typeof agent === "string" && agent.length > 0 ? { agent } : {}),
       ...(typeof model === "string" && model.length > 0 ? { model } : {}),
       ...(skills !== undefined ? { skills: parseSkills(skills, context, filePath) } : {}),
@@ -214,13 +218,13 @@ function mergeStepDefinition(
   const model = getOwnEntry(overrideRecord, "model") ?? getOwnOptionalEntry(baseRecord, "model");
   const skills = getOwnEntry(overrideRecord, "skills") ?? getOwnOptionalEntry(baseRecord, "skills");
   const hooks = getOwnEntry(overrideRecord, "hooks") ?? getOwnOptionalEntry(baseRecord, "hooks");
+  const mode =
+    (getOwnEntry(overrideRecord, "mode") as StepMode | undefined) ??
+    (getOwnOptionalEntry(baseRecord, "mode") as StepMode | undefined);
 
   return {
-    mode:
-      (getOwnEntry(overrideRecord, "mode") as StepMode | undefined) ??
-      (getOwnOptionalEntry(baseRecord, "mode") as StepMode | undefined) ??
-      "yolo",
     prompt,
+    ...(mode ? { mode } : {}),
     ...(typeof agent === "string" && agent.length > 0 ? { agent } : {}),
     ...(typeof model === "string" && model.length > 0 ? { model } : {}),
     ...(skills ? { skills: skills as string[] } : {}),

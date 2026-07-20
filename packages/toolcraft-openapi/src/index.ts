@@ -28,6 +28,11 @@ export type {
   DefineClientFromSpecOptions,
   OpenApiDocumentSource
 } from "./runtime.js";
+export type {
+  OpenApiSpecCacheFileSystem,
+  OpenApiSpecCacheOptions,
+  OpenApiTimeoutContext
+} from "./spec-cache.js";
 export type { DefineClientOptions, DefinedClient, OpenApiClientServices } from "./define-client.js";
 export type { AuthProvider, CommandContributor, TokenSource } from "./auth/types.js";
 export { bearerTokenAuth } from "./auth/bearer-token-auth.js";

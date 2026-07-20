@@ -38,9 +38,7 @@ describe("classifyNetworkError", () => {
     const classified = classifyNetworkError(error, "http://127.0.0.1:8080/openapi.json");
 
     expect(classified).toBeInstanceOf(UserError);
-    expect(classified?.message).toBe(
-      "Connection refused: 127.0.0.1:8080. Is the server running?"
-    );
+    expect(classified?.message).toBe("Connection refused: 127.0.0.1:8080. Is the server running?");
   });
 
   it("walks the cause chain when classifying network errors", () => {
@@ -72,6 +70,16 @@ describe("classifyNetworkError", () => {
       { code: "EAI_AGAIN", address: "api.example.com" },
       "https://api.example.com/openapi.json",
       "Temporary DNS failure for api.example.com. Network may be down."
+    ],
+    [
+      { code: "UND_ERR_SOCKET" },
+      "https://api.example.com/openapi.json",
+      "Network connection failed: https://api.example.com/openapi.json."
+    ],
+    [
+      { code: "UND_ERR_CONNECT_TIMEOUT" },
+      "https://api.example.com/openapi.json",
+      "Request timed out: https://api.example.com/openapi.json."
     ]
   ])("classifies %s", (cause, url, message) => {
     const error = new TypeError("fetch failed", { cause });
@@ -132,9 +140,18 @@ describe("classifyNetworkError", () => {
   });
 
   it.each([
-    [new TypeError("fetch failed", { cause: { code: "ETIMEDOUT", timeout: 5000 } }), "Request timed out after 5000ms: https://api.example.com/items?access_token=****."],
-    [AbortSignal.abort().reason, "Request aborted: https://api.example.com/items?access_token=****."],
-    [new TypeError("fetch failed"), "Network request failed: https://api.example.com/items?access_token=****."]
+    [
+      new TypeError("fetch failed", { cause: { code: "ETIMEDOUT", timeout: 5000 } }),
+      "Request timed out after 5000ms: https://api.example.com/items?access_token=****."
+    ],
+    [
+      AbortSignal.abort().reason,
+      "Request aborted: https://api.example.com/items?access_token=****."
+    ],
+    [
+      new TypeError("fetch failed"),
+      "Network request failed: https://api.example.com/items?access_token=****."
+    ]
   ])("redacts query credentials in request-location network errors", (error, message) => {
     const classified = classifyNetworkError(
       error,

@@ -15,6 +15,9 @@ import type {
   HttpRequestOptions,
   OpenApiDocument,
   OpenApiClientServices,
+  OpenApiSpecCacheFileSystem,
+  OpenApiSpecCacheOptions,
+  OpenApiTimeoutContext,
   ToolcraftConfig,
   TokenSource
 } from "./index.js";
@@ -134,10 +137,62 @@ describe("toolcraft-openapi", () => {
       handwrittenCommands?: CommandNode<any>[];
       cwd?: string;
       fetch?: typeof globalThis.fetch;
+      cache?:
+        | false
+        | {
+            directory?: string;
+            maxAgeMs?: number;
+            onFallback?: (message: string) => void | Promise<void>;
+          };
+      timeoutMs?: number;
+      onTimeout?: (context: OpenApiTimeoutContext) => void | Promise<void>;
       config?: ToolcraftConfig;
       environment?: string;
       env?: Record<string, string | undefined>;
     }>();
+  });
+
+  it("exports OpenAPI runtime cache options", () => {
+    expectTypeOf<OpenApiSpecCacheOptions>().toMatchTypeOf<{
+      directory?: string;
+      maxAgeMs?: number;
+      onFallback?: (message: string) => void | Promise<void>;
+    }>();
+    expectTypeOf<OpenApiSpecCacheOptions["onFallback"]>().toEqualTypeOf<
+      ((message: string) => void | Promise<void>) | undefined
+    >();
+  });
+
+  it("exports the optional writable filesystem surface for runtime caching", () => {
+    expectTypeOf<OpenApiSpecCacheFileSystem>().toMatchTypeOf<{
+      readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
+      writeFile?: (
+        filePath: string,
+        contents: string,
+        options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+      ) => Promise<void>;
+      rename?: (fromPath: string, toPath: string) => Promise<void>;
+      mkdir?: (
+        directoryPath: string,
+        options?: { recursive?: boolean; mode?: number }
+      ) => Promise<unknown>;
+      unlink?: (filePath: string) => Promise<void>;
+      realpath?: (filePath: string) => Promise<string>;
+    }>();
+    expectTypeOf<OpenApiSpecCacheFileSystem["realpath"]>().toEqualTypeOf<
+      ((filePath: string) => Promise<string>) | undefined
+    >();
+  });
+
+  it("exports OpenAPI timeout hook context", () => {
+    expectTypeOf<OpenApiTimeoutContext>().toMatchTypeOf<{
+      source: string;
+      timeoutMs: number;
+      usingCachedDocument: boolean;
+    }>();
+    expectTypeOf<CommandsFromSpecOptions["onTimeout"]>().toEqualTypeOf<
+      ((context: OpenApiTimeoutContext) => void | Promise<void>) | undefined
+    >();
   });
 
   it("exports defineClientFromSpec with the public signature", () => {
@@ -188,6 +243,15 @@ describe("toolcraft-openapi", () => {
     expectTypeOf<CommandsFromSpecOptions>().toMatchTypeOf<{
       cwd?: string;
       fetch?: typeof globalThis.fetch;
+      cache?:
+        | false
+        | {
+            directory?: string;
+            maxAgeMs?: number;
+            onFallback?: (message: string) => void | Promise<void>;
+          };
+      timeoutMs?: number;
+      onTimeout?: (context: OpenApiTimeoutContext) => void | Promise<void>;
       fs?: {
         readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
       };

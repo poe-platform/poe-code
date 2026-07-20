@@ -5,6 +5,7 @@ import { UserError } from "toolcraft";
 import { renderSourceSnippet } from "toolcraft/source-snippet";
 import type { OpenApiDocument } from "./generate.js";
 import { classifyNetworkError } from "./network-error.js";
+import { redactSensitiveQueryValues } from "./redaction.js";
 
 export interface OpenApiSourceFileSystem {
   readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
@@ -14,6 +15,38 @@ export interface OpenApiSourceServices {
   cwd: string;
   fetch: typeof globalThis.fetch;
   fs: OpenApiSourceFileSystem;
+}
+
+export interface OpenApiHttpSourceOptions {
+  etag?: string;
+  timeoutMs?: number;
+}
+
+export type OpenApiHttpSourceResult =
+  | {
+      status: "modified";
+      sourceText: string;
+      etag?: string;
+      cacheControl?: string;
+      age?: string;
+    }
+  | {
+      status: "not-modified";
+      etag?: string;
+      cacheControl?: string;
+      age?: string;
+    };
+
+export class OpenApiHttpStatusError extends UserError {}
+export class OpenApiTransportError extends UserError {}
+export class OpenApiTimeoutError extends OpenApiTransportError {
+  constructor(
+    message: string,
+    readonly timeoutMs: number,
+    options?: ErrorOptions
+  ) {
+    super(message, options);
+  }
 }
 
 export async function readOpenApiSourceText(
@@ -42,28 +75,14 @@ export async function readOpenApiSourceText(
       );
     }
 
-    let response: Response;
-
-    try {
-      response = await services.fetch(inputUrl.toString());
-    } catch (error) {
-      throw classifyNetworkError(error, inputUrl.toString()) ?? error;
-    }
-
-    if (!response.ok) {
-      const contentType = response.headers.get("content-type") ?? "";
-      const text = await response.text().catch(() => "");
-      const snippet = text.length === 0 ? "" : `\n  body: ${truncate(text, 500)}`;
-
+    const result = await fetchOpenApiHttpSource(inputUrl, services.fetch);
+    if (result.status === "not-modified") {
       throw new UserError(
-        `Failed to fetch ${JSON.stringify(inputUrl.toString())}: ` +
-          `${response.status} ${response.statusText}` +
-          (contentType ? ` (content-type: ${contentType})` : "") +
-          snippet
+        `Failed to fetch ${JSON.stringify(inputUrl.toString())}: received 304 without a cached document.`
       );
     }
 
-    return await response.text();
+    return result.sourceText;
   } catch (error) {
     if (error instanceof UserError) {
       throw error;
@@ -72,6 +91,141 @@ export async function readOpenApiSourceText(
     throw new UserError(
       `Failed to read OpenAPI document ${JSON.stringify(sourceLabel)}: ${getErrorMessage(error)}`
     );
+  }
+}
+
+export async function fetchOpenApiHttpSource(
+  inputUrl: URL,
+  fetch: typeof globalThis.fetch,
+  options: OpenApiHttpSourceOptions = {}
+): Promise<OpenApiHttpSourceResult> {
+  validateTimeout(options.timeoutMs);
+  const url = inputUrl.toString();
+  const timeoutMs = options.timeoutMs;
+  const controller = timeoutMs === undefined || timeoutMs === 0 ? undefined : new AbortController();
+  const requestInit = createOpenApiRequestInit(options.etag, controller?.signal);
+
+  const request = async (): Promise<OpenApiHttpSourceResult> => {
+    let response: Response;
+    try {
+      response = requestInit === undefined ? await fetch(url) : await fetch(url, requestInit);
+    } catch (error) {
+      throw toTransportError(error, url) ?? error;
+    }
+
+    if (response.status === 304) {
+      return {
+        status: "not-modified",
+        ...readResponseCacheHeaders(response)
+      };
+    }
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type") ?? "";
+      const text = await response.text().catch(() => "");
+      const snippet = text.length === 0 ? "" : `\n  body: ${truncate(text, 500)}`;
+
+      throw new OpenApiHttpStatusError(
+        `Failed to fetch ${JSON.stringify(url)}: ` +
+          `${response.status} ${response.statusText}` +
+          (contentType ? ` (content-type: ${contentType})` : "") +
+          snippet
+      );
+    }
+
+    try {
+      return {
+        status: "modified",
+        sourceText: await response.text(),
+        ...readResponseCacheHeaders(response)
+      };
+    } catch (error) {
+      throw (
+        toTransportError(error, url) ??
+        new OpenApiTransportError(
+          `Failed to read the OpenAPI response body from ${JSON.stringify(redactSensitiveQueryValues(url))}.`,
+          { cause: error }
+        )
+      );
+    }
+  };
+
+  if (controller === undefined || timeoutMs === undefined) {
+    return await request();
+  }
+
+  const timeoutCause = Object.assign(new Error("OpenAPI request timed out"), {
+    code: "ETIMEDOUT",
+    timeout: timeoutMs
+  });
+  const classified = classifyNetworkError(timeoutCause, url);
+  const timeoutError = new OpenApiTimeoutError(
+    classified?.message ?? `OpenAPI request timed out after ${timeoutMs}ms.`,
+    timeoutMs,
+    { cause: timeoutCause }
+  );
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      request(),
+      new Promise<never>((_resolve, reject) => {
+        timeout = setTimeout(() => {
+          reject(timeoutError);
+          controller.abort(timeoutError);
+        }, timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+function toTransportError(error: unknown, url: string): OpenApiTransportError | null {
+  if (error instanceof OpenApiTransportError) {
+    return error;
+  }
+
+  const classified = classifyNetworkError(error, url);
+  return classified === null
+    ? null
+    : new OpenApiTransportError(classified.message, { cause: error });
+}
+
+function createOpenApiRequestInit(
+  etag: string | undefined,
+  signal: AbortSignal | undefined
+): RequestInit | undefined {
+  if (etag === undefined && signal === undefined) {
+    return undefined;
+  }
+
+  return {
+    ...(etag === undefined ? {} : { headers: { "If-None-Match": etag } }),
+    ...(signal === undefined ? {} : { signal })
+  };
+}
+
+function readResponseCacheHeaders(response: Response): {
+  etag?: string;
+  cacheControl?: string;
+  age?: string;
+} {
+  const etag = response.headers.get("etag") ?? undefined;
+  const cacheControl = response.headers.get("cache-control") ?? undefined;
+  const age = response.headers.get("age") ?? undefined;
+  return {
+    ...(etag === undefined ? {} : { etag }),
+    ...(cacheControl === undefined ? {} : { cacheControl }),
+    ...(age === undefined ? {} : { age })
+  };
+}
+
+function validateTimeout(timeoutMs: number | undefined): void {
+  if (timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
+    throw new UserError("OpenAPI fetch timeout must be a finite non-negative number.");
   }
 }
 

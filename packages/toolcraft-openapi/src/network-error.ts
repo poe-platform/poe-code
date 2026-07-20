@@ -23,9 +23,12 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
         { cause: error }
       );
     case "ETIMEDOUT":
-      return new UserError(`Request timed out after ${getTimeoutMs(networkError)}ms: ${redactedUrl}.`, {
-        cause: error
-      });
+      return new UserError(
+        `Request timed out after ${getTimeoutMs(networkError)}ms: ${redactedUrl}.`,
+        {
+          cause: error
+        }
+      );
     case "ENOTFOUND":
       return new UserError(`DNS lookup failed for ${host}. Check the URL or your network.`, {
         cause: error
@@ -38,6 +41,12 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
       return new UserError(`Temporary DNS failure for ${host}. Network may be down.`, {
         cause: error
       });
+    case "UND_ERR_SOCKET":
+      return new UserError(`Network connection failed: ${redactedUrl}.`, { cause: error });
+    case "UND_ERR_CONNECT_TIMEOUT":
+    case "UND_ERR_HEADERS_TIMEOUT":
+    case "UND_ERR_BODY_TIMEOUT":
+      return new UserError(`Request timed out: ${redactedUrl}.`, { cause: error });
   }
 
   if (findAbortError(error) !== null) {

@@ -35,17 +35,23 @@ import {
 } from "./http.js";
 import { buildRequestShape, executePreflightBlocks } from "./interpreter.js";
 import {
-  parseOpenApiDocument,
-  readOpenApiSourceText,
-  type OpenApiSourceFileSystem
-} from "./spec-source.js";
+  DEFAULT_OPENAPI_FETCH_TIMEOUT_MS,
+  loadCachedOpenApiSource,
+  type OpenApiSpecCacheFileSystem,
+  type OpenApiSpecCacheOptions,
+  type OpenApiTimeoutContext
+} from "./spec-cache.js";
+import { parseOpenApiDocument, readOpenApiSourceText } from "./spec-source.js";
 
 export type OpenApiDocumentSource = OpenApiDocument | string | URL;
 
 export interface CommandsFromSpecOptions {
   cwd?: string;
   fetch?: typeof globalThis.fetch;
-  fs?: OpenApiSourceFileSystem;
+  fs?: OpenApiSpecCacheFileSystem;
+  cache?: false | OpenApiSpecCacheOptions;
+  onTimeout?: (context: OpenApiTimeoutContext) => void | Promise<void>;
+  timeoutMs?: number;
   config?: ToolcraftConfig;
 }
 
@@ -81,16 +87,39 @@ export async function commandsFromSpec(
   source: OpenApiDocumentSource,
   options: CommandsFromSpecOptions = {}
 ): Promise<CommandNode<OpenApiClientServices>[]> {
-  const document = await resolveDocument(source, options);
-  return createRuntimeNodes(document, options.config);
+  const resolved = await resolveDocument(source, options);
+  const commands = createRuntimeNodes(resolved.document, options.config);
+  await resolved.commit?.();
+  return commands;
 }
 
 export async function defineClientFromSpec<TServices extends object = Record<string, never>>(
   spec: OpenApiDocumentSource,
   options: DefineClientFromSpecOptions<TServices>
 ): Promise<DefinedClient<TServices>> {
-  const { cwd, fetch, fs: specFs, config, baseUrl, environment, env, ...clientOptions } = options;
-  const document = await resolveDocument(spec, { cwd, fetch, fs: specFs, config });
+  const {
+    cwd,
+    fetch,
+    fs: specFs,
+    cache,
+    onTimeout,
+    timeoutMs,
+    config,
+    baseUrl,
+    environment,
+    env,
+    ...clientOptions
+  } = options;
+  const resolved = await resolveDocument(spec, {
+    cwd,
+    fetch,
+    fs: specFs,
+    cache,
+    onTimeout,
+    timeoutMs,
+    config
+  });
+  const document = resolved.document;
   const resolvedBaseUrl =
     baseUrl ??
     resolveOpenApiBaseUrl({
@@ -109,15 +138,37 @@ export async function defineClientFromSpec<TServices extends object = Record<str
   const commands = createRuntimeNodes(document, config) as CommandNode<
     OpenApiClientServices & TServices
   >[];
-  return defineClient({ ...clientOptions, baseUrl: resolvedBaseUrl, commands });
+  const client = defineClient({ ...clientOptions, baseUrl: resolvedBaseUrl, commands });
+  await resolved.commit?.();
+  return client;
+}
+
+interface ResolvedOpenApiDocument {
+  document: OpenApiDocument;
+  commit?: () => Promise<void>;
 }
 
 async function resolveDocument(
   source: OpenApiDocumentSource,
   options: CommandsFromSpecOptions
-): Promise<OpenApiDocument> {
+): Promise<ResolvedOpenApiDocument> {
   if (typeof source !== "string" && !(source instanceof URL)) {
-    return source;
+    return { document: source };
+  }
+
+  const sourceUrl = source instanceof URL ? source : tryParseUrl(source);
+  if (sourceUrl !== null && (sourceUrl.protocol === "http:" || sourceUrl.protocol === "https:")) {
+    const loaded = await loadCachedOpenApiSource(sourceUrl, {
+      cache: options.cache ?? resolveDefaultCache(options),
+      fetch: options.fetch ?? globalThis.fetch,
+      fs: options.fs ?? fs,
+      onTimeout: options.onTimeout,
+      timeoutMs: options.timeoutMs ?? DEFAULT_OPENAPI_FETCH_TIMEOUT_MS
+    });
+    return {
+      document: loaded.document,
+      ...(loaded.commit === undefined ? {} : { commit: loaded.commit })
+    };
   }
 
   const sourceText = await readOpenApiSourceText(source, {
@@ -126,7 +177,26 @@ async function resolveDocument(
     fs: options.fs ?? fs
   });
 
-  return parseOpenApiDocument(sourceText, source);
+  return { document: parseOpenApiDocument(sourceText, source) };
+}
+
+function resolveDefaultCache(options: CommandsFromSpecOptions): false | OpenApiSpecCacheOptions {
+  if (options.fetch !== undefined) {
+    return false;
+  }
+
+  const configured = Object.prototype.hasOwnProperty.call(process.env, "TOOLCRAFT_OPENAPI_CACHE")
+    ? process.env.TOOLCRAFT_OPENAPI_CACHE?.trim().toLowerCase()
+    : undefined;
+  return configured === "0" || configured === "false" ? false : {};
+}
+
+function tryParseUrl(value: string): URL | null {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
 }
 
 export function resolveOpenApiBaseUrl(options: ResolveOpenApiBaseUrlOptions): string | undefined {

@@ -50,6 +50,45 @@ export const client = defineGeneratedClient({
 Generated lower-level group and operation exports remain available when callers
 want a curated command surface with `defineClient()`.
 
+## Live runtime clients
+
+`defineClientFromSpec()` materializes the same OpenAPI command model at process startup without
+writing generated source files:
+
+```ts
+const client = await defineClientFromSpec("https://api.example.com/openapi.json", {
+  name: "internal-agent",
+  baseUrl: "https://api.example.com",
+  auth,
+  cache: {
+    onFallback: (message) => process.stderr.write(`${message}\n`)
+  }
+});
+```
+
+HTTP sources use a cross-process disk cache by default when the built-in `fetch` is used.
+Successful documents remain fresh for the server's `Cache-Control: max-age`, or five
+minutes when the server does not provide one. Stale entries revalidate with `If-None-Match` when
+an ETag is available. Fetching and reading the response have a three-second timeout; a transport
+failure or timeout uses the last successfully materialized document. HTTP errors and invalid live
+documents still fail visibly.
+
+Runtime source options:
+
+- `cache: false` - disables HTTP source caching and offline fallback.
+- `cache.directory` - absolute cache directory override.
+- `cache.maxAgeMs` - fallback freshness when the response does not define cache behavior.
+- `cache.onFallback(message)` - reports when a stale document is used after a transport failure.
+- `onTimeout({ source, timeoutMs, usingCachedDocument })` - application hook for presenting
+  network-access guidance without coupling the library to a specific network or VPN.
+- `timeoutMs` - total HTTP fetch/body timeout. Defaults to `3000`; `0` disables it.
+
+Supplying a custom `fetch` disables automatic caching unless `cache` is explicitly provided. Use a
+different `cache.directory` for each identity when explicitly caching authenticated custom fetches.
+A custom filesystem participates when it provides `realpath` and the cache write operations;
+read-only filesystems still load the live document without persisting it. New cache entries are
+committed only after the command tree materializes successfully.
+
 ### CI drift check
 
 ```sh
@@ -79,6 +118,9 @@ toolcraft-openapi-generate --check
 - `AUTH_BACKEND` - forwarded to `auth-store` to select `file` or `keychain` storage.
 - `TOOLCRAFT_OPENAPI_ENV` - selects a configured OpenAPI environment when using
   `resolveOpenApiBaseUrl`.
+- `TOOLCRAFT_OPENAPI_CACHE_DIR` - absolute directory for live HTTP OpenAPI cache entries.
+- `TOOLCRAFT_OPENAPI_CACHE` - set to `0` or `false` to disable the default live HTTP cache.
+- `XDG_CACHE_HOME` - cache root fallback; defaults to `~/.cache`.
 
 ## Configuration
 

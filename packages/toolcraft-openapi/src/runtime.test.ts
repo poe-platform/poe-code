@@ -942,6 +942,87 @@ describe("commandsFromSpec", () => {
     ]);
   });
 
+  it("keeps the last successfully materialized spec as the offline fallback", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(volume).promises;
+    const validSpec = JSON.stringify(createListDocument("List cached bots."));
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(
+        new Response(validSpec, {
+          headers: { etag: '"valid-spec"' }
+        })
+      )
+      .mockResolvedValueOnce(new Response('{"openapi":'))
+      .mockRejectedValueOnce(new TypeError("fetch failed"));
+    const options = {
+      cache: { directory: "/cache", maxAgeMs: 0 },
+      fetch,
+      fs,
+      timeoutMs: 100
+    };
+
+    await expect(
+      commandsFromSpec("https://example.com/openapi.json", options)
+    ).resolves.toMatchObject([
+      {
+        kind: "group",
+        name: "bots",
+        children: [{ kind: "command", name: "list" }]
+      }
+    ]);
+    await expect(commandsFromSpec("https://example.com/openapi.json", options)).rejects.toThrow(
+      'Failed to parse OpenAPI document "https://example.com/openapi.json"'
+    );
+    await expect(
+      commandsFromSpec("https://example.com/openapi.json", options)
+    ).resolves.toMatchObject([
+      {
+        kind: "group",
+        name: "bots",
+        children: [{ kind: "command", name: "list" }]
+      }
+    ]);
+  });
+
+  it("enables the default cache with the built-in fetch and a writable filesystem", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(volume).promises;
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      async () => new Response(JSON.stringify(createListDocument("List cached bots.")))
+    );
+    vi.stubGlobal("fetch", fetch);
+
+    try {
+      await commandsFromSpec("https://example.com/openapi.json", { fs });
+      await commandsFromSpec("https://example.com/openapi.json", { fs });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows the default disk cache to be disabled through the environment", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(volume).promises;
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      async () => new Response(JSON.stringify(createListDocument("List live bots.")))
+    );
+    vi.stubGlobal("fetch", fetch);
+    vi.stubEnv("TOOLCRAFT_OPENAPI_CACHE", "0");
+
+    try {
+      await commandsFromSpec("https://example.com/openapi.json", { fs });
+      await commandsFromSpec("https://example.com/openapi.json", { fs });
+    } finally {
+      vi.unstubAllEnvs();
+      vi.unstubAllGlobals();
+    }
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("works with defineClient collision detection against handwritten commands", async () => {
     const commands = await commandsFromSpec(createListDocument("List bots."));
 
@@ -1723,7 +1804,10 @@ describe("defineClientFromSpec", () => {
     expect(client.root.children).toMatchObject([
       expect.objectContaining({ kind: "group", name: "bots" })
     ]);
-    expect(fetch).toHaveBeenCalledWith("https://example.com/openapi.json");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://example.com/openapi.json",
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
   });
 
   it("builds a client from a file path", async () => {

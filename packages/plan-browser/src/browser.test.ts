@@ -103,13 +103,11 @@ describe("plan browser", () => {
       "/repo/docs/plans/metric.md": "# Metric"
     });
     const variables = { EDITOR: "true" };
-    const onCreatePlan = vi.fn(async () => undefined);
     const config = buildPlanExplorerConfig({
       plans: [pipelinePlan, experimentPlan],
       fs,
       variables,
-      onRefresh: async () => [pipelinePlan, experimentPlan],
-      onCreatePlan
+      onRefresh: async () => [pipelinePlan, experimentPlan]
     });
 
     const rows = await config.rows();
@@ -133,12 +131,10 @@ describe("plan browser", () => {
     const editCtx = actionContext(rows[0]!);
     const archiveCtx = actionContext(rows[0]!);
     const deleteCtx = actionContext(rows[1]!);
-    const createCtx = actionContext(rows[0]!);
 
     await config.actions.find((action) => action.id === "edit")!.handler(editCtx);
     await config.actions.find((action) => action.id === "archive")!.handler(archiveCtx);
     await config.actions.find((action) => action.id === "delete")!.handler(deleteCtx);
-    await config.actions.find((action) => action.id === "new")!.handler(createCtx);
 
     expect(editFileMock).toHaveBeenCalledOnce();
     expect(editFileMock).toHaveBeenCalledWith(
@@ -149,12 +145,9 @@ describe("plan browser", () => {
     expect(archivePlanMock).toHaveBeenCalledWith(pipelinePlan, fs);
     expect(deletePlanMock).toHaveBeenCalledOnce();
     expect(deletePlanMock).toHaveBeenCalledWith(experimentPlan, fs);
-    expect(onCreatePlan).toHaveBeenCalledOnce();
     expect(editCtx.suspendAnd).toHaveBeenCalledOnce();
     expect(archiveCtx.refresh).toHaveBeenCalledOnce();
     expect(deleteCtx.refresh).toHaveBeenCalledOnce();
-    expect(createCtx.suspendAnd).toHaveBeenCalledOnce();
-    expect(createCtx.refresh).toHaveBeenCalledOnce();
   });
 
   it("never dumps a plan body when stdin is not a TTY and lists candidates instead", async () => {
@@ -248,7 +241,6 @@ describe("plan browser", () => {
       };
     await timedFs.utimes("/repo/docs/plans/feature.md", new Date(2), new Date(2));
     await timedFs.utimes("/repo/docs/plans/second.md", new Date(1), new Date(1));
-    const onCreatePlan = vi.fn(async () => undefined);
     const runExplorerImpl = vi.fn(async (config) => {
       const rows = await config.rows();
       expect(rows.map((row) => row.title)).toEqual(["feature.md", "second.md"]);
@@ -258,7 +250,7 @@ describe("plan browser", () => {
       await expect(config.rows()).resolves.toEqual([
         expect.objectContaining({ title: "feature.md" })
       ]);
-      expect(config.actions.some((action) => action.id === "new")).toBe(true);
+      expect(config.actions.some((action) => action.id === "new")).toBe(false);
       return null;
     });
     setStdinTTY(true);
@@ -270,7 +262,6 @@ describe("plan browser", () => {
       projectConfigPath: resolveProjectConfigPath(cwd),
       fs,
       variables: {},
-      onCreatePlan,
       runExplorerImpl
     });
 

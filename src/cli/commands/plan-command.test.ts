@@ -178,7 +178,8 @@ describe("plan command", () => {
       writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")
     );
     expect(output).toContain("No experiment plans found.");
-    expect(output).toContain('poe-code plan --kind experiment');
+    expect(output).not.toContain("Create one");
+    expect(output).not.toContain("<description>");
     expect(output).not.toContain("Kind");
     expect(output).not.toContain("Updated");
   });
@@ -557,10 +558,11 @@ describe("plan command", () => {
     registerPlanCommand(program, container);
 
     await withMockedStdin(
-      () =>
-        expect(
+      async () => {
+        await expect(
           program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"])
-        ).rejects.toThrow(/interactive TTY/),
+        ).rejects.toThrow(/interactive TTY/);
+      },
       false
     );
 

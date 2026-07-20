@@ -21,7 +21,6 @@ export interface BuildPlanExplorerConfigOptions {
   fs: ActionFs & DiscoveryFs;
   variables: Record<string, string | undefined>;
   onRefresh: () => Promise<PlanEntry[]>;
-  onCreatePlan?: () => Promise<void>;
   promptSaveReason?: (entry: PlanEntry) => Promise<string | null>;
   loadDetailMarkdown?: (entry: PlanEntry, fs: ActionFs & DiscoveryFs) => Promise<string>;
 }
@@ -125,20 +124,6 @@ export function buildPlanExplorerConfig(
       }
     }
   ];
-
-  if (options.onCreatePlan !== undefined) {
-    actions.push({
-      id: "new",
-      key: "n",
-      primary: true,
-      label: "New plan",
-      predicate: () => options.onCreatePlan != null,
-      handler: async (ctx) => {
-        await ctx.suspendAnd(() => options.onCreatePlan!());
-        await ctx.refresh();
-      }
-    });
-  }
 
   return {
     title: "Plans",

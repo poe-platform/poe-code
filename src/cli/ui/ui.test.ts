@@ -106,6 +106,8 @@ describe("command help formatting", () => {
     expect(help).not.toContain("wrap, w");
     expect(help).not.toContain("wrap");
     expect(help).toContain("models, m");
+    expect(help).toContain("plan, plans");
+    expect(help).toContain("traces, trace");
     expect(help).toContain("usage, u");
     expect(help).not.toContain("generate, g");
   });

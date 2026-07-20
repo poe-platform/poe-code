@@ -109,6 +109,17 @@ describe("traces command", () => {
     });
   });
 
+  it("supports trace as an alias", async () => {
+    const { program } = createTracesProgram();
+
+    await program.parseAsync(["node", "cli", "trace", "--json"]);
+
+    expect(program.commands.find((command) => command.name() === "traces")?.aliases()).toContain(
+      "trace"
+    );
+    expect(runTraceViewerMock).toHaveBeenCalledWith(expect.objectContaining({ json: true }));
+  });
+
   it("forwards --full-titles to the trace viewer", async () => {
     const { program } = createTracesProgram();
 

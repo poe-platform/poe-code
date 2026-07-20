@@ -366,34 +366,15 @@ describe("buildPlanExplorerConfig", () => {
     await expect(fs.readFile("/repo/docs/plans/archive/new.md", "utf8")).resolves.toBe("# New");
   });
 
-  it("omits the new-plan action unless a creator is provided", async () => {
+  it("does not expose a new-plan action", () => {
     const entry = plan();
-    const withoutCreator = buildPlanExplorerConfig({
+    const config = buildPlanExplorerConfig({
       plans: [entry],
       fs: createMemFs(),
       variables: {},
       onRefresh: async () => [entry]
     });
-    expect(withoutCreator.actions.some((action) => action.id === "new")).toBe(false);
-
-    const onCreatePlan = vi.fn(async () => undefined);
-    const withCreator = buildPlanExplorerConfig({
-      plans: [entry],
-      fs: createMemFs(),
-      variables: {},
-      onRefresh: async () => [entry],
-      onCreatePlan
-    });
-    const [row] = await withCreator.rows();
-    const createAction = withCreator.actions.find((action) => action.id === "new")!;
-    const ctx = actionContext(row!);
-
-    expect(createAction.primary).toBe(true);
-    expect(createAction.predicate?.(ctx)).toBe(true);
-    await createAction.handler(ctx);
-
-    expect(onCreatePlan).toHaveBeenCalledOnce();
-    expect(ctx.suspendAnd).toHaveBeenCalledOnce();
-    expect(ctx.refresh).toHaveBeenCalledOnce();
+    expect(config.actions.some((action) => action.id === "new")).toBe(false);
+    expect(config.actions.some((action) => action.key === "n")).toBe(false);
   });
 });

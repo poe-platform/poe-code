@@ -172,8 +172,12 @@ function formatCanonicalCommandPath(cmd: Command): string {
 }
 
 function formatCanonicalCommandUsage(cmd: Command): string {
+  const hasExplicitUsage = typeof Reflect.get(cmd, "_usage") === "string";
   const usageParts = splitUsageParts(cmd.usage()).flatMap((part) => {
     if (part === "[command]") {
+      if (hasExplicitUsage) {
+        return [part];
+      }
       // A group with no positionals of its own is reachable only through a subcommand: say so
       // with the placeholder the root help uses. One that takes positionals also runs
       // standalone, so its own arguments describe it better than a raw placeholder.

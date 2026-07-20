@@ -8,7 +8,6 @@ import {
   intro,
   isCancel,
   outro,
-  promptText,
   renderDetailCard,
   renderMarkdown,
   renderTable,
@@ -33,7 +32,7 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { UserError, suggest } from "toolcraft";
+import { UserError } from "toolcraft";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
 import { formatAgentCapabilityError } from "@poe-code/agent-defs";
 import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
@@ -50,42 +49,15 @@ import {
   resolveCommandFlags
 } from "./shared.js";
 import type { ScopedLogger } from "../logger.js";
-import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import planSkillTemplate from "../../templates/plan/SKILL_plan.md";
 
 const DEFAULT_PLAN_SCOPE: SkillScope = "local";
-
-export interface BuildPlanPromptOptions {
-  question: string;
-  planDirectory: string;
-  skillContent: string;
-}
-
-export function buildPlanPrompt(options: BuildPlanPromptOptions): string {
-  const trimmedQuestion = options.question.trim();
-  const userSection =
-    trimmedQuestion.length > 0
-      ? `User request: ${trimmedQuestion}`
-      : 'The user has not yet stated what they want to plan. Follow the skill\'s "If The Request Is Empty" instruction and ask: What do you want to plan?';
-
-  return [
-    "Follow the skill below to draft a feature plan.",
-    "",
-    options.skillContent,
-    "",
-    "---",
-    "",
-    `Plan directory: ${options.planDirectory}`,
-    userSection
-  ].join("\n");
-}
 
 type OutputOption = "terminal" | "markdown" | "json";
 type MarkdownReadResult = Awaited<ReturnType<typeof readMarkdown>>;
 type MarkdownReadSectionResult = Awaited<ReturnType<typeof readSection>>;
 
 type PlanCommandOptions = {
-  agent?: string;
   kind?: PlanKind;
   output?: string;
 };
@@ -142,10 +114,7 @@ function resolveKind(value: string | undefined): PlanKind | undefined {
 
 function createPlanBrowserOptions(
   container: CliContainer,
-  options: {
-    kind: PlanKind | undefined;
-    onCreatePlan?: () => Promise<void>;
-  }
+  kind: PlanKind | undefined
 ): Parameters<typeof runPlanBrowser>[0] {
   return {
     cwd: container.env.cwd,
@@ -153,9 +122,8 @@ function createPlanBrowserOptions(
     configPath: container.env.configPath,
     projectConfigPath: container.env.projectConfigPath,
     fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
-    kind: options.kind,
-    variables: container.env.variables,
-    ...(options.onCreatePlan ? { onCreatePlan: options.onCreatePlan } : {})
+    kind,
+    variables: container.env.variables
   };
 }
 
@@ -441,11 +409,7 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
 
   if (plans.length === 0) {
     const scope = kind === undefined ? "" : `${kind} `;
-    const kindFlag = kind === undefined ? "" : ` --kind ${kind}`;
-    writeOutput(
-      format,
-      `No ${scope}plans found. Create one with poe-code plan${kindFlag} "<description>".`
-    );
+    writeOutput(format, `No ${scope}plans found.`);
     return;
   }
 
@@ -585,81 +549,38 @@ async function executePlanAction(options: {
 export function registerPlanCommand(program: Command, container: CliContainer): void {
   const plan = program
     .command("plan")
-    .description(
-      "Browse plans in an interactive explorer, or draft a new plan when given a question."
-    )
-    .argument("[question]", "What you want to plan")
-    .option("--agent <name>", "Agent to run the plan session with")
+    .alias("plans")
+    .description("Browse and manage plans.")
+    .usage("[options] [command]")
+    .allowExcessArguments()
     .option(
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
-    .action(async function (this: Command, questionArg?: string) {
-      const opts = this.opts<PlanCommandOptions>();
-      const flags = resolveCommandFlags(program);
-      const kind = resolveKind(opts.kind);
-      const question = questionArg?.trim() ?? "";
-
-      if (question.length > 0) {
+    .action(async function (this: Command) {
+      if (this.args.length > 0) {
         const candidates = plan.commands.flatMap((command) => [
           command.name(),
           ...command.aliases()
         ]);
-        const suggestions = suggest(question, candidates);
-        if (suggestions.length > 0) {
-          throwCommandNotFound({
-            container,
-            scope: "cli",
-            unknownCommand: question,
-            helpArgs: ["plan", "--help"],
-            candidates,
-            moduleUrl: import.meta.url
-          });
-        }
-
-        const agent = await resolvePlanSessionAgent(
+        throwCommandNotFound({
           container,
-          opts.agent,
-          flags,
-          container.loggerFactory.create({ dryRun: flags.dryRun, verbose: flags.verbose, scope: "plan" })
-        );
-        if (agent === null) {
-          return;
-        }
-        await runPlanSession({
-          container,
-          agent,
-          question,
-          dryRun: flags.dryRun
+          scope: "cli",
+          unknownCommand: this.args.at(0) ?? "",
+          helpArgs: ["plan", "--help"],
+          candidates,
+          moduleUrl: import.meta.url
         });
-        return;
       }
 
-      if (flags.assumeYes) {
-        throw new ValidationError(
-          "A question is required for `poe-code plan`. Pass it as the first argument."
-        );
-      }
+      const opts = this.opts<PlanCommandOptions>();
+      const flags = resolveCommandFlags(program);
+      const kind = resolveKind(opts.kind);
 
       await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
 
       intro("plan");
-      await runPlanBrowser(
-        createPlanBrowserOptions(container, {
-          kind,
-          onCreatePlan: () =>
-            runPlanSessionWithPrompt(
-              container,
-              opts.agent,
-              flags,
-              container.loggerFactory.create({
-                dryRun: flags.dryRun,
-                verbose: flags.verbose,
-                scope: "plan"
-              })
-            )
-        })
-      );
+      await runPlanBrowser(createPlanBrowserOptions(container, kind));
     });
 
   plan
@@ -691,7 +612,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
       await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
       intro("plan browser");
-      await runPlanBrowser(createPlanBrowserOptions(container, { kind }));
+      await runPlanBrowser(createPlanBrowserOptions(container, kind));
     });
 
   plan
@@ -897,17 +818,11 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .option("--global", "Install user-global skill")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
-      const localOptions = this.opts<{
+      const options = this.opts<{
         agent?: string;
         local?: boolean;
         global?: boolean;
       }>();
-      const parentOptions = this.parent?.opts<{ agent?: string }>() ?? {};
-      const options = {
-        agent: localOptions.agent ?? parentOptions.agent,
-        local: localOptions.local,
-        global: localOptions.global
-      };
 
       if (options.local && options.global) {
         throw new ValidationError("Use either --local or --global, not both.");
@@ -966,104 +881,13 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
   setHelpGuidance(plan, {
     examples: [
       "poe-code plan",
-      'poe-code plan "add retries to the spawn runtime"',
+      "poe-code plans",
       "poe-code plan --kind pipeline",
       "poe-code plan list --kind experiment",
       "poe-code plan view docs/plans/my-plan.md",
       "poe-code plan install --local"
     ],
-    notes: [
-      "Interactive explorer keys: e edit, a archive, d delete, n new."
-    ]
-  });
-}
-
-async function resolvePlanQuestion(
-  value: string | undefined,
-  assumeYes: boolean
-): Promise<string | null> {
-  const trimmed = value?.trim() ?? "";
-  if (trimmed.length > 0) {
-    return trimmed;
-  }
-
-  if (assumeYes) {
-    throw new ValidationError(
-      "A question is required for `poe-code plan`. Pass it as the first argument."
-    );
-  }
-
-  requireInteractiveStdin(
-    "Plan question prompt requires a question when running without an interactive TTY."
-  );
-
-  const entered = await promptText({
-    message: "What do you want to plan?"
-  });
-  if (isCancel(entered)) {
-    cancel("Plan session cancelled.");
-    return null;
-  }
-
-  const question = typeof entered === "string" ? entered.trim() : "";
-  if (question.length === 0) {
-    throw new ValidationError("A question is required for `poe-code plan`.");
-  }
-  return question;
-}
-
-async function resolvePlanSessionAgent(
-  container: CliContainer,
-  value: string | undefined,
-  flags: { assumeYes: boolean; dryRun: boolean },
-  logger: ScopedLogger
-): Promise<string | null> {
-  const trimmed = value?.trim() ?? "";
-  if (trimmed.length > 0) {
-    return trimmed;
-  }
-
-  if (flags.assumeYes) {
-    return await resolveAssumedDefaultAgent({ container, logger, readOnly: flags.dryRun });
-  }
-
-  requireInteractiveStdin(
-    "Plan session agent selection requires --agent or --yes when running without an interactive TTY."
-  );
-
-  const selected = await select({
-    message: "Select agent to draft the plan with:",
-    options: supportedAgents.map((name) => ({ value: name, label: name }))
-  });
-  if (isCancel(selected)) {
-    cancel("Plan session cancelled.");
-    return null;
-  }
-
-  return selected as string;
-}
-
-async function runPlanSessionWithPrompt(
-  container: CliContainer,
-  agentValue: string | undefined,
-  flags: { assumeYes: boolean; dryRun: boolean },
-  logger: ScopedLogger
-): Promise<void> {
-  const question = await resolvePlanQuestion(undefined, flags.assumeYes);
-  if (question === null) {
-    return;
-  }
-
-  const agent = await resolvePlanSessionAgent(container, agentValue, flags, logger);
-  if (agent === null) {
-    return;
-  }
-
-  await runPlanSession({
-    container,
-    agent,
-    question,
-    dryRun: flags.dryRun
+    notes: ["Interactive explorer keys: e edit, a archive, d delete."]
   });
 }
 
@@ -1083,48 +907,6 @@ export async function resolvePlanDirectory(
     container.env.variables
   );
   return config.plan_directory;
-}
-
-interface RunPlanSessionOptions {
-  container: CliContainer;
-  agent: string;
-  question: string;
-  dryRun?: boolean;
-}
-
-async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
-  const planDirectory = await resolvePlanDirectory(options.container, { readOnly: options.dryRun });
-  const prompt = buildPlanPrompt({
-    question: options.question,
-    planDirectory,
-    skillContent: planSkillTemplate
-  });
-
-  if (options.dryRun) {
-    const resources = createExecutionResources(
-      options.container,
-      { assumeYes: true, dryRun: true, verbose: false },
-      "plan"
-    );
-    resources.logger.dryRun(
-      `Dry run: would run plan session with ${options.agent} for ${options.question}.`
-    );
-    return;
-  }
-
-  requireInteractiveStdin(
-    "A plan session runs the agent interactively and requires an interactive TTY. Use `poe-code spawn` to draft a plan non-interactively."
-  );
-
-  const { result } = sdkSpawn(options.agent, prompt, {
-    interactive: true,
-    cwd: options.container.env.cwd
-  });
-
-  const final = await result;
-  if (final.exitCode !== 0) {
-    process.exitCode = final.exitCode;
-  }
 }
 
 async function resolvePlanAgent(

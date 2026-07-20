@@ -8,16 +8,9 @@ import { SilentError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
 import { helpGuidance } from "./help-guidance.js";
 
-const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, selectMock, isCancelMock, spawnResult } = vi.hoisted(
-  () => ({
-    runPlanBrowserMock: vi.fn().mockResolvedValue(undefined),
-    sdkSpawnMock: vi.fn(),
-    promptTextMock: vi.fn(),
-    selectMock: vi.fn(),
-    isCancelMock: vi.fn(() => false),
-    spawnResult: { stdout: "", stderr: "", exitCode: 0 }
-  })
-);
+const { runPlanBrowserMock } = vi.hoisted(() => ({
+  runPlanBrowserMock: vi.fn().mockResolvedValue(undefined)
+}));
 
 vi.mock("@poe-code/plan-browser", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/plan-browser")>();
@@ -26,21 +19,6 @@ vi.mock("@poe-code/plan-browser", async (importOriginal) => {
     runPlanBrowser: runPlanBrowserMock
   };
 });
-
-vi.mock("toolcraft-design", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("toolcraft-design")>();
-  return {
-    ...actual,
-    intro: vi.fn(),
-    isCancel: isCancelMock,
-    promptText: promptTextMock,
-    select: selectMock
-  };
-});
-
-vi.mock("../../sdk/spawn.js", () => ({
-  spawn: sdkSpawnMock
-}));
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -80,37 +58,35 @@ describe("plan root and browse commands", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
-    sdkSpawnMock.mockReset();
-    promptTextMock.mockReset();
-    selectMock.mockReset();
-    isCancelMock.mockReset();
-    isCancelMock.mockReturnValue(false);
   });
 
-  it("spawns a plan session for a question without opening the browser", async () => {
-    sdkSpawnMock.mockReturnValue({
-      events: (async function* () {})(),
-      result: Promise.resolve(spawnResult)
-    });
+  it("rejects plan questions instead of spawning a plan session", async () => {
+    let loggerOutput = "";
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
-      logger: () => {}
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
     });
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await withMockedStdin(
-      () => program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]),
-      true
-    );
+    await expect(
+      withMockedStdin(
+        () => program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]),
+        true
+      )
+    ).rejects.toBeInstanceOf(SilentError);
 
-    expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
+    const plain = stripVTControlCharacters(loggerOutput);
+    expect(plain).toContain("Unknown command:");
+    expect(plain).toContain("Design a todo CLI");
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });
 
-  it("reports a typo'd subcommand as unknown instead of drafting a plan", async () => {
+  it("suggests the closest plan subcommand for typos", async () => {
     let loggerOutput = "";
     const container = createCliContainer({
       fs: createMemFs(),
@@ -128,12 +104,40 @@ describe("plan root and browse commands", () => {
     ).rejects.toBeInstanceOf(SilentError);
 
     const plain = stripVTControlCharacters(loggerOutput);
-    expect(plain).toContain("Unknown command:");
-    expect(plain).toContain("lst");
     expect(plain).toContain("Did you mean:");
     expect(plain).toContain("list");
-    expect(sdkSpawnMock).not.toHaveBeenCalled();
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
+  });
+
+  it("opens the browser without exposing a new-plan action", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(() => program.parseAsync(["node", "cli", "plan"]), true);
+
+    expect(runPlanBrowserMock).toHaveBeenCalledTimes(1);
+    expect(runPlanBrowserMock.mock.calls[0]![0]).not.toHaveProperty("onCreatePlan");
+  });
+
+  it("supports plans as an alias", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(() => program.parseAsync(["node", "cli", "plans"]), true);
+
+    expect(runPlanBrowserMock).toHaveBeenCalledTimes(1);
   });
 
   it("renders a plan when browse is given a path", async () => {
@@ -193,9 +197,10 @@ describe("plan root and browse commands", () => {
     const planCommand = program.commands.find((command) => command.name() === "plan");
     const browseCommand = planCommand?.commands.find((command) => command.name() === "browse");
 
-    expect(planCommand?.description()).toBe(
-      "Browse plans in an interactive explorer, or draft a new plan when given a question."
-    );
+    expect(planCommand?.aliases()).toContain("plans");
+    expect(planCommand?.description()).toBe("Browse and manage plans.");
+    expect(planCommand?.registeredArguments).toHaveLength(0);
+    expect(planCommand?.options.map((option) => option.long)).not.toContain("--agent");
     expect(browseCommand?.description()).toBe(
       "Browse plans in the interactive explorer, or render one plan when given a path."
     );
@@ -208,114 +213,16 @@ describe("plan root and browse commands", () => {
     });
     planCommand?.outputHelp();
 
+    const help = stripVTControlCharacters(helpChunks.join(""));
+    expect(help).toContain("[options] [command]");
+    expect(help).not.toContain("<command>");
+
     // The keymap is declared as help guidance so the program help renderer can label it as a
     // section; help-guidance.test.ts covers how it renders.
-    expect(helpChunks.join("")).not.toContain("Explorer keymap:");
+    expect(help).not.toContain("Explorer keymap:");
     expect(helpGuidance(planCommand!)?.notes).toContain(
-      "Interactive explorer keys: e edit, a archive, d delete, n new."
+      "Interactive explorer keys: e edit, a archive, d delete."
     );
-  });
-
-  it("throws when --yes is passed without a question", async () => {
-    const container = createCliContainer({
-      fs: createMemFs(),
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPlanCommand(program, container);
-
-    await expect(program.parseAsync(["node", "cli", "--yes", "plan"])).rejects.toThrow(
-      "A question is required for `poe-code plan`. Pass it as the first argument."
-    );
-
-    expect(sdkSpawnMock).not.toHaveBeenCalled();
-    expect(runPlanBrowserMock).not.toHaveBeenCalled();
-  });
-
-  it("opens the browser with a new-plan action when no question is given interactively", async () => {
-    sdkSpawnMock.mockReturnValue({
-      events: (async function* () {})(),
-      result: Promise.resolve(spawnResult)
-    });
-    promptTextMock.mockResolvedValue("Draft plan from browser");
-    selectMock.mockResolvedValue("codex");
-    const container = createCliContainer({
-      fs: createMemFs(),
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPlanCommand(program, container);
-
-    await withMockedStdin(() => program.parseAsync(["node", "cli", "plan"]), true);
-
-    expect(runPlanBrowserMock).toHaveBeenCalledTimes(1);
-    expect(runPlanBrowserMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        onCreatePlan: expect.any(Function)
-      })
-    );
-    expect(sdkSpawnMock).not.toHaveBeenCalled();
-
-    const browserOptions = runPlanBrowserMock.mock.calls[0]![0];
-    await withMockedStdin(() => browserOptions.onCreatePlan!(), true);
-
-    expect(promptTextMock).toHaveBeenCalledWith({
-      message: "What do you want to plan?"
-    });
-    expect(selectMock).toHaveBeenCalledWith({
-      message: "Select agent to draft the plan with:",
-      options: expect.arrayContaining([{ value: "codex", label: "codex" }])
-    });
-    expect(sdkSpawnMock).toHaveBeenCalledWith(
-      "codex",
-      expect.any(String),
-      expect.objectContaining({ interactive: true })
-    );
-  });
-
-  it("rejects browser-created plan question prompts in non-interactive mode", async () => {
-    const container = createCliContainer({
-      fs: createMemFs(),
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPlanCommand(program, container);
-
-    await withMockedStdin(() => program.parseAsync(["node", "cli", "plan"]), true);
-
-    const browserOptions = runPlanBrowserMock.mock.calls[0]![0];
-    await expect(withMockedStdin(() => browserOptions.onCreatePlan!(), false)).rejects.toThrow(
-      "Plan question prompt requires a question when running without an interactive TTY."
-    );
-
-    expect(promptTextMock).not.toHaveBeenCalled();
-    expect(sdkSpawnMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects missing session agent selection in non-interactive mode", async () => {
-    const container = createCliContainer({
-      fs: createMemFs(),
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPlanCommand(program, container);
-
-    await expect(
-      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "Design a todo CLI"]), false)
-    ).rejects.toThrow(
-      "Plan session agent selection requires --agent or --yes when running without an interactive TTY."
-    );
-
-    expect(selectMock).not.toHaveBeenCalled();
-    expect(sdkSpawnMock).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid root --kind value", async () => {
@@ -332,7 +239,6 @@ describe("plan root and browse commands", () => {
       'Invalid --kind value "invalid". Expected plan, pipeline, experiment, ralph, superintendent, superintendent-base.'
     );
 
-    expect(sdkSpawnMock).not.toHaveBeenCalled();
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });
 

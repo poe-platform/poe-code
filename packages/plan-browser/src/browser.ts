@@ -13,7 +13,6 @@ export async function runPlanBrowser(options: {
   fs: DiscoveryFs & Partial<ActionFs>;
   kind?: PlanKind;
   variables?: Record<string, string | undefined>;
-  onCreatePlan?: () => Promise<void>;
   runExplorerImpl?: RunExplorerImpl;
 }): Promise<void> {
   const discover = () => discoverAllPlans({
@@ -48,8 +47,7 @@ export async function runPlanBrowser(options: {
     plans,
     fs: options.fs as ActionFs & DiscoveryFs,
     variables: options.variables ?? process.env,
-    onRefresh: discover,
-    onCreatePlan: options.onCreatePlan
+    onRefresh: discover
   });
   await (options.runExplorerImpl ?? runExplorer)(config);
 }

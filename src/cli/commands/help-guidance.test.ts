@@ -166,12 +166,14 @@ describe("primary command help examples", () => {
     expect(sectionBody(help, "Examples:").join("\n")).toContain("--mcp-servers");
   });
 
-  it("labels the plan explorer keymap instead of trailing it after the help body", async () => {
+  it("documents only non-creating plan explorer actions", async () => {
     const help = await renderHelp(["plan", "--help"]);
 
-    expect(help).not.toContain("Explorer keymap: e edit, a archive, d delete, n new");
+    expect(help).toContain("Usage: poe-code plan [options] [command]");
+    expect(help).not.toContain("[question]");
     expect(sectionBody(help, "Notes:").join("\n")).toContain("e edit");
-    expect(help.trimEnd().endsWith("n new")).toBe(false);
+    expect(help).not.toContain("n new");
+    expect(help).not.toContain("What do you want to plan");
   });
 
   it("drops the models Filters section that duplicated Options", async () => {

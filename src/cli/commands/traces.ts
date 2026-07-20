@@ -77,6 +77,7 @@ function parseLimit(value: string | undefined): number | undefined {
 export function registerTracesCommand(program: Command, container: CliContainer): void {
   program
     .command("traces")
+    .alias("trace")
     .description(
       "Browse claude, codex, pi and poe-code agent traces with context usage and breakdown."
     )

@@ -67,6 +67,7 @@ describe("normalizeOpenApiDocument", () => {
         }
       }
     });
+    expect(document).not.toHaveProperty("swagger");
   });
 
   it("resolves referenced Swagger 2 query and body parameters before normalization", () => {

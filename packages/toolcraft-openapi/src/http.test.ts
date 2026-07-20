@@ -320,6 +320,24 @@ describe("requestJson", () => {
     });
   });
 
+  it("does not format request bodies for trace output when trace logging is disabled", async () => {
+    const toJSON = vi.fn(() => ({ name: "helper" }));
+    const { diagnostics } = createDiagnostics("warn");
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: vi.fn(async () => createJsonResponse({ ok: true })),
+      body: { toJSON },
+      diagnostics
+    });
+
+    expect(toJSON).toHaveBeenCalledTimes(1);
+  });
+
   it("calls toUpperCase once when issuing the request", async () => {
     const toUpperCase = vi.fn(() => "GET");
 

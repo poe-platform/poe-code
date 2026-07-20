@@ -127,6 +127,23 @@ describe("readOpenApiSourceText", () => {
 });
 
 describe("parseOpenApiDocument", () => {
+  it("uses the native JSON parser for JSON OpenAPI documents", () => {
+    const source = JSON.stringify({
+      openapi: "3.0.3",
+      info: { title: "Bots", version: "1.0.0" },
+      paths: {}
+    });
+    const parseJson = vi.spyOn(JSON, "parse");
+
+    expect(parseOpenApiDocument(source, "openapi.json")).toMatchObject({
+      openapi: "3.0.3",
+      info: { title: "Bots" }
+    });
+    expect(parseJson).toHaveBeenCalledWith(source);
+
+    parseJson.mockRestore();
+  });
+
   it("includes YAML parse positions from linePos when available", () => {
     expect(() =>
       parseOpenApiDocument("openapi: 3.0.3\ninfo:\n  title: Test\n    bad: nope\n", "openapi.yaml")

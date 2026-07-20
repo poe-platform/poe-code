@@ -129,11 +129,14 @@ describe("toolcraft-openapi", () => {
   it("exports defineClientFromSpec options with spec loading fields", () => {
     expectTypeOf<DefineClientFromSpecOptions>().toMatchTypeOf<{
       name: string;
-      baseUrl: string;
+      baseUrl?: string;
       auth: AuthProvider;
       handwrittenCommands?: CommandNode<any>[];
       cwd?: string;
       fetch?: typeof globalThis.fetch;
+      config?: ToolcraftConfig;
+      environment?: string;
+      env?: Record<string, string | undefined>;
     }>();
   });
 
@@ -188,6 +191,7 @@ describe("toolcraft-openapi", () => {
       fs?: {
         readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
       };
+      config?: ToolcraftConfig;
     }>();
 
     expectTypeOf<typeof entrypoint.commandsFromSpec>().toMatchTypeOf<

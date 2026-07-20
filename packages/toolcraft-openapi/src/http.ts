@@ -5,6 +5,7 @@ import {
   HttpError,
   UserError,
   createHttpError,
+  shouldEmitDiagnostic,
   type HandlerEnv,
   type HandlerFs,
   type HttpErrorRequest,
@@ -110,9 +111,7 @@ export async function requestJson<TResult = unknown>(
     options.contentType
   );
   emitHttpDebug(options, `${method} ${url}`, { method, url });
-  emitHttpTrace(
-    options,
-    "HTTP request transcript",
+  emitHttpTrace(options, "HTTP request transcript", () =>
     formatVerboseRequestTranscript(method, url, headers, options.body)
   );
 
@@ -131,9 +130,7 @@ export async function requestJson<TResult = unknown>(
     const bytes = new Uint8Array(await response.arrayBuffer());
 
     if (bytes.byteLength === 0) {
-      emitHttpTrace(
-        options,
-        "HTTP response transcript",
+      emitHttpTrace(options, "HTTP response transcript", () =>
         formatVerboseResponseTranscript(response, responseHeaders)
       );
 
@@ -147,9 +144,7 @@ export async function requestJson<TResult = unknown>(
       data: Buffer.from(bytes).toString("base64")
     };
 
-    emitHttpTrace(
-      options,
-      "HTTP response transcript",
+    emitHttpTrace(options, "HTTP response transcript", () =>
       formatVerboseResponseTranscript(response, responseHeaders, body)
     );
 
@@ -160,9 +155,7 @@ export async function requestJson<TResult = unknown>(
 
   if (response.ok) {
     if (text.length === 0) {
-      emitHttpTrace(
-        options,
-        "HTTP response transcript",
+      emitHttpTrace(options, "HTTP response transcript", () =>
         formatVerboseResponseTranscript(response, responseHeaders)
       );
 
@@ -170,9 +163,7 @@ export async function requestJson<TResult = unknown>(
     }
 
     if (options.responseMode === "text") {
-      emitHttpTrace(
-        options,
-        "HTTP response transcript",
+      emitHttpTrace(options, "HTTP response transcript", () =>
         formatVerboseResponseTranscript(response, responseHeaders, text)
       );
 
@@ -211,9 +202,7 @@ export async function requestJson<TResult = unknown>(
       });
     }
 
-    emitHttpTrace(
-      options,
-      "HTTP response transcript",
+    emitHttpTrace(options, "HTTP response transcript", () =>
       formatVerboseResponseTranscript(response, responseHeaders, body)
     );
 
@@ -297,13 +286,22 @@ function emitHttpDebug(
   });
 }
 
-function emitHttpTrace(options: HttpRequestOptions, message: string, lines: string[]): void {
-  options.diagnostics?.emit({
+function emitHttpTrace(
+  options: HttpRequestOptions,
+  message: string,
+  createLines: () => string[]
+): void {
+  const diagnostics = options.diagnostics;
+  if (diagnostics === undefined || !shouldEmitDiagnostic("trace", diagnostics.level)) {
+    return;
+  }
+
+  diagnostics.emit({
     level: "trace",
     message,
     category: "http",
     data: {
-      transcript: formatTranscriptLines(lines)
+      transcript: formatTranscriptLines(createLines())
     }
   });
 }

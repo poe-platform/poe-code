@@ -2220,23 +2220,21 @@ describe("generate", () => {
     );
 
     expect(files.map((file) => file.path)).toContain("whoami.ts");
-    expect(files.find((file) => file.path === "whoami.ts")?.contents).toContain(
-      'name: "whoami"'
-    );
+    expect(files.find((file) => file.path === "whoami.ts")?.contents).toContain('name: "whoami"');
     expect(files.find((file) => file.path === "index.ts")?.contents).toContain(
       "export const generatedCommands = [whoamiCommand] as const;"
     );
     const skill = generateSkill(
-        createDocument({
-          "/v1/whoami": {
-            get: {
-              operationId: "whoami",
-              responses: { "200": { description: "Viewed." } }
-            }
+      createDocument({
+        "/v1/whoami": {
+          get: {
+            operationId: "whoami",
+            responses: { "200": { description: "Viewed." } }
           }
-        }),
-        { commandName: "poe-agent-tools" }
-      ).contents;
+        }
+      }),
+      { commandName: "poe-agent-tools" }
+    ).contents;
     expect(skill).toContain("poe-agent-tools whoami");
     expect(skill).not.toContain("poe-agent-tools whoami whoami");
   });
@@ -3870,6 +3868,38 @@ describe("generate", () => {
     expect(files.find((file) => file.path === "bots/export-bot.ts")?.contents).toContain(
       'responseMode: "text",'
     );
+  });
+
+  it("prefers explicit success responses over the default response representation", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/export": {
+          get: {
+            tags: ["bots"],
+            operationId: "exportBot",
+            parameters: [
+              { name: "handle", in: "path", required: true, schema: { type: "string" } }
+            ],
+            responses: {
+              "200": {
+                description: "Exported.",
+                content: { "application/json": { schema: { type: "object" } } }
+              },
+              default: {
+                description: "Error.",
+                content: { "application/pdf": { schema: { type: "string", format: "binary" } } }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+    const command = files.find((file) => file.path === "bots/export-bot.ts")?.contents;
+
+    expect(command).not.toContain('responseMode: "binary",');
+    expect(command).not.toContain('accept: "application/pdf",');
+    expect(command).not.toContain("writeBinaryResponseOutput");
   });
 
   it("generates binary response commands for file media types", () => {

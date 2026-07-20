@@ -22,7 +22,8 @@ import {
   resolveOpenApiBaseUrl,
   validateArrayJsonHelperValue,
   writeBinaryResponseOutput,
-  type OpenApiDocument
+  type OpenApiDocument,
+  type ToolcraftConfig
 } from "./index.js";
 import { collectGeneratedCommands, generate } from "./generate.js";
 
@@ -568,6 +569,113 @@ return exports;
 }
 
 describe("commandsFromSpec", () => {
+  it("keeps untagged singleton GET endpoints as top-level runtime commands", async () => {
+    const commands = await commandsFromSpec({
+      openapi: "3.0.3",
+      info: { title: "Identity API", version: "1.0.0" },
+      paths: {
+        "/v1/whoami": {
+          get: {
+            operationId: "whoami",
+            summary: "Show the current identity.",
+            responses: { "200": { description: "Viewed." } }
+          }
+        }
+      }
+    });
+
+    expect(commands).toMatchObject([
+      {
+        kind: "command",
+        name: "whoami",
+        description: "Show the current identity."
+      }
+    ]);
+  });
+
+  it("preserves configured runtime names, help metadata, and transport behavior", async () => {
+    const config: ToolcraftConfig = {
+      edition: "2026-05-16",
+      client_settings: { idempotency_header: "Idempotency-Key" },
+      resources: {
+        agents: {
+          methods: {
+            promote: {
+              method: "post",
+              path: "/bots/{botHandle}/actions/set-official",
+              idempotent: true
+            }
+          }
+        }
+      },
+      readme: {
+        examples: {
+          "agents.promote": [
+            {
+              title: "Promote an agent",
+              params: { botHandle: "helper", official: true }
+            }
+          ]
+        }
+      }
+    };
+    const commands = await commandsFromSpec(createSetOfficialDocument(), { config });
+    const group = commands[0];
+    const command = group?.kind === "group" ? group.children[0] : undefined;
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          headers: { "content-type": "application/json" }
+        })
+    );
+
+    expect(group).toMatchObject({ kind: "group", name: "agents" });
+    expect(command).toMatchObject({
+      kind: "command",
+      name: "promote",
+      examples: [
+        {
+          title: "Promote an agent",
+          params: { botHandle: "helper", official: true }
+        }
+      ]
+    });
+    if (command?.kind !== "command") throw new Error("Expected configured runtime command.");
+    expect(command.params.shape.rawResponse).toMatchObject({
+      kind: "optional",
+      inner: expect.objectContaining({ cliAliases: ["raw"] })
+    });
+
+    const result = await command.handler({
+      params: {
+        botHandle: "helper",
+        official: true,
+        idempotencyKey: "promote-helper",
+        rawResponse: true
+      },
+      baseUrl: "https://example.com/api",
+      tokenSource: createAuthProvider([]),
+      fetch
+    } as never);
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://example.com/api/bots/helper/actions/set-official",
+      expect.objectContaining({
+        headers: expect.objectContaining({ "Idempotency-Key": "promote-helper" })
+      })
+    );
+    expect(result).toMatchObject({ data: { ok: true }, response: expect.any(Response) });
+  });
+
+  it("uses OpenAPI tag descriptions for runtime command groups", async () => {
+    const document = createListDocument("List bots.");
+    document.tags = [{ name: "bots", description: "Manage API bots." }];
+
+    await expect(commandsFromSpec(document)).resolves.toMatchObject([
+      { kind: "group", name: "bots", description: "Manage API bots." }
+    ]);
+  });
+
   it("uses fixed per-operation server overrides", async () => {
     const document = createListDocument("List bots.");
     (document.paths?.["/bots"]?.get as { servers?: Array<{ url: string }> }).servers = [
@@ -1556,6 +1664,35 @@ describe("commandsFromSpec", () => {
 });
 
 describe("defineClientFromSpec", () => {
+  it("infers the base URL from the OpenAPI document", async () => {
+    const document = createSetOfficialDocument();
+    document.servers = [{ url: "https://api.example.com/v1/" }];
+
+    const client = await defineClientFromSpec(document, {
+      name: "internal-agent",
+      auth: createAuthProvider([])
+    });
+
+    expect(client.services.baseUrl).toBe("https://api.example.com/v1");
+  });
+
+  it("uses configured environments when an explicit base URL is omitted", async () => {
+    const client = await defineClientFromSpec(createSetOfficialDocument(), {
+      name: "internal-agent",
+      auth: createAuthProvider([]),
+      environment: "sandbox",
+      config: {
+        edition: "2026-05-16",
+        environments: {
+          production: "https://api.example.com",
+          sandbox: "https://sandbox.example.com/"
+        }
+      }
+    });
+
+    expect(client.services.baseUrl).toBe("https://sandbox.example.com");
+  });
+
   it("builds a client from a pre-parsed OpenAPI document", async () => {
     const client = await defineClientFromSpec(createSetOfficialDocument(), {
       name: "internal-agent",

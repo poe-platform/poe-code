@@ -37,6 +37,8 @@ export function normalizeOpenApiDocument(document: OpenApiDocument): OpenApiDocu
 
   const consumes = readStringArray(source.consumes);
   const produces = readStringArray(source.produces);
+  const { swagger: _swagger, ...sourceWithoutSwagger } = source;
+  void _swagger;
   const paths = Object.fromEntries(
     Object.entries(source.paths ?? {}).map(([path, pathItem]) => [
       path,
@@ -61,7 +63,7 @@ export function normalizeOpenApiDocument(document: OpenApiDocument): OpenApiDocu
   };
 
   return rewriteReferences({
-    ...source,
+    ...sourceWithoutSwagger,
     openapi: "3.0.3",
     paths,
     components
@@ -78,7 +80,13 @@ function normalizePathItem(
     ...pathItem,
     ...(pathItem.parameters === undefined
       ? {}
-      : { parameters: pathItem.parameters.map((parameter) => normalizeParameter(resolveReusableParameter(parameter, reusableParameters))).filter(isOpenApiParameter) })
+      : {
+          parameters: pathItem.parameters
+            .map((parameter) =>
+              normalizeParameter(resolveReusableParameter(parameter, reusableParameters))
+            )
+            .filter(isOpenApiParameter)
+        })
   } as UnknownRecord;
 
   for (const method of HTTP_METHODS) {
@@ -110,14 +118,17 @@ function normalizeOperation(
   const body = parameters.find(isSwaggerBodyParameter);
   const formParameters = parameters.filter(isSwaggerFormParameter);
   const nonBodyParameters = parameters.filter(
-    (parameter): parameter is OpenApiParameter => isOpenApiParameter(parameter) && !isSwaggerFormParameter(parameter)
+    (parameter): parameter is OpenApiParameter =>
+      isOpenApiParameter(parameter) && !isSwaggerFormParameter(parameter)
   );
-  const consumes = readStringArray(operation.consumes).length > 0
-    ? readStringArray(operation.consumes)
-    : documentConsumes;
-  const produces = readStringArray(operation.produces).length > 0
-    ? readStringArray(operation.produces)
-    : documentProduces;
+  const consumes =
+    readStringArray(operation.consumes).length > 0
+      ? readStringArray(operation.consumes)
+      : documentConsumes;
+  const produces =
+    readStringArray(operation.produces).length > 0
+      ? readStringArray(operation.produces)
+      : documentProduces;
 
   return {
     ...operation,
@@ -149,7 +160,9 @@ function resolveReusableParameter(
     | UnknownRecord;
 }
 
-function normalizeParameter(parameter: OpenApiParameter | UnknownRecord): NormalizedSwaggerParameter {
+function normalizeParameter(
+  parameter: OpenApiParameter | UnknownRecord
+): NormalizedSwaggerParameter {
   if (isReferenceObject(parameter)) {
     return { $ref: rewriteReference(parameter.$ref) };
   }
@@ -159,7 +172,9 @@ function normalizeParameter(parameter: OpenApiParameter | UnknownRecord): Normal
       in: "body",
       required: parameter.required === true,
       description: typeof parameter.description === "string" ? parameter.description : undefined,
-      schema: rewriteReferences(parameter.schema ?? {}) as OpenApiSchemaObject | OpenApiReferenceObject
+      schema: rewriteReferences(parameter.schema ?? {}) as
+        | OpenApiSchemaObject
+        | OpenApiReferenceObject
     };
   }
 
@@ -195,7 +210,9 @@ function normalizeBodyParameter(
   return {
     ...(parameter.description === undefined ? {} : { description: parameter.description }),
     ...(parameter.required ? { required: true } : {}),
-    content: Object.fromEntries(mediaTypes.map((mediaType) => [mediaType, { schema: parameter.schema }]))
+    content: Object.fromEntries(
+      mediaTypes.map((mediaType) => [mediaType, { schema: parameter.schema }])
+    )
   };
 }
 
@@ -219,7 +236,11 @@ function normalizeResponse(
     content: Object.fromEntries(
       mediaTypes.map((mediaType) => [
         mediaType,
-        { schema: rewriteReferences(responseRecord.schema) as OpenApiSchemaObject | OpenApiReferenceObject }
+        {
+          schema: rewriteReferences(responseRecord.schema) as
+            | OpenApiSchemaObject
+            | OpenApiReferenceObject
+        }
       ])
     )
   };
@@ -240,7 +261,9 @@ interface SwaggerFormParameter {
   schema: OpenApiSchemaObject | OpenApiReferenceObject;
 }
 
-function isSwaggerBodyParameter(parameter: NormalizedSwaggerParameter): parameter is SwaggerBodyParameter {
+function isSwaggerBodyParameter(
+  parameter: NormalizedSwaggerParameter
+): parameter is SwaggerBodyParameter {
   return !isReferenceObject(parameter) && parameter.in === "body";
 }
 
@@ -254,7 +277,9 @@ function normalizeFormParameters(
   parameters: SwaggerFormParameter[],
   consumes: string[]
 ): OpenApiRequestBodyObject {
-  const required = parameters.filter((parameter) => parameter.required === true).map((parameter) => parameter.name);
+  const required = parameters
+    .filter((parameter) => parameter.required === true)
+    .map((parameter) => parameter.name);
   const mediaType =
     consumes.find((value) => value.toLowerCase() === "multipart/form-data") ??
     "application/x-www-form-urlencoded";
@@ -271,7 +296,9 @@ function normalizeFormParameters(
               parameter.name,
               {
                 ...parameter.schema,
-                ...(parameter.description === undefined ? {} : { description: parameter.description })
+                ...(parameter.description === undefined
+                  ? {}
+                  : { description: parameter.description })
               }
             ])
           )
@@ -301,7 +328,9 @@ function rewriteReferences<T>(value: T): T {
   return Object.fromEntries(
     Object.entries(value).map(([key, entry]) => [
       key,
-      key === "$ref" && typeof entry === "string" ? rewriteReference(entry) : rewriteReferences(entry)
+      key === "$ref" && typeof entry === "string"
+        ? rewriteReference(entry)
+        : rewriteReferences(entry)
     ])
   ) as T;
 }
@@ -314,7 +343,9 @@ function rewriteReference(reference: string): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === "string")
+    : [];
 }
 
 function isRecord(value: unknown): value is UnknownRecord {

@@ -17,6 +17,7 @@ import {
   type OpenApiClientServices
 } from "./define-client.js";
 import {
+  collectTagDescriptions,
   collectSchemaOptionEntries,
   collectGeneratedCommands,
   type GeneratedCommand,
@@ -24,6 +25,7 @@ import {
   type GeneratedParamDefinition,
   type OpenApiDocument
 } from "./generate.js";
+import type { ToolcraftConfig } from "./config.js";
 import { groupByNoun } from "./group-by-noun.js";
 import {
   prepareMultipartFileInputs,
@@ -44,13 +46,18 @@ export interface CommandsFromSpecOptions {
   cwd?: string;
   fetch?: typeof globalThis.fetch;
   fs?: OpenApiSourceFileSystem;
+  config?: ToolcraftConfig;
 }
 
 export type DefineClientFromSpecOptions<TServices extends object = Record<string, never>> = Omit<
   DefineClientOptions<TServices>,
-  "commands"
+  "baseUrl" | "commands"
 > &
-  CommandsFromSpecOptions;
+  CommandsFromSpecOptions & {
+    baseUrl?: string;
+    environment?: string;
+    env?: Record<string, string | undefined>;
+  };
 
 export interface ResolveOpenApiBaseUrlOptions {
   document: OpenApiDocument;
@@ -75,20 +82,34 @@ export async function commandsFromSpec(
   options: CommandsFromSpecOptions = {}
 ): Promise<CommandNode<OpenApiClientServices>[]> {
   const document = await resolveDocument(source, options);
-  return createRuntimeGroups(collectGeneratedCommands(document));
+  return createRuntimeNodes(document, options.config);
 }
 
 export async function defineClientFromSpec<TServices extends object = Record<string, never>>(
   spec: OpenApiDocumentSource,
   options: DefineClientFromSpecOptions<TServices>
 ): Promise<DefinedClient<TServices>> {
-  const { cwd, fetch, fs: specFs, ...clientOptions } = options;
-  const commands = (await commandsFromSpec(spec, {
-    cwd,
-    fetch,
-    fs: specFs
-  })) as CommandNode<OpenApiClientServices & TServices>[];
-  return defineClient({ ...clientOptions, commands });
+  const { cwd, fetch, fs: specFs, config, baseUrl, environment, env, ...clientOptions } = options;
+  const document = await resolveDocument(spec, { cwd, fetch, fs: specFs, config });
+  const resolvedBaseUrl =
+    baseUrl ??
+    resolveOpenApiBaseUrl({
+      document,
+      environments: config?.environments,
+      environment,
+      env: env ?? process.env
+    });
+
+  if (resolvedBaseUrl === undefined) {
+    throw new UserError(
+      "defineClientFromSpec could not resolve a base URL. Pass baseUrl, configure an environment, or define OpenAPI servers[0].url."
+    );
+  }
+
+  const commands = createRuntimeNodes(document, config) as CommandNode<
+    OpenApiClientServices & TServices
+  >[];
+  return defineClient({ ...clientOptions, baseUrl: resolvedBaseUrl, commands });
 }
 
 async function resolveDocument(
@@ -135,15 +156,23 @@ function normalizeBaseUrl(value: string): string {
   return new URL(value).toString().replace(/\/$/, "");
 }
 
-function createRuntimeGroups(
-  commands: ReadonlyArray<GeneratedCommand>
+function createRuntimeNodes(
+  document: OpenApiDocument,
+  config: ToolcraftConfig | undefined
 ): CommandNode<OpenApiClientServices>[] {
-  return groupByNoun(commands).map(({ noun, commands: nounCommands }) =>
-    defineGroup({
-      name: noun,
-      children: nounCommands.map((command) => createRuntimeCommand(command))
-    })
-  );
+  const commands = collectGeneratedCommands(document, config);
+  const tagDescriptions = collectTagDescriptions(document);
+
+  return [
+    ...commands.filter((command) => command.topLevel).map(createRuntimeCommand),
+    ...groupByNoun(commands).map(({ noun, commands: nounCommands }) =>
+      defineGroup({
+        name: noun,
+        description: tagDescriptions.get(noun),
+        children: nounCommands.map(createRuntimeCommand)
+      })
+    )
+  ];
 }
 
 function createRuntimeCommand(command: GeneratedCommand) {
@@ -164,6 +193,7 @@ function createRuntimeCommand(command: GeneratedCommand) {
   >({
     name: command.verb,
     ...(command.description === undefined ? {} : { description: command.description }),
+    ...(command.examples === undefined ? {} : { examples: command.examples }),
     scope: RUNTIME_COMMAND_SCOPE,
     ...(command.confirm ? { confirm: true } : {}),
     ...(command.positional.length > 0 ? { positional: command.positional } : {}),
@@ -202,6 +232,16 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       tokenSource,
       fetch,
       diagnostics,
+      ...(command.rawResponse === true ? { rawResponse: params.rawResponse } : {}),
+      ...(command.idempotencyHeader === undefined
+        ? {}
+        : {
+            idempotency: {
+              header: command.idempotencyHeader,
+              enabled: true,
+              key: params.idempotencyKey
+            }
+          }),
       ...preparedRequestShape
     });
 
@@ -218,6 +258,7 @@ function createRuntimeParamSchema(param: GeneratedParam): AnySchema {
     param.definition,
     param.description,
     param.shortFlag,
+    param.longAliases,
     param.scope,
     param.global
   );
@@ -229,10 +270,18 @@ function createRuntimeDefinition(
   definition: GeneratedParamDefinition,
   description?: string,
   shortFlag?: string,
+  longAliases?: string[],
   scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">],
   global?: boolean
 ): AnySchema {
-  const options = createRuntimeSchemaOptions(definition, description, shortFlag, scope, global);
+  const options = createRuntimeSchemaOptions(
+    definition,
+    description,
+    shortFlag,
+    longAliases,
+    scope,
+    global
+  );
 
   return RUNTIME_DEFINITION_BUILDERS[definition.kind](definition as never, options);
 }
@@ -244,6 +293,7 @@ const RUNTIME_DEFINITION_BUILDERS = {
   ) => {
     const itemDefinition = createRuntimeDefinition(
       definition.itemDefinition,
+      undefined,
       undefined,
       undefined,
       undefined
@@ -274,6 +324,7 @@ const RUNTIME_DEFINITION_BUILDERS = {
           property.definition,
           undefined,
           undefined,
+          undefined,
           undefined
         );
         return [property.name, property.optional ? S.Optional(propertySchema) : propertySchema];
@@ -296,6 +347,7 @@ function createRuntimeSchemaOptions(
   definition: GeneratedParamDefinition,
   description?: string,
   shortFlag?: string,
+  longAliases?: string[],
   scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">],
   global?: boolean
 ) {
@@ -304,6 +356,7 @@ function createRuntimeSchemaOptions(
       definition,
       description,
       shortFlag,
+      longAliases,
       scope,
       global
     }).map(({ key, value }) => [key, Array.isArray(value) ? [...value] : value])

@@ -37,7 +37,9 @@ export async function readOpenApiSourceText(
     }
 
     if (inputUrl.protocol !== "http:" && inputUrl.protocol !== "https:") {
-      throw new UserError(`Unsupported OpenAPI input URL protocol ${JSON.stringify(inputUrl.protocol)}.`);
+      throw new UserError(
+        `Unsupported OpenAPI input URL protocol ${JSON.stringify(inputUrl.protocol)}.`
+      );
     }
 
     let response: Response;
@@ -77,11 +79,15 @@ export function parseOpenApiDocument(sourceText: string, input: string | URL): O
   let parsed: unknown;
 
   try {
-    parsed = parseYaml(sourceText);
-  } catch (error) {
-    throw new UserError(
-      `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${formatParseErrorMessage(error, sourceText, formatSourceLabel(input))}`
-    );
+    parsed = JSON.parse(sourceText) as unknown;
+  } catch {
+    try {
+      parsed = parseYaml(sourceText);
+    } catch (error) {
+      throw new UserError(
+        `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${formatParseErrorMessage(error, sourceText, formatSourceLabel(input))}`
+      );
+    }
   }
 
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {

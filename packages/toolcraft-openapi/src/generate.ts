@@ -668,9 +668,7 @@ function refreshGeneratedCommandNames(command: GeneratedCommand): void {
   command.exportName = command.topLevel
     ? `${toCamelCase(command.verb)}Command`
     : `${toCamelCase(command.noun)}${toPascalCase(command.verb)}Command`;
-  command.filePath = command.topLevel
-    ? `${command.verb}.ts`
-    : `${command.noun}/${command.verb}.ts`;
+  command.filePath = command.topLevel ? `${command.verb}.ts` : `${command.noun}/${command.verb}.ts`;
 }
 
 export function collectGeneratedCommand(
@@ -1289,12 +1287,16 @@ function resolveSuccessResponse(
 ): { mode: "json" | "text" | "binary"; accept: string } {
   let textualMediaType: string | undefined;
   let binaryMediaType: string | undefined;
+  const responses = Object.entries(operation.responses ?? {});
+  const explicitSuccessResponses = responses.filter(([statusCode]) =>
+    isSuccessStatusCode(statusCode)
+  );
+  const candidateResponses =
+    explicitSuccessResponses.length > 0
+      ? explicitSuccessResponses
+      : responses.filter(([statusCode]) => statusCode === "default");
 
-  for (const [statusCode, response] of Object.entries(operation.responses ?? {})) {
-    if (!isSuccessStatusCode(statusCode)) {
-      continue;
-    }
-
+  for (const [statusCode, response] of candidateResponses) {
     const resolvedResponse = expectResponse(document, response, operationId, statusCode);
 
     const declaredMediaTypes = Object.entries(resolvedResponse.content ?? {})
@@ -2060,7 +2062,7 @@ function collectPathPlaceholders(path: string): string[] {
 }
 
 function isSuccessStatusCode(statusCode: string): boolean {
-  if (statusCode === "default" || statusCode === "2XX") {
+  if (statusCode === "2XX") {
     return true;
   }
 
@@ -3215,7 +3217,7 @@ function resolveQueryObjectSerialization(
   );
 }
 
-function collectTagDescriptions(document: OpenApiDocument): Map<string, string> {
+export function collectTagDescriptions(document: OpenApiDocument): Map<string, string> {
   const descriptions = new Map<string, string>();
 
   for (const tag of document.tags ?? []) {

@@ -281,6 +281,7 @@ export type AgentRunOptions = {
   acpModel?: AcpModel;
   onStdout?: (chunk: string) => void;
   logPath?: string;
+  env?: Record<string, string | undefined>;
 };
 
 export type AgentSession = {

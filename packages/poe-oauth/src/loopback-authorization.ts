@@ -20,6 +20,54 @@ export interface LoopbackAuthorizationSession {
   close(): void;
 }
 
+export interface ValidateOAuthAuthorizationCallbackOptions {
+  callbackUrl: string | URL;
+  expectedState: string;
+  expectedIssuer?: string;
+  requireIssuer?: boolean;
+}
+
+export function validateOAuthAuthorizationCallback(
+  options: ValidateOAuthAuthorizationCallbackOptions
+): string {
+  let url: URL;
+  try {
+    url = typeof options.callbackUrl === "string"
+      ? new URL(options.callbackUrl)
+      : options.callbackUrl;
+  } catch {
+    throw new Error("Poe OAuth callbackUrl must be an absolute URL.");
+  }
+  const callback = {
+    code: url.searchParams.get("code"),
+    state: url.searchParams.get("state"),
+    iss: url.searchParams.get("iss")
+  };
+  const expected = {
+    state: validateExpectedState(options.expectedState),
+    issuer: options.expectedIssuer ?? null,
+    requireIssuer: options.requireIssuer ?? false
+  };
+
+  validateAuthorizationCallbackBinding(callback, expected);
+
+  const authorizationError = url.searchParams.get("error");
+  if (authorizationError !== null) {
+    const description = url.searchParams.get("error_description");
+    const safeError = sanitizeAuthorizationError(authorizationError, expected.state);
+    const safeDescription = description === null
+      ? null
+      : sanitizeAuthorizationError(description, expected.state);
+    throw new Error(
+      safeDescription === null
+        ? `OAuth authorization failed: ${safeError}`
+        : `OAuth authorization failed: ${safeError} — ${safeDescription}`
+    );
+  }
+
+  return validateAuthorizationCallbackParameters(callback, expected);
+}
+
 export async function createLoopbackAuthorizationSession(
   options: LoopbackAuthorizationOptions = {}
 ): Promise<LoopbackAuthorizationSession> {
@@ -80,48 +128,28 @@ function waitForAuthorizationCode(
         return;
       }
 
-      const error = url.searchParams.get("error");
-      if (error !== null) {
-        try {
-          validateAuthorizationCallbackBinding(
-            {
-              state: url.searchParams.get("state"),
-              iss: url.searchParams.get("iss")
-            },
-            expectedAuthorization
-          );
-        } catch (validationError) {
-          res.writeHead(400);
-          res.end(
-            validationError instanceof Error ? validationError.message : "Invalid OAuth callback"
-          );
-          return;
-        }
-
-        const description = url.searchParams.get("error_description") ?? error;
-        res.writeHead(400);
-        res.end(`Authorization failed: ${description}`);
-        settle(() => reject(new Error(`OAuth authorization failed: ${error} — ${description}`)));
-        return;
-      }
-
       try {
-        const code = validateAuthorizationCallbackParameters(
-          {
-            code: url.searchParams.get("code"),
-            state: url.searchParams.get("state"),
-            iss: url.searchParams.get("iss")
-          },
-          expectedAuthorization
-        );
+        const code = validateOAuthAuthorizationCallback({
+          callbackUrl: url,
+          expectedState: expectedAuthorization.state ?? "",
+          expectedIssuer: expectedAuthorization.issuer ?? undefined,
+          requireIssuer: expectedAuthorization.requireIssuer
+        });
 
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(buildSuccessPage(options.landingPage));
         settle(() => resolve(code));
       } catch (error) {
+        const validationError = error instanceof Error ? error : new Error(String(error));
         res.writeHead(400);
-        res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
-        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
+        res.end(validationError.message);
+        if (
+          url.searchParams.has("error") &&
+          !validationError.message.startsWith("OAuth authorization failed:")
+        ) {
+          return;
+        }
+        settle(() => reject(validationError));
       }
     });
 
@@ -258,6 +286,20 @@ function validateAuthorizationCallbackBinding(
   ) {
     throw new Error("OAuth callback issuer mismatch");
   }
+}
+
+function validateExpectedState(state: string): string {
+  if (state.length === 0 || state.trim() !== state) {
+    throw new Error("Poe OAuth expectedState must not be blank or contain surrounding whitespace.");
+  }
+  return state;
+}
+
+function sanitizeAuthorizationError(value: string, expectedState: string): string {
+  if (value.includes(expectedState)) {
+    return "authorization_error";
+  }
+  return value;
 }
 
 function escapeHtml(text: string): string {

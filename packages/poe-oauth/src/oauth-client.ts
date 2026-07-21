@@ -4,7 +4,9 @@ import { createLoopbackAuthorizationSession } from "./loopback-authorization.js"
 import type { OAuthLandingPage } from "./loopback-authorization.js";
 import {
   generateCodeChallenge as generatePkceCodeChallenge,
-  generateCodeVerifier as generatePkceCodeVerifier
+  generateCodeVerifier as generatePkceCodeVerifier,
+  validateCodeChallenge,
+  validateCodeVerifier
 } from "./pkce.js";
 
 const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
@@ -36,12 +38,37 @@ export interface OAuthClient {
   authorize(): Promise<OAuthAuthorization>;
 }
 
+export interface CreateOAuthAuthorizationUrlOptions {
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  codeChallenge: string;
+  authorizationEndpoint?: string;
+}
+
+export interface ExchangeOAuthCodeOptions {
+  clientId: string;
+  redirectUri: string;
+  code: string;
+  codeVerifier: string;
+  tokenEndpoint?: string;
+  fetch?: typeof globalThis.fetch;
+}
+
 export function createOAuthClient(config: OAuthClientConfig): OAuthClient {
   const fetchFn = config.fetch ?? globalThis.fetch;
   const clientId = validateClientId(config.clientId);
   const normalizedConfig = {
     ...config,
-    clientId
+    clientId,
+    authorizationEndpoint: validateHttpUrl(
+      config.authorizationEndpoint ?? DEFAULT_AUTHORIZATION_ENDPOINT,
+      "authorizationEndpoint"
+    ),
+    tokenEndpoint: validateHttpUrl(
+      config.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT,
+      "tokenEndpoint"
+    )
   };
 
   return {
@@ -74,8 +101,8 @@ async function startAuthorization(
   });
   const redirectUri = loopbackSession.redirectUri;
 
-  const authorizationUrl = buildAuthorizationUrl({
-    endpoint: authorizationEndpoint,
+  const authorizationUrl = createOAuthAuthorizationUrl({
+    authorizationEndpoint,
     clientId: config.clientId,
     redirectUri,
     codeChallenge,
@@ -91,13 +118,13 @@ async function startAuthorization(
       try {
         const code = await loopbackSession.waitForCode(authorizationUrl);
 
-        return await exchangeCodeForApiKey({
+        return await exchangeOAuthCode({
           tokenEndpoint,
           code,
           codeVerifier,
           clientId: config.clientId,
           redirectUri,
-          fetchFn
+          fetch: fetchFn
         });
       } finally {
         loopbackSession.close();
@@ -109,57 +136,77 @@ async function startAuthorization(
   return { authorizationUrl, waitForResult };
 }
 
-function buildAuthorizationUrl(params: {
-  endpoint: string;
-  clientId: string;
-  redirectUri: string;
-  codeChallenge: string;
-  state: string;
-}): string {
-  const url = new URL(params.endpoint);
+export function createOAuthAuthorizationUrl(
+  options: CreateOAuthAuthorizationUrlOptions
+): string {
+  const clientId = validateClientId(options.clientId);
+  const redirectUri = validateHttpUrl(options.redirectUri, "redirectUri");
+  const state = validateOpaqueValue(options.state, "state");
+  const codeChallenge = validateCodeChallenge(options.codeChallenge);
+  const authorizationEndpoint = validateHttpUrl(
+    options.authorizationEndpoint ?? DEFAULT_AUTHORIZATION_ENDPOINT,
+    "authorizationEndpoint"
+  );
+  const url = new URL(authorizationEndpoint);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("client_id", params.clientId);
+  url.searchParams.set("client_id", clientId);
   url.searchParams.set("scope", "apikey:create");
-  url.searchParams.set("code_challenge", params.codeChallenge);
+  url.searchParams.set("code_challenge", codeChallenge);
   url.searchParams.set("code_challenge_method", "S256");
-  url.searchParams.set("redirect_uri", params.redirectUri);
-  url.searchParams.set("state", params.state);
+  url.searchParams.set("redirect_uri", redirectUri);
+  url.searchParams.set("state", state);
   return url.toString();
 }
 
-async function exchangeCodeForApiKey(params: {
-  tokenEndpoint: string;
-  code: string;
-  codeVerifier: string;
-  clientId: string;
-  redirectUri: string;
-  fetchFn: typeof globalThis.fetch;
-}): Promise<OAuthResult> {
+export async function exchangeOAuthCode(
+  options: ExchangeOAuthCodeOptions
+): Promise<OAuthResult> {
+  const clientId = validateClientId(options.clientId);
+  const redirectUri = validateHttpUrl(options.redirectUri, "redirectUri");
+  const code = validateOpaqueValue(options.code, "code");
+  const codeVerifier = validateCodeVerifier(options.codeVerifier);
+  const tokenEndpoint = validateHttpUrl(
+    options.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT,
+    "tokenEndpoint"
+  );
+  const fetchFn = options.fetch ?? globalThis.fetch;
   const body = new URLSearchParams({
     grant_type: "authorization_code",
-    code: params.code,
-    code_verifier: params.codeVerifier,
-    client_id: params.clientId,
-    redirect_uri: params.redirectUri
+    code,
+    code_verifier: codeVerifier,
+    client_id: clientId,
+    redirect_uri: redirectUri
   });
 
-  const response = await params.fetchFn(params.tokenEndpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString()
-  });
+  let response: Response;
+  try {
+    response = await fetchFn(tokenEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString()
+    });
+  } catch {
+    throw new Error("Token exchange request failed");
+  }
 
   if (!response.ok) {
     const text = await response.text();
     const description = parseErrorDescription(text);
-    throw new Error(description ?? `Token exchange failed (${response.status}): ${text}`);
+    if (
+      description !== null &&
+      !description.includes(codeVerifier) &&
+      !description.includes(code)
+    ) {
+      throw new Error(description);
+    }
+    throw new Error(`Token exchange failed (${response.status})`);
   }
 
   let value: unknown;
   try {
     value = (await response.json()) as unknown;
   } catch (error) {
-    throw new Error(`Token exchange failed: invalid JSON response from ${params.tokenEndpoint}`, {
+    throw new Error(`Token exchange failed: invalid JSON response from ${tokenEndpoint}`, {
       cause: error
     });
   }
@@ -226,6 +273,31 @@ function validateClientId(clientId: string): string {
     throw new Error("Poe OAuth clientId must not be blank or contain surrounding whitespace.");
   }
   return clientId;
+}
+
+function validateHttpUrl(value: string, field: string): string {
+  if (value.trim() !== value || value.length === 0) {
+    throw new Error(`Poe OAuth ${field} must be an absolute HTTP(S) URL.`);
+  }
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`Poe OAuth ${field} must be an absolute HTTP(S) URL.`);
+  }
+
+  if ((url.protocol !== "https:" && url.protocol !== "http:") || url.hash.length > 0) {
+    throw new Error(`Poe OAuth ${field} must be an absolute HTTP(S) URL without a fragment.`);
+  }
+  return url.toString();
+}
+
+function validateOpaqueValue(value: string, field: string): string {
+  if (value.length === 0 || value.trim() !== value) {
+    throw new Error(`Poe OAuth ${field} must not be blank or contain surrounding whitespace.`);
+  }
+  return value;
 }
 
 function isValidExpiresIn(value: unknown): value is number {

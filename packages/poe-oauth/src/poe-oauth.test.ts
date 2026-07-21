@@ -2,7 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import http from "node:http";
 import { createAuthorizationState, parseAuthorizationState } from "./authorization-state.js";
 import { checkAuth } from "./check-auth.js";
-import { createOAuthClient } from "./oauth-client.js";
+import {
+  createOAuthAuthorizationUrl,
+  createOAuthClient,
+  exchangeOAuthCode,
+  generateCodeChallenge,
+  validateOAuthAuthorizationCallback
+} from "./index.js";
 import type { OAuthClientConfig } from "./oauth-client.js";
 
 function createTestConfig(overrides: Partial<OAuthClientConfig> = {}): OAuthClientConfig {
@@ -373,6 +379,154 @@ describe("checkAuth", () => {
   });
 });
 
+describe("caller-managed OAuth primitives", () => {
+  const codeVerifier = "v".repeat(43);
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+
+  it.each([
+    "https://app.example.com/oauth/callback",
+    "http://127.0.0.1:54321/callback"
+  ])("creates an authorization URL for redirect URI %s", (redirectUri) => {
+    const authorizationUrl = createOAuthAuthorizationUrl({
+      clientId: "test-client-id",
+      redirectUri,
+      state: "caller-owned-state",
+      codeChallenge
+    });
+
+    const url = new URL(authorizationUrl);
+    expect(url.searchParams.get("client_id")).toBe("test-client-id");
+    expect(url.searchParams.get("redirect_uri")).toBe(redirectUri);
+    expect(url.searchParams.get("state")).toBe("caller-owned-state");
+    expect(url.searchParams.get("code_challenge")).toBe(codeChallenge);
+    expect(url.searchParams.get("code_challenge_method")).toBe("S256");
+  });
+
+  it("validates a caller-managed callback without exposing state values", () => {
+    const callbackUrl = new URL("https://app.example.com/oauth/callback");
+    callbackUrl.searchParams.set("code", "authorization-code");
+    callbackUrl.searchParams.set("state", "unexpected-secret-state");
+
+    expect(() =>
+      validateOAuthAuthorizationCallback({
+        callbackUrl,
+        expectedState: "expected-secret-state"
+      })
+    ).toThrow("OAuth callback state mismatch");
+
+    try {
+      validateOAuthAuthorizationCallback({
+        callbackUrl,
+        expectedState: "expected-secret-state"
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      expect(message).not.toContain("expected-secret-state");
+      expect(message).not.toContain("unexpected-secret-state");
+    }
+  });
+
+  it("exchanges a caller-managed authorization code for the validated result shape", async () => {
+    const fetchMock = vi.fn(async () => createTokenResponse("  sk-hosted-key  ", 3600));
+
+    await expect(
+      exchangeOAuthCode({
+        clientId: "test-client-id",
+        redirectUri: "https://app.example.com/oauth/callback",
+        code: "authorization-code",
+        codeVerifier,
+        fetch: fetchMock as typeof fetch
+      })
+    ).resolves.toEqual({ apiKey: "sk-hosted-key", expiresIn: 3600 });
+
+    const body = new URLSearchParams(fetchMock.mock.calls[0]![1]?.body as string);
+    expect(body.get("code")).toBe("authorization-code");
+    expect(body.get("code_verifier")).toBe(codeVerifier);
+    expect(body.get("redirect_uri")).toBe("https://app.example.com/oauth/callback");
+  });
+
+  it("rejects mismatched or malformed caller-managed inputs before fetching", async () => {
+    const fetchMock = vi.fn();
+
+    expect(() =>
+      createOAuthAuthorizationUrl({
+        clientId: "test-client-id",
+        redirectUri: "not-a-url",
+        state: "state",
+        codeChallenge
+      })
+    ).toThrow("redirectUri");
+
+    await expect(
+      exchangeOAuthCode({
+        clientId: "test-client-id",
+        redirectUri: "https://app.example.com/oauth/callback",
+        code: "",
+        codeVerifier,
+        fetch: fetchMock as typeof fetch
+      })
+    ).rejects.toThrow("code");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(() => generateCodeChallenge("too-short")).toThrow("codeVerifier");
+    expect(() =>
+      createOAuthAuthorizationUrl({
+        clientId: "test-client-id",
+        redirectUri: "https://app.example.com/oauth/callback",
+        state: "state",
+        codeChallenge: "$".repeat(43)
+      })
+    ).toThrow("codeChallenge");
+  });
+
+  it("retains token response validation for malformed successful responses", async () => {
+    await expect(
+      exchangeOAuthCode({
+        clientId: "test-client-id",
+        redirectUri: "https://app.example.com/oauth/callback",
+        code: "authorization-code",
+        codeVerifier,
+        fetch: vi.fn(async () => new Response("{", { status: 200 })) as typeof fetch
+      })
+    ).rejects.toThrow("invalid JSON");
+  });
+
+  it("does not expose PKCE values returned by a failed token endpoint", async () => {
+    const echoedSecret = `rejected verifier ${codeVerifier}`;
+    const exchange = exchangeOAuthCode({
+      clientId: "test-client-id",
+      redirectUri: "https://app.example.com/oauth/callback",
+      code: "authorization-code",
+      codeVerifier,
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error_description: echoedSecret }), { status: 400 })
+      ) as typeof fetch
+    });
+
+    await expect(exchange).rejects.toThrow("Token exchange failed (400)");
+    await exchange.catch((error: unknown) => {
+      expect(error instanceof Error ? error.message : String(error)).not.toContain(codeVerifier);
+    });
+  });
+
+  it("sanitizes token endpoint transport failures", async () => {
+    const exchange = exchangeOAuthCode({
+      clientId: "test-client-id",
+      redirectUri: "https://app.example.com/oauth/callback",
+      code: "authorization-code",
+      codeVerifier,
+      fetch: vi.fn(async () => {
+        throw new Error(`network failure for ${codeVerifier}`);
+      }) as typeof fetch
+    });
+
+    await expect(exchange).rejects.toThrow("Token exchange request failed");
+    await exchange.catch((error: unknown) => {
+      expect(error instanceof Error ? error.message : String(error)).not.toContain(codeVerifier);
+    });
+  });
+});
+
 describe("OAuthClient", () => {
   it("returns authorization URL with correct parameters", async () => {
     const { server, boundPort } = createMockServer();
@@ -593,9 +747,7 @@ describe("OAuthClient", () => {
       async () => {
         const client = createOAuthClient(config);
         const authorization = await client.authorize();
-        await expect(authorization.waitForResult()).rejects.toThrow(
-          "Token exchange failed (400): {}"
-        );
+        await expect(authorization.waitForResult()).rejects.toThrow("Token exchange failed (400)");
       }
     );
   });

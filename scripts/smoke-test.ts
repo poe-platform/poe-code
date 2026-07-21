@@ -160,9 +160,58 @@ function runSdkImportSmoke(sdkProjectDir: string): boolean {
   return passed;
 }
 
+function runCredentialsImportSmoke(sdkProjectDir: string): boolean {
+  const scriptPath = path.join(sdkProjectDir, "credentials-smoke.mjs");
+  writeFileSync(
+    scriptPath,
+    [
+      'import { getPoeApiKey } from "poe-code/credentials";',
+      "const key = await getPoeApiKey();",
+      'if (key !== "smoke-test-key") {',
+      "  throw new Error(`Unexpected API key: ${key}`);",
+      "}",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const label = "poe-code credentials import smoke";
+  const result = spawnSync(process.execPath, [scriptPath], {
+    cwd: sdkProjectDir,
+    encoding: "utf-8",
+    timeout: 30_000,
+    env: {
+      ...process.env,
+      POE_API_KEY: "smoke-test-key",
+    },
+  });
+
+  const output = (result.stdout || "") + (result.stderr || "");
+  const passed = result.status === 0 && output.length === 0;
+
+  if (passed) {
+    console.log(`  \u2713 ${label}`);
+  } else {
+    console.log(`  \u2717 ${label} (exit ${result.status})`);
+  }
+
+  if (verbose || !passed) {
+    const lines = output.trimEnd().split("\n");
+    for (const line of lines) {
+      console.log(`    \u2502 ${line}`);
+    }
+    console.log();
+  }
+
+  return passed;
+}
+
 const installContext = install();
 try {
-  const ok = run() && runSdkImportSmoke(installContext.sdkProjectDir);
+  const ok =
+    run() &&
+    runSdkImportSmoke(installContext.sdkProjectDir) &&
+    runCredentialsImportSmoke(installContext.sdkProjectDir);
   if (ok) {
     console.log("\nAll smoke tests passed.");
   } else {

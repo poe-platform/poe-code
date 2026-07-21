@@ -111,6 +111,19 @@ await esbuild.build({
 });
 
 await esbuild.build({
+  entryPoints: [path.join(rootDir, "src/credentials.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outfile: path.join(rootDir, "dist/credentials.js"),
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
+  plugins: [stripShebangPlugin]
+});
+
+await esbuild.build({
   entryPoints: [path.join(rootDir, "src/skills.ts")],
   bundle: true,
   platform: "node",

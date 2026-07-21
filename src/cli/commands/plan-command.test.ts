@@ -441,9 +441,13 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await expect(
-      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "view"]), false)
-    ).rejects.toThrow(/docs\/plans\/plan-a\.md[\s\S]*docs\/plans\/plan-b\.md/);
+    const error = await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "view"]),
+      false
+    ).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.message).toContain("docs/plans/plan-a.md");
+    expect(error.message).toContain("docs/plans/plan-b.md");
 
     expect(selectMock).not.toHaveBeenCalled();
   });

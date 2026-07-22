@@ -583,6 +583,7 @@ Toolcraft configuration is code-first. Use `defineCommand(config)` and `defineGr
 - `positional?: string[]` — parameter names mapped from CLI argv order.
 - `params: S.Object(...)` — input schema from `toolcraft-schema`.
 - `result?: S.Object(...)` — structured result schema for MCP `outputSchema`; must be a root object.
+- `mcpResult?: (result) => Record<string, unknown>` — optional MCP-only projection applied before `result` validation; CLI and SDK still return the raw handler result. Requires `result`.
 - `secrets?: Record<string, { env: string; description?: string; optional?: boolean }>`
 - `scope?: Array<"cli" | "mcp" | "sdk">` — defaults to `["cli", "sdk"]`.
 - `confirm?: boolean` — deprecated CLI-only TTY confirmation; use `humanInLoop` instead. Cannot be combined with `humanInLoop`.

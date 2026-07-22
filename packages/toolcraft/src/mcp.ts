@@ -1298,7 +1298,9 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         }
 
         if (tool.resultSchema !== undefined) {
-          const structuredContent = validateCommandResult(tool.resultSchema, result, casing);
+          const mcpResult =
+            tool.command.mcpResult === undefined ? result : tool.command.mcpResult(result);
+          const structuredContent = validateCommandResult(tool.resultSchema, mcpResult, casing);
           return {
             content: [{ type: "text", text: JSON.stringify(structuredContent) }],
             structuredContent

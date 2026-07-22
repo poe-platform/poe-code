@@ -177,6 +177,7 @@ export interface CommandConfig<
   positional?: string[];
   params: TParamsSchema;
   result?: ObjectSchema<any>;
+  mcpResult?: (result: TResult) => Record<string, unknown>;
   secrets?: TSecrets;
   scope?: Scope[];
   confirm?: boolean;
@@ -208,7 +209,7 @@ export interface StreamCommandConfig<
   TEventSchema extends AnySchema
 > extends Omit<
     CommandConfig<TServices, TParamsSchema, TSecrets, AsyncIterable<Static<TEventSchema>>>,
-    "handler" | "render" | "result" | "humanInLoop" | "confirm"
+    "handler" | "render" | "result" | "mcpResult" | "humanInLoop" | "confirm"
   > {
   event: TEventSchema;
   handler: (
@@ -234,6 +235,7 @@ export interface Command<
   positional: string[];
   params: TParamsSchema;
   result?: ObjectSchema<any>;
+  mcpResult?: (result: TResult) => Record<string, unknown>;
   stream?: StreamDefinition<any>;
   secrets: SecretDeclarations;
   scope: Scope[];
@@ -342,6 +344,7 @@ interface InternalCommandConfig {
   hidden: boolean;
   examples: CommandExample[];
   result?: ObjectSchema<any>;
+  mcpResult?: (result: unknown) => Record<string, unknown>;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
@@ -793,6 +796,12 @@ function createBaseCommand<
 >(
   config: CommandConfig<TServices, TParamsSchema, TSecrets, TResult>
 ): Command<TServices, TParamsSchema, TSecrets, TResult> {
+  if (config.mcpResult !== undefined && config.result === undefined) {
+    throw new ToolcraftBugError(
+      `Command "${config.name}" defines mcpResult without a result schema.`
+    );
+  }
+
   const command: Command<TServices, TParamsSchema, TSecrets, TResult> = {
     kind: "command",
     name: config.name,
@@ -805,6 +814,7 @@ function createBaseCommand<
     positional: [...(config.positional ?? [])],
     params: config.params,
     result: config.result,
+    mcpResult: config.mcpResult,
     stream: undefined,
     secrets: cloneSecrets(config.secrets),
     scope: resolveCommandScope(config.scope, undefined),
@@ -823,6 +833,9 @@ function createBaseCommand<
       hidden: config.hidden ?? false,
       examples: cloneCommandExamples(config.examples),
       result: config.result,
+      mcpResult: config.mcpResult as
+        | ((result: unknown) => Record<string, unknown>)
+        | undefined,
       humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
       requires: cloneRequires(config.requires),
@@ -903,6 +916,9 @@ function materializeCommand<
     positional: [...command.positional],
     params: command.params,
     result: internal.result,
+    mcpResult: internal.mcpResult as
+      | ((result: TResult) => Record<string, unknown>)
+      | undefined,
     stream: command.stream,
     secrets: mergeSecrets(inherited.secrets, internal.secrets),
     scope: resolveCommandScope(internal.scope, inherited.scope),
@@ -921,6 +937,7 @@ function materializeCommand<
       hidden: internal.hidden,
       examples: cloneCommandExamples(internal.examples),
       result: internal.result,
+      mcpResult: internal.mcpResult,
       humanInLoop: internal.humanInLoop,
       secrets: cloneSecrets(internal.secrets),
       requires: cloneRequires(internal.requires),

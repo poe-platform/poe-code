@@ -3,6 +3,7 @@ import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup, defineStreamCommand, type HandlerFs } from "./index.js";
 import { createHumanInLoop } from "./human-in-loop/index.js";
 import { createMCPServer } from "./mcp.js";
+import { createSDK } from "./sdk.js";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 
 describe("createMCPServer stream lifecycle", () => {
@@ -583,6 +584,52 @@ describe("createMCPServer typed result schemas", () => {
     } finally {
       await cleanup();
     }
+  });
+
+  it("maps MCP structured results without changing SDK handler results", async () => {
+    const list = defineCommand({
+      name: "list",
+      scope: ["mcp", "sdk"],
+      params: S.Object({}),
+      result: S.Object({
+        itemNames: S.Array(S.String())
+      }),
+      mcpResult: (result: string[]) => ({ itemNames: result }),
+      handler: async () => ["one", "two"]
+    });
+    const root = defineGroup({ name: "root", children: [list] });
+    const sdk = createSDK(root);
+
+    await expect(sdk.list({})).resolves.toEqual(["one", "two"]);
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = (await client.callTool({ name: "list", arguments: {} })) as {
+        content: Array<{ type: string; text: string }>;
+        structuredContent?: Record<string, unknown>;
+      };
+      expect(result.structuredContent).toEqual({ item_names: ["one", "two"] });
+      expect(JSON.parse(result.content[0]!.text)).toEqual(result.structuredContent);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("rejects an MCP result mapper without a result schema", () => {
+    expect(() =>
+      defineCommand({
+        name: "invalid",
+        params: S.Object({}),
+        mcpResult: (result: string[]) => ({ items: result }),
+        handler: async () => ["one"]
+      })
+    ).toThrow('Command "invalid" defines mcpResult without a result schema.');
   });
 
   it("appends command examples to MCP tool descriptions", async () => {

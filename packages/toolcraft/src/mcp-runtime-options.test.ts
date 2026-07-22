@@ -164,6 +164,93 @@ describe("createMCPServer human-in-loop wiring", () => {
   });
 });
 
+describe("createMCPServer tool metadata", () => {
+  it("lists command titles and all standard tool annotations", async () => {
+    const annotations = {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    };
+    const command = defineCommand({
+      name: "get",
+      title: "Get calendar event",
+      annotations,
+      scope: ["mcp"],
+      params: S.Object({ eventId: S.String() }),
+      result: S.Object({ title: S.String() }),
+      handler: async () => ({ title: "Planning" })
+    });
+    const server = createMCPServer(
+      defineGroup({ name: "calendar", children: [command] }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true
+      }
+    );
+    annotations.readOnlyHint = false;
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(client.listTools()).resolves.toMatchObject({
+        tools: [
+          {
+            name: "get",
+            title: "Get calendar event",
+            annotations: {
+              readOnlyHint: true,
+              destructiveHint: false,
+              idempotentHint: true,
+              openWorldHint: false
+            },
+            outputSchema: {
+              type: "object",
+              properties: { title: { type: "string" } },
+              required: ["title"]
+            }
+          }
+        ]
+      });
+
+      await expect(client.callTool({ name: "get", arguments: { event_id: "event-1" } })).resolves
+        .toMatchObject({ structuredContent: { title: "Planning" } });
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("leaves tools unchanged when commands omit optional metadata", async () => {
+    const server = createMCPServer(
+      defineGroup({
+        name: "calendar",
+        children: [
+          defineCommand({
+            name: "list",
+            scope: ["mcp"],
+            params: S.Object({}),
+            handler: async () => []
+          })
+        ]
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const response = await client.listTools();
+      expect(response.tools[0]).not.toHaveProperty("title");
+      expect(response.tools[0]).not.toHaveProperty("annotations");
+    } finally {
+      await cleanup();
+    }
+  });
+});
+
 describe("createMCPServer fetch runtime options plumbing", () => {
   beforeEach(() => {
   });

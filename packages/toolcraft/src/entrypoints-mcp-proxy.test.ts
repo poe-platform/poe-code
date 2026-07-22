@@ -169,6 +169,9 @@ vi.mock("tiny-stdio-mcp-server", () => ({
       tool: (name: string, _description: string, _schema: unknown, _handler: unknown) => {
         state.tools.push(name);
       },
+      registerTool: (definition: { name: string }, _handler: unknown) => {
+        state.tools.push(definition.name);
+      },
       method: vi.fn(),
       listen: state.listen,
       connectSDK: state.connectSDK

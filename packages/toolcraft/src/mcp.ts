@@ -9,7 +9,14 @@ import {
   type TypedSchema
 } from "tiny-stdio-mcp-server";
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
-import type { Command, Group, HandlerFs, LogLevel, RuntimeLoggerInput } from "./index.js";
+import type {
+  Command,
+  Group,
+  HandlerFs,
+  LogLevel,
+  RuntimeLoggerInput,
+  ToolAnnotations
+} from "./index.js";
 import { createHttpErrorEnvelope, isHttpErrorLike } from "./api-error-summary.js";
 import {
   ToolcraftBugError,
@@ -75,6 +82,8 @@ interface ToolDefinition<TServices extends object> {
   description: string;
   inputSchema: JsonSchema;
   name: string;
+  title?: string;
+  annotations?: ToolAnnotations;
   outputSchema?: JsonSchema;
   resultSchema?: ObjectSchema<any>;
 }
@@ -405,6 +414,8 @@ function enumerateTools<TServices extends object>(
         command: node,
         commandPath: resolvedCommandPath,
         name,
+        ...(node.title === undefined ? {} : { title: node.title }),
+        ...(node.annotations === undefined ? {} : { annotations: { ...node.annotations } }),
         description: buildToolDescription(
           node.description,
           params,
@@ -1314,22 +1325,21 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
       }
     };
 
-    if (tool.outputSchema === undefined) {
-      server.tool(
-        tool.name,
-        tool.description,
-        tool.inputSchema as TypedSchema<Record<string, unknown>>,
-        handler as ToolHandler<Record<string, unknown>>
-      );
-    } else {
-      server.tool(
-        tool.name,
-        tool.description,
-        tool.inputSchema as TypedSchema<Record<string, unknown>>,
-        handler as ToolHandler<Record<string, unknown>, Record<string, unknown>>,
-        tool.outputSchema as TypedSchema<Record<string, unknown>>
-      );
-    }
+    server.registerTool(
+      {
+        name: tool.name,
+        ...(tool.title === undefined ? {} : { title: tool.title }),
+        description: tool.description,
+        inputSchema: tool.inputSchema as TypedSchema<Record<string, unknown>>,
+        ...(tool.outputSchema === undefined
+          ? {}
+          : {
+              outputSchema: tool.outputSchema as TypedSchema<Record<string, unknown>>
+            }),
+        ...(tool.annotations === undefined ? {} : { annotations: tool.annotations })
+      },
+      handler as ToolHandler<Record<string, unknown>, Record<string, unknown>>
+    );
   }
 
   return {

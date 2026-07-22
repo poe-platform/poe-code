@@ -138,6 +138,13 @@ export interface Renderers<TResult> {
   json?: (result: TResult, primitives: RenderPrimitives) => unknown;
 }
 
+export interface ToolAnnotations {
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+}
+
 export type HandlerContext<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
@@ -159,7 +166,9 @@ export interface CommandConfig<
   TResult
 > {
   name: string;
+  title?: string;
   description?: string;
+  annotations?: ToolAnnotations;
   hidden?: boolean;
   examples?: CommandExample[];
   aliases?: string[];
@@ -214,7 +223,9 @@ export interface Command<
 > {
   kind: "command";
   name: string;
+  title?: string;
   description?: string;
+  annotations?: ToolAnnotations;
   hidden: boolean;
   examples: CommandExample[];
   aliases: string[];
@@ -323,6 +334,8 @@ type TypedGroupMetadata<
 };
 
 interface InternalCommandConfig {
+  title?: string;
+  annotations?: ToolAnnotations;
   scope?: Scope[];
   hidden: boolean;
   examples: CommandExample[];
@@ -392,6 +405,12 @@ function cloneRequires<TContext>(
     apiVersion: requires.apiVersion,
     check: requires.check
   };
+}
+
+function cloneToolAnnotations(
+  annotations: ToolAnnotations | undefined
+): ToolAnnotations | undefined {
+  return annotations === undefined ? undefined : { ...annotations };
 }
 
 function cloneStringArray(values: string[] | undefined): string[] | undefined {
@@ -775,7 +794,9 @@ function createBaseCommand<
   const command: Command<TServices, TParamsSchema, TSecrets, TResult> = {
     kind: "command",
     name: config.name,
+    title: config.title,
     description: config.description,
+    annotations: cloneToolAnnotations(config.annotations),
     hidden: config.hidden ?? false,
     examples: cloneCommandExamples(config.examples),
     aliases: [...(config.aliases ?? [])],
@@ -794,6 +815,8 @@ function createBaseCommand<
 
   Object.defineProperty(command, commandConfigSymbol, {
     value: {
+      title: config.title,
+      annotations: cloneToolAnnotations(config.annotations),
       scope: cloneScope(config.scope),
       hidden: config.hidden ?? false,
       examples: cloneCommandExamples(config.examples),
@@ -869,7 +892,9 @@ function materializeCommand<
   const materialized: Command<TServices, TParamsSchema, TSecrets, TResult> = {
     kind: "command",
     name: command.name,
+    title: internal.title,
     description: command.description,
+    annotations: cloneToolAnnotations(internal.annotations),
     hidden: internal.hidden,
     examples: cloneCommandExamples(internal.examples),
     aliases: [...command.aliases],
@@ -888,6 +913,8 @@ function materializeCommand<
 
   Object.defineProperty(materialized, commandConfigSymbol, {
     value: {
+      title: internal.title,
+      annotations: cloneToolAnnotations(internal.annotations),
       scope: cloneScope(internal.scope),
       hidden: internal.hidden,
       examples: cloneCommandExamples(internal.examples),

@@ -691,6 +691,7 @@ export class McpClient {
 
 export interface Tool {
   name: string;
+  title?: string;
   description?: string;
   inputSchema: Record<string, unknown>;
   outputSchema?: Record<string, unknown>;

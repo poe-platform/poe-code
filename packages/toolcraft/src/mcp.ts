@@ -77,13 +77,13 @@ export const MCP_STREAM_METHODS = {
 } as const;
 
 interface ToolDefinition<TServices extends object> {
+  annotations?: ToolAnnotations;
   command: Command<TServices, any, any, any>;
   commandPath: string;
   description: string;
   inputSchema: JsonSchema;
   name: string;
   title?: string;
-  annotations?: ToolAnnotations;
   outputSchema?: JsonSchema;
   resultSchema?: ObjectSchema<any>;
 }
@@ -411,11 +411,11 @@ function enumerateTools<TServices extends object>(
       commandPathsByToolName.set(name, resolvedCommandPath);
 
       tools.push({
+        ...(node.annotations === undefined ? {} : { annotations: { ...node.annotations } }),
         command: node,
         commandPath: resolvedCommandPath,
         name,
         ...(node.title === undefined ? {} : { title: node.title }),
-        ...(node.annotations === undefined ? {} : { annotations: { ...node.annotations } }),
         description: buildToolDescription(
           node.description,
           params,

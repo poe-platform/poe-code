@@ -928,6 +928,62 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("advertises command titles and standard MCP annotations", async () => {
+    const root = defineGroup({
+      name: "root",
+      scope: ["mcp"],
+      children: [
+        defineCommand({
+          name: "inspect",
+          title: "Inspect deployment",
+          description: "Inspect a deployment",
+          annotations: {
+            title: "Inspect",
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+            openWorldHint: false
+          },
+          params: S.Object({}),
+          handler: async () => "ok"
+        }),
+        defineCommand({
+          name: "legacy",
+          params: S.Object({}),
+          handler: async () => "ok"
+        })
+      ]
+    });
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+      const inspect = result.tools.find((tool) => tool.name === "inspect");
+      const legacy = result.tools.find((tool) => tool.name === "legacy");
+
+      expect(inspect).toMatchObject({
+        title: "Inspect deployment",
+        annotations: {
+          title: "Inspect",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }
+      });
+      expect(legacy).not.toHaveProperty("title");
+      expect(legacy).not.toHaveProperty("annotations");
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("rejects MCP commands that normalize to the same tool name", () => {
     const root = defineGroup({
       name: "root",

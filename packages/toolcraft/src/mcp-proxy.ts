@@ -4,7 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { createLogger } from "toolcraft-design";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
-import type { Tool } from "tiny-mcp-client";
+import type { Tool as ClientTool } from "tiny-mcp-client";
 import type { Command, Group, Scope } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { convertJsonSchema } from "./json-schema-converter.js";
@@ -54,6 +54,8 @@ interface McpProxyCache {
 export interface ResolveMcpProxyOptions {
   projectRoot?: string;
 }
+
+type Tool = ClientTool & { title?: string };
 
 type GroupChild<TServices extends object = Record<string, never>> =
   | Command<TServices, any, any, any>
@@ -155,7 +157,9 @@ function createProxyCommand(
   return markProxyNode({
     kind: "command",
     name: commandName,
+    title: tool.title,
     description: tool.description,
+    annotations: tool.annotations === undefined ? undefined : { ...tool.annotations },
     hidden: false,
     examples: [],
     aliases: [],

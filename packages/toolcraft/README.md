@@ -334,6 +334,28 @@ defineCommand({
 });
 ```
 
+MCP assumes an unannotated tool may mutate data destructively, is not safe to retry, and can
+interact with an open world. Declare the standard hints on each MCP command so clients can present
+the operation accurately:
+
+```ts
+defineCommand({
+  name: "inspect",
+  title: "Inspect deployment",
+  description: "Inspect a deployment without changing it.",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false
+  },
+  scope: ["mcp"],
+  params: S.Object({ deploymentId: S.String() }),
+  result: S.Object({ status: S.String() }),
+  handler: async ({ params }) => inspectDeployment(params.deploymentId)
+});
+```
+
 ## HTTP errors
 
 Toolcraft exports a fixed HTTP error hierarchy for transports and generated API clients:
@@ -554,7 +576,9 @@ Toolcraft configuration is code-first. Use `defineCommand(config)` and `defineGr
 ### `defineCommand(config)`
 
 - `name: string`
+- `title?: string` — human-readable MCP display name.
 - `description?: string`
+- `annotations?: { title?; readOnlyHint?; destructiveHint?; idempotentHint?; openWorldHint? }` — standard MCP behavior hints passed through unchanged.
 - `aliases?: string[]`
 - `positional?: string[]` — parameter names mapped from CLI argv order.
 - `params: S.Object(...)` — input schema from `toolcraft-schema`.

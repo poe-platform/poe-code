@@ -138,7 +138,9 @@ export interface Renderers<TResult> {
   json?: (result: TResult, primitives: RenderPrimitives) => unknown;
 }
 
+/** Standard MCP hints that describe a tool's behavior to clients. */
 export interface ToolAnnotations {
+  title?: string;
   readOnlyHint?: boolean;
   destructiveHint?: boolean;
   idempotentHint?: boolean;

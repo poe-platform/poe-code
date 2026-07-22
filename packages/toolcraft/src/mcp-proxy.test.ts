@@ -10,9 +10,17 @@ const loggerState = {
 
 type MockTool = {
   name: string;
+  title?: string;
   description?: string;
   inputSchema: Record<string, unknown>;
   outputSchema?: Record<string, unknown>;
+  annotations?: {
+    title?: string;
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    idempotentHint?: boolean;
+    openWorldHint?: boolean;
+  };
 };
 
 type MockClientPlan = {
@@ -310,7 +318,18 @@ describe("resolveMcpProxies", () => {
           upstream: { name: "mock-upstream", version: "1.0.0" },
           configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
-          tools: [tool("create_issue")],
+          tools: [
+            {
+              ...tool("create_issue"),
+              title: "Create issue",
+              annotations: {
+                readOnlyHint: false,
+                destructiveHint: false,
+                idempotentHint: false,
+                openWorldHint: true,
+              },
+            },
+          ],
         }),
       },
       "/"
@@ -322,6 +341,13 @@ describe("resolveMcpProxies", () => {
     expect(proxyGroup.children[0]).toMatchObject({
       kind: "command",
       name: "create_issue",
+      title: "Create issue",
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
     });
     expect(clientState.instances).toHaveLength(0);
     expect(loggerState.info).toEqual([]);

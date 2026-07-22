@@ -25,7 +25,14 @@ function createCommands() {
     children: [
       defineCommand({
         name: "read-entry",
+        title: "Read daybook entry",
         description: "Read an entry",
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        },
         scope: ["mcp"],
         params: S.Object({ entryId: S.String() }),
         result: S.Object({ entryId: S.String(), title: S.String() }),
@@ -98,6 +105,15 @@ describe("Toolcraft HTTP MCP adapter", () => {
       httpClient.listTools()
     ]);
     expect(httpTools.tools).toEqual(stdioTools.tools);
+    expect(httpTools.tools[0]).toMatchObject({
+      title: "Read daybook entry",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    });
 
     for (const call of [
       { name: "daybook__read_entry", arguments: { entry_id: "entry-1" } },

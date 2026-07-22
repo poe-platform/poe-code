@@ -21,6 +21,7 @@ const annotations: ToolAnnotations = {
 
 const tool: Tool = {
   name: "word_of_the_day",
+  title: "Word of the day",
   description: "Returns a random word.",
   inputSchema: {
     type: "object",

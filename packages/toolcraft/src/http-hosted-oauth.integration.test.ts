@@ -26,6 +26,39 @@ function hiddenValue(html: string, name: string): string {
   return html.slice(valueStart, end);
 }
 
+async function beginAuthorization(input: {
+  base: string;
+  resource: string;
+  state: string;
+}): Promise<{
+  clientId: string;
+  verifier: string;
+  response: Response;
+}> {
+  const registration = await nodeFetch(`${input.base}/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      redirect_uris: ["https://client.example/callback"],
+      token_endpoint_auth_method: "none"
+    })
+  });
+  expect(registration.status).toBe(201);
+  const { client_id: clientId } = (await registration.json()) as { client_id: string };
+  const verifier = "a".repeat(43);
+  const authorize = new URL(`${input.base}/authorize`);
+  authorize.search = new URLSearchParams({
+    response_type: "code",
+    client_id: clientId,
+    redirect_uri: "https://client.example/callback",
+    code_challenge: createHash("sha256").update(verifier).digest("base64url"),
+    code_challenge_method: "S256",
+    resource: input.resource,
+    state: input.state
+  }).toString();
+  return { clientId, verifier, response: await nodeFetch(authorize) };
+}
+
 describe("hosted OAuth HTTP composition", () => {
   it("rejects a listen path that conflicts with the canonical public URL", async () => {
     const root = defineGroup({
@@ -253,5 +286,236 @@ describe("hosted OAuth HTTP composition", () => {
       "second-state"
     );
     expect(connect).toHaveBeenCalledTimes(3);
+  });
+
+  it("keeps built-in authorization retryable when credential persistence fails", async () => {
+    const resource = "http://127.0.0.1:43210/mcp";
+    const storage = createInMemoryHostedOAuthStorage<string>({ development: true });
+    const credentialSet = vi
+      .spyOn(storage.credentials, "set")
+      .mockRejectedValueOnce(new Error("credential write failed"));
+    const takeTransaction = vi.spyOn(
+      storage.authorizationServer,
+      "takeAuthorizationTransaction"
+    );
+    const putGrant = vi.spyOn(storage.authorizationServer, "putGrant");
+    const putCode = vi.spyOn(storage.authorizationServer, "putAuthorizationCode");
+    const root = defineGroup({
+      name: "calendar",
+      children: [
+        defineCommand({
+          name: "ping",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: () => "pong"
+        })
+      ]
+    });
+    const server = await createHTTPMCPServer(root, {
+      name: "credential-failure-test",
+      version: "1.0.0",
+      oauth: hostedOAuth({
+        publicUrl: resource,
+        storage,
+        provider: {
+          name: "Skylight",
+          login: { fields: ["email", "password"] },
+          async connect() {
+            return { accountId: "account-1", credential: "credential-1" };
+          },
+          services: () => ({})
+        }
+      })
+    });
+    const handle = await server.listenHttp({ port: 0 });
+    cleanups.push(handle.close);
+    const base = new URL(handle.url).origin;
+    const authorization = await beginAuthorization({
+      base,
+      resource,
+      state: "credential-failure-state"
+    });
+    const html = await authorization.response.text();
+    const cookie = authorization.response.headers.get("set-cookie")?.split(";", 1)[0] ?? "";
+    const transactionId = hiddenValue(html, "transaction");
+    const form = new URLSearchParams({
+      transaction: transactionId,
+      csrf: hiddenValue(html, "csrf"),
+      email: "user@example.com",
+      password: "secret"
+    });
+
+    const failed = await nodeFetch(`${base}/oauth/connect`, {
+      method: "POST",
+      redirect: "manual",
+      headers: { "content-type": "application/x-www-form-urlencoded", cookie },
+      body: form
+    });
+    expect(failed.status).toBe(400);
+    expect(await storage.interactions.get(transactionId)).toBeDefined();
+    expect(takeTransaction).not.toHaveBeenCalled();
+    expect(putGrant).not.toHaveBeenCalled();
+    expect(putCode).not.toHaveBeenCalled();
+    const subject = await storage.resolveSubject("Skylight", "account-1");
+    expect(await storage.credentials.get(subject)).toBeUndefined();
+
+    const retry = await nodeFetch(`${base}/oauth/connect`, {
+      method: "POST",
+      redirect: "manual",
+      headers: { "content-type": "application/x-www-form-urlencoded", cookie },
+      body: form
+    });
+    expect(retry.status).toBe(303);
+    expect(new URL(retry.headers.get("location") ?? "").searchParams.get("state")).toBe(
+      "credential-failure-state"
+    );
+    expect(credentialSet).toHaveBeenCalledTimes(2);
+    expect(takeTransaction).toHaveBeenCalledTimes(1);
+    expect(putGrant).toHaveBeenCalledTimes(1);
+    expect(putCode).toHaveBeenCalledTimes(1);
+    expect(await storage.credentials.get(subject)).toBe("credential-1");
+  });
+
+  it("keeps custom-interaction authorization retryable when credential persistence fails", async () => {
+    const resource = "http://127.0.0.1:43210/mcp";
+    const storage = createInMemoryHostedOAuthStorage<string>({ development: true });
+    const credentialSet = vi
+      .spyOn(storage.credentials, "set")
+      .mockRejectedValueOnce(new Error("credential write failed"));
+    const takeTransaction = vi.spyOn(
+      storage.authorizationServer,
+      "takeAuthorizationTransaction"
+    );
+    const putGrant = vi.spyOn(storage.authorizationServer, "putGrant");
+    const putCode = vi.spyOn(storage.authorizationServer, "putAuthorizationCode");
+    const root = defineGroup({
+      name: "calendar",
+      children: [
+        defineCommand({
+          name: "ping",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: () => "pong"
+        })
+      ]
+    });
+    const server = await createHTTPMCPServer(root, {
+      name: "custom-credential-failure-test",
+      version: "1.0.0",
+      oauth: hostedOAuth({
+        publicUrl: resource,
+        storage,
+        provider: {
+          name: "Skylight",
+          services: () => ({})
+        },
+        advanced: {
+          interaction: {
+            paths: ["/oauth/provider/callback"],
+            start: ({ transaction }) => Response.json({ transactionId: transaction.id }),
+            async handle({ request, complete }) {
+              const { transactionId } = (await request.json()) as { transactionId: string };
+              return complete({
+                transactionId,
+                accountId: "account-1",
+                credential: "credential-1"
+              });
+            }
+          }
+        }
+      })
+    });
+    const handle = await server.listenHttp({ port: 0 });
+    cleanups.push(handle.close);
+    const base = new URL(handle.url).origin;
+    const authorization = await beginAuthorization({
+      base,
+      resource,
+      state: "custom-credential-failure-state"
+    });
+    const { transactionId } = (await authorization.response.json()) as {
+      transactionId: string;
+    };
+    const callbackRequest = {
+      method: "POST",
+      redirect: "manual" as const,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ transactionId })
+    };
+
+    const failed = await nodeFetch(`${base}/oauth/provider/callback`, callbackRequest);
+    expect(failed.status).toBe(500);
+    expect(await storage.interactions.get(transactionId)).toBeDefined();
+    expect(takeTransaction).not.toHaveBeenCalled();
+    expect(putGrant).not.toHaveBeenCalled();
+    expect(putCode).not.toHaveBeenCalled();
+    const subject = await storage.resolveSubject("Skylight", "account-1");
+    expect(await storage.credentials.get(subject)).toBeUndefined();
+
+    const retry = await nodeFetch(`${base}/oauth/provider/callback`, callbackRequest);
+    expect(retry.status).toBe(303);
+    expect(new URL(retry.headers.get("location") ?? "").searchParams.get("state")).toBe(
+      "custom-credential-failure-state"
+    );
+    expect(credentialSet).toHaveBeenCalledTimes(2);
+    expect(takeTransaction).toHaveBeenCalledTimes(1);
+    expect(putGrant).toHaveBeenCalledTimes(1);
+    expect(putCode).toHaveBeenCalledTimes(1);
+    expect(await storage.credentials.get(subject)).toBe("credential-1");
+  });
+
+  it("reports hosted storage health without exposing failure details", async () => {
+    const resource = "http://127.0.0.1:43210/mcp";
+    const health = { failure: undefined as Error | undefined };
+    const healthCheck = vi.fn(async () => {
+      if (health.failure !== undefined) throw health.failure;
+    });
+    const storage = {
+      ...createInMemoryHostedOAuthStorage<string>({ development: true }),
+      healthCheck
+    };
+    const root = defineGroup({
+      name: "calendar",
+      children: [
+        defineCommand({
+          name: "ping",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: () => "pong"
+        })
+      ]
+    });
+    const server = await createHTTPMCPServer(root, {
+      name: "storage-health-test",
+      version: "1.0.0",
+      oauth: hostedOAuth({
+        publicUrl: resource,
+        storage,
+        provider: {
+          name: "Skylight",
+          login: { fields: ["apiKey"] },
+          async connect() {
+            return { accountId: "account-1", credential: "credential-1" };
+          },
+          services: () => ({})
+        }
+      })
+    });
+    const handle = await server.listenHttp({ port: 0 });
+    cleanups.push(handle.close);
+    const healthUrl = new URL("/healthz", handle.url);
+
+    const healthy = await nodeFetch(healthUrl);
+    expect(healthy.status).toBe(200);
+    await expect(healthy.json()).resolves.toEqual({ ok: true });
+    expect(healthCheck).toHaveBeenCalledTimes(1);
+
+    health.failure = new Error("redis password must never appear");
+    const unhealthy = await nodeFetch(healthUrl);
+    expect(unhealthy.status).toBe(503);
+    const unhealthyBody = await unhealthy.text();
+    expect(JSON.parse(unhealthyBody)).toEqual({ ok: false });
+    expect(unhealthyBody).not.toContain(health.failure.message);
+    expect(healthCheck).toHaveBeenCalledTimes(2);
   });
 });

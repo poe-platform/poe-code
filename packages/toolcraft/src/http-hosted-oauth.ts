@@ -53,6 +53,7 @@ export interface HostedOAuthStorage<TCredential = unknown> {
   capabilities: HostedOAuthStorageCapabilities;
   signingKey(): Promise<OAuthAuthorizationServerSigningKey>;
   resolveSubject(providerName: string, accountId: string): Promise<string>;
+  healthCheck?(): Promise<void>;
   cleanup?(now?: number): Promise<void>;
 }
 
@@ -406,8 +407,20 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
   const requestHandler: HttpAdditionalRequestHandler = async (request, response) => {
     const url = new URL(request.url ?? "/", prepared.issuer);
     if (request.method === "GET" && url.pathname === "/healthz") {
-      response.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
-      response.end('{"ok":true}');
+      try {
+        await config.storage.healthCheck?.();
+        response.writeHead(200, {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        });
+        response.end('{"ok":true}');
+      } catch {
+        response.writeHead(503, {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        });
+        response.end('{"ok":false}');
+      }
       return true;
     }
     if (customInteraction?.paths.includes(url.pathname) === true) {
@@ -417,11 +430,11 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
         request: toWebRequest(request, prepared.issuer, body),
         async complete({ transactionId, accountId, credential }) {
           const subject = await config.storage.resolveSubject(config.provider.name, accountId);
+          await config.storage.credentials.set(subject, credential);
           const completed = await authorizationServer.completeAuthorization({
             transactionId,
             subject
           });
-          await config.storage.credentials.set(subject, credential);
           await config.storage.interactions.delete(transactionId);
           return new Response(null, {
             status: 303,
@@ -474,11 +487,11 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
           config.provider.name,
           connected.accountId
         );
+        await config.storage.credentials.set(subject, connected.credential);
         const completed = await authorizationServer.completeAuthorization({
           transactionId,
           subject
         });
-        await config.storage.credentials.set(subject, connected.credential);
         await config.storage.interactions.delete(transactionId);
         response.writeHead(303, {
           location: completed.redirectUrl.href,

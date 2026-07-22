@@ -67,7 +67,7 @@ export interface AccessTokenRecord {
 
 export type RefreshTokenRotationResult =
   | { status: "rotated"; previous: RefreshTokenRecord }
-  | { status: "replay" }
+  | { status: "replay"; grant?: AuthorizationGrantRecord }
   | { status: "invalid" };
 
 export interface AuthorizationServerStore {
@@ -90,7 +90,10 @@ export interface AuthorizationServerStore {
     now: number,
     expiresAt: number
   ): Promise<RefreshTokenRotationResult>;
-  revokeToken(tokenHash: string, now: number): Promise<void>;
+  revokeToken(
+    tokenHash: string,
+    now: number
+  ): Promise<void | AuthorizationGrantRecord>;
   revokeGrant(grantId: string, now: number): Promise<void>;
 }
 
@@ -126,6 +129,7 @@ export interface OAuthAuthorizationServerOptions {
   maxRequestBodyBytes?: number;
   now?: () => number;
   randomToken?: () => string;
+  onGrantRevoked?(grant: AuthorizationGrantRecord): Promise<void> | void;
 }
 
 export interface CompleteAuthorizationInput {
@@ -409,7 +413,11 @@ export function createInMemoryAuthorizationServerStore(): AuthorizationServerSto
       }
       if (token.status === "rotated") {
         revokeFamily(token.familyId, now);
-        return { status: "replay" };
+        const grant = grants.get(token.grantId);
+        return {
+          status: "replay",
+          ...(grant === undefined ? {} : { grant: structuredClone(grant) })
+        };
       }
       refreshTokens.set(tokenHash, { ...token, status: "rotated" });
       refreshTokens.set(replacementTokenHash, {
@@ -423,13 +431,20 @@ export function createInMemoryAuthorizationServerStore(): AuthorizationServerSto
     },
     async revokeToken(tokenHash, now) {
       const refreshToken = refreshTokens.get(tokenHash);
+      const accessToken = accessTokens.get(tokenHash);
+      const grantId = refreshToken?.grantId ?? accessToken?.grantId;
+      const grant = grantId === undefined ? undefined : grants.get(grantId);
+      const alreadyRevoked =
+        grant?.revokedAt !== undefined ||
+        refreshToken?.status === "revoked" ||
+        accessToken?.revokedAt !== undefined;
       if (refreshToken !== undefined) {
         revokeFamily(refreshToken.familyId, now);
       }
-      const accessToken = accessTokens.get(tokenHash);
       if (accessToken !== undefined) {
         accessTokens.set(tokenHash, { ...accessToken, revokedAt: now });
       }
+      return grant === undefined || alreadyRevoked ? undefined : structuredClone(grant);
     },
     async revokeGrant(grantId, now) {
       const grant = grants.get(grantId);
@@ -464,6 +479,12 @@ export function createOAuthAuthorizationServer(
   }
   const now = options.now ?? Date.now;
   const randomToken = options.randomToken ?? opaqueToken;
+
+  async function notifyGrantRevoked(
+    grant: AuthorizationGrantRecord | undefined | void
+  ): Promise<void> {
+    if (grant !== undefined) await options.onGrantRevoked?.(grant);
+  }
   const accessTokenTtlMs = (options.accessTokenTtlSeconds ?? 300) * 1000;
   const authorizationCodeTtlMs = (options.authorizationCodeTtlSeconds ?? 60) * 1000;
   const authorizationTransactionTtlMs = (options.authorizationTransactionTtlSeconds ?? 600) * 1000;
@@ -781,13 +802,16 @@ export function createOAuthAuthorizationServer(
       currentTime + refreshTokenTtlMs
     );
     if (existing.status !== "rotated") {
+      if (existing.status === "replay") await notifyGrantRevoked(existing.grant);
       throw new OAuthProtocolError("invalid_grant", "Refresh token is invalid or replayed.");
     }
     if (
       existing.previous.clientId !== body.get("client_id") ||
       existing.previous.resource !== requestedResource
     ) {
+      const revokedGrant = await options.store.getGrant(existing.previous.grantId);
       await options.store.revokeGrant(existing.previous.grantId, currentTime);
+      await notifyGrantRevoked(revokedGrant);
       throw new OAuthProtocolError("invalid_grant", "Refresh token binding is invalid.");
     }
     const grant = await options.store.getGrant(existing.previous.grantId);
@@ -812,7 +836,9 @@ export function createOAuthAuthorizationServer(
     requireFormContentType(request);
     const body = new URLSearchParams(await readRequestBody(request));
     const token = body.get("token");
-    if (token !== null) await options.store.revokeToken(hashToken(token), now());
+    if (token !== null) {
+      await notifyGrantRevoked(await options.store.revokeToken(hashToken(token), now()));
+    }
     return new Response(null, { status: 200, headers: { "cache-control": "no-store" } });
   }
 
@@ -912,7 +938,9 @@ export function createOAuthAuthorizationServer(
     denyAuthorization,
     verifyAccessToken,
     async revokeGrant(grantId) {
+      const grant = await options.store.getGrant(grantId);
       await options.store.revokeGrant(grantId, now());
+      await notifyGrantRevoked(grant?.revokedAt === undefined ? grant : undefined);
     }
   };
 }

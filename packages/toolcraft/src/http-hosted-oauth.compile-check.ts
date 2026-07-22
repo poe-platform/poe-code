@@ -6,6 +6,13 @@ interface Services {
 }
 
 declare const ignoredStorage: HostedOAuthStorage<string>;
+const ignoredRevocationObserver: NonNullable<
+  HostedOAuthStorage<string>["onGrantRevoked"]
+> = async (grant) => {
+  const ignoredSubject: string = grant.subject;
+  void ignoredSubject;
+};
+void ignoredRevocationObserver;
 
 const ignoredHostedOAuth = hostedOAuth<string, Services>({
   publicUrl: "https://calendar.example/mcp",
@@ -39,6 +46,7 @@ const ignoredHostedOAuth = hostedOAuth<string, Services>({
 });
 
 void ignoredHostedOAuth;
+void ignoredHostedOAuth.assertProductionReady();
 
 const ignoredRedirectHostedOAuth = hostedOAuth<string, Services>({
   publicUrl: "https://calendar.example/mcp",

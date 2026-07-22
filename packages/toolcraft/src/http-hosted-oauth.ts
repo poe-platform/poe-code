@@ -7,6 +7,7 @@ import {
   createOAuthAuthorizationServer,
   verifyAuthorizationInteractionCsrf,
   type AuthorizationServerStore,
+  type AuthorizationGrantRecord,
   type AuthorizationTransactionRecord,
   type OAuthAuthorizationServerSigningKey
 } from "mcp-oauth-server";
@@ -55,6 +56,7 @@ export interface HostedOAuthStorage<TCredential = unknown> {
   resolveSubject(providerName: string, accountId: string): Promise<string>;
   healthCheck?(): Promise<void>;
   cleanup?(now?: number): Promise<void>;
+  onGrantRevoked?(grant: AuthorizationGrantRecord): Promise<void> | void;
 }
 
 export interface HostedOAuthCredentialAccess<TCredential = unknown> {
@@ -135,6 +137,7 @@ export interface HostedOAuthConfiguration<
 > extends HostedOAuthOptions<TCredential, TServices> {
   readonly kind: "hosted";
   prepare(options?: { production?: boolean }): Promise<PreparedHostedOAuth>;
+  assertProductionReady(): Promise<PreparedHostedOAuth>;
 }
 
 export function isHostedOAuthConfiguration(
@@ -239,6 +242,9 @@ export function hostedOAuth<TCredential = unknown, TServices extends object = ob
         issuer: new URL(publicUrl.origin),
         scopes: this.advanced?.scopes ?? ["mcp", "offline_access"]
       };
+    },
+    async assertProductionReady() {
+      return this.prepare({ production: true });
     }
   };
 }
@@ -420,7 +426,8 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
     accessTokenTtlSeconds: config.advanced?.accessTokenTtlSeconds,
     authorizationCodeTtlSeconds: config.advanced?.authorizationCodeTtlSeconds,
     authorizationTransactionTtlSeconds: config.advanced?.authorizationTransactionTtlSeconds,
-    refreshTokenTtlSeconds: config.advanced?.refreshTokenTtlSeconds
+    refreshTokenTtlSeconds: config.advanced?.refreshTokenTtlSeconds,
+    onGrantRevoked: config.storage.onGrantRevoked
   });
 
   const requestHandler: HttpAdditionalRequestHandler = async (request, response) => {

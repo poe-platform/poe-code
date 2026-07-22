@@ -36,6 +36,9 @@ describe("hostedOAuth", () => {
     await expect(config.prepare({ production: true })).rejects.toThrow(
       /HTTPS publicUrl.*durable storage/i
     );
+    await expect(config.assertProductionReady()).rejects.toThrow(
+      /HTTPS publicUrl.*durable storage/i
+    );
   });
 
   it("keeps credentials isolated by opaque subject", async () => {

@@ -77,6 +77,8 @@ The built-in form recognizes `email`, `password`, and `apiKey`; custom fields us
 
 Toolcraft defines the contract. Concrete database clients and adapters remain application-owned or separately distributed and are not mandatory Toolcraft dependencies.
 
+Adapters can run `verifyHostedOAuthStorage()` from `toolcraft/testing` against their storage factory. The reusable conformance check covers stable subjects and keys, credential isolation and serialized updates, interaction lifecycle, one-time authorization records, token rotation/replay, and revocation persistence.
+
 ### Defaults
 
 The happy path provides:
@@ -107,6 +109,8 @@ The happy path provides:
 - Expired or consumed interactions require restarting the connection.
 - Missing subject credentials fail closed with no process-global fallback.
 - Production requires HTTPS, durable storage, encrypted credentials, stable keys, and valid scope relationships.
+- `assertProductionReady()` performs those production checks explicitly before deployment.
+- `HostedOAuthStorage.onGrantRevoked` observes newly revoked grants so an adapter can unlink provider credentials after its final active grant is gone.
 - Existing unauthenticated, pre-shared-token, external OAuth, stdio, and local HTTP APIs remain unchanged and do not initialize hosted OAuth.
 
 Advanced controls remain grouped under `hostedOAuth({ advanced: ... })`, including scopes and protocol TTLs. Existing HTTP limits and proxy controls remain beside `oauth` in `createHTTPMCPServer()` options.

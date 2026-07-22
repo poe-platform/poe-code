@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   createInMemoryAuthorizationServerStore,
   createOAuthAuthorizationServer,
+  type AuthorizationGrantRecord,
   type AuthorizationInteraction
 } from "./index.js";
 
@@ -15,7 +16,9 @@ const redirectUri = "http://127.0.0.1:43123/callback";
 const verifier = "v".repeat(43);
 const challenge = createHash("sha256").update(verifier).digest("base64url");
 
-async function createServer() {
+async function createServer(options: {
+  onGrantRevoked?: (grant: AuthorizationGrantRecord) => Promise<void> | void;
+} = {}) {
   const { privateKey, publicKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
   const publicJwk = await exportJWK(publicKey);
   const startedTransactions: string[] = [];
@@ -37,7 +40,8 @@ async function createServer() {
       publicJwk
     },
     store: createInMemoryAuthorizationServerStore(),
-    interaction
+    interaction,
+    onGrantRevoked: options.onGrantRevoked
   });
 
   return { server, startedTransactions, publicKey };
@@ -276,7 +280,12 @@ describe("createOAuthAuthorizationServer", () => {
   });
 
   it("rotates refresh tokens and revokes the family when an old token is replayed", async () => {
-    const { server, startedTransactions } = await createServer();
+    const revoked: AuthorizationGrantRecord[] = [];
+    const { server, startedTransactions } = await createServer({
+      onGrantRevoked: (grant) => {
+        revoked.push(grant);
+      }
+    });
     const client = await registerClient(server);
     await authorize(server, client.client_id);
     const completion = await server.completeAuthorization({
@@ -316,6 +325,7 @@ describe("createOAuthAuthorizationServer", () => {
     const familyResponse = await rotate(rotated.refresh_token);
     expect(familyResponse.status).toBe(400);
     await expect(familyResponse.json()).resolves.toMatchObject({ error: "invalid_grant" });
+    expect(revoked).toMatchObject([{ subject: "baby-daybook:user-a" }]);
   });
 
   it("publishes authorization-server metadata and JWKS", async () => {
@@ -375,6 +385,56 @@ describe("createOAuthAuthorizationServer", () => {
     await expect(
       server.verifyAccessToken(secondTokens.access_token, resource)
     ).resolves.toMatchObject({ subject: "baby-daybook:user-b" });
+  });
+
+  it("reports grant revocation from token and explicit grant revocation", async () => {
+    const revoked: AuthorizationGrantRecord[] = [];
+    const { server, startedTransactions } = await createServer({
+      onGrantRevoked: (grant) => {
+        revoked.push(grant);
+      }
+    });
+    const client = await registerClient(server);
+    await authorize(server, client.client_id);
+    const first = await server.completeAuthorization({
+      transactionId: startedTransactions.shift()!,
+      subject: "baby-daybook:user-a"
+    });
+    const firstTokens = (await (
+      await exchangeCode({
+        server,
+        clientId: client.client_id,
+        code: first.redirectUrl.searchParams.get("code")!
+      })
+    ).json()) as { access_token: string };
+
+    await server.handle(
+      new Request(`${issuer}/revoke`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ token: firstTokens.access_token })
+      })
+    );
+    await server.handle(
+      new Request(`${issuer}/revoke`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ token: firstTokens.access_token })
+      })
+    );
+
+    await authorize(server, client.client_id);
+    const second = await server.completeAuthorization({
+      transactionId: startedTransactions.shift()!,
+      subject: "baby-daybook:user-b"
+    });
+    await server.revokeGrant(second.grantId);
+    await server.revokeGrant(second.grantId);
+
+    expect(revoked).toMatchObject([
+      { id: first.grantId, subject: "baby-daybook:user-a" },
+      { id: second.grantId, subject: "baby-daybook:user-b" }
+    ]);
   });
 
   it("rejects oversized registration and token requests", async () => {

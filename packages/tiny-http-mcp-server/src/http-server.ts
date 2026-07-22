@@ -44,7 +44,13 @@ export interface TinyHttpMcpServerOAuthOptions extends ProtectedResourceMetadata
 export type HttpTransportOptions = ServerOptions &
   StreamableHttpTransportOptions & {
     oauth?: TinyHttpMcpServerOAuthOptions;
+    requestHandler?: HttpAdditionalRequestHandler;
   };
+
+export type HttpAdditionalRequestHandler = (
+  request: IncomingMessage,
+  response: ServerResponse
+) => boolean | Promise<boolean>;
 
 export interface HttpListenOptions {
   port?: number;
@@ -317,6 +323,10 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
       const requestUrl = new URL(req.url ?? "/", "http://127.0.0.1");
 
       try {
+        if (options.requestHandler !== undefined && (await options.requestHandler(req, res))) {
+          return;
+        }
+
         if (
           protectedResourceMetadataBody !== undefined &&
           req.method === "GET" &&

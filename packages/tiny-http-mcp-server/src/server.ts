@@ -2,6 +2,7 @@ export { createHttpServer, createProtectedResourceMetadataDocument } from "./htt
 export type {
   HttpToolContext,
   HttpToolHandler,
+  HttpAdditionalRequestHandler,
   HttpListenOptions,
   HttpServer,
   HttpServerHandle,

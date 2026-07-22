@@ -70,6 +70,10 @@
       "types": "./dist/http.d.ts",
       "import": "./dist/http.js"
     },
+    "./http/hosted-oauth": {
+      "types": "./dist/http-hosted-oauth.d.ts",
+      "import": "./dist/http-hosted-oauth.js"
+    },
     "./frontmatter": {
       "types": "./dist/frontmatter.d.ts",
       "import": "./dist/frontmatter.js"

@@ -1,9 +1,4 @@
-import {
-  createHash,
-  randomBytes,
-  timingSafeEqual,
-  type KeyObject
-} from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual, type KeyObject } from "node:crypto";
 import { importJWK, jwtVerify, SignJWT, type JWK } from "jose";
 
 export interface OAuthClientRecord {
@@ -118,6 +113,7 @@ export interface OAuthAuthorizationServerSigningKey {
 export interface OAuthAuthorizationServerOptions {
   issuer: string;
   resources: readonly string[];
+  scopesSupported?: readonly string[];
   signingKey: OAuthAuthorizationServerSigningKey;
   additionalPublicJwks?: readonly JWK[];
   store: AuthorizationServerStore;
@@ -231,8 +227,7 @@ export function verifyAuthorizationInteractionCsrf(
   const cookieBuffer = Buffer.from(cookieValue);
   const submittedBuffer = Buffer.from(input.submittedToken);
   return (
-    cookieBuffer.length === submittedBuffer.length &&
-    timingSafeEqual(cookieBuffer, submittedBuffer)
+    cookieBuffer.length === submittedBuffer.length && timingSafeEqual(cookieBuffer, submittedBuffer)
   );
 }
 
@@ -261,7 +256,11 @@ function parseAbsoluteUrl(value: string, label: string): string {
 
 function validateIssuer(value: string): string {
   const issuer = new URL(parseAbsoluteUrl(value, "issuer"));
-  if (issuer.protocol !== "https:" && issuer.hostname !== "localhost" && issuer.hostname !== "127.0.0.1") {
+  if (
+    issuer.protocol !== "https:" &&
+    issuer.hostname !== "localhost" &&
+    issuer.hostname !== "127.0.0.1"
+  ) {
     throw new Error("issuer must use HTTPS unless it is loopback.");
   }
   if (issuer.pathname !== "/" || issuer.search.length > 0) {
@@ -453,12 +452,13 @@ export function createOAuthAuthorizationServer(
 ): OAuthAuthorizationServer {
   const issuer = validateIssuer(options.issuer);
   const resources = validateResources(options.resources);
+  const scopesSupported =
+    options.scopesSupported === undefined ? undefined : new Set(options.scopesSupported);
   const now = options.now ?? Date.now;
   const randomToken = options.randomToken ?? opaqueToken;
   const accessTokenTtlMs = (options.accessTokenTtlSeconds ?? 300) * 1000;
   const authorizationCodeTtlMs = (options.authorizationCodeTtlSeconds ?? 60) * 1000;
-  const authorizationTransactionTtlMs =
-    (options.authorizationTransactionTtlSeconds ?? 600) * 1000;
+  const authorizationTransactionTtlMs = (options.authorizationTransactionTtlSeconds ?? 600) * 1000;
   const refreshTokenTtlMs = (options.refreshTokenTtlSeconds ?? 2_592_000) * 1000;
   const maxRequestBodyBytes = options.maxRequestBodyBytes ?? 65_536;
   if (!Number.isInteger(maxRequestBodyBytes) || maxRequestBodyBytes <= 0) {
@@ -513,7 +513,10 @@ export function createOAuthAuthorizationServer(
       throw new OAuthProtocolError("invalid_client_metadata", "Registration body must be JSON.");
     }
     if (!isObject(payload)) {
-      throw new OAuthProtocolError("invalid_client_metadata", "Registration body must be an object.");
+      throw new OAuthProtocolError(
+        "invalid_client_metadata",
+        "Registration body must be an object."
+      );
     }
     const redirectUris = exactStringArray(payload.redirect_uris);
     if (redirectUris === undefined || redirectUris.length === 0) {
@@ -537,7 +540,10 @@ export function createOAuthAuthorizationServer(
     }
     const responseTypes = exactStringArray(payload.response_types) ?? ["code"];
     if (responseTypes.length !== 1 || responseTypes[0] !== "code") {
-      throw new OAuthProtocolError("invalid_client_metadata", "Only response_type code is supported.");
+      throw new OAuthProtocolError(
+        "invalid_client_metadata",
+        "Only response_type code is supported."
+      );
     }
     const client: OAuthClientRecord = {
       id: randomToken(),
@@ -564,9 +570,11 @@ export function createOAuthAuthorizationServer(
       throw new OAuthProtocolError("unsupported_response_type", "response_type must be code.");
     }
     const clientId = url.searchParams.get("client_id");
-    if (clientId === null) throw new OAuthProtocolError("invalid_request", "client_id is required.");
+    if (clientId === null)
+      throw new OAuthProtocolError("invalid_request", "client_id is required.");
     const client = await options.store.getClient(clientId);
-    if (client === undefined) throw new OAuthProtocolError("unauthorized_client", "Unknown client.");
+    if (client === undefined)
+      throw new OAuthProtocolError("unauthorized_client", "Unknown client.");
     const redirectUriValue = url.searchParams.get("redirect_uri");
     if (redirectUriValue === null) {
       throw new OAuthProtocolError("invalid_request", "redirect_uri is required.");
@@ -582,13 +590,23 @@ export function createOAuthAuthorizationServer(
     if (url.searchParams.get("code_challenge_method") !== "S256") {
       throw new OAuthProtocolError("invalid_request", "code_challenge_method must be S256.");
     }
+    const requestedScopes = parseScopes(url.searchParams.get("scope"));
+    if (
+      scopesSupported !== undefined &&
+      requestedScopes.some((scope) => !scopesSupported.has(scope))
+    ) {
+      throw new OAuthProtocolError(
+        "invalid_scope",
+        "One or more requested scopes are not supported."
+      );
+    }
     const transaction: AuthorizationTransactionRecord = {
       id: randomToken(),
       clientId,
       redirectUri,
       codeChallenge,
       resource: requireResource(url.searchParams.get("resource")),
-      scopes: parseScopes(url.searchParams.get("scope")),
+      scopes: requestedScopes,
       ...(url.searchParams.has("state") && { state: url.searchParams.get("state") ?? undefined }),
       createdAt: now(),
       expiresAt: now() + authorizationTransactionTtlMs
@@ -800,6 +818,7 @@ export function createOAuthAuthorizationServer(
           grant_types_supported: ["authorization_code", "refresh_token"],
           token_endpoint_auth_methods_supported: ["none"],
           code_challenge_methods_supported: ["S256"],
+          ...(scopesSupported === undefined ? {} : { scopes_supported: [...scopesSupported] }),
           protected_resources: [...resources]
         });
       }

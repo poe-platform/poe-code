@@ -198,6 +198,7 @@ function runConsumerSmoke(projectDir, tarballs) {
         'await import("toolcraft/config-mutations");',
         'await import("toolcraft/frontmatter");',
         'await import("toolcraft/http");',
+        'await import("toolcraft/http/hosted-oauth");',
         'await import("toolcraft/mcp");',
         'await import("toolcraft/mcp-proxy");',
         'await import("toolcraft/process-runner");',

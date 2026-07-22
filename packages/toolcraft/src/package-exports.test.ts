@@ -49,6 +49,17 @@ describe("toolcraft package exports", () => {
     });
   });
 
+  it("exports the hosted OAuth entrypoint", () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
+      exports?: Record<string, { import?: string; types?: string }>;
+    };
+
+    expect(packageJson.exports?.["./http/hosted-oauth"]).toEqual({
+      types: "./dist/http-hosted-oauth.d.ts",
+      import: "./dist/http-hosted-oauth.js"
+    });
+  });
+
   it("exports the source snippet entrypoint", () => {
     const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
       exports?: Record<string, { import?: string; types?: string }>;

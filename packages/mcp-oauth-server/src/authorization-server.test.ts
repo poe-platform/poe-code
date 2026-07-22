@@ -28,6 +28,7 @@ async function createServer() {
   const server = createOAuthAuthorizationServer({
     issuer,
     resources: [resource],
+    scopesSupported: ["mcp.read", "offline_access"],
     signingKey: {
       algorithm: "ES256",
       keyId: "test-key",
@@ -179,6 +180,24 @@ describe("createOAuthAuthorizationServer", () => {
     expect(startedTransactions).toHaveLength(0);
   });
 
+  it("rejects authorization scopes outside the configured allowlist", async () => {
+    const { server, startedTransactions } = await createServer();
+    const client = await registerClient(server);
+    const url = new URL(`${issuer}/authorize`);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", client.client_id);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("code_challenge", challenge);
+    url.searchParams.set("code_challenge_method", "S256");
+    url.searchParams.set("resource", resource);
+    url.searchParams.set("scope", "mcp.admin");
+
+    const response = await server.handle(new Request(url));
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_scope" });
+    expect(startedTransactions).toHaveLength(0);
+  });
+
   it("rotates refresh tokens and revokes the family when an old token is replayed", async () => {
     const { server, startedTransactions } = await createServer();
     const client = await registerClient(server);
@@ -276,9 +295,9 @@ describe("createOAuthAuthorizationServer", () => {
     await server.revokeGrant(first.grantId);
 
     await expect(server.verifyAccessToken(firstTokens.access_token, resource)).rejects.toThrow();
-    await expect(server.verifyAccessToken(secondTokens.access_token, resource)).resolves.toMatchObject(
-      { subject: "baby-daybook:user-b" }
-    );
+    await expect(
+      server.verifyAccessToken(secondTokens.access_token, resource)
+    ).resolves.toMatchObject({ subject: "baby-daybook:user-b" });
   });
 
   it("rejects oversized registration and token requests", async () => {

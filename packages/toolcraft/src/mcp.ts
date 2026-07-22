@@ -1298,8 +1298,17 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         }
 
         if (tool.resultSchema !== undefined) {
-          const mcpResult =
-            tool.command.mcpResult === undefined ? result : tool.command.mcpResult(result);
+          let mcpResult: unknown = result;
+          if (tool.command.mcpResult !== undefined) {
+            try {
+              mcpResult = tool.command.mcpResult(result);
+            } catch (error) {
+              throw new ToolError(
+                JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+                error instanceof Error ? error.message : String(error)
+              );
+            }
+          }
           const structuredContent = validateCommandResult(tool.resultSchema, mcpResult, casing);
           return {
             content: [{ type: "text", text: JSON.stringify(structuredContent) }],

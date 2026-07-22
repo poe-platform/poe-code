@@ -75,6 +75,32 @@ const ignoredFileChangeCommand = defineCommand({
   })
 });
 
+defineCommand({
+  name: "mapped-result",
+  params: S.Object({}),
+  result: S.Object({ data: S.Array(S.String()) }),
+  mcpResult: (result: string[]) => ({ data: result }),
+  handler: async (): Promise<string[]> => [],
+});
+
+defineCommand({
+  name: "invalid-async-mapped-result",
+  params: S.Object({}),
+  result: S.Object({ data: S.Array(S.String()) }),
+  // @ts-expect-error MCP result mappers are synchronous
+  mcpResult: async (result: string[]) => ({ data: result }),
+  handler: async (): Promise<string[]> => [],
+});
+
+defineCommand({
+  name: "invalid-scalar-mapped-result",
+  params: S.Object({}),
+  result: S.Object({ data: S.Array(S.String()) }),
+  // @ts-expect-error MCP structured results must have an object root
+  mcpResult: () => "invalid",
+  handler: async (): Promise<string[]> => [],
+});
+
 const ignoredGroup = defineGroup({
   name: "root",
   scope: ignoredScope,

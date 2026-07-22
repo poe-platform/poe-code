@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import { defineCommand, defineGroup, defineStreamCommand, type HandlerFs } from "./index.js";
+import {
+  UserError,
+  defineCommand,
+  defineGroup,
+  defineStreamCommand,
+  type HandlerFs
+} from "./index.js";
 import { createHumanInLoop } from "./human-in-loop/index.js";
 import { createMCPServer } from "./mcp.js";
 import { createSDK } from "./sdk.js";
@@ -587,6 +593,7 @@ describe("createMCPServer typed result schemas", () => {
   });
 
   it("maps MCP structured results without changing SDK handler results", async () => {
+    const mcpResult = vi.fn((result: string[]) => ({ itemNames: result }));
     const list = defineCommand({
       name: "list",
       scope: ["mcp", "sdk"],
@@ -594,13 +601,14 @@ describe("createMCPServer typed result schemas", () => {
       result: S.Object({
         itemNames: S.Array(S.String())
       }),
-      mcpResult: (result: string[]) => ({ itemNames: result }),
+      mcpResult,
       handler: async () => ["one", "two"]
     });
     const root = defineGroup({ name: "root", children: [list] });
     const sdk = createSDK(root);
 
     await expect(sdk.list({})).resolves.toEqual(["one", "two"]);
+    expect(mcpResult).not.toHaveBeenCalled();
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
@@ -616,6 +624,7 @@ describe("createMCPServer typed result schemas", () => {
       };
       expect(result.structuredContent).toEqual({ item_names: ["one", "two"] });
       expect(JSON.parse(result.content[0]!.text)).toEqual(result.structuredContent);
+      expect(mcpResult).toHaveBeenCalledOnce();
     } finally {
       await cleanup();
     }
@@ -630,6 +639,41 @@ describe("createMCPServer typed result schemas", () => {
         handler: async () => ["one"]
       })
     ).toThrow('Command "invalid" defines mcpResult without a result schema.');
+  });
+
+  it("reports MCP result mapper failures as tool errors", async () => {
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "delete",
+            scope: ["mcp"],
+            params: S.Object({}),
+            result: S.Object({ ok: S.Boolean() }),
+            mcpResult: () => {
+              throw new UserError("projection failed");
+            },
+            handler: async () => null
+          })
+        ]
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(client.callTool({ name: "delete", arguments: {} })).rejects.toMatchObject({
+        code: -32603,
+        message: "projection failed"
+      });
+    } finally {
+      await cleanup();
+    }
   });
 
   it("appends command examples to MCP tool descriptions", async () => {

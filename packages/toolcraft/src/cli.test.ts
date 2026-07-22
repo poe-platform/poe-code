@@ -2341,6 +2341,24 @@ describe("runCLI", () => {
     ]).toEqual([0, 1, '{\n  "ok": true\n}\n']);
   });
 
+  it("keeps raw CLI results when an MCP result mapper is configured", async () => {
+    const mcpResult = vi.fn((result: string[]) => ({ data: result }));
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const listPoints = defineCommand({
+      name: "list-points",
+      params: S.Object({}),
+      result: S.Object({ data: S.Array(S.String()) }),
+      mcpResult,
+      handler: async () => ["one", "two"]
+    });
+
+    process.argv = ["node", "toolcraft", "list-points", "--output", "json", "--yes"];
+    await runCLI(defineGroup({ name: "toolcraft", children: [listPoints] }));
+
+    expect(mcpResult).not.toHaveBeenCalled();
+    expect(readStdout(stdoutWrite)).toBe('[\n  "one",\n  "two"\n]\n');
+  });
+
   it("reports validation errors when prompts are skipped and required params are missing", async () => {
     const deploy = defineCommand({
       name: "deploy",

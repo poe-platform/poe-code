@@ -59,7 +59,7 @@ export function createProtectedResourceMetadataRouter(
       return [PROTECTED_RESOURCE_METADATA_PATH];
     }
 
-    return [`${PROTECTED_RESOURCE_METADATA_PATH}${path}`];
+    return [PROTECTED_RESOURCE_METADATA_PATH, `${PROTECTED_RESOURCE_METADATA_PATH}${path}`];
   })();
 
   return (req, res, next) => {

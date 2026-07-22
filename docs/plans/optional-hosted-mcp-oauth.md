@@ -51,7 +51,7 @@ const server = await createHTTPMCPServer(root, {
           credential: credential.serialize()
         };
       },
-      async services({ credentials }) {
+      async services({ credentials, identity }) {
         return {
           skylight: createSkylightService({ authorizationStore: credentials })
         };
@@ -63,7 +63,7 @@ const server = await createHTTPMCPServer(root, {
 await server.listenHttp({ hostname: "::", port: 8080 });
 ```
 
-`accountId` is the provider's stable identifier. Toolcraft derives an opaque OAuth subject. `credential` is an opaque provider session that storage encrypts before persistence. `credentials` is scoped to the verified subject and supports safe read, update, delete, and coordinated refresh.
+`accountId` is the provider's stable identifier. Toolcraft derives an opaque OAuth subject. `credential` is an opaque provider session that storage encrypts before persistence. `credentials` is scoped to the verified subject and supports safe read, update, delete, and coordinated refresh. `identity` contains the verified issuer, subject, client ID, scopes, and canonical resource for request-scoped caching and policy.
 
 The built-in form recognizes `email`, `password`, and `apiKey`; custom fields use a descriptor. Redirect-based upstream identity can be added as an advanced interaction adapter.
 
@@ -81,11 +81,11 @@ Toolcraft defines the contract. Concrete database clients and adapters remain ap
 
 The happy path provides:
 
-- protected-resource and authorization-server discovery derived from `publicUrl`;
+- root and path-qualified protected-resource metadata plus authorization-server discovery derived from `publicUrl`;
 - dynamic client registration and authorization code with PKCE;
 - required `mcp` scope and default `mcp offline_access` scopes;
 - stateless JSON MCP requests;
-- CSRF protection, callback-safe CSP, and an exact 303 return with `code`, `state`, and `iss`;
+- transaction-isolated CSRF protection, callback-safe CSP, and an exact 303 return with `code`, `state`, and `iss`;
 - stable signing keys, refresh rotation, revocation, and storage-managed encrypted credentials;
 - fail-closed subject-to-service resolution; and
 - `/healthz`, OAuth endpoints, protected-resource metadata, and MCP on one listener.

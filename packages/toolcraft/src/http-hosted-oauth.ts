@@ -1,4 +1,4 @@
-import { createHmac, generateKeyPairSync, randomBytes } from "node:crypto";
+import { createHash, createHmac, generateKeyPairSync, randomBytes } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { exportJWK, type JWK } from "jose";
 import {
@@ -64,6 +64,14 @@ export interface HostedOAuthCredentialAccess<TCredential = unknown> {
   delete(): Promise<void>;
 }
 
+export interface HostedOAuthIdentity {
+  issuer: string;
+  subject: string;
+  clientId: string;
+  scopes: readonly string[];
+  resource: string;
+}
+
 export interface HostedOAuthProvider<TCredential = unknown, TServices extends object = object> {
   name: string;
   login?: {
@@ -74,6 +82,7 @@ export interface HostedOAuthProvider<TCredential = unknown, TServices extends ob
   ): Promise<{ accountId: string; credential: TCredential }>;
   services(input: {
     credentials: HostedOAuthCredentialAccess<TCredential>;
+    identity: HostedOAuthIdentity;
   }): Promise<Partial<TServices>> | Partial<TServices>;
 }
 
@@ -140,6 +149,11 @@ function normalizePublicUrl(value: string): URL {
   }
   if (url.username.length > 0 || url.password.length > 0) {
     throw new Error("hosted OAuth publicUrl must not contain credentials.");
+  }
+  if (url.pathname === "/" || url.pathname.endsWith("/")) {
+    throw new Error(
+      "hosted OAuth publicUrl must contain a non-root path without a trailing slash."
+    );
   }
   return url;
 }
@@ -239,7 +253,7 @@ export interface HostedOAuthRuntime<TServices extends object = object> {
   mcpPath: string;
   oauth: TinyHttpMcpServerOAuthOptions;
   requestHandler: HttpAdditionalRequestHandler;
-  requestServices(subject: string): Promise<Partial<TServices>>;
+  requestServices(identity: HostedOAuthIdentity): Promise<Partial<TServices>>;
 }
 
 function escapeHtml(value: string): string {
@@ -277,6 +291,16 @@ function renderLogin(
     })
     .join("");
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect ${escapeHtml(providerName)}</title><style>body{font:16px system-ui;max-width:28rem;margin:10vh auto;padding:1rem;color:#171717}form{display:grid;gap:1rem}label{display:grid;gap:.35rem}input,button{font:inherit;padding:.7rem}button{cursor:pointer}${error === undefined ? "" : ".error{color:#b42318}"}</style></head><body><h1>Connect ${escapeHtml(providerName)}</h1>${error === undefined ? "" : `<p class="error">${escapeHtml(error)}</p>`}<form method="post" action="/oauth/connect"><input type="hidden" name="transaction" value="${escapeHtml(transaction.id)}"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}">${controls}<button type="submit">Connect</button></form></body></html>`;
+}
+
+function loginContentSecurityPolicy(transaction: AuthorizationTransactionRecord): string {
+  const callbackOrigin = new URL(transaction.redirectUri).origin;
+  return `default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ${callbackOrigin}; base-uri 'none'; frame-ancestors 'none'`;
+}
+
+function interactionCookieName(transactionId: string): string {
+  const suffix = createHash("sha256").update(transactionId).digest("base64url").slice(0, 22);
+  return `__Host-mcp_oauth_csrf_${suffix}`;
 }
 
 function writeWebResponse(response: ServerResponse, webResponse: Response): Promise<void> {
@@ -347,13 +371,14 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
       if (customInteraction !== undefined) {
         return customInteraction.start({ request, transaction });
       }
-      const security = createAuthorizationInteractionSecurity();
+      const security = createAuthorizationInteractionSecurity({
+        cookieName: interactionCookieName(transaction.id)
+      });
       return new Response(renderLogin(displayName, fields, transaction, security.csrfToken), {
         status: 200,
         headers: {
           "content-type": "text/html; charset=utf-8",
-          "content-security-policy":
-            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+          "content-security-policy": loginContentSecurityPolicy(transaction),
           "cache-control": "no-store",
           "referrer-policy": "no-referrer",
           "x-content-type-options": "nosniff",
@@ -367,6 +392,7 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
     issuer: prepared.issuer.href,
     resources: [prepared.publicUrl.href],
     scopesSupported: prepared.scopes,
+    defaultScopes: prepared.scopes,
     signingKey: await config.storage.signingKey(),
     additionalPublicJwks: config.advanced?.additionalPublicJwks,
     store: config.storage.authorizationServer,
@@ -420,7 +446,8 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
         transaction === undefined ||
         !verifyAuthorizationInteractionCsrf({
           cookieHeader: request.headers.cookie ?? null,
-          submittedToken: csrf
+          submittedToken: csrf,
+          cookieName: interactionCookieName(transactionId)
         }) ||
         transaction.expiresAt <= Date.now()
       ) {
@@ -467,8 +494,7 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
             : "Sign-in failed. Please try again.";
         response.writeHead(400, {
           "content-type": "text/html; charset=utf-8",
-          "content-security-policy":
-            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+          "content-security-policy": loginContentSecurityPolicy(transaction),
           "cache-control": "no-store",
           "referrer-policy": "no-referrer"
         });
@@ -520,9 +546,10 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
       }
     },
     requestHandler,
-    async requestServices(subject) {
-      await credentialsFor(config.storage, subject).read();
-      return config.provider.services({ credentials: credentialsFor(config.storage, subject) });
+    async requestServices(identity) {
+      const credentials = credentialsFor(config.storage, identity.subject);
+      await credentials.read();
+      return config.provider.services({ credentials, identity });
     }
   };
 }

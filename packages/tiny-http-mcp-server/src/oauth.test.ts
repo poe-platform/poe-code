@@ -163,7 +163,7 @@ describe("OAuth protected resource", () => {
     });
   });
 
-  it("serves standalone protected-resource metadata only from the RFC 9728 path-based location for non-root paths", async () => {
+  it("serves standalone protected-resource metadata from root and path-qualified locations", async () => {
     const { oauth } = createProtectedResourceMetadata();
     const handle = await createHttpServer({
       name: "oauth-http-server",
@@ -183,7 +183,8 @@ describe("OAuth protected resource", () => {
     );
 
     expect(pathResponse.status).toBe(200);
-    expect(rootResponse.status).toBe(404);
+    expect(rootResponse.status).toBe(200);
+    await expect(rootResponse.json()).resolves.toEqual(await pathResponse.json());
   });
 
   it("returns a 401 Bearer challenge that points at the standalone metadata URL", async () => {
@@ -376,7 +377,7 @@ describe("OAuth protected resource", () => {
     expect(post.status).toBe(401);
   });
 
-  it("serves Express protected-resource metadata only from the RFC 9728 path-based location for non-root paths", async () => {
+  it("serves Express protected-resource metadata from root and path-qualified locations", async () => {
     const { oauth } = createProtectedResourceMetadata();
     const handlers = createExpressOAuthHandlers({
       path: "/tenant/mcp",
@@ -398,7 +399,8 @@ describe("OAuth protected resource", () => {
     const rootResponse = await nodeFetch(`${handle.baseUrl}/.well-known/oauth-protected-resource`);
 
     expect(pathResponse.status).toBe(200);
-    expect(rootResponse.status).toBe(404);
+    expect(rootResponse.status).toBe(200);
+    await expect(rootResponse.json()).resolves.toEqual(await pathResponse.json());
   });
 
   it("returns a 401 Bearer challenge that points at the Express metadata URL", async () => {

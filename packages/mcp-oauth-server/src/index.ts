@@ -114,6 +114,7 @@ export interface OAuthAuthorizationServerOptions {
   issuer: string;
   resources: readonly string[];
   scopesSupported?: readonly string[];
+  defaultScopes?: readonly string[];
   signingKey: OAuthAuthorizationServerSigningKey;
   additionalPublicJwks?: readonly JWK[];
   store: AuthorizationServerStore;
@@ -454,6 +455,13 @@ export function createOAuthAuthorizationServer(
   const resources = validateResources(options.resources);
   const scopesSupported =
     options.scopesSupported === undefined ? undefined : new Set(options.scopesSupported);
+  const defaultScopes = [...new Set(options.defaultScopes ?? [])];
+  if (defaultScopes.some((scope) => scope.length === 0 || /[\u0000-\u0020\u007f]/u.test(scope))) {
+    throw new Error("default scopes must contain valid scope names.");
+  }
+  if (scopesSupported !== undefined && defaultScopes.some((scope) => !scopesSupported.has(scope))) {
+    throw new Error("default scopes must be included in supported scopes.");
+  }
   const now = options.now ?? Date.now;
   const randomToken = options.randomToken ?? opaqueToken;
   const accessTokenTtlMs = (options.accessTokenTtlSeconds ?? 300) * 1000;
@@ -590,7 +598,12 @@ export function createOAuthAuthorizationServer(
     if (url.searchParams.get("code_challenge_method") !== "S256") {
       throw new OAuthProtocolError("invalid_request", "code_challenge_method must be S256.");
     }
-    const requestedScopes = parseScopes(url.searchParams.get("scope"));
+    const requestedScopes = url.searchParams.has("scope")
+      ? parseScopes(url.searchParams.get("scope"))
+      : [...defaultScopes];
+    if (defaultScopes.length > 0 && requestedScopes.length === 0) {
+      throw new OAuthProtocolError("invalid_scope", "scope must not be empty.");
+    }
     if (
       scopesSupported !== undefined &&
       requestedScopes.some((scope) => !scopesSupported.has(scope))

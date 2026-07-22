@@ -193,6 +193,25 @@ describe("HTTP MCP production readiness", () => {
     });
   }
 
+  it("runs additional request handlers through public handleRequest", async () => {
+    const requestHandler = vi.fn((_request: IncomingMessage, response: ServerResponse) => {
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end('{"ok":true}');
+      return true;
+    });
+    const server = createHttpServer({
+      name: "mounted-handler",
+      version: "1.0.0",
+      requestHandler
+    });
+
+    const response = await dispatch(server, { method: "GET", url: "/healthz" });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(requestHandler).toHaveBeenCalledOnce();
+  });
+
   it("enforces request body and batch limits before dispatching messages", async () => {
     const bodyLimitedServer = createHttpServer({
       name: "limits",

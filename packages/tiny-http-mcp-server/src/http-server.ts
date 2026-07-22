@@ -121,7 +121,7 @@ function getProtectedResourceMetadataPaths(path: string): string[] {
     return [PROTECTED_RESOURCE_METADATA_PATH];
   }
 
-  return [`${PROTECTED_RESOURCE_METADATA_PATH}${path}`];
+  return [PROTECTED_RESOURCE_METADATA_PATH, `${PROTECTED_RESOURCE_METADATA_PATH}${path}`];
 }
 
 function formatHostnameForUrl(hostname: string): string {
@@ -432,6 +432,10 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
   };
 
   httpServer.handleRequest = async (req, res) => {
+    if (options.requestHandler !== undefined && (await options.requestHandler(req, res))) {
+      return;
+    }
+
     const { baseUrl } = req as MountedIncomingMessage;
     const protectedResourcePath =
       typeof baseUrl === "string" && baseUrl.length > 0 ? baseUrl : "/mcp";

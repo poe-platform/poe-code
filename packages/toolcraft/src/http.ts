@@ -154,12 +154,19 @@ export async function createHTTPMCPServer<TServices extends object = Record<stri
       sessionIdGenerator: undefined,
       enableJsonResponse: true,
       requestServices: async (context) => {
-        const subject = context.auth?.subject;
-        if (subject === undefined)
+        const auth = context.auth;
+        const subject = auth?.subject;
+        if (auth === undefined || subject === undefined)
           throw new Error("Hosted OAuth request is missing a verified subject.");
         return {
           ...(applicationServices === undefined ? {} : await applicationServices(context)),
-          ...(await runtime.requestServices(subject))
+          ...(await runtime.requestServices({
+            issuer: auth.issuer,
+            subject,
+            clientId: auth.clientId,
+            scopes: auth.scopes,
+            resource: auth.resource.href
+          }))
         } as Partial<TServices>;
       },
       requestHandler: runtime.requestHandler
@@ -183,11 +190,26 @@ export async function createHTTPMCPServer<TServices extends object = Record<stri
   }
   if (hostedMcpPath !== undefined) {
     const listenHttp = server.listenHttp.bind(server);
-    server.listenHttp = (listenOptions = {}) =>
-      listenHttp({
-        path: hostedMcpPath,
-        ...listenOptions
+    server.listenHttp = async (listenOptions = {}) => {
+      if (listenOptions.path !== undefined) {
+        const withLeadingSlash = listenOptions.path.startsWith("/")
+          ? listenOptions.path
+          : `/${listenOptions.path}`;
+        const requestedPath =
+          withLeadingSlash.length > 1 && withLeadingSlash.endsWith("/")
+            ? withLeadingSlash.slice(0, -1)
+            : withLeadingSlash;
+        if (requestedPath !== hostedMcpPath) {
+          throw new Error(
+            `Hosted OAuth MCP path ${JSON.stringify(requestedPath)} conflicts with publicUrl path ${JSON.stringify(hostedMcpPath)}.`
+          );
+        }
+      }
+      return listenHttp({
+        ...listenOptions,
+        path: hostedMcpPath
       });
+    };
   }
   return server;
 }

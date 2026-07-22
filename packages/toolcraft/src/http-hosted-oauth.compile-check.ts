@@ -22,7 +22,17 @@ const ignoredHostedOAuth = hostedOAuth<string, Services>({
         credential: `${ignoredPassword}:${ignoredSignal.aborted}`
       };
     },
-    services({ credentials }) {
+    services({ credentials, identity }) {
+      const ignoredSubject: string = identity.subject;
+      const ignoredClientId: string = identity.clientId;
+      const ignoredScopes: readonly string[] = identity.scopes;
+      const ignoredResource: string = identity.resource;
+      const ignoredIssuer: string = identity.issuer;
+      void ignoredSubject;
+      void ignoredClientId;
+      void ignoredScopes;
+      void ignoredResource;
+      void ignoredIssuer;
       return { skylight: { credential: () => credentials.read() } };
     }
   }

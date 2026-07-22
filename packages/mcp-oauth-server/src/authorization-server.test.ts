@@ -29,6 +29,7 @@ async function createServer() {
     issuer,
     resources: [resource],
     scopesSupported: ["mcp.read", "offline_access"],
+    defaultScopes: ["mcp.read", "offline_access"],
     signingKey: {
       algorithm: "ES256",
       keyId: "test-key",
@@ -196,6 +197,82 @@ describe("createOAuthAuthorizationServer", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({ error: "invalid_scope" });
     expect(startedTransactions).toHaveLength(0);
+  });
+
+  it("uses configured defaults when authorization omits scope", async () => {
+    const { server, startedTransactions } = await createServer();
+    const client = await registerClient(server);
+    const url = new URL(`${issuer}/authorize`);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", client.client_id);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("code_challenge", challenge);
+    url.searchParams.set("code_challenge_method", "S256");
+    url.searchParams.set("resource", resource);
+
+    const authorizationResponse = await server.handle(new Request(url));
+    expect(authorizationResponse.status).toBe(200);
+    const completion = await server.completeAuthorization({
+      transactionId: startedTransactions[0]!,
+      subject: "baby-daybook:user-a"
+    });
+    const tokenResponse = await exchangeCode({
+      server,
+      clientId: client.client_id,
+      code: completion.redirectUrl.searchParams.get("code")!
+    });
+    const tokens = (await tokenResponse.json()) as {
+      access_token: string;
+      refresh_token: string;
+      scope: string;
+    };
+
+    expect(tokens.scope).toBe("mcp.read offline_access");
+    expect(tokens.refresh_token).toBeTypeOf("string");
+    await expect(server.verifyAccessToken(tokens.access_token, resource)).resolves.toMatchObject({
+      scopes: ["mcp.read", "offline_access"]
+    });
+  });
+
+  it("rejects an explicitly empty scope when non-empty defaults are configured", async () => {
+    const { server, startedTransactions } = await createServer();
+    const client = await registerClient(server);
+    const url = new URL(`${issuer}/authorize`);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", client.client_id);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("code_challenge", challenge);
+    url.searchParams.set("code_challenge_method", "S256");
+    url.searchParams.set("resource", resource);
+    url.searchParams.set("scope", "");
+
+    const response = await server.handle(new Request(url));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_scope" });
+    expect(startedTransactions).toHaveLength(0);
+  });
+
+  it("rejects configured default scopes outside the supported scopes", async () => {
+    const { privateKey, publicKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
+    const publicJwk = await exportJWK(publicKey);
+
+    expect(() =>
+      createOAuthAuthorizationServer({
+        issuer,
+        resources: [resource],
+        scopesSupported: ["mcp.read"],
+        defaultScopes: ["mcp.admin"],
+        signingKey: {
+          algorithm: "ES256",
+          keyId: "test-key",
+          privateKey,
+          publicJwk
+        },
+        store: createInMemoryAuthorizationServerStore(),
+        interaction: { start: () => new Response("authorize") }
+      })
+    ).toThrow(/default scopes.*supported/i);
   });
 
   it("rotates refresh tokens and revokes the family when an old token is replayed", async () => {

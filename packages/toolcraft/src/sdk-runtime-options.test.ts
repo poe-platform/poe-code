@@ -31,6 +31,48 @@ describe("createSDK CLI-only schema metadata", () => {
   });
 });
 
+describe("createSDK parameter casing", () => {
+  it("camel-cases declared parameters without rewriting arbitrary JSON keys", async () => {
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "store",
+            params: S.Object({
+              payload_json: S.Json(),
+              items_by_id: S.Record(
+                S.Object({
+                  display_name: S.String()
+                })
+              )
+            }),
+            handler: async ({ params }) => params
+          })
+        ]
+      })
+    );
+    const payload = {
+      file_upload: "upload-1",
+      nested_value: { preserve_this_key: true }
+    };
+
+    await expect(
+      sdk.store({
+        payloadJson: payload,
+        itemsById: {
+          "item-1": { displayName: "One" }
+        }
+      })
+    ).resolves.toEqual({
+      payload_json: payload,
+      items_by_id: {
+        "item-1": { display_name: "One" }
+      }
+    });
+  });
+});
+
 describe("createSDK human-in-loop wiring", () => {
   const gatedRoot = defineGroup({
     name: "root",

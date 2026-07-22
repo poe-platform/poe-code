@@ -129,11 +129,13 @@ type Camelize<TValue> = TValue extends Primitive
   : TValue extends readonly (infer TItem)[]
     ? Array<Camelize<TItem>>
     : TValue extends object
-      ? {
-          [TKey in keyof TValue as TKey extends string ? CamelCase<TKey> : TKey]: Camelize<
-            TValue[TKey]
-          >;
-        }
+      ? string extends keyof TValue
+        ? { [TKey in keyof TValue]: Camelize<TValue[TKey]> }
+        : {
+            [TKey in keyof TValue as TKey extends string ? CamelCase<TKey> : TKey]: Camelize<
+              TValue[TKey]
+            >;
+          }
       : TValue;
 
 type SDKResult<

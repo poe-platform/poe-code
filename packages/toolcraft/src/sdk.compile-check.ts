@@ -37,6 +37,19 @@ const ignoredRoot = defineGroup({
               }),
             }),
             defineCommand({
+              name: "json-payload",
+              scope: ["sdk"],
+              params: S.Object({
+                payload_json: S.Json(),
+                items_by_id: S.Record(
+                  S.Object({
+                    display_name: S.String(),
+                  })
+                ),
+              }),
+              handler: async ({ params }) => params,
+            }),
+            defineCommand({
               name: "cli-only",
               scope: ["cli"],
               params: S.Object({}),
@@ -123,6 +136,24 @@ const ignoredHttpServerResult = ignoredSdk.poeCode.generate.httpServer({
 
 void ignoredHttpServerResult.then((value: Awaited<typeof ignoredHttpServerResult>) => {
   void value.apiKey;
+});
+
+void ignoredSdk.poeCode.generate.jsonPayload({
+  payloadJson: {
+    file_upload: "upload-1",
+    nested_value: { preserve_this_key: true },
+  },
+  itemsById: {
+    "item-1": { displayName: "One" },
+  },
+});
+
+ignoredSdk.poeCode.generate.jsonPayload({
+  payloadJson: null,
+  itemsById: {
+    // @ts-expect-error declared fields inside arbitrary-key records are still camel-cased
+    "item-1": { display_name: "One" },
+  },
 });
 
 const ignoredQueuedResult = ignoredSdk.poeCode.generate.queued({

@@ -283,20 +283,38 @@ function renderLogin(
   fields: readonly HostedOAuthLoginField[],
   transaction: AuthorizationTransactionRecord,
   csrfToken: string,
-  error?: string
-): string {
+  error?: string,
+  submittedValues: Readonly<Record<string, string>> = {}
+): { contentSecurityPolicy: string; html: string } {
+  const scriptNonce = randomBytes(18).toString("base64");
   const controls = fields
     .map((field) => {
       const name = escapeHtml(field.name);
-      return `<label>${escapeHtml(field.label ?? field.name)}<input name="${name}" type="${field.type ?? "text"}" required autocomplete="${field.type === "password" ? "current-password" : "off"}"></label>`;
+      const type = field.type ?? "text";
+      const autocomplete =
+        type === "email" ? "username" : field.name === "password" ? "current-password" : "off";
+      const value = type === "email" ? submittedValues[field.name] ?? "" : "";
+      return `<label>${escapeHtml(field.label ?? field.name)}<input name="${name}" type="${type}" required autocomplete="${autocomplete}"${value.length === 0 ? "" : ` value="${escapeHtml(value)}"`}></label>`;
     })
     .join("");
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect ${escapeHtml(providerName)}</title><style>body{font:16px system-ui;max-width:28rem;margin:10vh auto;padding:1rem;color:#171717}form{display:grid;gap:1rem}label{display:grid;gap:.35rem}input,button{font:inherit;padding:.7rem}button{cursor:pointer}${error === undefined ? "" : ".error{color:#b42318}"}</style></head><body><h1>Connect ${escapeHtml(providerName)}</h1>${error === undefined ? "" : `<p class="error">${escapeHtml(error)}</p>`}<form method="post" action="/oauth/connect"><input type="hidden" name="transaction" value="${escapeHtml(transaction.id)}"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}">${controls}<button type="submit">Connect</button></form></body></html>`;
+  const idleLabel = `Connect ${providerName}`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect ${escapeHtml(providerName)}</title><style>body{font:16px system-ui;max-width:28rem;margin:10vh auto;padding:1rem;color:#171717}form{display:grid;gap:1rem}label{display:grid;gap:.35rem}input,button{font:inherit;padding:.7rem}button{cursor:pointer}button:disabled{cursor:wait;opacity:.7}.status{margin:0;color:#525252}.error{color:#b42318}</style></head><body><h1>Connect ${escapeHtml(providerName)}</h1>${error === undefined ? "" : `<p class="error" role="alert">${escapeHtml(error)}</p>`}<form id="oauth-connect-form" method="post" action="/oauth/connect"><input type="hidden" name="transaction" value="${escapeHtml(transaction.id)}"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}">${controls}<button id="oauth-connect-button" type="submit" data-idle-label="${escapeHtml(idleLabel)}">${escapeHtml(idleLabel)}</button><p id="oauth-connect-status" class="status" role="status" aria-live="polite" hidden>Signing in… This may take a moment.</p></form><script nonce="${scriptNonce}">(()=>{const form=document.getElementById("oauth-connect-form");const button=document.getElementById("oauth-connect-button");const status=document.getElementById("oauth-connect-status");if(!(form instanceof HTMLFormElement)||!(button instanceof HTMLButtonElement)||!(status instanceof HTMLElement))return;const reset=()=>{form.removeAttribute("aria-busy");button.disabled=false;button.textContent=button.dataset.idleLabel||"Connect";status.hidden=true};form.addEventListener("submit",()=>{form.setAttribute("aria-busy","true");button.disabled=true;button.textContent="Connecting…";status.hidden=false});addEventListener("pageshow",reset)})();</script></body></html>`;
+  return {
+    contentSecurityPolicy: loginContentSecurityPolicy(transaction, scriptNonce),
+    html
+  };
 }
 
-function loginContentSecurityPolicy(transaction: AuthorizationTransactionRecord): string {
+function loginContentSecurityPolicy(
+  transaction: AuthorizationTransactionRecord,
+  scriptNonce: string
+): string {
   const callbackOrigin = new URL(transaction.redirectUri).origin;
-  return `default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ${callbackOrigin}; base-uri 'none'; frame-ancestors 'none'`;
+  return `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${scriptNonce}'; form-action 'self' ${callbackOrigin}; base-uri 'none'; frame-ancestors 'none'`;
+}
+
+function renderExpiredConnection(): string {
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connection expired</title><style>body{font:16px system-ui;max-width:28rem;margin:10vh auto;padding:1rem;color:#171717}p{line-height:1.5}</style></head><body><h1>Connection expired</h1><p>This sign-in link has expired or was already used.</p><p>Close this tab, return to the app that started the connection, and click Connect again.</p></body></html>`;
 }
 
 function interactionCookieName(transactionId: string): string {
@@ -375,11 +393,12 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
       const security = createAuthorizationInteractionSecurity({
         cookieName: interactionCookieName(transaction.id)
       });
-      return new Response(renderLogin(displayName, fields, transaction, security.csrfToken), {
+      const login = renderLogin(displayName, fields, transaction, security.csrfToken);
+      return new Response(login.html, {
         status: 200,
         headers: {
           "content-type": "text/html; charset=utf-8",
-          "content-security-policy": loginContentSecurityPolicy(transaction),
+          "content-security-policy": login.contentSecurityPolicy,
           "cache-control": "no-store",
           "referrer-policy": "no-referrer",
           "x-content-type-options": "nosniff",
@@ -465,10 +484,14 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
         transaction.expiresAt <= Date.now()
       ) {
         response.writeHead(400, {
-          "content-type": "text/plain; charset=utf-8",
-          "cache-control": "no-store"
+          "content-type": "text/html; charset=utf-8",
+          "content-security-policy":
+            "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",
+          "cache-control": "no-store",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff"
         });
-        response.end("This connection has expired or was already used. Restart the connection.");
+        response.end(renderExpiredConnection());
         return true;
       }
       const controller = new AbortController();
@@ -505,13 +528,15 @@ export async function prepareHostedOAuthRuntime<TCredential, TServices extends o
           error instanceof HostedOAuthLoginError
             ? error.message
             : "Sign-in failed. Please try again.";
+        const login = renderLogin(displayName, fields, transaction, csrf, safeError, values);
         response.writeHead(400, {
           "content-type": "text/html; charset=utf-8",
-          "content-security-policy": loginContentSecurityPolicy(transaction),
+          "content-security-policy": login.contentSecurityPolicy,
           "cache-control": "no-store",
-          "referrer-policy": "no-referrer"
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff"
         });
-        response.end(renderLogin(displayName, fields, transaction, csrf, safeError));
+        response.end(login.html);
       }
       return true;
     }

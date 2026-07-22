@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { runInNewContext } from "node:vm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import { HttpTransport, McpClient } from "tiny-mcp-client";
@@ -24,6 +25,74 @@ function hiddenValue(html: string, name: string): string {
   const valueStart = start + marker.length;
   const end = html.indexOf('"', valueStart);
   return html.slice(valueStart, end);
+}
+
+function expectLoginPageSecurity(response: Response, html: string): string {
+  const policy = response.headers.get("content-security-policy") ?? "";
+  expect(policy).toContain("default-src 'none'");
+  expect(policy).toContain("form-action 'self' https://client.example");
+  expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  const nonce = /script-src 'nonce-([^']+)'/.exec(policy)?.[1] ?? "";
+  expect(nonce).not.toBe("");
+  expect(html).toContain(`<script nonce="${nonce}">`);
+  return nonce;
+}
+
+function expectLoginProgressBehavior(html: string): void {
+  const source = /<script nonce="[^"]+">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "";
+  expect(source).not.toBe("");
+
+  class FakeElement {}
+  class FakeForm extends FakeElement {
+    readonly attributes = new Set<string>();
+    readonly listeners = new Map<string, () => void>();
+    setAttribute(name: string): void {
+      this.attributes.add(name);
+    }
+    removeAttribute(name: string): void {
+      this.attributes.delete(name);
+    }
+    addEventListener(name: string, listener: () => void): void {
+      this.listeners.set(name, listener);
+    }
+  }
+  class FakeButton extends FakeElement {
+    readonly dataset = { idleLabel: "Connect Skylight" };
+    disabled = false;
+    textContent = "Connect Skylight";
+  }
+  class FakeStatus extends FakeElement {
+    hidden = true;
+  }
+
+  const form = new FakeForm();
+  const button = new FakeButton();
+  const status = new FakeStatus();
+  const pageListeners = new Map<string, () => void>();
+  const elements = new Map<string, FakeElement>([
+    ["oauth-connect-form", form],
+    ["oauth-connect-button", button],
+    ["oauth-connect-status", status]
+  ]);
+  runInNewContext(source, {
+    document: { getElementById: (id: string) => elements.get(id) ?? null },
+    HTMLFormElement: FakeForm,
+    HTMLButtonElement: FakeButton,
+    HTMLElement: FakeElement,
+    addEventListener: (name: string, listener: () => void) => pageListeners.set(name, listener)
+  });
+
+  form.listeners.get("submit")?.();
+  expect(form.attributes.has("aria-busy")).toBe(true);
+  expect(button.disabled).toBe(true);
+  expect(button.textContent).toBe("Connecting…");
+  expect(status.hidden).toBe(false);
+
+  pageListeners.get("pageshow")?.();
+  expect(form.attributes.has("aria-busy")).toBe(false);
+  expect(button.disabled).toBe(false);
+  expect(button.textContent).toBe("Connect Skylight");
+  expect(status.hidden).toBe(true);
 }
 
 async function beginAuthorization(input: {
@@ -183,10 +252,14 @@ describe("hosted OAuth HTTP composition", () => {
       state: "client-state"
     }).toString();
     const login = await nodeFetch(authorize);
-    expect(login.headers.get("content-security-policy")).toContain(
-      "form-action 'self' https://client.example"
-    );
     const html = await login.text();
+    const loginNonce = expectLoginPageSecurity(login, html);
+    expect(html).toContain('autocomplete="username"');
+    expect(html).toContain('autocomplete="current-password"');
+    expect(html).toContain('data-idle-label="Connect Skylight"');
+    expect(html).toContain('role="status" aria-live="polite" hidden');
+    expect(html).toContain("Signing in… This may take a moment.");
+    expectLoginProgressBehavior(html);
     const cookie = login.headers.get("set-cookie")?.split(";", 1)[0] ?? "";
     const secondAuthorize = new URL(authorize);
     secondAuthorize.searchParams.set("state", "second-state");
@@ -203,15 +276,17 @@ describe("hosted OAuth HTTP composition", () => {
         transaction: hiddenValue(html, "transaction"),
         csrf: hiddenValue(html, "csrf"),
         email: "wrong@example.com",
-        password: "wrong"
+        password: "not-echoed-secret"
       })
     });
     expect(retry.status).toBe(400);
-    expect(retry.headers.get("content-security-policy")).toContain(
-      "form-action 'self' https://client.example"
-    );
     const retryHtml = await retry.text();
+    const retryNonce = expectLoginPageSecurity(retry, retryHtml);
+    expect(retryNonce).not.toBe(loginNonce);
     expect(retryHtml).toContain("Check your credentials and try again.");
+    expect(retryHtml).toContain('class="error" role="alert"');
+    expect(retryHtml).toContain('value="wrong@example.com"');
+    expect(retryHtml).not.toContain("not-echoed-secret");
     const callback = await nodeFetch(`${base}/oauth/connect`, {
       method: "POST",
       redirect: "manual",
@@ -227,6 +302,25 @@ describe("hosted OAuth HTTP composition", () => {
     const callbackUrl = new URL(callback.headers.get("location") ?? "");
     expect(callbackUrl.searchParams.get("state")).toBe("client-state");
     expect(callbackUrl.searchParams.get("iss")).toBe("http://127.0.0.1:43210");
+
+    const expired = await nodeFetch(`${base}/oauth/connect`, {
+      method: "POST",
+      redirect: "manual",
+      headers: { "content-type": "application/x-www-form-urlencoded", cookie: browserCookies },
+      body: new URLSearchParams({
+        transaction: hiddenValue(retryHtml, "transaction"),
+        csrf: hiddenValue(retryHtml, "csrf"),
+        email: "user@example.com",
+        password: "secret"
+      })
+    });
+    expect(expired.status).toBe(400);
+    expect(expired.headers.get("content-type")).toContain("text/html");
+    expect(expired.headers.get("content-security-policy")).toContain("default-src 'none'");
+    const expiredHtml = await expired.text();
+    expect(expiredHtml).toContain("Connection expired");
+    expect(expiredHtml).toContain("return to the app that started the connection");
+    expect(expiredHtml).toContain("click Connect again");
 
     const tokens = await nodeFetch(`${base}/token`, {
       method: "POST",

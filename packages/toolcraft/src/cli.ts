@@ -1257,8 +1257,7 @@ interface ResolvedCLIControls {
 }
 
 function resolveCLIControls(controls: CLIControls | undefined): ResolvedCLIControls {
-  const outputFormats =
-    typeof controls?.output === "object" ? (controls.output.formats ?? {}) : {};
+  const outputFormats = typeof controls?.output === "object" ? (controls.output.formats ?? {}) : {};
   validateOutputFormats(outputFormats);
   return {
     debug: controls?.debug === true,
@@ -1286,10 +1285,14 @@ function validateOutputFormats(formats: CLIOutputFormats): void {
       );
     }
     if (BUILT_IN_OUTPUT_FORMATS.includes(name as (typeof BUILT_IN_OUTPUT_FORMATS)[number])) {
-      throw new ToolcraftBugError(`Custom output format "${name}" conflicts with a built-in format.`);
+      throw new ToolcraftBugError(
+        `Custom output format "${name}" conflicts with a built-in format.`
+      );
     }
     if (typeof renderer !== "function") {
-      throw new ToolcraftBugError(`Custom output format "${name}" must define a renderer function.`);
+      throw new ToolcraftBugError(
+        `Custom output format "${name}" must define a renderer function.`
+      );
     }
   }
 }
@@ -2019,9 +2022,18 @@ function tokenizeHelpFlags(flags: string): HelpToken[] {
       continue;
     }
 
-    if (flags.startsWith("--", index) || (flags[index] === "-" && flags[index + 1] !== undefined && flags[index + 1] !== "-")) {
+    if (
+      flags.startsWith("--", index) ||
+      (flags[index] === "-" && flags[index + 1] !== undefined && flags[index + 1] !== "-")
+    ) {
       let end = index + 1;
-      while (end < flags.length && flags[end] !== " " && flags[end] !== "[" && flags[end] !== "]" && flags[end] !== "<") {
+      while (
+        end < flags.length &&
+        flags[end] !== " " &&
+        flags[end] !== "[" &&
+        flags[end] !== "]" &&
+        flags[end] !== "<"
+      ) {
         end += 1;
       }
       tokens.push({ text: flags.slice(index, end), role: "option" });
@@ -2031,7 +2043,13 @@ function tokenizeHelpFlags(flags: string): HelpToken[] {
 
     // Enum literals (a|b) or bare words after a flag.
     let end = index + 1;
-    while (end < flags.length && flags[end] !== " " && flags[end] !== "[" && flags[end] !== "]" && flags[end] !== "<") {
+    while (
+      end < flags.length &&
+      flags[end] !== " " &&
+      flags[end] !== "[" &&
+      flags[end] !== "]" &&
+      flags[end] !== "<"
+    ) {
       end += 1;
     }
     const piece = flags.slice(index, end);
@@ -2473,9 +2491,7 @@ function renderLeafHelp<TServices extends object>(
 
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
-    sections.push(
-      `${text.section("Secrets (environment):")}\n${formatHelpOptionList(secretRows)}`
-    );
+    sections.push(`${text.section("Secrets (environment):")}\n${formatHelpOptionList(secretRows)}`);
   }
 
   if (command.examples.length > 0) {
@@ -2763,9 +2779,7 @@ function createNodeCommand<TServices extends object>(
         // validation: Commander would otherwise report a missing positional in its own words
         // before prompts, defaults, and presets have had a chance to supply the value.
         command.argument(
-          field.variadicPosition === true
-            ? `[${field.displayPath}...]`
-            : `[${field.displayPath}]`
+          field.variadicPosition === true ? `[${field.displayPath}...]` : `[${field.displayPath}]`
         );
         continue;
       }
@@ -3105,26 +3119,28 @@ function addGlobalOptions(
   if (controls.output) {
     const choices = outputFormatNames(controls);
     options.push(
-      new Option("--output <format>", "Output format.").choices(choices).argParser((value: string) => {
-        if (value === "rich" || value === "md" || value === "json") {
-          return value;
-        }
+      new Option("--output <format>", "Output format.")
+        .choices(choices)
+        .argParser((value: string) => {
+          if (value === "rich" || value === "md" || value === "json") {
+            return value;
+          }
 
-        if (value === "markdown") {
-          return "md";
-        }
+          if (value === "markdown") {
+            return "md";
+          }
 
-        if (Object.hasOwn(controls.outputFormats, value)) {
-          return value;
-        }
+          if (Object.hasOwn(controls.outputFormats, value)) {
+            return value;
+          }
 
-        throw new InvalidArgumentError(
-          formatInvalidEnumMessage("--output", value, choices, {
-            candidates: ["rich", "markdown", "json", ...Object.keys(controls.outputFormats)],
-            threshold: 3
-          })
-        );
-      })
+          throw new InvalidArgumentError(
+            formatInvalidEnumMessage("--output", value, choices, {
+              candidates: ["rich", "markdown", "json", ...Object.keys(controls.outputFormats)],
+              threshold: 3
+            })
+          );
+        })
     );
   }
   if (controls.debug) {
@@ -3258,7 +3274,10 @@ interface PromptStreams {
   output?: NodeJS.WritableStream;
 }
 
-function withPromptStreams<T extends object>(options: T, streams: PromptStreams): T & PromptStreams {
+function withPromptStreams<T extends object>(
+  options: T,
+  streams: PromptStreams
+): T & PromptStreams {
   return {
     ...options,
     ...(streams.input === undefined ? {} : { input: streams.input }),
@@ -4112,17 +4131,20 @@ type CliErrorPattern =
   | {
       kind: "definition";
       error: Error;
+      debugControlEnabled: boolean;
       debugStackMode: DebugStackMode | undefined;
     }
   | {
       kind: "toolcraft-bug";
       error: Error;
+      debugControlEnabled: boolean;
       debugStackMode: DebugStackMode | undefined;
     }
   | {
       kind: "unexpected";
       message: string;
       stack: string | undefined;
+      debugControlEnabled: boolean;
       debugStackMode: DebugStackMode | undefined;
     };
 
@@ -4152,8 +4174,8 @@ function renderCliErrorPattern(
   if (pattern.kind === "definition") {
     logger.error(
       `Command definition error: ${pattern.error.message}\n` +
-        "This is a bug in the generated command definition, not in your command arguments.\n" +
-        "Run with --debug for a stack trace."
+        "This is a bug in the generated command definition, not in your command arguments." +
+        (pattern.debugControlEnabled ? "\nRun with --debug for a stack trace." : "")
     );
     if (pattern.debugStackMode !== undefined && pattern.error.stack) {
       process.stderr.write(`${formatDebugStack(pattern.error.stack, pattern.debugStackMode)}\n`);
@@ -4166,8 +4188,10 @@ function renderCliErrorPattern(
     logger.error(
       `toolcraft hit an internal invariant: ${pattern.error.message}\n` +
         `This is a bug in toolcraft or in the command definition; ` +
-        `it cannot be worked around by changing argv. ` +
-        `Re-run with --debug for a stack trace and file an issue.`
+        `it cannot be worked around by changing argv.` +
+        (pattern.debugControlEnabled
+          ? ` Re-run with --debug for a stack trace and file an issue.`
+          : " File an issue.")
     );
     if (pattern.debugStackMode !== undefined && pattern.error.stack) {
       process.stderr.write(`${formatDebugStack(pattern.error.stack, pattern.debugStackMode)}\n`);
@@ -4177,7 +4201,7 @@ function renderCliErrorPattern(
   }
 
   logger.error(
-    pattern.debugStackMode !== undefined
+    pattern.debugStackMode !== undefined || !pattern.debugControlEnabled
       ? pattern.message
       : `${pattern.message} Use --debug for a stack trace.`
   );
@@ -5694,6 +5718,7 @@ function renderHttpError(
 async function handleRunError(
   error: unknown,
   options: {
+    debugControlEnabled: boolean;
     debugStackMode: DebugStackMode | undefined;
     output: OutputMode;
     verbose: boolean;
@@ -5714,6 +5739,7 @@ async function handleRunError(
           ? {
               kind: "definition",
               error,
+              debugControlEnabled: options.debugControlEnabled,
               debugStackMode: options.debugStackMode
             }
           : options.userErrorPattern === "usage"
@@ -5737,6 +5763,7 @@ async function handleRunError(
         {
           kind: "toolcraft-bug",
           error,
+          debugControlEnabled: options.debugControlEnabled,
           debugStackMode: options.debugStackMode
         },
         options.outputEmitter
@@ -5798,6 +5825,7 @@ async function handleRunError(
         kind: "unexpected",
         message,
         stack: error instanceof Error ? error.stack : undefined,
+        debugControlEnabled: options.debugControlEnabled,
         debugStackMode: options.debugStackMode
       },
       options.outputEmitter
@@ -6344,10 +6372,12 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     }
 
     await handleRunError(error, {
-      debugStackMode:
-        resolvedFlags !== undefined
+      debugControlEnabled: controls.debug,
+      debugStackMode: controls.debug
+        ? resolvedFlags !== undefined
           ? resolveDebugStackMode(resolvedFlags.debug)
-          : getDebugStackModeFromArgv(argv),
+          : getDebugStackModeFromArgv(argv)
+        : undefined,
       output:
         resolvedFlags !== undefined
           ? resolveOutput(resolvedFlags)

@@ -65,10 +65,7 @@ export function createOAuthClient(config: OAuthClientConfig): OAuthClient {
       config.authorizationEndpoint ?? DEFAULT_AUTHORIZATION_ENDPOINT,
       "authorizationEndpoint"
     ),
-    tokenEndpoint: validateHttpUrl(
-      config.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT,
-      "tokenEndpoint"
-    )
+    tokenEndpoint: validateHttpUrl(config.tokenEndpoint ?? DEFAULT_TOKEN_ENDPOINT, "tokenEndpoint")
   };
 
   return {
@@ -136,9 +133,7 @@ async function startAuthorization(
   return { authorizationUrl, waitForResult };
 }
 
-export function createOAuthAuthorizationUrl(
-  options: CreateOAuthAuthorizationUrlOptions
-): string {
+export function createOAuthAuthorizationUrl(options: CreateOAuthAuthorizationUrlOptions): string {
   const clientId = validateClientId(options.clientId);
   const redirectUri = validateHttpUrl(options.redirectUri, "redirectUri");
   const state = validateOpaqueValue(options.state, "state");
@@ -158,9 +153,7 @@ export function createOAuthAuthorizationUrl(
   return url.toString();
 }
 
-export async function exchangeOAuthCode(
-  options: ExchangeOAuthCodeOptions
-): Promise<OAuthResult> {
+export async function exchangeOAuthCode(options: ExchangeOAuthCodeOptions): Promise<OAuthResult> {
   const clientId = validateClientId(options.clientId);
   const redirectUri = validateHttpUrl(options.redirectUri, "redirectUri");
   const code = validateOpaqueValue(options.code, "code");
@@ -222,7 +215,11 @@ export async function exchangeOAuthCode(
     throw new Error("Token response missing api_key field");
   }
 
-  if (apiKeyExpiresIn !== undefined && !isValidExpiresIn(apiKeyExpiresIn)) {
+  if (
+    apiKeyExpiresIn !== undefined &&
+    apiKeyExpiresIn !== null &&
+    !isValidExpiresIn(apiKeyExpiresIn)
+  ) {
     throw new Error("Token response invalid api_key_expires_in field");
   }
 

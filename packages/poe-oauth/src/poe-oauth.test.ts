@@ -91,7 +91,7 @@ function createMockServer(): {
   return { server, simulateCallback, captureResponseBody, boundPort };
 }
 
-function createTokenResponse(apiKey: string, expiresIn?: number): Response {
+function createTokenResponse(apiKey: string, expiresIn?: number | null): Response {
   const body: Record<string, unknown> = { api_key: apiKey };
   if (expiresIn !== undefined) {
     body.api_key_expires_in = expiresIn;
@@ -383,24 +383,24 @@ describe("caller-managed OAuth primitives", () => {
   const codeVerifier = "v".repeat(43);
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
-  it.each([
-    "https://app.example.com/oauth/callback",
-    "http://127.0.0.1:54321/callback"
-  ])("creates an authorization URL for redirect URI %s", (redirectUri) => {
-    const authorizationUrl = createOAuthAuthorizationUrl({
-      clientId: "test-client-id",
-      redirectUri,
-      state: "caller-owned-state",
-      codeChallenge
-    });
+  it.each(["https://app.example.com/oauth/callback", "http://127.0.0.1:54321/callback"])(
+    "creates an authorization URL for redirect URI %s",
+    (redirectUri) => {
+      const authorizationUrl = createOAuthAuthorizationUrl({
+        clientId: "test-client-id",
+        redirectUri,
+        state: "caller-owned-state",
+        codeChallenge
+      });
 
-    const url = new URL(authorizationUrl);
-    expect(url.searchParams.get("client_id")).toBe("test-client-id");
-    expect(url.searchParams.get("redirect_uri")).toBe(redirectUri);
-    expect(url.searchParams.get("state")).toBe("caller-owned-state");
-    expect(url.searchParams.get("code_challenge")).toBe(codeChallenge);
-    expect(url.searchParams.get("code_challenge_method")).toBe("S256");
-  });
+      const url = new URL(authorizationUrl);
+      expect(url.searchParams.get("client_id")).toBe("test-client-id");
+      expect(url.searchParams.get("redirect_uri")).toBe(redirectUri);
+      expect(url.searchParams.get("state")).toBe("caller-owned-state");
+      expect(url.searchParams.get("code_challenge")).toBe(codeChallenge);
+      expect(url.searchParams.get("code_challenge_method")).toBe("S256");
+    }
+  );
 
   it("validates a caller-managed callback without exposing state values", () => {
     const callbackUrl = new URL("https://app.example.com/oauth/callback");
@@ -613,6 +613,26 @@ describe("OAuthClient", () => {
   it("returns null expiresIn when token response omits it", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("sk-no-expiry"));
+
+    const config = createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "some-code"));
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const client = createOAuthClient(config);
+    const authorization = await client.authorize();
+    const result = await authorization.waitForResult();
+
+    expect(result.apiKey).toBe("sk-no-expiry");
+    expect(result.expiresIn).toBeNull();
+  });
+
+  it("returns null expiresIn when token response explicitly sets it to null", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-no-expiry", null));
 
     const config = createTestConfig({
       openBrowser: vi.fn(async (authorizationUrl) => {
@@ -845,7 +865,7 @@ describe("OAuthClient", () => {
     await expect(authorization.waitForResult()).rejects.toThrow("api_key");
   });
 
-  it.each([-60, 60.5, Infinity, Number.MAX_VALUE])(
+  it.each([-60, 60.5, Number.MAX_VALUE])(
     "throws for invalid token expiration duration %s",
     async (expiresIn) => {
       const { server, simulateCallback } = createMockServer();
@@ -864,6 +884,29 @@ describe("OAuthClient", () => {
       await expect(authorization.waitForResult()).rejects.toThrow("api_key_expires_in");
     }
   );
+
+  it("throws for a non-finite token expiration duration", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(
+      async () =>
+        new Response('{"api_key":"sk-key","api_key_expires_in":1e999}', {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        })
+    );
+    const client = createOAuthClient(
+      createTestConfig({
+        openBrowser: vi.fn(async (authorizationUrl) =>
+          simulateCallback(createCallbackPath(authorizationUrl, "code"))
+        ),
+        createServer: () => server,
+        fetch: fetchMock as any
+      })
+    );
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow("api_key_expires_in");
+  });
 
   it("reports malformed successful token JSON as token exchange failure", async () => {
     const { server, simulateCallback } = createMockServer();

@@ -111,7 +111,11 @@ vi.mock("toolcraft-design", () => ({
       }))
     ),
   formatOptionList: (
-    options: Array<{ flags: string; flagTokens?: Array<{ text: string; role: string }>; description: string }>
+    options: Array<{
+      flags: string;
+      flagTokens?: Array<{ text: string; role: string }>;
+      description: string;
+    }>
   ) =>
     formatMockColumns(
       options.map((option) => ({
@@ -146,7 +150,11 @@ vi.mock("toolcraft-design", () => ({
       );
     },
     formatOptionList: (
-      options: Array<{ flags: string; flagTokens?: Array<{ text: string; role: string }>; description: string }>
+      options: Array<{
+        flags: string;
+        flagTokens?: Array<{ text: string; role: string }>;
+        description: string;
+      }>
     ) => {
       formatterState.plainOptionListCalls += 1;
       return formatMockColumns(
@@ -1638,9 +1646,7 @@ describe("runCLI", () => {
 
     process.argv = ["node", "toolcraft", "--help"];
     await runCLI(root, { controls });
-    expect(readStdout(stdoutWrite)).toContain(
-      "--output <rich|md|markdown|json|compact>"
-    );
+    expect(readStdout(stdoutWrite)).toContain("--output <rich|md|markdown|json|compact>");
 
     process.argv = ["node", "toolcraft", "query", "--output", "compcat"];
     await runCLI(root, { controls });
@@ -2956,6 +2962,101 @@ describe("runCLI", () => {
 
     expect(loggerState.error).toEqual(["Boom."]);
     expect(stderrWrite).toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not suggest the debug option when that control is disabled", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw new Error("Boom.");
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy"];
+    await runCLIWithoutControls(root);
+
+    expect(loggerState.error).toEqual(["Boom."]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not treat a user-owned debug parameter as the stack-trace control", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        debug: S.Optional(S.Boolean())
+      }),
+      handler: async () => {
+        throw new Error("Boom.");
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--debug"];
+    await runCLIWithoutControls(root);
+
+    expect(loggerState.error).toEqual(["Boom."]);
+    expect(stderrWrite).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not suggest disabled debug for command-definition errors", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        fooBar: S.String(),
+        foo_bar: S.String()
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+
+    process.argv = ["node", "toolcraft", "submit", "--foo-bar", "value"];
+    await runCLIWithoutControls(root);
+
+    expect(loggerState.error).toEqual([
+      'Command definition error: Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".\n' +
+        "This is a bug in the generated command definition, not in your command arguments."
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not suggest disabled debug for Toolcraft internal errors", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw new ToolcraftBugError("broken invariant");
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy"];
+    await runCLIWithoutControls(root);
+
+    expect(loggerState.error).toEqual([
+      "toolcraft hit an internal invariant: broken invariant\n" +
+        "This is a bug in toolcraft or in the command definition; it cannot be worked around by changing argv. File an issue."
+    ]);
     expect(process.exitCode).toBe(1);
   });
 
@@ -6571,8 +6672,6 @@ describe("runCLI", () => {
     expect(output).toMatch(
       /\(values: client_secret_supplied, internal_keystore,\s*none\) \(required\)/
     );
-    expect(output).not.toMatch(
-      /values: client_secret_supplied, internal_keystore, none, required/
-    );
+    expect(output).not.toMatch(/values: client_secret_supplied, internal_keystore, none, required/);
   });
 });

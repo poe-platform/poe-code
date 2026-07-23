@@ -19,10 +19,7 @@ export const poeProvider = defineProvider({
     preferredLogin: "oauth"
   },
   env: {
-    ANTHROPIC_CUSTOM_HEADERS: {
-      kind: "providerCredential",
-      prefix: "Authorization: Bearer "
-    }
+    ANTHROPIC_API_KEY: { kind: "providerCredential" }
   },
   apiShapes: [
     {

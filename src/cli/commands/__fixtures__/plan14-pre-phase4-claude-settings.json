@@ -1,6 +1,6 @@
 {
   "env": {
-    "ANTHROPIC_CUSTOM_HEADERS": "Authorization: Bearer sk-test",
+    "ANTHROPIC_API_KEY": "sk-test",
     "ANTHROPIC_BASE_URL": "https://api.poe.com"
   },
   "model": "claude-sonnet-4-6"

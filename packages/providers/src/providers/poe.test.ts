@@ -15,6 +15,12 @@ describe("poeProvider", () => {
     expect(poeProvider.auth.kind).toBe("api-key");
   });
 
+  it("passes the Poe credential directly to Claude Code as an Anthropic API key", () => {
+    expect(poeProvider.env).toEqual({
+      ANTHROPIC_API_KEY: { kind: "providerCredential" }
+    });
+  });
+
   it("intersects with every Poe-compatible provider-backed agent in @poe-code/agent-defs", () => {
     const poeCompatibleAgents = allAgents.filter(
       (agent) =>

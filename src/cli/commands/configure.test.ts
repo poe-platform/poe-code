@@ -353,6 +353,8 @@ describe("configure provider resolution", () => {
 
     const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
     expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com");
+    expect(settings.env.ANTHROPIC_API_KEY).toBe("sk-test");
+    expect(settings.env.ANTHROPIC_CUSTOM_HEADERS).toBeUndefined();
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
@@ -1433,7 +1435,7 @@ describe("configure provider resolution", () => {
     expect(invokeSpy).not.toHaveBeenCalled();
   });
 
-  it("keeps the claude-code Poe configure snapshot byte-identical with only POE_API_KEY", async () => {
+  it("configures claude-code with the Poe key as ANTHROPIC_API_KEY", async () => {
     const container = createContainer(fs, { POE_API_KEY: "sk-test" });
     mockOptions(container);
 

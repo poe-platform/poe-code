@@ -1595,7 +1595,7 @@ describe("test command", () => {
       expect.any(Array),
       expect.objectContaining({
         env: expect.objectContaining({
-          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-env",
+          ANTHROPIC_API_KEY: "sk-env",
           ANTHROPIC_BASE_URL: "https://api.poe.com"
         })
       })
@@ -1626,7 +1626,7 @@ describe("test command", () => {
       expect.any(Array),
       expect.objectContaining({
         env: expect.objectContaining({
-          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-env",
+          ANTHROPIC_API_KEY: "sk-env",
           ANTHROPIC_BASE_URL: "https://api.poe.com"
         })
       })

@@ -1190,6 +1190,10 @@ function isNegativeNumericArrayToken(token: string, schema: ArraySchema<any>): b
 }
 
 function isNextArrayOptionToken(token: string, schema: ArraySchema<any>): boolean {
+  if (token === "-" && unwrapOptional(schema.item).kind === "string") {
+    return false;
+  }
+
   return token.startsWith("-") && !isNegativeNumericArrayToken(token, schema);
 }
 
@@ -5648,7 +5652,11 @@ function formatHttpErrorSnippet(body: unknown): string {
 
 function renderHttpError(
   error: HttpErrorLike,
-  options: { debugStackMode: DebugStackMode | undefined; verbose: boolean }
+  options: {
+    debugStackMode: DebugStackMode | undefined;
+    verbose: boolean;
+    verboseControlEnabled: boolean;
+  }
 ): void {
   const detailed = options.verbose || options.debugStackMode !== undefined;
   const summary = summarizeHttpError(error);
@@ -5704,7 +5712,9 @@ function renderHttpError(
     } else {
       lines.push(`Response body: ${formatHttpErrorSnippet(error.response.body)}`);
     }
-    lines.push("Re-run with --verbose to see headers and full body.");
+    if (options.verboseControlEnabled) {
+      lines.push("Re-run with --verbose to see headers and full body.");
+    }
   }
 
   process.stderr.write(`${lines.join("\n")}\n`);
@@ -5722,6 +5732,7 @@ async function handleRunError(
     debugStackMode: DebugStackMode | undefined;
     output: OutputMode;
     verbose: boolean;
+    verboseControlEnabled: boolean;
     program?: CommanderCommand;
     argv?: readonly string[];
     rootUsageName: string;
@@ -6383,6 +6394,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
           ? resolveOutput(resolvedFlags)
           : resolveOutputFromArgv(argv, controls.outputFormats),
       verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : argv.includes("--verbose"),
+      verboseControlEnabled: controls.verbose,
       program,
       argv,
       rootUsageName,

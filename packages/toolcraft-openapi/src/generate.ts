@@ -3326,6 +3326,7 @@ function createCliFile(theme: { brand: string; label: string }): GeneratedFile {
       "  await runCLI(client.root, {",
       "    ...options,",
       "    services: client.services,",
+      "    controls: { output: true, verbose: true, ...options.controls },",
       "  });",
       "}",
       ""

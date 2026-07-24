@@ -486,6 +486,7 @@ describe("generate", () => {
         await runCLI(client.root, {
           ...options,
           services: client.services,
+          controls: { output: true, verbose: true, ...options.controls },
         });
       }
       "

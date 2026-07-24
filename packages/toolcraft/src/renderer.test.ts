@@ -85,7 +85,7 @@ describe("renderResult auto renderer", () => {
       "Resource id    3065",
       "Resource name  Example",
       "Enabled        Yes",
-      "Url            cdn.example.com/…/long-resource-preview.jpeg",
+      "Url            https://cdn.example.com/files/long-resource-preview.jpeg",
       "",
       "Settings",
       "Allow uploads  No",

@@ -198,26 +198,12 @@ function displayScalar(value: unknown): string {
   return stringifyValue(value) || "—";
 }
 
-function isUrl(value: unknown): value is string {
-  return typeof value === "string" && (value.startsWith("https://") || value.startsWith("http://"));
-}
-
-function compactUrl(value: string): string {
-  try {
-    const url = new URL(value);
-    const tail = url.pathname.split("/").filter(Boolean).at(-1);
-    return tail ? `${url.hostname}/…/${tail}` : url.hostname;
-  } catch {
-    return value;
-  }
-}
-
 function stackedList(value: unknown[]): string {
   return value.map((entry) => displayScalar(entry)).join("\n") || "—";
 }
 
 function displayRowValue(value: unknown): string {
-  return isUrl(value) ? compactUrl(value) : displayScalar(value);
+  return displayScalar(value);
 }
 
 function directScalarRows(result: Record<string, unknown>): Array<{ label: string; value: string }> {

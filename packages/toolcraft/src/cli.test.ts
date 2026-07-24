@@ -3182,6 +3182,24 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("does not recommend verbose output when the verbose control is disabled", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike();
+      }
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await runCLIWithoutControls(defineGroup({ name: "toolcraft", children: [deploy] }), {
+      argv: ["node", "toolcraft", "deploy"]
+    });
+
+    expect(readStderr(stderrWrite)).not.toContain("--verbose");
+    expect(process.exitCode).toBe(1);
+  });
+
   it("prints full HttpError-like details with --verbose without a stack trace", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -4394,6 +4412,23 @@ describe("runCLI", () => {
           }
         }
       })
+    );
+  });
+
+  it("preserves a bare dash in dynamic string array flags", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+    const configure = defineCommand({
+      name: "configure",
+      params: S.Object({ paths: S.Record(S.Array(S.String())) }),
+      handler
+    });
+
+    process.argv = ["node", "toolcraft", "configure", "--paths.tools", "tools", "-", "--yes"];
+
+    await runCLI(defineGroup({ name: "toolcraft", children: [configure] }));
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { paths: { tools: ["tools", "-"] } } })
     );
   });
 

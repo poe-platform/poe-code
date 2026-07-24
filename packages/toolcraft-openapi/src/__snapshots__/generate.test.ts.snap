@@ -93,6 +93,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -215,6 +216,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -340,6 +342,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -486,6 +489,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -610,6 +614,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -735,6 +740,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -863,6 +869,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",
@@ -985,6 +992,7 @@ export async function runGeneratedCLI(options: GeneratedCLIOptions) {
   await runCLI(client.root, {
     ...options,
     services: client.services,
+    controls: { output: true, verbose: true, ...options.controls },
   });
 }
 ",

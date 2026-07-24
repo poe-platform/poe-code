@@ -27,7 +27,12 @@ export function stripModelNamespace(model: string): string {
   return id.toLowerCase();
 }
 
-export const KIMI_MODELS = ["novita ai/kimi-k2.5", "novita ai/kimi-k2-thinking"] as const;
+export const KIMI_MODELS = [
+  "moonshot ai/kimi-k3",
+  "novita ai/kimi-k2.7-code-n",
+  "empiriolabs ai/kimi-k3-el",
+  "empiriolabs ai/kimi-k2.7-code-el"
+] as const;
 export const DEFAULT_KIMI_MODEL = KIMI_MODELS[0];
 
 export const GOOSE_MODELS = FRONTIER_MODELS;

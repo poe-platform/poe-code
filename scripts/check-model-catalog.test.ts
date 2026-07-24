@@ -16,8 +16,10 @@ const LIVE_CATALOG_SAMPLE: ModelCatalogEntry[] = [
   { id: "gpt-5.4-pro", owned_by: "OpenAI" },
   { id: "gemini-3.1-pro", owned_by: "Google" },
   { id: "gemini-2.5-pro", owned_by: "Google" },
-  { id: "kimi-k2.5", owned_by: "Novita AI" },
-  { id: "kimi-k2-thinking", owned_by: "Novita AI" }
+  { id: "kimi-k3", owned_by: "Moonshot AI" },
+  { id: "kimi-k2.7-code-n", owned_by: "Novita AI" },
+  { id: "kimi-k3-el", owned_by: "EmpirioLabs AI" },
+  { id: "kimi-k2.7-code-el", owned_by: "EmpirioLabs AI" }
 ];
 
 describe("findUnresolvedModelIds", () => {
@@ -32,8 +34,8 @@ describe("findUnresolvedModelIds", () => {
   });
 
   it("reports a namespaced id whose owner does not match the catalog", () => {
-    expect(findUnresolvedModelIds(["novitaai/kimi-k2.5"], LIVE_CATALOG_SAMPLE)).toEqual([
-      "novitaai/kimi-k2.5"
+    expect(findUnresolvedModelIds(["novitaai/kimi-k2.7-code-n"], LIVE_CATALOG_SAMPLE)).toEqual([
+      "novitaai/kimi-k2.7-code-n"
     ]);
   });
 

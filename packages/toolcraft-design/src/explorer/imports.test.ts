@@ -23,6 +23,8 @@ const renderAllowed = new Set([
   "dashboard/buffer.ts",
   "dashboard/terminal-width.ts",
   "dashboard/types.ts",
+  "screen/screen.ts",
+  "screen/ansi-text.ts",
   "internal/strip-ansi.ts",
   "terminal-markdown/index.ts"
 ]);
@@ -133,7 +135,7 @@ function validateEdge(edge: ImportEdge): string[] {
     return [
       formatViolation(
         edge,
-        "render modules may only import render siblings, state, theme, layout, buffer, ansi, or terminal width"
+        "render modules may only import render siblings or the explorer rendering layers"
       )
     ];
   }

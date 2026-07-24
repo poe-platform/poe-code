@@ -1,7 +1,7 @@
 import type { ExplorerEvent } from "./events.js";
 import type { Action, ActionContext, DetailItem, ExplorerState, Row, Tone } from "./state.js";
 
-export type ActionSource = "row" | "detail";
+export type ActionSource = "row" | "detail" | "both";
 type ExplorerKeypressEvent = Extract<ExplorerEvent, { type: "key" }>["key"];
 
 export type ActionRuntimeHandles = {
@@ -42,12 +42,14 @@ export function buildActionContext<R>(
   runtimeHandles: ActionRuntimeHandles,
   rowsOverride?: Row[]
 ): ActionContext<R> {
-  const row = rowsOverride?.[0] ?? currentRow(state) ?? { id: "", title: "" };
+  const detailActive = source === "both" && state.focused === "detail";
+  const row = rowsOverride?.[0] ?? (detailActive ? currentDetailRow(state) : currentRow(state)) ?? { id: "", title: "" };
+  const panes = runtimePanes(state);
 
   return {
     row,
     rows: rowsOverride ?? selectedRows(state, row),
-    item: source === "detail" ? currentDetailItem(state) : undefined,
+    item: source === "detail" || detailActive ? currentDetailItem(state) : undefined,
     filter: state.filter,
     refresh: runtimeHandles.refresh,
     reloadDetail: runtimeHandles.reloadDetail,
@@ -55,7 +57,9 @@ export function buildActionContext<R>(
     openModal: runtimeHandles.openModal,
     toast: runtimeHandles.toast,
     confirm: runtimeHandles.confirm,
-    exit: runtimeHandles.exit
+    exit: runtimeHandles.exit,
+    activePane: state.focused === "detail" ? panes[1] : panes[0],
+    inactivePane: state.focused === "detail" ? panes[0] : panes[1]
   };
 }
 
@@ -67,10 +71,26 @@ function currentDetailItem(state: ExplorerState): DetailItem | undefined {
   return state.detail.items?.[state.detail.cursor];
 }
 
+function currentDetailRow(state: ExplorerState): Row | undefined {
+  const item = currentDetailItem(state);
+  return item === undefined ? undefined : { id: item.id, title: item.title ?? item.id, subtitle: item.subtitle, badge: item.badge };
+}
+
 function selectedRows(state: ExplorerState, fallback: Row): Row[] {
   if (!state.multiSelect || state.selected.size === 0) {
     return fallback.id === "" ? [] : [fallback];
   }
 
-  return state.rows.filter((row) => state.selected.has(row.id));
+  const source = state.focused === "detail"
+    ? (state.detail.items ?? []).map(item => ({ id: item.id, title: item.title ?? item.id, subtitle: item.subtitle, badge: item.badge }))
+    : state.rows;
+  return source.filter((row) => state.selected.has(row.id));
+}
+
+function runtimePanes(state: ExplorerState): [import("./state.js").PaneRuntimeState, import("./state.js").PaneRuntimeState] {
+  const definitions = state.paneDefinitions;
+  return [
+    { id: definitions[0]?.id ?? "list", title: definitions[0]?.title ?? state.title, rows: state.rows, cursor: state.cursor, selected: state.selected, filter: state.filter },
+    { id: definitions[1]?.id ?? "detail", title: definitions[1]?.title ?? "Preview", rows: (state.detail.items ?? []).map(item => ({ id: item.id, title: item.title ?? item.id, subtitle: item.subtitle, badge: item.badge })), cursor: state.detail.cursor, selected: state.selected, filter: "" }
+  ];
 }

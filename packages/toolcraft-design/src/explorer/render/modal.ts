@@ -1,4 +1,4 @@
-import { ScreenBuffer } from "../../dashboard/buffer.js";
+import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 import type { ExplorerState } from "../state.js";
 import { getExplorerStyles, type ExplorerStyles } from "../theme.js";

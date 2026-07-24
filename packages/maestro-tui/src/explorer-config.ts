@@ -1,4 +1,4 @@
-import type { Action, DetailItem, ExplorerConfig, Row, Tone } from "toolcraft-design";
+import { normalizeExplorerConfig, type Action, type ExplorerConfig, type Row, type Tone } from "toolcraft-design";
 import type { Task, TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
 import { buildOpenIssueAction, buildOpenSourceAction } from "./actions.js";
@@ -46,33 +46,26 @@ export function buildMaestroExplorerConfig(
     })
   ];
 
-  return {
+  return normalizeExplorerConfig({
     title: "Maestro tasks",
-    rows: async () => rows,
-    refresh,
-    detail: {
-      items: async (row, ctx) => {
-        const task = getTask(taskByRowId, row.id);
-        const markdown = await loadMarkdownUnlessAborted(ctx.signal, () =>
-          renderTaskDetailMarkdown(task, options.taskList)
-        );
-
-        if (markdown === undefined || ctx.signal.aborted) {
-          return [];
+    panes: [
+      { id: "tasks", kind: "list", title: "Tasks", rows: async () => rows, emptyHint: "No tasks found", multiSelect: false },
+      {
+        id: "preview",
+        kind: "detail",
+        title: "Preview",
+        render: async (row, ctx) => {
+          if (row === undefined) return "";
+          const task = getTask(taskByRowId, row.id);
+          return await loadMarkdownUnlessAborted(ctx.signal, () => renderTaskDetailMarkdown(task, options.taskList)) ?? "";
         }
-
-        return [
-          {
-            id: task.qualifiedId,
-            render: () => markdown
-          } satisfies DetailItem
-        ];
       }
-    },
+    ],
+    refresh,
     actions,
     multiSelect: false,
     emptyHint: "No tasks found"
-  };
+  });
 }
 
 function toRows(tasks: readonly Task[]): Row[] {

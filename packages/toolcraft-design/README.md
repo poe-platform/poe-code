@@ -83,6 +83,36 @@ import { renderTable } from "toolcraft-design/render-table";
 - Root-level types: `Row`, `DetailItem`, `Detail`, `DetailCtx`, `Action`, `ActionContext`, `ExplorerConfig`, `ReorderContext`, `Tone`.
 - The namespace also exports `createInitialState`, `resolveBindings`, and the remaining explorer event, binding, layout, size, state, and effect types.
 
+Explorers declare one to three list or detail panes. Printable input always filters; actions use optional Ctrl accelerators:
+
+```ts
+await runExplorer({
+  title: "Plans",
+  panes: [
+    { id: "plans", kind: "list", title: "Plans", rows: loadPlans },
+    { id: "preview", kind: "detail", title: "Preview", render: renderPlan }
+  ],
+  actions: [
+    { id: "edit", label: "Edit", accelerator: "e", handler: editPlan },
+    { id: "remove", label: "Remove", destructive: true, handler: removePlan }
+  ]
+});
+```
+
+| Input | Behavior |
+| --- | --- |
+| Printable text / paste | Filter the focused list |
+| Up, Down, PageUp, PageDown, Home, End | Navigate |
+| Ctrl+U, Ctrl+D | Move half a page |
+| Enter | Open the action menu |
+| Ctrl+P | Open the command palette |
+| Tab | Cycle pane focus |
+| Space | Toggle selection |
+| Escape | Dismiss, clear the filter, then quit |
+| Ctrl+C | Quit immediately |
+
+Set `POE_CODE_TUI_TRACE` to a file path to write JSONL input and frame diagnostics. It is unset and disabled by default.
+
 ### Terminal Markdown
 
 - `parse`: parses Markdown into `MdNode` values.

@@ -47,7 +47,7 @@ describe("explorer list renderer", () => {
     expect(screen.get(12, 1).ch).toBe("火");
     expect(screen.get(13, 1).ch).toBe("");
     expect(screen.get(15, 1).ch).toBe("▌");
-    expect(screen.get(17, 1).ch).toBe("│");
+    expect(screen.get(17, 1).ch).toBe("┃");
   });
 
   it("renders group headers as horizontal separators", () => {

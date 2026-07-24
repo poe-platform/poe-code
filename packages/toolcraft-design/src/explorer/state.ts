@@ -37,7 +37,9 @@ export interface Action<R> {
   id: string;
   label: string | (() => string);            // function form re-evaluated when state changes
   key?: string | string[];
+  accelerator?: string;
   predicate?: (ctx: ActionContext<R>) => boolean;
+  visible?: (row: Row) => boolean;
   handler: (ctx: ActionContext<R>) => void | Promise<void>;
   destructive?: boolean;
   primary?: boolean;                          // bound to Enter
@@ -58,6 +60,34 @@ export interface ActionContext<R> {
   toast: (msg: string, tone?: Tone) => void;
   confirm: (prompt: string) => Promise<boolean>;
   exit: (after?: () => void | Promise<void>) => void;
+  activePane?: PaneRuntimeState;
+  inactivePane?: PaneRuntimeState;
+}
+
+export interface ListPaneConfig {
+  id: string;
+  kind: "list";
+  title: string;
+  rows: () => Promise<Row[]>;
+  emptyHint?: string;
+  multiSelect?: boolean;
+}
+
+export interface DetailPaneConfig {
+  id: string;
+  kind: "detail";
+  title: string;
+  render: (row: Row | undefined, ctx: DetailCtx) => string | Promise<string>;
+}
+
+export type PaneConfig = ListPaneConfig | DetailPaneConfig;
+export interface PaneRuntimeState {
+  id: string;
+  title: string;
+  rows: Row[];
+  cursor: number;
+  selected: Set<string>;
+  filter: string;
 }
 
 export interface ReorderContext {
@@ -67,9 +97,10 @@ export interface ReorderContext {
 
 export interface ExplorerConfig<R> {
   title: string;
-  rows: () => Promise<Row[]>;
-  refresh?: () => Promise<void>;
-  detail: Detail<R>;
+  panes?: PaneConfig[];
+  rows?: () => Promise<Row[]>;
+  refresh?: () => void | Promise<void>;
+  detail?: Detail<R>;
   actions: Action<R>[];
   reorder?: { onReorder: (orderedIds: string[], ctx?: ReorderContext) => void | Promise<void> };
   multiSelect?: boolean;
@@ -78,6 +109,38 @@ export interface ExplorerConfig<R> {
   initialFilter?: string;
   /** Synchronous first paint rows; still refreshed via `rows()` after start. */
   initialRows?: Row[];
+}
+
+export type NormalizedExplorerConfig<R> = ExplorerConfig<R> & {
+  rows: () => Promise<Row[]>;
+  detail: Detail<R>;
+};
+
+export function normalizeExplorerConfig<R>(config: ExplorerConfig<R>): NormalizedExplorerConfig<R> {
+  if (config.panes === undefined) {
+    if (config.rows === undefined || config.detail === undefined) throw new Error("Explorer requires panes");
+    return config as NormalizedExplorerConfig<R>;
+  }
+  if (config.panes.length < 1 || config.panes.length > 3) throw new Error("Explorer requires 1 to 3 panes");
+  const list = config.panes.find((pane): pane is ListPaneConfig => pane.kind === "list");
+  if (list === undefined) throw new Error("Explorer requires a list pane");
+  const companion = config.panes.find(pane => pane !== list);
+  const detail: Detail<R> = companion?.kind === "detail"
+    ? { items: async (row, ctx) => {
+        const content = await companion.render(row, ctx);
+        if (ctx.signal.aborted) return [];
+        return [{ id: row.id, render: () => content, renderedContent: content }];
+      } }
+    : companion?.kind === "list"
+      ? { items: async () => (await companion.rows()).map(row => ({ ...row, render: () => "" })), actions: config.actions }
+      : { items: async () => [] };
+  return {
+    ...config,
+    rows: list.rows,
+    detail,
+    multiSelect: list.multiSelect ?? config.multiSelect,
+    emptyHint: list.emptyHint ?? config.emptyHint
+  };
 }
 
 export const REGION_HEADER = 1 << 0;
@@ -112,6 +175,7 @@ export interface ExplorerState {
   title: string;
   emptyHint: string;
   rows: Row[];
+  rowsLoading: boolean;
   filtered: number[];
   matchPositions: Map<number, number[]>;
   cursor: number;
@@ -121,6 +185,8 @@ export interface ExplorerState {
   detail: {
     rowId: string | null;
     items: DetailItem[] | null;
+    allItems?: DetailItem[] | null;
+    filter?: string;
     cursor: number;
     scroll: number;
     token: number;
@@ -140,6 +206,8 @@ export interface ExplorerState {
   layout: ExplorerLayoutMode;
   bindings: ResolvedBindings;
   actionState: Map<string, ActionStateEntry>;
+  suspended: boolean;
+  paneDefinitions: Array<{ id: string; title: string; kind: "list" | "detail" }>;
 }
 
 export interface ActionStateEntry {
@@ -147,26 +215,28 @@ export interface ActionStateEntry {
   label: string;
   running?: boolean;
   action?: Action<unknown>;
-  source?: "row" | "detail";
+  source?: "row" | "detail" | "both";
 }
 
 export function createInitialState<R>(
   config: ExplorerConfig<R>,
   size: ExplorerSize
 ): ExplorerState {
+  const normalizedConfig = normalizeExplorerConfig(config);
   const normalizedSize = {
     cols: normalizeSize(size.cols),
     rows: normalizeSize(size.rows)
   };
-  const multiSelect = config.multiSelect ?? true;
+  const multiSelect = normalizedConfig.multiSelect ?? true;
 
-  const initialRows = config.initialRows ?? [];
-  const initialFilter = config.initialFilter ?? "";
+  const initialRows = normalizedConfig.initialRows ?? [];
+  const initialFilter = normalizedConfig.initialFilter ?? "";
   // Defer filtering to first rowsLoaded when empty; seed list immediately when provided.
   return {
-    title: config.title,
-    emptyHint: config.emptyHint ?? "No detail",
+    title: normalizedConfig.title,
+    emptyHint: normalizedConfig.emptyHint ?? "No detail",
     rows: initialRows,
+    rowsLoading: true,
     filtered: initialRows.map((_, index) => index),
     matchPositions: new Map(),
     cursor: 0,
@@ -176,6 +246,8 @@ export function createInitialState<R>(
     detail: {
       rowId: initialRows[0]?.id ?? null,
       items: null,
+      allItems: null,
+      filter: "",
       cursor: 0,
       scroll: 0,
       token: initialRows.length > 0 ? 1 : 0,
@@ -187,9 +259,14 @@ export function createInitialState<R>(
     toast: null,
     dirty: REGION_ALL,
     size: normalizedSize,
-    layout: resolveExplorerLayoutMode(normalizedSize.cols),
-    bindings: resolveBindings(config),
-    actionState: createInitialActionState(config)
+    layout: resolveExplorerLayoutMode(normalizedSize.cols, normalizedSize.rows),
+    bindings: resolveBindings(normalizedConfig),
+    actionState: createInitialActionState(normalizedConfig),
+    suspended: false,
+    paneDefinitions: normalizedConfig.panes?.map(({ id, title, kind }) => ({ id, title, kind })) ?? [
+      { id: "list", title: normalizedConfig.title, kind: "list" },
+      { id: "detail", title: "Preview", kind: "detail" }
+    ]
   };
 }
 
@@ -198,10 +275,14 @@ function createInitialActionState<R>(
 ): Map<string, ActionStateEntry> {
   const state = new Map<string, ActionStateEntry>();
 
-  for (const [source, actions] of [["row", config.actions], ["detail", config.detail.actions ?? []]] as const) {
+  for (const [source, actions] of [["row", config.actions], ["detail", config.detail?.actions ?? []]] as const) {
     for (const action of actions) {
       if (state.has(action.id)) {
-        throw new Error(`Duplicate explorer action id: ${action.id}`);
+        const isSharedListAction = config.panes?.some(pane => pane.kind === "list" && pane !== config.panes?.[0]) === true;
+        if (!isSharedListAction) throw new Error(`Duplicate explorer action id: ${action.id}`);
+        const existing = state.get(action.id)!;
+        state.set(action.id, { ...existing, source: "both" });
+        continue;
       }
 
       state.set(action.id, {
@@ -216,8 +297,8 @@ function createInitialActionState<R>(
   return state;
 }
 
-export function resolveExplorerLayoutMode(cols: number): ExplorerLayoutMode {
-  if (cols < 40) {
+export function resolveExplorerLayoutMode(cols: number, rows = 24): ExplorerLayoutMode {
+  if (cols < 60 || rows < 8) {
     return "too-narrow";
   }
 

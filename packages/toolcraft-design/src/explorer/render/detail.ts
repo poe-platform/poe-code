@@ -1,11 +1,13 @@
-import { ScreenBuffer } from "../../dashboard/buffer.js";
-import { stripAnsi } from "../../internal/strip-ansi.js";
+import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
+import { ansiToCells } from "../../screen/ansi-text.js";
 import { renderMarkdown } from "../../terminal-markdown/index.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { DetailItem, ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
 import { drawPaneFrame, paneBodyRect } from "./pane.js";
 import { fitToWidth } from "./text.js";
+
+const markdownCache = new Map<string, string>();
 
 export function renderDetail(
   state: ExplorerState,
@@ -26,8 +28,9 @@ export function renderDetail(
     drawPaneFrame(
       screen,
       rect,
-      "Preview",
-      state.focused === "detail" ? styles.borderFocused : styles.border
+      state.paneDefinitions[1]?.title ?? "Preview",
+      state.focused === "detail" ? styles.borderFocused : styles.border,
+      { focused: state.focused === "detail", indicator: scrollIndicator(state) }
     );
     renderDetailBody(state, screen, paneBodyRect(rect), row);
     return;
@@ -36,8 +39,9 @@ export function renderDetail(
   drawPaneFrame(
     screen,
     rect,
-    "Preview",
-    state.focused === "detail" ? styles.borderFocused : styles.border
+    state.paneDefinitions[1]?.title ?? "Preview",
+    state.focused === "detail" ? styles.borderFocused : styles.border,
+    { focused: state.focused === "detail", indicator: scrollIndicator(state) }
   );
   renderDetailBody(state, screen, paneBodyRect(rect), row);
 }
@@ -88,7 +92,8 @@ function renderListMode(
     const item = items[index]!;
     const cursor = index === state.detail.cursor;
     const title = item.title ?? item.id;
-    const prefix = cursor ? "▌ " : "  ";
+    const selected = state.multiSelect && state.selected.has(item.id);
+    const prefix = `${selected ? "*" : " "}${cursor ? "▌" : " "} `;
     const badge = item.badge ? ` ${item.badge.text}` : "";
     writeLine(
       screen,
@@ -119,11 +124,20 @@ function renderListMode(
 }
 
 function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: number): void {
-  const allLines = text.split("\n");
+  const allLines: ReturnType<typeof ansiToCells>[] = [[]];
+  for (const cell of ansiToCells(text)) {
+    if (cell.ch === "\n") allLines.push([]);
+    else allLines.at(-1)!.push(cell);
+  }
   const start = clamp(scroll, 0, Math.max(0, allLines.length - rect.height));
   const lines = allLines.slice(start);
   for (let row = 0; row < rect.height; row += 1) {
-    writeLine(screen, rect, row, lines[row] ?? "");
+    let x = rect.x;
+    for (const cell of lines[row] ?? []) {
+      if (x + cell.width > rect.x + rect.width) break;
+      screen.put(x, rect.y + row, cell.ch, cell.style);
+      x += cell.width;
+    }
   }
 }
 
@@ -133,7 +147,13 @@ function renderItemMarkdown(item: DetailItem, rect: Rect, row: Row | null): stri
     return "";
   }
 
-  return stripAnsi(renderMarkdown(content, { width: Math.max(1, rect.width) }).trimEnd());
+  const width = Math.max(1, rect.width);
+  const key = `${contentHash(content)}:${width}`;
+  const cached = markdownCache.get(key);
+  if (cached !== undefined) return cached;
+  const rendered = renderMarkdown(content, { width }).trimEnd();
+  markdownCache.set(key, rendered);
+  return rendered;
 }
 
 function renderItem(item: DetailItem, rect: Rect, row: Row | null): string {
@@ -163,4 +183,20 @@ function writeLine(screen: ScreenBuffer, rect: Rect, row: number, text: string, 
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function scrollIndicator(state: ExplorerState): string {
+  if (state.detail.loading) return "⠋";
+  const content = state.detail.items?.[state.detail.cursor]?.renderedContent ?? "";
+  const total = Math.max(1, content.split("\n").length);
+  return `${Math.min(100, Math.round((state.detail.scroll / Math.max(1, total - 1)) * 100))}%`;
+}
+
+function contentHash(content: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < content.length; index += 1) {
+    hash ^= content.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }

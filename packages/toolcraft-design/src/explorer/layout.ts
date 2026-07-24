@@ -16,6 +16,7 @@ export interface ExplorerLayoutOptions {
   cols: number;
   rows: number;
   detailHidden?: boolean;
+  focused?: "list" | "detail";
 }
 
 export interface ExplorerLayout {
@@ -32,7 +33,7 @@ const FOOTER_HEIGHT = 1;
 export function computeExplorerLayout(opts: ExplorerLayoutOptions): ExplorerLayout {
   const cols = normalizeSize(opts.cols);
   const rows = normalizeSize(opts.rows);
-  const mode = resolveMode(cols);
+  const mode = resolveMode(cols, rows);
   const footerHeight = rows > 0 ? Math.min(FOOTER_HEIGHT, rows) : 0;
   const headerHeight = Math.min(HEADER_HEIGHT, Math.max(0, rows - footerHeight));
   const contentY = headerHeight;
@@ -41,12 +42,23 @@ export function computeExplorerLayout(opts: ExplorerLayoutOptions): ExplorerLayo
   const header: Rect = { x: 0, y: 0, width: cols, height: headerHeight };
   const footer: Rect = { x: 0, y: footerY, width: cols, height: footerHeight };
 
-  if (mode === "too-narrow" || mode === "narrow-list-only") {
+  if (mode === "too-narrow") {
     return {
       mode,
       header,
       list: { x: 0, y: contentY, width: cols, height: contentHeight },
       detail: { x: 0, y: contentY + contentHeight, width: 0, height: 0 },
+      footer
+    };
+  }
+
+  if (mode === "narrow-list-only") {
+    const detailFocused = opts.focused === "detail";
+    return {
+      mode,
+      header,
+      list: detailFocused ? { x: 0, y: contentY, width: 0, height: contentHeight } : { x: 0, y: contentY, width: cols, height: contentHeight },
+      detail: detailFocused ? { x: 0, y: contentY, width: cols, height: contentHeight } : { x: cols, y: contentY, width: 0, height: contentHeight },
       footer
     };
   }
@@ -89,8 +101,8 @@ export function computeExplorerLayout(opts: ExplorerLayoutOptions): ExplorerLayo
   };
 }
 
-function resolveMode(cols: number): ExplorerLayoutMode {
-  if (cols < 40) {
+function resolveMode(cols: number, rows: number): ExplorerLayoutMode {
+  if (cols < 60 || rows < 8) {
     return "too-narrow";
   }
 

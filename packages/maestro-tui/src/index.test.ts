@@ -55,12 +55,12 @@ describe("maestro-tui public API", () => {
     expect(config.actions).toEqual([
       expect.objectContaining({
         id: "open-source",
-        key: "o",
+        accelerator: "o",
         label: "Open in $EDITOR"
       }),
       expect.objectContaining({
         id: "open-issue",
-        key: "g",
+        accelerator: "g",
         label: "Open issue in browser"
       })
     ]);

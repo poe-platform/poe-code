@@ -1,121 +1,38 @@
-import type { Cell } from "../dashboard/types.js";
-import type { KeypressEvent, TerminalDriver } from "../dashboard/terminal.js";
+import type { TerminalDriver, TerminalInputEvent } from "../terminal/driver.js";
 
 export class FakeTerminalDriver implements TerminalDriver {
-  readonly keyQueue: KeypressEvent[] = [];
   readonly writes: string[] = [];
-  readonly flushes: Array<Array<{ x: number; y: number; cell: Cell }>> = [];
-  rawMode = false;
-  altScreen = false;
-  lineWrap = true;
-  cursorVisible = true;
-  destroyed = false;
-  enterAltScreenCount = 0;
-  exitAltScreenCount = 0;
-  enterRawModeCount = 0;
-  exitRawModeCount = 0;
-  private readonly keypressHandlers = new Set<(key: KeypressEvent) => void>();
-  private readonly resizeHandlers = new Set<() => void>();
+  started = false;
+  startCount = 0;
+  stopCount = 0;
+  private readonly eventHandlers = new Set<(event: TerminalInputEvent) => void>();
+  private readonly resizeHandlers = new Set<(size: { cols: number; rows: number }) => void>();
 
-  constructor(
-    private cols = 120,
-    private rows = 24
-  ) {}
+  constructor(private cols = 120, private rows = 24) {}
+  get output(): string { return this.writes.join(""); }
+  get destroyed(): boolean { return !this.started && this.stopCount > 0; }
+  get altScreen(): boolean { return this.started; }
+  get enterAltScreenCount(): number { return this.startCount; }
 
-  get output(): string {
-    return this.writes.join("");
+  start(): void { if (!this.started) { this.started = true; this.startCount += 1; } }
+  stop(): void { if (this.started) { this.started = false; this.stopCount += 1; } }
+  onEvent(handler: (event: TerminalInputEvent) => void): () => void {
+    this.eventHandlers.add(handler);
+    return () => { this.eventHandlers.delete(handler); };
   }
-
-  enterRawMode(): void {
-    this.rawMode = true;
-    this.enterRawModeCount += 1;
-  }
-
-  exitRawMode(): void {
-    this.rawMode = false;
-    this.exitRawModeCount += 1;
-  }
-
-  enterAltScreen(): void {
-    this.altScreen = true;
-    this.enterAltScreenCount += 1;
-  }
-
-  exitAltScreen(): void {
-    this.altScreen = false;
-    this.exitAltScreenCount += 1;
-  }
-
-  disableLineWrap(): void {
-    this.lineWrap = false;
-  }
-
-  enableLineWrap(): void {
-    this.lineWrap = true;
-  }
-
-  hideCursor(): void {
-    this.cursorVisible = false;
-  }
-
-  showCursor(): void {
-    this.cursorVisible = true;
-  }
-
-  moveTo(x: number, y: number): void {
-    this.write(`\u001b[${Math.max(1, y + 1)};${Math.max(1, x + 1)}H`);
-  }
-
-  write(text: string): void {
-    if (!this.destroyed) {
-      this.writes.push(text);
-    }
-  }
-
-  flush(changes: Array<{ x: number; y: number; cell: Cell }>): void {
-    this.flushes.push(changes);
-  }
-
-  getSize(): { cols: number; rows: number } {
-    return { cols: this.cols, rows: this.rows };
-  }
-
-  resize(cols: number, rows: number): void {
-    this.cols = cols;
-    this.rows = rows;
-    for (const handler of this.resizeHandlers) {
-      handler();
-    }
-  }
-
-  onResize(handler: () => void): () => void {
+  onResize(handler: (size: { cols: number; rows: number }) => void): () => void {
     this.resizeHandlers.add(handler);
-    return () => {
-      this.resizeHandlers.delete(handler);
-    };
+    return () => { this.resizeHandlers.delete(handler); };
   }
-
-  onKeypress(handler: (key: KeypressEvent) => void): () => void {
-    this.keypressHandlers.add(handler);
-    return () => {
-      this.keypressHandlers.delete(handler);
-    };
+  getSize(): { cols: number; rows: number } { return { cols: this.cols, rows: this.rows }; }
+  writeFrame(ansi: string): void { if (this.started) this.writes.push(ansi); }
+  resize(cols: number, rows: number): void {
+    this.cols = cols; this.rows = rows;
+    for (const handler of this.resizeHandlers) handler(this.getSize());
   }
-
-  press(key: KeypressEvent): void {
-    this.keyQueue.push(key);
-    for (const handler of this.keypressHandlers) {
-      handler(key);
-    }
-  }
-
-  destroy(): void {
-    this.destroyed = true;
-    this.rawMode = false;
-    this.lineWrap = true;
-    this.altScreen = false;
-    this.cursorVisible = true;
-    this.keypressHandlers.clear();
-    this.resizeHandlers.clear();
+  press(key: { name?: string; ch?: string; ctrl: boolean; meta: boolean; shift: boolean }): void {
+    if (!this.started) return;
+    const event: TerminalInputEvent = { type: "key", name: key.name ?? key.ch ?? "", ch: key.ch, ctrl: key.ctrl, alt: key.meta, shift: key.shift };
+    for (const handler of this.eventHandlers) handler(event);
   }
 }

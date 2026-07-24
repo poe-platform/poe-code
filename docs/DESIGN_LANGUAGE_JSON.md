@@ -20,15 +20,15 @@ import { brand, dark, light, spacing, typography, widths } from "toolcraft-desig
 
 Foundational values that ensure consistency:
 
-| Token               | Value     | Description                      |
-| ------------------- | --------- | -------------------------------- |
-| `brand`             | `#a200ff` | Primary brand color (Poe purple) |
-| `spacing.sm`        | `1`       | Small spacing unit               |
-| `spacing.md`        | `2`       | Medium spacing unit              |
-| `spacing.lg`        | `4`       | Large spacing unit               |
-| `widths.header`     | `60`      | Header line width                |
-| `widths.helpColumn` | `24`      | Help text column width           |
-| `widths.maxLine`    | `80`      | Maximum line width               |
+| Token | Value | Description |
+|-------|-------|-------------|
+| `brand` | `#a200ff` | Primary brand color (Poe purple) |
+| `spacing.sm` | `1` | Small spacing unit |
+| `spacing.md` | `2` | Medium spacing unit |
+| `spacing.lg` | `4` | Large spacing unit |
+| `widths.header` | `60` | Header line width |
+| `widths.helpColumn` | `24` | Help text column width |
+| `widths.maxLine` | `80` | Maximum line width |
 
 ## Theme Palettes
 
@@ -39,11 +39,10 @@ import { getTheme, resolveThemeName } from "toolcraft-design";
 
 const themeName = resolveThemeName(); // 'dark' or 'light'
 const palette = getTheme();
-console.log(palette.header("Title"));
+console.log(palette.header('Title'));
 ```
 
 **Environment variables checked (in order):**
-
 - `POE_CODE_THEME` - explicit override ('dark' or 'light')
 - `APPLE_INTERFACE_STYLE` - macOS appearance
 - `VSCODE_COLOR_THEME_KIND` - VS Code theme
@@ -107,7 +106,7 @@ Prominent introductory banners with brand background
 
 ```typescript
 import { text } from "toolcraft-design";
-text.intro("Configure");
+text.intro("Configure")
 ```
 
 ```json
@@ -120,7 +119,7 @@ Section headings with brand accent color
 
 ```typescript
 import { text } from "toolcraft-design";
-text.heading("Available Commands");
+text.heading("Available Commands")
 ```
 
 ```json
@@ -133,7 +132,7 @@ Bold text for subsection labels
 
 ```typescript
 import { text } from "toolcraft-design";
-text.section("Options:");
+text.section("Options:")
 ```
 
 ```json
@@ -146,7 +145,7 @@ CLI command names in accent color
 
 ```typescript
 import { text } from "toolcraft-design";
-text.command("poe-code configure");
+text.command("poe-code configure")
 ```
 
 ```json
@@ -159,7 +158,7 @@ Command arguments (dimmed)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.argument("<provider>");
+text.argument("<provider>")
 ```
 
 ```json
@@ -172,7 +171,7 @@ CLI flags and options in yellow
 
 ```typescript
 import { text } from "toolcraft-design";
-text.option("--dry-run");
+text.option("--dry-run")
 ```
 
 ```json
@@ -185,7 +184,7 @@ Example text (dimmed)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.example("$ poe-code configure claude");
+text.example("$ poe-code configure claude")
 ```
 
 ```json
@@ -198,7 +197,7 @@ Commands in usage examples (green)
 
 ```typescript
 import { text } from "toolcraft-design";
-text.usageCommand("npm install -g poe-code");
+text.usageCommand("npm install -g poe-code")
 ```
 
 ```json
@@ -211,7 +210,7 @@ Hyperlinks and references
 
 ```typescript
 import { text } from "toolcraft-design";
-text.link("https://poe.com");
+text.link("https://poe.com")
 ```
 
 ```json
@@ -224,7 +223,7 @@ De-emphasized text
 
 ```typescript
 import { text } from "toolcraft-design";
-text.muted("(optional)");
+text.muted("(optional)")
 ```
 
 ```json
@@ -245,7 +244,7 @@ log.message("Configuring claude-code...", { symbol: symbols.info });
 ```
 
 ```json
-{ "level": "message", "message": "info" }
+{"level":"message","message":"info"}
 ```
 
 ### success
@@ -258,7 +257,7 @@ log.message("Configuration complete!", { symbol: symbols.success });
 ```
 
 ```json
-{ "level": "message", "message": "success" }
+{"level":"message","message":"success"}
 ```
 
 ### resolved
@@ -271,7 +270,7 @@ log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ```json
-{ "level": "message", "message": "resolved" }
+{"level":"message","message":"resolved"}
 ```
 
 ### errorResolved
@@ -284,7 +283,7 @@ log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved
 ```
 
 ```json
-{ "level": "message", "message": "errorResolved" }
+{"level":"message","message":"errorResolved"}
 ```
 
 ## Log Messages
@@ -301,7 +300,7 @@ log.message("Configuring claude-code...", { symbol: symbols.info });
 ```
 
 ```json
-{ "level": "info", "message": "Configuring claude-code..." }
+{"level":"info","message":"Configuring claude-code..."}
 ```
 
 ### log-success
@@ -314,7 +313,7 @@ log.message("Configuration complete!", { symbol: symbols.success });
 ```
 
 ```json
-{ "level": "success", "message": "Configuration complete!" }
+{"level":"success","message":"Configuration complete!"}
 ```
 
 ### log-warn
@@ -327,7 +326,7 @@ log.warn("API key expires in 7 days");
 ```
 
 ```json
-{ "level": "warn", "message": "API key expires in 7 days" }
+{"level":"warn","message":"API key expires in 7 days"}
 ```
 
 ### log-error
@@ -340,7 +339,7 @@ log.error("Failed to write config file");
 ```
 
 ```json
-{ "level": "error", "message": "Failed to write config file" }
+{"level":"error","message":"Failed to write config file"}
 ```
 
 ## Prompts
@@ -370,11 +369,7 @@ note("Run poe-code test", "Next steps.");
 ```
 
 ```json
-{
-  "type": "note",
-  "title": "Next steps.",
-  "message": "Run the following command to test:\n  poe-code test claude-code"
-}
+{"type":"note","title":"Next steps.","message":"Run the following command to test:\n  poe-code test claude-code"}
 ```
 
 ### prompt-outro
@@ -387,7 +382,7 @@ outro("Problems? https://...");
 ```
 
 ```json
-{ "type": "outro", "message": "Problems? https://github.com/poe-platform/poe-code/issues" }
+{"type":"outro","message":"Problems? https://github.com/poe-platform/poe-code/issues"}
 ```
 
 ### prompt-resolved
@@ -400,7 +395,7 @@ log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ```json
-{ "level": "message", "message": "API Key\n   poe-abc...xyz\n   Expires: 2026-12-31" }
+{"level":"message","message":"API Key\n   poe-abc...xyz\n   Expires: 2026-12-31"}
 ```
 
 ### prompt-errorResolved
@@ -413,10 +408,7 @@ log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved
 ```
 
 ```json
-{
-  "level": "message",
-  "message": "Configuration Failed\n   Missing API key\n   Check your .env file or run poe-code login"
-}
+{"level":"message","message":"Configuration Failed\n   Missing API key\n   Check your .env file or run poe-code login"}
 ```
 
 ### menu
@@ -435,16 +427,7 @@ const choice = await select({
 ```
 
 ```json
-{
-  "type": "menu",
-  "message": "Pick an agent:",
-  "options": [
-    { "value": "claude-code", "label": "Claude Code" },
-    { "value": "codex", "label": "Codex CLI" },
-    { "value": "aider", "label": "Aider" }
-  ],
-  "selected": 0
-}
+{"type":"menu","message":"Pick an agent:","options":[{"value":"claude-code","label":"Claude Code"},{"value":"codex","label":"Codex CLI"},{"value":"aider","label":"Aider"}],"selected":0}
 ```
 
 ## Static Rendering
@@ -496,9 +479,11 @@ const output = renderTable({
   theme: getTheme(),
   columns: [
     { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
-    { name: "Context", title: "Context", alignment: "right", maxLen: 9 }
+    { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
   ],
-  rows: [{ Model: "<model-id>", Context: "<context>" }]
+  rows: [
+    { Model: "<model-id>", Context: "<context>" },
+  ],
 });
 ```
 
@@ -537,10 +522,7 @@ log.message(diffLines.join("\n"), { symbol: color.yellow("~") });
 ```
 
 ```json
-{
-  "level": "message",
-  "message": "--- config.json\n+++ config.json\n@@ -1,3 +1,5 @@\n {\n-  \"model\": \"old-model\",\n+  \"model\": \"new-model\",\n   \"temperature\": 0.7\n+  \"maxTokens\": 4096\n }"
-}
+{"level":"message","message":"--- config.json\n+++ config.json\n@@ -1,3 +1,5 @@\n {\n-  \"model\": \"old-model\",\n+  \"model\": \"new-model\",\n   \"temperature\": 0.7\n+  \"maxTokens\": 4096\n }"}
 ```
 
 ## Dashboard
@@ -561,13 +543,7 @@ const dashboard = createDashboard({
 
 dashboard.start();
 dashboard.appendOutput({ kind: "info", text: "Analyzing repository state", ts: Date.now() });
-dashboard.updateStats({
-  status: "running",
-  iterations: 5,
-  tokensIn: 685,
-  tokensOut: 445,
-  elapsedMs: 5000
-});
+dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensOut: 445, elapsedMs: 5000 });
 ```
 
 ```json
@@ -663,7 +639,7 @@ reference[1].
 
 Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
 
-````typescript
+```typescript
 import { renderMarkdown } from "toolcraft-design";
 
 const markdown = [
@@ -677,7 +653,7 @@ const markdown = [
 ].join("\n");
 
 process.stdout.write(renderMarkdown(markdown));
-````
+```
 
 ```json
 Markdown Minimal

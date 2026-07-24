@@ -1,5 +1,6 @@
-import { ScreenBuffer, cellToAnsi, diff } from "../dashboard/buffer.js";
-import { createTerminalDriver, type TerminalDriver } from "../dashboard/terminal.js";
+import { Screen } from "../screen/screen.js";
+import { appendFileSync } from "node:fs";
+import { createTerminalDriver, type TerminalDriver } from "../terminal/driver.js";
 import { type ActionRuntimeHandles } from "./actions.js";
 import { type Effect, type ExplorerEvent } from "./events.js";
 import { createDetailJobs } from "./jobs.js";
@@ -13,9 +14,11 @@ import {
   REGION_TOAST,
   type Action,
   type ExplorerConfig,
+  type NormalizedExplorerConfig,
   type ExplorerState,
   type Row,
-  type Tone
+  type Tone,
+  normalizeExplorerConfig
 } from "./state.js";
 
 const TOAST_MS = 2500;
@@ -31,8 +34,9 @@ export async function runExplorer<R = void>(config: ExplorerConfig<R>): Promise<
 }
 
 class ExplorerRuntime<R> {
+  private readonly config: NormalizedExplorerConfig<R>;
   private state: ExplorerState;
-  private previousBuffer = new ScreenBuffer(0, 0);
+  private readonly screen: Screen;
   private readonly detailJobs;
   private readonly runtimeHandles: ActionRuntimeHandles;
   private readonly pendingEffects = new Set<Promise<void>>();
@@ -42,15 +46,19 @@ class ExplorerRuntime<R> {
   private rowsRequestToken = 0;
   private reorderToken = 0;
   private stopped = false;
+  private renderScheduled = false;
+  private readonly tracePath = process.env.POE_CODE_TUI_TRACE;
   private settle:
     | { resolve: (value: R | null) => void; reject: (error: unknown) => void }
     | undefined;
 
   constructor(
-    private readonly config: ExplorerConfig<R>,
+    config: ExplorerConfig<R>,
     private readonly driver: TerminalDriver
   ) {
-    this.state = createInitialState(config, driver.getSize());
+    this.config = normalizeExplorerConfig(config);
+    this.state = createInitialState(this.config, driver.getSize());
+    this.screen = new Screen(driver.getSize());
     this.detailJobs = createDetailJobs((event) => {
       if (event.type === "detailLoaded") {
         this.loadDetailContent(event.rowId, event.token, event.items);
@@ -89,7 +97,7 @@ class ExplorerRuntime<R> {
           // Seed list/detail before first paint so callers with known rows avoid an empty flash.
           this.dispatch({ type: "rowsLoaded", rows: this.config.initialRows });
         }
-        this.render();
+        this.renderNow();
         this.loadRows().catch((error) => {
           this.fail(error);
         });
@@ -100,14 +108,10 @@ class ExplorerRuntime<R> {
   }
 
   private startTerminal(): void {
-    this.driver.enterRawMode();
-    this.driver.enterAltScreen();
-    this.driver.disableLineWrap();
-    this.driver.hideCursor();
+    this.driver.start();
 
     this.subscribeKeypress();
-    this.unsubscribeResize = this.driver.onResize(() => {
-      const size = this.driver.getSize();
+    this.unsubscribeResize = this.driver.onResize((size) => {
       this.dispatch({ type: "resize", cols: size.cols, rows: size.rows });
     });
   }
@@ -117,8 +121,19 @@ class ExplorerRuntime<R> {
       return;
     }
 
-    this.unsubscribeKeypress = this.driver.onKeypress((key) => {
-      this.dispatch({ type: "key", key });
+    this.unsubscribeKeypress = this.driver.onEvent((event) => {
+      this.trace("input", { event });
+      if (event.type === "paste") {
+        for (const ch of event.text.replaceAll("\n", "").replaceAll("\r", "")) {
+          this.dispatch({ type: "key", key: { ch, name: ch, ctrl: false, meta: false, shift: false } });
+        }
+        return;
+      }
+      if (event.type === "wheel") {
+        this.dispatch({ type: "key", key: { name: event.direction, ctrl: false, meta: false, shift: false } });
+        return;
+      }
+      this.dispatch({ type: "key", key: { name: event.name, ch: event.ch, ctrl: event.ctrl, meta: event.alt, shift: event.shift } });
     });
   }
 
@@ -148,14 +163,14 @@ class ExplorerRuntime<R> {
     const previousState = this.state;
     const next = step(this.state, event, this.runtimeHandles);
     this.state = next.state;
-    this.render();
+    this.scheduleRender();
     this.applyEffects(next.effects, previousState);
   }
 
   private applyEffects(effects: Effect[], previousState: ExplorerState): void {
     for (const effect of effects) {
       if (effect.type === "renderDetail") {
-        this.renderDetail(effect.rowId);
+        this.renderDetail(effect.rowId, effect.token);
         continue;
       }
 
@@ -175,7 +190,7 @@ class ExplorerRuntime<R> {
     }
   }
 
-  private renderDetail(rowId: string): void {
+  private renderDetail(rowId: string, token: number): void {
     const row = this.state.rows.find((candidate) => candidate.id === rowId);
     if (row === undefined) {
       return;
@@ -184,12 +199,14 @@ class ExplorerRuntime<R> {
     const layout = computeExplorerLayout({
       cols: this.state.size.cols,
       rows: this.state.size.rows,
-      detailHidden: this.state.layout === "narrow-list-only" || this.state.layout === "too-narrow"
+      detailHidden: this.state.layout === "narrow-list-only" || this.state.layout === "too-narrow",
+      focused: this.state.focused
     });
 
     const reloadDetail = () => this.reloadFocusedDetail(rowId);
     void this.detailJobs.schedule(
       rowId,
+      token,
       (ctx) => this.config.detail.items(row, { ...ctx, reloadDetail }),
       {
         width: layout.detail.width,
@@ -209,7 +226,9 @@ class ExplorerRuntime<R> {
     if (rowId !== undefined && rowId !== focusedId) {
       return;
     }
-    this.renderDetail(focusedId);
+    const token = this.state.detail.token + 1;
+    this.state = { ...this.state, detail: { ...this.state.detail, token } };
+    this.renderDetail(focusedId, token);
   }
 
   private loadDetailContent(
@@ -225,7 +244,8 @@ class ExplorerRuntime<R> {
     const layout = computeExplorerLayout({
       cols: this.state.size.cols,
       rows: this.state.size.rows,
-      detailHidden: this.state.layout === "narrow-list-only" || this.state.layout === "too-narrow"
+      detailHidden: this.state.layout === "narrow-list-only" || this.state.layout === "too-narrow",
+      focused: this.state.focused
     });
     const context = {
       width: layout.detail.width,
@@ -302,19 +322,15 @@ class ExplorerRuntime<R> {
 
   private async suspendAnd<T>(fn: () => Promise<T>): Promise<T> {
     this.pauseKeypress();
-    this.driver.exitAltScreen();
-    this.driver.enableLineWrap();
-    this.driver.showCursor();
-    this.driver.exitRawMode();
+    this.state = { ...this.state, suspended: true };
+    this.driver.stop();
 
     try {
       return await fn();
     } finally {
       if (!this.stopped) {
-        this.driver.enterRawMode();
-        this.driver.enterAltScreen();
-        this.driver.disableLineWrap();
-        this.driver.hideCursor();
+        this.driver.start();
+        this.state = { ...this.state, suspended: false };
         this.subscribeKeypress();
         const size = this.driver.getSize();
         this.dispatch({
@@ -344,7 +360,7 @@ class ExplorerRuntime<R> {
         },
         dirty: REGION_MODAL
       };
-      this.render();
+      this.scheduleRender();
     });
   }
 
@@ -362,7 +378,7 @@ class ExplorerRuntime<R> {
       toast: { message, tone, expiresAt: Date.now() + TOAST_MS },
       dirty: REGION_TOAST
     };
-    this.render();
+    this.scheduleRender();
     this.toastTimer = setTimeout(() => {
       this.dispatch({ type: "toastExpired" });
     }, TOAST_MS);
@@ -372,10 +388,19 @@ class ExplorerRuntime<R> {
     return this.state.rows[this.state.filtered[this.state.cursor] ?? -1];
   }
 
-  private render(): void {
-    if (this.stopped) {
+  private scheduleRender(): void {
+    if (this.stopped || this.state.suspended || this.renderScheduled) {
       return;
     }
+    this.renderScheduled = true;
+    setImmediate(() => {
+      this.renderScheduled = false;
+      this.renderNow();
+    });
+  }
+
+  private renderNow(): void {
+    if (this.stopped || this.state.suspended) return;
 
     const size = this.driver.getSize();
     if (size.cols !== this.state.size.cols || size.rows !== this.state.size.rows) {
@@ -386,13 +411,11 @@ class ExplorerRuntime<R> {
       ).state;
     }
 
-    const nextBuffer =
-      this.state.dirty === REGION_ALL
-        ? new ScreenBuffer(this.state.size.cols, this.state.size.rows)
-        : cloneBuffer(this.previousBuffer);
-    renderExplorer(this.state, nextBuffer);
-    this.driver.write(changesToAnsi(diff(this.previousBuffer, nextBuffer)));
-    this.previousBuffer = nextBuffer;
+    if (this.screen.width !== this.state.size.cols || this.screen.height !== this.state.size.rows) this.screen.resize(this.state.size);
+    renderExplorer({ ...this.state, dirty: REGION_ALL }, this.screen);
+    const frame = this.screen.flush();
+    this.driver.writeFrame(frame);
+    this.trace("frame", { bytes: Buffer.byteLength(frame), cols: this.state.size.cols, rows: this.state.size.rows });
     this.state = { ...this.state, dirty: 0 };
   }
 
@@ -415,9 +438,9 @@ class ExplorerRuntime<R> {
     if (this.toastTimer !== undefined) {
       clearTimeout(this.toastTimer);
     }
-    this.driver.destroy();
+    this.driver.stop();
 
-    Promise.resolve()
+    Promise.allSettled([...this.pendingEffects])
       .then(() => after?.())
       .then(() => {
         this.settle?.resolve(result);
@@ -430,33 +453,13 @@ class ExplorerRuntime<R> {
   private fail(error: unknown): void {
     if (!this.stopped) {
       this.stopped = true;
-      this.driver.destroy();
+      this.driver.stop();
     }
     this.settle?.reject(error);
   }
-}
 
-function cloneBuffer(buffer: ScreenBuffer): ScreenBuffer {
-  const next = new ScreenBuffer(buffer.width, buffer.height);
-  for (let y = 0; y < buffer.height; y += 1) {
-    for (let x = 0; x < buffer.width; x += 1) {
-      const cell = buffer.get(x, y);
-      next.put(x, y, cell.ch, cell.style);
-    }
+  private trace(type: string, fields: Record<string, unknown>): void {
+    if (this.tracePath === undefined || this.tracePath.length === 0) return;
+    appendFileSync(this.tracePath, `${JSON.stringify({ type, timestamp: new Date().toISOString(), ...fields })}\n`);
   }
-  return next;
-}
-
-function changesToAnsi(
-  changes: Array<{ x: number; y: number; cell: ReturnType<ScreenBuffer["get"]> }>
-): string {
-  let output = "";
-  for (const change of changes) {
-    output += `${cursorPositionAnsi(change.x, change.y)}${cellToAnsi(change.cell)}`;
-  }
-  return output;
-}
-
-function cursorPositionAnsi(x: number, y: number): string {
-  return `\u001b[${Math.max(1, y + 1)};${Math.max(1, x + 1)}H`;
 }

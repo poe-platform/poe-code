@@ -14,7 +14,7 @@ export interface BuildOpenIssueActionOptions {
 export function buildOpenSourceAction(options: BuildOpenSourceActionOptions): Action<void> {
   return {
     id: "open-source",
-    key: "o",
+    accelerator: "o",
     label: "Open in $EDITOR",
     predicate: (ctx) => getSourcePath(getTask(options.taskByRowId(), ctx.row.id)) !== null,
     handler: async (ctx) => {
@@ -37,7 +37,7 @@ export function buildOpenSourceAction(options: BuildOpenSourceActionOptions): Ac
 export function buildOpenIssueAction(options: BuildOpenIssueActionOptions): Action<void> {
   return {
     id: "open-issue",
-    key: "g",
+    accelerator: "g",
     label: "Open issue in browser",
     predicate: (ctx) => getIssueUrl(getTask(options.taskByRowId(), ctx.row.id)) !== null,
     handler: async (ctx) => {

@@ -20,7 +20,7 @@ export function filterRows(
   rows: readonly Row[],
   opts: FilterRowsOptions = {}
 ): FilterMatch[] {
-  if (query.length === 0) {
+  if (query.trim().length === 0) {
     return rows.map((_, index) => ({ index, score: 0, positions: [] }));
   }
 

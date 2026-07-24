@@ -1,8 +1,7 @@
 import type { Detail, DetailCtx, Row } from "./state.js";
 
 export { runExplorer } from "./runtime.js";
-export { runTwoPaneExplorer, renderTwoPaneExplorer, TwoPaneExplorerRuntime } from "./two-pane.js";
-export { createInitialState } from "./state.js";
+export { createInitialState, normalizeExplorerConfig } from "./state.js";
 export { resolveBindings } from "./keymap.js";
 export type { Effect, ExplorerEvent } from "./events.js";
 export type {
@@ -19,6 +18,10 @@ export type {
   DetailItem,
   Dirty,
   ExplorerConfig,
+  PaneConfig,
+  ListPaneConfig,
+  DetailPaneConfig,
+  PaneRuntimeState,
   ExplorerLayoutMode,
   ExplorerSize,
   ExplorerState,
@@ -26,15 +29,6 @@ export type {
   Row,
   Tone
 } from "./state.js";
-export type {
-  TwoPaneAction,
-  TwoPaneActionContext,
-  TwoPaneDefinition,
-  TwoPaneExplorerConfig,
-  TwoPaneExplorerState,
-  TwoPanePaneState,
-  TwoPaneRow
-} from "./two-pane.js";
 
 export function singleDetail<R>(
   fn: (row: Row, ctx: DetailCtx) => string | Promise<string>

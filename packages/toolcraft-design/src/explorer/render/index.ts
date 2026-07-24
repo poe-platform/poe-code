@@ -1,4 +1,4 @@
-import { ScreenBuffer } from "../../dashboard/buffer.js";
+import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
 import { computeExplorerLayout, type ExplorerLayout } from "../layout.js";
 import {
   REGION_ALL,
@@ -31,7 +31,8 @@ export function renderExplorer(state: ExplorerState, screen: ScreenBuffer): void
   const layout = computeExplorerLayout({
     cols: state.size.cols,
     rows: state.size.rows,
-    detailHidden: state.layout === "narrow-list-only" || state.layout === "too-narrow"
+    detailHidden: state.layout === "narrow-list-only" || state.layout === "too-narrow",
+    focused: state.focused
   });
   const dirty = state.dirty === 0 ? REGION_ALL : state.dirty;
 

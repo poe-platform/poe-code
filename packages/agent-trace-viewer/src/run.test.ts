@@ -557,7 +557,7 @@ describe("runTraceViewer", () => {
       const config = mocks.runExplorer.mock.calls[0]?.[0] as ExplorerConfig<void> | undefined;
       expect(config).toBeDefined();
       const openHtml = config!.actions.find((action) => action.id === "open-html");
-      expect(openHtml?.key).toBe("o");
+      expect(openHtml?.accelerator).toBe("o");
       expect(openHtml?.label).toBe("Open in browser");
 
       const rows = await config!.rows();

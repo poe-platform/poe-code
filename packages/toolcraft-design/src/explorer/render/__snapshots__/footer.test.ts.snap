@@ -14,7 +14,7 @@ exports[`explorer footer renderer > snapshots footer states > bulk footer 1`] = 
 
 
 
-  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36m?[0m[1m[36m][0m help  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m palette  [1m[36m[[0m[1m[36mq[0m[1m[36m][0m quit"
+  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m actions  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mE[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mA[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36me[0m[1m[36ml[0m[1m[36me[0m[1m[36mt[0m[1m[36me[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m…"
 `;
 
 exports[`explorer footer renderer > snapshots footer states > default footer 1`] = `
@@ -31,7 +31,7 @@ exports[`explorer footer renderer > snapshots footer states > default footer 1`]
 
 
 
-  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open  [1m[36m[[0m[1m[36m?[0m[1m[36m][0m help  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m palette  [1m[36m[[0m[1m[36mq[0m[1m[36m][0m quit"
+  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m actions  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mE[0m[1m[36m][0m edit  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mA[0m[1m[36m][0m archive  [1m[36m[[0m[1m[36md[0m[1m[36me[0m[1m[36ml[0m[1m[36me[0m[1m[36mt[0m[1m[36me[0m[1m[36m][0m delete  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m palette"
 `;
 
 exports[`explorer footer renderer > snapshots footer states > detail focused footer 1`] = `
@@ -48,7 +48,7 @@ exports[`explorer footer renderer > snapshots footer states > detail focused foo
 
 
 
-  [1m[36m[[0m[1m[36mT[0m[1m[36ma[0m[1m[36mb[0m[1m[36m][0m focus  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m sub  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36m?[0m[1m[36m][0m help  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36m…[0m"
+  [1m[36m[[0m[1m[36mT[0m[1m[36ma[0m[1m[36mb[0m[1m[36m][0m focus  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m actions  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mE[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mA[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36me[0m[1m[36ml[0m[1m[36me[0m[1m[36mt[0m[1m[36me[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m ope…"
 `;
 
 exports[`explorer footer renderer > snapshots footer states > running action footer 1`] = `
@@ -65,5 +65,5 @@ exports[`explorer footer renderer > snapshots footer states > running action foo
 
 
 
-  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [2m[[0m[2md[0m[2m][0m[2m [0m[2md[0m[2me[0m[2ml[0m[2me[0m[2mt[0m[2me[0m[2m [0m[2m2[0m  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36m?[0m[1m[36m][0m help  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m palette  [1m[36m[[0m[1m[36mq[0m[1m[36m][0m quit"
+  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m actions  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mE[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mA[0m[1m[36m][0m archive 2  [2m[[0m[2md[0m[2me[0m[2ml[0m[2me[0m[2mt[0m[2me[0m[2m][0m[2m [0m[2md[0m[2me[0m[2ml[0m[2me[0m[2mt[0m[2me[0m[2m [0m[2m2[0m  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m…"
 `;

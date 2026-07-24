@@ -1,4 +1,4 @@
-import { ScreenBuffer } from "../../dashboard/buffer.js";
+import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
 import type { ExplorerLayout } from "../layout.js";
 import type { ExplorerState } from "../state.js";
 import { getExplorerStyles, type ExplorerStyles } from "../theme.js";
@@ -28,8 +28,12 @@ export function renderHeader(
 
   if (rect.height > 1) {
     const prompt = `${state.title.toLocaleLowerCase()}>`;
-    const filter = state.filter.length > 0 ? ` ${state.filter}` : "";
-    const count = `${state.filtered.length}/${state.rows.length}`;
+    const secondList = state.focused === "detail" && state.paneDefinitions[1]?.kind === "list";
+    const activeFilter = secondList ? (state.detail.filter ?? "") : state.filter;
+    const filter = activeFilter.length > 0 ? ` ${activeFilter}` : "";
+    const count = secondList
+      ? `${state.detail.items?.length ?? 0}/${state.detail.allItems?.length ?? state.detail.items?.length ?? 0}`
+      : `${state.filtered.length}/${state.rows.length}`;
     const selected =
       state.multiSelect && state.selected.size > 0 ? `  (${state.selected.size} selected)` : "";
     const spinner = state.detail.loading ? "  *" : "";

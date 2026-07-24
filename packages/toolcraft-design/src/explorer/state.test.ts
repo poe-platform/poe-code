@@ -62,12 +62,12 @@ describe("createInitialState", () => {
       toast: null,
       dirty: REGION_ALL,
       size: { cols: 100, rows: 0 },
-      layout: "medium",
+      layout: "too-narrow",
       multiSelect: true
     });
     expect(state.selected.size).toBe(0);
     expect(state.matchPositions.size).toBe(0);
-    expect(state.bindings.resolve({ ch: "q", ctrl: false, meta: false, shift: false })).toEqual({
+    expect(state.bindings.resolve({ ch: "c", ctrl: true, meta: false, shift: false })).toEqual({
       type: "builtin",
       id: "quit"
     });

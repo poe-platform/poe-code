@@ -1,11 +1,10 @@
 import path from "node:path";
 import type {
   Action,
-  DetailItem,
   ExplorerConfig,
   Row
 } from "toolcraft-design";
-import { isCancel, promptText } from "toolcraft-design";
+import { isCancel, normalizeExplorerConfig, promptText } from "toolcraft-design";
 import {
   archivePlan,
   deletePlan,
@@ -43,7 +42,7 @@ export function buildPlanExplorerConfig(
   const actions: Action<void>[] = [
     {
       id: "edit",
-      key: "e",
+      accelerator: "e",
       label: "Edit in $EDITOR",
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
@@ -56,7 +55,7 @@ export function buildPlanExplorerConfig(
     },
     {
       id: "save-for-later",
-      key: "s",
+      accelerator: "s",
       label: "Save/restore",
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
@@ -93,7 +92,7 @@ export function buildPlanExplorerConfig(
     },
     {
       id: "archive",
-      key: "a",
+      accelerator: "a",
       label: "Archive",
       destructive: true,
       handler: async (ctx) => {
@@ -109,7 +108,6 @@ export function buildPlanExplorerConfig(
     },
     {
       id: "delete",
-      key: "d",
       label: "Delete",
       destructive: true,
       handler: async (ctx) => {
@@ -125,33 +123,26 @@ export function buildPlanExplorerConfig(
     }
   ];
 
-  return {
+  return normalizeExplorerConfig({
     title: "Plans",
-    rows: async () => rows,
-    refresh,
-    detail: {
-      items: async (row, ctx) => {
-        const entry = getEntry(entryByRowId, row.id);
-        const markdown = await loadMarkdownUnlessAborted(ctx.signal, () =>
-          loadDetailMarkdown(entry, options.fs)
-        );
-
-        if (markdown === undefined || ctx.signal.aborted) {
-          return [];
+    panes: [
+      { id: "plans", kind: "list", title: "Plans", rows: async () => rows, emptyHint: "No plans found", multiSelect: false },
+      {
+        id: "preview",
+        kind: "detail",
+        title: "Preview",
+        render: async (row, ctx) => {
+          if (row === undefined) return "";
+          const entry = getEntry(entryByRowId, row.id);
+          return await loadMarkdownUnlessAborted(ctx.signal, () => loadDetailMarkdown(entry, options.fs)) ?? "";
         }
-
-        return [
-          {
-            id: entry.absolutePath,
-            render: () => markdown
-          } satisfies DetailItem
-        ];
       }
-    },
+    ],
+    refresh,
     actions,
     multiSelect: false,
     emptyHint: "No plans found"
-  };
+  });
 }
 
 function toRows(plans: PlanEntry[]): Row[] {

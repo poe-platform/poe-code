@@ -4,7 +4,7 @@ import { gistFilenameForBundlePath } from "./bundle.js";
 import {
   buildBrowseExplorerConfig,
   buildBrowseModel,
-  buildBrowseTwoPaneConfig,
+  buildBrowsePanesConfig as buildBrowseTwoPaneConfig,
   renderBrowse,
   runBrowseAction
 } from "./browse.js";
@@ -1195,7 +1195,7 @@ describe("browse", () => {
 
     expect(config.panes[0].title).toBe("Project: claude-code");
     expect(config.panes[1].title).toBe("Global: claude-code");
-    expect(config.actions.map((action) => [action.id, action.key])).toContainEqual(["sync", "s"]);
+    expect(config.actions.map((action) => [action.id, action.accelerator])).toContainEqual(["sync", "s"]);
 
     await config.actions.find((action) => action.id === "sync")!.handler({
       activePane: {
@@ -1233,7 +1233,7 @@ describe("browse", () => {
     }]);
   });
 
-  it("forwards two-pane UI trace records through agent-stash diagnostics", async () => {
+  it("uses the shared explorer trace channel instead of per-consumer trace wiring", async () => {
     const { ctx } = createHarness();
     const traces: Array<{ event: string; [key: string]: unknown }> = [];
     ctx.trace = (record) => {
@@ -1244,20 +1244,8 @@ describe("browse", () => {
       agent: "claude-code"
     });
 
-    config.trace?.({
-      event: "selection.toggle",
-      pane: "left",
-      row: "project:skill:claude-code:code-review",
-      selected: 1
-    });
-
-    expect(traces.at(-1)).toMatchObject({
-      event: "browse.ui.selection.toggle",
-      timestamp: fixedDate.toISOString(),
-      pane: "left",
-      row: "project:skill:claude-code:code-review",
-      selected: 1
-    });
+    expect((config as { trace?: unknown }).trace).toBeUndefined();
+    expect(traces).toEqual([]);
   });
 
   it("warns instead of completing when a two-pane sync action returns conflicts", async () => {

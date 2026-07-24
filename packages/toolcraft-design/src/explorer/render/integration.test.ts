@@ -17,6 +17,35 @@ describe("explorer render integration", () => {
     expect(renderStateSnapshot(fixtureState({ size: { cols: 60, rows: 12 } }))).toMatchSnapshot(
       "list only"
     );
+    expect(renderStateSnapshot(fixtureState({ size: { cols: 50, rows: 10 } }))).toMatchSnapshot(
+      "too narrow"
+    );
+    expect(renderStateSnapshot(fixtureState({ size: { cols: 70, rows: 12 } }))).toMatchSnapshot(
+      "70 column list collapse"
+    );
+    expect(renderStateSnapshot(fixtureState({ size: { cols: 70, rows: 12 }, focused: "detail" }))).toMatchSnapshot(
+      "70 column detail collapse"
+    );
+  });
+
+  it("snapshots list plus list panes", () => {
+    expect(renderStateSnapshot(fixtureState({
+      paneDefinitions: [
+        { id: "left", title: "Local", kind: "list" },
+        { id: "right", title: "Remote", kind: "list" }
+      ],
+      detail: {
+        rowId: "explorer",
+        items: [
+          { id: "remote-one", title: "Remote one", render: () => "" },
+          { id: "remote-two", title: "Remote two", render: () => "" }
+        ],
+        cursor: 0,
+        scroll: 0,
+        token: 1,
+        loading: false
+      }
+    }))).toMatchSnapshot("list plus list");
   });
 
   it("clips wide toast text by terminal cells", () => {
@@ -47,6 +76,6 @@ describe("explorer render integration", () => {
     expect(output).toContain("┌─ Preview ");
     expect(output).toContain("└");
     expect(output).toContain("┘");
-    expect(output).toContain("┐ ┌─ Preview ");
+    expect(output).toContain("┓ ┌─ Preview ");
   });
 });

@@ -45,7 +45,22 @@ export function graphemeWidth(segment: string): number {
     return 0;
   }
 
-  return isWideCodePoint(codePoint) || isFlagSegment(segment) ? 2 : 1;
+  return isWideCodePoint(codePoint) || isFlagSegment(segment) || segment.includes("\ufe0f") ? 2 : 1;
+}
+
+export function truncateToWidth(text: string, width: number): string {
+  if (width <= 0) return "";
+  if (displayWidth(text) <= width) return text;
+  const target = Math.max(0, width - 1);
+  let result = "";
+  let used = 0;
+  for (const segment of graphemes(text)) {
+    const segmentWidth = graphemeWidth(segment);
+    if (used + segmentWidth > target) break;
+    result += segment;
+    used += segmentWidth;
+  }
+  return `${result}…`;
 }
 
 function isZeroWidthCodePoint(codePoint: number): boolean {

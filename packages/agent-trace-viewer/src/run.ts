@@ -2,12 +2,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   getTheme,
+  normalizeExplorerConfig,
   openExternal,
   renderTable,
   runExplorer,
   withSpinner,
   type Action,
-  type DetailItem,
   type ExplorerConfig,
   type Row
 } from "toolcraft-design";
@@ -234,7 +234,7 @@ function buildTraceExplorerConfig(options: {
     },
     {
       id: "open-html",
-      key: "o",
+      accelerator: "o",
       label: "Open in browser",
       showInFooter: true,
       handler: async (ctx) => {
@@ -260,7 +260,7 @@ function buildTraceExplorerConfig(options: {
     },
     {
       id: "subagents",
-      key: "s",
+      accelerator: "s",
       label: "Subagents",
       predicate: (ctx) => (state.childrenByRowId.get(ctx.row.id)?.length ?? 0) > 0,
       handler: (ctx) => {
@@ -287,7 +287,6 @@ function buildTraceExplorerConfig(options: {
     },
     {
       id: "copy-path",
-      key: "c",
       label: "Print path",
       handler: (ctx) => {
         const reference = getReference(state.referenceByRowId, ctx.row.id);
@@ -302,7 +301,7 @@ function buildTraceExplorerConfig(options: {
     },
     {
       id: "refresh",
-      key: "r",
+      accelerator: "r",
       label: "Refresh",
       handler: async (ctx) => {
         await ctx.refresh();
@@ -310,58 +309,36 @@ function buildTraceExplorerConfig(options: {
     }
   ];
 
-  return {
+  return normalizeExplorerConfig({
     title: options.title,
-    rows: async () => state.rows,
-    refresh,
-    detail: {
-      items: async (row, ctx) => {
-        const reference = getReference(state.referenceByRowId, row.id);
-        const cached = state.detailByRowId.get(row.id);
-        if (cached !== undefined) {
-          return [
-            {
-              id: row.id,
-              render: () => cached
-            } satisfies DetailItem
-          ];
-        }
-
-        const loaded = await loadUnlessAborted(ctx.signal, async () => {
-          const view = await loadTrace(reference, {
-            fs: options.fs,
-            signal: ctx.signal,
-            deferExactTokens: true,
-            onExactBreakdown: () => state.detailByRowId.delete(row.id)
+    panes: [
+      { id: "traces", kind: "list", title: options.title, rows: async () => state.rows, emptyHint: "No traces found", multiSelect: false },
+      {
+        id: "preview",
+        kind: "detail",
+        title: "Preview",
+        render: async (row, ctx) => {
+          if (row === undefined) return "";
+          const reference = getReference(state.referenceByRowId, row.id);
+          const cached = state.detailByRowId.get(row.id);
+          if (cached !== undefined) return cached;
+          const loaded = await loadUnlessAborted(ctx.signal, async () => {
+            const view = await loadTrace(reference, { fs: options.fs, signal: ctx.signal, deferExactTokens: true, onExactBreakdown: () => state.detailByRowId.delete(row.id) });
+            return { view, subagents: await loadSubagentSummariesIfPresent(view, options.fs) };
           });
-          const subagents = await loadSubagentSummariesIfPresent(view, options.fs);
-          return { view, subagents };
-        });
-
-        if (loaded === undefined || ctx.signal.aborted) {
-          return [];
+          if (loaded === undefined || ctx.signal.aborted) return "";
+          state.childrenByRowId.set(row.id, loaded.view.children ?? []);
+          const content = await renderTraceDetail(loaded.view, loaded.subagents, { signal: ctx.signal });
+          if (!ctx.signal.aborted) state.detailByRowId.set(row.id, content);
+          return ctx.signal.aborted ? "" : content;
         }
-
-        state.childrenByRowId.set(row.id, loaded.view.children ?? []);
-        const content = await renderTraceDetail(loaded.view, loaded.subagents, {
-          signal: ctx.signal
-        });
-        if (ctx.signal.aborted) {
-          return [];
-        }
-        state.detailByRowId.set(row.id, content);
-        return [
-          {
-            id: row.id,
-            render: () => content
-          } satisfies DetailItem
-        ];
       }
-    },
+    ],
+    refresh,
     actions,
     multiSelect: false,
     emptyHint: "No traces found"
-  };
+  });
 }
 
 function createExplorerState(references: TraceReference[]): TraceExplorerState {

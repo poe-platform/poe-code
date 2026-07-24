@@ -25,25 +25,28 @@ function expectAreaCoversViewport(
 }
 
 describe("computeExplorerLayout", () => {
-  it("uses too-narrow mode below 40 columns", () => {
-    const layout = computeExplorerLayout({ cols: 39, rows: 12 });
+  it("uses too-narrow mode below 60 columns", () => {
+    const layout = computeExplorerLayout({ cols: 59, rows: 12 });
 
     expect(layout.mode).toBe("too-narrow");
-    expect(layout.header).toEqual({ x: 0, y: 0, width: 39, height: 3 });
-    expect(layout.list).toEqual({ x: 0, y: 3, width: 39, height: 8 });
+    expect(layout.header).toEqual({ x: 0, y: 0, width: 59, height: 3 });
+    expect(layout.list).toEqual({ x: 0, y: 3, width: 59, height: 8 });
     expect(layout.detail).toEqual({ x: 0, y: 11, width: 0, height: 0 });
-    expect(layout.footer).toEqual({ x: 0, y: 11, width: 39, height: 1 });
-    expectFullWidthBands(layout, 39, 12);
+    expect(layout.footer).toEqual({ x: 0, y: 11, width: 59, height: 1 });
+    expectFullWidthBands(layout, 59, 12);
   });
 
-  it("uses narrow-list-only mode from 40 to 79 columns", () => {
+  it("collapses to the focused pane from 60 to 79 columns", () => {
     const layout = computeExplorerLayout({ cols: 79, rows: 20 });
 
     expect(layout.mode).toBe("narrow-list-only");
     expect(layout.list).toEqual({ x: 0, y: 3, width: 79, height: 16 });
-    expect(layout.detail).toEqual({ x: 0, y: 19, width: 0, height: 0 });
+    expect(layout.detail).toEqual({ x: 79, y: 3, width: 0, height: 16 });
     expect(layout.footer).toEqual({ x: 0, y: 19, width: 79, height: 1 });
-    expectFullWidthBands(layout, 79, 20);
+    expect(layout.header.height + layout.list.height + layout.footer.height).toBe(20);
+    const detail = computeExplorerLayout({ cols: 70, rows: 20, focused: "detail" });
+    expect(detail.list.width).toBe(0);
+    expect(detail.detail).toEqual({ x: 0, y: 3, width: 70, height: 16 });
   });
 
   it("uses narrow-vertical mode from 80 to 99 columns", () => {
@@ -91,18 +94,18 @@ describe("computeExplorerLayout", () => {
     const layout = computeExplorerLayout({ cols: 120, rows: 2 });
 
     expect(layout.header).toEqual({ x: 0, y: 0, width: 120, height: 1 });
-    expect(layout.list).toEqual({ x: 0, y: 1, width: 49, height: 0 });
-    expect(layout.detail).toEqual({ x: 50, y: 1, width: 70, height: 0 });
+    expect(layout.list).toEqual({ x: 0, y: 1, width: 120, height: 0 });
+    expect(layout.detail).toEqual({ x: 0, y: 1, width: 0, height: 0 });
     expect(layout.footer).toEqual({ x: 0, y: 1, width: 120, height: 1 });
     expect(layout.header.height + layout.list.height + layout.footer.height).toBe(2);
   });
 
   it("floors fractional sizes and clamps negative sizes", () => {
     expect(computeExplorerLayout({ cols: 80.9, rows: 4.8 })).toMatchObject({
-      mode: "narrow-vertical",
+      mode: "too-narrow",
       header: { width: 80, height: 3 },
       list: { width: 80, height: 0 },
-      detail: { width: 80, height: 0 },
+      detail: { width: 0, height: 0 },
       footer: { width: 80, height: 1 }
     });
 

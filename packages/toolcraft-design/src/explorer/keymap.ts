@@ -2,526 +2,132 @@ import type { ExplorerEvent } from "./events.js";
 import type { ExplorerConfig } from "./state.js";
 
 export type ExplorerBuiltinCommand =
-  | "quit"
-  | "filter"
-  | "help"
-  | "palette"
-  | "cursorUp"
-  | "cursorDown"
-  | "top"
-  | "bottom"
-  | "pageUp"
-  | "pageDown"
-  | "focusNext"
-  | "escape"
-  | "confirm"
-  | "toggleSelect"
-  | "selectAll"
-  | "clearSelection"
-  | "detailScrollDown"
-  | "detailScrollUp"
-  | "extendSelectionUp"
-  | "extendSelectionDown"
-  | "reorderUp"
-  | "reorderDown";
+  | "quit" | "filter" | "help" | "palette" | "cursorUp" | "cursorDown" | "top" | "bottom"
+  | "pageUp" | "pageDown" | "focusNext" | "escape" | "confirm"
+  | "halfPageUp" | "halfPageDown"
+  | "toggleSelect" | "selectAll" | "clearSelection" | "detailScrollDown" | "detailScrollUp" | "extendSelectionUp"
+  | "extendSelectionDown" | "reorderUp" | "reorderDown";
 
-export type BindingTarget =
-  | { type: "builtin"; id: ExplorerBuiltinCommand }
-  | { type: "action"; id: string };
-
-type ExplorerKeypressEvent = Extract<ExplorerEvent, { type: "key" }>["key"];
-
-type Binding = {
-  ctrl: boolean;
-  meta: boolean;
-  shift: boolean;
-  name?: string;
-  ch?: string;
-  sequence?: string;
-};
+export type BindingTarget = { type: "builtin"; id: ExplorerBuiltinCommand } | { type: "action"; id: string };
+type Key = Extract<ExplorerEvent, { type: "key" }>["key"];
 
 export interface ResolvedBindings {
   bindings: ReadonlyMap<string, BindingTarget>;
   keysByTarget: ReadonlyMap<string, readonly string[]>;
-  resolve: (event: ExplorerKeypressEvent) => BindingTarget | undefined;
+  resolve: (event: Key) => BindingTarget | undefined;
 }
 
 export type ExplorerBindingDefaults = Partial<Record<ExplorerBuiltinCommand, string[]>>;
+export interface HelpSection { title: string; entries: Array<{ key: string; label: string }> }
 
-const builtinBindings: Record<ExplorerBuiltinCommand, string[]> = {
-  quit: ["q", "Ctrl+c"],
-  filter: ["/"],
-  help: ["?"],
-  palette: ["Ctrl+p", "Ctrl+k"],
-  cursorUp: ["up", "k"],
-  cursorDown: ["down", "j"],
-  top: ["home", "gg"],
-  bottom: ["end", "G"],
-  pageUp: ["pageup", "Ctrl+u"],
-  pageDown: ["pagedown", "Ctrl+d"],
+const BUILTINS: Record<ExplorerBuiltinCommand, string[]> = {
+  quit: ["Ctrl+c"],
+  filter: [],
+  help: [],
+  palette: ["Ctrl+p"],
+  cursorUp: ["up"],
+  cursorDown: ["down"],
+  top: ["home"],
+  bottom: ["end"],
+  pageUp: ["pageup"],
+  pageDown: ["pagedown"],
+  halfPageUp: ["Ctrl+u"],
+  halfPageDown: ["Ctrl+d"],
   focusNext: ["tab"],
   escape: ["escape"],
   confirm: ["return", "enter"],
   toggleSelect: ["space"],
   selectAll: ["Ctrl+a"],
   clearSelection: ["Ctrl+/"],
-  detailScrollDown: ["Ctrl+f"],
-  detailScrollUp: ["Ctrl+b"],
+  detailScrollDown: [],
+  detailScrollUp: [],
   extendSelectionUp: ["Shift+up"],
   extendSelectionDown: ["Shift+down"],
-  reorderUp: ["Shift+up", "K"],
-  reorderDown: ["Shift+down", "J"]
+  reorderUp: ["Shift+up"],
+  reorderDown: ["Shift+down"]
 };
+const CORE_ACCELERATORS = new Set(["c", "u", "d", "p"]);
 
-const baseBuiltinCommands: ExplorerBuiltinCommand[] = [
-  "quit",
-  "filter",
-  "help",
-  "palette",
-  "cursorUp",
-  "cursorDown",
-  "top",
-  "bottom",
-  "pageUp",
-  "pageDown",
-  "focusNext",
-  "escape",
-  "confirm",
-  "toggleSelect",
-  "selectAll",
-  "clearSelection",
-  "detailScrollDown",
-  "detailScrollUp",
-  "extendSelectionUp",
-  "extendSelectionDown"
-];
+export function resolveBindings<R>(config: ExplorerConfig<R>, defaults: ExplorerBindingDefaults = {}): ResolvedBindings {
+  assertNoBareLetterBindings(config);
+  assertAcceleratorsFree(config);
+  const bindings = new Map<string, BindingTarget>();
+  const keysByTarget = new Map<string, string[]>();
+  const commands = (Object.keys(BUILTINS) as ExplorerBuiltinCommand[]).filter(command => {
+    if (config.multiSelect === false && ["toggleSelect", "selectAll", "clearSelection", "extendSelectionUp", "extendSelectionDown"].includes(command)) return false;
+    if (config.reorder === undefined && (command === "reorderUp" || command === "reorderDown")) return false;
+    if (config.reorder !== undefined && (command === "extendSelectionUp" || command === "extendSelectionDown")) return false;
+    return true;
+  });
 
-const reorderCommands: ExplorerBuiltinCommand[] = ["reorderUp", "reorderDown"];
-const selectionCommands = new Set<ExplorerBuiltinCommand>([
-  "toggleSelect",
-  "selectAll",
-  "clearSelection",
-  "extendSelectionUp",
-  "extendSelectionDown"
-]);
-const reservedActionIds = new Set<string>(["quit"]);
+  for (const command of commands) {
+    const keys = command === "quit" ? BUILTINS.quit : (defaults[command] ?? BUILTINS[command]);
+    add(keys, { type: "builtin", id: command }, bindings, keysByTarget);
+  }
+  for (const action of allActions(config)) {
+    if (action.accelerator !== undefined) add([`Ctrl+${action.accelerator}`], { type: "action", id: action.id }, bindings, keysByTarget);
+  }
 
-export function resolveBindings<R>(
-  config: ExplorerConfig<R>,
-  defaults: ExplorerBindingDefaults = {}
-): ResolvedBindings {
-  const baseCommands =
-    config.reorder === undefined
-      ? baseBuiltinCommands
-      : [
-          ...baseBuiltinCommands.filter((command) =>
-            command !== "extendSelectionUp" && command !== "extendSelectionDown"
-          ),
-          ...reorderCommands
-        ];
-  const commands =
-    config.multiSelect === false
-      ? baseCommands.filter((command) => !selectionCommands.has(command))
-      : baseCommands;
-  const commandBindings = new Map<string, string[]>();
-  const flatBindings = new Map<string, BindingTarget>();
-  const targetKeys = new Map<string, string[]>();
-  const targetsByCommand = new Map<string, BindingTarget>();
+  return {
+    bindings,
+    keysByTarget,
+    resolve: event => bindings.get(eventKey(event))
+  };
+}
+
+export function assertNoBareLetterBindings<R>(config: ExplorerConfig<R>): void {
+  for (const action of allActions(config)) {
+    const legacy = action.key === undefined ? [] : (Array.isArray(action.key) ? action.key : [action.key]);
+    if (legacy.length > 0) throw new Error(`Explorer action ${action.id} uses a bare key; use accelerator instead`);
+  }
+  if (config.keybindOverrides !== undefined && Object.keys(config.keybindOverrides).length > 0) {
+    throw new Error("Explorer keybind overrides are not supported because printable keys belong to filtering");
+  }
+}
+
+export function assertAcceleratorsFree<R>(config: ExplorerConfig<R>): void {
   const claimed = new Map<string, string>();
-  const conflicts = new Map<string, string>();
-
-  for (const command of commands) {
-    const target: BindingTarget = { type: "builtin", id: command };
-    const keys = command === "quit"
-      ? builtinBindings.quit
-      : defaults[command] ?? builtinBindings[command];
-    addBindings({
-      keys,
-      owner: command,
-      commandId: `builtin:${command}`,
-      target,
-      commandBindings,
-      flatBindings,
-      targetKeys,
-      targetsByCommand,
-      claimed,
-      conflicts,
-      warn: false
-    });
+  for (const action of allActions(config)) {
+    if (action.accelerator === undefined) continue;
+    const accelerator = action.accelerator.toLowerCase();
+    if (accelerator.length !== 1 || accelerator < "a" || accelerator > "z") throw new Error(`Explorer action ${action.id} accelerator must be one letter`);
+    if (CORE_ACCELERATORS.has(accelerator)) throw new Error(`Explorer action ${action.id} accelerator Ctrl+${accelerator.toUpperCase()} collides with a core key`);
+    const owner = claimed.get(accelerator);
+    if (owner !== undefined) throw new Error(`Explorer actions ${owner} and ${action.id} share Ctrl+${accelerator.toUpperCase()}`);
+    claimed.set(accelerator, action.id);
   }
-
-  for (const action of [...config.actions, ...(config.detail.actions ?? [])]) {
-    if (reservedActionIds.has(action.id)) {
-      continue;
-    }
-
-    const keys = toBindingArray(config.keybindOverrides?.[action.id] ?? action.key);
-    addBindings({
-      keys,
-      owner: action.id,
-      commandId: `action:${action.id}`,
-      target: { type: "action", id: action.id },
-      commandBindings,
-      flatBindings,
-      targetKeys,
-      targetsByCommand,
-      claimed,
-      conflicts,
-      warn: true
-    });
-  }
-
-  if (process.env.NODE_ENV !== "production") {
-    for (const warning of conflicts.values()) {
-      process.stderr.write(`${warning}\n`);
-    }
-  }
-
-  const commandIds = Array.from(commandBindings.keys());
-  const defaultKeymapBindings = Object.fromEntries(
-    Array.from(commandBindings.entries())
-  ) as Record<string, readonly string[]>;
-  const resolveCommand = createKeymap(commandIds, defaultKeymapBindings);
-
-  return {
-    bindings: flatBindings,
-    keysByTarget: targetKeys,
-    resolve: (event) => {
-      const command = resolveCommand(event);
-      return command === undefined ? undefined : targetsByCommand.get(command);
-    }
-  };
 }
 
-function addBindings(opts: {
-  keys: readonly string[];
-  owner: string;
-  commandId: string;
-  target: BindingTarget;
-  commandBindings: Map<string, string[]>;
-  flatBindings: Map<string, BindingTarget>;
-  targetKeys: Map<string, string[]>;
-  targetsByCommand: Map<string, BindingTarget>;
-  claimed: Map<string, string>;
-  conflicts: Map<string, string>;
-  warn: boolean;
-}): string[] {
+export function keymapToHelp<R>(config: ExplorerConfig<R>): HelpSection[] {
+  return [
+    { title: "Navigation", entries: [
+      { key: "↑/↓", label: "move" }, { key: "PgUp/PgDn", label: "page" },
+      { key: "Home/End", label: "first/last" }, { key: "Tab", label: "focus" }
+    ] },
+    { title: "Actions", entries: [
+      { key: "Enter", label: "actions" }, { key: "Ctrl+P", label: "palette" },
+      ...allActions(config).filter(action => action.accelerator !== undefined).map(action => ({ key: `Ctrl+${action.accelerator!.toUpperCase()}`, label: typeof action.label === "string" ? action.label : action.id }))
+    ] },
+    { title: "General", entries: [{ key: "Esc", label: "clear/quit" }, { key: "Ctrl+C", label: "quit" }] }
+  ];
+}
+
+function allActions<R>(config: ExplorerConfig<R>) {
+  const actions = [...config.actions, ...(config.detail?.actions ?? [])];
+  return [...new Map(actions.map(action => [action.id, action])).values()];
+}
+function add(keys: string[], target: BindingTarget, bindings: Map<string, BindingTarget>, keysByTarget: Map<string, string[]>): void {
   const accepted: string[] = [];
-
-  for (const key of opts.keys) {
-    const canonical = canonicalizeBinding(key);
-    if (canonical === undefined) {
-      continue;
-    }
-
-    const existing = opts.claimed.get(canonical);
-    if (existing !== undefined) {
-      if (existing !== opts.owner && opts.warn) {
-        opts.conflicts.set(
-          `${opts.owner}:${canonical}`,
-          `Explorer key binding conflict: ${key} for ${opts.owner} is already bound to ${existing}`
-        );
-      }
-      continue;
-    }
-
-    opts.claimed.set(canonical, opts.owner);
-    opts.flatBindings.set(canonical, opts.target);
-    accepted.push(key);
+  for (const key of keys) {
+    const normalized = canonical(key);
+    if (!bindings.has(normalized)) { bindings.set(normalized, target); accepted.push(key); }
   }
-
-  if (accepted.length > 0) {
-    opts.commandBindings.set(opts.commandId, accepted);
-    opts.targetKeys.set(targetKey(opts.target), accepted);
-    opts.targetsByCommand.set(opts.commandId, opts.target);
-  }
-
-  return accepted;
+  if (accepted.length > 0) keysByTarget.set(`${target.type}:${target.id}`, accepted);
 }
-
-function targetKey(target: BindingTarget): string {
-  return `${target.type}:${target.id}`;
+function canonical(value: string): string { return value.trim().toLowerCase().replace("control+", "ctrl+"); }
+function eventKey(event: Key): string {
+  const name = event.name ?? event.ch ?? "";
+  const modifiers = [event.ctrl ? "ctrl" : "", event.meta ? "meta" : "", event.shift ? "shift" : ""].filter(Boolean);
+  const normalized = name === "return" ? "return" : name.toLowerCase();
+  return [...modifiers, normalized].join("+");
 }
-
-function toBindingArray(value: string | string[] | undefined): string[] {
-  if (value === undefined) {
-    return [];
-  }
-
-  return Array.isArray(value) ? value : [value];
-}
-
-function createKeymap<TCommand extends string>(
-  commands: readonly TCommand[],
-  defaultBindings: Record<TCommand, readonly string[]>
-): (event: ExplorerKeypressEvent) => TCommand | undefined {
-  const bindings = new Map<TCommand, Binding[]>();
-  const sequences = new Set<string>();
-  let pendingSequence = "";
-
-  for (const command of commands) {
-    const commandBindings = defaultBindings[command]
-      .map(parseBinding)
-      .filter((binding): binding is Binding => binding !== undefined);
-
-    for (const binding of commandBindings) {
-      if (binding.sequence !== undefined) {
-        sequences.add(binding.sequence);
-      }
-    }
-
-    bindings.set(command, commandBindings);
-  }
-
-  return (event) => {
-    for (const command of commands) {
-      const commandBindings = bindings.get(command);
-      if (commandBindings?.some((binding) => matchesSingleKey(binding, event))) {
-        pendingSequence = "";
-        return command;
-      }
-    }
-
-    const token = eventToSequenceToken(event);
-    if (token === undefined) {
-      pendingSequence = "";
-      return undefined;
-    }
-
-    pendingSequence = `${pendingSequence}${token}`;
-
-    for (const command of commands) {
-      const commandBindings = bindings.get(command);
-      if (commandBindings?.some((binding) => binding.sequence === pendingSequence)) {
-        pendingSequence = "";
-        return command;
-      }
-    }
-
-    if (hasSequencePrefix(sequences, pendingSequence)) {
-      return undefined;
-    }
-
-    pendingSequence = token;
-
-    if (hasSequencePrefix(sequences, pendingSequence)) {
-      return undefined;
-    }
-
-    pendingSequence = "";
-    return undefined;
-  };
-}
-
-function canonicalizeBinding(binding: string): string | undefined {
-  const parsed = parseBinding(binding);
-  if (parsed === undefined) {
-    return undefined;
-  }
-
-  const modifiers = [
-    parsed.ctrl ? "ctrl" : undefined,
-    parsed.meta ? "meta" : undefined,
-    parsed.shift ? "shift" : undefined
-  ].filter((modifier): modifier is string => modifier !== undefined);
-  const key = parsed.name ?? parsed.ch;
-  if (parsed.sequence !== undefined) {
-    return parsed.sequence.toLowerCase();
-  }
-
-  return key === undefined ? undefined : [...modifiers, key.toLowerCase()].join("+");
-}
-
-function parseBinding(binding: string): Binding | undefined {
-  const value = binding.trim();
-  if (value.length === 0) {
-    return undefined;
-  }
-
-  const parts = value.split("+").map((part) => part.trim()).filter(Boolean);
-  if (parts.length === 0) {
-    return undefined;
-  }
-
-  let ctrl = false;
-  let meta = false;
-  let shift = false;
-  const key = parts.at(-1);
-
-  if (key === undefined) {
-    return undefined;
-  }
-
-  for (const modifier of parts.slice(0, -1)) {
-    const normalized = modifier.toLowerCase();
-
-    if (normalized === "ctrl" || normalized === "control") {
-      ctrl = true;
-      continue;
-    }
-
-    if (normalized === "meta" || normalized === "alt") {
-      meta = true;
-      continue;
-    }
-
-    if (normalized === "shift") {
-      shift = true;
-    }
-  }
-
-  const normalizedKey = normalizeKeyName(key);
-
-  if (parts.length === 1 && isShiftedCharacter(normalizedKey)) {
-    shift = true;
-  }
-
-  if (normalizedKey.length === 1) {
-    return {
-      ch: normalizeBindingCharacter(normalizedKey, shift),
-      ctrl,
-      meta,
-      shift
-    };
-  }
-
-  if (
-    !ctrl &&
-    !meta &&
-    !shift &&
-    !isNamedKey(normalizedKey) &&
-    isPrintableSequence(normalizedKey)
-  ) {
-    return {
-      sequence: normalizedKey,
-      ctrl,
-      meta,
-      shift
-    };
-  }
-
-  return {
-    name: normalizedKey.toLowerCase(),
-    ctrl,
-    meta,
-    shift
-  };
-}
-
-function matchesSingleKey(binding: Binding, event: ExplorerKeypressEvent): boolean {
-  if (binding.sequence !== undefined) {
-    return false;
-  }
-
-  if (
-    binding.ctrl !== event.ctrl ||
-    binding.meta !== event.meta ||
-    binding.shift !== event.shift
-  ) {
-    return false;
-  }
-
-  if (binding.ch !== undefined) {
-    if (binding.ch === " " && event.name === "space") {
-      return true;
-    }
-
-    return event.ch === binding.ch || event.name === binding.ch.toLowerCase();
-  }
-
-  if (binding.name !== undefined) {
-    return event.name === binding.name;
-  }
-
-  return false;
-}
-
-function eventToSequenceToken(event: ExplorerKeypressEvent): string | undefined {
-  if (event.ctrl || event.meta || event.ch === undefined) {
-    return undefined;
-  }
-
-  return event.ch;
-}
-
-function hasSequencePrefix(sequences: Set<string>, prefix: string): boolean {
-  for (const sequence of sequences) {
-    if (sequence.startsWith(prefix)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function isShiftedCharacter(value: string): boolean {
-  return value.length === 1 && value.toLowerCase() !== value && value.toUpperCase() === value;
-}
-
-function normalizeBindingCharacter(value: string, shift: boolean): string {
-  if (!shift || value.toLowerCase() === value.toUpperCase()) {
-    return value;
-  }
-
-  return value.toUpperCase();
-}
-
-function normalizeKeyName(value: string): string {
-  if (value.toLowerCase() === "space") {
-    return " ";
-  }
-
-  if (value === "↑") {
-    return "up";
-  }
-
-  if (value === "↓") {
-    return "down";
-  }
-
-  if (value === "←") {
-    return "left";
-  }
-
-  if (value === "→") {
-    return "right";
-  }
-
-  return value;
-}
-
-function isNamedKey(value: string): boolean {
-  return namedKeys.has(value.toLowerCase());
-}
-
-function isPrintableSequence(value: string): boolean {
-  if (Array.from(value).length <= 1) {
-    return false;
-  }
-
-  for (const char of value) {
-    const codePoint = char.codePointAt(0);
-    if (codePoint === undefined || codePoint < 0x20 || codePoint === 0x7f) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-const namedKeys = new Set([
-  "backspace",
-  "delete",
-  "down",
-  "end",
-  "enter",
-  "escape",
-  "home",
-  "left",
-  "pagedown",
-  "pageup",
-  "return",
-  "right",
-  "tab",
-  "up"
-]);

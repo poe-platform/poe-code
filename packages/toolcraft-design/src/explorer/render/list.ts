@@ -1,11 +1,9 @@
-import { ScreenBuffer } from "../../dashboard/buffer.js";
+import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
 import { drawPaneFrame, paneBodyRect } from "./pane.js";
 import { cellWidth, centerCells, fitToWidth, splitGraphemeCells, stripAnsi } from "./text.js";
-
-const listLineCache = new WeakMap<ScreenBuffer, { rectKey: string; lines: Map<number, string> }>();
 
 export function renderList(
   state: ExplorerState,
@@ -28,21 +26,17 @@ export function renderList(
   drawPaneFrame(
     screen,
     rect,
-    state.title,
-    state.focused === "list" ? styles.borderFocused : styles.border
+    state.paneDefinitions[0]?.title ?? state.title,
+    state.focused === "list" ? styles.borderFocused : styles.border,
+    { focused: state.focused === "list", indicator: state.rowsLoading ? "⠋" : `${state.filtered.length}/${state.rows.length}` }
   );
   const bodyRect = paneBodyRect(rect);
   if (bodyRect.width <= 0 || bodyRect.height <= 0) {
     return;
   }
 
-  const rectKey = `${bodyRect.x}:${bodyRect.y}:${bodyRect.width}:${bodyRect.height}`;
-  const cached = listLineCache.get(screen);
-  const cache = cached?.rectKey === rectKey ? cached.lines : new Map<number, string>();
-  listLineCache.set(screen, { rectKey, lines: cache });
-
   if (state.filtered.length === 0) {
-    const hint = state.emptyHint;
+    const hint = state.rowsLoading ? "Loading…" : state.emptyHint;
     writeLine(
       screen,
       bodyRect,
@@ -50,7 +44,6 @@ export function renderList(
       centerCells(hint, bodyRect.width, bodyRect.x),
       styles.muted
     );
-    cache.clear();
     return;
   }
 
@@ -61,21 +54,13 @@ export function renderList(
   for (let lineIndex = start; lineIndex < lines.length && y < bodyRect.height; lineIndex += 1) {
     const line = lines[lineIndex]!;
     if (line.kind === "group") {
-      const hash = `group:${line.label}`;
-      if (cache.get(y) !== hash) {
-        writeLine(screen, bodyRect, y, formatGroupHeader(line.label, bodyRect), styles.muted);
-        cache.set(y, hash);
-      }
+      writeLine(screen, bodyRect, y, formatGroupHeader(line.label, bodyRect), styles.muted);
       y += 1;
       continue;
     }
 
     if (line.kind === "subtitle") {
-      const subtitleHash = `subtitle:${line.row.id}:${line.text}`;
-      if (cache.get(y) !== subtitleHash) {
-        writeLine(screen, bodyRect, y, `  ${line.text}`, styles.muted);
-        cache.set(y, subtitleHash);
-      }
+      writeLine(screen, bodyRect, y, `  ${line.text}`, styles.muted);
       y += 1;
       continue;
     }
@@ -89,22 +74,17 @@ export function renderList(
     const selected = state.multiSelect && state.selected.has(row.id);
     const cursor = rowIndex === state.filtered[state.cursor];
     const positions = state.matchPositions.get(rowIndex) ?? [];
-    const hash = lineHash(row, selected, cursor, positions);
-
-    if (cache.get(y) !== hash) {
-      renderRow(screen, bodyRect, y, row, {
-        selected,
-        cursor,
-        focused: state.focused === "list",
-        positions
-      });
-      cache.set(y, hash);
-    }
+    renderRow(screen, bodyRect, y, row, {
+      selected,
+      cursor,
+      focused: state.focused === "list",
+      positions
+    });
     y += 1;
   }
 }
 
-type DisplayLine =
+export type DisplayLine =
   | { kind: "group"; label: string }
   | { kind: "row"; rowIndex: number; row: Row; cursor: boolean }
   | { kind: "subtitle"; row: Row; text: string };
@@ -133,7 +113,7 @@ function buildDisplayLines(state: ExplorerState): DisplayLine[] {
   return lines;
 }
 
-function visibleStart(lines: DisplayLine[], height: number): number {
+export function visibleStart(lines: DisplayLine[], height: number, scrolloff = 3): number {
   if (height <= 0) {
     return 0;
   }
@@ -143,7 +123,7 @@ function visibleStart(lines: DisplayLine[], height: number): number {
     return 0;
   }
 
-  return Math.max(0, Math.min(cursorLine, cursorLine - height + 1));
+  return Math.max(0, cursorLine - Math.max(0, height - 1 - scrolloff));
 }
 
 function formatGroupHeader(label: string, rect: Rect): string {
@@ -164,7 +144,7 @@ function renderRow(
   opts: { selected: boolean; cursor: boolean; focused: boolean; positions: number[] }
 ): void {
   const styles = getExplorerStyles();
-  const marker = opts.selected ? "┃" : " ";
+  const marker = opts.selected ? "*" : " ";
   const cursor = opts.cursor ? "●" : "◌";
   const focus = opts.cursor && opts.focused ? " ▌" : "";
   const prefix = `${marker} ${cursor} `;
@@ -217,10 +197,6 @@ function renderRow(
 
 function writeLine(screen: ScreenBuffer, rect: Rect, row: number, text: string, style = {}): void {
   screen.put(rect.x, rect.y + row, fitToWidth(text, rect.width, rect.x), style);
-}
-
-function lineHash(row: Row, selected: boolean, cursor: boolean, positions: number[]): string {
-  return `${row.id}:${selected ? 1 : 0}:${cursor ? 1 : 0}:${positions.join(",")}`;
 }
 
 function hasMatchPosition(start: number, end: number, positions: Set<number>): boolean {

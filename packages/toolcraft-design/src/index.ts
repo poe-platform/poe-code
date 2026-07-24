@@ -92,7 +92,7 @@ export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
 
 // Explorer
 export * as explorer from "./explorer/index.js";
-export { runExplorer, runTwoPaneExplorer, singleDetail } from "./explorer/index.js";
+export { runExplorer, singleDetail, normalizeExplorerConfig } from "./explorer/index.js";
 export type {
   Row,
   DetailItem,
@@ -100,13 +100,11 @@ export type {
   DetailCtx,
   Action,
   ActionContext,
-  TwoPaneAction,
-  TwoPaneActionContext,
-  TwoPaneDefinition,
-  TwoPaneExplorerConfig,
-  TwoPanePaneState,
-  TwoPaneRow,
   ExplorerConfig,
+  PaneConfig,
+  ListPaneConfig,
+  DetailPaneConfig,
+  PaneRuntimeState,
   ReorderContext,
   Tone
 } from "./explorer/index.js";
@@ -187,3 +185,11 @@ export {
   withOutputFormat
 } from "./internal/output-format.js";
 export type { OutputFormat } from "./internal/output-format.js";
+
+// Terminal and screen primitives
+export { createTerminalDriver } from "./terminal/driver.js";
+export type { TerminalDriver, TerminalInputEvent, Size as TerminalSize } from "./terminal/driver.js";
+export { Screen } from "./screen/screen.js";
+export type { Cell as ScreenCell, ScreenSize, ScreenSurface } from "./screen/screen.js";
+export { packStyle, styleToSgrDelta } from "./screen/style.js";
+export type { PackedStyle } from "./screen/style.js";

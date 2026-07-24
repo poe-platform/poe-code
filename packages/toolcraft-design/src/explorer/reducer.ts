@@ -90,6 +90,10 @@ function stepKey(
   }
 
   if (target?.type === "action") {
+    if (state.actionState.get(target.id)?.running === true) {
+      runtimeHandles.toast("Action already running", "info");
+      return mark(state, 0);
+    }
     if (state.actionState.get(target.id)?.source === "detail" && state.focused !== "detail") {
       return mark(state, 0);
     }
@@ -123,6 +127,14 @@ function stepKey(
         return isDetailBlobFocused(state)
           ? detailScroll(state, detailBodyHeight(state))
           : moveCursor(state, pageSize(state));
+      case "halfPageUp":
+        return isDetailBlobFocused(state)
+          ? detailScroll(state, -Math.max(1, Math.floor(detailBodyHeight(state) / 2)))
+          : moveCursor(state, -Math.max(1, Math.floor(pageSize(state) / 2)));
+      case "halfPageDown":
+        return isDetailBlobFocused(state)
+          ? detailScroll(state, Math.max(1, Math.floor(detailBodyHeight(state) / 2)))
+          : moveCursor(state, Math.max(1, Math.floor(pageSize(state) / 2)));
       case "focusNext":
         return focusNext(state);
       case "escape":
@@ -151,6 +163,7 @@ function stepKey(
   }
 
   if (isBackspace(key)) {
+    if (isSecondListFocused(state)) return updateDetailFilter(state, (state.detail.filter ?? "").slice(0, -1));
     return updateFilter(state, state.filter.slice(0, -1));
   }
 
@@ -159,6 +172,7 @@ function stepKey(
   }
 
   if (isPrintable(key)) {
+    if (isSecondListFocused(state)) return updateDetailFilter(state, `${state.detail.filter ?? ""}${key.ch}`);
     return updateFilter(state, `${state.filter}${key.ch}`);
   }
 
@@ -271,7 +285,7 @@ function stepModalKey(
 
 function resize(state: ExplorerState, cols: number, rows: number): StepResult {
   const size = { cols: normalizeSize(cols), rows: normalizeSize(rows) };
-  const layout = resolveExplorerLayoutMode(size.cols);
+  const layout = resolveExplorerLayoutMode(size.cols, size.rows);
 
   if (state.size.cols === size.cols && state.size.rows === size.rows && state.layout === layout) {
     return mark(state, 0);
@@ -284,6 +298,7 @@ function resize(state: ExplorerState, cols: number, rows: number): StepResult {
 }
 
 function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
+  const previousRowId = currentRow(state)?.id;
   const rowIds = new Set<string>();
   for (const row of rows) {
     if (rowIds.has(row.id)) {
@@ -295,14 +310,19 @@ function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
   const matches = filterRows(state.filter, rows);
   const filtered = matches.map((match) => match.index);
   const matchPositions = createMatchPositions(matches);
-  const cursor = clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
+  const identityCursor = previousRowId === undefined
+    ? -1
+    : filtered.findIndex(index => rows[index]?.id === previousRowId);
+  const cursor = identityCursor >= 0
+    ? identityCursor
+    : clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
   const selected = state.multiSelect ? pruneSelection(state.selected, rows) : new Set<string>();
   const detail = resetDetailForCursor(state, rows, filtered, cursor);
   const modal = modalStillValid(state.modal, rows);
   if (state.modal?.kind === "confirm" && modal === null) {
     state.modal.resolver(false);
   }
-  const nextView = { ...state, rows, filtered, matchPositions, cursor, selected, detail, modal };
+  const nextView = { ...state, rows, rowsLoading: false, filtered, matchPositions, cursor, selected, detail, modal };
   const next = {
     ...nextView,
     actionState: recomputeActionState(nextView),
@@ -338,10 +358,12 @@ function detailLoaded(
     return mark(state, 0);
   }
 
+  const visibleItems = filterDetailItems(items, state.detail.filter ?? "");
   const detail = {
     ...state.detail,
-    items,
-    cursor: clamp(state.detail.cursor, 0, Math.max(0, items.length - 1)),
+    items: visibleItems,
+    allItems: items,
+    cursor: clamp(state.detail.cursor, 0, Math.max(0, visibleItems.length - 1)),
     scroll: 0,
     loading: false
   };
@@ -543,6 +565,25 @@ function updateFilter(state: ExplorerState, filter: string): StepResult {
   return { state: next, effects: effect === undefined ? NO_EFFECTS : [effect] };
 }
 
+function updateDetailFilter(state: ExplorerState, filter: string): StepResult {
+  const allItems = state.detail.allItems ?? state.detail.items ?? [];
+  const items = filterDetailItems(allItems, filter);
+  const detail = { ...state.detail, filter, items, cursor: 0, scroll: 0 };
+  return {
+    state: { ...state, detail, actionState: recomputeActionState({ ...state, detail }), dirty: REGION_HEADER | REGION_DETAIL | REGION_FOOTER },
+    effects: NO_EFFECTS
+  };
+}
+
+function filterDetailItems(items: DetailItem[], query: string): DetailItem[] {
+  const rows = items.map(item => ({ id: item.id, title: item.title ?? item.id, subtitle: item.subtitle }));
+  return filterRows(query, rows).map(match => items[match.index]!).filter((item): item is DetailItem => item !== undefined);
+}
+
+function isSecondListFocused(state: ExplorerState): boolean {
+  return state.focused === "detail" && state.paneDefinitions[1]?.kind === "list";
+}
+
 function focusFilter(state: ExplorerState): StepResult {
   if (state.filterFocused) {
     return mark(state, 0);
@@ -568,6 +609,9 @@ function focusNext(state: ExplorerState): StepResult {
 }
 
 function escape(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
+  if (isSecondListFocused(state) && (state.detail.filter ?? "").length > 0) {
+    return updateDetailFilter(state, "");
+  }
   if (state.filterFocused || state.filter.length > 0) {
     const cleared = updateFilter({ ...state, filterFocused: false }, "");
     return {
@@ -596,7 +640,10 @@ function confirmKey(state: ExplorerState, runtimeHandles: ActionRuntimeHandles):
     return modalDismissed(state, true, runtimeHandles);
   }
 
-  return dispatchPrimary(state, runtimeHandles);
+  const hasActions = [...state.actionState.values()].some(entry => entry.available && entry.running !== true);
+  return hasActions
+    ? setModal(state, { kind: "palette", query: "", cursor: 0 })
+    : dispatchPrimary(state, runtimeHandles);
 }
 
 function toggleSelect(state: ExplorerState): StepResult {
@@ -604,7 +651,8 @@ function toggleSelect(state: ExplorerState): StepResult {
     return mark(state, 0);
   }
 
-  const row = currentRow(state);
+  const detailItem = state.focused === "detail" ? state.detail.items?.[state.detail.cursor] : undefined;
+  const row = detailItem === undefined ? currentRow(state) : { id: detailItem.id, title: detailItem.title ?? detailItem.id };
   if (row === undefined) {
     return mark(state, 0);
   }
@@ -973,7 +1021,9 @@ function recomputeActionState(view: ExplorerState): ExplorerState["actionState"]
       entry.source ?? actionSource(view, action),
       DEFAULT_ACTION_HANDLES
     );
-    const available = action.predicate === undefined ? entry.available : action.predicate(ctx);
+    const row = currentRow(view);
+    const visible = action.visible === undefined || (row !== undefined && action.visible(row));
+    const available = visible && (action.predicate === undefined ? entry.available : action.predicate(ctx));
     const label = typeof action.label === "function" ? action.label() : action.label;
     next.set(id, { ...entry, available, label });
   }
@@ -1001,7 +1051,7 @@ function resetDetailForCursor(
 
   return {
     rowId: row.id,
-    items: null,
+    items: state.detail.items,
     cursor: 0,
     scroll: 0,
     token: state.detail.token + 1,

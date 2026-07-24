@@ -1,19 +1,17 @@
 import {
   getTheme,
+  normalizeExplorerConfig,
   renderInspectorCard,
   renderResourceBrowser,
-  runTwoPaneExplorer,
+  runExplorer,
   select,
   isCancel,
   PromptCancelledError,
   stripAnsi,
+  type Action,
   type ActionContext,
   type ExplorerConfig,
-  type Row,
-  type TwoPaneAction,
-  type TwoPaneActionContext,
-  type TwoPaneExplorerConfig,
-  type TwoPaneRow
+  type Row
 } from "toolcraft-design";
 import { loadBundleFromGist, verifyBundleHashes } from "./bundle.js";
 import { createDefaultGistClient } from "./gist-client.js";
@@ -178,10 +176,10 @@ export function buildBrowseExplorerConfig(
   };
 }
 
-export function buildBrowseTwoPaneConfig(
+export function buildBrowsePanesConfig(
   ctx: AgentStashContext,
   options: BrowseExplorerOptions = {}
-): TwoPaneExplorerConfig<BrowseExplorerResult> {
+): ExplorerConfig<BrowseExplorerResult> {
   const runAction = options.runAction ?? runBrowseAction;
   const scope = options.scope ?? "project";
   const rightScope = counterpartScope(scope);
@@ -205,40 +203,38 @@ export function buildBrowseTwoPaneConfig(
     await traceBrowseGistRefresh(ctx, nextModel, input);
   };
 
-  return {
+  return normalizeExplorerConfig({
     title: "agent-stash browse",
     panes: [
       {
         id: "left",
+        kind: "list",
         title: `${titleCase(scope)}: ${agentId}`,
-        rows: async () => paneTwoPaneRows((await loadModel()).left),
+        rows: async () => paneExplorerRows((await loadModel()).left),
         emptyHint: "No items in left pane"
       },
       {
         id: "right",
+        kind: "list",
         title: options.profile
           ? `Gist ${options.profile}: ${agentId}`
           : `${titleCase(rightScope)}: ${agentId}`,
-        rows: async () => paneTwoPaneRows((await loadModel()).right),
+        rows: async () => paneExplorerRows((await loadModel()).right),
         emptyHint: "No items in right pane"
       }
     ],
-    actions: browseTwoPaneActions(ctx, options, runAction, prepareRefresh),
-    refresh: () => {
+    actions: browsePaneActions(ctx, options, runAction, prepareRefresh),
+    refresh: async () => {
       modelPromise = undefined;
-    },
-    trace: (record) => {
-      const { event, ...fields } = record;
-      void traceAgentStash(ctx, `browse.ui.${event}`, fields);
     }
-  };
+  });
 }
 
 export async function runBrowseTui(
   ctx: AgentStashContext,
   options: BrowseOptions = {}
 ): Promise<void> {
-  await runTwoPaneExplorer(buildBrowseTwoPaneConfig(ctx, options));
+  await runExplorer(buildBrowsePanesConfig(ctx, options));
 }
 
 export async function runBrowseAction(
@@ -558,7 +554,7 @@ function paneRows(paneId: "left" | "right", pane: BrowsePane): Row[] {
   }));
 }
 
-function paneTwoPaneRows(pane: BrowsePane): TwoPaneRow[] {
+function paneExplorerRows(pane: BrowsePane): Row[] {
   return pane.items.map((item) => ({
     id: item.id,
     title: item.name,
@@ -595,37 +591,37 @@ function renderBrowseItemDetail(pane: BrowsePane, item: AgentStashItem, width: n
   }));
 }
 
-function browseTwoPaneActions(
+function browsePaneActions(
   ctx: AgentStashContext,
   options: BrowseExplorerOptions,
   runAction: typeof runBrowseAction,
   prepareRefresh: (input: BrowseActionRefresh) => Promise<void>
-): Array<TwoPaneAction<BrowseExplorerResult>> {
+): Array<Action<BrowseExplorerResult>> {
   return [
-    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "copy", "copy", "c"),
-    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "move", "move", "m"),
-    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "upload", "upload", "u"),
-    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "download", "download", "d"),
-    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "sync", "sync", "s")
+    browsePaneAction(ctx, options, runAction, prepareRefresh, "copy", "copy"),
+    browsePaneAction(ctx, options, runAction, prepareRefresh, "move", "move", "m"),
+    browsePaneAction(ctx, options, runAction, prepareRefresh, "upload", "upload"),
+    browsePaneAction(ctx, options, runAction, prepareRefresh, "download", "download"),
+    browsePaneAction(ctx, options, runAction, prepareRefresh, "sync", "sync", "s")
   ];
 }
 
-function browseTwoPaneAction(
+function browsePaneAction(
   ctx: AgentStashContext,
   options: BrowseExplorerOptions,
   runAction: typeof runBrowseAction,
   prepareRefresh: (input: BrowseActionRefresh) => Promise<void>,
   action: BrowseActionName,
   label: string,
-  key: string
-): TwoPaneAction<BrowseExplorerResult> {
+  accelerator?: string
+): Action<BrowseExplorerResult> {
   return {
     id: action,
     label,
-    key,
+    accelerator,
     handler: async (actionCtx) => {
-      const fromPane = parseTwoPaneId(actionCtx.activePane.id);
-      const selectedIds = rowsForTwoPaneAction(actionCtx).map((row) => row.id);
+      const fromPane = parsePaneId(actionCtx.activePane?.id ?? "left");
+      const selectedIds = rowsForPaneAction(actionCtx).map((row) => row.id);
       let result: BrowseActionResult | undefined;
       await actionCtx.suspendAnd(async () => {
         result = await runAction(ctx, {
@@ -1017,11 +1013,11 @@ function rowsForAction(ctx: ActionContext<BrowseExplorerResult>): Row[] {
   return ctx.rows.length > 0 ? ctx.rows : [ctx.row];
 }
 
-function rowsForTwoPaneAction(ctx: TwoPaneActionContext<BrowseExplorerResult>): TwoPaneRow[] {
+function rowsForPaneAction(ctx: ActionContext<BrowseExplorerResult>): Row[] {
   return ctx.rows.length > 0 ? ctx.rows : [ctx.row];
 }
 
-function parseTwoPaneId(id: string): "left" | "right" {
+function parsePaneId(id: string): "left" | "right" {
   if (id === "left" || id === "right") {
     return id;
   }

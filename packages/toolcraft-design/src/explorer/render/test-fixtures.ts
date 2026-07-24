@@ -135,21 +135,20 @@ function fixtureActions(): Array<Action<unknown>> {
     {
       id: "edit",
       label: "edit",
-      key: "e",
+      accelerator: "e",
       handler: () => undefined,
       showInFooter: true
     },
     {
       id: "archive",
       label: "archive",
-      key: "a",
+      accelerator: "a",
       handler: () => undefined,
       showInFooter: true
     },
     {
       id: "delete",
       label: "delete",
-      key: "d",
       handler: () => undefined,
       destructive: true,
       showInFooter: true

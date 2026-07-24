@@ -58,8 +58,8 @@ describe("createDetailJobs", () => {
     const first = deferred<DetailItem[]>();
     const second = deferred<DetailItem[]>();
 
-    const firstJob = jobs.schedule("one", () => first.promise, detailCtx("one"));
-    const secondJob = jobs.schedule("two", () => second.promise, detailCtx("two"));
+    const firstJob = jobs.schedule("one", 1, () => first.promise, detailCtx("one"));
+    const secondJob = jobs.schedule("two", 2, () => second.promise, detailCtx("two"));
     first.resolve([detailItem("first")]);
     second.resolve([detailItem("second")]);
     await vi.advanceTimersByTimeAsync(DETAIL_DEBOUNCE_MS);
@@ -93,14 +93,14 @@ describe("createDetailJobs", () => {
     let firstSignal: AbortSignal | undefined;
 
     const firstJob = jobs.schedule(
-      "one",
+      "one", 1,
       (ctx) => {
         firstSignal = ctx.signal;
         return first.promise;
       },
       detailCtx("one")
     );
-    const secondJob = jobs.schedule("two", () => Promise.resolve([]), detailCtx("two"));
+    const secondJob = jobs.schedule("two", 2, () => Promise.resolve([]), detailCtx("two"));
 
     expect(firstSignal?.aborted).toBe(true);
     first.resolve([]);
@@ -117,9 +117,9 @@ describe("createDetailJobs", () => {
     };
 
     const jobsInFlight = [
-      jobs.schedule("one", load("one"), detailCtx("one")),
-      jobs.schedule("two", load("two"), detailCtx("two")),
-      jobs.schedule("three", load("three"), detailCtx("three"))
+      jobs.schedule("one", 1, load("one"), detailCtx("one")),
+      jobs.schedule("two", 2, load("two"), detailCtx("two")),
+      jobs.schedule("three", 3, load("three"), detailCtx("three"))
     ];
     await vi.advanceTimersByTimeAsync(DETAIL_DEBOUNCE_MS);
     await Promise.all(jobsInFlight);
@@ -132,7 +132,7 @@ describe("createDetailJobs", () => {
     const jobs = createDetailJobs((event) => events.push(event));
     const pending = deferred<DetailItem[]>();
 
-    const job = jobs.schedule("one", () => pending.promise, detailCtx("one"));
+    const job = jobs.schedule("one", 1, () => pending.promise, detailCtx("one"));
     await vi.advanceTimersByTimeAsync(LOADING_INDICATOR_MS - 1);
     expect(events).toEqual([]);
 
@@ -157,7 +157,7 @@ describe("createDetailJobs", () => {
     const events: ExplorerEvent[] = [];
     const jobs = createDetailJobs((event) => events.push(event));
 
-    await jobs.schedule("one", () => Promise.resolve([detailItem("done")]), detailCtx("one"));
+    await jobs.schedule("one", 1, () => Promise.resolve([detailItem("done")]), detailCtx("one"));
     await vi.advanceTimersByTimeAsync(LOADING_INDICATOR_MS);
 
     expect(
@@ -173,7 +173,7 @@ describe("createDetailJobs", () => {
     const jobs = createDetailJobs((event) => events.push(event));
     const pending = deferred<DetailItem[]>();
 
-    const job = jobs.schedule("one", () => pending.promise, detailCtx("one"));
+    const job = jobs.schedule("one", 1, () => pending.promise, detailCtx("one"));
     jobs.abort();
     await vi.advanceTimersByTimeAsync(LOADING_INDICATOR_MS);
     pending.resolve([detailItem("done")]);
@@ -187,8 +187,8 @@ describe("createDetailJobs", () => {
     const jobs = createDetailJobs((event) => events.push(event));
     const error = new Error("failed");
 
-    await jobs.schedule("one", () => Promise.reject(error), detailCtx("one"));
+    await jobs.schedule("one", 7, () => Promise.reject(error), detailCtx("one"));
 
-    expect(events).toEqual([{ type: "detailError", rowId: "one", token: 1, error }]);
+    expect(events).toEqual([{ type: "detailError", rowId: "one", token: 7, error }]);
   });
 });

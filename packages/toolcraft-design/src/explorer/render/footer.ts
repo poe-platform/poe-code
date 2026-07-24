@@ -1,4 +1,4 @@
-import { ScreenBuffer } from "../../dashboard/buffer.js";
+import type { ScreenSurface as ScreenBuffer } from "../../screen/screen.js";
 import type { ExplorerLayout } from "../layout.js";
 import type { ActionStateEntry, ExplorerState } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
@@ -69,8 +69,9 @@ function footerHints(state: ExplorerState): FooterHint[] {
 
   if (state.focused === "detail") {
     hints.push({ key: "Tab", label: "focus", running: false });
-    hints.push({ key: "Enter", label: "sub", running: false });
   }
+
+  hints.push({ key: "Enter", label: "actions", running: false });
 
   for (const [id, entry] of state.actionState) {
     if (!entry.available || entry.action?.showInFooter === false) {
@@ -83,12 +84,12 @@ function footerHints(state: ExplorerState): FooterHint[] {
     hints.push({ key, label, running: entry.running === true });
   }
 
-  hints.push({ key: "?", label: "help", running: false });
   hints.push({ key: "Ctrl+P", label: "palette", running: false });
   if (hasShiftReorderBindings(state)) {
     hints.push({ key: "⇧↑↓", label: "reorder (within state)", running: false, bracketed: false });
   }
-  hints.push({ key: "q", label: "quit", running: false });
+  hints.push({ key: "Esc", label: "clear/quit", running: false });
+  if (state.selected.size > 0) hints.push({ key: `${state.selected.size}`, label: "selected", running: false, bracketed: false });
 
   return hints;
 }
@@ -100,6 +101,7 @@ function hasShiftReorderBindings(state: ExplorerState): boolean {
 }
 
 function actionKey(entry: ActionStateEntry, fallback: string): string {
+  if (entry.action?.accelerator !== undefined) return `Ctrl+${entry.action.accelerator.toUpperCase()}`;
   const key = entry.action?.key;
   if (Array.isArray(key)) {
     return key[0] ?? fallback;

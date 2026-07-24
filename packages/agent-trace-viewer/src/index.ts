@@ -1,4 +1,5 @@
 export {
+  defaultTraceIndexDir,
   detectTraceFile,
   listTraces,
   loadSubagentSummaries,
@@ -32,6 +33,7 @@ export type {
   LoadTraceOptions,
   LoadTraceTreeOptions,
   SubagentSummary,
+  TraceIndexMode,
   TraceTreeNode,
   TraceView
 } from "./types.js";

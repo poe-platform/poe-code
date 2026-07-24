@@ -4,6 +4,13 @@ export {
   collectHumanPromptsWithStats
 } from "./collect.js";
 export { writeHumanPromptJsonl } from "./jsonl.js";
+export { openTraceIndex } from "./index-store/store.js";
+export type {
+  TraceIndex,
+  TraceIndexQueryOptions,
+  TraceIndexSyncOptions,
+  TraceIndexSyncStats
+} from "./index-store/store.js";
 export {
   claudeTraceReader,
   codexTraceReader,
@@ -22,8 +29,11 @@ export type {
   SqliteTraceDatabase,
   SqliteTraceDatabaseFactory,
   TraceDiscoverOptions,
+  TraceHeadMetadata,
   TraceReadOptions,
   TraceReader,
   TraceReference,
+  TraceScanDirectory,
+  TraceScanOptions,
   TraceUsage
 } from "./types.js";

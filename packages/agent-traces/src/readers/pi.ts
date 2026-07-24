@@ -1,11 +1,15 @@
 import path from "node:path";
+import { mapConcurrent } from "../index-store/concurrency.js";
+import { readHead } from "../index-store/head.js";
 import { asRecord, newestDate, parseDate, parseJsonLines } from "../line-json.js";
 import type {
   AgentTraceFileSystem,
   NormalizedTrace,
   NormalizedTraceTurn,
+  TraceHeadMetadata,
   TraceReader,
   TraceReference,
+  TraceScanDirectory,
   TraceUsage
 } from "../types.js";
 
@@ -318,6 +322,48 @@ function readTraceContents(filePath: string, contents: string): NormalizedTrace 
   };
 }
 
+function headMetadataFromContents(head: string, filePath: string): TraceHeadMetadata {
+  let id = fileId(filePath);
+  let cwd: string | undefined;
+  let model: string | undefined;
+  let title: string | undefined;
+  const toolCalls = new Map<string, string>();
+
+  for (const value of parseJsonLines(head)) {
+    const record = asRecord(value);
+    if (!record) {
+      continue;
+    }
+    if (record.type === "session") {
+      if (typeof record.id === "string") {
+        id = record.id;
+      }
+      if (typeof record.cwd === "string") {
+        cwd = record.cwd;
+      }
+    }
+    if (record.type === "model_change" && typeof record.modelId === "string") {
+      model = record.modelId;
+    }
+    const message = asRecord(record.message);
+    if (message?.role === "assistant" && typeof message.model === "string") {
+      model = message.model;
+    }
+    if (title === undefined) {
+      title = turnsFromMessage(record, toolCalls).find((turn) => turn.role === "human")?.text;
+    }
+  }
+
+  return {
+    id,
+    ...(cwd ? { cwd } : {}),
+    ...(title ? { title } : {}),
+    ...(model ? { metadata: { model } } : {})
+  };
+}
+
+const DISCOVER_CONCURRENCY = 32;
+
 export const piTraceReader: TraceReader = {
   id: "pi",
   defaultRoots(homeDir: string): string[] {
@@ -332,25 +378,42 @@ export const piTraceReader: TraceReader = {
     const references: TraceReference[] = [];
 
     for (const directory of directories) {
-      for (const filePath of await listJsonlFiles(options.fs, directory)) {
-        const stat = await options.fs.stat(filePath);
-        const updatedAt = stat.mtime;
-        if (options.since && updatedAt && updatedAt < options.since) {
-          continue;
+      const files = await listJsonlFiles(options.fs, directory);
+      const discovered = await mapConcurrent(
+        files,
+        DISCOVER_CONCURRENCY,
+        async (filePath): Promise<TraceReference | undefined> => {
+          const stat = await options.fs.stat(filePath);
+          const updatedAt = stat.mtime;
+          if (options.since && updatedAt && updatedAt < options.since) {
+            return undefined;
+          }
+          const metadata = headMetadataFromContents(await readHead(options.fs, filePath), filePath);
+          return {
+            source: "pi",
+            id: metadata.id,
+            path: filePath,
+            ...(metadata.cwd ? { cwd: metadata.cwd } : {}),
+            ...(updatedAt ? { updatedAt } : {}),
+            ...(metadata.title ? { title: metadata.title } : {}),
+            ...(metadata.metadata ? { metadata: metadata.metadata } : {})
+          };
         }
-        const trace = readTraceContents(filePath, await options.fs.readFile(filePath, "utf8"));
-        references.push({
-          source: "pi",
-          id: trace.id,
-          path: filePath,
-          ...(trace.cwd ? { cwd: trace.cwd } : {}),
-          ...(updatedAt ? { updatedAt } : {}),
-          ...(trace.title ? { title: trace.title } : {}),
-          ...(trace.model ? { metadata: { model: trace.model } } : {})
-        });
-      }
+      );
+      references.push(
+        ...discovered.filter((reference): reference is TraceReference => reference !== undefined)
+      );
     }
     return references;
+  },
+  async *scan(options): AsyncIterable<TraceScanDirectory> {
+    const sessionsRoot = path.join(options.homeDir, ".pi", "agent", "sessions");
+    for (const directory of await listSessionDirectories(options.fs, sessionsRoot)) {
+      yield { directory, files: await listJsonlFiles(options.fs, directory) };
+    }
+  },
+  readHeadMetadata(head, filePath): TraceHeadMetadata {
+    return headMetadataFromContents(head, filePath);
   },
   async read(reference, options): Promise<NormalizedTrace> {
     if (!reference.path) {

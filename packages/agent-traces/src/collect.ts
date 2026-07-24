@@ -1,12 +1,14 @@
 import { promises as nodeFs } from "node:fs";
 import os from "node:os";
+import { openTraceIndex } from "./index-store/store.js";
 import { traceReaders } from "./readers/index.js";
 import type {
   AgentTraceSource,
   CollectHumanPromptsOptions,
   CollectHumanPromptsResult,
   HumanPromptRecord,
-  TraceReader
+  TraceReader,
+  TraceReference
 } from "./types.js";
 
 const DEFAULT_SOURCES: AgentTraceSource[] = traceReaders.map((reader) => reader.id);
@@ -74,19 +76,50 @@ export async function collectHumanPromptsFromReaders(
   const seenRecords = new Set<string>();
   let traceCount = 0;
 
+  let indexedReferences: Map<AgentTraceSource, TraceReference[]> | undefined;
+  if (options.indexDir !== undefined) {
+    try {
+      const indexable = sources
+        .map((source) => readerById.get(source))
+        .filter(
+          (reader): reader is TraceReader =>
+            reader !== undefined &&
+            reader.scan !== undefined &&
+            reader.readHeadMetadata !== undefined
+        );
+      const index = await openTraceIndex({ dir: options.indexDir, fs });
+      await index.sync({ readers: indexable, homeDir });
+      const references = await index.query({
+        cwd,
+        allWorkspaces: options.allWorkspaces,
+        since: options.since,
+        sources: indexable.map((reader) => reader.id),
+        limit: Number.POSITIVE_INFINITY
+      });
+      indexedReferences = new Map(indexable.map((reader) => [reader.id, []]));
+      for (const reference of references) {
+        indexedReferences.get(reference.source)?.push(reference);
+      }
+    } catch {
+      indexedReferences = undefined;
+    }
+  }
+
   for (const source of sources) {
     const reader = readerById.get(source);
     if (!reader) {
       throw new Error(`Unsupported trace source: ${source}`);
     }
-    const references = await reader.discover({
-      cwd,
-      homeDir,
-      since: options.since,
-      allWorkspaces: options.allWorkspaces,
-      fs,
-      sqlite: options.sqlite
-    });
+    const references =
+      indexedReferences?.get(source) ??
+      (await reader.discover({
+        cwd,
+        homeDir,
+        since: options.since,
+        allWorkspaces: options.allWorkspaces,
+        fs,
+        sqlite: options.sqlite
+      }));
     traceCount += references.length;
     for (const reference of references) {
       const trace = await reader.read(reference, { fs });

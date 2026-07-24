@@ -40,8 +40,30 @@ const records = await collectHumanPrompts({
 - `allWorkspaces`: Disable `cwd` filtering.
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `sqlite`: Injectable SQLite factory for tests and custom hosts.
+- `indexDir`: Trace index directory. When set, prompt collection discovers references through the
+  index (with `since` pushed down) instead of scanning every trace file.
 
 The `poe-code traces` CLI maps these options to `--source`, `--all-workspaces`, `--since`, `--limit`, and `--json`. Passing a path to `poe-code traces [path]` bypasses discovery and reads that JSONL file directly through source detection.
+
+## Trace index
+
+`openTraceIndex({ dir, fs })` opens a persistent discovery index so listing traces never re-reads
+the whole corpus. Storage is plain sharded JSONL — no database:
+
+- `<dir>/shards/<sha256(directory)>.jsonl`: one shard per trace directory, one record per trace
+  file (`path`, `source`, `id`, `cwd`, `title`, `updatedAtMs`, `mtimeMs`, `size`).
+- `<dir>/manifest.json`: per-shard `maxUpdatedAtMs` and counts — the only file every query reads.
+
+`sync()` is incremental: it walks reader `scan()` listings without stats, stats only files that are
+new or hot (indexed `updatedAt` within the last 7 days), and reads only the first 64 KB of files
+whose `(mtime, size)` changed, through the reader's `readHeadMetadata()`. `query()` streams shards
+newest-first and stops at `limit`. `rebuild()` drops everything and re-syncs; deleting the index
+directory is always safe. Readers without `scan()`/`readHeadMetadata()` (codex, which is already
+indexed by Codex's own SQLite) are unaffected.
+
+Known tradeoff: a trace dormant for more than 7 days that is appended to again is outside the hot
+window, so its list ordering stays stale until `rebuild()` (`poe-code traces --rebuild-index`).
+Reading the trace always shows current content — only discovery ordering is affected.
 
 ## Normalized Traces
 

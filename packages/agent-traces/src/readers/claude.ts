@@ -1,12 +1,16 @@
 import path from "node:path";
+import { mapConcurrent } from "../index-store/concurrency.js";
+import { readHead } from "../index-store/head.js";
 import { asRecord, newestDate, parseDate, parseJsonLines } from "../line-json.js";
 import type {
   AgentTraceFileSystem,
   NormalizedTrace,
   NormalizedTraceTurn,
+  TraceHeadMetadata as TraceHeadReference,
   TraceUsage,
   TraceReader,
-  TraceReference
+  TraceReference,
+  TraceScanDirectory
 } from "../types.js";
 
 interface ToolAttribution {
@@ -666,6 +670,8 @@ function parseRecordLine(rawLine: string): Record<string, unknown> | undefined {
   }
 }
 
+const DISCOVER_CONCURRENCY = 32;
+
 export const claudeTraceReader: TraceReader = {
   id: "claude",
   defaultRoots(homeDir: string): string[] {
@@ -680,24 +686,46 @@ export const claudeTraceReader: TraceReader = {
     const references: TraceReference[] = [];
 
     for (const directory of directories) {
-      for (const filePath of await listJsonlFiles(options.fs, directory)) {
-        const updatedAt = await fileUpdatedAt(options.fs, filePath);
-        if (options.since && updatedAt && updatedAt < options.since) {
-          continue;
+      const files = await listJsonlFiles(options.fs, directory);
+      const discovered = await mapConcurrent(
+        files,
+        DISCOVER_CONCURRENCY,
+        async (filePath): Promise<TraceReference | undefined> => {
+          const updatedAt = await fileUpdatedAt(options.fs, filePath);
+          if (options.since && updatedAt && updatedAt < options.since) {
+            return undefined;
+          }
+          const metadata = traceHeadMetadata(await readHead(options.fs, filePath));
+          return {
+            source: "claude",
+            id: metadata.sessionId ?? fileId(filePath),
+            path: filePath,
+            ...(metadata.cwd ? { cwd: metadata.cwd } : {}),
+            ...(updatedAt ? { updatedAt } : {}),
+            ...(metadata.title ? { title: metadata.title } : {})
+          };
         }
-        const metadata = traceHeadMetadata(await options.fs.readFile(filePath, "utf8"));
-        references.push({
-          source: "claude",
-          id: metadata.sessionId ?? fileId(filePath),
-          path: filePath,
-          ...(metadata.cwd ? { cwd: metadata.cwd } : {}),
-          ...(updatedAt ? { updatedAt } : {}),
-          ...(metadata.title ? { title: metadata.title } : {})
-        });
-      }
+      );
+      references.push(
+        ...discovered.filter((reference): reference is TraceReference => reference !== undefined)
+      );
     }
 
     return references;
+  },
+  async *scan(options): AsyncIterable<TraceScanDirectory> {
+    const projectsRoot = path.join(options.homeDir, ".claude", "projects");
+    for (const directory of await listProjectDirectories(options.fs, projectsRoot)) {
+      yield { directory, files: await listJsonlFiles(options.fs, directory) };
+    }
+  },
+  readHeadMetadata(head, filePath): TraceHeadReference {
+    const metadata = traceHeadMetadata(head);
+    return {
+      id: metadata.sessionId ?? fileId(filePath),
+      ...(metadata.cwd ? { cwd: metadata.cwd } : {}),
+      ...(metadata.title ? { title: metadata.title } : {})
+    };
   },
   async read(reference, options): Promise<NormalizedTrace> {
     if (!reference.path) {

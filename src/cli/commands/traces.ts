@@ -22,6 +22,7 @@ interface TracesCommandOptions {
   fullTitles?: boolean;
   open?: boolean;
   htmlOut?: string;
+  rebuildIndex?: boolean;
 }
 
 function parseTraceSources(values: string[] | undefined): AgentTraceSource[] | undefined {
@@ -90,6 +91,7 @@ export function registerTracesCommand(program: Command, container: CliContainer)
     .option("--full-titles", "Print untruncated trace titles, which may contain prompt content")
     .option("--open", "Generate HTML for a trace path and open it in the browser")
     .option("--html-out <file>", "Write HTML for a trace path without opening")
+    .option("--rebuild-index", "Drop and rebuild the trace discovery index")
     .action(async function (this: Command, pathArg: string | undefined) {
       const options = this.opts<TracesCommandOptions>();
       const flags = resolveCommandFlags(program);
@@ -130,7 +132,8 @@ export function registerTracesCommand(program: Command, container: CliContainer)
         json,
         fullTitles: options.fullTitles === true,
         open,
-        htmlOut
+        htmlOut,
+        rebuildIndex: options.rebuildIndex === true
       });
     });
 }

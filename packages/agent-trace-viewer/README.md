@@ -9,7 +9,7 @@ traces. The package builds on `@poe-code/agent-traces` readers and powers
 The poe-code CLI wires this package as `poe-code traces`.
 
 ```sh
-poe-code traces [path] [--source claude codex pi poe-code] [--all-workspaces] [--since 30d] [--limit 50] [--json] [--full-titles] [--yes] [--open] [--html-out <file>]
+poe-code traces [path] [--source claude codex pi poe-code] [--all-workspaces] [--since 30d] [--limit 50] [--json] [--full-titles] [--yes] [--open] [--html-out <file>] [--rebuild-index]
 ```
 
 - `path`: Load a specific JSONL trace file and render its detail view.
@@ -22,6 +22,7 @@ poe-code traces [path] [--source claude codex pi poe-code] [--all-workspaces] [-
 - `--yes`: Skip the interactive explorer and print the trace list table.
 - `--open`: Require `path`. Build a self-contained HTML page for the trace (including nested subagents inline under Task/Agent spawn turns) and open it with the platform browser. Incompatible with `--json`.
 - `--html-out <file>`: Require `path`. Write the same self-contained HTML to this file without opening, unless `--open` is also set. Incompatible with `--json`.
+- `--rebuild-index`: Drop and rebuild the trace discovery index before listing. The index (sharded JSONL under the poe-code cache directory, `trace-index/`) makes repeat listings incremental; deleting it is always safe.
 
 Without `--yes`, `--json`, or a non-TTY stdin, list mode opens the interactive explorer. `Enter` opens the selected trace detail, `o` opens the selected trace as HTML in the browser, `s` drills into available subagent traces, `c` prints the trace path, and `r` refreshes discovery.
 
@@ -41,8 +42,13 @@ Options:
 - `since?: Date`
 - `limit?: number`
 - `sqlite?: SqliteTraceDatabaseFactory`
+- `index?: "sync" | "background" | "off"` — discovery strategy. `"sync"` incrementally syncs the trace index, then answers from it (used by `--json`/table listing). `"background"` answers instantly from the stale index and fires `onIndexUpdate` exactly once with refreshed references after the sync completes (used by the interactive explorer). `"off"` (default) scans directly.
+- `indexDir?: string` — index location; defaults to `trace-index/` under the poe-code cache directory (`defaultTraceIndexDir()`).
+- `rebuildIndex?: boolean` — drop and rebuild instead of an incremental sync.
+- `onIndexUpdate?: (references: TraceReference[]) => void` — background-mode revalidation callback.
+- `onIndexProgress?: (progress: { scannedDirs: number; headReads: number }) => void`
 
-Readers that fail during discovery are skipped so one unavailable local trace store does not hide other sources.
+Readers that fail during discovery are skipped so one unavailable local trace store does not hide other sources. Codex is never indexed by this package — it already answers from Codex's own SQLite — and an unusable index falls back to direct scanning.
 
 ### `loadTrace(reference, options)`
 

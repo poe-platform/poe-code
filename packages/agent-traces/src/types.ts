@@ -93,6 +93,7 @@ export interface CollectHumanPromptsOptions {
   allWorkspaces?: boolean;
   fs?: AgentTraceFileSystem;
   sqlite?: SqliteTraceDatabaseFactory;
+  indexDir?: string;
 }
 
 export interface CollectHumanPromptsResult {
@@ -100,9 +101,29 @@ export interface CollectHumanPromptsResult {
   traceCount: number;
 }
 
+export interface TraceScanOptions {
+  homeDir: string;
+  fs: AgentTraceFileSystem;
+}
+
+export interface TraceScanDirectory {
+  directory: string;
+  files: string[];
+}
+
+export interface TraceHeadMetadata {
+  id: string;
+  cwd?: string;
+  title?: string;
+  updatedAt?: Date;
+  metadata?: Record<string, unknown>;
+}
+
 export interface TraceReader {
   id: AgentTraceSource;
   defaultRoots(homeDir: string): string[];
   discover(options: TraceDiscoverOptions): Promise<TraceReference[]>;
   read(reference: TraceReference, options: TraceReadOptions): Promise<NormalizedTrace>;
+  scan?(options: TraceScanOptions): AsyncIterable<TraceScanDirectory>;
+  readHeadMetadata?(head: string, filePath: string): TraceHeadMetadata | undefined;
 }

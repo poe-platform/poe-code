@@ -6,6 +6,8 @@ import type {
   TraceReference
 } from "@poe-code/agent-traces";
 
+export type TraceIndexMode = "sync" | "background" | "off";
+
 export interface ListTracesOptions {
   cwd: string;
   homeDir: string;
@@ -15,6 +17,11 @@ export interface ListTracesOptions {
   since?: Date;
   limit?: number;
   sqlite?: SqliteTraceDatabaseFactory;
+  index?: TraceIndexMode;
+  indexDir?: string;
+  rebuildIndex?: boolean;
+  onIndexProgress?: (progress: { scannedDirs: number; headReads: number }) => void;
+  onIndexUpdate?: (references: TraceReference[]) => void;
 }
 
 export interface LoadTraceOptions {

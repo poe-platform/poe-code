@@ -105,7 +105,8 @@ describe("traces command", () => {
       json: false,
       fullTitles: false,
       open: false,
-      htmlOut: undefined
+      htmlOut: undefined,
+      rebuildIndex: false
     });
   });
 

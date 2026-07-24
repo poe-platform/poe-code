@@ -1,9 +1,14 @@
+import path from "node:path";
 import {
+  openTraceIndex,
   traceReaders,
   type AgentTraceSource,
   type NormalizedTrace,
+  type TraceIndex,
+  type TraceReader,
   type TraceReference
 } from "@poe-code/agent-traces";
+import { resolveCacheDir } from "@poe-code/cached-resource";
 import { UserError } from "@poe-code/user-error";
 import { computeContextBreakdown } from "./breakdown.js";
 import { computeContextUsage } from "./context.js";
@@ -26,13 +31,15 @@ import type {
 const DEFAULT_TREE_MAX_DEPTH = 8;
 const DEFAULT_TREE_MAX_NODES = 50;
 
-export async function listTraces(options: ListTracesOptions): Promise<TraceReference[]> {
-  const readers =
-    options.sources === undefined
-      ? traceReaders
-      : traceReaders.filter((reader) => options.sources?.includes(reader.id) ?? false);
-  const discovered: TraceReference[] = [];
+export function defaultTraceIndexDir(): string {
+  return path.join(resolveCacheDir("poe-code"), "trace-index");
+}
 
+async function discoverWithReaders(
+  readers: TraceReader[],
+  options: ListTracesOptions
+): Promise<TraceReference[]> {
+  const discovered: TraceReference[] = [];
   for (const reader of readers) {
     try {
       discovered.push(
@@ -49,11 +56,101 @@ export async function listTraces(options: ListTracesOptions): Promise<TraceRefer
       // Trace backends are optional; missing local stores should not hide other sources.
     }
   }
+  return discovered;
+}
 
-  const sorted = discovered.sort(
-    (left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt)
-  );
+function assembleReferences(
+  options: ListTracesOptions,
+  ...groups: TraceReference[][]
+): TraceReference[] {
+  const sorted = groups
+    .flat()
+    .sort((left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt));
   return sorted.slice(0, options.limit ?? 50);
+}
+
+function isIndexable(reader: TraceReader): boolean {
+  return reader.scan !== undefined && reader.readHeadMetadata !== undefined;
+}
+
+export async function listTraces(options: ListTracesOptions): Promise<TraceReference[]> {
+  const readers =
+    options.sources === undefined
+      ? traceReaders
+      : traceReaders.filter((reader) => options.sources?.includes(reader.id) ?? false);
+  const mode = options.index ?? "off";
+  const indexable = readers.filter(isIndexable);
+
+  let index: TraceIndex | undefined;
+  if (mode !== "off" && indexable.length > 0) {
+    try {
+      index = await openTraceIndex({
+        dir: options.indexDir ?? defaultTraceIndexDir(),
+        fs: options.fs
+      });
+    } catch {
+      // An unusable index cache falls back to direct discovery.
+    }
+  }
+  if (index === undefined) {
+    const references = assembleReferences(options, await discoverWithReaders(readers, options));
+    if (mode === "background") {
+      queueMicrotask(() => options.onIndexUpdate?.(references));
+    }
+    return references;
+  }
+
+  const direct = readers.filter((reader) => !isIndexable(reader));
+  const runSync = async (): Promise<void> => {
+    const syncOptions = {
+      readers: indexable,
+      homeDir: options.homeDir,
+      ...(options.onIndexProgress ? { onProgress: options.onIndexProgress } : {})
+    };
+    if (options.rebuildIndex === true) {
+      await index.rebuild(syncOptions);
+    } else {
+      await index.sync(syncOptions);
+    }
+  };
+  const queryIndexed = (): Promise<TraceReference[]> =>
+    index
+      .query({
+        cwd: options.cwd,
+        allWorkspaces: options.allWorkspaces,
+        since: options.since,
+        sources: indexable.map((reader) => reader.id),
+        limit: options.limit ?? 50
+      })
+      .catch(() => [] as TraceReference[]);
+
+  if (mode === "sync") {
+    try {
+      await runSync();
+    } catch {
+      return assembleReferences(options, await discoverWithReaders(readers, options));
+    }
+    const [indexed, directRefs] = await Promise.all([
+      queryIndexed(),
+      discoverWithReaders(direct, options)
+    ]);
+    return assembleReferences(options, indexed, directRefs);
+  }
+
+  const [indexed, directRefs] = await Promise.all([
+    queryIndexed(),
+    discoverWithReaders(direct, options)
+  ]);
+  const initial = assembleReferences(options, indexed, directRefs);
+  void runSync()
+    .then(async () =>
+      assembleReferences(options, await queryIndexed(), await discoverWithReaders(direct, options))
+    )
+    .catch(() => initial)
+    .then((updated) => {
+      options.onIndexUpdate?.(updated);
+    });
+  return initial;
 }
 
 export async function loadTrace(

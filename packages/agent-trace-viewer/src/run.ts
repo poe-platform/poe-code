@@ -39,6 +39,8 @@ export interface RunTraceViewerOptions {
   openExternal?: (target: string) => Promise<void>;
   tmpDir?: string;
   output?: WritableOutput;
+  indexDir?: string;
+  rebuildIndex?: boolean;
 }
 
 interface WritableOutput {
@@ -82,24 +84,25 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
     return;
   }
 
-  const discover = () =>
-    listTraces({
-      cwd: options.cwd,
-      homeDir: options.homeDir,
-      fs: options.fs,
-      sources: options.sources,
-      allWorkspaces: options.allWorkspaces,
-      since: options.since,
-      limit: options.limit ?? Number.POSITIVE_INFINITY
-    });
-  const references = await discover();
-
-  if (references.length === 0) {
-    writeLine(output, "No traces found");
-    return;
-  }
+  const listOptions = {
+    cwd: options.cwd,
+    homeDir: options.homeDir,
+    fs: options.fs,
+    sources: options.sources,
+    allWorkspaces: options.allWorkspaces,
+    since: options.since,
+    limit: options.limit ?? Number.POSITIVE_INFINITY,
+    ...(options.indexDir !== undefined ? { indexDir: options.indexDir } : {}),
+    ...(options.rebuildIndex === true ? { rebuildIndex: true } : {})
+  };
+  const discover = () => listTraces({ ...listOptions, index: "sync" });
 
   if (options.json || options.assumeYes || process.stdin.isTTY !== true) {
+    const references = await discover();
+    if (references.length === 0) {
+      writeLine(output, "No traces found");
+      return;
+    }
     if (options.json) {
       const listed = options.fullTitles === true ? references : references.map(withTruncatedTitle);
       writeLine(output, JSON.stringify(listed, null, 2));
@@ -110,10 +113,30 @@ export async function runTraceViewer(options: RunTraceViewerOptions): Promise<vo
     return;
   }
 
+  let resolveRevalidated!: (references: TraceReference[]) => void;
+  const revalidated = new Promise<TraceReference[]>((resolve) => {
+    resolveRevalidated = resolve;
+  });
+  const stale = await listTraces({
+    ...listOptions,
+    index: "background",
+    onIndexUpdate: resolveRevalidated
+  });
+  const references =
+    stale.length > 0
+      ? stale
+      : await withSpinner({ message: "Indexing traces...", fn: async () => revalidated });
+
+  if (references.length === 0) {
+    writeLine(output, "No traces found");
+    return;
+  }
+
   await runExplorer(
     buildTraceExplorerConfig({
       title: "Agent traces",
       references,
+      ...(references === stale ? { revalidated } : {}),
       fs: options.fs,
       output,
       openExternal: options.openExternal,
@@ -185,6 +208,7 @@ function compactWhitespace(value: string | undefined): string {
 function buildTraceExplorerConfig(options: {
   title: string;
   references: TraceReference[];
+  revalidated?: Promise<TraceReference[]>;
   fs: AgentTraceFileSystem;
   output: WritableOutput;
   openExternal?: (target: string) => Promise<void>;
@@ -193,14 +217,27 @@ function buildTraceExplorerConfig(options: {
 }): ExplorerConfig<void> {
   const state = createExplorerState(options.references);
 
-  async function refresh(): Promise<void> {
-    const references = await options.onRefresh();
+  function applyReferences(references: TraceReference[]): void {
     const next = createExplorerState(references);
     state.references = next.references;
     state.rows = next.rows;
     state.referenceByRowId = next.referenceByRowId;
     state.childrenByRowId = next.childrenByRowId;
     state.detailByRowId = next.detailByRowId;
+  }
+
+  async function refresh(): Promise<void> {
+    applyReferences(await options.onRefresh());
+  }
+
+  let revalidation = options.revalidated;
+  async function rows(): Promise<Row[]> {
+    if (revalidation !== undefined) {
+      const pending = revalidation;
+      revalidation = undefined;
+      applyReferences(await pending);
+    }
+    return state.rows;
   }
 
   const actions: Action<void>[] = [
@@ -311,8 +348,9 @@ function buildTraceExplorerConfig(options: {
 
   return normalizeExplorerConfig({
     title: options.title,
+    initialRows: state.rows,
     panes: [
-      { id: "traces", kind: "list", title: options.title, rows: async () => state.rows, emptyHint: "No traces found", multiSelect: false },
+      { id: "traces", kind: "list", title: options.title, rows, emptyHint: "No traces found", multiSelect: false },
       {
         id: "preview",
         kind: "detail",

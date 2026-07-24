@@ -1,11 +1,15 @@
 import path from "node:path";
+import { mapConcurrent } from "../index-store/concurrency.js";
+import { readHead } from "../index-store/head.js";
 import { asRecord, newestDate, parseDate, parseJsonLines } from "../line-json.js";
 import type {
   AgentTraceFileSystem,
   NormalizedTrace,
   NormalizedTraceTurn,
+  TraceHeadMetadata,
   TraceReader,
   TraceReference,
+  TraceScanDirectory,
   TraceUsage
 } from "../types.js";
 
@@ -262,6 +266,8 @@ function turnFromRecord(record: Record<string, unknown>): NormalizedTraceTurn | 
   }
 }
 
+const DISCOVER_CONCURRENCY = 32;
+
 export const poeCodeTraceReader: TraceReader = {
   id: "poe-code",
   defaultRoots(homeDir: string): string[] {
@@ -269,28 +275,45 @@ export const poeCodeTraceReader: TraceReader = {
   },
   async discover(options): Promise<TraceReference[]> {
     const root = path.join(options.homeDir, ".poe-code", "spawn-logs");
-    const references: TraceReference[] = [];
-
-    for (const filePath of await listJsonlFiles(options.fs, root)) {
-      const parsed = parseLogFileName(filePath);
-      if (!parsed) {
-        continue;
+    const files = await listJsonlFiles(options.fs, root);
+    const discovered = await mapConcurrent(
+      files,
+      DISCOVER_CONCURRENCY,
+      async (filePath): Promise<TraceReference | undefined> => {
+        const parsed = parseLogFileName(filePath);
+        if (!parsed) {
+          return undefined;
+        }
+        const updatedAt = await updatedAtForFile(options.fs, filePath, parsed.timestamp);
+        if (options.since && updatedAt && updatedAt < options.since) {
+          return undefined;
+        }
+        const head = await readHead(options.fs, filePath);
+        return {
+          source: "poe-code",
+          id: parsed.sessionId,
+          path: filePath,
+          ...(updatedAt ? { updatedAt } : {}),
+          title: titleFromLogContent(head) ?? parsed.agent
+        };
       }
-      const updatedAt = await updatedAtForFile(options.fs, filePath, parsed.timestamp);
-      if (options.since && updatedAt && updatedAt < options.since) {
-        continue;
-      }
-      const content = await options.fs.readFile(filePath, "utf8");
-      references.push({
-        source: "poe-code",
-        id: parsed.sessionId,
-        path: filePath,
-        ...(updatedAt ? { updatedAt } : {}),
-        title: titleFromLogContent(content) ?? parsed.agent
-      });
+    );
+    return discovered.filter((reference): reference is TraceReference => reference !== undefined);
+  },
+  async *scan(options): AsyncIterable<TraceScanDirectory> {
+    const root = path.join(options.homeDir, ".poe-code", "spawn-logs");
+    yield { directory: root, files: await listJsonlFiles(options.fs, root) };
+  },
+  readHeadMetadata(head, filePath): TraceHeadMetadata | undefined {
+    const parsed = parseLogFileName(filePath);
+    if (!parsed) {
+      return undefined;
     }
-
-    return references;
+    return {
+      id: parsed.sessionId,
+      title: titleFromLogContent(head) ?? parsed.agent,
+      ...(parsed.timestamp ? { updatedAt: parsed.timestamp } : {})
+    };
   },
   async read(reference, options): Promise<NormalizedTrace> {
     if (!reference.path) {

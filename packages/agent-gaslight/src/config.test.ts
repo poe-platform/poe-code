@@ -37,10 +37,11 @@ describe("loadGaslightConfig", () => {
     });
   });
 
-  it("loads optional archive behavior from config", async () => {
+  it("loads optional auto-archive behavior from config", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({
-        "/repo/.poe-code/gaslight.yaml": "prompt: Implement\narchive: true\nfollowups:\n  - Test it\n"
+        "/repo/.poe-code/gaslight.yaml":
+          "prompt: Implement\nauto-archive: true\nfollowups:\n  - Test it\n"
       })
     ).promises;
 
@@ -117,7 +118,7 @@ describe("loadGaslightConfig", () => {
     "followups:\n  - Test it\n",
     "prompt: Implement\nfollowups: []\n",
     "prompt: Implement\nfollowups:\n  - 42\n",
-    "prompt: Implement\narchive: 1\nfollowups:\n  - Test it\n",
+    "prompt: Implement\nauto-archive: 1\nfollowups:\n  - Test it\n",
     "setup: 42\nprompt: Implement\nfollowups:\n  - Test it\n",
     "prompt: Implement\nfollowups:\n  - Test it\nteardown: '   '\n"
   ])("names invalid config files", async (content) => {

@@ -61,10 +61,10 @@ export const coreConfigScope = defineScope("core", {
 });
 
 export const ralphConfigScope = defineScope("ralph", {
-  archive: {
+  "auto-archive": {
     type: "boolean",
     default: true,
-    env: "POE_RALPH_ARCHIVE",
+    env: "POE_RALPH_AUTO_ARCHIVE",
     doc: "Archive Ralph docs after successful completion"
   },
   tui: {
@@ -76,10 +76,10 @@ export const ralphConfigScope = defineScope("ralph", {
 });
 
 export const pipelineConfigScope = defineScope("pipeline", {
-  archive: {
+  "auto-archive": {
     type: "boolean",
     default: true,
-    env: "POE_PIPELINE_ARCHIVE",
+    env: "POE_PIPELINE_AUTO_ARCHIVE",
     doc: "Archive pipeline plans after successful completion"
   },
   plan_directory: {
@@ -97,10 +97,10 @@ export const pipelineConfigScope = defineScope("pipeline", {
 });
 
 export const gaslightConfigScope = defineScope("gaslight", {
-  archive: {
+  "auto-archive": {
     type: "boolean",
     default: false,
-    env: "POE_GASLIGHT_ARCHIVE",
+    env: "POE_GASLIGHT_AUTO_ARCHIVE",
     doc: "Archive Gaslight plans after all follow-up rounds succeed"
   }
 });

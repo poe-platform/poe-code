@@ -7,7 +7,7 @@ import type { GaslightConfig, GaslightFileSystem } from "./types.js";
 export const GASLIGHT_CONFIG_EXAMPLE = [
   "setup: Prepare the workspace",
   "prompt: Implement",
-  "archive: true",
+  "auto-archive: true",
   "followups:",
   "  - Is this best you can do?",
   "  - Did you test it well? Like real end to end test?",
@@ -65,7 +65,7 @@ function validateConfig(
         key !== "prompt" &&
         key !== "followups" &&
         key !== "teardown" &&
-        key !== "archive"
+        key !== "auto-archive"
     );
     if (extraKey) {
       throw new Error(`Invalid gaslight config at ${configPath}: unexpected key "${extraKey}".`);
@@ -85,8 +85,8 @@ function validateConfig(
       `Invalid gaslight config at ${configPath}: followups must be a non-empty array of non-empty strings.`
     );
   }
-  if (config.archive !== undefined && typeof config.archive !== "boolean") {
-    throw new Error(`Invalid gaslight config at ${configPath}: archive must be a boolean.`);
+  if (config["auto-archive"] !== undefined && typeof config["auto-archive"] !== "boolean") {
+    throw new Error(`Invalid gaslight config at ${configPath}: auto-archive must be a boolean.`);
   }
   for (const key of ["setup", "teardown"] as const) {
     if (config[key] !== undefined && (typeof config[key] !== "string" || !config[key].trim())) {
@@ -101,7 +101,7 @@ function validateConfig(
     prompt: config.prompt.trim(),
     followups: config.followups.map((followup) => (followup as string).trim()),
     ...(typeof config.teardown === "string" ? { teardown: config.teardown.trim() } : {}),
-    ...(config.archive !== undefined ? { archive: config.archive } : {})
+    ...(config["auto-archive"] !== undefined ? { archive: config["auto-archive"] } : {})
   };
 }
 

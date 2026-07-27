@@ -177,7 +177,7 @@ describe("gaslight command", () => {
       program,
       createContainer(vi.fn(), vi.fn(), {
         "/repo/docs/plans/a.md": "# A",
-        "/repo/.poe-code/config.json": `${JSON.stringify({ gaslight: { archive: true } }, null, 2)}\n`
+        "/repo/.poe-code/config.json": `${JSON.stringify({ gaslight: { "auto-archive": true } }, null, 2)}\n`
       })
     );
 
@@ -221,7 +221,7 @@ describe("gaslight command", () => {
       program,
       createContainer(vi.fn(), vi.fn(), {
         "/repo/docs/plans/a.md": "# A",
-        "/repo/.poe-code/config.json": `${JSON.stringify({ gaslight: { archive: true } }, null, 2)}\n`
+        "/repo/.poe-code/config.json": `${JSON.stringify({ gaslight: { "auto-archive": true } }, null, 2)}\n`
       })
     );
 

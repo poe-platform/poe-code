@@ -361,7 +361,7 @@ describe("pipeline run command", () => {
   it("passes pipeline archive config to the SDK", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/config.json": JSON.stringify({
-        pipeline: { archive: false }
+        pipeline: { "auto-archive": false }
       }),
       "/repo/custom-plan.yaml": "tasks: []\n"
     });
@@ -396,7 +396,7 @@ describe("pipeline run command", () => {
   it("lets --archive override disabled pipeline archive config", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/config.json": JSON.stringify({
-        pipeline: { archive: false }
+        pipeline: { "auto-archive": false }
       }),
       "/repo/custom-plan.yaml": "tasks: []\n"
     });

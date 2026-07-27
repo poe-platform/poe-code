@@ -121,7 +121,7 @@ async function resolvePipelineCommandConfig(
   return {
     configDoc,
     planDirectory,
-    archive: pipelineConfig.archive === true,
+    archive: pipelineConfig["auto-archive"] === true,
     tui: pipelineConfig.tui === true
   };
 }

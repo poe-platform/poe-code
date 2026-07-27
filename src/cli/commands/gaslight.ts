@@ -58,14 +58,14 @@ async function resolveGaslightCommandConfig(
   const hasArchiveConfig =
     (typeof rawGaslightConfig === "object" &&
       rawGaslightConfig !== null &&
-      "archive" in rawGaslightConfig) ||
-    container.env.variables.POE_GASLIGHT_ARCHIVE !== undefined;
+      "auto-archive" in rawGaslightConfig) ||
+    container.env.variables.POE_GASLIGHT_AUTO_ARCHIVE !== undefined;
   const gaslightConfig = resolveScope(
     gaslightConfigScope.schema,
     rawGaslightConfig,
     container.env.variables
   );
-  return hasArchiveConfig ? { archive: gaslightConfig.archive === true } : {};
+  return hasArchiveConfig ? { archive: gaslightConfig["auto-archive"] === true } : {};
 }
 
 interface GaslightIngestCommandOptions {

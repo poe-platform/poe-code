@@ -331,7 +331,7 @@ async function resolveRalphCommandConfig(
     container.env.variables
   );
   return {
-    archive: ralphConfig.archive === true,
+    archive: ralphConfig["auto-archive"] === true,
     planDirectory: planConfig.plan_directory,
     tui: ralphConfig.tui === true
   };

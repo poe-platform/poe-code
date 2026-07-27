@@ -2575,7 +2575,7 @@ describe("ralph run command", () => {
     const container = createCliContainer({
       fs: createMemFs({
         "/repo/.poe-code/config.json": JSON.stringify({
-          ralph: { archive: false }
+          ralph: { "auto-archive": false }
         }),
         "/repo/docs/loop.md": "# Loop"
       }),
@@ -2609,7 +2609,7 @@ describe("ralph run command", () => {
     const container = createCliContainer({
       fs: createMemFs({
         "/repo/.poe-code/config.json": JSON.stringify({
-          ralph: { archive: false }
+          ralph: { "auto-archive": false }
         }),
         "/repo/docs/loop.md": "# Loop"
       }),

@@ -4210,6 +4210,45 @@ describe("generate", () => {
     expect(command).toContain("placement: S.Optional(S.Number(");
   });
 
+  it("generates multipart binary arrays as variadic file-source options", () => {
+    const files = generate(
+      createDocument({
+        "/messages": {
+          post: {
+            tags: ["messages"],
+            operationId: "sendMessage",
+            requestBody: {
+              required: true,
+              content: {
+                "multipart/form-data": {
+                  schema: {
+                    type: "object",
+                    required: ["attachment_files"],
+                    properties: {
+                      attachment_files: {
+                        type: "array",
+                        items: { type: "string", format: "binary" }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: { "200": { description: "Sent." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.path === "messages/send-message.ts")?.contents;
+    expect(command).toContain('multipartBinaryFields: ["attachment_files"],');
+    expect(command).toContain('"attachment_files": S.Optional(S.Array(S.String(');
+    expect(command).toContain("Local path, HTTP(S) URL, or base64 value.");
+    expect(command).toContain("      fetch,");
+    expect(command).toContain("    return result;");
+  });
+
   it("generates URL-encoded form request bodies", () => {
     const files = generate(
       createDocument({

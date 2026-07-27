@@ -286,7 +286,8 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       bodyMode: command.bodyMode,
       multipartBinaryFields: command.multipartBinaryFields,
       fs,
-      env
+      env,
+      fetch
     });
 
     const result = await requestJson({

@@ -1167,7 +1167,15 @@ function collectRequestBodyParams(
               operationId,
               "requestBody multipart field"
             );
-            return resolved.type === "string" && resolved.format === "binary";
+            if (resolved.type === "string" && resolved.format === "binary") return true;
+            if (resolved.type !== "array" || resolved.items === undefined) return false;
+            const items = resolveBodySchema(
+              document,
+              resolved.items,
+              operationId,
+              "requestBody multipart array item"
+            );
+            return items.type === "string" && items.format === "binary";
           })
           .map(([name]) => name)
       : undefined;
@@ -1220,16 +1228,25 @@ function collectRequestBodyParams(
   const declaredPropertyCount = Object.keys(schema.properties).length;
 
   for (const [name, property] of Object.entries(schema.properties)) {
-    const propertySchema = resolveBodySchema(
+    const resolvedPropertySchema = resolveBodySchema(
       document,
       property,
       operationId,
       `requestBody.properties.${name}`
     );
 
-    if (propertySchema.readOnly === true) {
+    if (resolvedPropertySchema.readOnly === true) {
       continue;
     }
+
+    const propertySchema = multipartBinaryFields?.includes(name) === true
+      ? {
+          ...resolvedPropertySchema,
+          description: resolvedPropertySchema.description === undefined
+            ? "Local path, HTTP(S) URL, or base64 value."
+            : `${resolvedPropertySchema.description} Local path, HTTP(S) URL, or base64 value.`
+        }
+      : resolvedPropertySchema;
 
     const generated = createBodyField(
       document,
@@ -2817,6 +2834,7 @@ function createCommandFile(options: {
       lines.push(`      multipartBinaryFields: ${JSON.stringify(options.multipartBinaryFields)},`);
       lines.push("      fs,");
       lines.push("      env,");
+      lines.push("      fetch,");
       lines.push("    });");
     } else {
       lines.push("    const preparedRequestShape = requestShape;");
@@ -2878,6 +2896,8 @@ function createCommandFile(options: {
   lines.push("    });");
   if (usesBinaryOutput) {
     lines.push("    return writeBinaryResponseOutput(result, params.output, { fs, env });");
+  } else if (usesRequestShapeVariable) {
+    lines.push("    return result;");
   }
   lines.push("  },");
   lines.push("});");

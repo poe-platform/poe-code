@@ -1,4 +1,5 @@
 import path from "node:path";
+import { isIP } from "node:net";
 import { randomUUID } from "node:crypto";
 import { text as designText } from "toolcraft-design";
 import {
@@ -23,6 +24,10 @@ type QueryScalar = string | number | boolean | null | undefined;
 type QueryObject = { readonly [key: string]: QueryValue };
 type HeaderScalar = string | number | boolean | undefined;
 const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
+const MULTIPART_FILE_BYTE_LIMIT = 100 * 1024 * 1024;
+const MULTIPART_REQUEST_BYTE_LIMIT = 250 * 1024 * 1024;
+const MULTIPART_DOWNLOAD_TIMEOUT_MS = 30_000;
+const MULTIPART_REDIRECT_LIMIT = 5;
 
 export type QueryValue = QueryScalar | QueryValue[] | QueryObject;
 
@@ -70,6 +75,18 @@ export interface BinaryHttpResponse {
 interface MultipartFileInput {
   data: string;
   filename: string;
+  contentType: string;
+}
+
+type MultipartBinaryValue = string | MultipartFileInput;
+
+interface MultipartSourceRuntime {
+  field: string;
+  fs: RuntimeFileSystem;
+  env: RuntimeEnvironment;
+  fetch: typeof globalThis.fetch;
+  signal?: AbortSignal;
+  totalBytes: number;
 }
 
 type RuntimeFileSystem = Pick<HandlerFs, "exists" | "readFile" | "writeFile">;
@@ -362,6 +379,8 @@ export async function prepareMultipartFileInputs(
     multipartBinaryFields?: readonly string[];
     fs?: RuntimeFileSystem;
     env?: RuntimeEnvironment;
+    fetch?: typeof globalThis.fetch;
+    signal?: AbortSignal;
   }
 ): Promise<RequestShape> {
   if (
@@ -385,29 +404,210 @@ export async function prepareMultipartFileInputs(
 
   const body = { ...(requestShape.body as Record<string, unknown>) };
 
+  const runtime: MultipartSourceRuntime = {
+    field: "",
+    fs: options.fs,
+    env: options.env,
+    fetch: options.fetch ?? globalThis.fetch,
+    signal: options.signal,
+    totalBytes: 0
+  };
+
   for (const field of options.multipartBinaryFields) {
     const value = body[field];
-
-    if (typeof value !== "string") {
+    const sources = Array.isArray(value) ? value : [value];
+    if (sources.some((source) => typeof source !== "string")) {
       continue;
     }
-
-    const filePath = resolveUserPath(value, options.env);
-
-    if (!(await options.fs.exists(filePath))) {
-      continue;
-    }
-
-    body[field] = {
-      data: await options.fs.readFile(filePath, "base64"),
-      filename: path.basename(filePath) || field
-    } satisfies MultipartFileInput;
+    runtime.field = field;
+    const resolved = await Promise.all(
+      (sources as string[]).map((source) => resolveMultipartSource(source, runtime))
+    );
+    body[field] = Array.isArray(value) ? resolved : resolved[0];
   }
 
   return {
     ...requestShape,
     body
   };
+}
+
+async function resolveMultipartSource(
+  source: string,
+  runtime: MultipartSourceRuntime
+): Promise<MultipartBinaryValue> {
+  if (URL.canParse(source) && source.includes(":")) {
+    const sourceUrl = new URL(source);
+    validateMultipartUrl(sourceUrl, runtime.field);
+    return downloadMultipartSource(sourceUrl, runtime);
+  }
+
+  const filePath = resolveUserPath(source, runtime.env);
+  if (await runtime.fs.exists(filePath)) {
+    const data = await runtime.fs.readFile(filePath, "base64");
+    accountMultipartBytes(Buffer.byteLength(data, "base64"), source, runtime);
+    return {
+      data,
+      filename: path.basename(filePath) || runtime.field,
+      contentType: inferContentType(filePath)
+    };
+  }
+
+  if (isValidBase64(source)) return source;
+  throw new UserError(
+    `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(source)} does not exist.`
+  );
+}
+
+async function downloadMultipartSource(
+  initialUrl: URL,
+  runtime: MultipartSourceRuntime
+): Promise<MultipartFileInput> {
+  let url = initialUrl;
+  const timeoutSignal = AbortSignal.timeout(MULTIPART_DOWNLOAD_TIMEOUT_MS);
+  const signal = runtime.signal === undefined
+    ? timeoutSignal
+    : AbortSignal.any([runtime.signal, timeoutSignal]);
+  for (let redirects = 0; redirects <= MULTIPART_REDIRECT_LIMIT; redirects += 1) {
+    validateMultipartUrl(url, runtime.field);
+    let response: Response;
+    try {
+      response = await runtime.fetch(url, { redirect: "manual", signal });
+    } catch {
+      throw new UserError(
+        `Could not download multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))}.`
+      );
+    }
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (location === null || redirects === MULTIPART_REDIRECT_LIMIT) {
+        throw new UserError(
+          `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(initialUrl))} exceeded the redirect limit.`
+        );
+      }
+      url = new URL(location, url);
+      continue;
+    }
+    if (!response.ok) {
+      throw new UserError(
+        `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} returned HTTP ${response.status}.`
+      );
+    }
+
+    const declaredLength = Number(response.headers.get("content-length"));
+    if (Number.isFinite(declaredLength) && declaredLength > MULTIPART_FILE_BYTE_LIMIT) {
+      throw new UserError(
+        `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} exceeds the 100 MiB file limit.`
+      );
+    }
+    const bytes = await readMultipartResponse(response, url, runtime);
+    accountMultipartBytes(bytes.byteLength, redactMultipartUrl(url), runtime);
+    return {
+      data: Buffer.from(bytes).toString("base64"),
+      filename: selectRemoteFilename(response, url, runtime.field),
+      contentType: normalizeContentType(response.headers.get("content-type"))
+    };
+  }
+  throw new UserError("Unexpected multipart redirect state.");
+}
+
+async function readMultipartResponse(
+  response: Response,
+  url: URL,
+  runtime: MultipartSourceRuntime
+): Promise<Uint8Array> {
+  if (response.body === null) return new Uint8Array();
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    byteLength += value.byteLength;
+    if (byteLength > MULTIPART_FILE_BYTE_LIMIT) {
+      await reader.cancel();
+      throw new UserError(
+        `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} exceeds the 100 MiB file limit.`
+      );
+    }
+    chunks.push(value);
+  }
+  const result = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return result;
+}
+
+function validateMultipartUrl(url: URL, field: string): void {
+  if ((url.protocol !== "http:" && url.protocol !== "https:") || url.username || url.password) {
+    throw new UserError(`Multipart field ${JSON.stringify(field)} uses a disallowed URL.`);
+  }
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === "localhost" || hostname.endsWith(".localhost") || isPrivateIpLiteral(hostname)) {
+    throw new UserError(`Multipart field ${JSON.stringify(field)} uses a private network URL.`);
+  }
+}
+
+function isPrivateIpLiteral(hostname: string): boolean {
+  const normalized = hostname.startsWith("[") && hostname.endsWith("]")
+    ? hostname.slice(1, -1)
+    : hostname;
+  const version = isIP(normalized);
+  if (version === 4) {
+    const octets = normalized.split(".").map(Number);
+    return octets[0] === 10 || octets[0] === 127 || octets[0] === 0 ||
+      (octets[0] === 169 && octets[1] === 254) ||
+      (octets[0] === 172 && (octets[1] ?? 0) >= 16 && (octets[1] ?? 0) <= 31) ||
+      (octets[0] === 192 && octets[1] === 168);
+  }
+  return version === 6 && (normalized === "::1" || normalized.startsWith("fe80:") || normalized.startsWith("fc") || normalized.startsWith("fd"));
+}
+
+function accountMultipartBytes(bytes: number, source: string, runtime: MultipartSourceRuntime): void {
+  if (bytes > MULTIPART_FILE_BYTE_LIMIT) {
+    throw new UserError(`Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(source)} exceeds the 100 MiB file limit.`);
+  }
+  runtime.totalBytes += bytes;
+  if (runtime.totalBytes > MULTIPART_REQUEST_BYTE_LIMIT) {
+    throw new UserError("Multipart file inputs exceed the 250 MiB request limit.");
+  }
+}
+
+function selectRemoteFilename(response: Response, url: URL, fallback: string): string {
+  const disposition = response.headers.get("content-disposition");
+  const candidate = disposition?.split(";").map((part) => part.trim()).find((part) => part.toLowerCase().startsWith("filename="))?.slice("filename=".length).replaceAll('"', "");
+  return sanitizeFilename(candidate ?? path.posix.basename(url.pathname) ?? fallback, fallback);
+}
+
+function sanitizeFilename(value: string, fallback: string): string {
+  const basename = path.basename(value.replaceAll("\\", "/"));
+  const cleaned = Array.from(basename).filter((character) => character >= " " && character !== "\u007f").join("").trim();
+  return cleaned === "" || cleaned === "." || cleaned === ".." ? fallback : cleaned;
+}
+
+function normalizeContentType(value: string | null): string {
+  const mediaType = value?.split(";", 1)[0]?.trim().toLowerCase();
+  return mediaType?.includes("/") === true ? mediaType : "application/octet-stream";
+}
+
+function inferContentType(filePath: string): string {
+  const extension = path.extname(filePath).toLowerCase();
+  return ({
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif",
+    ".webp": "image/webp", ".pdf": "application/pdf", ".txt": "text/plain", ".json": "application/json",
+    ".wav": "audio/wav", ".mp3": "audio/mpeg", ".mp4": "video/mp4"
+  } as Record<string, string>)[extension] ?? "application/octet-stream";
+}
+
+function redactMultipartUrl(url: URL): string {
+  const redacted = new URL(url);
+  redacted.username = "";
+  redacted.password = "";
+  return redactSensitiveQueryValues(redacted.toString());
 }
 
 export async function writeBinaryResponseOutput(
@@ -608,7 +808,8 @@ function decodeMultipartBinaryValue(value: unknown, fallbackFilename: string): M
   if (typeof value === "string") {
     return {
       data: value,
-      filename: fallbackFilename
+      filename: fallbackFilename,
+      contentType: "application/octet-stream"
     };
   }
 
@@ -617,7 +818,8 @@ function decodeMultipartBinaryValue(value: unknown, fallbackFilename: string): M
     typeof value === "object" &&
     !Array.isArray(value) &&
     typeof (value as Partial<MultipartFileInput>).data === "string" &&
-    typeof (value as Partial<MultipartFileInput>).filename === "string"
+    typeof (value as Partial<MultipartFileInput>).filename === "string" &&
+    typeof (value as Partial<MultipartFileInput>).contentType === "string"
   ) {
     return value as MultipartFileInput;
   }
@@ -637,8 +839,15 @@ function serializeMultipartBody(body: unknown, binaryFields: readonly string[] =
   for (const [key, value] of Object.entries(body)) {
     if (value === undefined) continue;
     if (binary.has(key)) {
-      const file = decodeMultipartBinaryValue(value, key);
-      form.append(key, new Blob([decodeBase64Body(file.data)]), file.filename);
+      const values = Array.isArray(value) ? value : [value];
+      for (const item of values) {
+        const file = decodeMultipartBinaryValue(item, key);
+        form.append(
+          key,
+          new Blob([decodeBase64Body(file.data)], { type: file.contentType }),
+          file.filename
+        );
+      }
     } else if (Array.isArray(value)) {
       for (const item of value) form.append(key, String(item));
     } else {

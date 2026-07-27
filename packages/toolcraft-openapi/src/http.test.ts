@@ -7,7 +7,7 @@ import {
   type LogLevel
 } from "toolcraft";
 import { describe, expect, it, vi } from "vitest";
-import { HttpError, requestJson } from "./http.js";
+import { HttpError, prepareMultipartFileInputs, requestJson } from "./http.js";
 
 function createTokenSource(
   token: string,
@@ -672,6 +672,133 @@ describe("requestJson", () => {
     const file = form.get("file");
     expect(file).toBeInstanceOf(Blob);
     expect(Buffer.from(await (file as Blob).arrayBuffer())).toEqual(Buffer.from([0, 1, 2, 255]));
+  });
+
+  it("serializes multiple resolved files under one multipart field", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/uploads",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      bodyMode: "multipart",
+      multipartBinaryFields: ["files"],
+      body: {
+        files: [
+          { data: "b25l", filename: "one.txt", contentType: "text/plain" },
+          { data: "dHdv", filename: "two.txt", contentType: "text/plain" }
+        ]
+      }
+    });
+
+    const [, request] = fetchMock.mock.calls[0] ?? [];
+    const files = (request?.body as FormData).getAll("files") as File[];
+    expect(files.map((file) => [file.name, file.type])).toEqual([
+      ["one.txt", "text/plain"],
+      ["two.txt", "text/plain"]
+    ]);
+    expect(await Promise.all(files.map((file) => file.text()))).toEqual(["one", "two"]);
+  });
+
+  it("resolves local and remote multipart array sources in order", async () => {
+    const download = vi.fn(async () =>
+      new Response("remote", {
+        headers: {
+          "content-type": "image/jpeg",
+          "content-disposition": 'attachment; filename="remote.jpg"'
+        }
+      })
+    );
+
+    const prepared = await prepareMultipartFileInputs(
+      { body: { files: ["local.png", "https://files.example.com/image"] } },
+      {
+        bodyMode: "multipart",
+        multipartBinaryFields: ["files"],
+        fs: {
+          exists: async (filePath) => filePath === "/repo/local.png",
+          readFile: async () => Buffer.from("local").toString("base64"),
+          writeFile: async () => undefined
+        },
+        env: { get: (key) => (key === "INIT_CWD" ? "/repo" : undefined) },
+        fetch: download
+      }
+    );
+
+    expect(prepared.body).toEqual({
+      files: [
+        expect.objectContaining({ filename: "local.png", contentType: "image/png" }),
+        expect.objectContaining({ filename: "remote.jpg", contentType: "image/jpeg" })
+      ]
+    });
+    expect(download).toHaveBeenCalledOnce();
+  });
+
+  it("rejects missing multipart paths before the API request", async () => {
+    await expect(
+      prepareMultipartFileInputs(
+        { body: { files: ["missing.png"] } },
+        {
+          bodyMode: "multipart",
+          multipartBinaryFields: ["files"],
+          fs: {
+            exists: async () => false,
+            readFile: async () => "",
+            writeFile: async () => undefined
+          },
+          env: { get: () => "/repo" },
+          fetch: vi.fn()
+        }
+      )
+    ).rejects.toThrow('Multipart field "files" source "missing.png" does not exist.');
+  });
+
+  it.each([
+    ["http://127.0.0.1/file.png", "private network URL"],
+    ["https://user:secret@files.example.com/file.png", "disallowed URL"],
+    ["ftp://files.example.com/file.png", "disallowed URL"]
+  ])("rejects unsafe multipart URL %s", async (source, message) => {
+    const download = vi.fn();
+    await expect(
+      prepareMultipartFileInputs(
+        { body: { file: source } },
+        {
+          bodyMode: "multipart",
+          multipartBinaryFields: ["file"],
+          fs: {
+            exists: async () => false,
+            readFile: async () => "",
+            writeFile: async () => undefined
+          },
+          env: { get: () => "/repo" },
+          fetch: download
+        }
+      )
+    ).rejects.toThrow(message);
+    expect(download).not.toHaveBeenCalled();
+  });
+
+  it("rejects failed remote downloads before sending the target request", async () => {
+    const download = vi.fn(async () => new Response("private response", { status: 404 }));
+    await expect(
+      prepareMultipartFileInputs(
+        { body: { file: "https://files.example.com/missing.png?token=secret" } },
+        {
+          bodyMode: "multipart",
+          multipartBinaryFields: ["file"],
+          fs: {
+            exists: async () => false,
+            readFile: async () => "",
+            writeFile: async () => undefined
+          },
+          env: { get: () => "/repo" },
+          fetch: download
+        }
+      )
+    ).rejects.toThrow("returned HTTP 404");
   });
 
   it("rejects invalid base64 multipart binary fields before sending content", async () => {

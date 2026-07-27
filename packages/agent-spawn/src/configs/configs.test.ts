@@ -142,9 +142,11 @@ describe("configs/auto mode", () => {
     expect(claudeCodeSpawnConfig.modes.auto).toEqual(["--permission-mode", "auto"]);
     expect(codexSpawnConfig.modes.auto).toEqual([
       "-s",
-      "workspace-write",
+      "danger-full-access",
       "-c",
-      'approval_policy="never"'
+      'approval_policy="on-request"',
+      "-c",
+      'approvals_reviewer="auto_review"'
     ]);
     expect(codexSpawnConfig.modes.auto).not.toContain(
       "--dangerously-bypass-approvals-and-sandbox"

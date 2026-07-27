@@ -148,6 +148,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const spawn = options.spawn ?? defaultSpawn;
   const agent = requireNonEmptyString(options.agent, "agent");
   const model = resolveModel(options.model);
+  const mode = options.mode ?? "auto";
   const inlineSetup = resolveOptionalPrompt(options.setup, "setup");
   const inlineTeardown = resolveOptionalPrompt(options.teardown, "teardown");
   validateInlineConfig(options.prompt, options.followups);
@@ -201,7 +202,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       const result = await spawn(agent, {
         prompt,
         cwd,
-        ...(options.mode ? { mode: options.mode } : {}),
+        mode,
         ...(model ? { model } : {}),
         ...(resumeThreadId ? { resumeThreadId } : {}),
         ...(options.signal ? { signal: options.signal } : {})

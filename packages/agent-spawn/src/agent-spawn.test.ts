@@ -254,9 +254,11 @@ describe("buildSpawnArgs", () => {
       "hello",
       ...codexSpawnConfig.defaultArgs,
       "-s",
-      "workspace-write",
+      "danger-full-access",
       "-c",
-      'approval_policy="never"'
+      'approval_policy="on-request"',
+      "-c",
+      'approvals_reviewer="auto_review"'
     ]);
     expect(result.args).not.toContain("--dangerously-bypass-approvals-and-sandbox");
   });

@@ -68,7 +68,7 @@ describe("runGaslight", () => {
         cwd: "/repo"
       })
     );
-    expect(spawn.mock.calls[0]?.[1]).not.toHaveProperty("mode");
+    expect(spawn.mock.calls[0]?.[1]).toEqual(expect.objectContaining({ mode: "auto" }));
     expect(spawn).toHaveBeenNthCalledWith(
       2,
       "codex",
@@ -107,6 +107,29 @@ describe("runGaslight", () => {
       "codex",
       expect.objectContaining({ prompt: "Implement ~/.poe-code/docs/plans/work.md" })
     );
+  });
+
+  it("passes an explicit spawn mode through", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/repo/docs/plans/work.md": "# Work" })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "first", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "second", stderr: "", threadId: "two" });
+
+    await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/work.md"],
+      agent: "codex",
+      mode: "edit",
+      prompt: "Implement",
+      followups: ["Test it"],
+      fs,
+      spawn
+    });
+
+    expect(spawn.mock.calls.map(([, options]) => options.mode)).toEqual(["edit", "edit"]);
   });
 
   it("runs multiple plans sequentially with a fresh thread per plan", async () => {

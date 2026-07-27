@@ -13,6 +13,7 @@ export type {
 export type {
   Action,
   ActionContext,
+  ConfirmPromptOptions,
   Detail,
   DetailCtx,
   DetailItem,

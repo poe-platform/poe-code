@@ -143,6 +143,7 @@ function actionCtx(row: Row, overrides: Partial<ActionContext<void>> = {}): Acti
     openModal: vi.fn(),
     toast: vi.fn(),
     confirm: vi.fn(async () => true),
+    promptText: vi.fn(async () => null),
     exit: vi.fn(),
     ...overrides
   };

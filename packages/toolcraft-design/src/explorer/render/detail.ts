@@ -23,12 +23,14 @@ export function renderDetail(
   }
 
   const row = state.rows.find((r) => r.id === state.detail.rowId) ?? null;
+  const pane = state.paneDefinitions[1];
+  const title = pane?.titleForRow?.(row ?? undefined) ?? pane?.title ?? "Preview";
 
   if (layout.mode === "narrow-vertical") {
     drawPaneFrame(
       screen,
       rect,
-      state.paneDefinitions[1]?.title ?? "Preview",
+      title,
       state.focused === "detail" ? styles.borderFocused : styles.border,
       { focused: state.focused === "detail", indicator: scrollIndicator(state) }
     );
@@ -39,7 +41,7 @@ export function renderDetail(
   drawPaneFrame(
     screen,
     rect,
-    state.paneDefinitions[1]?.title ?? "Preview",
+    title,
     state.focused === "detail" ? styles.borderFocused : styles.border,
     { focused: state.focused === "detail", indicator: scrollIndicator(state) }
   );

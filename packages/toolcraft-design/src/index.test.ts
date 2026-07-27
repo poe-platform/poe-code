@@ -17,6 +17,7 @@ import {
   type Color,
   type Action,
   type ActionContext,
+  type ConfirmPromptOptions,
   type Dashboard,
   type DashboardOptions,
   type Detail,
@@ -147,7 +148,13 @@ describe("design-system root exports", () => {
       suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
       openModal: (content: { title: string; content: string }) => void;
       toast: (msg: string, tone?: Tone) => void;
-      confirm: (prompt: string) => Promise<boolean>;
+      confirm: (prompt: string | ConfirmPromptOptions) => Promise<boolean>;
+      promptText: (options: {
+        title: string;
+        label: string;
+        initialValue?: string;
+        placeholder?: string;
+      }) => Promise<string | null>;
       exit: (after?: () => void | Promise<void>) => void;
     }>();
     expectTypeOf<ExplorerConfig<void>>().toEqualTypeOf<{
@@ -160,6 +167,7 @@ describe("design-system root exports", () => {
       keybindOverrides?: Record<string, string | string[]>;
       emptyHint?: string;
       initialFilter?: string;
+      mouse?: boolean;
     }>();
   });
 
@@ -198,12 +206,7 @@ describe("design-system root exports", () => {
       elapsedMs: number;
     }>();
     expectTypeOf<Command>().toEqualTypeOf<
-      | "forceQuit"
-      | "quit"
-      | "edit"
-      | "pause"
-      | "retry"
-      | "view-log"
+      "forceQuit" | "quit" | "edit" | "pause" | "retry" | "view-log"
     >();
     expectTypeOf<DashboardState>().toMatchTypeOf<{
       output: OutputItem[];

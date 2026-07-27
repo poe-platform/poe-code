@@ -100,6 +100,7 @@ export type {
   DetailCtx,
   Action,
   ActionContext,
+  ConfirmPromptOptions,
   ExplorerConfig,
   PaneConfig,
   ListPaneConfig,

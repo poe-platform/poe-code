@@ -47,6 +47,7 @@ export async function runPlanBrowser(options: {
     plans,
     fs: options.fs as ActionFs & DiscoveryFs,
     variables: options.variables ?? process.env,
+    homeDir: options.homeDir,
     onRefresh: discover
   });
   await (options.runExplorerImpl ?? runExplorer)(config);

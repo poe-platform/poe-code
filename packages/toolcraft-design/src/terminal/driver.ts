@@ -1,7 +1,10 @@
 import { createInputParser, type TerminalInputEvent } from "./input.js";
 import { createFrameWriter } from "./output.js";
 
-export interface Size { cols: number; rows: number }
+export interface Size {
+  cols: number;
+  rows: number;
+}
 
 export interface TerminalDriver {
   start(): void;
@@ -28,11 +31,14 @@ interface OutputStream {
   off(event: "resize", listener: () => void): unknown;
 }
 
-export function createTerminalDriver(options: {
-  input?: InputStream;
-  output?: OutputStream;
-  escTimeoutMs?: number;
-} = {}): TerminalDriver {
+export function createTerminalDriver(
+  options: {
+    input?: InputStream;
+    output?: OutputStream;
+    escTimeoutMs?: number;
+    mouse?: boolean;
+  } = {}
+): TerminalDriver {
   const input = options.input ?? process.stdin;
   const output = options.output ?? process.stdout;
   const eventListeners = new Set<(event: TerminalInputEvent) => void>();
@@ -41,11 +47,12 @@ export function createTerminalDriver(options: {
     for (const listener of eventListeners) listener(event);
   };
   const parser = createInputParser({ escTimeoutMs: options.escTimeoutMs, onEvent: emit });
-  const writer = createFrameWriter(output);
+  const writer = createFrameWriter(output, { mouse: options.mouse });
   let started = false;
 
   const onData = (chunk: Buffer | string) => {
-    for (const event of parser.feed(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))) emit(event);
+    for (const event of parser.feed(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)))
+      emit(event);
   };
   const getSize = (): Size => ({ cols: dimension(output.columns), rows: dimension(output.rows) });
   const onTerminalResize = () => {
@@ -75,11 +82,15 @@ export function createTerminalDriver(options: {
     },
     onEvent(fn) {
       eventListeners.add(fn);
-      return () => { eventListeners.delete(fn); };
+      return () => {
+        eventListeners.delete(fn);
+      };
     },
     onResize(fn) {
       resizeListeners.add(fn);
-      return () => { resizeListeners.delete(fn); };
+      return () => {
+        resizeListeners.delete(fn);
+      };
     },
     getSize,
     writeFrame: writer.writeFrame

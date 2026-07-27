@@ -11,6 +11,26 @@ class Output extends EventEmitter {
 }
 
 describe("createFrameWriter", () => {
+  it("can leave mouse reporting disabled so terminal text remains selectable", () => {
+    const writes: string[] = [];
+    const writer = createFrameWriter(
+      {
+        write: (value) => {
+          writes.push(value);
+          return true;
+        }
+      },
+      { mouse: false }
+    );
+
+    writer.open();
+    writer.close();
+
+    expect(writes.join("")).not.toContain("\u001b[?1000h");
+    expect(writes.join("")).not.toContain("\u001b[?1006h");
+    expect(writes.join("")).toContain("\u001b[?1000l");
+    expect(writes.join("")).toContain("\u001b[?1006l");
+  });
   it("opens and restores every terminal mode idempotently", () => {
     const output = new Output();
     const writer = createFrameWriter(output);

@@ -11,7 +11,10 @@ export function renderModal(state: ExplorerState, screen: ScreenBuffer): void {
     return;
   }
 
-  const width = Math.min(screen.width - 2, Math.max(34, Math.floor(screen.width * modalWidthRatio(state))));
+  const width = Math.min(
+    screen.width - 2,
+    Math.max(34, Math.floor(screen.width * modalWidthRatio(state)))
+  );
   const height = Math.min(screen.height - 2, modalHeight(state));
   const x = Math.max(0, Math.floor((screen.width - width) / 2));
   const y = Math.max(0, Math.floor((screen.height - height) / 2));
@@ -43,17 +46,19 @@ function modalLines(state: ExplorerState): string[] {
 
   if (state.modal?.kind === "confirm") {
     return [
-      state.modal.action.destructive ? "Destructive action" : "Confirm action",
-      `${labelFor(state.modal.action)} ${state.modal.rows.length} row(s)?`,
-      "Enter confirms · Esc cancels"
+      state.modal.message,
+      `  [ ${state.modal.confirmLabel} ]    ${state.modal.cancelLabel}`
     ];
   }
 
+  if (state.modal?.kind === "input") {
+    const value =
+      state.modal.value.length > 0 ? state.modal.value : (state.modal.placeholder ?? "");
+    return [state.modal.label, `  ${value}▌`];
+  }
+
   if (state.modal?.kind === "palette") {
-    return [
-      `Query: ${state.modal.query}`,
-      ...paletteLines(state)
-    ];
+    return [`Query: ${state.modal.query}`, ...paletteLines(state)];
   }
 
   if (state.modal?.kind === "content") {
@@ -68,7 +73,10 @@ function title(state: ExplorerState): string {
     return "Keybindings";
   }
   if (state.modal?.kind === "confirm") {
-    return "Confirm";
+    return state.modal.title;
+  }
+  if (state.modal?.kind === "input") {
+    return state.modal.title;
   }
   if (state.modal?.kind === "content") {
     return state.modal.title;
@@ -130,8 +138,4 @@ function paletteLines(state: ExplorerState): string[] {
   }
 
   return lines.length === 0 ? ["  No actions"] : lines;
-}
-
-function labelFor(action: { label: string | (() => string) }): string {
-  return typeof action.label === "function" ? action.label() : action.label;
 }

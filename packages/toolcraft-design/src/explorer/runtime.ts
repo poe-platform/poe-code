@@ -10,10 +10,11 @@ import { step } from "./reducer.js";
 import {
   createInitialState,
   REGION_ALL,
+  REGION_FOOTER,
   REGION_MODAL,
   REGION_TOAST,
-  type Action,
   type ExplorerConfig,
+  type ConfirmPromptOptions,
   type NormalizedExplorerConfig,
   type ExplorerState,
   type Row,
@@ -28,7 +29,7 @@ export async function runExplorer<R = void>(config: ExplorerConfig<R>): Promise<
     throw new Error("explorer requires a TTY");
   }
 
-  const driver = createTerminalDriver();
+  const driver = createTerminalDriver({ mouse: config.mouse });
   const runtime = new ExplorerRuntime(config, driver);
   return runtime.run();
 }
@@ -81,6 +82,7 @@ class ExplorerRuntime<R> {
         this.showToast(msg, tone);
       },
       confirm: async (prompt) => this.confirm(prompt),
+      promptText: async (options) => this.promptText(options),
       exit: (after) => {
         this.exit(null, after);
       }
@@ -125,15 +127,30 @@ class ExplorerRuntime<R> {
       this.trace("input", { event });
       if (event.type === "paste") {
         for (const ch of event.text.replaceAll("\n", "").replaceAll("\r", "")) {
-          this.dispatch({ type: "key", key: { ch, name: ch, ctrl: false, meta: false, shift: false } });
+          this.dispatch({
+            type: "key",
+            key: { ch, name: ch, ctrl: false, meta: false, shift: false }
+          });
         }
         return;
       }
       if (event.type === "wheel") {
-        this.dispatch({ type: "key", key: { name: event.direction, ctrl: false, meta: false, shift: false } });
+        this.dispatch({
+          type: "key",
+          key: { name: event.direction, ctrl: false, meta: false, shift: false }
+        });
         return;
       }
-      this.dispatch({ type: "key", key: { name: event.name, ch: event.ch, ctrl: event.ctrl, meta: event.alt, shift: event.shift } });
+      this.dispatch({
+        type: "key",
+        key: {
+          name: event.name,
+          ch: event.ch,
+          ctrl: event.ctrl,
+          meta: event.alt,
+          shift: event.shift
+        }
+      });
     });
   }
 
@@ -342,23 +359,46 @@ class ExplorerRuntime<R> {
     }
   }
 
-  private confirm(prompt: string): Promise<boolean> {
+  private confirm(prompt: string | ConfirmPromptOptions): Promise<boolean> {
     return new Promise((resolve) => {
-      const action: Action<unknown> = {
-        id: "__confirm__",
-        label: prompt,
-        handler: () => undefined
-      };
-      const row = this.currentRow();
+      const options = typeof prompt === "string"
+        ? { title: "Confirm", message: prompt }
+        : prompt;
       this.state = {
         ...this.state,
         modal: {
           kind: "confirm",
-          action,
-          rows: row === undefined ? [] : [row],
+          title: options.title,
+          message: options.message,
+          confirmLabel: options.confirmLabel ?? "Yes",
+          cancelLabel: options.cancelLabel ?? "No",
+          destructive: options.destructive ?? false,
           resolver: resolve
         },
-        dirty: REGION_MODAL
+        dirty: REGION_MODAL | REGION_FOOTER
+      };
+      this.scheduleRender();
+    });
+  }
+
+  private promptText(options: {
+    title: string;
+    label: string;
+    initialValue?: string;
+    placeholder?: string;
+  }): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.state = {
+        ...this.state,
+        modal: {
+          kind: "input",
+          title: options.title,
+          label: options.label,
+          value: options.initialValue ?? "",
+          placeholder: options.placeholder,
+          resolver: resolve
+        },
+        dirty: REGION_MODAL | REGION_FOOTER
       };
       this.scheduleRender();
     });
@@ -411,11 +451,16 @@ class ExplorerRuntime<R> {
       ).state;
     }
 
-    if (this.screen.width !== this.state.size.cols || this.screen.height !== this.state.size.rows) this.screen.resize(this.state.size);
+    if (this.screen.width !== this.state.size.cols || this.screen.height !== this.state.size.rows)
+      this.screen.resize(this.state.size);
     renderExplorer({ ...this.state, dirty: REGION_ALL }, this.screen);
     const frame = this.screen.flush();
     this.driver.writeFrame(frame);
-    this.trace("frame", { bytes: Buffer.byteLength(frame), cols: this.state.size.cols, rows: this.state.size.rows });
+    this.trace("frame", {
+      bytes: Buffer.byteLength(frame),
+      cols: this.state.size.cols,
+      rows: this.state.size.rows
+    });
     this.state = { ...this.state, dirty: 0 };
   }
 
@@ -460,6 +505,9 @@ class ExplorerRuntime<R> {
 
   private trace(type: string, fields: Record<string, unknown>): void {
     if (this.tracePath === undefined || this.tracePath.length === 0) return;
-    appendFileSync(this.tracePath, `${JSON.stringify({ type, timestamp: new Date().toISOString(), ...fields })}\n`);
+    appendFileSync(
+      this.tracePath,
+      `${JSON.stringify({ type, timestamp: new Date().toISOString(), ...fields })}\n`
+    );
   }
 }

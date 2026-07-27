@@ -41,6 +41,37 @@ describe("explorer footer renderer", () => {
     expect(stripAnsi(dumpScreen(screen))).toContain("⇧↑↓ reorder (within state)");
   });
 
+  it("replaces pane shortcuts with prompt controls while an overlay owns input", () => {
+    const input = fixtureState({
+      modal: {
+        kind: "input",
+        title: "Save plan",
+        label: "Reason",
+        value: "",
+        resolver: () => undefined
+      }
+    });
+    const confirm = fixtureState({
+      modal: {
+        kind: "confirm",
+        title: "Confirm",
+        message: "Continue?",
+        confirmLabel: "Yes",
+        cancelLabel: "No",
+        destructive: false,
+        resolver: () => undefined
+      }
+    });
+
+    const inputFooter = stripAnsi(renderStateSnapshot(input)).split("\n").at(-1)!;
+    const confirmFooter = stripAnsi(renderStateSnapshot(confirm)).split("\n").at(-1)!;
+
+    expect(inputFooter).toContain("[Enter] submit");
+    expect(inputFooter).not.toContain("actions");
+    expect(confirmFooter).toContain("[Y/Enter] Yes");
+    expect(confirmFooter).not.toContain("palette");
+  });
+
   it("clips wide footer hints by terminal cells", () => {
     const state = fixtureState({
       size: { cols: 15, rows: 4 },

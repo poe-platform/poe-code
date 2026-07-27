@@ -4,10 +4,15 @@ export interface FrameWriter {
   writeFrame(ansi: string): void;
 }
 
-const OPEN = "\u001b[?1049h\u001b[?25l\u001b[?2004h\u001b[?1000h\u001b[?1006h\u001b[?7l";
-const CLOSE = "\u001b[0m\u001b[?7h\u001b[?1006l\u001b[?1000l\u001b[?2004l\u001b[?25h\u001b[?1049l";
+const OPEN = "\u001b[?1049h\u001b[?25l\u001b[?2004h";
+const OPEN_MOUSE = "\u001b[?1000h\u001b[?1006h";
+const CLOSE_MOUSE = "\u001b[?1006l\u001b[?1000l";
+const CLOSE = "\u001b[?2004l\u001b[?25h\u001b[?1049l";
 
-export function createFrameWriter(stream: { write(value: string): boolean }): FrameWriter {
+export function createFrameWriter(
+  stream: { write(value: string): boolean },
+  options: { mouse?: boolean } = {}
+): FrameWriter {
   let opened = false;
   const interrupt = () => terminateWith("SIGINT");
   const terminate = () => terminateWith("SIGTERM");
@@ -24,7 +29,7 @@ export function createFrameWriter(stream: { write(value: string): boolean }): Fr
   function open(): void {
     if (opened) return;
     opened = true;
-    stream.write(OPEN);
+    stream.write(`${OPEN}${options.mouse === false ? CLOSE_MOUSE : OPEN_MOUSE}\u001b[?7l`);
     process.once("SIGINT", interrupt);
     process.once("SIGTERM", terminate);
     process.once("uncaughtException", fatal);
@@ -36,7 +41,7 @@ export function createFrameWriter(stream: { write(value: string): boolean }): Fr
     process.removeListener("SIGINT", interrupt);
     process.removeListener("SIGTERM", terminate);
     process.removeListener("uncaughtException", fatal);
-    stream.write(CLOSE);
+    stream.write(`\u001b[0m\u001b[?7h${options.mouse === false ? "" : CLOSE_MOUSE}${CLOSE}`);
   }
 
   return {

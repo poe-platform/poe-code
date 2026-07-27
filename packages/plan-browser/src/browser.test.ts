@@ -56,6 +56,7 @@ function actionContext(row: Row): ActionContext<void> {
     suspendAnd: vi.fn(async (fn) => fn()),
     toast: vi.fn(),
     confirm: vi.fn(async () => true),
+    promptText: vi.fn(async () => null),
     exit: vi.fn()
   };
 }

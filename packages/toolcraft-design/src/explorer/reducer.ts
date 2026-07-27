@@ -33,6 +33,7 @@ const DEFAULT_ACTION_HANDLES: ActionRuntimeHandles = {
   openModal: () => undefined,
   toast: () => undefined,
   confirm: async () => false,
+  promptText: async () => null,
   exit: () => undefined
 };
 
@@ -163,7 +164,8 @@ function stepKey(
   }
 
   if (isBackspace(key)) {
-    if (isSecondListFocused(state)) return updateDetailFilter(state, (state.detail.filter ?? "").slice(0, -1));
+    if (isSecondListFocused(state))
+      return updateDetailFilter(state, (state.detail.filter ?? "").slice(0, -1));
     return updateFilter(state, state.filter.slice(0, -1));
   }
 
@@ -172,7 +174,8 @@ function stepKey(
   }
 
   if (isPrintable(key)) {
-    if (isSecondListFocused(state)) return updateDetailFilter(state, `${state.detail.filter ?? ""}${key.ch}`);
+    if (isSecondListFocused(state))
+      return updateDetailFilter(state, `${state.detail.filter ?? ""}${key.ch}`);
     return updateFilter(state, `${state.filter}${key.ch}`);
   }
 
@@ -213,8 +216,24 @@ function stepModalKey(
   target: ReturnType<ExplorerState["bindings"]["resolve"]>,
   runtimeHandles: ActionRuntimeHandles
 ): StepResult {
+  if (state.modal?.kind === "input") {
+    if (target?.type === "builtin" && (target.id === "escape" || target.id === "quit")) {
+      return modalDismissed(state, null, runtimeHandles);
+    }
+    if (target?.type === "builtin" && target.id === "confirm") {
+      return modalDismissed(state, state.modal.value, runtimeHandles);
+    }
+    if (isBackspace(key)) {
+      return setModal(state, { ...state.modal, value: state.modal.value.slice(0, -1) });
+    }
+    if (isPrintable(key)) {
+      return setModal(state, { ...state.modal, value: `${state.modal.value}${key.ch}` });
+    }
+    return mark(state, 0);
+  }
+
   if (state.modal?.kind === "confirm") {
-    if (target?.type === "builtin" && target.id === "escape") {
+    if (target?.type === "builtin" && (target.id === "escape" || target.id === "quit")) {
       return modalDismissed(state, false, runtimeHandles);
     }
 
@@ -310,19 +329,29 @@ function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
   const matches = filterRows(state.filter, rows);
   const filtered = matches.map((match) => match.index);
   const matchPositions = createMatchPositions(matches);
-  const identityCursor = previousRowId === undefined
-    ? -1
-    : filtered.findIndex(index => rows[index]?.id === previousRowId);
-  const cursor = identityCursor >= 0
-    ? identityCursor
-    : clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
+  const identityCursor =
+    previousRowId === undefined
+      ? -1
+      : filtered.findIndex((index) => rows[index]?.id === previousRowId);
+  const cursor =
+    identityCursor >= 0 ? identityCursor : clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
   const selected = state.multiSelect ? pruneSelection(state.selected, rows) : new Set<string>();
   const detail = resetDetailForCursor(state, rows, filtered, cursor);
   const modal = modalStillValid(state.modal, rows);
   if (state.modal?.kind === "confirm" && modal === null) {
     state.modal.resolver(false);
   }
-  const nextView = { ...state, rows, rowsLoading: false, filtered, matchPositions, cursor, selected, detail, modal };
+  const nextView = {
+    ...state,
+    rows,
+    rowsLoading: false,
+    filtered,
+    matchPositions,
+    cursor,
+    selected,
+    detail,
+    modal
+  };
   const next = {
     ...nextView,
     actionState: recomputeActionState(nextView),
@@ -462,11 +491,15 @@ function modalDismissed(
     modal.resolver(result === true);
   }
 
-  if (modal?.kind !== "confirm" || result !== true) {
+  if (modal?.kind === "input") {
+    modal.resolver(typeof result === "string" ? result : null);
+  }
+
+  if (modal?.kind !== "confirm" || result !== true || modal.action === undefined) {
     return { state: closed, effects: NO_EFFECTS };
   }
 
-  return dispatchAction(closed, modal.action, true, runtimeHandles, modal.rows);
+  return dispatchAction(closed, modal.action, true, runtimeHandles, modal.rows ?? []);
 }
 
 function moveCursor(state: ExplorerState, delta: number): StepResult {
@@ -483,9 +516,7 @@ function moveCursor(state: ExplorerState, delta: number): StepResult {
 
 function isDetailBlobFocused(state: ExplorerState): boolean {
   return (
-    state.focused === "detail" &&
-    !hasDetailCursor(state) &&
-    (state.detail.items?.length ?? 0) > 0
+    state.focused === "detail" && !hasDetailCursor(state) && (state.detail.items?.length ?? 0) > 0
   );
 }
 
@@ -570,14 +601,25 @@ function updateDetailFilter(state: ExplorerState, filter: string): StepResult {
   const items = filterDetailItems(allItems, filter);
   const detail = { ...state.detail, filter, items, cursor: 0, scroll: 0 };
   return {
-    state: { ...state, detail, actionState: recomputeActionState({ ...state, detail }), dirty: REGION_HEADER | REGION_DETAIL | REGION_FOOTER },
+    state: {
+      ...state,
+      detail,
+      actionState: recomputeActionState({ ...state, detail }),
+      dirty: REGION_HEADER | REGION_DETAIL | REGION_FOOTER
+    },
     effects: NO_EFFECTS
   };
 }
 
 function filterDetailItems(items: DetailItem[], query: string): DetailItem[] {
-  const rows = items.map(item => ({ id: item.id, title: item.title ?? item.id, subtitle: item.subtitle }));
-  return filterRows(query, rows).map(match => items[match.index]!).filter((item): item is DetailItem => item !== undefined);
+  const rows = items.map((item) => ({
+    id: item.id,
+    title: item.title ?? item.id,
+    subtitle: item.subtitle
+  }));
+  return filterRows(query, rows)
+    .map((match) => items[match.index]!)
+    .filter((item): item is DetailItem => item !== undefined);
 }
 
 function isSecondListFocused(state: ExplorerState): boolean {
@@ -640,7 +682,9 @@ function confirmKey(state: ExplorerState, runtimeHandles: ActionRuntimeHandles):
     return modalDismissed(state, true, runtimeHandles);
   }
 
-  const hasActions = [...state.actionState.values()].some(entry => entry.available && entry.running !== true);
+  const hasActions = [...state.actionState.values()].some(
+    (entry) => entry.available && entry.running !== true
+  );
   return hasActions
     ? setModal(state, { kind: "palette", query: "", cursor: 0 })
     : dispatchPrimary(state, runtimeHandles);
@@ -651,8 +695,12 @@ function toggleSelect(state: ExplorerState): StepResult {
     return mark(state, 0);
   }
 
-  const detailItem = state.focused === "detail" ? state.detail.items?.[state.detail.cursor] : undefined;
-  const row = detailItem === undefined ? currentRow(state) : { id: detailItem.id, title: detailItem.title ?? detailItem.id };
+  const detailItem =
+    state.focused === "detail" ? state.detail.items?.[state.detail.cursor] : undefined;
+  const row =
+    detailItem === undefined
+      ? currentRow(state)
+      : { id: detailItem.id, title: detailItem.title ?? detailItem.id };
   if (row === undefined) {
     return mark(state, 0);
   }
@@ -968,7 +1016,17 @@ function dispatchAction(
     return {
       state: {
         ...state,
-        modal: { kind: "confirm", action, rows, resolver: () => undefined },
+        modal: {
+          kind: "confirm",
+          title: action.destructive ? "Confirm destructive action" : "Confirm action",
+          message: `${typeof action.label === "function" ? action.label() : action.label} ${rows.length === 1 ? rows[0]!.title : `${rows.length} items`}?`,
+          confirmLabel: action.destructive ? "Delete" : "Yes",
+          cancelLabel: "Cancel",
+          destructive: action.destructive === true,
+          action,
+          rows,
+          resolver: () => undefined
+        },
         dirty: REGION_MODAL | REGION_FOOTER
       },
       effects: NO_EFFECTS
@@ -1023,7 +1081,8 @@ function recomputeActionState(view: ExplorerState): ExplorerState["actionState"]
     );
     const row = currentRow(view);
     const visible = action.visible === undefined || (row !== undefined && action.visible(row));
-    const available = visible && (action.predicate === undefined ? entry.available : action.predicate(ctx));
+    const available =
+      visible && (action.predicate === undefined ? entry.available : action.predicate(ctx));
     const label = typeof action.label === "function" ? action.label() : action.label;
     next.set(id, { ...entry, available, label });
   }
@@ -1129,6 +1188,7 @@ function modalStillValid(modal: ExplorerState["modal"], rows: Row[]): ExplorerSt
     return modal;
   }
 
+  if (modal.rows === undefined) return modal;
   const ids = new Set(rows.map((row) => row.id));
   return modal.rows.every((row) => ids.has(row.id)) ? modal : null;
 }

@@ -717,6 +717,7 @@ describe("browse", () => {
         confirmations.push(prompt);
         return true;
       },
+      promptText: async () => null,
       exit: () => undefined
     });
 
@@ -747,6 +748,7 @@ describe("browse", () => {
         confirmations.push(prompt);
         return true;
       },
+      promptText: async () => null,
       exit: () => undefined
     });
 
@@ -1111,6 +1113,7 @@ describe("browse", () => {
       suspendAnd: async (fn) => fn(),
       toast: () => undefined,
       confirm: async () => true,
+      promptText: async () => null,
       exit: () => undefined
     });
 

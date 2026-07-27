@@ -23,7 +23,12 @@ export type ExplorerEvent =
 
 export type ConfirmModal = {
   kind: "confirm";
-  action: Action<unknown>;
-  rows: Row[];
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel: string;
+  destructive: boolean;
+  action?: Action<unknown>;
+  rows?: Row[];
   resolver: (ok: boolean) => void;
 };

@@ -1,16 +1,13 @@
 import path from "node:path";
-import type {
-  Action,
-  ExplorerConfig,
-  Row
-} from "toolcraft-design";
-import { isCancel, normalizeExplorerConfig, promptText } from "toolcraft-design";
+import type { Action, ExplorerConfig, Row } from "toolcraft-design";
+import { normalizeExplorerConfig } from "toolcraft-design";
 import {
   archivePlan,
   deletePlan,
   editFile,
   restorePlanFromLater,
-  savePlanForLater
+  savePlanForLater,
+  setPlanReadiness
 } from "./actions.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
@@ -19,6 +16,7 @@ export interface BuildPlanExplorerConfigOptions {
   plans: PlanEntry[];
   fs: ActionFs & DiscoveryFs;
   variables: Record<string, string | undefined>;
+  homeDir?: string;
   onRefresh: () => Promise<PlanEntry[]>;
   promptSaveReason?: (entry: PlanEntry) => Promise<string | null>;
   loadDetailMarkdown?: (entry: PlanEntry, fs: ActionFs & DiscoveryFs) => Promise<string>;
@@ -28,7 +26,7 @@ export function buildPlanExplorerConfig(
   options: BuildPlanExplorerConfigOptions
 ): ExplorerConfig<void> {
   const loadDetailMarkdown = options.loadDetailMarkdown ?? loadPlanPreviewMarkdown;
-  const promptSaveReason = options.promptSaveReason ?? promptDefaultSaveReason;
+  const promptSaveReason = options.promptSaveReason;
   let plans = options.plans;
   let rows = toRows(plans);
   let entryByRowId = toEntryMap(plans);
@@ -40,6 +38,18 @@ export function buildPlanExplorerConfig(
   }
 
   const actions: Action<void>[] = [
+    {
+      id: "readiness",
+      accelerator: "r",
+      label: "Mark ready/draft",
+      handler: async (ctx) => {
+        const entry = getEntry(entryByRowId, ctx.row.id);
+        const readiness = entry.readiness === "ready" ? "draft" : "ready";
+        await setPlanReadiness(entry.absolutePath, readiness, options.fs as ActionFs);
+        await ctx.refresh();
+        ctx.toast(`Marked ${path.basename(entry.path)} ${readiness}`, "info");
+      }
+    },
     {
       id: "edit",
       accelerator: "e",
@@ -72,7 +82,14 @@ export function buildPlanExplorerConfig(
 
         let reason = entry.savedForLater?.reason?.trim();
         if (!reason) {
-          const promptedReason = await ctx.suspendAnd(() => promptSaveReason(entry));
+          const promptedReason =
+            promptSaveReason === undefined
+              ? await ctx.promptText({
+                  title: "Save plan for later",
+                  label: "Why are you saving this plan for later?",
+                  placeholder: "Reason"
+                })
+              : await promptSaveReason(entry);
           reason = promptedReason?.trim();
         }
 
@@ -125,16 +142,32 @@ export function buildPlanExplorerConfig(
 
   return normalizeExplorerConfig({
     title: "Plans",
+    mouse: false,
     panes: [
-      { id: "plans", kind: "list", title: "Plans", rows: async () => rows, emptyHint: "No plans found", multiSelect: false },
       {
-        id: "preview",
+        id: "plans",
+        kind: "list",
+        title: "Plans",
+        rows: async () => rows,
+        emptyHint: "No plans found",
+        multiSelect: false
+      },
+      {
+        id: "plan",
         kind: "detail",
-        title: "Preview",
+        title: "Plan",
+        titleForRow: (row) =>
+          row === undefined
+            ? "Plan"
+            : abbreviateHome(entryByRowId.get(row.id)?.absolutePath ?? row.id, options.homeDir),
         render: async (row, ctx) => {
           if (row === undefined) return "";
           const entry = getEntry(entryByRowId, row.id);
-          return await loadMarkdownUnlessAborted(ctx.signal, () => loadDetailMarkdown(entry, options.fs)) ?? "";
+          return (
+            (await loadMarkdownUnlessAborted(ctx.signal, () =>
+              loadDetailMarkdown(entry, options.fs)
+            )) ?? ""
+          );
         }
       }
     ],
@@ -145,11 +178,21 @@ export function buildPlanExplorerConfig(
   });
 }
 
+function abbreviateHome(filePath: string, homeDir: string | undefined): string {
+  if (homeDir === undefined) return filePath;
+  const relative = path.relative(homeDir, filePath);
+  if (relative === "") return "~";
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    return filePath;
+  }
+  return `~${path.sep}${relative}`;
+}
+
 function toRows(plans: PlanEntry[]): Row[] {
   const rowIds = createRowIds(plans);
   return plans.map((entry, index) => ({
     id: rowIds[index]!,
-    title: path.basename(entry.path),
+    title: `${path.basename(entry.path)}${entry.readiness === "ready" ? " ✓" : ""}`,
     subtitle: formatSubtitle(entry),
     badge: { text: entry.typeLabel },
     group: isSavedForLaterEntry(entry) ? "Saved for later" : "Active"
@@ -169,19 +212,6 @@ function isSavedForLaterEntry(entry: Pick<PlanEntry, "absolutePath">): boolean {
   return path.basename(path.dirname(entry.absolutePath)) === "later";
 }
 
-async function promptDefaultSaveReason(entry: PlanEntry): Promise<string | null> {
-  const result = await promptText({
-    message: `Why save ${path.basename(entry.path)} for later?`
-  });
-
-  if (isCancel(result)) {
-    return null;
-  }
-
-  const reason = result.trim();
-  return reason.length > 0 ? reason : null;
-}
-
 function toEntryMap(plans: PlanEntry[]): Map<string, PlanEntry> {
   const rowIds = createRowIds(plans);
   return new Map(plans.map((entry, index) => [rowIds[index]!, entry]));
@@ -194,7 +224,9 @@ function createRowIds(plans: PlanEntry[]): string[] {
   }
 
   return plans.map((entry, index) =>
-    counts.get(entry.absolutePath) === 1 ? entry.absolutePath : `${entry.absolutePath}\u0000${index}`
+    counts.get(entry.absolutePath) === 1
+      ? entry.absolutePath
+      : `${entry.absolutePath}\u0000${index}`
   );
 }
 

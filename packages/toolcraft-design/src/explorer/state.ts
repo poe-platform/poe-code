@@ -2,17 +2,25 @@ import { resolveBindings, type ResolvedBindings } from "./keymap.js";
 
 export type Tone = "success" | "warning" | "error" | "info" | "muted";
 
+export interface ConfirmPromptOptions {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+}
+
 export interface Row {
   id: string;
   title: string;
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
-  group?: string;        // grouped rendering; rows with same group cluster under a header
+  group?: string; // grouped rendering; rows with same group cluster under a header
 }
 
 export interface DetailItem {
   id: string;
-  title?: string;        // absent => item fills pane with no cursor / no selection chrome
+  title?: string; // absent => item fills pane with no cursor / no selection chrome
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
   render: (ctx: DetailCtx) => string | Promise<string>;
@@ -21,7 +29,7 @@ export interface DetailItem {
 
 export interface Detail<R> {
   items: (row: Row, ctx: DetailCtx) => Promise<DetailItem[]>;
-  actions?: Action<R>[];      // run against the focused detail item
+  actions?: Action<R>[]; // run against the focused detail item
 }
 
 export interface DetailCtx {
@@ -35,22 +43,22 @@ export interface DetailCtx {
 
 export interface Action<R> {
   id: string;
-  label: string | (() => string);            // function form re-evaluated when state changes
+  label: string | (() => string); // function form re-evaluated when state changes
   key?: string | string[];
   accelerator?: string;
   predicate?: (ctx: ActionContext<R>) => boolean;
   visible?: (row: Row) => boolean;
   handler: (ctx: ActionContext<R>) => void | Promise<void>;
   destructive?: boolean;
-  primary?: boolean;                          // bound to Enter
-  showInFooter?: boolean;                     // default true
+  primary?: boolean; // bound to Enter
+  showInFooter?: boolean; // default true
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ActionContext<R> {
-  row: Row;                    // currently highlighted left-pane row
-  rows: Row[];                 // multi-select; falls back to [row] if no selection
-  item?: DetailItem;           // populated for actions declared under detail.actions
+  row: Row; // currently highlighted left-pane row
+  rows: Row[]; // multi-select; falls back to [row] if no selection
+  item?: DetailItem; // populated for actions declared under detail.actions
   filter: string;
   refresh: () => Promise<void>;
   /** Re-run detail.items for the focused row and repaint the preview pane. */
@@ -58,7 +66,13 @@ export interface ActionContext<R> {
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
   openModal: (content: { title: string; content: string }) => void;
   toast: (msg: string, tone?: Tone) => void;
-  confirm: (prompt: string) => Promise<boolean>;
+  confirm: (prompt: string | ConfirmPromptOptions) => Promise<boolean>;
+  promptText: (options: {
+    title: string;
+    label: string;
+    initialValue?: string;
+    placeholder?: string;
+  }) => Promise<string | null>;
   exit: (after?: () => void | Promise<void>) => void;
   activePane?: PaneRuntimeState;
   inactivePane?: PaneRuntimeState;
@@ -77,6 +91,7 @@ export interface DetailPaneConfig {
   id: string;
   kind: "detail";
   title: string;
+  titleForRow?: (row: Row | undefined) => string;
   render: (row: Row | undefined, ctx: DetailCtx) => string | Promise<string>;
 }
 
@@ -109,6 +124,8 @@ export interface ExplorerConfig<R> {
   initialFilter?: string;
   /** Synchronous first paint rows; still refreshed via `rows()` after start. */
   initialRows?: Row[];
+  /** Disable terminal mouse reporting when native text selection is more useful than wheel input. */
+  mouse?: boolean;
 }
 
 export type NormalizedExplorerConfig<R> = ExplorerConfig<R> & {
@@ -118,22 +135,31 @@ export type NormalizedExplorerConfig<R> = ExplorerConfig<R> & {
 
 export function normalizeExplorerConfig<R>(config: ExplorerConfig<R>): NormalizedExplorerConfig<R> {
   if (config.panes === undefined) {
-    if (config.rows === undefined || config.detail === undefined) throw new Error("Explorer requires panes");
+    if (config.rows === undefined || config.detail === undefined)
+      throw new Error("Explorer requires panes");
     return config as NormalizedExplorerConfig<R>;
   }
-  if (config.panes.length < 1 || config.panes.length > 3) throw new Error("Explorer requires 1 to 3 panes");
+  if (config.panes.length < 1 || config.panes.length > 3)
+    throw new Error("Explorer requires 1 to 3 panes");
   const list = config.panes.find((pane): pane is ListPaneConfig => pane.kind === "list");
   if (list === undefined) throw new Error("Explorer requires a list pane");
-  const companion = config.panes.find(pane => pane !== list);
-  const detail: Detail<R> = companion?.kind === "detail"
-    ? { items: async (row, ctx) => {
-        const content = await companion.render(row, ctx);
-        if (ctx.signal.aborted) return [];
-        return [{ id: row.id, render: () => content, renderedContent: content }];
-      } }
-    : companion?.kind === "list"
-      ? { items: async () => (await companion.rows()).map(row => ({ ...row, render: () => "" })), actions: config.actions }
-      : { items: async () => [] };
+  const companion = config.panes.find((pane) => pane !== list);
+  const detail: Detail<R> =
+    companion?.kind === "detail"
+      ? {
+          items: async (row, ctx) => {
+            const content = await companion.render(row, ctx);
+            if (ctx.signal.aborted) return [];
+            return [{ id: row.id, render: () => content, renderedContent: content }];
+          }
+        }
+      : companion?.kind === "list"
+        ? {
+            items: async () =>
+              (await companion.rows()).map((row) => ({ ...row, render: () => "" })),
+            actions: config.actions
+          }
+        : { items: async () => [] };
   return {
     ...config,
     rows: list.rows,
@@ -150,12 +176,7 @@ export const REGION_FOOTER = 1 << 3;
 export const REGION_MODAL = 1 << 4;
 export const REGION_TOAST = 1 << 5;
 export const REGION_ALL =
-  REGION_HEADER |
-  REGION_LIST |
-  REGION_DETAIL |
-  REGION_FOOTER |
-  REGION_MODAL |
-  REGION_TOAST;
+  REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER | REGION_MODAL | REGION_TOAST;
 
 export type Dirty = number;
 
@@ -197,7 +218,25 @@ export interface ExplorerState {
   modal:
     | null
     | { kind: "help" }
-    | { kind: "confirm"; action: Action<unknown>; rows: Row[]; resolver: (ok: boolean) => void }
+    | {
+        kind: "confirm";
+        title: string;
+        message: string;
+        confirmLabel: string;
+        cancelLabel: string;
+        destructive: boolean;
+        resolver: (ok: boolean) => void;
+        action?: Action<unknown>;
+        rows?: Row[];
+      }
+    | {
+        kind: "input";
+        title: string;
+        label: string;
+        value: string;
+        placeholder?: string;
+        resolver: (value: string | null) => void;
+      }
     | { kind: "palette"; query: string; cursor: number }
     | { kind: "content"; title: string; content: string; scroll: number };
   toast: { message: string; tone: Tone; expiresAt: number } | null;
@@ -207,7 +246,12 @@ export interface ExplorerState {
   bindings: ResolvedBindings;
   actionState: Map<string, ActionStateEntry>;
   suspended: boolean;
-  paneDefinitions: Array<{ id: string; title: string; kind: "list" | "detail" }>;
+  paneDefinitions: Array<{
+    id: string;
+    title: string;
+    kind: "list" | "detail";
+    titleForRow?: (row: Row | undefined) => string;
+  }>;
 }
 
 export interface ActionStateEntry {
@@ -263,22 +307,29 @@ export function createInitialState<R>(
     bindings: resolveBindings(normalizedConfig),
     actionState: createInitialActionState(normalizedConfig),
     suspended: false,
-    paneDefinitions: normalizedConfig.panes?.map(({ id, title, kind }) => ({ id, title, kind })) ?? [
+    paneDefinitions: normalizedConfig.panes?.map(({ id, title, kind, ...pane }) => ({
+      id,
+      title,
+      kind,
+      ...(kind === "detail" && "titleForRow" in pane ? { titleForRow: pane.titleForRow } : {})
+    })) ?? [
       { id: "list", title: normalizedConfig.title, kind: "list" },
       { id: "detail", title: "Preview", kind: "detail" }
     ]
   };
 }
 
-function createInitialActionState<R>(
-  config: ExplorerConfig<R>
-): Map<string, ActionStateEntry> {
+function createInitialActionState<R>(config: ExplorerConfig<R>): Map<string, ActionStateEntry> {
   const state = new Map<string, ActionStateEntry>();
 
-  for (const [source, actions] of [["row", config.actions], ["detail", config.detail?.actions ?? []]] as const) {
+  for (const [source, actions] of [
+    ["row", config.actions],
+    ["detail", config.detail?.actions ?? []]
+  ] as const) {
     for (const action of actions) {
       if (state.has(action.id)) {
-        const isSharedListAction = config.panes?.some(pane => pane.kind === "list" && pane !== config.panes?.[0]) === true;
+        const isSharedListAction =
+          config.panes?.some((pane) => pane.kind === "list" && pane !== config.panes?.[0]) === true;
         if (!isSharedListAction) throw new Error(`Duplicate explorer action id: ${action.id}`);
         const existing = state.get(action.id)!;
         state.set(action.id, { ...existing, source: "both" });

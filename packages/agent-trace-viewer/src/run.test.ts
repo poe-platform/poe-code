@@ -636,6 +636,7 @@ describe("runTraceViewer", () => {
         openModal,
         toast: vi.fn(),
         confirm: vi.fn(async () => true),
+        promptText: vi.fn(async () => null),
         exit
       } satisfies ActionContext<void>);
 
@@ -723,6 +724,7 @@ describe("runTraceViewer", () => {
         openModal,
         toast: vi.fn(),
         confirm: vi.fn(async () => true),
+        promptText: vi.fn(async () => null),
         exit: vi.fn()
       } satisfies ActionContext<void>);
 
@@ -870,6 +872,7 @@ describe("runTraceViewer", () => {
         openModal: vi.fn(),
         toast: vi.fn(),
         confirm: vi.fn(async () => true),
+        promptText: vi.fn(async () => null),
         exit: vi.fn((after?: () => void | Promise<void>) => {
           afterExit = Promise.resolve(after?.());
         })

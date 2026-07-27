@@ -65,6 +65,20 @@ function putFooterText(
 }
 
 function footerHints(state: ExplorerState): FooterHint[] {
+  if (state.modal?.kind === "input") {
+    return [
+      { key: "Enter", label: "submit", running: false },
+      { key: "Esc", label: "cancel", running: false }
+    ];
+  }
+
+  if (state.modal?.kind === "confirm") {
+    return [
+      { key: "Y/Enter", label: state.modal.confirmLabel, running: false },
+      { key: "N/Esc", label: state.modal.cancelLabel, running: false }
+    ];
+  }
+
   const hints: FooterHint[] = [];
 
   if (state.focused === "detail") {

@@ -9,6 +9,8 @@ import {
   GASLIGHT_CONFIG_EXAMPLE,
   ingestGaslight,
   runGaslight,
+  runGaslightDaemon,
+  type GaslightDaemonEvent,
   type GaslightEvent,
   type GaslightIngestEvent
 } from "../../sdk/gaslight.js";
@@ -77,6 +79,15 @@ interface GaslightIngestCommandOptions {
   output?: string;
   since?: string;
   sources?: string;
+}
+
+interface GaslightDaemonCommandOptions extends ActivityTimeoutCliOptions, SkillCliOptions {
+  agent?: string;
+  config?: string;
+  model?: string;
+  mode?: "read" | "edit" | "yolo" | "auto";
+  pollIntervalMs?: string;
+  worktree?: boolean;
 }
 
 interface GaslightInstallOptions {
@@ -403,6 +414,62 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         .filter((line): line is string => line !== undefined)
         .join("\n")
     );
+  });
+
+  gaslight
+    .command("daemon")
+    .description("Continuously implement ready regular plans sequentially.")
+    .option("--agent <agent>", "Agent to run")
+    .option("--config <path>", "gaslight.yaml variant to use")
+    .option("--model <model>", "Model to run")
+    .option("--poll-interval-ms <ms>", "Delay between plan directory scans", "5000");
+
+  const daemon = gaslight.commands.find((command) => command.name() === "daemon");
+  if (!daemon) throw new Error("Gaslight daemon command registration failed.");
+  daemon.configureHelp({ showGlobalOptions: false });
+  addSkillOptions(addActivityTimeoutOption(addWorktreeOptions(daemon))).action(async () => {
+    const options = {
+      ...gaslight.opts<GaslightDaemonCommandOptions>(),
+      ...daemon.opts<GaslightDaemonCommandOptions>()
+    };
+    const planDirectory = await resolvePlanDirectory(container, { readOnly: true });
+    const { agent, model } = await resolveAgentAndModel(program, container, options, true);
+    const skills = resolveSkillOptions(options);
+    const logger = container.loggerFactory.create();
+    const controller = new AbortController();
+    const stop = (): void => controller.abort();
+    process.once("SIGINT", stop);
+    process.once("SIGTERM", stop);
+    intro("gaslight daemon");
+    try {
+      const result = await runGaslightDaemon({
+        planDirectory,
+        pollIntervalMs: parsePositiveInteger(options.pollIntervalMs, "--poll-interval-ms"),
+        agent,
+        ...(model ? { model } : {}),
+        ...(options.config ? { configPath: options.config } : {}),
+        ...(options.mode ? { mode: options.mode } : {}),
+        cwd: container.env.cwd,
+        homeDir: container.env.homeDir,
+        worktree: pickWorktreeOptions(options as Record<string, unknown>),
+        fs: container.fs,
+        signal: controller.signal,
+        onEvent(event: GaslightDaemonEvent) {
+          if (event.type === "plan.started") logger.resolved("Plan", event.planPath);
+          if (event.type === "plan.failed") logger.error(`${event.planPath}: ${event.error}`);
+        },
+        spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
+          await sdkSpawn.pretty(spawnAgent, {
+            ...spawnOptions,
+            ...pickActivityTimeoutOptions(options),
+            ...(skills ? { skills } : {})
+          })
+      });
+      outro(`Gaslight daemon stopped · ${result.completedPlans} plans completed`);
+    } finally {
+      process.off("SIGINT", stop);
+      process.off("SIGTERM", stop);
+    }
   });
 
   gaslight

@@ -9,6 +9,7 @@ const {
   introMock,
   multiselectMock,
   outroMock,
+  runGaslightDaemonMock,
   runGaslightMock,
   selectMock,
   spawnPrettyMock
@@ -17,6 +18,7 @@ const {
   introMock: vi.fn(),
   multiselectMock: vi.fn(),
   outroMock: vi.fn(),
+  runGaslightDaemonMock: vi.fn(),
   runGaslightMock: vi.fn(),
   selectMock: vi.fn(),
   spawnPrettyMock: vi.fn()
@@ -25,6 +27,7 @@ const {
 vi.mock("../../sdk/gaslight.js", () => ({
   GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
   ingestGaslight: ingestGaslightMock,
+  runGaslightDaemon: runGaslightDaemonMock,
   runGaslight: runGaslightMock
 }));
 
@@ -101,9 +104,34 @@ describe("gaslight command", () => {
       rounds: [{ prompt: "x", summary: "done" }],
       plans: [{ planPath: "docs/plans/a.md", rounds: [] }]
     });
+    runGaslightDaemonMock.mockReset().mockResolvedValue({ completedPlans: 2 });
     multiselectMock.mockReset();
     selectMock.mockReset();
     spawnPrettyMock.mockReset();
+  });
+
+  it("runs the daemon for ready regular plans with the configured poll interval", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "daemon",
+      "--agent",
+      "codex",
+      "--poll-interval-ms",
+      "250"
+    ]);
+
+    expect(runGaslightDaemonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        planDirectory: "docs/plans",
+        pollIntervalMs: 250
+      })
+    );
   });
 
   it("documents the archive default and what the plan argument actually does", () => {

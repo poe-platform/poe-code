@@ -1,5 +1,8 @@
 import {
+  runGaslightDaemon as runWorkspaceGaslightDaemon,
   runGaslight as runWorkspaceGaslight,
+  type GaslightDaemonOptions as WorkspaceGaslightDaemonOptions,
+  type GaslightDaemonResult,
   type GaslightOptions as WorkspaceGaslightOptions,
   type GaslightResult
 } from "@poe-code/agent-gaslight";
@@ -12,6 +15,8 @@ export {
   loadGaslightConfig,
   parseGaslightConfig,
   type GaslightConfig,
+  type GaslightDaemonEvent,
+  type GaslightDaemonResult,
   type GaslightCollectHumanPrompts,
   type GaslightEvent,
   type GaslightFileSystem,
@@ -27,6 +32,20 @@ export {
 export type GaslightOptions = WorkspaceGaslightOptions & {
   worktree?: WorktreeExecutionOptions;
 };
+
+export type GaslightDaemonOptions = Omit<WorkspaceGaslightDaemonOptions, "run"> & {
+  worktree?: WorktreeExecutionOptions;
+};
+
+export async function runGaslightDaemon(
+  options: GaslightDaemonOptions
+): Promise<GaslightDaemonResult> {
+  return await runWorkspaceGaslightDaemon({
+    ...options,
+    run: async (gaslightOptions: WorkspaceGaslightOptions) =>
+      await runGaslight({ ...gaslightOptions, worktree: options.worktree })
+  });
+}
 
 export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
   if (!isWorktreeEnabled(options.worktree)) {

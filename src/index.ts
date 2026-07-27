@@ -24,7 +24,7 @@ export type {
   InstallSkillSource,
   SkillScope
 } from "./skills.js";
-export { ingestGaslight, runGaslight } from "./sdk/gaslight.js";
+export { ingestGaslight, runGaslight, runGaslightDaemon } from "./sdk/gaslight.js";
 export { getPoeApiKey, getPoeAuthIdentity } from "./sdk/credentials.js";
 export type { GetPoeAuthIdentityOptions, PoeAuthIdentity } from "./sdk/credentials.js";
 export {

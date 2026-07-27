@@ -47,6 +47,7 @@ poe-code gaslight docs/plans/feature.md --archive
 ```
 
 Omit the plan path to pick one interactively from your plans directory.
+After a successful session, the CLI lists every completed plan and shows its archive destination when applicable.
 
 The CLI also honors `{ "gaslight": { "archive": true } }`; use `--archive` or `--no-archive` for a one-off override.
 

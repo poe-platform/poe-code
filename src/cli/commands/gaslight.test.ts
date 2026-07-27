@@ -97,7 +97,10 @@ describe("gaslight command", () => {
     });
     introMock.mockClear();
     outroMock.mockClear();
-    runGaslightMock.mockReset().mockResolvedValue({ rounds: [{ prompt: "x", summary: "done" }] });
+    runGaslightMock.mockReset().mockResolvedValue({
+      rounds: [{ prompt: "x", summary: "done" }],
+      plans: [{ planPath: "docs/plans/a.md", rounds: [] }]
+    });
     multiselectMock.mockReset();
     selectMock.mockReset();
     spawnPrettyMock.mockReset();
@@ -416,7 +419,7 @@ describe("gaslight command", () => {
   it("prints the last gaslight thread resume command", async () => {
     runGaslightMock.mockResolvedValue({
       rounds: [{ prompt: "Implement docs/plans/a.md", summary: "done", threadId: "thread_abc123" }],
-      plans: []
+      plans: [{ planPath: "docs/plans/a.md", rounds: [] }]
     });
     const program = createProgram();
     registerGaslightCommand(program, createContainer());
@@ -433,7 +436,48 @@ describe("gaslight command", () => {
     ]);
 
     expect(outroMock).toHaveBeenCalledWith(
-      "1 rounds finished\nUsage unavailable\nResume: codex resume -C /repo thread_abc123"
+      "1 rounds finished\nCompleted plans:\n- docs/plans/a.md\nUsage unavailable\nResume: codex resume -C /repo thread_abc123"
+    );
+  });
+
+  it("prints the completed plans at the end of the session", async () => {
+    runGaslightMock.mockResolvedValue({
+      rounds: [
+        { prompt: "Implement docs/plans/a.md", summary: "done" },
+        { prompt: "Implement docs/plans/b.md", summary: "done" }
+      ],
+      plans: [
+        { planPath: "docs/plans/a.md", rounds: [] },
+        {
+          planPath: "docs/plans/b.md",
+          archivedPath: "docs/plans/archive/b.md",
+          rounds: []
+        }
+      ]
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "docs/plans/b.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    expect(outroMock).toHaveBeenCalledWith(
+      [
+        "2 plans, 2 rounds finished",
+        "Completed plans:",
+        "- docs/plans/a.md",
+        "- docs/plans/b.md → docs/plans/archive/b.md",
+        "Usage unavailable"
+      ].join("\n")
     );
   });
 

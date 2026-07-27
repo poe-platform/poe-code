@@ -222,6 +222,15 @@ function formatUsage(usage: Awaited<ReturnType<typeof runGaslight>>["usage"]): s
   return `Usage: ${usage.inputTokens.toLocaleString()} input / ${usage.outputTokens.toLocaleString()} output tokens${cost}`;
 }
 
+function formatCompletedPlans(result: Awaited<ReturnType<typeof runGaslight>>): string {
+  return [
+    "Completed plans:",
+    ...result.plans.map((plan) =>
+      plan.archivedPath ? `- ${plan.planPath} → ${plan.archivedPath}` : `- ${plan.planPath}`
+    )
+  ].join("\n");
+}
+
 function parseSources(value: string | undefined): Array<"claude" | "codex"> | undefined {
   if (!value) {
     return undefined;
@@ -385,7 +394,12 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       ? buildResumeCommand(agent, lastThreadId, container.env.cwd)
       : undefined;
     outro(
-      [finished, formatUsage(result.usage), resumeCommand ? `Resume: ${resumeCommand}` : undefined]
+      [
+        finished,
+        formatCompletedPlans(result),
+        formatUsage(result.usage),
+        resumeCommand ? `Resume: ${resumeCommand}` : undefined
+      ]
         .filter((line): line is string => line !== undefined)
         .join("\n")
     );

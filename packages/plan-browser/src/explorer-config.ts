@@ -30,9 +30,12 @@ export function buildPlanExplorerConfig(
   let plans = options.plans;
   let rows = toRows(plans);
   let entryByRowId = toEntryMap(plans);
+  let preserveOrderOnNextRefresh = false;
 
   async function refresh(): Promise<void> {
-    plans = await options.onRefresh();
+    const refreshedPlans = await options.onRefresh();
+    plans = preserveOrderOnNextRefresh ? preservePlanOrder(plans, refreshedPlans) : refreshedPlans;
+    preserveOrderOnNextRefresh = false;
     rows = toRows(plans);
     entryByRowId = toEntryMap(plans);
   }
@@ -46,7 +49,12 @@ export function buildPlanExplorerConfig(
         const entry = getEntry(entryByRowId, ctx.row.id);
         const readiness = entry.readiness === "ready" ? "draft" : "ready";
         await setPlanReadiness(entry.absolutePath, readiness, options.fs as ActionFs);
-        await ctx.refresh();
+        preserveOrderOnNextRefresh = true;
+        try {
+          await ctx.refresh();
+        } finally {
+          preserveOrderOnNextRefresh = false;
+        }
         ctx.toast(`Marked ${path.basename(entry.path)} ${readiness}`, "info");
       }
     },
@@ -125,6 +133,7 @@ export function buildPlanExplorerConfig(
     },
     {
       id: "delete",
+      accelerator: "x",
       label: "Delete",
       destructive: true,
       handler: async (ctx) => {
@@ -176,6 +185,26 @@ export function buildPlanExplorerConfig(
     multiSelect: false,
     emptyHint: "No plans found"
   });
+}
+
+function preservePlanOrder(current: PlanEntry[], refreshed: PlanEntry[]): PlanEntry[] {
+  const refreshedByPath = new Map<string, PlanEntry[]>();
+  for (const entry of refreshed) {
+    const matches = refreshedByPath.get(entry.absolutePath) ?? [];
+    matches.push(entry);
+    refreshedByPath.set(entry.absolutePath, matches);
+  }
+
+  const ordered: PlanEntry[] = [];
+  for (const entry of current) {
+    const matches = refreshedByPath.get(entry.absolutePath);
+    const match = matches?.shift();
+    if (match !== undefined) ordered.push(match);
+  }
+
+  const remaining = new Set(ordered);
+  ordered.push(...refreshed.filter((entry) => !remaining.has(entry)));
+  return ordered;
 }
 
 function abbreviateHome(filePath: string, homeDir: string | undefined): string {

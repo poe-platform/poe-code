@@ -1013,14 +1013,15 @@ function dispatchAction(
   }
 
   if (action.destructive === true && !confirmed) {
+    const actionLabel = typeof action.label === "function" ? action.label() : action.label;
     return {
       state: {
         ...state,
         modal: {
           kind: "confirm",
           title: action.destructive ? "Confirm destructive action" : "Confirm action",
-          message: `${typeof action.label === "function" ? action.label() : action.label} ${rows.length === 1 ? rows[0]!.title : `${rows.length} items`}?`,
-          confirmLabel: action.destructive ? "Delete" : "Yes",
+          message: `${actionLabel} ${rows.length === 1 ? rows[0]!.title : `${rows.length} items`}?`,
+          confirmLabel: actionLabel,
           cancelLabel: "Cancel",
           destructive: action.destructive === true,
           action,

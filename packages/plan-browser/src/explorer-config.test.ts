@@ -114,6 +114,38 @@ describe("buildPlanExplorerConfig", () => {
     expect((await config.rows()).map((row) => row.title)).toEqual(["ready.md ✓", "feature.md"]);
   });
 
+  it("keeps plan order stable while toggling readiness", async () => {
+    const selected = plan({
+      path: "docs/plans/selected.md",
+      absolutePath: "/repo/docs/plans/selected.md"
+    });
+    const other = plan({
+      path: "docs/plans/other.md",
+      absolutePath: "/repo/docs/plans/other.md"
+    });
+    const selectedReady = { ...selected, readiness: "ready" as const };
+    const fs = createMemFs({
+      "/repo/docs/plans/selected.md": "---\nreadiness: draft\n---\n# Selected\n",
+      "/repo/docs/plans/other.md": "# Other\n"
+    });
+    const onRefresh = vi.fn(async () => [selectedReady, other]);
+    const config = buildPlanExplorerConfig({
+      plans: [other, selected],
+      fs,
+      variables: {},
+      onRefresh
+    });
+    const rows = await config.rows();
+    const refresh = vi.fn(async () => config.refresh!());
+    const ctx = actionContext(rows[1]!, { refresh });
+
+    await config.actions.find((action) => action.id === "readiness")!.handler(ctx);
+
+    expect((await config.rows()).map((row) => row.title)).toEqual(["other.md", "selected.md ✓"]);
+    expect(refresh).toHaveBeenCalledOnce();
+    expect(ctx.toast).toHaveBeenCalledWith("Marked selected.md ready", "info");
+  });
+
   it("loads detail markdown for the matching entry", async () => {
     const entry = plan();
     const fs = createMemFs();
@@ -310,6 +342,7 @@ describe("buildPlanExplorerConfig", () => {
     await expect(fs.readFile("/repo/docs/plans/delete-me.md", "utf8")).rejects.toThrow();
     expect(config.actions.find((action) => action.id === "archive")?.destructive).toBe(true);
     expect(config.actions.find((action) => action.id === "delete")?.destructive).toBe(true);
+    expect(config.actions.find((action) => action.id === "delete")?.accelerator).toBe("x");
     expect(archiveCtx.toast).toHaveBeenCalledWith("Archived archive-me.md", "warning");
     expect(deleteCtx.toast).toHaveBeenCalledWith("Deleted delete-me.md", "error");
   });

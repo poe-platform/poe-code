@@ -72,7 +72,11 @@ describe("explorer reducer", () => {
       type: "key",
       key: { ch: "x", ctrl: true, meta: false, shift: false }
     });
-    expect(accelerated.state.modal).toMatchObject({ kind: "confirm" });
+    expect(accelerated.state.modal).toMatchObject({
+      kind: "confirm",
+      message: "Remove One?",
+      confirmLabel: "Remove"
+    });
     expect(handler).not.toHaveBeenCalled();
   });
 

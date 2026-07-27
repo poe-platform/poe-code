@@ -14,12 +14,11 @@ Use it when a task needs repeated checks such as simplify, test, commit, and pus
 
 ```yaml
 prompt: Implement
-archive: false
+auto-archive: false
 followups:
   - Can this be simpler?
   - Did you test the real workflow?
   - Did you commit the changes?
-  - Did you push and verify the release?
 ```
 
 ## Configuration
@@ -31,13 +30,14 @@ The package loads the first existing file in this order:
 
 ```yaml
 prompt: Implement
+auto-archive: false
 followups:
   - Can this be simpler?
   - Did you test the real workflow?
-  - Did you forget anything?
+  - Did you commit the changes?
 ```
 
-`prompt` and `followups` must be non-empty. `archive` is optional and defaults to `false`. Pass `prompt` and `followups` directly to `runGaslight` to bypass configuration lookup.
+`prompt` and `followups` must be non-empty. `auto-archive` is optional and defaults to `false`. Pass `prompt` and `followups` directly to `runGaslight` to bypass configuration lookup.
 
 ## CLI
 

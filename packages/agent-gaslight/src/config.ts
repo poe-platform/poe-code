@@ -7,7 +7,7 @@ import type { GaslightConfig, GaslightFileSystem } from "./types.js";
 export const GASLIGHT_CONFIG_EXAMPLE = [
   "setup: Prepare the workspace",
   "prompt: Implement",
-  "archive: false",
+  "archive: true",
   "followups:",
   "  - Is this best you can do?",
   "  - Did you test it well? Like real end to end test?",

@@ -1,8 +1,14 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
-import { loadGaslightConfig, parseGaslightConfig } from "./config.js";
+import { GASLIGHT_CONFIG_EXAMPLE, loadGaslightConfig, parseGaslightConfig } from "./config.js";
 
 describe("loadGaslightConfig", () => {
+  it("enables successful-plan archiving in the generated config", () => {
+    expect(parseGaslightConfig(GASLIGHT_CONFIG_EXAMPLE, "generated")).toMatchObject({
+      archive: true
+    });
+  });
+
   it("prefers project config over global config", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({

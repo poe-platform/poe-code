@@ -11,13 +11,14 @@ Unified discovery, formatting, interactive browsing, and file actions for plan d
 - Discovers plans across all supported plan systems
 - Normalizes them into one list
 - Formats per-source detail strings and previews
-- Supports edit, archive, and delete actions
+- Supports readiness toggle, edit, archive, and delete actions
 - Powers `poe-code plan`
 
 ## Usage
 
-`poe-code plan` opens the interactive explorer by default. From there, use `e` to
-edit, `a` to archive, or `d` to delete.
+`poe-code plan` opens the interactive explorer by default. From there, use `r` to
+toggle `readiness: draft | ready`, `e` to edit, `a` to archive, or `d` to delete.
+Ready plans sort first and have a trailing `✓`.
 
 ```sh
 poe-code plan
@@ -57,6 +58,7 @@ It also respects the existing environment variable:
 - `archivePlan()`
 - `deletePlan()`
 - `editPlan()`
+- `setPlanReadiness()`
 
 Archive and delete are marked as destructive explorer actions. The explorer owns
 the confirmation prompt before dispatching either file action.

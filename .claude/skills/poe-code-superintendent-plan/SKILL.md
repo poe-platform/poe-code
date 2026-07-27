@@ -39,6 +39,7 @@ Role prompts are one line. Do not repeat project instructions such as TDD, SOLID
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json
 kind: superintendent
 version: 1
+readiness: draft
 
 builder:
   prompt: |

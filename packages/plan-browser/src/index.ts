@@ -6,7 +6,8 @@ export {
   editPlan,
   resolveEditor,
   restorePlanFromLater,
-  savePlanForLater
+  savePlanForLater,
+  setPlanReadiness
 } from "./actions.js";
 export { buildPlanExplorerConfig } from "./explorer-config.js";
 export {
@@ -31,5 +32,6 @@ export type {
   PlanEntry,
   PlanFormat,
   PlanKind,
+  PlanReadiness,
   SavedForLaterMetadata
 } from "./types.js";

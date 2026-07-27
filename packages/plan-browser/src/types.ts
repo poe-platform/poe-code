@@ -7,6 +7,7 @@ export type PlanKind =
   | "superintendent-base";
 
 export type PlanFormat = "markdown" | "yaml";
+export type PlanReadiness = "draft" | "ready";
 
 export interface SavedForLaterMetadata {
   reason?: string;
@@ -22,6 +23,7 @@ export interface PlanEntry {
   format: PlanFormat;
   title: string;
   updatedAt: number;
+  readiness: PlanReadiness;
   schemaUrl?: string;
   savedForLater?: SavedForLaterMetadata;
 }

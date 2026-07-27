@@ -5,6 +5,12 @@ import {
 } from "@poe-code/config-extends";
 import { FrontmatterParseError, parseFrontmatterDocument } from "@poe-code/frontmatter";
 import { UserError } from "toolcraft";
+type PlanReadiness = "draft" | "ready";
+
+function parsePlanReadiness(value: unknown): PlanReadiness {
+  if (value === "draft" || value === "ready") return value;
+  throw new Error(`Invalid plan readiness ${JSON.stringify(value)}; expected "draft" or "ready".`);
+}
 import { TemplateParseError, getTemplatePartialNames } from "toolcraft-design";
 export type { TaskBoard, TaskItem } from "./tasks.js";
 
@@ -48,6 +54,7 @@ export type ResolvedSuperintendentDoc = {
 export type SuperintendentFrontmatter = {
   kind: "superintendent";
   version: number;
+  readiness?: PlanReadiness;
   mcp?: Record<string, McpConfig>;
   builder: AgentRoleConfig;
   inspectors?: Record<string, AgentRoleConfig>;
@@ -202,6 +209,10 @@ export const superintendentDocumentSchema: JsonSchema = {
     version: {
       type: "integer",
       minimum: 1
+    },
+    readiness: {
+      type: "string",
+      enum: ["draft", "ready"]
     },
     extends: {
       type: "string",
@@ -465,6 +476,10 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
   return {
     kind,
     version: expectPositiveInteger(frontmatter.version, "version", filePath),
+    readiness:
+      frontmatter.readiness === undefined
+        ? undefined
+        : parsePlanReadiness(frontmatter.readiness),
     mcp: parseMcpMap(frontmatter.mcp, filePath),
     builder: parseRequiredRole(frontmatter.builder, "builder", filePath),
     inspectors: parseInspectorMap(frontmatter.inspectors, filePath),

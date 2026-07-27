@@ -42,6 +42,29 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("discoverAllPlans", () => {
+  it("sorts ready plans before newer drafts and exposes readiness", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/draft.md": "---\nkind: plan\n---\n# Draft\n",
+      "/repo/docs/plans/ready.md": "---\nkind: plan\nreadiness: ready\n---\n# Ready\n"
+    });
+    const now = Date.UTC(2026, 3, 7, 12, 0, 0);
+    await fs.utimes?.("/repo/docs/plans/draft.md", now / 1000, now / 1000);
+    await fs.utimes?.("/repo/docs/plans/ready.md", now / 1000 - 10, now / 1000 - 10);
+
+    const plans = await discoverAllPlans({
+      cwd,
+      homeDir,
+      fs,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd)
+    });
+
+    expect(plans.map(({ title, readiness }) => ({ title, readiness }))).toEqual([
+      { title: "Ready", readiness: "ready" },
+      { title: "Draft", readiness: "draft" }
+    ]);
+  });
+
   it("scans the shared plan directory and classifies docs by frontmatter kind", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/architecture.md": "# Architecture\n\nFive-altitude design doc.\n",

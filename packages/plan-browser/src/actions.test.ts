@@ -7,7 +7,8 @@ import {
   editPlan,
   resolveEditor,
   restorePlanFromLater,
-  savePlanForLater
+  savePlanForLater,
+  setPlanReadiness
 } from "./actions.js";
 import type { ActionFs } from "./types.js";
 
@@ -53,6 +54,18 @@ async function withObjectPrototypeProperties<T>(
 describe("plan actions", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("sets and replaces readiness without changing the plan body", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "---\nkind: pipeline\nreadiness: draft\n---\n# Feature\n"
+    });
+
+    await setPlanReadiness("/repo/docs/plans/feature.md", "ready", fs);
+
+    await expect(fs.readFile("/repo/docs/plans/feature.md", "utf8")).resolves.toBe(
+      "---\nkind: pipeline\nreadiness: ready\n---\n# Feature\n"
+    );
   });
 
   it("archives a plan into an archive subdirectory", async () => {

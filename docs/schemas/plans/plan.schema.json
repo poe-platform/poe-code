@@ -7,6 +7,13 @@
     "kind": {
       "type": "string",
       "const": "plan"
+    },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready"
+      ]
     }
   },
   "required": [

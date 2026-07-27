@@ -122,6 +122,13 @@
       "type": "integer",
       "minimum": 0
     },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready"
+      ]
+    },
     "version": {
       "type": "integer",
       "const": 1

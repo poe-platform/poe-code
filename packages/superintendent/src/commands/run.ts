@@ -1221,7 +1221,7 @@ async function resolveDocPath(options: {
   const selected = await options.selectPrompt({
     message: "Select superintendent document",
     options: docs.map((doc) => ({
-      label: doc.displayPath,
+      label: `${doc.displayPath}${doc.readiness === "ready" ? " ✓" : ""}`,
       value: doc.absolutePath
     })),
     initialValue: docs[0]!.absolutePath

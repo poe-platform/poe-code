@@ -1,9 +1,10 @@
 export { discoverWorkflowDocs, resolveWorkflowPath, type DiscoverDocsOptions } from "./paths.js";
-export { archivePlan, discoverPlans, openPlanList } from "./plans.js";
+export { archivePlan, discoverPlans, openPlanList, parsePlanReadiness } from "./plans.js";
 export type {
   ArchivePlanOptions,
   DiscoverPlansOptions,
   OpenPlanListOptions,
+  PlanReadiness,
   PlanRef
 } from "./plans.js";
 export {

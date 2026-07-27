@@ -172,6 +172,10 @@ export const pipelineDocumentSchema: JsonSchema = {
       type: "integer",
       const: 1
     },
+    readiness: {
+      type: "string",
+      enum: ["draft", "ready"]
+    },
     name: {
       type: "string"
     },

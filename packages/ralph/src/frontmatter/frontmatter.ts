@@ -4,6 +4,7 @@ import {
   stringifyFrontmatter
 } from "@poe-code/frontmatter";
 import type { RalphHooks } from "../types.js";
+type PlanReadiness = "draft" | "ready";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 
@@ -28,7 +29,13 @@ type JsonSchema = {
 
 export type RalphPlanStatus = "open" | "in_progress" | "completed" | "failed";
 
+function parsePlanReadiness(value: unknown): PlanReadiness {
+  if (value === "draft" || value === "ready") return value;
+  throw new Error(`Invalid plan readiness ${JSON.stringify(value)}; expected "draft" or "ready".`);
+}
+
 export interface RalphFrontmatter {
+  readiness?: PlanReadiness;
   agent?: string | string[];
   extends?: boolean;
   iterations?: number;
@@ -60,6 +67,10 @@ export const ralphDocumentSchema: JsonSchema = {
     version: {
       type: "integer",
       const: 1
+    },
+    readiness: {
+      type: "string",
+      enum: ["draft", "ready"]
     },
     agent: {
       anyOf: [
@@ -156,6 +167,7 @@ export function writeFrontmatter(data: RalphFrontmatter, body: string): string {
     kind: "ralph",
     version: 1,
     ...(data.agent !== undefined ? { agent: data.agent } : {}),
+    ...(data.readiness !== undefined ? { readiness: data.readiness } : {}),
     ...(data.extends !== undefined ? { extends: data.extends } : {}),
     ...(data.iterations !== undefined ? { iterations: data.iterations } : {}),
     ...(data.skills !== undefined ? { skills: data.skills } : {}),
@@ -208,9 +220,12 @@ export function parseFrontmatterData(
   }
   const skills = parseSkills(parsed ? getOwnEntry(parsed, "skills") : undefined);
   const hooks = parseHooks(parsed ? getOwnEntry(parsed, "hooks") : undefined);
+  const readinessValue = parsed ? getOwnEntry(parsed, "readiness") : undefined;
+  const readiness = readinessValue === undefined ? undefined : parsePlanReadiness(readinessValue);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
+    ...(readiness !== undefined ? { readiness } : {}),
     ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(iterations !== undefined ? { iterations } : {}),
     ...(skills !== undefined ? { skills } : {}),

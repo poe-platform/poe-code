@@ -48,6 +48,13 @@
     "name": {
       "type": "string"
     },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready"
+      ]
+    },
     "setup": {
       "anyOf": [
         {

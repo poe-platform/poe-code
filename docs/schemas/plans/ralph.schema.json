@@ -64,6 +64,13 @@
       "type": "string",
       "const": "ralph"
     },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready"
+      ]
+    },
     "skills": {
       "type": "array",
       "items": {

@@ -1,11 +1,47 @@
 import path from "node:path";
+import { parse, stringify } from "yaml";
 import { spawnSync as nodeSpawnSync } from "node:child_process";
 import { isPlanMetaDocument } from "./discovery.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readSavedForLaterMetadata, writeSavedForLaterReason } from "./format.js";
-import type { ActionFs, PlanFormat, SavedForLaterMetadata } from "./types.js";
+import type { ActionFs, PlanFormat, PlanReadiness, SavedForLaterMetadata } from "./types.js";
 
 const LATER_DIRECTORY = "later";
+
+export async function setPlanReadiness(
+  absolutePath: string,
+  readiness: PlanReadiness,
+  fs: Pick<ActionFs, "readFile" | "writeFile">
+): Promise<void> {
+  rejectPlanMetaDocument(absolutePath, "change readiness for");
+  const content = await fs.readFile(absolutePath, "utf8");
+  const lowerPath = absolutePath.toLowerCase();
+  if (lowerPath.endsWith(".yaml") || lowerPath.endsWith(".yml")) {
+    const parsed = parse(content) as unknown;
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      throw new Error(`${absolutePath}: plan YAML must contain an object`);
+    }
+    const metadata = parsed as Record<string, unknown>;
+    metadata.readiness = readiness;
+    await fs.writeFile(absolutePath, stringify(metadata), "utf8");
+    return;
+  }
+  const lineBreak = content.startsWith("---\r\n") ? "\r\n" : "\n";
+  const normalized = content.replaceAll("\r\n", "\n");
+  const hasFrontmatter = normalized.startsWith("---\n");
+  const closing = hasFrontmatter ? normalized.indexOf("\n---", 4) : -1;
+  if (hasFrontmatter && closing === -1) {
+    throw new Error(`${absolutePath}: missing YAML frontmatter end delimiter (---)`);
+  }
+  const parsed = parse(hasFrontmatter ? normalized.slice(4, closing) : "") as unknown;
+  const metadata = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+    ? parsed as Record<string, unknown>
+    : {};
+  metadata.readiness = readiness;
+  const body = hasFrontmatter ? normalized.slice(closing + 4).replace(/^\n/, "") : normalized;
+  const next = `---\n${stringify(metadata).trimEnd()}\n---\n${body}`;
+  await fs.writeFile(absolutePath, next.replaceAll("\n", lineBreak), "utf8");
+}
 
 /**
  * Guessing an editor is how this hangs: `vi` inherits stdio and waits for keystrokes

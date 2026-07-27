@@ -13,7 +13,10 @@ export interface PlanRef {
   displayPath: string;
   kind: string;
   name: string;
+  readiness: PlanReadiness;
 }
+
+export type PlanReadiness = "draft" | "ready";
 
 export interface DiscoverPlansOptions {
   cwd: string;
@@ -135,6 +138,12 @@ function planKind(metadata: Record<string, unknown>): string {
   return String(metadata.kind ?? "plan");
 }
 
+export function parsePlanReadiness(value: unknown): PlanReadiness {
+  if (value === undefined || value === "draft") return "draft";
+  if (value === "ready") return value;
+  throw new Error(`Invalid plan readiness ${JSON.stringify(value)}; expected "draft" or "ready".`);
+}
+
 export async function discoverPlans(options: DiscoverPlansOptions): Promise<PlanRef[]> {
   const resolvedDirectory = resolvePlanDirectory(options);
   const fs = options.fs ?? defaultFs();
@@ -154,13 +163,15 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
       id: task.id,
       name: task.name,
       kind: planKind(task.metadata),
+      readiness: parsePlanReadiness(task.metadata.readiness),
       absolutePath: pathsById.get(task.id) ?? path.join(resolvedDirectory, `${task.id}.md`)
     }))
     .filter((plan) => kindFilter === undefined || kindFilter.has(plan.kind))
     .map((plan) => ({
       ...plan,
       displayPath: displayPlanPath(plan.absolutePath, options.cwd, options.homeDir)
-    }));
+    }))
+    .sort((left, right) => Number(right.readiness === "ready") - Number(left.readiness === "ready"));
 }
 
 export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {

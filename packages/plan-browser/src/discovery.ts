@@ -8,7 +8,7 @@ import {
 } from "@poe-code/poe-code-config";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readPlanMetadata, readSavedForLaterMetadata, splitFrontmatter } from "./format.js";
-import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
+import type { DiscoveryFs, PlanEntry, PlanKind, PlanReadiness } from "./types.js";
 
 function createDefaultFs(): DiscoveryFs {
   return {
@@ -157,6 +157,13 @@ function classifyPlanKind(content: string, filePath: string): PlanKind {
   return data.kind === undefined ? "plan" : toPlanKind(data.kind, filePath);
 }
 
+function readPlanReadiness(content: string, filePath: string): PlanReadiness {
+  const value = splitFrontmatter(content, filePath).data?.readiness;
+  if (value === undefined || value === "draft") return "draft";
+  if (value === "ready") return value;
+  throw new Error(`${filePath}: invalid readiness ${JSON.stringify(value)}; expected "draft" or "ready"`);
+}
+
 async function discoverSharedPlans(options: {
   cwd: string;
   homeDir: string;
@@ -282,6 +289,7 @@ async function discoverPlanDirectoryEntries(options: {
       title: metadata.title,
       detail: metadata.detail,
       updatedAt: stat.mtimeMs,
+      readiness: readPlanReadiness(content, displayPath),
       ...(savedForLater === undefined ? {} : { savedForLater })
     });
   }
@@ -307,6 +315,8 @@ export async function discoverAllPlans(options: {
     if (leftSaved !== rightSaved) {
       return leftSaved - rightSaved;
     }
+    const readinessOrder = Number(right.readiness === "ready") - Number(left.readiness === "ready");
+    if (readinessOrder !== 0) return readinessOrder;
     if (right.updatedAt !== left.updatedAt) {
       return right.updatedAt - left.updatedAt;
     }

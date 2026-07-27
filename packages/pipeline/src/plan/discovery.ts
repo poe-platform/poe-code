@@ -10,6 +10,7 @@ type DiscoveryFs = Pick<PipelineFileSystem, "readFile" | "readdir" | "stat">;
 
 type PlanCandidate = {
   path: string;
+  ready: boolean;
   done: number;
   total: number;
 };
@@ -31,7 +32,7 @@ function createDefaultFs(): DiscoveryFs {
   };
 }
 
-function countCompletedTasks(planPath: string, content: string): PlanCandidate {
+function countCompletedTasks(planPath: string, content: string, ready = false): PlanCandidate {
   const plan = parsePlan(content);
   const total = plan.tasks.length;
   const done = plan.tasks.filter((task) => {
@@ -44,6 +45,7 @@ function countCompletedTasks(planPath: string, content: string): PlanCandidate {
 
   return {
     path: planPath,
+    ready,
     done,
     total
   };
@@ -87,10 +89,10 @@ async function listPlanCandidates(
   const candidates = await Promise.all(
     plans.map(async (plan) => {
       const content = await fs.readFile(plan.absolutePath, "utf8");
-      return countCompletedTasks(plan.displayPath, content);
+      return countCompletedTasks(plan.displayPath, content, plan.readiness === "ready");
     })
   );
-  candidates.sort((left, right) => left.path.localeCompare(right.path));
+  candidates.sort((left, right) => Number(right.ready) - Number(left.ready) || left.path.localeCompare(right.path));
   return candidates;
 }
 
@@ -207,7 +209,7 @@ export async function resolvePlanPaths(options: {
       return options.selectPlans({
         message: "Select pipeline plans to run",
         options: candidates.map((candidate) => ({
-          label: `${candidate.path} (${candidate.done}/${candidate.total})`,
+          label: `${candidate.path}${candidate.ready ? " ✓" : ""} (${candidate.done}/${candidate.total})`,
           value: candidate.path
         })),
         required: true
@@ -219,7 +221,7 @@ export async function resolvePlanPaths(options: {
     const selectedPlan = await options.selectPlan({
       message: "Select a pipeline plan to run",
       options: candidates.map((candidate) => ({
-        label: `${candidate.path} (${candidate.done}/${candidate.total})`,
+        label: `${candidate.path}${candidate.ready ? " ✓" : ""} (${candidate.done}/${candidate.total})`,
         value: candidate.path
       }))
     });

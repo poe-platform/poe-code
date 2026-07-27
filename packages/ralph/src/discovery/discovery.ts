@@ -47,6 +47,6 @@ export async function discoverDocs(options: {
 
   return plans.map((plan) => ({
     path: plan.displayPath,
-    displayPath: plan.displayPath
+    displayPath: `${plan.displayPath}${plan.readiness === "ready" ? " ✓" : ""}`
   }));
 }

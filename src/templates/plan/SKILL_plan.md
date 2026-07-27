@@ -16,6 +16,7 @@ Write `docs/plans/<name>.md` as a generic plan doc — five levels, each deeper 
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json
 kind: plan
 version: 1
+readiness: draft
 ---
 ```
 
@@ -89,6 +90,7 @@ Contracts + validation, aimed at autonomous execution.
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json
 kind: plan
 version: 1
+readiness: draft
 ---
 
 # <Feature name>

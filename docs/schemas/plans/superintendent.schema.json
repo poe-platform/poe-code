@@ -206,6 +206,13 @@
       ],
       "additionalProperties": false
     },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready"
+      ]
+    },
     "status": {
       "type": "object",
       "properties": {

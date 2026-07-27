@@ -27,6 +27,10 @@ export const planDocumentSchema: JsonSchema = {
   title: "Generic plan document",
   type: "object",
   properties: {
+    readiness: {
+      type: "string",
+      enum: ["draft", "ready"]
+    },
     kind: {
       type: "string",
       const: "plan"

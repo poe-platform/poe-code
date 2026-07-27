@@ -5,6 +5,12 @@ import { dirname } from "node:path";
 import { stringify } from "yaml";
 import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
+type PlanReadiness = "draft" | "ready";
+
+function parsePlanReadiness(value: unknown): PlanReadiness {
+  if (value === "draft" || value === "ready") return value;
+  throw new Error(`Invalid plan readiness ${JSON.stringify(value)}; expected "draft" or "ready".`);
+}
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 
@@ -28,6 +34,7 @@ type JsonSchema = {
 };
 
 export interface ExperimentFrontmatter {
+  readiness?: PlanReadiness;
   agent?: string | string[];
   extends?: boolean;
   metric?: MetricDef | MetricDef[];
@@ -80,6 +87,10 @@ export const experimentDocumentSchema: JsonSchema = {
     version: {
       type: "integer",
       const: 1
+    },
+    readiness: {
+      type: "string",
+      enum: ["draft", "ready"]
     },
     agent: {
       anyOf: [
@@ -194,9 +205,12 @@ export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontm
     parsed ? getOwnEntry(parsed, "metric_timeout") : undefined,
     "metric_timeout"
   );
+  const readinessValue = parsed ? getOwnEntry(parsed, "readiness") : undefined;
+  const readiness = readinessValue === undefined ? undefined : parsePlanReadiness(readinessValue);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
+    ...(readiness !== undefined ? { readiness } : {}),
     ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(metric !== undefined ? { metric } : {}),
     baseline: parseBaseline(parsed ? getOwnEntry(parsed, "baseline") : undefined),
@@ -210,6 +224,7 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     $schema: experimentDocumentSchemaId,
     kind: "experiment",
     version: 1,
+    ...(frontmatter.readiness !== undefined ? { readiness: frontmatter.readiness } : {}),
     ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
     ...(frontmatter.extends !== undefined ? { extends: frontmatter.extends } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),

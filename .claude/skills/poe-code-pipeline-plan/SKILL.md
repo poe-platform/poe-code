@@ -27,6 +27,7 @@ Read the first `steps.yaml` found at `<project-root>/.poe-code/pipeline/steps.ya
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
+readiness: draft
 
 tasks:
   - id: validate-signup-input

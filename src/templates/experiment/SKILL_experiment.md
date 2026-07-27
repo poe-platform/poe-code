@@ -23,6 +23,7 @@ Create an experiment doc in the shared plan directory and metric script(s) for t
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json
 kind: experiment
 version: 1
+readiness: draft
 agent: claude-code
 metric:
   name: <metric_name>

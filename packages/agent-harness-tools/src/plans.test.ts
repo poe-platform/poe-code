@@ -27,10 +27,11 @@ function createFs(files: Record<string, string> = {}): {
   };
 }
 
-function planDoc(options: { kind?: string; name: string; state?: string; body?: string }): string {
+function planDoc(options: { kind?: string; name?: string; state?: string; readiness?: string; body?: string }): string {
   const frontmatter = [
     options.kind === undefined ? undefined : `kind: ${options.kind}`,
-    `name: ${options.name}`,
+    options.name === undefined ? undefined : `name: ${options.name}`,
+    options.readiness === undefined ? undefined : `readiness: ${options.readiness}`,
     `state: ${options.state ?? "draft"}`
   ]
     .filter((line) => line !== undefined)
@@ -79,7 +80,8 @@ describe("plans", () => {
     const { fs } = createFs({
       "/repo/.poe-code/plans/01-build-pipeline.md": planDoc({
         kind: "pipeline",
-        name: "Build pipeline"
+        name: "Build pipeline",
+        readiness: "ready"
       })
     });
 
@@ -95,6 +97,7 @@ describe("plans", () => {
         id: "build-pipeline",
         name: "Build pipeline",
         kind: "pipeline",
+        readiness: "ready",
         absolutePath: "/repo/.poe-code/plans/01-build-pipeline.md",
         displayPath: ".poe-code/plans/01-build-pipeline.md"
       }
@@ -108,9 +111,44 @@ describe("plans", () => {
     });
     await expect(taskList.list("plans").get("build-pipeline")).resolves.toMatchObject({
       metadata: {
-        kind: "pipeline"
+        kind: "pipeline",
+        readiness: "ready"
       }
     });
+  });
+
+  it("sorts ready plans before drafts while preserving source order", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-draft.md": planDoc({ kind: "pipeline", name: "Draft" }),
+      "/repo/.poe-code/plans/02-ready.md": planDoc({
+        kind: "pipeline",
+        name: "Ready",
+        readiness: "ready"
+      }),
+      "/repo/.poe-code/plans/03-explicit-draft.md": planDoc({
+        kind: "pipeline",
+        name: "Explicit draft",
+        readiness: "draft"
+      })
+    });
+
+    const plans = await discoverPlans({ cwd, homeDir, planDirectory, fs });
+
+    expect(plans.map(({ id, readiness }) => ({ id, readiness }))).toEqual([
+      { id: "ready", readiness: "ready" },
+      { id: "draft", readiness: "draft" },
+      { id: "explicit-draft", readiness: "draft" }
+    ]);
+  });
+
+  it("rejects unsupported readiness metadata", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/invalid.md": planDoc({ readiness: "review" })
+    });
+
+    await expect(discoverPlans({ cwd, homeDir, planDirectory, fs })).rejects.toThrow(
+      'Invalid plan readiness "review"'
+    );
   });
 
   it("discoverPlans filters by kind", async () => {
@@ -138,6 +176,7 @@ describe("plans", () => {
         id: "second",
         name: "Second",
         kind: "pipeline",
+        readiness: "draft",
         absolutePath: "/repo/.poe-code/plans/02-second.md",
         displayPath: ".poe-code/plans/02-second.md"
       }
@@ -187,6 +226,7 @@ No frontmatter here.
         id: "bare",
         name: "bare",
         kind: "plan",
+        readiness: "draft",
         absolutePath: "/repo/.poe-code/plans/01-bare.md",
         displayPath: ".poe-code/plans/01-bare.md"
       }
@@ -213,6 +253,7 @@ No frontmatter here.
         id: "backlog",
         name: "Backlog",
         kind: "plan",
+        readiness: "draft",
         absolutePath: "/repo/.poe-code/plans/backlog.md",
         displayPath: ".poe-code/plans/backlog.md"
       }
@@ -239,6 +280,7 @@ No frontmatter here.
         id: "global",
         name: "Global",
         kind: "pipeline",
+        readiness: "draft",
         absolutePath: "/home/test/.poe-code/plans/01-global.md",
         displayPath: "~/.poe-code/plans/01-global.md"
       }

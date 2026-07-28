@@ -142,6 +142,7 @@ function resolvePlanPaths(options: GaslightOptions, cwd: string, homeDir: string
 }
 
 export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
+  const startedAt = Date.now();
   const cwd = options.cwd ?? process.cwd();
   const homeDir = options.homeDir ?? os.homedir();
   const fs = options.fs ?? nodeFs;
@@ -178,6 +179,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   let usage: SpawnUsage | undefined;
 
   for (const [planIndex, planPath] of planPaths.entries()) {
+    const planStartedAt = Date.now();
     const prompts = [
       ...(config.setup ? [config.setup] : []),
       `${config.prompt} ${planPath}`,
@@ -265,9 +267,10 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       planPath,
       ...(archivedPath ? { archivedPath } : {}),
       rounds: planRounds,
+      durationMs: Date.now() - planStartedAt,
       ...(planUsage ? { usage: planUsage } : {})
     });
   }
 
-  return { rounds, plans, ...(usage ? { usage } : {}) };
+  return { rounds, plans, durationMs: Date.now() - startedAt, ...(usage ? { usage } : {}) };
 }

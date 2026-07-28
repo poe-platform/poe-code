@@ -45,6 +45,7 @@ export interface GaslightRound {
 export interface GaslightResult {
   rounds: GaslightRound[];
   plans: GaslightPlanResult[];
+  durationMs: number;
   usage?: SpawnUsage;
 }
 
@@ -52,6 +53,7 @@ export interface GaslightPlanResult {
   planPath: string;
   archivedPath?: string;
   rounds: GaslightRound[];
+  durationMs: number;
   usage?: SpawnUsage;
 }
 

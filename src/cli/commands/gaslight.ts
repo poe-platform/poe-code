@@ -236,10 +236,27 @@ function formatUsage(usage: Awaited<ReturnType<typeof runGaslight>>["usage"]): s
 function formatCompletedPlans(result: Awaited<ReturnType<typeof runGaslight>>): string {
   return [
     "Completed plans:",
-    ...result.plans.map((plan) =>
-      plan.archivedPath ? `- ${plan.planPath} → ${plan.archivedPath}` : `- ${plan.planPath}`
+    ...result.plans.map(
+      (plan) =>
+        `- ${path.basename(plan.planPath)}${plan.durationMs === undefined ? "" : ` · ${formatDuration(plan.durationMs)}`}`
     )
   ].join("\n");
+}
+
+function formatDuration(durationMs: number): string {
+  const totalSeconds = Math.round(durationMs / 1_000);
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+  const seconds = totalSeconds % 60;
+  return [
+    days > 0 ? `${days}d` : undefined,
+    hours > 0 ? `${hours}h` : undefined,
+    minutes > 0 ? `${minutes}m` : undefined,
+    seconds > 0 || totalSeconds === 0 ? `${seconds}s` : undefined
+  ]
+    .filter((part): part is string => part !== undefined)
+    .join(" ");
 }
 
 function parseSources(value: string | undefined): Array<"claude" | "codex"> | undefined {
@@ -398,15 +415,19 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     });
     const finished =
       planPaths.length > 1
-        ? `${planPaths.length} plans, ${result.rounds.length} rounds finished`
+        ? `${planPaths.length} plans · ${result.rounds.length} rounds finished`
         : `${result.rounds.length} rounds finished`;
+    const finishedWithDuration =
+      result.durationMs === undefined
+        ? finished
+        : `${finished} · ${formatDuration(result.durationMs)} total`;
     const lastThreadId = result.rounds.at(-1)?.threadId;
     const resumeCommand = lastThreadId
       ? buildResumeCommand(agent, lastThreadId, container.env.cwd)
       : undefined;
     outro(
       [
-        finished,
+        finishedWithDuration,
         formatCompletedPlans(result),
         formatUsage(result.usage),
         resumeCommand ? `Resume: ${resumeCommand}` : undefined

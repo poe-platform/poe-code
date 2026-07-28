@@ -464,7 +464,7 @@ describe("gaslight command", () => {
     ]);
 
     expect(outroMock).toHaveBeenCalledWith(
-      "1 rounds finished\nCompleted plans:\n- docs/plans/a.md\nUsage unavailable\nResume: codex resume -C /repo thread_abc123"
+      "1 rounds finished\nCompleted plans:\n- a.md\nUsage unavailable\nResume: codex resume -C /repo thread_abc123"
     );
   });
 
@@ -475,13 +475,15 @@ describe("gaslight command", () => {
         { prompt: "Implement docs/plans/b.md", summary: "done" }
       ],
       plans: [
-        { planPath: "docs/plans/a.md", rounds: [] },
+        { planPath: "docs/plans/a.md", rounds: [], durationMs: 62_000 },
         {
           planPath: "docs/plans/b.md",
           archivedPath: "docs/plans/archive/b.md",
-          rounds: []
+          rounds: [],
+          durationMs: 123_000
         }
-      ]
+      ],
+      durationMs: 185_000
     });
     const program = createProgram();
     registerGaslightCommand(program, createContainer());
@@ -500,10 +502,10 @@ describe("gaslight command", () => {
 
     expect(outroMock).toHaveBeenCalledWith(
       [
-        "2 plans, 2 rounds finished",
+        "2 plans · 2 rounds finished · 3m 5s total",
         "Completed plans:",
-        "- docs/plans/a.md",
-        "- docs/plans/b.md → docs/plans/archive/b.md",
+        "- a.md · 1m 2s",
+        "- b.md · 2m 3s",
         "Usage unavailable"
       ].join("\n")
     );

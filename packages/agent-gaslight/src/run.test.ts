@@ -208,6 +208,43 @@ describe("runGaslight", () => {
     expect(result.rounds.map((round) => round.threadId)).toEqual(["one", "two", "three", "four"]);
   });
 
+  it("records the total duration and duration of each plan", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/docs/plans/first.md": "# First",
+        "/repo/docs/plans/second.md": "# Second"
+      })
+    ).promises;
+    const spawn = vi.fn().mockResolvedValue({
+      exitCode: 0,
+      stdout: "done",
+      stderr: "",
+      threadId: "thread"
+    });
+    const now = vi
+      .spyOn(Date, "now")
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100)
+      .mockReturnValueOnce(2_100)
+      .mockReturnValueOnce(2_200)
+      .mockReturnValueOnce(4_200)
+      .mockReturnValueOnce(4_300);
+
+    const result = await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/first.md", "docs/plans/second.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Review"],
+      fs,
+      spawn
+    });
+
+    expect(result.durationMs).toBe(3_300);
+    expect(result.plans.map((plan) => plan.durationMs)).toEqual([1_000, 2_000]);
+    now.mockRestore();
+  });
+
   it("leaves each plan in place after its gaslight rounds succeed", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({

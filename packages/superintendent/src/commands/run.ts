@@ -10,6 +10,7 @@ import { promisify } from "node:util";
 import {
   discoverPlans,
   ensureSafeRunLogDir,
+  formatPlanReadinessLabel,
   resolveLoopAgent,
   resolveWorkflowPath,
   type RuntimeOverrideOptions
@@ -1221,7 +1222,7 @@ async function resolveDocPath(options: {
   const selected = await options.selectPrompt({
     message: "Select superintendent document",
     options: docs.map((doc) => ({
-      label: `${doc.displayPath}${doc.readiness === "ready" ? " ✓" : ""}`,
+      label: formatPlanReadinessLabel(doc.displayPath, doc.readiness),
       value: doc.absolutePath
     })),
     initialValue: docs[0]!.absolutePath

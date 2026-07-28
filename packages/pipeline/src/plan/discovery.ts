@@ -1,6 +1,10 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { discoverPlans } from "@poe-code/agent-harness-tools";
+import {
+  comparePlanReadiness,
+  discoverPlans,
+  formatPlanReadinessLabel
+} from "@poe-code/agent-harness-tools";
 import { UserError } from "@poe-code/user-error";
 import { parsePlan } from "./parser.js";
 import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
@@ -92,7 +96,13 @@ async function listPlanCandidates(
       return countCompletedTasks(plan.displayPath, content, plan.readiness === "ready");
     })
   );
-  candidates.sort((left, right) => Number(right.ready) - Number(left.ready) || left.path.localeCompare(right.path));
+  candidates.sort(
+    (left, right) =>
+      comparePlanReadiness(
+        { readiness: left.ready ? "ready" : "draft" },
+        { readiness: right.ready ? "ready" : "draft" }
+      ) || left.path.localeCompare(right.path)
+  );
   return candidates;
 }
 
@@ -209,7 +219,10 @@ export async function resolvePlanPaths(options: {
       return options.selectPlans({
         message: "Select pipeline plans to run",
         options: candidates.map((candidate) => ({
-          label: `${candidate.path}${candidate.ready ? " ✓" : ""} (${candidate.done}/${candidate.total})`,
+          label: `${formatPlanReadinessLabel(
+            candidate.path,
+            candidate.ready ? "ready" : "draft"
+          )} (${candidate.done}/${candidate.total})`,
           value: candidate.path
         })),
         required: true
@@ -221,7 +234,10 @@ export async function resolvePlanPaths(options: {
     const selectedPlan = await options.selectPlan({
       message: "Select a pipeline plan to run",
       options: candidates.map((candidate) => ({
-        label: `${candidate.path}${candidate.ready ? " ✓" : ""} (${candidate.done}/${candidate.total})`,
+        label: `${formatPlanReadinessLabel(
+          candidate.path,
+          candidate.ready ? "ready" : "draft"
+        )} (${candidate.done}/${candidate.total})`,
         value: candidate.path
       }))
     });

@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { parsePlan } from "@poe-code/pipeline";
+import { comparePlanReadiness } from "@poe-code/agent-harness-tools";
 import {
   planConfigScope,
   readMergedDocumentReadonly,
@@ -315,7 +316,7 @@ export async function discoverAllPlans(options: {
     if (leftSaved !== rightSaved) {
       return leftSaved - rightSaved;
     }
-    const readinessOrder = Number(right.readiness === "ready") - Number(left.readiness === "ready");
+    const readinessOrder = comparePlanReadiness(left, right);
     if (readinessOrder !== 0) return readinessOrder;
     if (right.updatedAt !== left.updatedAt) {
       return right.updatedAt - left.updatedAt;

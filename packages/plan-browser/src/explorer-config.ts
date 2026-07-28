@@ -1,4 +1,5 @@
 import path from "node:path";
+import { formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 import type { Action, ExplorerConfig, Row } from "toolcraft-design";
 import { normalizeExplorerConfig } from "toolcraft-design";
 import {
@@ -221,7 +222,7 @@ function toRows(plans: PlanEntry[]): Row[] {
   const rowIds = createRowIds(plans);
   return plans.map((entry, index) => ({
     id: rowIds[index]!,
-    title: `${path.basename(entry.path)}${entry.readiness === "ready" ? " ✓" : ""}`,
+    title: formatPlanReadinessLabel(path.basename(entry.path), entry.readiness),
     subtitle: formatSubtitle(entry),
     badge: { text: entry.typeLabel },
     group: isSavedForLaterEntry(entry) ? "Saved for later" : "Active"

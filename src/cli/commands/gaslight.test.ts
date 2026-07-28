@@ -644,6 +644,31 @@ describe("gaslight command", () => {
     );
   });
 
+  it("shows stored readiness like the plan viewer and sorts ready plans first", async () => {
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(vi.fn(), vi.fn(), {
+        "/repo/docs/plans/ready.md": "---\nkind: plan\nreadiness: ready\n---\n# Ready\n",
+        "/repo/docs/plans/draft.md": "---\nkind: plan\nreadiness: draft\n---\n# Draft\n"
+      })
+    );
+    multiselectMock.mockResolvedValue(["docs/plans/ready.md"]);
+
+    await withInteractiveStdin(() =>
+      program.parseAsync(["node", "cli", "gaslight", "--agent", "codex"])
+    );
+
+    expect(multiselectMock).toHaveBeenCalledWith({
+      message: "Select Gaslight plans to run:",
+      options: [
+        { label: "docs/plans/ready.md ✓", value: "docs/plans/ready.md" },
+        { label: "docs/plans/draft.md", value: "docs/plans/draft.md" }
+      ],
+      required: true
+    });
+  });
+
   it("defers the mode default to agent-spawn without prompts with --yes", async () => {
     const prompts = vi.fn();
     const program = createProgram();

@@ -1,5 +1,6 @@
 export { discoverWorkflowDocs, resolveWorkflowPath, type DiscoverDocsOptions } from "./paths.js";
 export { archivePlan, discoverPlans, openPlanList, parsePlanReadiness } from "./plans.js";
+export { comparePlanReadiness, formatPlanReadinessLabel } from "./plan-readiness.js";
 export type {
   ArchivePlanOptions,
   DiscoverPlansOptions,

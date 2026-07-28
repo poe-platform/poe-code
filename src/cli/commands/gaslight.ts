@@ -1,7 +1,9 @@
 import path from "node:path";
 import { Option, type Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import { formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 import { spawn, SPAWN_MODES, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
+import { discoverAllPlans } from "@poe-code/plan-browser";
 import { readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import { cancel, intro, isCancel, multiselect, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
@@ -145,11 +147,7 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
       )}`
     );
   }
-  const plans = names
-    .filter((name) => name.endsWith(".md"))
-    .sort()
-    .map((name) => path.join(planDirectory, name));
-  if (plans.length === 0) {
+  if (!names.some((name) => name.endsWith(".md"))) {
     throw new ValidationError(
       `Gaslight found the plan directory, but it has no .md plans.\n\n${formatPlanDirectoryDetails(
         container,
@@ -158,19 +156,30 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
       )}`
     );
   }
+  const plans = await discoverAllPlans({
+    cwd: container.env.cwd,
+    homeDir: container.env.homeDir,
+    configPath: container.env.configPath,
+    projectConfigPath: container.env.projectConfigPath,
+    fs: container.fs as Parameters<typeof discoverAllPlans>[0]["fs"],
+    variables: container.env.variables
+  });
   if (assumeYes || process.stdin.isTTY !== true) {
     throw new ValidationError(
       [
         "Gaslight needs an explicit plan path or --plans: --yes and non-interactive runs never pick a plan for you.",
         "",
         "Plans:",
-        ...plans.map((plan) => `- ${plan}`)
+        ...plans.map((plan) => `- ${plan.path}`)
       ].join("\n")
     );
   }
   const selected = await multiselect({
     message: "Select Gaslight plans to run:",
-    options: plans.map((plan) => ({ label: plan, value: plan })),
+    options: plans.map((plan) => ({
+      label: formatPlanReadinessLabel(plan.path, plan.readiness),
+      value: plan.path
+    })),
     required: true
   });
   if (isCancel(selected)) {

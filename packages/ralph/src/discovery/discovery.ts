@@ -1,5 +1,5 @@
 import * as fsPromises from "node:fs/promises";
-import { discoverPlans } from "@poe-code/agent-harness-tools";
+import { discoverPlans, formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 import type { RalphFileStat } from "../types.js";
 
 type DiscoveryFs = {
@@ -47,6 +47,6 @@ export async function discoverDocs(options: {
 
   return plans.map((plan) => ({
     path: plan.displayPath,
-    displayPath: `${plan.displayPath}${plan.readiness === "ready" ? " ✓" : ""}`
+    displayPath: formatPlanReadinessLabel(plan.displayPath, plan.readiness)
   }));
 }

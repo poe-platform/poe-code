@@ -3,6 +3,7 @@ import path from "node:path";
 import { openTaskList, type TaskList, type TaskListFs } from "@poe-code/task-list";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { resolveWorkflowPath } from "./paths.js";
+import { comparePlanReadiness } from "./plan-readiness.js";
 
 const PLAN_LIST_NAME = "plans";
 const MARKDOWN_EXTENSION = ".md";
@@ -171,7 +172,7 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
       ...plan,
       displayPath: displayPlanPath(plan.absolutePath, options.cwd, options.homeDir)
     }))
-    .sort((left, right) => Number(right.readiness === "ready") - Number(left.readiness === "ready"));
+    .sort(comparePlanReadiness);
 }
 
 export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {

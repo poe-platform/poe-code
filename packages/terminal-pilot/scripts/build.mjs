@@ -1,8 +1,11 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
+import { copyTerminalPngAssets } from "./build-assets.mjs";
+
+const { cp, mkdir, readdir, readFile, writeFile } = fs;
 
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rootDir = path.resolve(packageDir, "../..");
@@ -111,6 +114,12 @@ await mkdir(path.join(distDir, "templates"), { recursive: true });
 await cp(
   path.join(packageDir, "src", "templates", "terminal-pilot.md"),
   path.join(distDir, "templates", "terminal-pilot.md")
+);
+
+await copyTerminalPngAssets(
+  fs,
+  path.join(rootDir, "packages", "terminal-png", "assets"),
+  path.join(distDir, "assets")
 );
 
 // Verify every bare import in the bundle is declared in package.json deps.

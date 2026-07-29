@@ -2554,11 +2554,11 @@ describe("makeFsModule", () => {
     // both, the same way the mkdir block does it.
     it("applies the mode only when writeFile creates the file", async () => {
       const umask = process.umask();
+      // Keep the distinguishing bit in the owner permissions so conventional
+      // secure umasks such as 0o077 do not collapse both modes to 0o600.
       const created = 0o600 & ~umask;
-      const rewritten = 0o666 & ~umask;
+      const rewritten = 0o700 & ~umask;
       const { fs } = createFs({ "/repo/keep.txt": "" });
-      // A umask folding the two modes together would leave the rewrite below
-      // unfalsifiable, so the premise is asserted rather than assumed.
       expect(rewritten).not.toBe(created);
 
       await fs.writeFile("/repo/new.txt", "x", { mode: created });

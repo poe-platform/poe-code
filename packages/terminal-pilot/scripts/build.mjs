@@ -119,7 +119,7 @@ await cp(
 await copyTerminalPngAssets(
   fs,
   path.join(rootDir, "packages", "terminal-png", "assets"),
-  path.join(distDir, "assets")
+  path.join(packageDir, "assets")
 );
 
 // Verify every bare import in the bundle is declared in package.json deps.

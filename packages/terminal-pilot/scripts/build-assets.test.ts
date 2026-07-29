@@ -13,14 +13,14 @@ describe("terminal-pilot build assets", () => {
     await copyTerminalPngAssets(
       fs,
       "/repo/packages/terminal-png/assets",
-      "/repo/packages/terminal-pilot/dist/assets"
+      "/repo/packages/terminal-pilot/assets"
     );
 
     await expect(
-      fs.readFile("/repo/packages/terminal-pilot/dist/assets/regular.ttf", "utf8")
+      fs.readFile("/repo/packages/terminal-pilot/assets/regular.ttf", "utf8")
     ).resolves.toBe("regular-font");
     await expect(
-      fs.readFile("/repo/packages/terminal-pilot/dist/assets/bold.ttf", "utf8")
+      fs.readFile("/repo/packages/terminal-pilot/assets/bold.ttf", "utf8")
     ).resolves.toBe("bold-font");
   });
 });

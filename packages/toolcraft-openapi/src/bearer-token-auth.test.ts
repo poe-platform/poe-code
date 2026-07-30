@@ -47,7 +47,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("auth-store", () => ({
+vi.mock("toolcraft/auth-store", () => ({
   createSecretStore: mocks.createSecretStore
 }));
 

@@ -1,6 +1,6 @@
 import { defineCommand, defineGroup, S, UserError, type Static } from "toolcraft";
 import { isCancel, password } from "toolcraft-design";
-import { createSecretStore, type StoreBackend } from "auth-store";
+import { createSecretStore, type StoreBackend } from "toolcraft/auth-store";
 import { requestJson } from "../http.js";
 import type { AuthProvider } from "./types.js";
 

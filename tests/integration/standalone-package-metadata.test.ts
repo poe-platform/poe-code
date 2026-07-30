@@ -63,12 +63,12 @@ describe("standalone package publish metadata", () => {
     ).toEqual([]);
   });
 
-  it("keeps bundled auth-store optional for registry installs", () => {
+  it("uses Toolcraft's public auth-store export", () => {
     const openApiPackage = readPackageJson("packages/toolcraft-openapi/package.json");
 
     expect(openApiPackage.dependencies?.["auth-store"]).toBeUndefined();
-    expect(openApiPackage.optionalDependencies?.["auth-store"]).toBe("*");
-    expect(openApiPackage.bundleDependencies).toContain("auth-store");
+    expect(openApiPackage.optionalDependencies?.["auth-store"]).toBeUndefined();
+    expect(openApiPackage.bundleDependencies).not.toContain("auth-store");
   });
 
   it("declares bundled toolcraft-design as optional in standalone consumers", () => {

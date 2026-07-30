@@ -152,6 +152,8 @@ describe("standalone package publish metadata", () => {
     expect(Object.keys(exportsField).sort()).toEqual([
       ".",
       "./agent",
+      "./config",
+      "./config/testing",
       "./credentials",
       "./memory",
       "./skills"

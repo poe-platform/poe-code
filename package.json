@@ -23,6 +23,14 @@
       "types": "./dist/credentials.d.ts",
       "import": "./dist/credentials.js"
     },
+    "./config": {
+      "types": "./packages/poe-code-config/dist/index.d.ts",
+      "import": "./packages/poe-code-config/dist/index.js"
+    },
+    "./config/testing": {
+      "types": "./packages/config-mutations/dist/testing.d.ts",
+      "import": "./packages/config-mutations/dist/testing.js"
+    },
     "./skills": {
       "types": "./dist/skills.d.ts",
       "import": "./dist/skills.js"

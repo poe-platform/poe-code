@@ -1,5 +1,5 @@
 import { constants as nodeFsConstants } from "node:fs";
-import { getSystemErrorMap } from "node:util";
+import * as nodeUtil from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
 
 import { makeFsModule, type FsImplementation } from "./fs.js";
@@ -153,7 +153,7 @@ export type FsConformanceCase = {
 // back from the table is what keeps an expectation the platform's answer rather than
 // the darwin numbers and wording these cases happened to be recorded on.
 export function readSystemError(code: string): { errno: number; description: string } {
-  const entry = [...getSystemErrorMap()].find(([, [name]]) => name === code);
+  const entry = [...(nodeUtil.getSystemErrorMap?.() ?? [])].find(([, [name]]) => name === code);
 
   /* c8 ignore next 3 -- every code this table names is one node defines. */
   if (entry === undefined) {

@@ -1,7 +1,8 @@
 import { constants as nodeFsConstants, type Dirent, type PathLike, type Stats } from "node:fs";
 import * as nodeFsPromises from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
-import { getSystemErrorMap, inspect } from "node:util";
+import { inspect } from "node:util";
+import * as nodeUtil from "node:util";
 
 import { declareHostOperation } from "../interp/host-bridge.js";
 import {
@@ -689,7 +690,11 @@ function createAccessDeniedError(
 }
 
 function readSystemError(code: string): [number, string] {
-  for (const [errno, [name, message]] of getSystemErrorMap()) {
+  const fallback = new Map<number, [string, string]>([
+    [process.platform === "win32" ? -4092 : -13, ["EACCES", "permission denied"]]
+  ]);
+  const systemErrors = nodeUtil.getSystemErrorMap?.() ?? fallback;
+  for (const [errno, [name, message]] of systemErrors) {
     if (name === code) {
       return [errno, message];
     }

@@ -293,13 +293,17 @@ async function rewriteWorkspaceDts(dir, workspaces) {
         const pattern = new RegExp(`(["'])${escapedName}(?:/([^"']+))?\\1`, "g");
         content = content.replace(pattern, (_match, quote, subpath) => {
           changed = true;
-          const target = path.join(
-            rootDir,
-            "packages",
-            workspaceDir,
-            "dist",
-            subpath ? `${subpath}.js` : "index.js"
-          );
+          const exportKey = subpath ? `./${subpath}` : ".";
+          const exportedTypes = pkg.exports?.[exportKey]?.types?.replace(/\.d\.ts$/, ".js");
+          const target = exportedTypes
+            ? path.join(rootDir, "packages", workspaceDir, exportedTypes)
+            : path.join(
+                rootDir,
+                "packages",
+                workspaceDir,
+                "dist",
+                subpath ? `${subpath}.js` : "index.js"
+              );
           let relative = path.relative(path.dirname(abs), target).split(path.sep).join("/");
           if (!relative.startsWith(".")) relative = `./${relative}`;
           return `${quote}${relative}${quote}`;

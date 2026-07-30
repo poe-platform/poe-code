@@ -206,12 +206,47 @@ function runCredentialsImportSmoke(sdkProjectDir: string): boolean {
   return passed;
 }
 
+function runConfigImportSmoke(sdkProjectDir: string): boolean {
+  const scriptPath = path.join(sdkProjectDir, "config-smoke.mjs");
+  writeFileSync(
+    scriptPath,
+    [
+      'import { createConfigStore } from "poe-code/config";',
+      'import { createMockFs } from "poe-code/config/testing";',
+      'if (typeof createConfigStore !== "function" || typeof createMockFs !== "function") {',
+      '  throw new Error("Expected released config APIs to be functions.");',
+      "}",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const label = "poe-code config import smoke";
+  const result = spawnSync(process.execPath, [scriptPath], {
+    cwd: sdkProjectDir,
+    encoding: "utf-8",
+    timeout: 30_000,
+  });
+  const output = (result.stdout || "") + (result.stderr || "");
+  const passed = result.status === 0 && output.length === 0;
+
+  console.log(passed ? `  \u2713 ${label}` : `  \u2717 ${label} (exit ${result.status})`);
+  if (verbose || !passed) {
+    for (const line of output.trimEnd().split("\n")) {
+      console.log(`    \u2502 ${line}`);
+    }
+    console.log();
+  }
+  return passed;
+}
+
 const installContext = install();
 try {
   const ok =
     run() &&
     runSdkImportSmoke(installContext.sdkProjectDir) &&
-    runCredentialsImportSmoke(installContext.sdkProjectDir);
+    runCredentialsImportSmoke(installContext.sdkProjectDir) &&
+    runConfigImportSmoke(installContext.sdkProjectDir);
   if (ok) {
     console.log("\nAll smoke tests passed.");
   } else {

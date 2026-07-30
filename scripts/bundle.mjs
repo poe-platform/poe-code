@@ -123,6 +123,21 @@ await esbuild.build({
   plugins: [stripShebangPlugin]
 });
 
+for (const entryPoint of ["config", "config-testing"]) {
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, `src/${entryPoint}.ts`)],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, `dist/${entryPoint}.js`),
+    external: externalDeps,
+    alias: workspaceAliases,
+    sourcemap: true,
+    plugins: [stripShebangPlugin]
+  });
+}
+
 await esbuild.build({
   entryPoints: [path.join(rootDir, "src/skills.ts")],
   bundle: true,

@@ -908,7 +908,7 @@ function reorder(state: ExplorerState, delta: number): StepResult {
 
   return {
     state: next,
-    effects: [{ type: "persistOrder", orderedIds: rows.map((row) => row.id) }]
+    effects: [{ type: "persistOrder", movedId: current.id, orderedIds: rows.map((row) => row.id) }]
   };
 }
 

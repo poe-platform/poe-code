@@ -1263,6 +1263,33 @@ describe("resolvePlanPath", () => {
     expect(result).toBe("docs/plans/plan-beta.md");
   });
 
+  it("lists ready pipeline plans by newest modification time before drafts", async () => {
+    const readyOlder = PIPELINE_MD_EMPTY.replace("kind: pipeline", "kind: pipeline\nreadiness: ready");
+    const readyNewer = PIPELINE_MD_EMPTY.replace("kind: pipeline", "kind: pipeline\nreadiness: ready");
+    const fs = createFs({
+      "/repo/docs/plans/ready-older.md": readyOlder,
+      "/repo/docs/plans/ready-newer.md": readyNewer,
+      "/repo/docs/plans/draft.md": PIPELINE_MD_EMPTY
+    });
+    await fs.utimes("/repo/docs/plans/ready-older.md", 1, 1);
+    await fs.utimes("/repo/docs/plans/ready-newer.md", 3, 3);
+    await fs.utimes("/repo/docs/plans/draft.md", 4, 4);
+    const select = vi.fn().mockResolvedValue("docs/plans/ready-newer.md");
+
+    await resolvePlanPath({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      selectPlan: select
+    });
+
+    expect(select.mock.calls[0]?.[0].options.map((option: { value: string }) => option.value)).toEqual([
+      "docs/plans/ready-newer.md",
+      "docs/plans/ready-older.md",
+      "docs/plans/draft.md"
+    ]);
+  });
+
   it("returns null when no plans exist and interactive mode can prompt for a path", async () => {
     const promptForPath = vi.fn().mockResolvedValue("manual-plan.yaml");
 

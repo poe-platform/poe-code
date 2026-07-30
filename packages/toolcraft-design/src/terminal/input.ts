@@ -151,8 +151,13 @@ function parseCsi(sequence: string): TerminalInputEvent | undefined {
   const final = sequence.at(-1)!;
   const name = navigationName(final) ?? ({ "5": "pageup", "6": "pagedown" }[sequence.slice(2, -1)]);
   if (name === undefined) return undefined;
-  const modifier = sequence.includes(";5") ? { ctrl: true } : {};
-  return key(name, modifier);
+  const parameters = sequence.slice(2, -1).split(";");
+  const modifier = parameters.length > 1 ? Number(parameters.at(-1)) : 1;
+  return key(name, {
+    shift: modifier === 2 || modifier === 4 || modifier === 6 || modifier === 8,
+    alt: modifier === 3 || modifier === 4 || modifier === 7 || modifier === 8,
+    ctrl: modifier === 5 || modifier === 6 || modifier === 7 || modifier === 8
+  });
 }
 
 function navigationName(final: string): string | undefined {

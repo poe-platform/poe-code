@@ -71,7 +71,7 @@ describe("buildPlanExplorerConfig", () => {
     const detailPane = config.panes?.[1];
     expect(detailPane?.title).toBe("Plan");
     expect(detailPane?.kind === "detail" ? detailPane.titleForRow?.((await config.rows())[0]) : undefined).toBe("/repo/docs/plans/feature.md");
-    expect(config.reorder).toBeUndefined();
+    expect(config.reorder).toBeDefined();
     expect(config.refresh).toEqual(expect.any(Function));
     await expect(config.rows()).resolves.toEqual([
       {
@@ -144,6 +144,130 @@ describe("buildPlanExplorerConfig", () => {
     expect((await config.rows()).map((row) => row.title)).toEqual(["other.md", "selected.md ✓"]);
     expect(refresh).toHaveBeenCalledOnce();
     expect(ctx.toast).toHaveBeenCalledWith("Marked selected.md ready", "info");
+  });
+
+  it("reorders ready plans by changing only the moved file modification time", async () => {
+    const first = plan({
+      path: "docs/plans/first.md",
+      absolutePath: "/repo/docs/plans/first.md",
+      readiness: "ready",
+      updatedAt: 3_000
+    });
+    const second = plan({
+      path: "docs/plans/second.md",
+      absolutePath: "/repo/docs/plans/second.md",
+      readiness: "ready",
+      updatedAt: 2_000
+    });
+    const draft = plan({
+      path: "docs/plans/draft.md",
+      absolutePath: "/repo/docs/plans/draft.md",
+      readiness: "draft",
+      updatedAt: 1_000
+    });
+    const fs = createMemFs({
+      [first.absolutePath]: "# First",
+      [second.absolutePath]: "# Second",
+      [draft.absolutePath]: "# Draft"
+    });
+    await fs.utimes(first.absolutePath, new Date(3_000), new Date(3_000));
+    await fs.utimes(second.absolutePath, new Date(2_000), new Date(2_000));
+    await fs.utimes(draft.absolutePath, new Date(1_000), new Date(1_000));
+    const config = buildPlanExplorerConfig({
+      plans: [first, second, draft],
+      fs,
+      variables: {},
+      onRefresh: async () => [
+        { ...second, updatedAt: (await fs.stat(second.absolutePath)).mtimeMs },
+        first,
+        draft
+      ]
+    });
+    const [firstRow, secondRow, draftRow] = await config.rows();
+
+    await config.reorder!.onReorder(
+      [secondRow!.id, firstRow!.id, draftRow!.id],
+      { movedId: secondRow!.id, refresh: async () => config.refresh!(), toast: vi.fn() }
+    );
+
+    expect((await fs.stat(second.absolutePath)).mtimeMs).toBeGreaterThan(3_000);
+    expect((await fs.stat(first.absolutePath)).mtimeMs).toBe(3_000);
+    expect((await fs.stat(draft.absolutePath)).mtimeMs).toBe(1_000);
+    expect((await config.rows()).map((row) => row.title)).toEqual([
+      "second.md ✓",
+      "first.md ✓",
+      "draft.md"
+    ]);
+  });
+
+  it("rejects reordering a plan across a readiness boundary", async () => {
+    const ready = plan({
+      path: "docs/plans/ready.md",
+      absolutePath: "/repo/docs/plans/ready.md",
+      readiness: "ready",
+      updatedAt: 2_000
+    });
+    const draft = plan({
+      path: "docs/plans/draft.md",
+      absolutePath: "/repo/docs/plans/draft.md",
+      updatedAt: 1_000
+    });
+    const config = buildPlanExplorerConfig({
+      plans: [ready, draft],
+      fs: createMemFs({ [ready.absolutePath]: "# Ready", [draft.absolutePath]: "# Draft" }),
+      variables: {},
+      onRefresh: async () => [ready, draft]
+    });
+    const [readyRow, draftRow] = await config.rows();
+
+    await expect(
+      config.reorder!.onReorder(
+        [draftRow!.id, readyRow!.id],
+        { movedId: draftRow!.id, refresh: vi.fn(), toast: vi.fn() }
+      )
+    ).rejects.toThrow("Plans can only be reordered within the same readiness group");
+  });
+
+  it("allows a ready plan to move into the last position of the ready group", async () => {
+    const moved = plan({
+      path: "docs/plans/moved.md",
+      absolutePath: "/repo/docs/plans/moved.md",
+      readiness: "ready",
+      updatedAt: 3_000
+    });
+    const ready = plan({
+      path: "docs/plans/ready.md",
+      absolutePath: "/repo/docs/plans/ready.md",
+      readiness: "ready",
+      updatedAt: 2_000
+    });
+    const draft = plan({
+      path: "docs/plans/draft.md",
+      absolutePath: "/repo/docs/plans/draft.md",
+      updatedAt: 1_000
+    });
+    const fs = createMemFs({
+      [moved.absolutePath]: "# Moved",
+      [ready.absolutePath]: "# Ready",
+      [draft.absolutePath]: "# Draft"
+    });
+    await fs.utimes(moved.absolutePath, new Date(3_000), new Date(3_000));
+    await fs.utimes(ready.absolutePath, new Date(2_000), new Date(2_000));
+    await fs.utimes(draft.absolutePath, new Date(1_000), new Date(1_000));
+    const config = buildPlanExplorerConfig({
+      plans: [moved, ready, draft],
+      fs,
+      variables: {},
+      onRefresh: async () => [ready, moved, draft]
+    });
+    const [movedRow, readyRow, draftRow] = await config.rows();
+
+    await expect(
+      config.reorder!.onReorder(
+        [readyRow!.id, movedRow!.id, draftRow!.id],
+        { movedId: movedRow!.id, refresh: vi.fn(), toast: vi.fn() }
+      )
+    ).resolves.toBeUndefined();
   });
 
   it("loads detail markdown for the matching entry", async () => {

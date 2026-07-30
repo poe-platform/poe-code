@@ -141,6 +141,28 @@ describe("plans", () => {
     ]);
   });
 
+  it("sorts plans by newest modification time within each readiness group", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/.poe-code/plans/ready-older.md": planDoc({ readiness: "ready" }),
+      "/repo/.poe-code/plans/ready-newer.md": planDoc({ readiness: "ready" }),
+      "/repo/.poe-code/plans/draft-older.md": planDoc({}),
+      "/repo/.poe-code/plans/draft-newer.md": planDoc({})
+    });
+    await rawFs.utimes("/repo/.poe-code/plans/ready-older.md", 1, 1);
+    await rawFs.utimes("/repo/.poe-code/plans/ready-newer.md", 4, 4);
+    await rawFs.utimes("/repo/.poe-code/plans/draft-older.md", 2, 2);
+    await rawFs.utimes("/repo/.poe-code/plans/draft-newer.md", 3, 3);
+
+    const plans = await discoverPlans({ cwd, homeDir, planDirectory, fs });
+
+    expect(plans.map((plan) => plan.id)).toEqual([
+      "ready-newer",
+      "ready-older",
+      "draft-newer",
+      "draft-older"
+    ]);
+  });
+
   it("rejects unsupported readiness metadata", async () => {
     const { fs } = createFs({
       "/repo/.poe-code/plans/invalid.md": planDoc({ readiness: "review" })

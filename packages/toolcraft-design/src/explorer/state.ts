@@ -106,6 +106,7 @@ export interface PaneRuntimeState {
 }
 
 export interface ReorderContext {
+  movedId: string;
   refresh: () => Promise<void>;
   toast: (msg: string, tone?: Tone) => void;
 }

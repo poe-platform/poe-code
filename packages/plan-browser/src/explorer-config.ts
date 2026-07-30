@@ -183,9 +183,66 @@ export function buildPlanExplorerConfig(
     ],
     refresh,
     actions,
+    reorder: {
+      onReorder: async (orderedIds, ctx) => {
+        if (ctx === undefined) {
+          throw new Error("Plan reorder context is required");
+        }
+        const orderedEntries = orderedIds.map((id) => getEntry(entryByRowId, id));
+        const movedIndex = orderedIds.indexOf(ctx.movedId);
+        const originalIndex = createRowIds(plans).indexOf(ctx.movedId);
+        if (movedIndex < 0 || originalIndex < 0) {
+          throw new Error(`Plan row is no longer available: ${ctx.movedId}`);
+        }
+        const moved = orderedEntries[movedIndex]!;
+        const swapTarget = orderedEntries[originalIndex];
+        if (swapTarget === undefined || swapTarget.readiness !== moved.readiness) {
+          throw new Error("Plans can only be reordered within the same readiness group");
+        }
+        if (isSavedForLaterEntry(swapTarget) !== isSavedForLaterEntry(moved)) {
+          throw new Error("Active and saved-for-later plans cannot be reordered together");
+        }
+        const previousCandidate = orderedEntries[movedIndex - 1];
+        const nextCandidate = orderedEntries[movedIndex + 1];
+        const previous = sameOrderingGroup(previousCandidate, moved) ? previousCandidate : undefined;
+        const next = sameOrderingGroup(nextCandidate, moved) ? nextCandidate : undefined;
+
+        const [movedStat, previousStat, nextStat] = await Promise.all([
+          options.fs.stat(moved.absolutePath),
+          previous === undefined ? undefined : options.fs.stat(previous.absolutePath),
+          next === undefined ? undefined : options.fs.stat(next.absolutePath)
+        ]);
+        const updatedAt = resolveMovedTimestamp(previousStat?.mtimeMs, nextStat?.mtimeMs);
+        await options.fs.utimes(
+          moved.absolutePath,
+          new Date(movedStat.atimeMs ?? movedStat.mtimeMs),
+          new Date(updatedAt)
+        );
+        await ctx.refresh();
+        ctx.toast(`Reordered ${path.basename(moved.path)}`, "info");
+      }
+    },
     multiSelect: false,
     emptyHint: "No plans found"
   });
+}
+
+function sameOrderingGroup(left: PlanEntry | undefined, right: PlanEntry): left is PlanEntry {
+  return (
+    left !== undefined &&
+    left.readiness === right.readiness &&
+    isSavedForLaterEntry(left) === isSavedForLaterEntry(right)
+  );
+}
+
+function resolveMovedTimestamp(previous: number | undefined, next: number | undefined): number {
+  if (previous === undefined && next === undefined) return Date.now();
+  if (previous === undefined) return next! + 1_000;
+  if (next === undefined) return Math.max(0, previous - 1_000);
+  if (previous <= next) {
+    throw new Error("Could not reorder plans because adjacent modification times are identical");
+  }
+  return next + (previous - next) / 2;
 }
 
 function preservePlanOrder(current: PlanEntry[], refreshed: PlanEntry[]): PlanEntry[] {

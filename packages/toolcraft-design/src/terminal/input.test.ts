@@ -47,6 +47,17 @@ describe("createInputParser", () => {
     parser.destroy();
   });
 
+  it("preserves Shift on modified arrow sequences used by explorer reordering", () => {
+    const parser = createInputParser();
+
+    expect(parser.feed(Buffer.from("\u001b[1;2A\u001b[1;2B"))).toEqual([
+      { type: "key", name: "up", ctrl: false, alt: false, shift: true },
+      { type: "key", name: "down", ctrl: false, alt: false, shift: true }
+    ]);
+
+    parser.destroy();
+  });
+
   it("waits before resolving a lone escape", () => {
     vi.useFakeTimers();
     const parser = createInputParser({ escTimeoutMs: 50 });

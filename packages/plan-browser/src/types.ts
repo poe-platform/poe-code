@@ -37,7 +37,12 @@ export interface DiscoveryFs {
   ): Promise<void>;
   readdir(path: string): Promise<string[]>;
   realpath(path: string): Promise<string>;
-  stat(path: string): Promise<{ isFile(): boolean; isDirectory?(): boolean; mtimeMs: number }>;
+  stat(path: string): Promise<{
+    isFile(): boolean;
+    isDirectory?(): boolean;
+    atimeMs?: number;
+    mtimeMs: number;
+  }>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   mkdir?(path: string, options?: { recursive?: boolean }): Promise<void>;
   rename?(fromPath: string, toPath: string): Promise<void>;
@@ -45,6 +50,7 @@ export interface DiscoveryFs {
 }
 
 export interface ActionFs {
+  utimes(path: string, atime: Date | number, mtime: Date | number): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<string | undefined>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   rmdir(path: string): Promise<void>;

@@ -5,7 +5,7 @@ export type Effect =
   | { type: "renderDetail"; rowId: string; token: number }
   | { type: "exit"; result: unknown; after?: () => Promise<void> }
   | { type: "suspend"; fn: () => Promise<unknown>; resumeWith: (value: unknown) => ExplorerEvent }
-  | { type: "persistOrder"; orderedIds: string[] };
+  | { type: "persistOrder"; movedId: string; orderedIds: string[] };
 
 export type ExplorerEvent =
   | { type: "key"; key: KeypressEvent }

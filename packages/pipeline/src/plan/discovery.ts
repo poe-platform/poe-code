@@ -1,10 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import {
-  comparePlanReadiness,
-  discoverPlans,
-  formatPlanReadinessLabel
-} from "@poe-code/agent-harness-tools";
+import { discoverPlans, formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 import { UserError } from "@poe-code/user-error";
 import { parsePlan } from "./parser.js";
 import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
@@ -95,13 +91,6 @@ async function listPlanCandidates(
       const content = await fs.readFile(plan.absolutePath, "utf8");
       return countCompletedTasks(plan.displayPath, content, plan.readiness === "ready");
     })
-  );
-  candidates.sort(
-    (left, right) =>
-      comparePlanReadiness(
-        { readiness: left.ready ? "ready" : "draft" },
-        { readiness: right.ready ? "ready" : "draft" }
-      ) || left.path.localeCompare(right.path)
   );
   return candidates;
 }

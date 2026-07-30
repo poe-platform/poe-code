@@ -192,7 +192,7 @@ class ExplorerRuntime<R> {
       }
 
       if (effect.type === "persistOrder") {
-        this.track(this.persistOrder(effect.orderedIds, previousState.rows, ++this.reorderToken));
+        this.track(this.persistOrder(effect.movedId, effect.orderedIds, previousState.rows, ++this.reorderToken));
         continue;
       }
 
@@ -310,12 +310,14 @@ class ExplorerRuntime<R> {
   }
 
   private async persistOrder(
+    movedId: string,
     orderedIds: string[],
     previousRows: Row[],
     token: number
   ): Promise<void> {
     try {
       await this.config.reorder?.onReorder(orderedIds, {
+        movedId,
         refresh: this.runtimeHandles.refresh,
         toast: this.runtimeHandles.toast
       });

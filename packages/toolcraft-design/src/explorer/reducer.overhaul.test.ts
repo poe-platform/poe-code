@@ -30,6 +30,25 @@ describe("explorer overhaul reducer regressions", () => {
     expect(reordered[state.filtered[state.cursor]!]!.id).toBe("two");
   });
 
+  it("identifies the moved row when persisting a reorder", () => {
+    let state = step(
+      createInitialState(config({ reorder: { onReorder: () => undefined } }), { cols: 100, rows: 20 }),
+      { type: "rowsLoaded", rows }
+    ).state;
+    state = step(state, { type: "key", key: key("\u001b[B") }).state;
+
+    const reordered = step(state, {
+      type: "key",
+      key: { name: "up", ctrl: false, meta: false, shift: true }
+    });
+
+    expect(reordered.effects).toContainEqual({
+      type: "persistOrder",
+      movedId: "two",
+      orderedIds: ["two", "one", "three"]
+    });
+  });
+
   it("opens the action menu on Enter and preserves previous detail while loading", () => {
     const action = { id: "edit", label: "Edit", accelerator: "e", handler: () => undefined };
     let state = step(createInitialState(config({ actions: [action] }), { cols: 100, rows: 20 }), { type: "rowsLoaded", rows }).state;

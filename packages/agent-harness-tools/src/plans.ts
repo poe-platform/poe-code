@@ -84,9 +84,11 @@ function idFromPlanFileName(fileName: string): string | undefined {
   return stem;
 }
 
-async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map<string, string>> {
+type PlanFile = { absolutePath: string; updatedAt: number };
+
+async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map<string, PlanFile>> {
   const fileNames = await fs.readdir(directoryPath);
-  const pathsById = new Map<string, string>();
+  const filesById = new Map<string, PlanFile>();
 
   for (const fileName of fileNames) {
     const id = idFromPlanFileName(fileName);
@@ -97,15 +99,15 @@ async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map
     const absolutePath = path.join(directoryPath, fileName);
     const stat = await fs.stat(absolutePath);
     if (stat.isFile()) {
-      const existingPath = pathsById.get(id);
-      if (existingPath !== undefined) {
-        throw new Error(`Duplicate active plan identifier "${id}": ${existingPath} and ${absolutePath}`);
+      const existing = filesById.get(id);
+      if (existing !== undefined) {
+        throw new Error(`Duplicate active plan identifier "${id}": ${existing.absolutePath} and ${absolutePath}`);
       }
-      pathsById.set(id, absolutePath);
+      filesById.set(id, { absolutePath, updatedAt: stat.mtimeMs });
     }
   }
 
-  return pathsById;
+  return filesById;
 }
 
 function isPathWithin(basePath: string, targetPath: string): boolean {
@@ -152,7 +154,7 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
     return [];
   }
 
-  const [taskList, pathsById] = await Promise.all([
+  const [taskList, filesById] = await Promise.all([
     openPlanList(options),
     readPlanPaths(fs, resolvedDirectory)
   ]);
@@ -165,14 +167,21 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
       name: task.name,
       kind: planKind(task.metadata),
       readiness: parsePlanReadiness(task.metadata.readiness),
-      absolutePath: pathsById.get(task.id) ?? path.join(resolvedDirectory, `${task.id}.md`)
+      absolutePath: filesById.get(task.id)?.absolutePath ?? path.join(resolvedDirectory, `${task.id}.md`),
+      updatedAt: filesById.get(task.id)?.updatedAt ?? 0
     }))
     .filter((plan) => kindFilter === undefined || kindFilter.has(plan.kind))
     .map((plan) => ({
       ...plan,
       displayPath: displayPlanPath(plan.absolutePath, options.cwd, options.homeDir)
     }))
-    .sort(comparePlanReadiness);
+    .sort(
+      (left, right) =>
+        comparePlanReadiness(left, right) ||
+        right.updatedAt - left.updatedAt ||
+        left.displayPath.localeCompare(right.displayPath)
+    )
+    .map(({ updatedAt: _updatedAt, ...plan }) => plan);
 }
 
 export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {

@@ -22,6 +22,7 @@ function createDefaultFs(): DiscoveryFs {
       return {
         isFile: () => stat.isFile(),
         isDirectory: () => stat.isDirectory(),
+        atimeMs: stat.atimeMs,
         mtimeMs: stat.mtimeMs
       };
     },

@@ -7,13 +7,15 @@ function plan(kind: string, readiness: string, title: string): string {
 }
 
 describe("runGaslightDaemon", () => {
-  it("runs ready regular plans sequentially and excludes drafts and pipeline plans", async () => {
+  it("runs newest ready regular plans first and excludes drafts and pipeline plans", async () => {
     const volume = Volume.fromJSON({
       "/repo/docs/plans/01-first.md": plan("plan", "ready", "First"),
       "/repo/docs/plans/02-draft.md": plan("plan", "draft", "Draft"),
       "/repo/docs/plans/03-pipeline.md": plan("pipeline", "ready", "Pipeline"),
       "/repo/docs/plans/04-second.md": plan("plan", "ready", "Second")
     });
+    volume.utimesSync("/repo/docs/plans/01-first.md", new Date(2_000), new Date(2_000));
+    volume.utimesSync("/repo/docs/plans/04-second.md", new Date(1_000), new Date(1_000));
     const run = vi.fn().mockResolvedValue({ rounds: [], plans: [] });
     const controller = new AbortController();
 
@@ -98,6 +100,8 @@ describe("runGaslightDaemon", () => {
       "/repo/docs/plans/first.md": plan("plan", "ready", "First"),
       "/repo/docs/plans/second.md": plan("plan", "ready", "Second")
     });
+    volume.utimesSync("/repo/docs/plans/first.md", new Date(2_000), new Date(2_000));
+    volume.utimesSync("/repo/docs/plans/second.md", new Date(1_000), new Date(1_000));
     const controller = new AbortController();
     const onEvent = vi.fn();
     const run = vi

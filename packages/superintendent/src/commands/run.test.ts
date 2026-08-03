@@ -1478,6 +1478,11 @@ describe("superintendent run command", () => {
       "/home/test/plans/first.md": createDoc("codex"),
       "/home/test/plans/second.md": createDoc("claude-code")
     });
+    const stat = fs.stat.bind(fs);
+    vi.spyOn(fs, "stat").mockImplementation(async (filePath) => ({
+      ...(await stat(filePath)),
+      mtimeMs: filePath.endsWith("first.md") ? 2 : 1
+    }));
     const dashboardMock = createDashboardMock();
     const selectPrompt = vi.fn(async () => "/home/test/plans/second.md");
     const runLoopMock = vi.fn(async () => ({

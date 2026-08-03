@@ -8,7 +8,6 @@ import {
 import { POE_PROVIDER_ID } from "@poe-code/providers";
 import { isUserError } from "@poe-code/user-error";
 import type { CliContainer } from "../container.js";
-import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import { ReportedError, ValidationError, isSilentError } from "../errors.js";
 import { requireNonEmpty } from "../options.js";
 import {
@@ -86,7 +85,7 @@ export function registerAgentCommand(program: Command, container: CliContainer):
     .command("agent")
     .description("Run a one-shot Poe agent prompt.")
     .argument("<prompt>", "Prompt text to send")
-    .option("--model <model>", `Model identifier (default: ${DEFAULT_FRONTIER_MODEL})`)
+    .requiredOption("--model <model>", "Model identifier")
     .option("--api-key <key>", apiKeyFlagDescription("POE_API_KEY"))
     .action(async function (this: Command, prompt: string) {
       const flags = resolveCommandFlags(program);
@@ -114,7 +113,10 @@ export function registerAgentCommand(program: Command, container: CliContainer):
         | undefined;
 
       try {
-        const requestedModel = model ?? DEFAULT_FRONTIER_MODEL;
+        if (model === undefined) {
+          throw new ValidationError("--model is required.");
+        }
+        const requestedModel = model;
         await assertModelIsInCatalog(container, requestedModel, apiKey);
 
         const { createAgentSession } = await import("@poe-code/poe-agent");

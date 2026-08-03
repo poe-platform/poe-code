@@ -937,7 +937,7 @@ describe("SDK spawn()", () => {
     );
   });
 
-  it("uses the stored configured model for streaming agents", async () => {
+  it("ignores the stored configured model for streaming agents", async () => {
     const fs = createMemFs();
     await fs.writeFile(
       resolveConfigPath(homeDir),
@@ -973,7 +973,7 @@ describe("SDK spawn()", () => {
 
     expect(spawnStreaming).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: "openai/gpt-5.4"
+        model: undefined
       })
     );
   });

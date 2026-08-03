@@ -7,7 +7,6 @@ import {
 import { configMutation, fileMutation, type ConfigObject } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import { createProvider } from "./create-provider.js";
-import { DEFAULT_GOOSE_MODEL, GOOSE_MODELS, stripModelNamespace } from "../cli/constants.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { gooseAgent } from "@poe-code/agent-defs";
 import { serializeGooseMcpArgs } from "@poe-code/agent-spawn";
@@ -16,8 +15,6 @@ import type { ActiveProvider } from "../cli/commands/shared.js";
 type GooseConfigureContext = {
   env: CliEnvironment;
   provider: ActiveProvider;
-  model?: string;
-  modelContextLimits?: Record<string, number>;
 };
 
 type GooseUnconfigureContext = {
@@ -31,10 +28,6 @@ const GOOSE_SECRETS_FILE = "~/.config/goose/secrets.yaml";
 const CUSTOM_PROVIDER_API_KEY_ENV = "CUSTOM_POE_API_KEY";
 const GOOSE_FILE_SECRETS_ENV = { GOOSE_DISABLE_KEYRING: "1" };
 const HEALTH_CHECK_PROMPT = "Reply with exactly: GOOSE_OK";
-type GooseModelsResponse = {
-  data?: unknown;
-};
-
 export const GOOSE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "goose",
   summary: "Goose CLI",
@@ -81,14 +74,8 @@ export const GOOSE_INSTALL_DEFINITION: ServiceInstallDefinition = {
  * The models written into Goose's custom provider catalog: just the selected
  * model when configure resolved one, otherwise the offered defaults.
  */
-function gooseCatalogModels(model: string | undefined): readonly string[] {
-  return model ? [model] : GOOSE_MODELS;
-}
-
 function buildCustomProvider(
-  baseUrl: string,
-  model: string | undefined,
-  modelContextLimits: Record<string, number> = {}
+  baseUrl: string
 ): ConfigObject {
   return {
     name: CUSTOM_PROVIDER_ID,
@@ -97,113 +84,9 @@ function buildCustomProvider(
     description: "Poe OpenAI-compatible API",
     api_key_env: CUSTOM_PROVIDER_API_KEY_ENV,
     base_url: `${baseUrl}/chat/completions`,
-    models: gooseCatalogModels(model).map((name) => {
-      const contextLimit = resolveGooseModelContextLimit(name, modelContextLimits);
-      const entry: ConfigObject = { name };
-      if (contextLimit !== undefined) {
-        entry.context_limit = contextLimit;
-      }
-      return entry;
-    }),
     supports_streaming: true,
     requires_auth: true
   };
-}
-
-const GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS: Record<string, number> = {
-  "anthropic/claude-opus-4.7": 200_000,
-  "anthropic/claude-sonnet-4.6": 983_040,
-  "openai/gpt-5.3-codex": 128_000,
-  "openai/gpt-5.4-pro": 1_050_000,
-  "google/gemini-3.1-pro": 1_000_000
-};
-
-function resolveGooseModelContextLimit(
-  model: string,
-  modelContextLimits: Record<string, number>
-): number | undefined {
-  const stripped = stripModelNamespace(model);
-  const dynamicValue = modelContextLimits[model] ?? modelContextLimits[stripped];
-  if (typeof dynamicValue === "number" && Number.isFinite(dynamicValue) && dynamicValue > 0) {
-    return dynamicValue;
-  }
-  return GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model];
-}
-
-function extractGooseModelContextLimits(
-  response: GooseModelsResponse,
-  models: readonly string[]
-): Record<string, number> {
-  const entries = Array.isArray(response.data) ? response.data : [];
-  const wanted = new Map(models.map((model) => [stripModelNamespace(model), model]));
-  const limits: Record<string, number> = {};
-
-  for (const entry of entries) {
-    if (!entry || typeof entry !== "object") {
-      continue;
-    }
-
-    const rawId = (entry as { id?: unknown }).id;
-    const resolvedModel = typeof rawId === "string" ? wanted.get(rawId) : undefined;
-    if (!resolvedModel) {
-      continue;
-    }
-
-    const rawContextLength = (
-      entry as {
-        context_window?: { context_length?: unknown } | null;
-      }
-    ).context_window?.context_length;
-
-    if (
-      typeof rawContextLength !== "number" ||
-      !Number.isFinite(rawContextLength) ||
-      rawContextLength <= 0
-    ) {
-      continue;
-    }
-
-    limits[resolvedModel] = rawContextLength;
-  }
-
-  return limits;
-}
-
-async function fetchGooseModelContextLimits(input: {
-  apiBaseUrl: string;
-  apiKey: string;
-  models: readonly string[];
-  httpClient: (
-    url: string,
-    init?: { method?: string; headers?: Record<string, string> }
-  ) => Promise<{
-    ok: boolean;
-    status: number;
-    json(): Promise<unknown>;
-  }>;
-}): Promise<Record<string, number>> {
-  const response = await input.httpClient(`${input.apiBaseUrl}/models`, {
-    headers: {
-      Authorization: `Bearer ${input.apiKey}`
-    }
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch Poe model catalog for Goose configuration (status ${response.status}).`
-    );
-  }
-
-  const modelContextLimits = extractGooseModelContextLimits(
-    (await response.json()) as GooseModelsResponse,
-    input.models
-  );
-  for (const model of input.models) {
-    const fallback = GOOSE_MODEL_CONTEXT_LIMIT_FALLBACKS[model];
-    if (modelContextLimits[model] == null && fallback != null) {
-      modelContextLimits[model] = fallback;
-    }
-  }
-  return modelContextLimits;
 }
 
 const GOOSE_MODE_ENV: Record<string, string> = {
@@ -257,28 +140,6 @@ export const gooseService = createProvider<
   ...gooseAgent,
   supportsStdinPrompt: true,
   supportsMcpSpawn: true,
-  configurePrompts: {
-    model: {
-      label: "Goose default model",
-      defaultValue: DEFAULT_GOOSE_MODEL,
-      choices: GOOSE_MODELS.map((id) => ({
-        title: id,
-        value: id
-      }))
-    }
-  },
-  async extendConfigurePayload(context) {
-    const { provider, model } = context.payload as GooseConfigureContext;
-    const modelContextLimits = await fetchGooseModelContextLimits({
-      apiBaseUrl: provider?.baseUrl ?? "",
-      apiKey: provider?.credential ?? "",
-      models: gooseCatalogModels(model),
-      httpClient: context.httpClient
-    });
-    return {
-      modelContextLimits
-    };
-  },
   isolatedEnv: {
     agentBinary: gooseAgent.binaryName!,
     configProbe: { kind: "isolatedFile", relativePath: ".config/goose/config.yaml" },
@@ -296,19 +157,16 @@ export const gooseService = createProvider<
       configMutation.merge({
         target: CUSTOM_PROVIDER_FILE,
         value: (ctx) => {
-          const { provider, model, modelContextLimits } = (ctx ??
-            {}) as unknown as GooseConfigureContext;
-          return buildCustomProvider(provider?.baseUrl ?? "", model, modelContextLimits);
+          const { provider } = (ctx ?? {}) as unknown as GooseConfigureContext;
+          return buildCustomProvider(provider?.baseUrl ?? "");
         }
       }),
       configMutation.merge({
         target: GOOSE_CONFIG_FILE,
         format: "yaml",
-        value: (ctx) => {
-          const { model } = (ctx ?? {}) as unknown as GooseConfigureContext;
+        value: () => {
           return {
             GOOSE_PROVIDER: CUSTOM_PROVIDER_ID,
-            GOOSE_MODEL: model ?? DEFAULT_GOOSE_MODEL,
             GOOSE_DISABLE_KEYRING: true
           };
         }

@@ -1854,7 +1854,7 @@ describe("spawn command", () => {
     });
   });
 
-  it("uses the configured model for SDK spawn when --model is omitted", async () => {
+  it("ignores the configured model for SDK spawn when --model is omitted", async () => {
     await fs.writeFile(
       resolveConfigPath(homeDir),
       `${JSON.stringify({ models: { codex: "openai/gpt-5.4" } }, null, 2)}\n`,
@@ -1875,7 +1875,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
       args: [],
-      model: "openai/gpt-5.4",
+      model: undefined,
       mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -3514,7 +3514,7 @@ describe("spawn command", () => {
       expect(sdkSpawn).not.toHaveBeenCalled();
     });
 
-    it("uses the configured model for interactive spawn when --model is omitted", async () => {
+    it("ignores the configured model for interactive spawn when --model is omitted", async () => {
       vi.mocked(spawnInteractive).mockResolvedValue({
         stdout: "",
         stderr: "",
@@ -3541,7 +3541,7 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
         args: [],
-        model: "anthropic/claude-opus-4.7",
+        model: undefined,
         cwd: undefined,
         mode: "yolo",
         runtimeConfigCwd: cwd

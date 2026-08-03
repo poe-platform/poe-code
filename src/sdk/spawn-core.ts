@@ -1,10 +1,5 @@
 import chalk from "chalk";
-import {
-  formatAgentCapabilityError,
-  resolveAgentId,
-  parseAgentSpecifier
-} from "@poe-code/agent-defs";
-import { resolveConfigModel } from "@poe-code/poe-code-config";
+import { formatAgentCapabilityError } from "@poe-code/agent-defs";
 import { UserError } from "@poe-code/user-error";
 import type { CliContainer } from "../cli/container.js";
 import { ValidationError } from "../cli/errors.js";
@@ -188,27 +183,12 @@ export function assertUsableThreadId(threadId: string): void {
 }
 
 export async function resolveConfiguredModel(
-  container: Pick<CliContainer, "env" | "fs" | "registry">,
-  service: string,
+  _container: Pick<CliContainer, "env" | "fs" | "registry">,
+  _service: string,
   model?: string,
-  options: { readOnly?: boolean } = {}
+  _options: { readOnly?: boolean } = {}
 ): Promise<string | undefined> {
-  if (model != null) {
-    return model;
-  }
-
-  const { agent } = parseAgentSpecifier(service);
-  const agentId = container.registry.get(service)?.name ?? resolveAgentId(agent) ?? agent;
-  const configuredModel = await resolveConfigModel(
-    {
-      fs: container.fs,
-      filePath: container.env.configPath,
-      readOnly: options.readOnly
-    },
-    agentId
-  );
-
-  return configuredModel || undefined;
+  return model;
 }
 
 export function formatSpawnDryRunMessage(label: string, options: SpawnCommandOptions): string {

@@ -20,7 +20,7 @@ import type { CommandRunner } from "../../utils/command-checks.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type { PromptFn } from "../types.js";
 import { ValidationError } from "../errors.js";
-import { DEFAULT_CLAUDE_CODE_MODEL, PROVIDER_NAME } from "../constants.js";
+import { PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
 import { ensureIsolatedConfigForService } from "./ensure-isolated-config.js";
 import { parseToml } from "@poe-code/config-mutations/testing";
@@ -335,7 +335,7 @@ describe("configure provider resolution", () => {
 
     const program = createBaseProgram();
     registerConfigureCommand(program, container);
-    await program.parseAsync(["node", "cli", "configure", "codex", "--model", "openai/gpt-5"]);
+    await program.parseAsync(["node", "cli", "configure", "codex"]);
 
     expect(prompts).not.toHaveBeenCalled();
   });
@@ -473,7 +473,6 @@ describe("configure provider resolution", () => {
       executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
         provider: "cloudflare",
         apiKey: "sk-cloudflare-test",
-        model: "@cf/meta/llama-3.1-8b-instruct",
         baseUrl: "not-a-url"
       })
     ).rejects.toThrow('Provider "cloudflare" base URL must be an http(s) URL.');
@@ -500,7 +499,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
@@ -528,7 +526,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
@@ -629,45 +626,6 @@ describe("configure provider resolution", () => {
     expect(commandRunner.mock.calls.flatMap((call) => call[1])).not.toContain("sk-openai-env");
   });
 
-  it("writes the supplied Codex model without requiring a maintained default", async () => {
-    const commandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
-    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
-    const container = createContainer(
-      fs,
-      { OPENAI_API_KEY: "sk-openai-env" },
-      prompts,
-      commandRunner
-    );
-    const resolveModelSpy = vi.spyOn(container.options, "resolveModel");
-
-    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
-      provider: "openai",
-      model: "openai/gpt-5.4-codex"
-    });
-
-    expect(resolveModelSpy).not.toHaveBeenCalled();
-    const rawConfig = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
-    expect(rawConfig).toMatchInlineSnapshot(`
-      "model_provider = "openai"
-      forced_login_method = "api"
-      model = "gpt-5.4-codex"
-
-      [profiles.codex]
-      model = "gpt-5.4-codex"
-      model_provider = "openai"
-      "
-    `);
-    const document = parseToml(rawConfig);
-    expect(document.model_provider).toBe("openai");
-    expect(document.forced_login_method).toBe("api");
-    expect(document.model).toBe("gpt-5.4-codex");
-    expect(document.model_reasoning_effort).toBeUndefined();
-    expect(document.model_providers).toBeUndefined();
-    const profiles = document.profiles as Record<string, Record<string, unknown>>;
-    expect(profiles.codex?.model).toBe("gpt-5.4-codex");
-    expect(profiles.codex?.model_reasoning_effort).toBeUndefined();
-  });
-
   it("writes explicit Codex reasoning effort when supplied", async () => {
     const commandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
     const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
@@ -680,15 +638,13 @@ describe("configure provider resolution", () => {
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "openai",
-      model: "openai/gpt-5.4-codex",
       reasoningEffort: "high"
     });
 
     expect(prompts).not.toHaveBeenCalled();
     const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
     expect(document.model_reasoning_effort).toBe("high");
-    const profiles = document.profiles as Record<string, Record<string, unknown>>;
-    expect(profiles.codex?.model_reasoning_effort).toBe("high");
+    expect(document.profiles).toBeUndefined();
   });
 
   it("does not persist global codex configuration when isolated setup fails", async () => {
@@ -702,7 +658,6 @@ describe("configure provider resolution", () => {
       executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
         provider: "cloudflare",
         apiKey: "partial-secret",
-        model: "partial-model",
         baseUrl: "https://gateway.example.test"
       })
     ).rejects.toThrow();
@@ -718,7 +673,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl: "https://gateway.example.test"
     });
 
@@ -733,7 +687,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl: "https://gateway.example.test"
     });
 
@@ -746,7 +699,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl: "https://gateway.example.test"
     });
     await fs.unlink(`${homeDir}/.poe-code/codex/config.toml`);
@@ -759,7 +711,7 @@ describe("configure provider resolution", () => {
     });
 
     const document = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
-    expect(document.model).toBe("@cf/meta/llama-3.1-8b-instruct");
+    expect(document.model).toBeUndefined();
   });
 
   it("configures chat-completions agents against Cloudflare with a /compat base URL", async () => {
@@ -768,7 +720,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "kimi", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "workers-ai/@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
@@ -792,7 +743,6 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
-      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat"
     });
@@ -813,7 +763,6 @@ describe("configure provider resolution", () => {
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
-      model: "@cf/meta/llama-3.1-8b-instruct"
     });
 
     const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
@@ -1484,7 +1433,6 @@ describe("configure provider resolution", () => {
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
       provider: "poe",
-      model: "anthropic/claude-sonnet-4.6"
     });
 
     const settingsFile = `${homeDir}/.claude/settings.json`;
@@ -1519,7 +1467,6 @@ describe("configure provider resolution", () => {
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
       provider: "poe",
-      model: "anthropic/claude-sonnet-4.6"
     });
 
     lines.length = 0;
@@ -1534,7 +1481,6 @@ describe("configure provider resolution", () => {
     const output = lines.join("\n");
     expect(output).toContain("already configured");
     expect(output).not.toContain("would configure");
-    expect(output).not.toContain(DEFAULT_CLAUDE_CODE_MODEL);
   });
 
   it("explains that cursor writes no agent config files instead of only reporting success", async () => {

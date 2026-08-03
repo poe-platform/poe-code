@@ -7,11 +7,6 @@ import {
   fileMutation
 } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
-import {
-  CLAUDE_CODE_VARIANTS,
-  DEFAULT_CLAUDE_CODE_MODEL,
-  stripModelNamespace
-} from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type { CliEnvironment } from "../cli/environment.js";
 import type { ModelConfigureOptions } from "./spawn-options.js";
@@ -24,11 +19,7 @@ type ClaudeCodeConfigureContext = ModelConfigureOptions & {
   reasoningEffort?: string;
 };
 
-/** Catalog output_effort enum shared by the Claude models Poe exposes. */
 const CLAUDE_CODE_EFFORT_LEVELS = ["none", "low", "medium", "high", "max"];
-const CLAUDE_CODE_MODEL_EFFORT_LEVELS: Readonly<Record<string, ReadonlyArray<string>>> = {
-  [CLAUDE_CODE_VARIANTS.opus]: ["none", "low", "medium", "high", "xhigh", "max"]
-};
 
 type ClaudeCodeUnconfigureContext = {
   env: CliEnvironment;
@@ -66,21 +57,9 @@ export const claudeCodeService = createProvider<
   ...claudeCodeAgent,
   supportsStdinPrompt: true,
   configurePrompts: {
-    model: {
-      label: "Claude Code default model",
-      defaultValue: DEFAULT_CLAUDE_CODE_MODEL,
-      choices: Object.values(CLAUDE_CODE_VARIANTS).map((id) => ({
-        title: id,
-        value: id
-      })),
-      aliases: CLAUDE_CODE_VARIANTS,
-      strictChoices: true
-    },
     reasoningEffort: {
       label: "Claude Code reasoning effort",
-      levels: (model) =>
-        CLAUDE_CODE_MODEL_EFFORT_LEVELS[model ?? DEFAULT_CLAUDE_CODE_MODEL] ??
-        CLAUDE_CODE_EFFORT_LEVELS
+      levels: CLAUDE_CODE_EFFORT_LEVELS
     }
   },
   postConfigureMessages: [
@@ -103,7 +82,7 @@ export const claudeCodeService = createProvider<
   test(context) {
     return context.runCheck(
       createSpawnHealthCheck("claude-code", {
-        model: context.model ?? DEFAULT_CLAUDE_CODE_MODEL,
+        model: context.model,
         expectedOutput: "CLAUDE_CODE_OK"
       })
     );
@@ -130,7 +109,6 @@ export const claudeCodeService = createProvider<
               ...options.provider?.extraEnv,
               ANTHROPIC_BASE_URL: options.provider?.agentBaseUrl ?? options.provider?.baseUrl
             },
-            model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-"),
             ...(options.reasoningEffort === undefined
               ? {}
               : { effortLevel: options.reasoningEffort })

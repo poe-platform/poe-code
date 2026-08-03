@@ -15,21 +15,28 @@ export async function getApiKey(): Promise<string | null> {
   }
 
   try {
-    const { store } = createSecretStore({
+    const currentKey = await readStoredApiKey('credentials.poe.enc');
+    if (currentKey) {
+      return currentKey;
+    }
+    return await readStoredApiKey('credentials.enc');
+  } catch {
+    return null;
+  }
+}
+
+async function readStoredApiKey(defaultFileName: string): Promise<string | null> {
+  const { store } = createSecretStore({
       backendEnvVar: "POE_AUTH_BACKEND",
       env: process.env,
       platform: process.platform,
       fileStore: {
         salt: "poe-code:encrypted-file-auth-store:v1",
         defaultDirectory: ".poe-code",
-        defaultFileName: "credentials.enc"
+        defaultFileName
       }
     });
-    const storedKey = await store.get();
-    return normalizeApiKey(storedKey ?? undefined);
-  } catch {
-    return null;
-  }
+  return normalizeApiKey((await store.get()) ?? undefined);
 }
 
 export async function hasApiKey(): Promise<boolean> {

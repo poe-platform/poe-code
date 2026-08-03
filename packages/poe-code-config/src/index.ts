@@ -51,14 +51,6 @@ export {
   type PipelineCallbackFields
 } from "./merge-callbacks.js";
 export {
-  loadAgentModel,
-  loadDefaultModel,
-  resolveModel as resolveConfigModel,
-  saveAgentModel,
-  saveDefaultModel,
-  type ModelsConfigOptions
-} from "./models.js";
-export {
   cacheEnabled,
   configuredMemoryRoot,
   configuredTimeout,

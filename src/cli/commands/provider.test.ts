@@ -618,8 +618,7 @@ describe("provider login", () => {
       "https://gateway.example.test"
     ]);
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
-      provider: "cloudflare",
-      model: "@cf/meta/llama-3.1-8b-instruct"
+      provider: "cloudflare"
     });
 
     await program.parseAsync([
@@ -657,8 +656,7 @@ describe("provider login", () => {
       "https://old-gateway.example.test"
     ]);
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
-      provider: "cloudflare",
-      model: "@cf/meta/llama-3.1-8b-instruct"
+      provider: "cloudflare"
     });
 
     await program.parseAsync([

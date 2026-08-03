@@ -37,7 +37,7 @@ describe('getApiKey', () => {
     });
 
     await expect(credentials.getApiKey()).resolves.toBeNull();
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(2);
   });
 
   it('ignores a previously cached env API key when the current env value is blank', async () => {
@@ -54,7 +54,7 @@ describe('getApiKey', () => {
     });
 
     await expect(credentials.getApiKey()).resolves.toBeNull();
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(2);
   });
 
   it('re-reads a stored API key so credential removal takes effect', async () => {
@@ -70,7 +70,25 @@ describe('getApiKey', () => {
 
     await expect(credentials.getApiKey()).resolves.toBe('sk-stored');
     await expect(credentials.getApiKey()).resolves.toBeNull();
-    expect(createSecretStoreMock).toHaveBeenCalledTimes(2);
-    expect(get).toHaveBeenCalledTimes(2);
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(3);
+    expect(get).toHaveBeenCalledTimes(3);
+  });
+
+  it('prefers the current Poe provider credential over the legacy credential', async () => {
+    createSecretStoreMock.mockImplementation(({ fileStore }) => ({
+      store: {
+        get: vi.fn(async () =>
+          fileStore.defaultFileName === 'credentials.poe.enc' ? 'sk-current' : 'sk-revoked'
+        ),
+      },
+    }));
+    const credentials = await import('./credentials.js');
+
+    await expect(credentials.getApiKey()).resolves.toBe('sk-current');
+    expect(createSecretStoreMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileStore: expect.objectContaining({ defaultFileName: 'credentials.poe.enc' }),
+      }),
+    );
   });
 });

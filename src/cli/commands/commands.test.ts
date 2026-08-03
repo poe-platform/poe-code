@@ -131,7 +131,6 @@ describe("configure command", () => {
       ],
       provider: "poe",
       apiShape: "openai-chat-completions",
-      model: "anthropic/claude-opus-4.7"
     });
   });
 
@@ -160,7 +159,6 @@ describe("configure command", () => {
     await executeConfigure(program, container, service, {
       provider: "poe",
       apiKey: "preview-secret",
-      model: "test-model"
     });
 
     expect(logs.join("\n")).not.toContain("preview-secret");
@@ -176,7 +174,6 @@ describe("configure command", () => {
     await executeConfigure(program, container, "goose", {
       provider: "poe",
       apiKey: "preview-secret",
-      model: "test-model"
     });
 
     expect(httpClient).not.toHaveBeenCalled();
@@ -211,27 +208,15 @@ describe("configure command", () => {
     provider.configurePrompts = configurePrompts;
   }
 
-  it("uses provider-defined prompt metadata for configure flows", async () => {
+  it("uses provider-defined reasoning prompt metadata for configure flows", async () => {
     const { container } = createContainer();
     stubConfigurePrompts(container, "codex", {
-      model: {
-        label: "Custom Codex model",
-        defaultValue: "custom-model",
-        choices: [{ title: "Custom", value: "custom-model" }]
-      },
       reasoningEffort: {
         label: "Custom reasoning label",
         levels: ["extra"]
       }
     });
 
-    const resolveModel = vi
-      .spyOn(container.options, "resolveModel")
-      .mockImplementation(async (input) => {
-        expect(input.label).toBe("Custom Codex model");
-        expect(input.defaultValue).toBe("custom-model");
-        return input.defaultValue;
-      });
     const resolveReasoning = vi
       .spyOn(container.options, "resolveReasoning")
       .mockImplementation(async (input) => {
@@ -243,79 +228,7 @@ describe("configure command", () => {
 
     const program = createTestProgram();
     await executeConfigure(program, container, "codex", { reasoningEffort: "extra" });
-
-    expect(resolveModel).toHaveBeenCalled();
     expect(resolveReasoning).toHaveBeenCalled();
-  });
-
-  it("prefills the configure model prompt from stored agent config", async () => {
-    const { container } = createContainer();
-    stubConfigurePrompts(container, "codex", {
-      model: { label: "Codex model", defaultValue: "openai/gpt-5.4-codex" }
-    });
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
-    await fs.writeFile(
-      configPath,
-      `${JSON.stringify({ models: { codex: "openai/gpt-5.4" } }, null, 2)}\n`,
-      { encoding: "utf8" }
-    );
-
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value }) => value);
-
-    const resolveModel = vi
-      .spyOn(container.options, "resolveModel")
-      .mockImplementation(async (input) => {
-        expect(input.defaultValue).toBe("openai/gpt-5.4");
-        return input.defaultValue;
-      });
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "codex", {});
-
-    expect(resolveModel).toHaveBeenCalled();
-  });
-
-  it("prefills the configure model prompt from the stored global model config", async () => {
-    const { container } = createContainer();
-    stubConfigurePrompts(container, "codex", {
-      model: { label: "Codex model", defaultValue: "openai/gpt-5.4-codex" }
-    });
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
-    await fs.writeFile(
-      configPath,
-      `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.7" } }, null, 2)}\n`,
-      { encoding: "utf8" }
-    );
-
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value }) => value);
-
-    const resolveModel = vi
-      .spyOn(container.options, "resolveModel")
-      .mockImplementation(async (input) => {
-        expect(input.defaultValue).toBe("anthropic/claude-opus-4.7");
-        return input.defaultValue;
-      });
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "codex", {});
-
-    expect(resolveModel).toHaveBeenCalled();
-  });
-
-  it("resolves the model when configuring kimi", async () => {
-    const { container } = createContainer();
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-kimi");
-    const resolvedModel = "Kimi-Custom";
-    const resolveModel = vi
-      .spyOn(container.options, "resolveModel")
-      .mockResolvedValue(resolvedModel);
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "kimi", {});
-
-    expect(resolveModel).toHaveBeenCalled();
   });
 
   it("configures goose and stores its managed files", async () => {
@@ -343,126 +256,14 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/config.yaml`, "utf8")
     ) as Record<string, unknown>;
     expect(config.GOOSE_PROVIDER).toBe("custom_poe");
-    expect(config.GOOSE_MODEL).toBe("openai/gpt-5.4-pro");
+    expect(config.GOOSE_MODEL).toBeUndefined();
 
     const provider = JSON.parse(
       await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
-    expect(provider.models).toEqual([{ name: "openai/gpt-5.4-pro", context_limit: 1050000 }]);
-
-    const secrets = parseYaml(
-      await fs.readFile(`${homeDir}/.config/goose/secrets.yaml`, "utf8")
-    ) as Record<string, unknown>;
-    expect(secrets).toEqual({
-      CUSTOM_POE_API_KEY: "sk-goose"
-    });
-
-    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(content.configured_services.goose).toEqual({
-      files: [
-        `${homeDir}/.config/goose/config.yaml`,
-        `${homeDir}/.config/goose/custom_providers/custom_poe.json`,
-        `${homeDir}/.config/goose/secrets.yaml`
-      ],
-      provider: "poe",
-      apiShape: "openai-chat-completions",
-      model: "openai/gpt-5.4-pro"
-    });
-    expect(httpClient).toHaveBeenCalledWith(
-      "https://api.poe.com/v1/models",
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: "Bearer sk-goose"
-        })
-      })
-    );
-  });
-
-  it("uses fallback context limits when /v1/models does not provide the selected model", async () => {
-    const httpClient = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: [{ id: "gpt-5.4-pro", context_window: { context_length: 1050000 } }]
-      })
-    })) satisfies HttpClient;
-    const { container } = createContainer({ httpClient });
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-goose");
-    vi.spyOn(container.options, "resolveModel").mockResolvedValue("anthropic/claude-sonnet-4.6");
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "goose", {});
-
-    const provider = JSON.parse(
-      await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
-    ) as Record<string, unknown>;
-    expect(provider.models).toEqual([
-      { name: "anthropic/claude-sonnet-4.6", context_limit: 983_040 }
-    ]);
-  });
-
-  it("accepts --model option to set a model without prompting", async () => {
-    const { container } = createContainer();
-    const customModel = "Custom-Model";
-
-    const resolveModel = vi.spyOn(container.options, "resolveModel");
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "opencode", {
-      model: customModel
-    });
-
-    expect(resolveModel).toHaveBeenCalledWith(
-      expect.objectContaining({
-        value: customModel
-      })
-    );
-
-    const configPath = homeDir + "/.config/opencode/config.json";
-    const settings = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(settings.model).toBe(`poe/${customModel}`);
-  });
-
-  it("accepts the `claude` alias for Claude Code", async () => {
-    const { container } = createContainer();
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveModel").mockImplementation(
-      async ({ defaultValue }) => defaultValue
-    );
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "claude", { provider: "poe" });
-
-    const content = JSON.parse(await fs.readFile(configPath, "utf8"));
-    expect(content.configured_services["claude-code"]).toBeDefined();
-    expect(content.configured_services.claude).toBeUndefined();
-  });
-
-  it("prints a VSCode post-configure hint for Claude Code after configure", async () => {
-    const logs: string[] = [];
-    const { container } = createContainer({
-      logger: (message) => logs.push(message)
-    });
-
-    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    vi.spyOn(container.options, "resolveModel").mockImplementation(
-      async ({ defaultValue }) => defaultValue
-    );
-
-    const program = createTestProgram();
-    await executeConfigure(program, container, "claude-code", { provider: "poe" });
-
-    expect(logs).toEqual([
-      "configure claude-code",
-      "Poe anthropic-messages base URL: https://api.poe.com/anthropic",
-      "Claude Code base URL: https://api.poe.com",
-      "Configured Claude Code.",
-      "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt",
-      "Problems? https://github.com/poe-platform/poe-code/issues"
-    ]);
+    expect(provider.models).toBeUndefined();
   });
 
   it("prompts for an agent when core.defaultAgent is configured without --yes", async () => {
@@ -572,7 +373,6 @@ describe("configure command", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 });
-
 // ─── install command ─────────────────────────────────────────────────────────
 
 describe("install command", () => {
@@ -1824,7 +1624,6 @@ describe("unconfigure command", () => {
         ANTHROPIC_BASE_URL: "https://user.example.test",
         USER_SETTING: "keep"
       },
-      model: "user-model",
       theme: "keep"
     });
     await fs.mkdir(`${homeDir}/.claude`, { recursive: true });
@@ -1897,7 +1696,6 @@ describe("unconfigure command", () => {
       provider: "cloudflare",
       apiKey: "retained-isolated-secret",
       baseUrl: "https://gateway.example.test",
-      model: "cleanup-model",
       reasoningEffort: "high"
     });
     const originalGlobal = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");

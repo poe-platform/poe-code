@@ -4,7 +4,7 @@ import type { ScopedLogger } from "./logger.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandCheck } from "../utils/command-checks.js";
 import type { HttpClient } from "./http.js";
-import type { PromptLibrary, ModelPromptInput, ReasoningEffortInput } from "./prompts.js";
+import type { PromptLibrary, ReasoningEffortInput } from "./prompts.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { PromptFn } from "./types.js";
@@ -30,7 +30,6 @@ export interface ProviderBranding {
 }
 
 export interface ProviderConfigurePrompts {
-  model?: ModelPromptInput;
   reasoningEffort?: ReasoningEffortInput;
 }
 

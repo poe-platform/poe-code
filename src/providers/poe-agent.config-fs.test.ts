@@ -65,6 +65,7 @@ describe("poe-agent default config filesystem", () => {
     );
 
     const { done } = spawnPoeAgentWithAcp({
+      model: "test-model",
       prompt: "say hi",
       cwd: "/workspace/project",
       homeDir

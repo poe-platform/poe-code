@@ -5,24 +5,14 @@ import {
   isConfigObject
 } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
-import { DEFAULT_GEMINI_MODEL } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type { ModelConfigureOptions } from "./spawn-options.js";
 import { geminiCliAgent } from "@poe-code/agent-defs";
 import type { CliEnvironment } from "../cli/environment.js";
 import type { ActiveProvider } from "../cli/commands/shared.js";
-import type { ModelChoice } from "../cli/prompts.js";
 import { spawnAcp } from "@poe-code/agent-spawn";
 import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
 import type { SpawnCommandOptions } from "./spawn-options.js";
-
-const GOOGLE_MODELS_PATH = "v1beta/models";
-const FALLBACK_GEMINI_MODELS = [
-  "gemini-2.5-pro",
-  "gemini-2.5-flash",
-  "gemini-3-pro-preview",
-  "gemini-3-flash-preview"
-] as const;
 
 type GeminiConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
@@ -55,31 +45,6 @@ export const geminiCliService = createProvider<
   ...geminiCliAgent,
   supportsStdinPrompt: true,
   supportsMcpSpawn: true,
-  configurePrompts: {
-    model: {
-      label: "Gemini model",
-      defaultValue: DEFAULT_GEMINI_MODEL,
-      choices: async ({ httpClient, provider }) => {
-        try {
-          const response = await httpClient(buildGoogleModelsUrl(provider.baseUrl), {
-            headers: {
-              Authorization: `Bearer ${provider.credential}`
-            }
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          const choices = parseGoogleModelChoices(await response.json());
-          if (choices.length === 0) {
-            throw new Error("model list response did not include usable models");
-          }
-          return choices;
-        } catch {
-          return FALLBACK_GEMINI_MODELS.map((value) => ({ title: value, value }));
-        }
-      }
-    }
-  },
   runtimeEnv: {
     GEMINI_API_KEY: { kind: "providerCredential" },
     GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" }
@@ -108,8 +73,7 @@ export const geminiCliService = createProvider<
             "say GEMINI_OK",
             "--output-format",
             "text",
-            "--model",
-            context.model ?? DEFAULT_GEMINI_MODEL
+            ...(context.model ? ["--model", context.model] : [])
           ],
           env: { GEMINI_SANDBOX: "false" }
         }
@@ -168,11 +132,9 @@ export const geminiCliService = createProvider<
       }),
       configMutation.merge({
         target: "~/.gemini/settings.json",
-        value: (ctx) => {
-          const options = ctx as unknown as ModelConfigureOptions;
+        value: () => {
           return {
             security: { auth: { selectedType: "gemini-api-key" } },
-            model: { name: options.model ?? DEFAULT_GEMINI_MODEL },
             mcpServers: {}
           };
         }
@@ -242,47 +204,3 @@ export const geminiCliService = createProvider<
 });
 
 export const provider = geminiCliService;
-
-function buildGoogleModelsUrl(baseUrl: string): string {
-  return `${trimTrailingSlash(baseUrl)}/${GOOGLE_MODELS_PATH}`;
-}
-
-function trimTrailingSlash(value: string): string {
-  return value.endsWith("/") ? value.slice(0, -1) : value;
-}
-
-function parseGoogleModelChoices(payload: unknown): ReadonlyArray<ModelChoice> {
-  if (!isRecord(payload) || !Array.isArray(payload.models)) {
-    throw new Error("model list response did not include models");
-  }
-
-  const choices: ModelChoice[] = [];
-  for (const model of payload.models) {
-    if (
-      !isRecord(model) ||
-      typeof model.name !== "string" ||
-      !supportsGenerateContent(model.supportedGenerationMethods)
-    ) {
-      continue;
-    }
-    const value = stripModelsPrefix(model.name);
-    choices.push({
-      title: value,
-      value
-    });
-  }
-  return choices;
-}
-
-function supportsGenerateContent(value: unknown): boolean {
-  return Array.isArray(value) && value.includes("generateContent");
-}
-
-function stripModelsPrefix(value: string): string {
-  const prefix = "models/";
-  return value.startsWith(prefix) ? value.slice(prefix.length) : value;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}

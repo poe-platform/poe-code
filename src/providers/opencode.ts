@@ -1,8 +1,4 @@
-import {
-  DEFAULT_FRONTIER_MODEL,
-  FRONTIER_MODELS,
-  PROVIDER_NAME
-} from "../cli/constants.js";
+import { PROVIDER_NAME } from "../cli/constants.js";
 import {
   createBinaryExistsCheck,
   createSpawnHealthCheck,
@@ -27,8 +23,8 @@ import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
  * catalog ids verbatim, so a catalog id like `anthropic/claude-opus-4.7` becomes
  * `poe/anthropic/claude-opus-4.7`. Case is significant; the id is passed through as-is.
  */
-function providerModel(model?: string): string {
-  const value = model ?? DEFAULT_FRONTIER_MODEL;
+function providerModel(model: string): string {
+  const value = model;
   const prefix = `${PROVIDER_NAME}/`;
   return value.startsWith(prefix) ? value : `${prefix}${value}`;
 }
@@ -52,7 +48,7 @@ export const OPEN_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
 };
 
 function getModelArgs(model?: string): string[] {
-  return ["--model", providerModel(model)];
+  return model ? ["--model", providerModel(model)] : [];
 }
 
 async function ensureHealthWorkspace(context: ProviderContext): Promise<string> {
@@ -100,24 +96,13 @@ export const openCodeService = createProvider({
   configurationLabel: "OpenCode CLI",
   supportsStdinPrompt: false,
   supportsMcpSpawn: true,
-  configurePrompts: {
-    model: {
-      label: "OpenCode model",
-      defaultValue: DEFAULT_FRONTIER_MODEL,
-      choices: FRONTIER_MODELS.map((id) => ({
-        title: id,
-        value: id
-      }))
-    }
-  },
   isolatedEnv: openCodeIsolatedEnv,
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.config/opencode" }),
       configMutation.transform({
         target: "~/.config/opencode/config.json",
-        transform: (document, ctx) => {
-          const { model } = (ctx ?? {}) as { model?: string };
+        transform: (document) => {
           const enabledProviders = Array.isArray(document.enabled_providers)
             ? document.enabled_providers.filter((value): value is string => typeof value === "string")
             : [];
@@ -127,7 +112,6 @@ export const openCodeService = createProvider({
           const content: ConfigObject = {
             ...document,
             $schema: "https://opencode.ai/config.json",
-            model: providerModel(model),
             enabled_providers: nextEnabledProviders
           };
           return {
@@ -190,7 +174,7 @@ export const openCodeService = createProvider({
     return context.runCheck(
       createSpawnHealthCheck("opencode", {
         expectedOutput: "OPEN_CODE_OK",
-        model: providerModel(context.model),
+        model: context.model ? providerModel(context.model) : undefined,
         invocation: {
           command: "opencode",
           args: [
@@ -199,8 +183,7 @@ export const openCodeService = createProvider({
             "--pure",
             "--format",
             "json",
-            "--model",
-            providerModel(context.model),
+            ...(context.model ? ["--model", providerModel(context.model)] : []),
             "--dir",
             healthDir
           ]

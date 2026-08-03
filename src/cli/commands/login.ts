@@ -171,7 +171,6 @@ async function reconfigureServices(input: ReconfigureServicesInput): Promise<voi
         explicitBaseUrl: metadata.baseUrl,
         explicitShapeBaseUrls: parseProviderShapeBaseUrls(provider, metadata.shapeBaseUrl ?? [])
       }),
-      ...(metadata.model ? { model: metadata.model } : {}),
       ...(metadata.reasoningEffort ? { reasoningEffort: metadata.reasoningEffort } : {})
     };
 

@@ -1,7 +1,6 @@
 import fsPromises from "node:fs/promises";
 import os from "node:os";
 import { randomUUID } from "node:crypto";
-import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import type {
   AcpEvent,
   McpSpawnConfig,
@@ -765,7 +764,10 @@ async function runPoeAgentAcpLifecycle(
       `Unknown poe-agent thread "${options.resumeThreadId}". Sessions are stored in ~/.poe-code/sessions.`
     );
   }
-  const model = options.model ?? persistedSession?.model ?? DEFAULT_FRONTIER_MODEL;
+  const model = options.model ?? persistedSession?.model;
+  if (!model) {
+    throw new Error("poe-agent requires an explicit model.");
+  }
 
   const transport = createInMemoryAcpTransport({
     model,

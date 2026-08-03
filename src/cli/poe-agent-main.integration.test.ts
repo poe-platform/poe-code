@@ -76,7 +76,7 @@ describe("poe-agent CLI integration", () => {
     );
   });
 
-  it("lets --model override agent.model from config", async () => {
+  it("uses an explicit model even when obsolete model config exists", async () => {
     await expect(
       runProgram(["--model", "nonexistent-model", "Test prompt"], {
         agent: {
@@ -101,9 +101,9 @@ describe("poe-agent CLI integration", () => {
     );
   });
 
-  it("requires --model in --yes mode when agent.model is not configured", async () => {
+  it("requires --model in --yes mode", async () => {
     await expect(runProgram(["--yes", "Test prompt"])).rejects.toThrow(
-      "Error: --model is required in non-interactive mode (--yes) and no agent.model is configured."
+      "Error: --model is required in non-interactive mode (--yes)."
     );
   });
 });

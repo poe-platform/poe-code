@@ -83,7 +83,7 @@ async function runChecks(
 
   return [
     await checkAuth(container, credential),
-    checkConfiguredAgents(services, catalog),
+    checkConfiguredAgents(services),
     { name: "models", ok: catalog.ok, detail: catalog.detail },
     await checkRuntimes(services, resources)
   ];
@@ -164,7 +164,7 @@ async function fetchModelCatalog(
   }
 }
 
-function checkConfiguredAgents(services: ConfiguredServices, catalog: ModelCatalog): DoctorCheck {
+function checkConfiguredAgents(services: ConfiguredServices): DoctorCheck {
   const entries = Object.entries(services);
   if (entries.length === 0) {
     return {
@@ -174,37 +174,14 @@ function checkConfiguredAgents(services: ConfiguredServices, catalog: ModelCatal
     };
   }
 
-  let stale = false;
-  const labels = entries.map(([service, metadata]) => {
-    const model = metadata.model?.trim();
-    if (!model) {
-      return `${service} (no model)`;
-    }
-    if (isMissingFromCatalog(metadata, model, catalog)) {
-      stale = true;
-      return `${service} → ${model} (not in the Poe model catalog)`;
-    }
-    return `${service} → ${model}`;
-  });
+  const labels = entries.map(([service]) => service);
 
   const detail = labels.join(", ");
   return {
     name: "agents",
-    ok: !stale,
-    detail: stale ? `${detail}. Re-run "poe-code configure <agent> --model <id>".` : detail
+    ok: true,
+    detail
   };
-}
-
-/**
- * Only agents pointed at the catalog's own provider can be checked against it: a model id
- * configured for any other provider is not expected to appear in the Poe catalog.
- */
-function isMissingFromCatalog(
-  metadata: ConfiguredServiceMetadata,
-  model: string,
-  catalog: ModelCatalog
-): boolean {
-  return catalog.ok && metadata.provider === POE_PROVIDER_ID && !catalog.ids.has(model.toLowerCase());
 }
 
 async function checkRuntimes(

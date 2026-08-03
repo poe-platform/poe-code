@@ -141,7 +141,7 @@ describe("ensureIsolatedConfigForService — provider resolution", () => {
     await expect(fs.readFile(container.env.configPath, "utf8")).resolves.toBe(legacyConfig);
   });
 
-  it("recreates missing isolated codex config with its stored model preferences", async () => {
+  it("recreates missing isolated codex config without applying stored model metadata", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
     vi.spyOn(container.options, "resolveModel").mockImplementation(async ({ value, defaultValue }) => value ?? defaultValue);
@@ -167,7 +167,7 @@ describe("ensureIsolatedConfigForService — provider resolution", () => {
     });
 
     const document = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
-    expect(document.model).toBe("configured-codex");
+    expect(document.model).toBeUndefined();
     expect(document.model_reasoning_effort).toBe("high");
   });
 });

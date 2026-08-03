@@ -17,7 +17,6 @@ vi.mock("toolcraft-design", async (importOriginal) => {
     getTheme: getThemeMock
   };
 });
-
 function createIdentityTheme() {
   return {
     header: (t: string) => t,
@@ -179,7 +178,6 @@ describe("doctor command", () => {
     const output = logs.join("\n");
     expect(output).toContain("Logged in as Kamil Jopek (@kamil)");
     expect(output).toContain("claude-code");
-    expect(output).toContain("Claude-Sonnet-4.5");
     expect(output).toContain("1 model available");
     expect(output).toContain("claude");
     expect(output).not.toContain("fail");
@@ -210,28 +208,6 @@ describe("doctor command", () => {
 
     const output = logs.join("\n");
     expect(output).toContain("HTTP 503");
-    expect(process.exitCode).toBe(1);
-  });
-
-  it("fails the agents row when a configured model is missing from the catalog", async () => {
-    await storeTestApiKey(fs, homeDir, "sk-test");
-    await saveConfiguredService({
-      fs,
-      filePath: configPath,
-      service: "claude-code",
-      metadata: { files: [], provider: "poe", model: "Fable" }
-    });
-
-    const program = createDoctorProgram({
-      httpClient: createHttpClient({}),
-      commandRunner: createCommandRunner(["claude"])
-    });
-
-    await program.parseAsync(["node", "cli", "doctor"]);
-
-    const output = logs.join("\n");
-    expect(output).toContain("Fable");
-    expect(output).toContain("not in the Poe model catalog");
     expect(process.exitCode).toBe(1);
   });
 

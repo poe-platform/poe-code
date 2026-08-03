@@ -117,7 +117,7 @@ describe("executeLogin", () => {
     expect(invokedNames).toContain("codex");
   });
 
-  it("preserves stored codex model preferences while rotating Poe credentials", async () => {
+  it("does not restore obsolete codex model preferences while rotating Poe credentials", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-new");
     vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
@@ -138,9 +138,9 @@ describe("executeLogin", () => {
 
     const globalConfig = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
     const isolatedConfig = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
-    expect(globalConfig.model).toBe("configured-codex");
+    expect(globalConfig.model).toBeUndefined();
     expect(globalConfig.model_reasoning_effort).toBe("high");
-    expect(isolatedConfig.model).toBe("configured-codex");
+    expect(isolatedConfig.model).toBeUndefined();
     expect(isolatedConfig.model_reasoning_effort).toBe("high");
   });
 

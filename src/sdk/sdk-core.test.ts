@@ -452,7 +452,7 @@ describe("spawnCore", () => {
     ).resolves.toBe("google/gemini-3-pro");
   });
 
-  it("falls back to the global configured model when no agent override exists", async () => {
+  it("ignores the global configured model when no explicit model exists", async () => {
     await fs.writeFile(
       resolveConfigPath(homeDir),
       `${JSON.stringify({ models: { default: "anthropic/claude-opus-4.7" } }, null, 2)}\n`,
@@ -461,9 +461,7 @@ describe("spawnCore", () => {
 
     const { container } = createContainerWithDependencies({ fs });
 
-    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
-      "anthropic/claude-opus-4.7"
-    );
+    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBeUndefined();
   });
 
   it("leaves the model unset when no explicit or configured model exists", async () => {
@@ -519,7 +517,7 @@ describe("spawnCore", () => {
     });
   });
 
-  it("uses the configured model when no explicit model is provided", async () => {
+  it("does not pass the configured model when no explicit model is provided", async () => {
     const { runner, calls } = createCommandRunnerStub({
       stdout: "",
       stderr: "",
@@ -543,7 +541,7 @@ describe("spawnCore", () => {
 
     expect(calls.length).toBeGreaterThan(0);
     const lastCall = calls[calls.length - 1];
-    expect(lastCall.args).toContain("poe/openai/gpt-5.4");
+    expect(lastCall.args).not.toContain("poe/openai/gpt-5.4");
   });
 
   it("passes prompt and args to provider", async () => {

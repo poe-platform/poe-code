@@ -80,7 +80,6 @@ export async function ensureIsolatedConfigForService(input: {
     container,
     flags: { ...flags, assumeYes: true },
     options: {
-      model: metadata?.model,
       reasoningEffort: metadata?.reasoningEffort,
       baseUrl: metadata?.baseUrl,
       shapeBaseUrl: metadata?.shapeBaseUrl,

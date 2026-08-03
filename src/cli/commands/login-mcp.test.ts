@@ -4,7 +4,6 @@ import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandRunner } from "../../utils/command-checks.js";
-import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace } from "../constants.js";
 import { createSecretStore } from "auth-store";
 import { resolveApiKeyViaOAuth } from "../oauth-login.js";
 import { checkAuth } from "poe-oauth";
@@ -250,7 +249,7 @@ describe("login command", () => {
     expect(settings.apiKeyHelper).toBeUndefined();
     expect(settings.env.ANTHROPIC_API_KEY).toBe(NEW_KEY);
     expect(settings.env.ANTHROPIC_CUSTOM_HEADERS).toBeUndefined();
-    expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-"));
+    expect(settings.model).toBe("claude-sonnet-4.6");
   });
 
   it("uses OAuth flow by default", async () => {

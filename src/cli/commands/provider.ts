@@ -587,7 +587,6 @@ async function refreshConfiguredServicesForProvider(input: {
     const adapter = resolveServiceAdapter(input.container, service);
     const providerContext = createProviderContextWithFileSystem(input.container, adapter, input.resources, input.fs);
     const options: ConfigureCommandOptions = {
-      model: metadata.model,
       reasoningEffort: metadata.reasoningEffort,
       baseUrl: metadata.baseUrl,
       shapeBaseUrl: metadata.shapeBaseUrl,

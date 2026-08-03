@@ -1,5 +1,4 @@
 import { cursorAgent } from "@poe-code/agent-defs";
-import { DEFAULT_CURSOR_MODEL } from "../cli/constants.js";
 import { createBinaryExistsCheck, createSpawnHealthCheck } from "../utils/command-checks.js";
 import type { ServiceInstallDefinition } from "../services/service-install.js";
 import { createProvider } from "./create-provider.js";
@@ -36,7 +35,7 @@ export const cursorService = createProvider({
   test(context) {
     return context.runCheck(
       createSpawnHealthCheck("cursor", {
-        model: context.model ?? DEFAULT_CURSOR_MODEL,
+        model: context.model,
         expectedOutput: "CURSOR_OK",
         hooks: context.hooks
       })

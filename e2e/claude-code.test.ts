@@ -16,7 +16,7 @@ describe('claude-code', () => {
     await expect(container).toHaveFile(`${container.home}/.claude/settings.json`);
     const raw = await container.readFile(`${container.home}/.claude/settings.json`);
     const config = JSON.parse(raw);
-    expect(config).toHaveProperty('env.ANTHROPIC_CUSTOM_HEADERS');
+    expect(config).not.toHaveProperty('env.ANTHROPIC_CUSTOM_HEADERS');
     expect(config).toHaveProperty('env.ANTHROPIC_BASE_URL');
 
     const testResult = await container.exec('poe-code test claude-code');

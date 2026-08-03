@@ -16,7 +16,7 @@ describe('opencode', () => {
     await expect(container).toHaveFile(`${container.home}/.config/opencode/config.json`);
     const raw = await container.readFile(`${container.home}/.config/opencode/config.json`);
     const config = JSON.parse(raw);
-    expect(config).toHaveProperty('model');
+    expect(config).not.toHaveProperty('model');
     expect(config).toHaveProperty('enabled_providers');
 
     await expect(container).toHaveFile(`${container.home}/.local/share/opencode/auth.json`);

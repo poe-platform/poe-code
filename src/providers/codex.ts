@@ -45,18 +45,6 @@ export function deriveCodexProfileName(model: string): string {
   return stripped;
 }
 
-function resolveCodexConfigModel(model: string, provider: ActiveProvider): string {
-  return provider.modelInput?.kind === "freeform" ? model : stripModelNamespace(model);
-}
-
-function resolveOptionalCodexText(value: unknown): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  const text = value.trim();
-  return text.length > 0 ? text : undefined;
-}
-
 function isCodexBuiltInProvider(providerId: string | undefined): boolean {
   return providerId === CODEX_OPENAI_PROVIDER_ID;
 }
@@ -207,14 +195,6 @@ const baseCodexService = createProvider<CodexConfigureContext, CodexUnconfigureC
       levels: CODEX_EFFORT_LEVELS
     }
   },
-  extendConfigurePayload({ commandOptions, logger }) {
-    const model = resolveOptionalCodexText(commandOptions.model);
-    if (model === undefined) {
-      return undefined;
-    }
-    logger.resolved("Codex model", model);
-    return { model };
-  },
   isolatedEnv: {
     agentBinary: codexAgent.binaryName!,
     configProbe: { kind: "isolatedFile", relativePath: "config.toml" },
@@ -249,11 +229,6 @@ const baseCodexService = createProvider<CodexConfigureContext, CodexUnconfigureC
         templateId: "codex/config.toml.mustache",
         context: (ctx) => {
           const options = ctx as unknown as CodexConfigureContext;
-          const requestedModel = resolveOptionalCodexText(options.model);
-          const model =
-            requestedModel === undefined
-              ? undefined
-              : resolveCodexConfigModel(requestedModel, options.provider);
           const templateContext: ConfigObject = {
             apiKey: options.provider?.credential,
             baseUrl: options.provider?.baseUrl ?? "",
@@ -265,10 +240,6 @@ const baseCodexService = createProvider<CodexConfigureContext, CodexUnconfigureC
           }
           if (options.reasoningEffort !== undefined) {
             templateContext["reasoningEffort"] = options.reasoningEffort;
-          }
-          if (model !== undefined) {
-            templateContext["model"] = model;
-            templateContext["profileName"] = deriveCodexProfileName(model);
           }
           return templateContext;
         }

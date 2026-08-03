@@ -1,19 +1,12 @@
 import fs from "node:fs";
-import {
-  DEFAULT_CLAUDE_CODE_MODEL,
-  DEFAULT_CODEX_MODEL,
-  DEFAULT_FRONTIER_MODEL
-} from "../../src/cli/constants.js";
-
 type ProviderMetadata = {
   service: string;
-  model: string;
 };
 
 const PROVIDERS = new Map<string, ProviderMetadata>([
-  ["claude-code", { service: "claude-code", model: DEFAULT_CLAUDE_CODE_MODEL }],
-  ["codex", { service: "codex", model: DEFAULT_CODEX_MODEL }],
-  ["opencode", { service: "opencode", model: DEFAULT_FRONTIER_MODEL }]
+  ["claude-code", { service: "claude-code" }],
+  ["codex", { service: "codex" }],
+  ["opencode", { service: "opencode" }]
 ]);
 
 type RequiredEnvName = "LABEL_NAME" | "ISSUE_NUMBER" | "GITHUB_OUTPUT";
@@ -127,11 +120,9 @@ function main(): void {
   const provider = resolveProvider(label);
   const labels = parseLabels(process.env.ISSUE_LABELS);
   const modelOverride = extractModelOverride(labels);
-  const resolvedModel = modelOverride ?? provider.model;
   emitOutputs({
     service: provider.service,
-    default_model: provider.model,
-    model: resolvedModel,
+    ...(modelOverride ? { model: modelOverride } : {}),
     model_override: modelOverride ?? "",
     branch: buildBranch(provider.service, issueNumber),
     pr_label: resolvePrLabel(label, provider.service),

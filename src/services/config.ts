@@ -117,11 +117,6 @@ export const experimentConfigScope = defineScope("experiment", {
 export const planConfigScope = sharedPlanConfigScope;
 
 export const agentConfigScope = defineScope("agent", {
-  model: {
-    type: "string",
-    default: "",
-    doc: "Default model identifier for the standalone poe-agent CLI."
-  },
   plugins: {
     type: "json",
     default: null as PluginConfigEntry[] | null,

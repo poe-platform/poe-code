@@ -5,12 +5,10 @@ import { Command } from "commander";
 import { renderAcpStream } from "@poe-code/agent-spawn";
 import { log } from "toolcraft-design";
 import {
-  createConfigStore,
   resolveConfigPath,
   resolveProjectConfigPath
 } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
-import { agentConfigScope } from "../services/config.js";
 import { FEEDBACK_URL } from "./constants.js";
 import { ValidationError } from "./errors.js";
 import { parseMcpSpawnConfig, resolveMcpSpawnInput } from "./mcp-spawn-config.js";
@@ -73,19 +71,11 @@ async function runPoeAgentCommand(options: {
   const mcpServers = parseMcpSpawnConfig(mcpInput);
   const cwdOverride = resolveWorkingDirectory(options.baseDir, options.commandOptions.cwd);
   const cwd = cwdOverride ?? options.baseDir;
-  const configStore = createConfigStore({
-    fs: options.fs as unknown as Parameters<typeof createConfigStore>[0]["fs"],
-    filePath: resolveConfigPath(options.homeDir),
-    projectFilePath: resolveProjectConfigPath(cwd)
-  });
-  const configuredModel = (await configStore.scope(agentConfigScope).get("model")).trim();
-  const model =
-    options.commandOptions.model ??
-    (options.commandOptions.resumeThreadId ? undefined : configuredModel || undefined);
+  const model = options.commandOptions.model;
 
   if (options.commandOptions.yes && !options.commandOptions.resumeThreadId && !model) {
     throw new ValidationError(
-      "Error: --model is required in non-interactive mode (--yes) and no agent.model is configured."
+      "Error: --model is required in non-interactive mode (--yes)."
     );
   }
 

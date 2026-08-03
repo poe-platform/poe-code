@@ -6,16 +6,15 @@ Utilities for reading and writing scoped `poe-code` configuration.
 
 For a resolved field, values are applied in this order:
 
-1. CLI flags such as `--model`
+1. CLI flags
 2. Environment variables declared by the field schema
 3. Project config in `<cwd>/.poe-code/config.json`
 4. Global config in `~/.poe-code/config.json`
 5. Schema defaults
-6. Constants in callers
 
 This package is responsible for merging global and project config documents, then
 resolving schema-declared environment variables over the merged file value. CLI
-flags and caller-specific constants are applied outside this package.
+CLI flags are applied outside this package.
 
 ## Config locations
 
@@ -104,17 +103,6 @@ Project config is read as an override on top of global config.
 - Missing or `undefined` project keys do not remove global values.
 - If the project config path resolves to the global config path, only the global document is read and no self-merge is attempted.
 - Project config reads auto-extend from the global config directory, but self-discovered optional bases are ignored by `@poe-code/config-extends`.
-
-Example:
-
-```json
-{
-  "models": {
-    "default": "<model-id>",
-    "codex": "<model-id>"
-  }
-}
-```
 
 ## `createConfigStore`
 

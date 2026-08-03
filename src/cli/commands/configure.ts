@@ -3,7 +3,7 @@ import path from "node:path";
 import { setHelpGuidance } from "./help-guidance.js";
 import type { Stats } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { parseAgentSpecifier, type AgentDefinition } from "@poe-code/agent-defs";
+import type { AgentDefinition } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import { resolveApiShape, type ApiShapeId, type AuthProvider } from "@poe-code/providers";
 import {
@@ -74,7 +74,6 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .option("-y, --yes", "Accept defaults, skip prompts")
     .option("--api-key <key>", "Poe API key")
     .option("--base-url <url>", "Base URL for the resolved provider API shape")
-    .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
     .option("--provider <id>", "Provider to use for this agent")
     .option(
@@ -97,13 +96,12 @@ export function registerConfigureCommand(program: Command, container: CliContain
   setHelpGuidance(configureCommand, {
     examples: [
       "poe-code configure",
-      "poe-code configure claude --model Claude-Sonnet-4.5 --yes",
       "poe-code configure codex --reasoning-effort medium --yes",
       "poe-code configure claude --dry-run",
       "poe-code configure claude --skip-if-configured --yes"
     ],
     notes: [
-      "Omit the agent to pick agent and model interactively; --yes takes defaults.",
+      "Omit the agent to pick an agent interactively; --yes accepts configuration defaults.",
       "--dry-run reports the planned config changes without writing them."
     ]
   });

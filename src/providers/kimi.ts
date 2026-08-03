@@ -8,7 +8,7 @@ import {
   type ConfigObject
 } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
-import { KIMI_MODELS, DEFAULT_KIMI_MODEL, PROVIDER_NAME, stripModelNamespace } from "../cli/constants.js";
+import { PROVIDER_NAME } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type {
   ProviderSpawnOptions,
@@ -36,13 +36,8 @@ export const KIMI_INSTALL_DEFINITION: ServiceInstallDefinition = {
   successMessage: "Installed Kimi CLI via uv."
 };
 
-function providerModel(model: string): string {
-  const stripped = stripModelNamespace(model);
-  return `${PROVIDER_NAME}/${stripped}`;
-}
-
-function buildKimiArgs(prompt: string, extraArgs?: string[]): string[] {
-  return ["--quiet", "-p", prompt, ...(extraArgs ?? [])];
+function buildKimiArgs(prompt: string, model?: string, extraArgs?: string[]): string[] {
+  return ["--quiet", "-p", prompt, ...(model ? ["--model", model] : []), ...(extraArgs ?? [])];
 }
 
 export const kimiService = createProvider<
@@ -53,16 +48,6 @@ export const kimiService = createProvider<
   ...kimiAgent,
   disabled: false,
   supportsStdinPrompt: false,
-  configurePrompts: {
-    model: {
-      label: "Kimi default model",
-      defaultValue: DEFAULT_KIMI_MODEL,
-      choices: KIMI_MODELS.map((id) => ({
-        title: id,
-        value: id
-      }))
-    }
-  },
   isolatedEnv: {
     // Use "kimi-cli" to avoid stripAgentHome stripping ".kimi" from paths
     agentBinary: "kimi-cli",
@@ -94,30 +79,11 @@ export const kimiService = createProvider<
       configMutation.transform({
         target: "~/.kimi/config.toml",
         transform: (document, ctx) => {
-          const { model, provider } = (ctx ?? {}) as {
-            model?: string;
+          const { provider } = (ctx ?? {}) as {
             provider?: ActiveProvider;
           };
-          const selectedModel = model ?? DEFAULT_KIMI_MODEL;
-
-          const models: ConfigObject = {};
-          for (const m of KIMI_MODELS) {
-            models[providerModel(m)] = {
-              provider: PROVIDER_NAME,
-              model: stripModelNamespace(m),
-              max_context_size: 256000
-            };
-          }
-
-          const existingModels = toConfigObject(document.models);
-          const retainedModels = Object.fromEntries(
-            Object.entries(existingModels).filter(([, entry]) => !isPoeModel(entry))
-          );
           const content: ConfigObject = {
             ...document,
-            default_model: providerModel(selectedModel),
-            default_thinking: true,
-            models: { ...retainedModels, ...models },
             providers: {
               ...toConfigObject(document.providers),
               [PROVIDER_NAME]: {
@@ -176,7 +142,7 @@ export const kimiService = createProvider<
   },
   install: KIMI_INSTALL_DEFINITION,
   spawn(context, options) {
-    const args = buildKimiArgs(options.prompt, options.args);
+    const args = buildKimiArgs(options.prompt, options.model, options.args);
     if (options.cwd) {
       return context.command.runCommand("kimi", args, {
         cwd: options.cwd

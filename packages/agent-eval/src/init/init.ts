@@ -137,7 +137,7 @@ function renderEvalYaml(opts: InitOptions, targetRepo: string): string {
       },
       judge: {
         agent: "claude-code",
-        model: "anthropic/claude-opus-4.7",
+        model: "<model-id>",
         rubric: ["completeness", "spec_adherence", "code_quality"]
       },
       weights: {

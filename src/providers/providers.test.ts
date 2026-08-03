@@ -5,7 +5,6 @@ import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderContext } from "../cli/service-registry.js";
-import type { HttpClient } from "../cli/http.js";
 import { createCliEnvironment } from "../cli/environment.js";
 import { resolveProviderRuntimeEnv } from "../cli/isolated-env.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
@@ -29,15 +28,7 @@ import * as gooseService from "./goose.js";
 import { provider as poeAgentProvider, spawnPoeAgentWithAcp } from "./poe-agent.js";
 import { AcpClient } from "@poe-code/poe-acp-client";
 import {
-  CLAUDE_CODE_VARIANTS,
-  stripModelNamespace,
-  DEFAULT_KIMI_MODEL,
-  DEFAULT_GOOSE_MODEL,
-  DEFAULT_GEMINI_MODEL,
   DEFAULT_REASONING,
-  KIMI_MODELS,
-  DEFAULT_FRONTIER_MODEL,
-  FRONTIER_MODELS,
   PROVIDER_NAME
 } from "../cli/constants.js";
 import { ValidationError } from "../cli/errors.js";
@@ -59,13 +50,12 @@ vi.mock("@poe-code/poe-agent", async (importOriginal) => {
   };
 });
 
-const resolveVariantModel = (variant: keyof typeof CLAUDE_CODE_VARIANTS): string =>
-  CLAUDE_CODE_VARIANTS[variant];
-
-const CLAUDE_MODEL_HAIKU = resolveVariantModel("haiku");
-const CLAUDE_MODEL_SONNET = resolveVariantModel("sonnet");
-const CLAUDE_MODEL_OPUS = resolveVariantModel("opus");
-const CODEX_EXPLICIT_MODEL = "openai/gpt-5.4-codex";
+const CLAUDE_MODEL_HAIKU = "test/claude-haiku";
+const CLAUDE_MODEL_SONNET = "test/claude-sonnet";
+const CLAUDE_MODEL_OPUS = "test/claude-opus";
+const DEFAULT_FRONTIER_MODEL = "test/frontier-default";
+const FRONTIER_MODELS = [DEFAULT_FRONTIER_MODEL, "test/frontier-alternate"] as const;
+const DEFAULT_GOOSE_MODEL = DEFAULT_FRONTIER_MODEL;
 const CODEX_EXPLICIT_MODEL_ID = "gpt-5.4-codex";
 
 const cwd = "/repo";
@@ -305,7 +295,6 @@ describe("claude-code service", () => {
         ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
         ANTHROPIC_BASE_URL: "https://api.poe.com"
       },
-      model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
   });
 
@@ -347,7 +336,6 @@ describe("claude-code service", () => {
         ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
         ANTHROPIC_BASE_URL: "https://proxy.example.com"
       },
-      model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
   });
 
@@ -381,7 +369,6 @@ describe("claude-code service", () => {
         ANTHROPIC_BASE_URL: "https://api.poe.com",
         CUSTOM: "value"
       },
-      model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
     });
   });
 
@@ -421,8 +408,6 @@ describe("claude-code service", () => {
       expect.arrayContaining([
         "-p",
         "Output exactly: CLAUDE_CODE_OK",
-        "--model",
-        expect.stringContaining("claude-sonnet-4-6")
       ])
     );
   });
@@ -673,61 +658,6 @@ describe("codex service", () => {
     await expect(unconfigureCodex()).resolves.toBe(true);
 
     await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(original);
-  });
-
-  it("writes freeform provider model as the active codex default", async () => {
-    await configureCodex({
-      provider: {
-        id: "cloudflare",
-        apiShape: "openai-responses",
-        baseUrl: "https://gateway.ai.cloudflare.com/v1/account/gateway/openai",
-        credential: "cfut_test",
-        modelInput: { kind: "freeform" },
-        extraEnv: {}
-      },
-      model: "iris-alpha"
-    });
-
-    const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    expect(doc["model_provider"]).toBe("cloudflare");
-    expect(doc["model"]).toBe("iris-alpha");
-    expect(doc["model_reasoning_effort"]).toBeUndefined();
-    expect(doc["model_verbosity"]).toBeUndefined();
-
-    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const irisProfile = profiles["iris-alpha"];
-    expect(irisProfile["model"]).toBe("iris-alpha");
-    expect(irisProfile["model_provider"]).toBe("cloudflare");
-    expect(irisProfile["model_reasoning_effort"]).toBeUndefined();
-  });
-
-  it("writes opus model as opus profile", async () => {
-    await configureCodex({
-      model: "anthropic/claude-opus-4.7",
-      reasoningEffort: "high"
-    });
-
-    const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const opusProfile = profiles["opus"];
-    expect(opusProfile["model"]).toBe("claude-opus-4.7");
-    expect(opusProfile["model_provider"]).toBe("poe");
-    expect(opusProfile["model_reasoning_effort"]).toBe("high");
-  });
-
-  it("replaces stale profile when reconfiguring with a different model", async () => {
-    await configureCodex({ model: CODEX_EXPLICIT_MODEL });
-
-    await configureCodex({
-      model: "anthropic/claude-opus-4.7",
-      reasoningEffort: "high"
-    });
-
-    const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
-    const defaultProfileName = codexService.deriveCodexProfileName(CODEX_EXPLICIT_MODEL);
-    expect(profiles["opus"]).toBeDefined();
-    expect(profiles[defaultProfileName]).toBeUndefined();
   });
 
   it("uses provider.baseUrl when writing base_url", async () => {
@@ -1068,11 +998,6 @@ describe("kimi service", () => {
   const configPath = path.join(homeDir, ".kimi", "config.toml");
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
-  const withProviderPrefix = (model: string): string =>
-    `${PROVIDER_NAME}/${stripModelNamespace(model)}`;
-
-  const DEFAULT_PROVIDER_MODEL = withProviderPrefix(DEFAULT_KIMI_MODEL);
-
   it("advertises kimi-cli as an alias", () => {
     expect(kimiService.kimiService.aliases).toContain("kimi-cli");
   });
@@ -1126,7 +1051,6 @@ describe("kimi service", () => {
       credential: "sk-test",
       extraEnv: {}
     },
-    model: DEFAULT_KIMI_MODEL,
     ...overrides
   });
 
@@ -1157,38 +1081,19 @@ describe("kimi service", () => {
     });
   }
 
-  it("creates the kimi config file with default model", async () => {
+  it("configures the Kimi provider without configuring models", async () => {
     await configureKimi();
 
     const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    expect(config.default_model).toBe(DEFAULT_PROVIDER_MODEL);
+    expect(config.default_model).toBeUndefined();
+    expect(config.default_thinking).toBeUndefined();
+    expect(config.models).toBeUndefined();
     expect(config.providers).toMatchObject({
       [PROVIDER_NAME]: {
         type: "openai_legacy",
         base_url: "https://api.poe.com/v1",
         api_key: "sk-test"
       }
-    });
-    expect(config.models).toMatchObject({
-      [DEFAULT_PROVIDER_MODEL]: {
-        provider: PROVIDER_NAME,
-        model: stripModelNamespace(DEFAULT_KIMI_MODEL),
-        max_context_size: 256000
-      }
-    });
-  });
-
-  it("writes the selected kimi model to the config", async () => {
-    const alternate = KIMI_MODELS[KIMI_MODELS.length - 1]!;
-    await configureKimi({ model: alternate });
-
-    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    expect(config.default_model).toBe(withProviderPrefix(alternate));
-    const models = config.models as Record<string, unknown>;
-    expect(models[withProviderPrefix(alternate)]).toEqual({
-      provider: PROVIDER_NAME,
-      model: stripModelNamespace(alternate),
-      max_context_size: 256000
     });
   });
 
@@ -1234,47 +1139,6 @@ describe("kimi service", () => {
       model: "test-model",
       max_context_size: 4096
     });
-  });
-
-  it("prunes stale poe models while preserving other provider models", async () => {
-    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
-    await mockFsObj.writeFile(
-      configPath,
-      serializeToml({
-        default_model: "poe/Old-Model",
-        models: {
-          "poe/Old-Model": {
-            provider: "poe",
-            model: "Old-Model",
-            max_context_size: 128000
-          },
-          "local/test-model": {
-            provider: "local",
-            model: "test-model",
-            max_context_size: 4096
-          }
-        },
-        providers: {
-          poe: {
-            type: "openai_legacy",
-            base_url: "https://api.poe.com/v1",
-            api_key: "old-key"
-          }
-        }
-      })
-    );
-
-    await configureKimi();
-
-    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const models = config.models as Record<string, unknown>;
-
-    expect(models["poe/Old-Model"]).toBeUndefined();
-    expect(models["local/test-model"]).toBeDefined();
-
-    for (const m of KIMI_MODELS) {
-      expect(models[withProviderPrefix(m)]).toBeDefined();
-    }
   });
 
   it("preserves user-created Poe-prefixed models while reconfiguring", async () => {
@@ -1373,6 +1237,28 @@ describe("kimi service", () => {
     });
   });
 
+  it("passes a model to Kimi only when explicitly provided", async () => {
+    const runCommand = vi.fn().mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 });
+    const providerContext = {
+      env: {} as any,
+      command: { runCommand, fs: mockFsObj },
+      logger: { context: { dryRun: false, verbose: true } }
+    } as unknown as ProviderContext;
+
+    await kimiService.kimiService.spawn(providerContext, {
+      prompt: "hello",
+      model: "moonshot/kimi-current"
+    });
+
+    expect(runCommand).toHaveBeenCalledWith("kimi", [
+      "--quiet",
+      "-p",
+      "hello",
+      "--model",
+      "moonshot/kimi-current"
+    ]);
+  });
+
   it("runs the Kimi health check via runCommand when test is invoked", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"KIMI_OK"}\n',
@@ -1450,8 +1336,6 @@ describe("opencode service", () => {
   let env = createCliEnvironment({ cwd: homeDir, homeDir });
 
   const withProviderPrefix = (model: string): string => `${PROVIDER_NAME}/${model}`;
-
-  const DEFAULT_PROVIDER_MODEL = withProviderPrefix(DEFAULT_FRONTIER_MODEL);
 
   beforeEach(() => {
     mockFsObj = createMockFs({}, homeDir);
@@ -1563,7 +1447,6 @@ describe("opencode service", () => {
     const config = JSON.parse(await mockFsObj.readFile(configPath, "utf8"));
     expect(config).toEqual({
       $schema: "https://opencode.ai/config.json",
-      model: DEFAULT_PROVIDER_MODEL,
       enabled_providers: [PROVIDER_NAME]
     });
 
@@ -1574,22 +1457,6 @@ describe("opencode service", () => {
         key: "sk-test"
       }
     });
-  });
-
-  it("writes the selected frontier model to the config", async () => {
-    const alternate = FRONTIER_MODELS[FRONTIER_MODELS.length - 1]!;
-    await configureOpenCode({ model: alternate });
-
-    const config = JSON.parse(await mockFsObj.readFile(configPath, "utf8"));
-    expect(config.model).toBe(withProviderPrefix(alternate));
-  });
-
-  it("offers Gemini 3.1 Pro in configure prompts instead of the removed Gemini 3 Pro", () => {
-    const choices = opencodeService.openCodeService.configurePrompts?.model?.choices ?? [];
-    const values = choices.map((choice) => choice.value);
-
-    expect(values).toContain("google/gemini-3.1-pro");
-    expect(values).not.toContain("google/gemini-3-pro");
   });
 
   it("merges with existing config and preserves other settings", async () => {
@@ -1697,7 +1564,7 @@ describe("opencode service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      ["--model", DEFAULT_PROVIDER_MODEL, "run", "List all files", "--format", "markdown"],
+      ["run", "List all files", "--format", "markdown"],
       expect.objectContaining({
         env: expect.any(Object)
       })
@@ -1776,7 +1643,7 @@ describe("opencode service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "opencode",
-      ["--model", DEFAULT_PROVIDER_MODEL, "run", "Refactor this"],
+      ["run", "Refactor this"],
       expect.objectContaining({
         cwd: undefined,
         env: expect.objectContaining({
@@ -1842,8 +1709,6 @@ describe("opencode service", () => {
       "--pure",
       "--format",
       "json",
-      "--model",
-      DEFAULT_PROVIDER_MODEL,
       "--dir",
       healthDir
     ]);
@@ -2066,9 +1931,6 @@ describe("gemini-cli service", () => {
     expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toMatchInlineSnapshot(`
       {
         "mcpServers": {},
-        "model": {
-          "name": "gemini-3.1-pro",
-        },
         "security": {
           "auth": {
             "selectedType": "gemini-api-key",
@@ -2105,7 +1967,6 @@ describe("gemini-cli service", () => {
     expect(settings).toEqual({
       theme: "dark",
       security: { auth: { selectedType: "gemini-api-key" } },
-      model: { name: "gemini-2.5-flash" },
       mcpServers: {
         local: {
           command: "node",
@@ -2118,105 +1979,6 @@ describe("gemini-cli service", () => {
     );
     expect(backupPath).toBeDefined();
     await expect(mockFsObj.readFile(backupPath!, "utf8")).resolves.toContain('"theme": "dark"');
-  });
-
-  it("resolves Gemini model choices from the active provider models endpoint", async () => {
-    const httpClient = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        models: [
-          { name: "models/gemini-2.5-pro", supportedGenerationMethods: ["generateContent"] },
-          { name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] },
-          { name: "models/gemini-3-pro-preview", supportedGenerationMethods: ["generateContent"] },
-          { name: "models/text-embedding-004", supportedGenerationMethods: ["embedContent"] }
-        ]
-      })
-    })) satisfies HttpClient;
-    const choices = geminiCliService.geminiCliService.configurePrompts?.model?.choices;
-
-    expect(typeof choices).toBe("function");
-    if (typeof choices !== "function") {
-      throw new Error("Expected Gemini model choices resolver.");
-    }
-
-    const resolvedChoices = await choices({
-      httpClient,
-      provider: {
-        id: "cloudflare",
-        apiShape: "google-generations",
-        baseUrl: "https://gateway.example.com/google-ai-studio",
-        credential: "cf-token",
-        extraEnv: {}
-      },
-      env
-    });
-    expect(resolvedChoices).toEqual([
-      { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
-      { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
-      { title: "gemini-3-pro-preview", value: "gemini-3-pro-preview" }
-    ]);
-    expect(httpClient).toHaveBeenCalledWith(
-      "https://gateway.example.com/google-ai-studio/v1beta/models",
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: "Bearer cf-token"
-        })
-      })
-    );
-    await configureGemini({ model: resolvedChoices[2]!.value });
-    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toMatchInlineSnapshot(`
-      {
-        "mcpServers": {},
-        "model": {
-          "name": "gemini-3-pro-preview",
-        },
-        "security": {
-          "auth": {
-            "selectedType": "gemini-api-key",
-          },
-        },
-      }
-    `);
-  });
-
-  it("uses fallback Gemini model choices when model discovery fails", async () => {
-    const httpClient = vi
-      .fn()
-      .mockRejectedValue(new Error("gateway unavailable")) satisfies HttpClient;
-    const choices = geminiCliService.geminiCliService.configurePrompts?.model?.choices;
-    expect(typeof choices).toBe("function");
-    if (typeof choices !== "function") throw new Error("Expected Gemini model choices resolver.");
-
-    await expect(
-      choices({ httpClient, provider: buildConfigureOptions().provider, env })
-    ).resolves.toEqual([
-      { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
-      { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
-      { title: "gemini-3-pro-preview", value: "gemini-3-pro-preview" },
-      { title: "gemini-3-flash-preview", value: "gemini-3-flash-preview" }
-    ]);
-    await expect(configureGemini({ model: DEFAULT_GEMINI_MODEL })).resolves.toBeUndefined();
-  });
-
-  it("uses fallback Gemini model choices when discovery returns no usable models", async () => {
-    const httpClient = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({ models: [{ displayName: "Missing name" }] })
-    })) satisfies HttpClient;
-    const choices = geminiCliService.geminiCliService.configurePrompts?.model?.choices;
-    expect(typeof choices).toBe("function");
-    if (typeof choices !== "function") throw new Error("Expected Gemini model choices resolver.");
-
-    await expect(
-      choices({ httpClient, provider: buildConfigureOptions().provider, env })
-    ).resolves.toEqual([
-      { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
-      { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
-      { title: "gemini-3-pro-preview", value: "gemini-3-pro-preview" },
-      { title: "gemini-3-flash-preview", value: "gemini-3-flash-preview" }
-    ]);
   });
 
   it("tests Gemini availability and health with sandbox disabled through environment", async () => {
@@ -2422,7 +2184,7 @@ describe("goose service", () => {
       unknown
     >;
     expect(config.GOOSE_PROVIDER).toBe("custom_poe");
-    expect(config.GOOSE_MODEL).toBe(DEFAULT_GOOSE_MODEL);
+    expect(config.GOOSE_MODEL).toBeUndefined();
     expect(config.GOOSE_DISABLE_KEYRING).toBe(true);
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
@@ -2433,7 +2195,7 @@ describe("goose service", () => {
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
     expect(provider.headers).toBeUndefined();
-    expect(provider.models).toEqual(buildCustomProviderModelsFixture());
+    expect(provider.models).toBeUndefined();
 
     const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
       string,
@@ -2459,7 +2221,7 @@ describe("goose service", () => {
       unknown
     >;
     expect(config.theme).toBe("dark");
-    expect(config.GOOSE_MODEL).toBe(FRONTIER_MODELS[FRONTIER_MODELS.length - 1]!);
+    expect(config.GOOSE_MODEL).toBeUndefined();
     expect(
       ((config.extensions as Record<string, unknown>).custom as Record<string, unknown>).enabled
     ).toBe(true);
@@ -2481,137 +2243,6 @@ describe("goose service", () => {
       unknown
     >;
     expect(provider.base_url).toBe("https://proxy.example.test/gateway/v1/chat/completions");
-  });
-
-  it("uses the static fallback context limit when modelContextLimits is empty", async () => {
-    await configureGoose({ model: "anthropic/claude-sonnet-4.6", modelContextLimits: {} });
-
-    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
-    expect(provider.models).toEqual([
-      { name: "anthropic/claude-sonnet-4.6", context_limit: 983_040 }
-    ]);
-  });
-
-  it("writes only the selected model into the custom provider models list", async () => {
-    await configureGoose({
-      model: "anthropic/claude-haiku-4.5",
-      modelContextLimits: { "anthropic/claude-haiku-4.5": 200_000 }
-    });
-
-    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
-    expect(provider.models).toEqual([{ name: "anthropic/claude-haiku-4.5", context_limit: 200_000 }]);
-  });
-
-  it("omits context_limit when the selected model has no known context window", async () => {
-    await configureGoose({ model: "novita ai/kimi-k2-thinking", modelContextLimits: {} });
-
-    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
-    expect(provider.models).toEqual([{ name: "novita ai/kimi-k2-thinking" }]);
-  });
-
-  it("fetches the Goose model context limit for the selected model", async () => {
-    const modelContextLimits = await gooseService.gooseService.extendConfigurePayload?.({
-      fs: mockFsObj,
-      env,
-      httpClient: vi.fn(async () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [
-            {
-              id: "claude-opus-4.7",
-              context_window: { context_length: 983040 }
-            },
-            {
-              id: "claude-sonnet-4.6",
-              context_window: { context_length: 983040 }
-            },
-            {
-              id: "gpt-5.3-codex",
-              context_window: { context_length: 400000 }
-            },
-            {
-              id: "gpt-5.4-pro",
-              context_window: { context_length: 1050000 }
-            },
-            {
-              id: "gemini-3.1-pro",
-              context_window: { context_length: 1048576 }
-            }
-          ]
-        })
-      })),
-      logger: createLoggerFactory(() => {}).create({
-        dryRun: false,
-        verbose: true,
-        scope: "test:goose"
-      }),
-      payload: buildConfigureOptions({ model: "anthropic/claude-sonnet-4.6" })
-    });
-
-    expect(modelContextLimits).toEqual({
-      modelContextLimits: { "anthropic/claude-sonnet-4.6": 983040 }
-    });
-  });
-
-  it("falls back to the static context limit when the API response omits the selected model", async () => {
-    const result = await gooseService.gooseService.extendConfigurePayload?.({
-      fs: mockFsObj,
-      env,
-      httpClient: vi.fn(async () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [
-            {
-              id: "claude-opus-4.7",
-              context_window: { context_length: 983040 }
-            }
-          ]
-        })
-      })),
-      logger: createLoggerFactory(() => {}).create({
-        dryRun: false,
-        verbose: true,
-        scope: "test:goose"
-      }),
-      payload: buildConfigureOptions({ model: "anthropic/claude-sonnet-4.6" })
-    });
-
-    expect(result).toEqual({
-      modelContextLimits: {
-        "anthropic/claude-sonnet-4.6": 983_040
-      }
-    });
-  });
-
-  it("reports no context limit when neither the catalog nor the fallbacks know the model", async () => {
-    const result = await gooseService.gooseService.extendConfigurePayload?.({
-      fs: mockFsObj,
-      env,
-      httpClient: vi.fn(async () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({ data: [{ id: "kimi-k2-thinking", context_window: null }] })
-      })),
-      logger: createLoggerFactory(() => {}).create({
-        dryRun: false,
-        verbose: true,
-        scope: "test:goose"
-      }),
-      payload: buildConfigureOptions({ model: "novita ai/kimi-k2-thinking" })
-    });
-
-    expect(result).toEqual({ modelContextLimits: {} });
   });
 
   it("removes managed Goose provider artifacts during unconfigure", async () => {
@@ -3076,23 +2707,6 @@ describe("poe-agent provider", () => {
     promptSpy.mockRestore();
   });
 
-  it("uses default model when none is provided", async () => {
-    const fs = createMockFs(undefined, homeDir);
-    const { done } = spawnPoeAgentWithAcp({
-      prompt: "Explain this function",
-      homeDir,
-      configPath: `${homeDir}/.poe-code/config.json`,
-      projectConfigPath: `${process.cwd()}/.poe-code/config.json`,
-      fs
-    });
-    await done;
-
-    expect(createAgentSessionMock).toHaveBeenCalledWith({
-      model: DEFAULT_FRONTIER_MODEL,
-      cwd: process.cwd()
-    });
-  });
-
   it("resumes a persisted session and reuses its thread id", async () => {
     const fs = createMockFs(
       {
@@ -3168,6 +2782,7 @@ describe("poe-agent provider", () => {
     );
 
     const { done } = spawnPoeAgentWithAcp({
+      model: DEFAULT_FRONTIER_MODEL,
       prompt: "Explain this function",
       cwd: "/workspace/project",
       homeDir,
@@ -3191,6 +2806,7 @@ describe("poe-agent provider", () => {
   it("forwards baseUrl override to createAgentSession", async () => {
     const fs = createMockFs(undefined, homeDir);
     const { done } = spawnPoeAgentWithAcp({
+      model: DEFAULT_FRONTIER_MODEL,
       prompt: "Explain this function",
       baseUrl: "http://proxy.example.com/v1",
       homeDir,
@@ -3209,6 +2825,7 @@ describe("poe-agent provider", () => {
 
   it("preserves prototype-named MCP servers for poe-agent sessions", async () => {
     const { done } = spawnPoeAgentWithAcp({
+      model: DEFAULT_FRONTIER_MODEL,
       prompt: "Explain this function",
       mcpServers: JSON.parse('{"__proto__":{"command":"custom-server"}}'),
       homeDir,
@@ -3223,6 +2840,17 @@ describe("poe-agent provider", () => {
     };
     expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
   });
+  it("requires an explicit model when none is provided", async () => {
+    const { done } = spawnPoeAgentWithAcp({
+      prompt: "Explain this function",
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: `${process.cwd()}/.poe-code/config.json`,
+      fs: createMockFs(undefined, homeDir)
+    });
+    await expect(done).rejects.toThrow("requires an explicit model");
+  });
+
 });
 
 describe("determine provider workflow script", () => {

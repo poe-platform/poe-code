@@ -5,7 +5,6 @@ import { stripVTControlCharacters } from "node:util";
 import { createProgram } from "../program.js";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer } from "../container.js";
-import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import { registerUtilsCommand } from "./utils.js";
 import { SilentError, ValidationError } from "../errors.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -144,7 +143,7 @@ describe("agent command", () => {
       }
     });
 
-    await expect(program.parseAsync(["node", "cli", "agent", "Say hello"])).rejects.toThrow(
+    await expect(program.parseAsync(["node", "cli", "agent", "Say hello", "--model", "test-model"])).rejects.toThrow(
       "Prompt must not be empty."
     );
 
@@ -155,7 +154,7 @@ describe("agent command", () => {
     expect(disposeMock).toHaveBeenCalledTimes(1);
   });
 
-  it("uses and advertises the default model when omitted", async () => {
+  it("requires and advertises an explicit model", async () => {
     const program = createProgram({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -163,23 +162,20 @@ describe("agent command", () => {
       logger: () => {}
     });
 
-    await program.parseAsync(["node", "cli", "agent", "Say hello"]);
-
-    expect(createAgentSessionMock).toHaveBeenCalledWith({
-      model: DEFAULT_FRONTIER_MODEL,
-      apiKey: undefined,
-      cwd
-    });
+    await expect(program.parseAsync(["node", "cli", "agent", "Say hello"])).rejects.toThrow(
+      "--model <model>"
+    );
+    expect(createAgentSessionMock).not.toHaveBeenCalled();
     expect(program.commands.find((command) => command.name() === "agent")?.helpInformation()).toContain(
-      `Model identifier (default: ${DEFAULT_FRONTIER_MODEL})`
+      "Model identifier"
     );
   });
 
   it.each([
     ["empty --model value", ["--model", ""], "--model cannot be empty."],
     ["whitespace-only --model value", ["--model", "  "], "--model cannot be empty."],
-    ["empty --api-key value", ["--api-key", ""], "--api-key cannot be empty."],
-    ["whitespace-only --api-key value", ["--api-key", " "], "--api-key cannot be empty."]
+    ["empty --api-key value", ["--model", "test-model", "--api-key", ""], "--api-key cannot be empty."],
+    ["whitespace-only --api-key value", ["--model", "test-model", "--api-key", " "], "--api-key cannot be empty."]
   ])("rejects %s instead of falling back", async (_name, flagArgs, message) => {
     const program = createProgram({
       fs: createMemFs(),
@@ -313,7 +309,7 @@ describe("agent command", () => {
       }
     });
 
-    await program.parseAsync(["node", "cli", "agent", "Say hello", "--api-key", "sk-secret"]);
+    await program.parseAsync(["node", "cli", "agent", "Say hello", "--model", "test-model", "--api-key", "sk-secret"]);
 
     const output = logs.join("\n");
     expect(output).toMatch(/shell history/i);
@@ -336,7 +332,7 @@ describe("agent command", () => {
       }
     });
 
-    await program.parseAsync(["node", "cli", "agent", "Say hello"]);
+    await program.parseAsync(["node", "cli", "agent", "Say hello", "--model", "test-model"]);
 
     expect(logs.join("\n")).not.toMatch(/shell history/i);
   });

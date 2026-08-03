@@ -401,6 +401,36 @@ describe("runGaslight", () => {
     ]);
   });
 
+  it("does not archive a plan that is already in the archive directory", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/docs/plans/archive/work.md": "---\nstate: archived\n---\n# Work"
+      })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValue({ exitCode: 0, stdout: "finished", stderr: "", threadId: "one" });
+
+    const result = await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/archive/work.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Check again"],
+      archive: true,
+      fs,
+      spawn
+    });
+
+    await expect(fs.readFile("/repo/docs/plans/archive/work.md", "utf8")).resolves.toContain(
+      "# Work"
+    );
+    await expect(
+      fs.readFile("/repo/docs/plans/archive/archive/work.md", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    expect(result.plans[0]?.archivedPath).toBe("docs/plans/archive/work.md");
+  });
+
   it("leaves the active plan in place when a later round fails", async () => {
     const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
     const spawn = vi

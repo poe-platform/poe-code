@@ -76,6 +76,10 @@ function planIdFromPath(planPath: string): string {
 }
 
 function archivedPlanPath(planPath: string): string {
+  if (path.basename(path.dirname(planPath)) === "archive") {
+    return planPath;
+  }
+
   return path.join(path.dirname(planPath), "archive", `${planIdFromPath(planPath)}.md`);
 }
 
@@ -257,15 +261,16 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
 
     let archivedPath: string | undefined;
     if (shouldArchive) {
-      const id = planIdFromPath(planPath);
-      await archivePlanShared({
-        cwd,
-        homeDir,
-        planDirectory: path.dirname(planPath),
-        id,
-        fs: fs as unknown as ArchivePlanFs
-      });
       archivedPath = archivedPlanPath(planPath);
+      if (archivedPath !== planPath) {
+        await archivePlanShared({
+          cwd,
+          homeDir,
+          planDirectory: path.dirname(planPath),
+          id: planIdFromPath(planPath),
+          fs: fs as unknown as ArchivePlanFs
+        });
+      }
     }
 
     plans.push({

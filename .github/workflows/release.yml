@@ -1,21 +1,12 @@
 name: Release
 # Note: workflow_dispatch is needed because pushes made with GitHub App tokens
 # don't trigger other workflows (to prevent infinite loops). Workflows like
-# bump-version and promote-beta-to-stable use `gh workflow run` to trigger this.
+# bump-version uses `gh workflow run` to trigger this.
 on:
   push:
     branches:
       - main
-      - beta
   workflow_dispatch:
-    inputs:
-      branch:
-        description: Target branch to release
-        required: true
-        type: choice
-        options:
-          - main
-          - beta
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -25,39 +16,8 @@ permissions:
   pull-requests: write
   id-token: write
 jobs:
-  release-beta:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/beta' || inputs.branch == 'beta'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: beta
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm clean-install
-      - run: npm run build
-      - run: npm audit signatures
-      - run: npm run lint:packages
-      - run: npx turbo run test:unit --concurrency=4 --force
-      - run: npm run smoke
-      - name: Generate GitHub App token
-        id: app_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
-          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
-      - name: Release Beta
-        env:
-          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
-          HUSKY: "0"
-        run: npx semantic-release
   release-stable:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || inputs.branch == 'main'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -85,16 +45,3 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
         run: npx semantic-release
-      - name: Sync beta with main
-        if: always()
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          git fetch origin beta:beta
-          git checkout beta
-          git rebase main || { echo "Rebase failed, manual sync required"; exit 1; }
-          git push origin beta --force-with-lease

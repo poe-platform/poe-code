@@ -7,10 +7,7 @@ exception is the first publish of a new package (see Initial Publish).
 
 The root `poe-code` package is released by `.github/workflows/release.yml`.
 
-| Target | Branch | Dist tag |
-| ------ | ------ | -------- |
-| Stable | `main` | `latest` |
-| Beta   | `beta` | `beta`   |
+Pushing to `main` publishes the `latest` dist tag.
 
 Use `.github/workflows/bump-version.yml` when GitHub should bump and release the
 root package. The release workflow runs semantic-release and publishes from

@@ -1312,21 +1312,6 @@ describe("detectExecutionContext", () => {
       expect(result.command.args).toEqual(["--yes", "poe-code"]);
     });
 
-    it("detects npx@beta execution", () => {
-      const result = detectExecutionContext({
-        argv: ["/usr/bin/node", "/home/user/.npm/_npx/12345/node_modules/.bin/poe-code", "mcp"],
-        env: {
-          npm_command: "exec",
-          npm_execpath: "/usr/lib/node_modules/npm/bin/npx-cli.js",
-          npm_package_version: "1.0.0-beta.1"
-        },
-        moduleUrl
-      });
-
-      expect(result.mode).toBe("npx-beta");
-      expect(result.command.args).toEqual(["--yes", "poe-code@beta"]);
-    });
-
     it("detects npx@latest execution", () => {
       const result = detectExecutionContext({
         argv: ["/usr/bin/node", "/home/user/.npm/_npx/12345/node_modules/.bin/poe-code", "mcp"],
@@ -1424,12 +1409,12 @@ describe("formatCliHelpCommand", () => {
     expect(help).toBe("poe --help");
   });
 
-  it("formats npx help command with package spec", () => {
+  it("formats npx latest help command with package spec", () => {
     const help = formatCliHelpCommand(
-      { mode: "npx-beta", command: { command: "npx", args: ["--yes", "poe-code@beta"] } },
+      { mode: "npx-latest", command: { command: "npx", args: ["--yes", "poe-code@latest"] } },
       ["mcp", "--help"]
     );
-    expect(help).toBe("npx poe-code@beta mcp --help");
+    expect(help).toBe("npx poe-code@latest mcp --help");
   });
 
   it("formats development help command as npm run dev", () => {
@@ -1460,12 +1445,12 @@ describe("formatCliUsageCommand", () => {
     ).toBe("npm run dev --");
   });
 
-  it("formats npx-beta usage with channel", () => {
+  it("formats npx-latest usage with channel", () => {
     expect(
       formatCliUsageCommand({
-        mode: "npx-beta",
-        command: { command: "npx", args: ["--yes", "poe-code@beta"] }
+        mode: "npx-latest",
+        command: { command: "npx", args: ["--yes", "poe-code@latest"] }
       })
-    ).toBe("npx poe-code@beta");
+    ).toBe("npx poe-code@latest");
   });
 });

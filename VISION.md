@@ -143,7 +143,6 @@ is to keep Poe Code small, provider-driven, explicit, and fast to test.
 Releases happen on GitHub, not locally.
 
 Pushing to `main` publishes the stable `poe-code@latest` release.
-Pushing to `beta` publishes `poe-code@beta`.
 
 After a push, the release workflow is the source of truth.
 The work is not complete until the relevant GitHub release run succeeds or the

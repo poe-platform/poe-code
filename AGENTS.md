@@ -48,7 +48,6 @@ Use `npm run lint:workflows`
 ## Release
 
 - Stable release: Push to `main` branch → publishes `poe-code@latest`
-- Beta release: Push to `beta` branch → publishes `poe-code@beta`
 
 Releases are always done on github, not locally
 

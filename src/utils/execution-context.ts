@@ -15,7 +15,6 @@ export type ExecutionMode =
   | "global"          // Globally installed: poe-code
   | "npx"             // npx poe-code
   | "npx-latest"      // npx poe-code@latest
-  | "npx-beta"        // npx poe-code@beta
   | "development";    // npm run dev / tsx
 
 interface ExecutionContext {
@@ -105,16 +104,9 @@ function isNpxExecution(env: Record<string, string | undefined>): boolean {
 
 function detectNpxVersion(
   env: Record<string, string | undefined>
-): "latest" | "beta" | "default" {
+): "latest" | "default" {
   // Try to detect version from package path or npm config
   const packageJson = env.npm_package_json ?? "";
-  const packageVersion = env.npm_package_version ?? "";
-
-  // Check if running from beta channel
-  if (packageJson.includes("@beta") || packageVersion.includes("beta")) {
-    return "beta";
-  }
-
   // Check if explicitly using @latest
   if (packageJson.includes("@latest")) {
     return "latest";
@@ -144,7 +136,7 @@ function createDevelopmentContext(moduleUrl: string): ExecutionContext {
 }
 
 function createNpxContext(
-  version: "latest" | "beta" | "default"
+  version: "latest" | "default"
 ): ExecutionContext {
   const packageSpec = version === "default"
     ? "poe-code"
@@ -205,8 +197,6 @@ export function formatCliUsageCommand(context: {
       return "npx poe-code";
     case "npx-latest":
       return "npx poe-code@latest";
-    case "npx-beta":
-      return "npx poe-code@beta";
     case "global":
     default:
       return context.command.command;

@@ -8,7 +8,8 @@ import {
   editFile,
   restorePlanFromLater,
   savePlanForLater,
-  setPlanReadiness
+  setPlanReadiness,
+  unarchivePlan
 } from "./actions.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
@@ -134,6 +135,21 @@ export function buildPlanExplorerConfig(
       }
     },
     {
+      id: "unarchive",
+      accelerator: "a",
+      label: "Unarchive",
+      handler: async (ctx) => {
+        const entry = getEntry(entryByRowId, ctx.row.id);
+        await unarchivePlan(entry, options.fs as ActionFs);
+        try {
+          await ctx.refresh();
+          ctx.toast(`Unarchived ${path.basename(entry.path)}`, "info");
+        } catch {
+          ctx.toast(`Unarchived ${path.basename(entry.path)}; refresh failed`, "info");
+        }
+      }
+    },
+    {
       id: "delete",
       accelerator: "x",
       label: "Delete",
@@ -184,8 +200,10 @@ export function buildPlanExplorerConfig(
     ],
     refresh,
     actions: options.archived
-      ? actions.filter((action) => action.id === "edit" || action.id === "delete")
-      : actions,
+      ? actions.filter(
+          (action) => action.id === "edit" || action.id === "unarchive" || action.id === "delete"
+        )
+      : actions.filter((action) => action.id !== "unarchive"),
     ...(options.archived
       ? {}
       : {

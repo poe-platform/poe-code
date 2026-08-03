@@ -11,13 +11,15 @@ const {
   deletePlanMock,
   editFileMock,
   restorePlanFromLaterMock,
-  savePlanForLaterMock
+  savePlanForLaterMock,
+  unarchivePlanMock
 } = vi.hoisted(() => ({
   archivePlanMock: vi.fn(async () => "/repo/docs/plans/archive/feature.md"),
   deletePlanMock: vi.fn(async () => undefined),
   editFileMock: vi.fn(),
   restorePlanFromLaterMock: vi.fn(async () => "/repo/docs/plans/feature.md"),
-  savePlanForLaterMock: vi.fn(async () => "/repo/docs/plans/later/feature.md")
+  savePlanForLaterMock: vi.fn(async () => "/repo/docs/plans/later/feature.md"),
+  unarchivePlanMock: vi.fn(async () => "/repo/docs/plans/feature.md")
 }));
 
 vi.mock("./actions.js", () => ({
@@ -25,7 +27,8 @@ vi.mock("./actions.js", () => ({
   deletePlan: deletePlanMock,
   editFile: editFileMock,
   restorePlanFromLater: restorePlanFromLaterMock,
-  savePlanForLater: savePlanForLaterMock
+  savePlanForLater: savePlanForLaterMock,
+  unarchivePlan: unarchivePlanMock
 }));
 
 const cwd = "/repo";
@@ -90,21 +93,30 @@ afterEach(() => {
 });
 
 describe("plan browser", () => {
-  it("keeps archived browsing read-only except for edit and delete", () => {
+  it("offers unarchive in archived browsing", async () => {
     const archivedPlan = plan({
       path: "docs/plans/archive/feature.md",
       absolutePath: "/repo/docs/plans/archive/feature.md"
     });
+    const fs = createMemFs({ "/repo/docs/plans/archive/feature.md": "# Feature" });
     const config = buildPlanExplorerConfig({
       plans: [archivedPlan],
-      fs: createMemFs({ "/repo/docs/plans/archive/feature.md": "# Feature" }),
+      fs,
       variables: {},
       archived: true,
       onRefresh: async () => [archivedPlan]
     });
 
-    expect(config.actions.map((action) => action.id)).toEqual(["edit", "delete"]);
+    expect(config.actions.map((action) => action.id)).toEqual(["edit", "unarchive", "delete"]);
     expect(config.reorder).toBeUndefined();
+
+    const rows = await config.rows();
+    const ctx = actionContext(rows[0]!);
+    await config.actions.find((action) => action.id === "unarchive")!.handler(ctx);
+
+    expect(unarchivePlanMock).toHaveBeenCalledWith(archivedPlan, fs);
+    expect(ctx.refresh).toHaveBeenCalledOnce();
+    expect(ctx.toast).toHaveBeenCalledWith("Unarchived feature.md", "info");
   });
 
   it("maps rows and wires explorer action handlers to plan actions", async () => {

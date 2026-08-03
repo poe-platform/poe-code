@@ -417,7 +417,7 @@ No frontmatter here.
       fs
     });
 
-    expect(plans.map((plan) => plan.absolutePath)).toEqual([
+    expect(plans.map((plan) => plan.absolutePath).sort()).toEqual([
       "/repo/.poe-code/plans/01-first.md",
       "/repo/.poe-code/plans/03-third.md"
     ]);

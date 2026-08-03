@@ -34,9 +34,10 @@ export async function setPlanReadiness(
     throw new Error(`${absolutePath}: missing YAML frontmatter end delimiter (---)`);
   }
   const parsed = parse(hasFrontmatter ? normalized.slice(4, closing) : "") as unknown;
-  const metadata = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
-    ? parsed as Record<string, unknown>
-    : {};
+  const metadata =
+    typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
   metadata.readiness = readiness;
   const body = hasFrontmatter ? normalized.slice(closing + 4).replace(/^\n/, "") : normalized;
   const next = `---\n${stringify(metadata).trimEnd()}\n---\n${body}`;
@@ -129,6 +130,29 @@ async function archiveSelectedPlan(
     throw error;
   }
   return archivedPath;
+}
+
+export async function unarchivePlan(
+  entry: Pick<{ absolutePath: string }, "absolutePath">,
+  fs: ActionFs
+): Promise<string> {
+  rejectPlanMetaDocument(entry.absolutePath, "unarchive");
+  const archiveDir = path.dirname(entry.absolutePath);
+  if (path.basename(archiveDir) !== "archive") {
+    throw new Error(`Plan is not archived: ${entry.absolutePath}`);
+  }
+  await rejectSymbolicLink(archiveDir, fs, "unarchive plan through");
+  const destinationPath = path.join(path.dirname(archiveDir), path.basename(entry.absolutePath));
+  try {
+    await fs.readFile(destinationPath, "utf8");
+    throw new Error(`Unarchive destination already exists: ${destinationPath}`);
+  } catch (error) {
+    if (!hasErrorCode(error, "ENOENT")) {
+      throw error;
+    }
+  }
+  await fs.rename(entry.absolutePath, destinationPath);
+  return destinationPath;
 }
 
 export async function savePlanForLater(

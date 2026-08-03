@@ -8,13 +8,7 @@ import type { FileSystem } from "../../utils/file-system.js";
 import { isUserFacingError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
 
-const {
-  introMock,
-  outroMock,
-  selectMock,
-  confirmOrCancelMock,
-  isCancelMock
-} = vi.hoisted(() => ({
+const { introMock, outroMock, selectMock, confirmOrCancelMock, isCancelMock } = vi.hoisted(() => ({
   introMock: vi.fn(),
   outroMock: vi.fn(),
   selectMock: vi.fn(),
@@ -306,16 +300,7 @@ describe("plan command", () => {
 
     writeSpy.mockClear();
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "plan",
-      "list",
-      "--kind",
-      "plan",
-      "--output",
-      "json"
-    ]);
+    await program.parseAsync(["node", "cli", "plan", "list", "--kind", "plan", "--output", "json"]);
 
     const planOutput = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(JSON.parse(planOutput)).toEqual([
@@ -350,13 +335,7 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "plan",
-      "view",
-      "docs/plans/plan-a.md"
-    ]);
+    await program.parseAsync(["node", "cli", "plan", "view", "docs/plans/plan-a.md"]);
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toContain("plan-a.md");
@@ -523,6 +502,79 @@ describe("plan command", () => {
     expect(confirmOrCancelMock).not.toHaveBeenCalled();
   });
 
+  it("unarchives the named plan with --yes", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/archive/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "plan",
+      "unarchive",
+      "docs/plans/archive/plan-a.md"
+    ]);
+
+    expect(writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Unarchived");
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("accepts --archived on plan browse", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/active.md": "# Active",
+      "/repo/docs/plans/archive/archived.md": "# Archived"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    const error = await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "browse", "--archived"]),
+      false
+    ).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.message).toContain("docs/plans/archive/archived.md");
+    expect(error.message).not.toContain("docs/plans/active.md");
+  });
+
+  it("accepts --archived on the root plan command", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/active.md": "# Active",
+      "/repo/docs/plans/archive/archived.md": "# Archived"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    const error = await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "--archived"]),
+      false
+    ).catch((thrown: unknown) => thrown as Error);
+
+    expect(error.message).toContain("docs/plans/archive/archived.md");
+    expect(error.message).not.toContain("docs/plans/active.md");
+  });
+
   it("previews editing a plan without launching an editor", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const container = createCliContainer({
@@ -561,14 +613,11 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await withMockedStdin(
-      async () => {
-        await expect(
-          program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"])
-        ).rejects.toThrow(/interactive TTY/);
-      },
-      false
-    );
+    await withMockedStdin(async () => {
+      await expect(
+        program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"])
+      ).rejects.toThrow(/interactive TTY/);
+    }, false);
 
     expect(editPlanMock).not.toHaveBeenCalled();
   });
@@ -585,8 +634,7 @@ describe("plan command", () => {
     registerPlanCommand(program, container);
 
     await withMockedStdin(
-      () =>
-        program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]),
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]),
       true
     );
 
@@ -606,8 +654,7 @@ describe("plan command", () => {
     registerPlanCommand(program, container);
 
     await withMockedStdin(
-      () =>
-        program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]),
+      () => program.parseAsync(["node", "cli", "--yes", "plan", "edit", "docs/plans/plan-a.md"]),
       true
     );
 
@@ -720,14 +767,7 @@ describe("plan command", () => {
     registerPlanCommand(program, container);
 
     await withMockedStdin(
-      () =>
-        program.parseAsync([
-          "node",
-          "cli",
-          "plan",
-          "archive",
-          "docs/plans/plan-a.md"
-        ]),
+      () => program.parseAsync(["node", "cli", "plan", "archive", "docs/plans/plan-a.md"]),
       true
     );
 
@@ -760,14 +800,7 @@ describe("plan command", () => {
     registerPlanCommand(program, container);
 
     await withMockedStdin(
-      () =>
-        program.parseAsync([
-          "node",
-          "cli",
-          "plan",
-          "delete",
-          "docs/plans/plan-a.md"
-        ]),
+      () => program.parseAsync(["node", "cli", "plan", "delete", "docs/plans/plan-a.md"]),
       true
     );
 
@@ -798,14 +831,7 @@ describe("plan command", () => {
 
     await expect(
       withMockedStdin(
-        () =>
-          program.parseAsync([
-            "node",
-            "cli",
-            "plan",
-            "archive",
-            "docs/plans/plan-a.md"
-          ]),
+        () => program.parseAsync(["node", "cli", "plan", "archive", "docs/plans/plan-a.md"]),
         false
       )
     ).rejects.toThrow("plan archive requires --yes when running without an interactive TTY.");
@@ -1001,7 +1027,7 @@ describe("plan command", () => {
   it("reports a missing section as a clean user error", async () => {
     readSectionMock.mockRejectedValueOnce(
       new UserError(
-        'no section matching "nope" (try \'poe-code plan markdown-read\' to see the table of contents)'
+        "no section matching \"nope\" (try 'poe-code plan markdown-read' to see the table of contents)"
       )
     );
 
@@ -1023,7 +1049,7 @@ describe("plan command", () => {
 
     expect(isUserFacingError(error)).toBe(true);
     expect((error as Error).message).toBe(
-      'No section matching "nope" (try \'poe-code plan markdown-read\' to see the table of contents)'
+      "No section matching \"nope\" (try 'poe-code plan markdown-read' to see the table of contents)"
     );
   });
 
@@ -1074,7 +1100,11 @@ describe("plan command", () => {
     registerPlanCommand(program, container);
 
     await program.parseAsync([
-      "node", "cli", "plan", "markdown-read", "docs/plans/markdown-reader.md"
+      "node",
+      "cli",
+      "plan",
+      "markdown-read",
+      "docs/plans/markdown-reader.md"
     ]);
 
     const output = stripVTControlCharacters(

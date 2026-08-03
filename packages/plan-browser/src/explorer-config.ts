@@ -15,6 +15,7 @@ import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 
 export interface BuildPlanExplorerConfigOptions {
   plans: PlanEntry[];
+  archived?: boolean;
   fs: ActionFs & DiscoveryFs;
   variables: Record<string, string | undefined>;
   homeDir?: string;
@@ -29,7 +30,7 @@ export function buildPlanExplorerConfig(
   const loadDetailMarkdown = options.loadDetailMarkdown ?? loadPlanPreviewMarkdown;
   const promptSaveReason = options.promptSaveReason;
   let plans = options.plans;
-  let rows = toRows(plans);
+  let rows = toRows(plans, options.archived);
   let entryByRowId = toEntryMap(plans);
   let preserveOrderOnNextRefresh = false;
 
@@ -37,7 +38,7 @@ export function buildPlanExplorerConfig(
     const refreshedPlans = await options.onRefresh();
     plans = preserveOrderOnNextRefresh ? preservePlanOrder(plans, refreshedPlans) : refreshedPlans;
     preserveOrderOnNextRefresh = false;
-    rows = toRows(plans);
+    rows = toRows(plans, options.archived);
     entryByRowId = toEntryMap(plans);
   }
 
@@ -182,46 +183,54 @@ export function buildPlanExplorerConfig(
       }
     ],
     refresh,
-    actions,
-    reorder: {
-      onReorder: async (orderedIds, ctx) => {
-        if (ctx === undefined) {
-          throw new Error("Plan reorder context is required");
-        }
-        const orderedEntries = orderedIds.map((id) => getEntry(entryByRowId, id));
-        const movedIndex = orderedIds.indexOf(ctx.movedId);
-        const originalIndex = createRowIds(plans).indexOf(ctx.movedId);
-        if (movedIndex < 0 || originalIndex < 0) {
-          throw new Error(`Plan row is no longer available: ${ctx.movedId}`);
-        }
-        const moved = orderedEntries[movedIndex]!;
-        const swapTarget = orderedEntries[originalIndex];
-        if (swapTarget === undefined || swapTarget.readiness !== moved.readiness) {
-          throw new Error("Plans can only be reordered within the same readiness group");
-        }
-        if (isSavedForLaterEntry(swapTarget) !== isSavedForLaterEntry(moved)) {
-          throw new Error("Active and saved-for-later plans cannot be reordered together");
-        }
-        const previousCandidate = orderedEntries[movedIndex - 1];
-        const nextCandidate = orderedEntries[movedIndex + 1];
-        const previous = sameOrderingGroup(previousCandidate, moved) ? previousCandidate : undefined;
-        const next = sameOrderingGroup(nextCandidate, moved) ? nextCandidate : undefined;
+    actions: options.archived
+      ? actions.filter((action) => action.id === "edit" || action.id === "delete")
+      : actions,
+    ...(options.archived
+      ? {}
+      : {
+          reorder: {
+            onReorder: async (orderedIds, ctx) => {
+              if (ctx === undefined) {
+                throw new Error("Plan reorder context is required");
+              }
+              const orderedEntries = orderedIds.map((id) => getEntry(entryByRowId, id));
+              const movedIndex = orderedIds.indexOf(ctx.movedId);
+              const originalIndex = createRowIds(plans).indexOf(ctx.movedId);
+              if (movedIndex < 0 || originalIndex < 0) {
+                throw new Error(`Plan row is no longer available: ${ctx.movedId}`);
+              }
+              const moved = orderedEntries[movedIndex]!;
+              const swapTarget = orderedEntries[originalIndex];
+              if (swapTarget === undefined || swapTarget.readiness !== moved.readiness) {
+                throw new Error("Plans can only be reordered within the same readiness group");
+              }
+              if (isSavedForLaterEntry(swapTarget) !== isSavedForLaterEntry(moved)) {
+                throw new Error("Active and saved-for-later plans cannot be reordered together");
+              }
+              const previousCandidate = orderedEntries[movedIndex - 1];
+              const nextCandidate = orderedEntries[movedIndex + 1];
+              const previous = sameOrderingGroup(previousCandidate, moved)
+                ? previousCandidate
+                : undefined;
+              const next = sameOrderingGroup(nextCandidate, moved) ? nextCandidate : undefined;
 
-        const [movedStat, previousStat, nextStat] = await Promise.all([
-          options.fs.stat(moved.absolutePath),
-          previous === undefined ? undefined : options.fs.stat(previous.absolutePath),
-          next === undefined ? undefined : options.fs.stat(next.absolutePath)
-        ]);
-        const updatedAt = resolveMovedTimestamp(previousStat?.mtimeMs, nextStat?.mtimeMs);
-        await options.fs.utimes(
-          moved.absolutePath,
-          new Date(movedStat.atimeMs ?? movedStat.mtimeMs),
-          new Date(updatedAt)
-        );
-        await ctx.refresh();
-        ctx.toast(`Reordered ${path.basename(moved.path)}`, "info");
-      }
-    },
+              const [movedStat, previousStat, nextStat] = await Promise.all([
+                options.fs.stat(moved.absolutePath),
+                previous === undefined ? undefined : options.fs.stat(previous.absolutePath),
+                next === undefined ? undefined : options.fs.stat(next.absolutePath)
+              ]);
+              const updatedAt = resolveMovedTimestamp(previousStat?.mtimeMs, nextStat?.mtimeMs);
+              await options.fs.utimes(
+                moved.absolutePath,
+                new Date(movedStat.atimeMs ?? movedStat.mtimeMs),
+                new Date(updatedAt)
+              );
+              await ctx.refresh();
+              ctx.toast(`Reordered ${path.basename(moved.path)}`, "info");
+            }
+          }
+        }),
     multiSelect: false,
     emptyHint: "No plans found"
   });
@@ -275,14 +284,14 @@ function abbreviateHome(filePath: string, homeDir: string | undefined): string {
   return `~${path.sep}${relative}`;
 }
 
-function toRows(plans: PlanEntry[]): Row[] {
+function toRows(plans: PlanEntry[], archived = false): Row[] {
   const rowIds = createRowIds(plans);
   return plans.map((entry, index) => ({
     id: rowIds[index]!,
     title: formatPlanReadinessLabel(path.basename(entry.path), entry.readiness),
     subtitle: formatSubtitle(entry),
     badge: { text: entry.typeLabel },
-    group: isSavedForLaterEntry(entry) ? "Saved for later" : "Active"
+    group: archived ? "Archived" : isSavedForLaterEntry(entry) ? "Saved for later" : "Active"
   }));
 }
 

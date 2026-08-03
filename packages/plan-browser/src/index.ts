@@ -7,7 +7,8 @@ export {
   resolveEditor,
   restorePlanFromLater,
   savePlanForLater,
-  setPlanReadiness
+  setPlanReadiness,
+  unarchivePlan
 } from "./actions.js";
 export { buildPlanExplorerConfig } from "./explorer-config.js";
 export {

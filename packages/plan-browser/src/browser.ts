@@ -12,18 +12,21 @@ export async function runPlanBrowser(options: {
   projectConfigPath: string;
   fs: DiscoveryFs & Partial<ActionFs>;
   kind?: PlanKind;
+  archived?: boolean;
   variables?: Record<string, string | undefined>;
   runExplorerImpl?: RunExplorerImpl;
 }): Promise<void> {
-  const discover = () => discoverAllPlans({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
-    configPath: options.configPath,
-    projectConfigPath: options.projectConfigPath,
-    fs: options.fs,
-    kind: options.kind,
-    variables: options.variables
-  });
+  const discover = () =>
+    discoverAllPlans({
+      cwd: options.cwd,
+      homeDir: options.homeDir,
+      configPath: options.configPath,
+      projectConfigPath: options.projectConfigPath,
+      fs: options.fs,
+      kind: options.kind,
+      archived: options.archived,
+      variables: options.variables
+    });
 
   const plans = await discover();
 
@@ -45,6 +48,7 @@ export async function runPlanBrowser(options: {
 
   const config = buildPlanExplorerConfig({
     plans,
+    archived: options.archived,
     fs: options.fs as ActionFs & DiscoveryFs,
     variables: options.variables ?? process.env,
     homeDir: options.homeDir,

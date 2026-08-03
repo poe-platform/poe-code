@@ -7,6 +7,7 @@ import {
   editPlan,
   resolveEditor,
   restorePlanFromLater,
+  unarchivePlan,
   savePlanForLater,
   setPlanReadiness
 } from "./actions.js";
@@ -85,6 +86,40 @@ describe("plan actions", () => {
       "# Plan"
     );
     await expect(fs.readFile("/repo/.poe-code/ralph/plans/plan.md", "utf8")).rejects.toThrow();
+  });
+
+  it("unarchives a plan into its parent plan directory", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/archive/feature.md": "# Feature"
+    });
+
+    const restoredPath = await unarchivePlan(
+      { absolutePath: "/repo/docs/plans/archive/feature.md" },
+      fs
+    );
+
+    expect(restoredPath).toBe("/repo/docs/plans/feature.md");
+    await expect(fs.readFile("/repo/docs/plans/feature.md", "utf8")).resolves.toBe("# Feature");
+    await expect(fs.readFile("/repo/docs/plans/archive/feature.md", "utf8")).rejects.toThrow();
+  });
+
+  it("refuses to unarchive a plan outside an archive directory", async () => {
+    const fs = createMemFs({ "/repo/docs/plans/feature.md": "# Feature" });
+
+    await expect(
+      unarchivePlan({ absolutePath: "/repo/docs/plans/feature.md" }, fs)
+    ).rejects.toThrow("Plan is not archived");
+  });
+
+  it("does not overwrite an active plan when unarchiving", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Active",
+      "/repo/docs/plans/archive/feature.md": "# Archived"
+    });
+
+    await expect(
+      unarchivePlan({ absolutePath: "/repo/docs/plans/archive/feature.md" }, fs)
+    ).rejects.toThrow("Unarchive destination already exists");
   });
 
   it("deletes a plan", async () => {

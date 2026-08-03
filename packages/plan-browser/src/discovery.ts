@@ -144,7 +144,7 @@ function toPlanKind(value: unknown, filePath: string): PlanKind {
   throw new Error(`${filePath}: unsupported frontmatter kind ${JSON.stringify(value)}`);
 }
 
-function classifyPlanKind(content: string, filePath: string): PlanKind {
+function classifyPlanKind(content: string, filePath: string, archived = false): PlanKind {
   if (isYamlPlanFile(filePath)) {
     parsePlan(content);
     return "pipeline";
@@ -156,14 +156,25 @@ function classifyPlanKind(content: string, filePath: string): PlanKind {
     return "plan";
   }
 
-  return data.kind === undefined ? "plan" : toPlanKind(data.kind, filePath);
+  if (data.kind === undefined) return "plan";
+  if (archived && data.kind === "archived-pipeline-plan") return "plan";
+  if (archived) {
+    try {
+      return toPlanKind(data.kind, filePath);
+    } catch {
+      return "plan";
+    }
+  }
+  return toPlanKind(data.kind, filePath);
 }
 
 function readPlanReadiness(content: string, filePath: string): PlanReadiness {
   const value = splitFrontmatter(content, filePath).data?.readiness;
   if (value === undefined || value === "draft") return "draft";
   if (value === "ready") return value;
-  throw new Error(`${filePath}: invalid readiness ${JSON.stringify(value)}; expected "draft" or "ready"`);
+  throw new Error(
+    `${filePath}: invalid readiness ${JSON.stringify(value)}; expected "draft" or "ready"`
+  );
 }
 
 async function discoverSharedPlans(options: {
@@ -173,6 +184,7 @@ async function discoverSharedPlans(options: {
   configPath: string;
   projectConfigPath: string;
   kind?: PlanKind;
+  archived?: boolean;
   variables?: Record<string, string | undefined>;
 }): Promise<PlanEntry[]> {
   const displayDir = await resolveSharedPlanDirectory(options);
@@ -190,6 +202,15 @@ async function discoverSharedPlans(options: {
 
   if (canonicalDir !== path.resolve(absoluteDir)) {
     throw new Error(`Plan directory must not be a symbolic link: ${displayDir}`);
+  }
+
+  if (options.archived === true) {
+    return discoverPlanDirectoryEntries({
+      ...options,
+      absoluteDir: path.join(absoluteDir, "archive"),
+      displayDir: path.join(displayDir, "archive"),
+      savedForLaterDirectory: false
+    });
   }
 
   const activePlans = await discoverPlanDirectoryEntries({
@@ -219,6 +240,7 @@ async function discoverPlanDirectoryEntries(options: {
   absoluteDir: string;
   displayDir: string;
   savedForLaterDirectory: boolean;
+  archived?: boolean;
 }): Promise<PlanEntry[]> {
   let entries: string[];
   try {
@@ -247,7 +269,9 @@ async function discoverPlanDirectoryEntries(options: {
       continue;
     }
     if (canonicalPath !== path.resolve(absolutePath)) {
-      throw new Error(`Plan file must not be a symbolic link: ${path.join(options.displayDir, name)}`);
+      throw new Error(
+        `Plan file must not be a symbolic link: ${path.join(options.displayDir, name)}`
+      );
     }
     const stat = await options.fs.stat(absolutePath).catch((error: unknown) => {
       if (isNotFound(error)) {
@@ -264,22 +288,35 @@ async function discoverPlanDirectoryEntries(options: {
 
     const displayPath = path.join(options.displayDir, name);
     const content = await options.fs.readFile(absolutePath, "utf8");
-    const kind = classifyPlanKind(content, displayPath);
+    let kind = classifyPlanKind(content, displayPath, options.archived);
+    const savedForLater = options.savedForLaterDirectory
+      ? (readSavedForLaterMetadata(content, displayPath) ?? {})
+      : readSavedForLaterMetadata(content, displayPath);
+
+    let metadata: Awaited<ReturnType<typeof readPlanMetadata>>;
+    try {
+      metadata = await readPlanMetadata({
+        kind,
+        absolutePath,
+        path: displayPath,
+        fs: options.fs,
+        content
+      });
+    } catch (error) {
+      if (!options.archived || kind === "plan") throw error;
+      kind = "plan";
+      metadata = await readPlanMetadata({
+        kind,
+        absolutePath,
+        path: displayPath,
+        fs: options.fs,
+        content
+      });
+    }
 
     if (options.kind && kind !== options.kind) {
       continue;
     }
-    const savedForLater = options.savedForLaterDirectory
-      ? readSavedForLaterMetadata(content, displayPath) ?? {}
-      : readSavedForLaterMetadata(content, displayPath);
-
-    const metadata = await readPlanMetadata({
-      kind,
-      absolutePath,
-      path: displayPath,
-      fs: options.fs,
-      content
-    });
 
     plans.push({
       path: displayPath,
@@ -306,6 +343,7 @@ export async function discoverAllPlans(options: {
   configPath: string;
   projectConfigPath: string;
   kind?: PlanKind;
+  archived?: boolean;
   variables?: Record<string, string | undefined>;
 }): Promise<PlanEntry[]> {
   const fs = options.fs ?? createDefaultFs();

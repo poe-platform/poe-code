@@ -42,6 +42,35 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("discoverAllPlans", () => {
+  it("discovers only archived plans when archived mode is enabled", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/active.md": "# Active\n",
+      "/repo/docs/plans/archive/archived.md": "# Archived\n",
+      "/repo/docs/plans/archive/legacy.md":
+        "---\nkind: archived-pipeline-plan\n---\n# Legacy pipeline\n",
+      "/repo/docs/plans/archive/old-pipeline.md": "---\nkind: pipeline\n---\n# Old pipeline\n",
+      "/repo/docs/plans/archive/historical.md": "---\nkind: task-store\n---\n# Historical\n"
+    });
+
+    const plans = await discoverAllPlans({
+      cwd,
+      homeDir,
+      fs,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      archived: true
+    });
+
+    expect(plans.map(({ path, kind }) => ({ path, kind }))).toEqual(
+      expect.arrayContaining([
+        { path: "docs/plans/archive/archived.md", kind: "plan" },
+        { path: "docs/plans/archive/legacy.md", kind: "plan" },
+        { path: "docs/plans/archive/old-pipeline.md", kind: "plan" },
+        { path: "docs/plans/archive/historical.md", kind: "plan" }
+      ])
+    );
+  });
+
   it("sorts ready plans before newer drafts and exposes readiness", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/draft.md": "---\nkind: plan\n---\n# Draft\n",
@@ -353,7 +382,6 @@ describe("discoverAllPlans", () => {
       })
     ]);
   });
-
 
   it("skips broken symlinks while discovering valid plan files", async () => {
     const volume = Volume.fromJSON({ "/repo/docs/plans/real.md": "# Real\n" }, "/");

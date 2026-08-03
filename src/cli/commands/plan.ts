@@ -23,6 +23,7 @@ import {
   editPlan,
   loadPlanPreviewMarkdown,
   runPlanBrowser,
+  unarchivePlan,
   type PlanEntry,
   type PlanKind
 } from "@poe-code/plan-browser";
@@ -35,7 +36,11 @@ import {
 import { UserError } from "toolcraft";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
 import { formatAgentCapabilityError } from "@poe-code/agent-defs";
-import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
+import {
+  readMergedDocument,
+  readMergedDocumentReadonly,
+  resolveScope
+} from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { setHelpGuidance } from "./help-guidance.js";
@@ -60,6 +65,7 @@ type MarkdownReadSectionResult = Awaited<ReturnType<typeof readSection>>;
 type PlanCommandOptions = {
   kind?: PlanKind;
   output?: string;
+  archived?: boolean;
 };
 
 function resolvePlanCommandOptions(command: Command): PlanCommandOptions {
@@ -68,7 +74,8 @@ function resolvePlanCommandOptions(command: Command): PlanCommandOptions {
 
   return {
     kind: localOptions.kind ?? parentOptions.kind,
-    output: localOptions.output ?? parentOptions.output
+    output: localOptions.output ?? parentOptions.output,
+    archived: localOptions.archived ?? parentOptions.archived
   };
 }
 
@@ -114,7 +121,8 @@ function resolveKind(value: string | undefined): PlanKind | undefined {
 
 function createPlanBrowserOptions(
   container: CliContainer,
-  kind: PlanKind | undefined
+  kind: PlanKind | undefined,
+  archived = false
 ): Parameters<typeof runPlanBrowser>[0] {
   return {
     cwd: container.env.cwd,
@@ -123,6 +131,7 @@ function createPlanBrowserOptions(
     projectConfigPath: container.env.projectConfigPath,
     fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
     kind,
+    archived,
     variables: container.env.variables
   };
 }
@@ -151,9 +160,7 @@ function formatFrontmatterRows(frontmatter: Record<string, unknown>): DetailCard
   return Object.entries(frontmatter).map(([key, value]) => ({
     label: key,
     value:
-      value === null || typeof value !== "object"
-        ? String(value)
-        : stringifyYaml(value).trimEnd()
+      value === null || typeof value !== "object" ? String(value) : stringifyYaml(value).trimEnd()
   }));
 }
 
@@ -260,7 +267,8 @@ function formatMarkdownReadSectionOutput(
 
 async function discoverPlans(
   container: CliContainer,
-  kind: PlanKind | undefined
+  kind: PlanKind | undefined,
+  archived = false
 ): Promise<PlanEntry[]> {
   return discoverAllPlans({
     cwd: container.env.cwd,
@@ -269,6 +277,7 @@ async function discoverPlans(
     projectConfigPath: container.env.projectConfigPath,
     fs: container.fs as Parameters<typeof discoverAllPlans>[0]["fs"],
     kind,
+    archived,
     variables: container.env.variables
   });
 }
@@ -277,11 +286,12 @@ async function requirePlanBrowsingPrompt(options: {
   container: CliContainer;
   kind: PlanKind | undefined;
   assumeYes: boolean;
+  archived?: boolean;
 }): Promise<void> {
   if (!options.assumeYes && process.stdin.isTTY === true) {
     return;
   }
-  const plans = await discoverPlans(options.container, options.kind);
+  const plans = await discoverPlans(options.container, options.kind, options.archived);
   if (plans.length === 0) {
     return;
   }
@@ -439,7 +449,7 @@ async function renderPlanList(container: CliContainer, options: PlanCommandOptio
 async function executePlanAction(options: {
   program: Command;
   container: CliContainer;
-  action: "edit" | "archive" | "delete";
+  action: "edit" | "archive" | "unarchive" | "delete";
   pathArg?: string;
   kind?: string;
   output?: string;
@@ -449,7 +459,11 @@ async function executePlanAction(options: {
   if (format === "terminal") {
     intro(`plan ${options.action}`);
   }
-  const plans = await discoverPlans(options.container, resolveKind(options.kind));
+  const plans = await discoverPlans(
+    options.container,
+    resolveKind(options.kind),
+    options.action === "unarchive"
+  );
   const plan = await resolveSelectedPlan({
     container: options.container,
     plans,
@@ -515,7 +529,9 @@ async function executePlanAction(options: {
       message:
         options.action === "archive"
           ? `Archive ${path.basename(plan.path)}?`
-          : `Permanently delete ${path.basename(plan.path)}?`,
+          : options.action === "unarchive"
+            ? `Unarchive ${path.basename(plan.path)}?`
+            : `Permanently delete ${path.basename(plan.path)}?`,
       initialValue: false
     });
     if (!confirmed) {
@@ -533,6 +549,20 @@ async function executePlanAction(options: {
       format === "json"
         ? JSON.stringify({ action: "archive", path: plan.path, archivedPath }, null, 2)
         : `Archived ${plan.path}`
+    );
+    return;
+  }
+
+  if (options.action === "unarchive") {
+    const restoredPath = await unarchivePlan(
+      plan,
+      options.container.fs as unknown as Parameters<typeof unarchivePlan>[1]
+    );
+    writeOutput(
+      format,
+      format === "json"
+        ? JSON.stringify({ action: "unarchive", path: plan.path, restoredPath }, null, 2)
+        : `Unarchived ${plan.path}`
     );
     return;
   }
@@ -557,6 +587,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
+    .option("--archived", "Browse archived plans instead of active plans")
     .action(async function (this: Command) {
       if (this.args.length > 0) {
         const candidates = plan.commands.flatMap((command) => [
@@ -577,10 +608,15 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const flags = resolveCommandFlags(program);
       const kind = resolveKind(opts.kind);
 
-      await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
+      await requirePlanBrowsingPrompt({
+        container,
+        kind,
+        assumeYes: flags.assumeYes,
+        archived: opts.archived
+      });
 
       intro("plan");
-      await runPlanBrowser(createPlanBrowserOptions(container, kind));
+      await runPlanBrowser(createPlanBrowserOptions(container, kind, opts.archived));
     });
 
   plan
@@ -591,13 +627,14 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
+    .option("--archived", "Browse archived plans instead of active plans")
     .action(async function (this: Command, pathArg?: string) {
       const opts = resolvePlanCommandOptions(this);
       const flags = resolveCommandFlags(program);
       const kind = resolveKind(opts.kind);
 
       if ((pathArg?.trim() ?? "").length > 0) {
-        const plans = await discoverPlans(container, kind);
+        const plans = await discoverPlans(container, kind, opts.archived);
         const selected = await resolveSelectedPlan({
           container,
           plans,
@@ -610,9 +647,14 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         return;
       }
 
-      await requirePlanBrowsingPrompt({ container, kind, assumeYes: flags.assumeYes });
+      await requirePlanBrowsingPrompt({
+        container,
+        kind,
+        assumeYes: flags.assumeYes,
+        archived: opts.archived
+      });
       intro("plan browser");
-      await runPlanBrowser(createPlanBrowserOptions(container, kind));
+      await runPlanBrowser(createPlanBrowserOptions(container, kind, opts.archived));
     });
 
   plan
@@ -786,6 +828,25 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         program,
         container,
         action: "archive",
+        pathArg,
+        ...resolvePlanCommandOptions(this)
+      });
+    });
+
+  plan
+    .command("unarchive")
+    .description("Move an archived plan back into the active plan directory.")
+    .argument("[path]", "Archived plan path")
+    .option(
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
+    .option("--output <format>", "Output format: terminal, md, or json")
+    .action(async function (this: Command, pathArg?: string) {
+      await executePlanAction({
+        program,
+        container,
+        action: "unarchive",
         pathArg,
         ...resolvePlanCommandOptions(this)
       });

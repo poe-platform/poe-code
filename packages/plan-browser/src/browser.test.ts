@@ -6,7 +6,13 @@ import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { runPlanBrowser } from "./browser.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 
-const { archivePlanMock, deletePlanMock, editFileMock, restorePlanFromLaterMock, savePlanForLaterMock } = vi.hoisted(() => ({
+const {
+  archivePlanMock,
+  deletePlanMock,
+  editFileMock,
+  restorePlanFromLaterMock,
+  savePlanForLaterMock
+} = vi.hoisted(() => ({
   archivePlanMock: vi.fn(async () => "/repo/docs/plans/archive/feature.md"),
   deletePlanMock: vi.fn(async () => undefined),
   editFileMock: vi.fn(),
@@ -84,6 +90,23 @@ afterEach(() => {
 });
 
 describe("plan browser", () => {
+  it("keeps archived browsing read-only except for edit and delete", () => {
+    const archivedPlan = plan({
+      path: "docs/plans/archive/feature.md",
+      absolutePath: "/repo/docs/plans/archive/feature.md"
+    });
+    const config = buildPlanExplorerConfig({
+      plans: [archivedPlan],
+      fs: createMemFs({ "/repo/docs/plans/archive/feature.md": "# Feature" }),
+      variables: {},
+      archived: true,
+      onRefresh: async () => [archivedPlan]
+    });
+
+    expect(config.actions.map((action) => action.id)).toEqual(["edit", "delete"]);
+    expect(config.reorder).toBeUndefined();
+  });
+
   it("maps rows and wires explorer action handlers to plan actions", async () => {
     const pipelinePlan = plan({
       path: "docs/plans/feature.md",
@@ -138,10 +161,7 @@ describe("plan browser", () => {
     await config.actions.find((action) => action.id === "delete")!.handler(deleteCtx);
 
     expect(editFileMock).toHaveBeenCalledOnce();
-    expect(editFileMock).toHaveBeenCalledWith(
-      "/repo/docs/plans/feature.md",
-      { env: variables }
-    );
+    expect(editFileMock).toHaveBeenCalledWith("/repo/docs/plans/feature.md", { env: variables });
     expect(archivePlanMock).toHaveBeenCalledOnce();
     expect(archivePlanMock).toHaveBeenCalledWith(pipelinePlan, fs);
     expect(deletePlanMock).toHaveBeenCalledOnce();

@@ -10,6 +10,7 @@ import type { CliContainer } from "../container.js";
 import {
   GASLIGHT_CONFIG_EXAMPLE,
   ingestGaslight,
+  loadGaslightConfig,
   runGaslight,
   runGaslightDaemon,
   type GaslightDaemonEvent,
@@ -218,18 +219,22 @@ async function resolveAgentAndModel(
   program: Command,
   container: CliContainer,
   options: GaslightCommandOptions,
-  useConfiguredAgent = false
+  useConfiguredAgent = false,
+  gaslightAgent?: string
 ): Promise<{ agent: string; model?: string }> {
   const flags = resolveCommandFlags(program);
   const configured = await resolveDefaultAgent(container, { readOnly: true });
   const configuredSpecifier = configured ? parseAgentSpecifier(configured) : undefined;
+  const gaslightSpecifier = gaslightAgent ? parseAgentSpecifier(gaslightAgent) : undefined;
   const agent =
     options.agent ??
+    gaslightSpecifier?.agent ??
     (flags.assumeYes || useConfiguredAgent
       ? (configuredSpecifier?.agent ?? DEFAULT_AGENT)
       : await resolveServiceArgument(program, container, undefined, { action: "gaslight" }));
   const model =
     options.model ??
+    (gaslightSpecifier?.agent === agent ? gaslightSpecifier.model : undefined) ??
     (configuredSpecifier?.agent === agent ? configuredSpecifier.model : undefined);
   return { agent, ...(model ? { model } : {}) };
 }
@@ -382,9 +387,10 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     .option("--plans <paths...>", "Markdown plans to run sequentially")
     .addOption(new Option("--mode <mode>", "Spawn mode").choices([...SPAWN_MODES]));
 
-  addSkillOptions(
-    addActivityTimeoutOption(addWorktreeOptions(gaslight))
-  ).action(async function (this: Command, providedPlanPaths: string[]) {
+  addSkillOptions(addActivityTimeoutOption(addWorktreeOptions(gaslight))).action(async function (
+    this: Command,
+    providedPlanPaths: string[]
+  ) {
     const flags = resolveCommandFlags(program);
     const options = this.opts<GaslightCommandOptions>();
     const planPaths = await resolveGaslightPlanPaths({
@@ -395,7 +401,19 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     });
     const commandConfig = await resolveGaslightCommandConfig(container);
     const skills = resolveSkillOptions(options);
-    const { agent, model } = await resolveAgentAndModel(program, container, options);
+    const gaslightConfig = await loadGaslightConfig(
+      container.env.cwd,
+      container.env.homeDir,
+      container.fs,
+      options.config
+    );
+    const { agent, model } = await resolveAgentAndModel(
+      program,
+      container,
+      options,
+      false,
+      gaslightConfig.agent
+    );
     const logger = container.loggerFactory.create();
 
     intro("gaslight");
@@ -463,7 +481,19 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       ...daemon.opts<GaslightDaemonCommandOptions>()
     };
     const planDirectory = await resolvePlanDirectory(container, { readOnly: true });
-    const { agent, model } = await resolveAgentAndModel(program, container, options, true);
+    const gaslightConfig = await loadGaslightConfig(
+      container.env.cwd,
+      container.env.homeDir,
+      container.fs,
+      options.config
+    );
+    const { agent, model } = await resolveAgentAndModel(
+      program,
+      container,
+      options,
+      true,
+      gaslightConfig.agent
+    );
     const skills = resolveSkillOptions(options);
     const logger = container.loggerFactory.create();
     const controller = new AbortController();
@@ -519,7 +549,12 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         ...this.opts<GaslightIngestCommandOptions>()
       };
       const flags = resolveCommandFlags(program);
-      const { agent, model } = await resolveAgentAndModel(program, container, options, flags.dryRun);
+      const { agent, model } = await resolveAgentAndModel(
+        program,
+        container,
+        options,
+        flags.dryRun
+      );
       let extractedPrompts = 0;
       let extractedTraces = 0;
       const logger = container.loggerFactory.create();

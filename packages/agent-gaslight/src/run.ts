@@ -12,6 +12,7 @@ import type {
   GaslightResult,
   GaslightRound
 } from "./types.js";
+import { interpolateGaslightVars, resolveGaslightVars } from "./vars.js";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 
@@ -147,7 +148,6 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const homeDir = options.homeDir ?? os.homedir();
   const fs = options.fs ?? nodeFs;
   const spawn = options.spawn ?? defaultSpawn;
-  const agent = requireNonEmptyString(options.agent, "agent");
   const model = resolveModel(options.model);
   const mode = options.mode ?? "auto";
   const inlineSetup = resolveOptionalPrompt(options.setup, "setup");
@@ -160,9 +160,11 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
 
   const config: {
     setup?: string;
+    agent?: string;
     prompt: string;
     followups: string[];
     teardown?: string;
+    vars?: Record<string, string>;
     archive?: boolean;
   } =
     options.prompt !== undefined && options.followups !== undefined
@@ -170,9 +172,12 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
           ...(inlineSetup ? { setup: inlineSetup } : {}),
           prompt: options.prompt.trim(),
           followups: options.followups.map((value) => value.trim()),
-          ...(inlineTeardown ? { teardown: inlineTeardown } : {})
+          ...(inlineTeardown ? { teardown: inlineTeardown } : {}),
+          ...(options.vars ? { vars: options.vars } : {})
         }
       : await loadGaslightConfig(cwd, homeDir, fs, options.configPath);
+  const agent = requireNonEmptyString(options.agent ?? config.agent ?? "", "agent");
+  const vars = await resolveGaslightVars(config.vars ?? {}, cwd, fs);
   const shouldArchive = options.archive ?? config.archive ?? false;
   const rounds: GaslightRound[] = [];
   const plans: GaslightPlanResult[] = [];
@@ -185,7 +190,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       `${config.prompt} ${planPath}`,
       ...config.followups,
       ...(config.teardown ? [config.teardown] : [])
-    ];
+    ].map((prompt, index) => interpolateGaslightVars(prompt, vars, `round ${index + 1}`));
     const planRounds: GaslightRound[] = [];
     let planUsage: SpawnUsage | undefined;
     let resumeThreadId: string | undefined;

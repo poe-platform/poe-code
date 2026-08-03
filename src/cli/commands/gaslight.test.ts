@@ -6,6 +6,7 @@ import { createCliContainer } from "../container.js";
 
 const {
   ingestGaslightMock,
+  loadGaslightConfigMock,
   introMock,
   multiselectMock,
   outroMock,
@@ -15,6 +16,7 @@ const {
   spawnPrettyMock
 } = vi.hoisted(() => ({
   ingestGaslightMock: vi.fn(),
+  loadGaslightConfigMock: vi.fn(),
   introMock: vi.fn(),
   multiselectMock: vi.fn(),
   outroMock: vi.fn(),
@@ -27,6 +29,7 @@ const {
 vi.mock("../../sdk/gaslight.js", () => ({
   GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
   ingestGaslight: ingestGaslightMock,
+  loadGaslightConfig: loadGaslightConfigMock,
   runGaslightDaemon: runGaslightDaemonMock,
   runGaslight: runGaslightMock
 }));
@@ -97,6 +100,11 @@ describe("gaslight command", () => {
       dataPath: "/tmp/prompts.md",
       promptCount: 3,
       traceCount: 2
+    });
+    loadGaslightConfigMock.mockReset().mockResolvedValue({
+      prompt: "Implement",
+      followups: ["Check it"],
+      path: "/repo/.poe-code/gaslight.yaml"
     });
     introMock.mockClear();
     outroMock.mockClear();
@@ -622,6 +630,45 @@ describe("gaslight command", () => {
     );
   });
 
+  it("uses the gaslight config agent without prompting", async () => {
+    loadGaslightConfigMock.mockResolvedValue({
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Check it"],
+      path: "/repo/.poe-code/gaslight.yaml"
+    });
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(prompts));
+
+    await program.parseAsync(["node", "cli", "gaslight", "docs/plans/a.md"]);
+
+    expect(prompts).not.toHaveBeenCalled();
+    expect(runGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+
+  it("lets --agent override the gaslight config agent", async () => {
+    loadGaslightConfigMock.mockResolvedValue({
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Check it"],
+      path: "/repo/.poe-code/gaslight.yaml"
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "claude-code"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
+  });
+
   it("uses multiselect-selected plans in order when omitted interactively", async () => {
     multiselectMock.mockResolvedValue(["docs/plans/a.md", "docs/plans/b.md"]);
     const prompts = vi.fn().mockResolvedValueOnce({ serviceSelection: "codex" });
@@ -902,9 +949,9 @@ describe("gaslight command", () => {
     await program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--local", "--force"]);
 
     const logs = logger.mock.calls.map(([message]) => String(message));
-    expect(logs.some((message) => message.includes("Overwrite: /repo/.poe-code/gaslight.yaml"))).toBe(
-      true
-    );
+    expect(
+      logs.some((message) => message.includes("Overwrite: /repo/.poe-code/gaslight.yaml"))
+    ).toBe(true);
     expect(logs.some((message) => message.includes("prompt: Replace me"))).toBe(true);
     expect(logs.some((message) => message.includes("Create: /repo/.poe-code/gaslight.yaml"))).toBe(
       false
@@ -1043,7 +1090,15 @@ describe("gaslight command", () => {
     const program = createProgram();
     registerGaslightCommand(program, createContainer());
 
-    await program.parseAsync(["node", "cli", "--dry-run", "gaslight", "ingest", "--agent", "codex"]);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "gaslight",
+      "ingest",
+      "--agent",
+      "codex"
+    ]);
 
     expect(ingestGaslightMock).toHaveBeenCalledWith(expect.objectContaining({ dryRun: true }));
   });

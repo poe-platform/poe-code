@@ -6,6 +6,7 @@ import type { GaslightConfig, GaslightFileSystem } from "./types.js";
 
 export const GASLIGHT_CONFIG_EXAMPLE = [
   "setup: Prepare the workspace",
+  "agent: claude-code",
   "prompt: Implement",
   "auto-archive: true",
   "followups:",
@@ -62,9 +63,11 @@ function validateConfig(
     const extraKey = objectKeys(config).find(
       (key) =>
         key !== "setup" &&
+        key !== "agent" &&
         key !== "prompt" &&
         key !== "followups" &&
         key !== "teardown" &&
+        key !== "vars" &&
         key !== "auto-archive"
     );
     if (extraKey) {
@@ -73,6 +76,20 @@ function validateConfig(
   }
   if (typeof config.prompt !== "string" || config.prompt.trim().length === 0) {
     throw new Error(`Invalid gaslight config at ${configPath}: prompt must be a non-empty string.`);
+  }
+  if (config.agent !== undefined && (typeof config.agent !== "string" || !config.agent.trim())) {
+    throw new Error(`Invalid gaslight config at ${configPath}: agent must be a non-empty string.`);
+  }
+  if (
+    config.vars !== undefined &&
+    (typeof config.vars !== "object" ||
+      config.vars === null ||
+      Array.isArray(config.vars) ||
+      Object.values(config.vars).some((value) => typeof value !== "string"))
+  ) {
+    throw new Error(
+      `Invalid gaslight config at ${configPath}: vars must be an object of string values.`
+    );
   }
   if (
     !Array.isArray(config.followups) ||
@@ -97,10 +114,14 @@ function validateConfig(
   }
 
   return {
+    ...(typeof config.agent === "string" ? { agent: config.agent.trim() } : {}),
     ...(typeof config.setup === "string" ? { setup: config.setup.trim() } : {}),
     prompt: config.prompt.trim(),
     followups: config.followups.map((followup) => (followup as string).trim()),
     ...(typeof config.teardown === "string" ? { teardown: config.teardown.trim() } : {}),
+    ...(config.vars !== undefined
+      ? { vars: Object.fromEntries(Object.entries(config.vars as Record<string, string>)) }
+      : {}),
     ...(config["auto-archive"] !== undefined ? { archive: config["auto-archive"] } : {})
   };
 }

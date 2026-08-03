@@ -68,6 +68,29 @@ describe("loadGaslightConfig", () => {
     });
   });
 
+  it("loads optional agent and prompt variables from config", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/.poe-code/gaslight.yaml": [
+          "agent: codex",
+          "vars:",
+          "  quality: production-ready",
+          "prompt: Implement a {{quality}} solution",
+          "followups:",
+          "  - Verify it is {{quality}}",
+          ""
+        ].join("\n")
+      })
+    ).promises;
+
+    await expect(loadGaslightConfig("/repo", "/home/me", fs)).resolves.toMatchObject({
+      agent: "codex",
+      vars: { quality: "production-ready" },
+      prompt: "Implement a {{quality}} solution",
+      followups: ["Verify it is {{quality}}"]
+    });
+  });
+
   it("loads an explicit config path instead of searching defaults", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({
@@ -120,7 +143,9 @@ describe("loadGaslightConfig", () => {
     "prompt: Implement\nfollowups:\n  - 42\n",
     "prompt: Implement\nauto-archive: 1\nfollowups:\n  - Test it\n",
     "setup: 42\nprompt: Implement\nfollowups:\n  - Test it\n",
-    "prompt: Implement\nfollowups:\n  - Test it\nteardown: '   '\n"
+    "prompt: Implement\nfollowups:\n  - Test it\nteardown: '   '\n",
+    "agent: '   '\nprompt: Implement\nfollowups:\n  - Test it\n",
+    "vars:\n  count: 2\nprompt: Implement\nfollowups:\n  - Test it\n"
   ])("names invalid config files", async (content) => {
     const fs = createFsFromVolume(
       Volume.fromJSON({ "/repo/.poe-code/gaslight.yaml": content })

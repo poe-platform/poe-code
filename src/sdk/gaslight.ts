@@ -1,4 +1,6 @@
+import os from "node:os";
 import {
+  loadGaslightConfig,
   runGaslightDaemon as runWorkspaceGaslightDaemon,
   runGaslight as runWorkspaceGaslight,
   type GaslightDaemonOptions as WorkspaceGaslightDaemonOptions,
@@ -53,16 +55,24 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   }
 
   const cwd = options.cwd ?? process.cwd();
+  const selectedAgent =
+    options.agent ??
+    (await loadGaslightConfig(cwd, options.homeDir ?? os.homedir(), options.fs, options.configPath))
+      .agent;
+  if (!selectedAgent) {
+    throw new Error("agent must be provided in run options or gaslight config.");
+  }
   const wrapped = await runWithOptionalWorktree<GaslightResult>({
     cwd,
-    selectedAgent: options.agent,
+    selectedAgent,
     ...(options.model ? { selectedModel: options.model } : {}),
     worktree: options.worktree,
     signal: options.signal,
     run: async ({ worktreeCwd }) => {
-      const { worktree: _worktree, ...workspaceOptions } = options;
+      const { worktree: ignoredWorktree, ...workspaceOptions } = options;
       return await runWorkspaceGaslight({
         ...workspaceOptions,
+        agent: selectedAgent,
         cwd: worktreeCwd
       });
     }

@@ -29,15 +29,18 @@ The package loads the first existing file in this order:
 2. `<homeDir>/.poe-code/gaslight.yaml`
 
 ```yaml
+agent: claude-code
+vars:
+  context: '{{file "context.md"}}'
 prompt: Implement
 auto-archive: false
 followups:
-  - Can this be simpler?
+  - Review {{context}}
   - Did you test the real workflow?
   - Did you commit the changes?
 ```
 
-`prompt` and `followups` must be non-empty. `auto-archive` is optional and defaults to `false`. Pass `prompt` and `followups` directly to `runGaslight` to bypass configuration lookup.
+`prompt` and `followups` must be non-empty. `agent`, `vars`, and `auto-archive` are optional; `auto-archive` defaults to `false`. Variables use `{{name}}` placeholders in setup, prompt, follow-ups, and teardown. A variable value can include project-relative file content with `{{file "path"}}`; paths outside the project are rejected. CLI flags override the configured agent and model. Pass `prompt`, `followups`, and optional `vars` directly to `runGaslight` to bypass configuration lookup.
 
 ## CLI
 
@@ -87,7 +90,7 @@ const result = await runGaslight({
 ## Run options
 
 - `planPaths`: Required plan paths, resolved from `cwd`.
-- `agent`: Required agent identifier.
+- `agent`: Agent identifier. Required unless configured in `gaslight.yaml`.
 - `model`: Optional model override.
 - `mode`: Optional spawn mode: `yolo`, `auto`, `edit`, or `read`. When omitted, `agent-spawn` uses `auto`.
 - `archive`: Move each plan under sibling `archive/` after all rounds succeed. Defaults to `false`.
@@ -95,6 +98,7 @@ const result = await runGaslight({
 - `homeDir`: Home directory used for global config lookup. Defaults to `os.homedir()`.
 - `prompt`: Initial prompt. Must be provided together with `followups`.
 - `followups`: Ordered follow-up prompts. Must be provided together with `prompt`.
+- `vars`: Optional string values interpolated into setup, prompt, follow-ups, and teardown.
 - `onEvent`: Receives round start and finish events.
 - `signal`: Abort signal forwarded to every spawn.
 - `fs`: Injectable filesystem for tests and custom hosts.

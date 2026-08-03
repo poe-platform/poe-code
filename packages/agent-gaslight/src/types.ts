@@ -59,7 +59,7 @@ export interface GaslightPlanResult {
 
 export interface GaslightOptions {
   planPaths: string[];
-  agent: string;
+  agent?: string;
   model?: string;
   mode?: SpawnMode;
   archive?: boolean;
@@ -70,6 +70,7 @@ export interface GaslightOptions {
   prompt?: string;
   followups?: string[];
   teardown?: string;
+  vars?: Record<string, string>;
   onEvent?: (event: GaslightEvent) => void;
   signal?: AbortSignal;
   fs?: GaslightFileSystem;
@@ -77,10 +78,12 @@ export interface GaslightOptions {
 }
 
 export interface GaslightConfig {
+  agent?: string;
   setup?: string;
   prompt: string;
   followups: string[];
   teardown?: string;
+  vars?: Record<string, string>;
   archive?: boolean;
   path: string;
 }

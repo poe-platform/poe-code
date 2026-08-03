@@ -3,6 +3,54 @@ import { describe, expect, it, vi } from "vitest";
 import { runGaslight } from "./run.js";
 
 describe("runGaslight", () => {
+  it("interpolates config vars and file includes in every configured prompt", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/plan.md": "# Plan",
+        "/repo/context.md": "Important context",
+        "/repo/.poe-code/gaslight.yaml": [
+          "agent: codex",
+          "vars:",
+          "  context: '{{file \"context.md\"}}'",
+          "setup: Prepare {{context}}",
+          "prompt: Implement with {{context}}",
+          "followups:",
+          "  - Recheck {{context}}",
+          "teardown: Finish {{context}}",
+          ""
+        ].join("\n")
+      })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValue({ exitCode: 0, stdout: "ok", stderr: "", threadId: "thread" });
+
+    await runGaslight({ planPaths: ["plan.md"], cwd: "/repo", homeDir: "/home", fs, spawn });
+
+    expect(spawn.mock.calls.map(([, options]) => options.prompt)).toEqual([
+      "Prepare Important context",
+      "Implement with Important context plan.md",
+      "Recheck Important context",
+      "Finish Important context"
+    ]);
+    expect(spawn.mock.calls.map(([agent]) => agent)).toEqual(["codex", "codex", "codex", "codex"]);
+  });
+
+  it("rejects missing prompt variables before spawning", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/plan.md": "# Plan",
+        "/repo/.poe-code/gaslight.yaml":
+          "agent: codex\nprompt: Implement {{missing}}\nfollowups:\n  - Test it\n"
+      })
+    ).promises;
+    const spawn = vi.fn();
+
+    await expect(
+      runGaslight({ planPaths: ["plan.md"], cwd: "/repo", homeDir: "/home", fs, spawn })
+    ).rejects.toThrow('Missing gaslight variable "missing"');
+    expect(spawn).not.toHaveBeenCalled();
+  });
   it("runs setup before the plan and teardown after its follow-ups in the same conversation", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({ "/repo/docs/plans/work.md": "# Work" })

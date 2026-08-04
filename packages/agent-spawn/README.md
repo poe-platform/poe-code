@@ -102,4 +102,10 @@ Native capture sets a per-spawn `poe.code.spawn.id` resource attribute and store
 
 ## Environment Variables
 
-This package does not expose public environment variables. It inherits `process.env` for child processes and may add agent-specific env overrides from declarative spawn config, such as `GOOSE_MODE` for Goose modes, `GOOSE_DISABLE_KEYRING=1` for Goose file-backed credentials, or `OPENCODE_CONFIG_CONTENT` for OpenCode MCP injection. Per-invocation `env` values override inherited and agent-specific values without mutating `process.env`.
+| Variable                        | Description                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `POE_AGENT_BINARY`              | Overrides the executable used for the selected agent. Blank values use the agent's default. |
+| `POE_CODE_CAPTURE_OTEL`         | Set to `1` to capture native OpenTelemetry from supported host-runtime agents.              |
+| `POE_CODE_CAPTURE_OTEL_CONTENT` | Set to `1` to include prompt and tool content in native OpenTelemetry capture.              |
+
+The package inherits `process.env` for child processes and may add agent-specific env overrides from declarative spawn config, such as `GOOSE_MODE` for Goose modes, `GOOSE_DISABLE_KEYRING=1` for Goose file-backed credentials, or `OPENCODE_CONFIG_CONTENT` for OpenCode MCP injection. Per-invocation `env` values override inherited and agent-specific values without mutating `process.env`.

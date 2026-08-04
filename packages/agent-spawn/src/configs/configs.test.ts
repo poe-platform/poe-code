@@ -19,8 +19,19 @@ import { cursorSpawnConfig } from "./cursor.js";
 import { piSpawnConfig } from "./pi.js";
 import { serializeCodexMcpArgs, serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
 import { resolveModeConfig } from "../types.js";
+import { resolveConfig } from "./resolve-config.js";
 
 describe("configs/getSpawnConfig", () => {
+  it("overrides the agent binary from POE_AGENT_BINARY", () => {
+    expect(resolveConfig("codex", { POE_AGENT_BINARY: "custom-codex" }).binaryName).toBe(
+      "custom-codex"
+    );
+  });
+
+  it("ignores an empty POE_AGENT_BINARY override", () => {
+    expect(resolveConfig("codex", { POE_AGENT_BINARY: "  " }).binaryName).toBe("codex");
+  });
+
   it("returns undefined for claude-desktop", () => {
     expect(getSpawnConfig("claude-desktop")).toBeUndefined();
   });

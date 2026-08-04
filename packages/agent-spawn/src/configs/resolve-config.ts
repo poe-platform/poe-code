@@ -8,7 +8,10 @@ export interface ResolvedSpawnConfig {
   spawnConfig?: SpawnConfig;
 }
 
-export function resolveConfig(agentId: string): ResolvedSpawnConfig {
+export function resolveConfig(
+  agentId: string,
+  env: Readonly<Record<string, string | undefined>> = process.env
+): ResolvedSpawnConfig {
   const resolvedAgentId = resolveAgentId(agentId);
   if (!resolvedAgentId) {
     throw new Error(`Unknown agent "${agentId}".`);
@@ -20,7 +23,7 @@ export function resolveConfig(agentId: string): ResolvedSpawnConfig {
   }
 
   const spawnConfig = getSpawnConfig(resolvedAgentId);
-  const binaryName = agentDefinition.binaryName;
+  const binaryName = env["POE_AGENT_BINARY"]?.trim() || agentDefinition.binaryName;
 
   return { agentId: resolvedAgentId, binaryName, spawnConfig };
 }

@@ -5,6 +5,7 @@ import { apiKeyFlagDescription, createExecutionResources, resolveCommandFlags } 
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout, logoutScopeDescription } from "./logout.js";
 import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
+import { checkPoeAuth } from "../../sdk/auth-check.js";
 import { jsonOptionDescription, writeJson, type JsonCommandOptions } from "./json-output.js";
 
 interface ApiKeyCommandOptions {
@@ -102,7 +103,7 @@ async function executeStatus(
     }
 
     if (flags.dryRun) {
-      resources.logger.dryRun("Dry run: would fetch identity from Poe API.");
+      resources.logger.dryRun("Dry run: would check authentication with the Poe API.");
       resources.context.finalize();
       return;
     }
@@ -110,11 +111,10 @@ async function executeStatus(
     const s = spinner();
     s.start("Checking authentication...");
 
-    let identity: Awaited<ReturnType<typeof fetchPoeAuthIdentity>>;
     try {
-      identity = await fetchPoeAuthIdentity({
+      await checkPoeAuth({
         apiKey,
-        baseUrl: container.env.poeApiBaseUrl,
+        baseUrl: container.env.poeBaseUrl,
         httpClient: container.httpClient
       });
     } catch (error) {
@@ -122,7 +122,7 @@ async function executeStatus(
       throw error;
     }
 
-    s.stop(`Logged in as ${identity.name} (@${identity.handle})`);
+    s.stop("Logged in");
     resources.context.finalize();
   } catch (error) {
     if (error instanceof Error) {
@@ -149,14 +149,12 @@ async function writeStatusJson(
     return;
   }
 
-  writeJson({
-    loggedIn: true,
-    identity: await fetchPoeAuthIdentity({
-      apiKey,
-      baseUrl: container.env.poeApiBaseUrl,
-      httpClient: container.httpClient
-    })
+  await checkPoeAuth({
+    apiKey,
+    baseUrl: container.env.poeBaseUrl,
+    httpClient: container.httpClient
   });
+  writeJson({ loggedIn: true });
 }
 
 async function executeApiKey(
@@ -189,7 +187,9 @@ async function executeApiKey(
   }
 
   process.stdout.write(`${maskApiKey(apiKey)}\n`);
-  resources.logger.warn("Masked to the last 4 characters. Re-run with --reveal to print the full secret.");
+  resources.logger.warn(
+    "Masked to the last 4 characters. Re-run with --reveal to print the full secret."
+  );
   resources.context.finalize();
 }
 

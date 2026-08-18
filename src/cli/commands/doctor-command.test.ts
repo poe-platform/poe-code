@@ -65,24 +65,18 @@ function createModelsResponse(models: Array<{ id: string; owned_by: string }>) {
 }
 
 interface RouterOptions {
-  whoami?: { ok: boolean; status?: number; body?: unknown };
+  balance?: { ok: boolean; status?: number; body?: unknown };
   models?: { ok: boolean; status?: number; body?: unknown };
 }
 
 function createHttpClient(options: RouterOptions): HttpClient {
   return vi.fn(async (url: string) => {
-    if (url.includes("/whoami")) {
-      const whoami = options.whoami ?? { ok: true };
+    if (url.includes("/usage/current_balance")) {
+      const balance = options.balance ?? { ok: true };
       return {
-        ok: whoami.ok,
-        status: whoami.status ?? (whoami.ok ? 200 : 401),
-        json: async () =>
-          whoami.body ?? {
-            user_id: 1,
-            handle: "kamil",
-            name: "Kamil Jopek",
-            profile_picture: "https://example.com/pic.jpg"
-          },
+        ok: balance.ok,
+        status: balance.status ?? (balance.ok ? 200 : 401),
+        json: async () => balance.body ?? { current_point_balance: 8_432 },
         text: async () => ""
       };
     }
@@ -133,10 +127,7 @@ describe("doctor command", () => {
     process.exitCode = originalExitCode;
   });
 
-  function createDoctorProgram(input: {
-    httpClient: HttpClient;
-    commandRunner?: CommandRunner;
-  }) {
+  function createDoctorProgram(input: { httpClient: HttpClient; commandRunner?: CommandRunner }) {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
@@ -176,7 +167,7 @@ describe("doctor command", () => {
     await program.parseAsync(["node", "cli", "doctor"]);
 
     const output = logs.join("\n");
-    expect(output).toContain("Logged in as Kamil Jopek (@kamil)");
+    expect(output).toContain("Logged in");
     expect(output).toContain("claude-code");
     expect(output).toContain("1 model available");
     expect(output).toContain("claude");
@@ -208,6 +199,21 @@ describe("doctor command", () => {
 
     const output = logs.join("\n");
     expect(output).toContain("HTTP 503");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("fails auth when the balance endpoint rejects the stored key", async () => {
+    await storeTestApiKey(fs, homeDir, "revoked-key");
+
+    const program = createDoctorProgram({
+      httpClient: createHttpClient({ balance: { ok: false, status: 401 } })
+    });
+
+    await program.parseAsync(["node", "cli", "doctor"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Failed to check authentication (HTTP 401)");
+    expect(output).toContain("poe-code login");
     expect(process.exitCode).toBe(1);
   });
 

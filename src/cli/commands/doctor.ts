@@ -10,7 +10,7 @@ import {
   type ExecutionResources
 } from "./shared.js";
 import { loadConfiguredServices } from "../../services/config.js";
-import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
+import { checkPoeAuth as checkPoeCredential } from "../../sdk/auth-check.js";
 import { createBinaryExistsCheck } from "../../utils/command-checks.js";
 
 interface DoctorCheck {
@@ -100,21 +100,18 @@ async function resolvePoeCredential(container: CliContainer): Promise<string | n
   }
 }
 
-async function checkAuth(
-  container: CliContainer,
-  credential: string | null
-): Promise<DoctorCheck> {
+async function checkAuth(container: CliContainer, credential: string | null): Promise<DoctorCheck> {
   if (!credential) {
     return { name: "auth", ok: false, detail: 'Not logged in. Run "poe-code login".' };
   }
 
   try {
-    const identity = await fetchPoeAuthIdentity({
+    await checkPoeCredential({
       apiKey: credential,
-      baseUrl: container.env.poeApiBaseUrl,
+      baseUrl: container.env.poeBaseUrl,
       httpClient: container.httpClient
     });
-    return { name: "auth", ok: true, detail: `Logged in as ${identity.name} (@${identity.handle})` };
+    return { name: "auth", ok: true, detail: "Logged in" };
   } catch (error) {
     return {
       name: "auth",
@@ -196,11 +193,7 @@ async function checkRuntimes(
     if (!binaryName) {
       continue;
     }
-    const check = createBinaryExistsCheck(
-      binaryName,
-      `${service}-binary`,
-      `${binaryName} on PATH`
-    );
+    const check = createBinaryExistsCheck(binaryName, `${service}-binary`, `${binaryName} on PATH`);
     try {
       await check.run({
         isDryRun: false,

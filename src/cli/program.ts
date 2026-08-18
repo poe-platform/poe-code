@@ -107,7 +107,6 @@ const ROOT_HELP_PRIMARY_COMMANDS: readonly string[] = [
   "ralph",
   "usage",
   "dashboard",
-  "whoami",
   "version",
   "help"
 ];

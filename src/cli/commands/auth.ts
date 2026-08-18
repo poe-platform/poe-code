@@ -4,7 +4,6 @@ import { spinner } from "toolcraft-design";
 import { apiKeyFlagDescription, createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout, logoutScopeDescription } from "./logout.js";
-import { fetchPoeAuthIdentity } from "../../sdk/credentials.js";
 import { checkPoeAuth } from "../../sdk/auth-check.js";
 import { jsonOptionDescription, writeJson, type JsonCommandOptions } from "./json-output.js";
 
@@ -45,9 +44,6 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
       await executeApiKey(program, container, options);
     });
 
-  registerWhoamiCommand(auth, program, container);
-  registerWhoamiCommand(program, program, container);
-
   auth
     .command("login")
     .description("Store a Poe API key for reuse across commands.")
@@ -63,17 +59,6 @@ export function registerAuthCommand(program: Command, container: CliContainer): 
     )
     .action(async () => {
       await executeLogout(program, container);
-    });
-}
-
-/** Declared once for both `poe-code whoami` and `poe-code auth whoami`, which must not drift. */
-function registerWhoamiCommand(parent: Command, program: Command, container: CliContainer): void {
-  parent
-    .command("whoami")
-    .description("Print Poe account identity as JSON (uses POE_API_KEY if set).")
-    .option("--json", "Accepted for consistency with other commands; whoami always prints JSON.")
-    .action(async () => {
-      await executeWhoami(program, container);
     });
 }
 
@@ -207,28 +192,4 @@ async function resolveAuthCredential(
     return envKey.trim();
   }
   return container.readApiKey(options);
-}
-
-async function executeWhoami(program: Command, container: CliContainer): Promise<void> {
-  const flags = resolveCommandFlags(program);
-  const apiKey = await resolveAuthCredential(container, { readOnly: flags.dryRun });
-  if (!apiKey) {
-    process.exitCode = 1;
-    return;
-  }
-
-  if (flags.dryRun) {
-    const resources = createExecutionResources(container, flags, "auth:whoami");
-    resources.logger.dryRun("Dry run: would fetch identity from Poe API.");
-    resources.context.finalize();
-    return;
-  }
-
-  writeJson(
-    await fetchPoeAuthIdentity({
-      apiKey,
-      baseUrl: container.env.poeApiBaseUrl,
-      httpClient: container.httpClient
-    })
-  );
 }

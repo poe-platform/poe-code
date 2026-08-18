@@ -217,7 +217,7 @@ describe("createProgram", () => {
     expect(missing).toEqual([]);
   });
 
-  it.each(["help", "whoami", "version", "dashboard"])(
+  it.each(["help", "version", "dashboard"])(
     "lists the conventional %s command in root help",
     (name) => {
       const program = createProgram({
@@ -233,6 +233,21 @@ describe("createProgram", () => {
       expect(stripVTControlCharacters(program.helpInformation())).toContain(name);
     }
   );
+
+  it("does not expose the employee-only whoami commands", () => {
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    expect(program.commands.some((command) => command.name() === "whoami")).toBe(false);
+    const auth = program.commands.find((command) => command.name() === "auth");
+    expect(auth?.commands.some((command) => command.name() === "whoami")).toBe(false);
+  });
 
   it("groups less-common commands under an Advanced heading in root help", () => {
     const fs = createMemFs(homeDir);

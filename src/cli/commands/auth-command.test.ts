@@ -36,18 +36,24 @@ async function storeApiKey(fs: FileSystem, apiKey: string): Promise<void> {
   await container.writeApiKey(apiKey);
 }
 
-function createWhoamiResponse(overrides?: Partial<{
-  user_id: number;
-  handle: string;
-  name: string;
-  profile_picture: string;
-}>) {
+function createWhoamiResponse(
+  overrides?: Partial<{
+    user_id: number;
+    handle: string;
+    name: string;
+    profile_picture: string;
+  }>
+) {
   return {
     user_id: overrides?.user_id ?? 12345,
     handle: overrides?.handle ?? "testuser",
     name: overrides?.name ?? "Test User",
     profile_picture: overrides?.profile_picture ?? "https://example.com/pic.jpg"
   };
+}
+
+function createBalanceResponse(balance = 8_432) {
+  return { current_point_balance: balance };
 }
 
 describe("auth command", () => {
@@ -65,7 +71,9 @@ describe("auth command", () => {
     spinnerStopMessages.length = 0;
     spinnerMock.mockReturnValue({
       start: vi.fn(),
-      stop: (msg: string) => { spinnerStopMessages.push(msg); }
+      stop: (msg: string) => {
+        spinnerStopMessages.push(msg);
+      }
     });
   });
 
@@ -77,13 +85,13 @@ describe("auth command", () => {
     }
   });
 
-  it("shows logged-in identity from whoami endpoint", async () => {
+  it("shows logged in after checking the usage endpoint", async () => {
     await storeApiKey(fs, "test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => createWhoamiResponse({ name: "Kamil Jopek", handle: "kamil" })
+      json: async () => createBalanceResponse()
     });
 
     const program = createProgram({
@@ -98,22 +106,22 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "auth", "status"]);
 
     expect(httpClient).toHaveBeenCalledWith(
-      expect.stringContaining("/whoami"),
+      expect.stringContaining("/usage/current_balance"),
       expect.objectContaining({
-        method: "POST",
+        method: "GET",
         headers: expect.objectContaining({
           Authorization: "Bearer test-key"
         })
       })
     );
-    expect(spinnerStopMessages.some((m) => m.includes("Logged in as Kamil Jopek (@kamil)"))).toBe(true);
+    expect(spinnerStopMessages).toContain("Logged in");
   });
 
-  it("shows logged-in identity from POE_API_KEY without stored credentials", async () => {
+  it("checks POE_API_KEY without stored credentials", async () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => createWhoamiResponse({ name: "Environment User", handle: "environment" })
+      json: async () => createBalanceResponse(500)
     });
 
     const program = createProgram({
@@ -128,10 +136,12 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "auth", "status"]);
 
     expect(httpClient).toHaveBeenCalledWith(
-      expect.stringContaining("/whoami"),
-      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer environment-key" }) })
+      expect.stringContaining("/usage/current_balance"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer environment-key" })
+      })
     );
-    expect(spinnerStopMessages.some((message) => message.includes("Environment User (@environment)"))).toBe(true);
+    expect(spinnerStopMessages).toContain("Logged in");
   });
 
   it("shows not logged in when no API key exists", async () => {
@@ -186,7 +196,7 @@ describe("auth command", () => {
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
 
-  it("throws ApiError when whoami request fails", async () => {
+  it("throws ApiError when the credential check fails", async () => {
     await storeApiKey(fs, "test-key");
 
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -204,9 +214,9 @@ describe("auth command", () => {
     });
     vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
 
-    await expect(
-      program.parseAsync(["node", "cli", "auth", "status"])
-    ).rejects.toBeInstanceOf(ApiError);
+    await expect(program.parseAsync(["node", "cli", "auth", "status"])).rejects.toBeInstanceOf(
+      ApiError
+    );
   });
 
   it("runs status when auth is invoked without subcommand", async () => {
@@ -215,7 +225,7 @@ describe("auth command", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => createWhoamiResponse({ name: "Test User", handle: "testuser" })
+      json: async () => createBalanceResponse()
     });
 
     const program = createProgram({
@@ -230,10 +240,10 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "auth"]);
 
     expect(httpClient).toHaveBeenCalledWith(
-      expect.stringContaining("/whoami"),
+      expect.stringContaining("/usage/current_balance"),
       expect.any(Object)
     );
-    expect(spinnerStopMessages.some((m) => m.includes("Logged in as Test User (@testuser)"))).toBe(true);
+    expect(spinnerStopMessages).toContain("Logged in");
   });
 
   it("shows feedback outro after status output", async () => {
@@ -242,7 +252,7 @@ describe("auth command", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => createWhoamiResponse()
+      json: async () => createBalanceResponse()
     });
 
     const program = createProgram({
@@ -280,7 +290,7 @@ describe("auth command", () => {
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => createWhoamiResponse({ user_id: 7, name: "Kamil Jopek", handle: "kamil" })
+      json: async () => createBalanceResponse()
     });
 
     const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -299,12 +309,34 @@ describe("auth command", () => {
     const written = stdoutSpy.mock.calls.map((call) => call[0]).join("");
     stdoutSpy.mockRestore();
 
-    expect(JSON.parse(written)).toEqual({
-      loggedIn: true,
-      identity: createWhoamiResponse({ user_id: 7, name: "Kamil Jopek", handle: "kamil" })
-    });
+    expect(JSON.parse(written)).toEqual({ loggedIn: true });
     expect(logs).toEqual([]);
     expect(spinnerStopMessages).toEqual([]);
+  });
+
+  it("reports logged in when whoami rejects a valid external user's key", async () => {
+    await storeApiKey(fs, "valid-external-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init) => {
+      if (url !== "https://api.poe.com/usage/current_balance" || init?.method !== "GET") {
+        throw new Error(`Unexpected request: ${init?.method} ${url}`);
+      }
+      return { ok: true, status: 200, json: async () => createBalanceResponse(1_250) };
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status"]);
+
+    expect(httpClient).toHaveBeenCalledOnce();
+    expect(spinnerStopMessages).toContain("Logged in");
   });
 
   it("reports logged-out state as JSON with auth status --json", async () => {
@@ -390,8 +422,8 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
-    const statusCommand = program
-      .commands.find((command) => command.name() === "auth")
+    const statusCommand = program.commands
+      .find((command) => command.name() === "auth")
       ?.commands.find((command) => command.name() === "status");
 
     expect(statusCommand?.helpInformation()).toContain("--json");
@@ -525,8 +557,8 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
-    const apiKeyCommand = program
-      .commands.find((command) => command.name() === "auth")
+    const apiKeyCommand = program.commands
+      .find((command) => command.name() === "auth")
       ?.commands.find((command) => command.name() === "api-key");
 
     expect(apiKeyCommand?.description().toLowerCase()).toContain("danger");
@@ -542,8 +574,8 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
-    const authLogout = program
-      .commands.find((command) => command.name() === "auth")
+    const authLogout = program.commands
+      .find((command) => command.name() === "auth")
       ?.commands.find((command) => command.name() === "logout");
     const rootLogout = program.commands.find((command) => command.name() === "logout");
 
@@ -563,8 +595,8 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
-    const loginCommand = program
-      .commands.find((command) => command.name() === "auth")
+    const loginCommand = program.commands
+      .find((command) => command.name() === "auth")
       ?.commands.find((command) => command.name() === "login");
     const help = loginCommand?.helpInformation() ?? "";
 
@@ -808,9 +840,9 @@ describe("auth command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await expect(
-      program.parseAsync(["node", "cli", "auth", "whoami"])
-    ).rejects.toBeInstanceOf(ApiError);
+    await expect(program.parseAsync(["node", "cli", "auth", "whoami"])).rejects.toBeInstanceOf(
+      ApiError
+    );
   });
 
   it("registers whoami at the root next to login and logout", () => {

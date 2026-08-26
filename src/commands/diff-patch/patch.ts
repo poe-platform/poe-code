@@ -1,14 +1,19 @@
 import { dirname, resolvePath, writeBytes, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
-import { applyHunks, parseUnified, reversePatch } from "./unified.js";
+import { applyHunks, reversePatch } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
+import { parsePatch, type PatchFormat } from "./patch-formats.js";
 
-interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; ignoreWhitespace: boolean; target?: string }
+interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; ignoreWhitespace: boolean; format?: PatchFormat; target?: string }
 
 function flags(args: readonly string[]): PatchFlags {
   const result: PatchFlags = { strip: 0, input: "-", reverse: false, dryRun: false, fuzz: 0, ignoreWhitespace: false };
   const operands: string[] = [];
+  const select = (format: PatchFormat) => {
+    if (result.format && result.format !== format) throw new ToolError("conflicting patch format options");
+    result.format = format;
+  };
   let literal = false;
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]!;
@@ -22,6 +27,9 @@ function flags(args: readonly string[]): PatchFlags {
     else if (arg === "--dry-run") result.dryRun = true;
     else if (arg === "--reverse") result.reverse = true;
     else if (arg === "--ignore-whitespace" || arg === "--ignore-white-space") result.ignoreWhitespace = true;
+    else if (arg === "--unified") select("unified");
+    else if (arg === "--context") select("context");
+    else if (arg === "--normal") select("normal");
     else if (/^--(?:strip|input|fuzz)(?:=|$)/u.test(arg)) {
       const [name] = arg.split("=");
       const parameter = value(arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : undefined, name!);
@@ -33,7 +41,9 @@ function flags(args: readonly string[]): PatchFlags {
       const flag = arg[offset]!;
       if (flag === "R") result.reverse = true;
       else if (flag === "l") result.ignoreWhitespace = true;
-      else if (flag === "u") continue;
+      else if (flag === "u") select("unified");
+      else if (flag === "c") select("context");
+      else if (flag === "n") select("normal");
       else if (flag === "p" || flag === "i" || flag === "F") {
         const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
         if (flag === "p") result.strip = integer(parameter, "strip count");
@@ -70,7 +80,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
   }
   const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
-  const parsed = await parseUnified(await unwrapPatch(input, budget), budget);
+  const parsed = await parsePatch(await unwrapPatch(input, budget), budget, options.format, explicit);
   const staged = new Map<string, Prepared>();
   for (const sourcePatch of options.reverse ? parsed.slice().reverse() : parsed) {
     const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;

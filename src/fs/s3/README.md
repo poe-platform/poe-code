@@ -345,6 +345,46 @@ general-purpose object storage: it does not simulate versioning, IAM evaluation,
 ACLs, encryption/KMS, multipart uploads, object lock, billing, network behavior,
 S3 Express directory buckets, or transactional directory operations.
 
+## Safe cleanup workflows and the empty-directory gap
+
+Safe empty-only `rmdir` is still unsupported for an empty S3 prefix. This is a
+real workflow gap, not satisfied by successful recursive deletion. The unchanged
+aggregate adapter-tools checkpoint `421ce3f` records 77/79, with S3 and WebDAV
+failing the required `/work/scratch/nested` cleanup. This documentation does not
+rebaseline that matrix or claim alias closure.
+
+Supported alternatives for **different, explicitly chosen workflows** are:
+
+- Remove a known owned file with `rm(file)` and leave its parent prefixes/markers
+  in place. This does not provide empty-directory removal or cross-writer isolation.
+- Keep scratch directories in a `MemoryFileSystem`, read the completed named
+  result with an explicit `maxBytes` and signal, then publish those bytes with
+  remote `writeFile(result, bytes, { flag: "wx", signal })`. Conditional PUT must
+  be supported; an existing or raced destination stays protected. Clean the local
+  scratch files and directories using local `rm`/`rmdir`. This is host-orchestrated
+  VFS-only byte transfer, not cross-adapter rename, a transaction, or a guarantee
+  that every command workflow transparently works across mounts. Publish/reconcile
+  successfully before discarding the local result; a lost remote response can
+  leave effects even when the caller sees an error.
+- Only when the caller actually requests destruction of the entire subtree,
+  `rm(path, { recursive: true })` removes descendants. It can leave partial effects
+  and lacks a namespace snapshot. It is **never an empty-only fallback**, including
+  after an empty listing or a failed `rmdir`.
+
+The executable examples and exact preservation checks are in
+`tests/stress/adapters/remote-safe-workflows.test.ts`. They use the repository
+mock, not live IAM/provider validation. Modes remain advisory metadata, not an
+authorization boundary; the shared creation-mode/X_OK contract question remains
+open in `tests/stress/adapters/evidence/four-reds-b2d202a`.
+
+An S3 DeleteObject `If-Match` guards the named object's ETag, not the emptiness
+of its prefix. A future safe provider integration would need an authoritative
+empty-namespace deletion operation or coordination covering every possible writer;
+no current injected transport capability supplies that guarantee. No locking or
+new provider API is added here. ETag ABA, non-atomic rename and snapshot limits
+continue to apply. Primary API reference:
+`https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html`.
+
 ## Mock and verification
 
 The additive rmdir checkpoint (August 26, 2026) passed all 35 combined S3/WebDAV

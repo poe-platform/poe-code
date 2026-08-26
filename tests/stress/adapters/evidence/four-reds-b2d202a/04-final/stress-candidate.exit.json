@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/stress/adapters/core.test.ts",
+    "tests/stress/adapters/policy.test.ts",
+    "tests/stress/adapters/remote-safe-workflows.test.ts",
+    "tests/stress/adapters/s3-rename-profile.test.ts",
+    "tests/stress/adapters/s3-truncate-profile.test.ts",
+    "tests/stress/adapters/s3.test.ts",
+    "tests/stress/adapters/webdav-timestamps-profile.test.ts",
+    "tests/stress/adapters/webdav.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/04-final/archive",
+  "start": "2026-08-26T23:42:47.047Z",
+  "end": "2026-08-26T23:42:47.496Z",
+  "status": 1,
+  "signal": null
+}

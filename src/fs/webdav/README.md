@@ -349,6 +349,36 @@ as `cause`. Earlier server-side changes may already have happened; there is no
 rollback. A mutation multistatus without a reported failure is also rejected
 rather than guessing that the operation completed.
 
+## Safe cleanup workflows and the empty-collection gap
+
+Safe empty-only `rmdir` remains unsupported for an empty remote collection, under
+both existing overwrite policies. This is an honest required-workflow gap: the
+unchanged aggregate adapter-tools checkpoint `421ce3f` records 77/79, with WebDAV
+and S3 failing `/work/scratch/nested` cleanup. Neither this section nor the new
+targeted tests turns that matrix green or claims alias closure.
+
+For explicitly different workflows, applications can remove known owned files
+with `rm(file)` while leaving parent collections, or stage scratch work in a
+`MemoryFileSystem`. The latter uses bounded `readFile` plus explicit remote
+`writeFile(result, bytes, { flag: "wx", signal })`, then local file removal and
+local safe `rmdir`. Remote exclusive publication requires the provider to honor
+the existing conditional request. This VFS-only, host-orchestrated byte transfer
+is not cross-adapter rename, a transaction, or automatic command/mount portability.
+Keep the local result until publication/reconciliation succeeds; lost replies may
+leave remote effects. See `tests/stress/adapters/remote-safe-workflows.test.ts` for
+exact byte, namespace, existing-target and unsupported-rmdir controls.
+
+`rm(path, { recursive: true })` is available only for the **different intent of
+destroying the requested subtree**, with possible partial effects. Never use it
+as a fallback for `rmdir` or after listing an apparently empty collection. RFC4918
+section9.6.1 gives collection DELETE recursive semantics; `Depth: 0` cannot make
+it safe empty-only removal. Ordinary collection ETags do not establish membership
+identity. A future integration must provide a reviewed authoritative emptiness
+and removal guarantee, or coordination excluding every relevant writer. Existing
+lock/ETag overwrite options are not an implemented safe-rmdir guarantee; this
+task adds no protocol, lock lifecycle, or capability field. Primary reference:
+`https://www.rfc-editor.org/rfc/rfc4918.html#section-9.6.1`.
+
 ## Verification
 
 The additive rmdir checkpoint (August 26, 2026) passed all 35 combined S3/WebDAV

@@ -64,10 +64,12 @@ export async function readProgram(context: CommandContext, file: string): Promis
   return Buffer.from(contents).toString("latin1");
 }
 
-export interface RecordLine { readonly text: string; readonly terminated: boolean; readonly file: string }
+export interface RecordLine { readonly text: string; readonly terminated: boolean; readonly file: string; readonly fileIndex: number }
 
 export async function* lineRecords(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<RecordLine> {
-  for (const file of files.length ? files : ["-"]) {
+  const names = files.length ? files : ["-"];
+  for (let fileIndex = 0; fileIndex < names.length; fileIndex++) {
+    const file = names[fileIndex]!;
     let pending = "";
     for await (const chunk of input(context, file)) {
       budget.step();
@@ -75,12 +77,12 @@ export async function* lineRecords(context: CommandContext, files: readonly stri
       let start = 0;
       let end: number;
       while ((end = text.indexOf("\n", start)) >= 0) {
-        yield { text: budget.check(pending + text.slice(start, end)), terminated: true, file };
+        yield { text: budget.check(pending + text.slice(start, end)), terminated: true, file, fileIndex };
         pending = ""; start = end + 1;
       }
       pending = budget.check(pending + text.slice(start));
     }
-    if (pending) yield { text: pending, terminated: false, file };
+    if (pending) yield { text: pending, terminated: false, file, fileIndex };
   }
 }
 

@@ -178,6 +178,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     following = undefined;
     return next;
   };
+  const prepareRecord = async (record: RecordLine): Promise<RecordLine> => {
+    if (record.terminated || files.length < 2) return record;
+    const next = await peekNext();
+    return !next.done && next.value.fileIndex !== record.fileIndex ? { ...record, terminated: true } : record;
+  };
   let number = 0;
   let hold = "";
   let lastPattern: Pattern | undefined;
@@ -190,7 +195,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   try {
     while (!current.done) {
       budget.step(); number++;
-      let record: RecordLine = current.value;
+      let record = await prepareRecord(current.value);
       let pattern = record.text;
       let appended = "";
       let substituted = false;
@@ -265,7 +270,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             if (instruction.kind === "n") await flush();
             const next = await readNext();
             if (next.done) { if (instruction.kind === "N") await flush(); return 0; }
-            record = next.value; number++;
+            record = await prepareRecord(next.value); number++;
             pattern = instruction.kind === "N" ? budget.check(pattern + "\n" + record.text) : record.text;
             substituted = false;
             break;

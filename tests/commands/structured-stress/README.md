@@ -466,3 +466,24 @@ native vectors, update product documentation only with new evidence, then use
 a separate independent rerun. Prioritize object iteration and numeric value
 representation/comparison/rendering; do not convert red native expectations
 into passing product-policy expectations to satisfy the gate.
+## Phase 2a: quantifier regression author checkpoint
+
+The fix author preserved and committed the phase-one artifacts without changes
+to their frozen bytes. This author is not the independent final verifier.
+Object iteration now passes all 21/21 original native vectors, fixing 16
+zero/one-argument rows and four generator-overload rows. Six additive generator
+vectors were captured before source changes; all six pass. They include scalar
+input, lazy generator and condition errors, empty conditions, and object order.
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured/*.test.ts tests/commands/structured-stress/*.test.ts
+node --import tsx tests/commands/structured-stress/independent-increment/diagnose.ts
+```
+
+Results: 30/30 focused tests; 684/684 existing owned tests; complete native
+matrix 75 exact / 72 stdout-status differences / 8 diagnostic-only out of 155.
+Numeric, Unicode, recovery and diagnostic gaps remain at this intermediate
+checkpoint. No raw comparisons were relaxed. The additive native files also
+contain numeric probes reserved for the next fix; their complete denominators
+and author probe-construction mistakes will be reported separately.

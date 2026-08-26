@@ -160,7 +160,7 @@ cross-version parity beyond its recorded tests.
 | `has(key)`, `contains(value)` | Own-key/index existence and recursive containment; array `has` truncates fractional indexes but does not wrap negative indexes. |
 | `sort`, `sort_by(f)`, `unique`, `unique_by(f)`, `group_by(f)` | Stable sorting/grouping with recursive jq-style type ordering; key filters may produce multiple values. |
 | `add`, `reverse`, `min`, `max`, `min_by(f)`, `max_by(f)` | Array operations; empty `add`, min, and max return null. |
-| `any`, `any(f)`, `all`, `all(f)` | Array predicates with short-circuiting and empty-array identities. |
+| `any`, `any(f)`, `any(g; f)`, `all`, `all(f)`, `all(g; f)` | Array/object predicates or explicit generator predicates; short-circuiting and empty-generator identities. |
 | `join(separator)` | Join array elements or object values in insertion order. Strings pass through, null becomes empty text, numbers/booleans use `tostring`; nested containers error. |
 | `first`, `first(f)`, `last`, `last(f)`, `limit(n; f)` | Lazy first/limited consumption; `first(empty)` emits nothing, `last(empty)` emits null; `limit` requires a nonnegative safe integer. |
 | `range(end)`, `range(start; end)`, `range(start; end; step)` | Lazily consume argument generators in start/end/step order; finite numeric progression, exclusive end; zero step emits nothing, nonprogress/overflow errors. |
@@ -349,3 +349,24 @@ numeric policies (12 invalid UTF-8, one stop-on-first runtime error, three
 numeric rendering cases). The original 240 frozen references remain unchanged
 and pass. All ten earlier semantic fixes remain covered. No separate-worker
 final acceptance is claimed; the root will assign a verifier after this handoff.
+## Quantifier regression fix (August 26, 2026)
+
+`any` and `all` now iterate object values in insertion order as well as arrays.
+All three jq overloads are accepted: no arguments, a condition, and
+`any(generator; condition)` / `all(generator; condition)`. Empty conditions
+produce no candidates; empty generators give false for `any` and true for
+`all`. Both generator and condition short-circuit without evaluating later
+errors. Shared quotas and cancellation still propagate through `?`.
+
+Exact frozen jq-1.7.1-apple regression reproduction:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts
+```
+
+The focused gate passes 30/30 tests, including 27 exact native vectors and
+quota/cancellation checks; the existing owned suite still passes 684/684.
+The complete 155-case matrix moves from 55 exact / 92 stdout-status differences
+/ 8 diagnostic-only to 75 / 72 / 8. This fixes the independently frozen
+quantifier categories, not the numeric,
+Unicode, or error-continuation categories. It is not a full parity claim.

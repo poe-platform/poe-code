@@ -326,19 +326,23 @@ export class Interpreter {
       }
       budget.value(result); yield result; return;
     }
+    if (name === "any" || name === "all") {
+      const generator: Ast = args.length === 2 ? args[0]! : { kind: "iterate", base: { kind: "identity" } };
+      const condition: Ast = args[args.length === 2 ? 1 : 0] ?? { kind: "identity" };
+      for await (const item of this.run(generator, input)) {
+        for await (const value of this.run(condition, item)) {
+          await budget.tick();
+          if (truth(value) === (name === "any")) { yield name === "any"; return; }
+        }
+      }
+      yield name === "all"; return;
+    }
     if (!Array.isArray(input)) throw new JqError(`${name} requires an array`);
     if (name === "reverse") { yield [...input].reverse(); return; }
     if (name === "add") {
       let result: Json = null;
       for (const item of input) { await budget.tick(); result = binary("+", result, item, budget); budget.value(result); }
       yield result; return;
-    }
-    if (name === "any" || name === "all") {
-      for (const item of input) {
-        const values = args[0] ? this.run(args[0], item) : (async function* () { yield item; })();
-        for await (const value of values) { await budget.tick(); if (truth(value) === (name === "any")) { yield name === "any"; return; } }
-      }
-      yield name === "all"; return;
     }
     const keyed: { key: Json; value: Json }[] = [];
     let keyBytes = 0;

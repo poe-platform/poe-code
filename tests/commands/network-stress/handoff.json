@@ -1,0 +1,7 @@
+{
+  "author": "Curie",
+  "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+  "messageReference": "User delegation in this session, 2026-08-26: Handoff has now explicitly arrived: use this user message as messageReference, actual full source revision deab14d and documented networkCommands export. Curie author handoff 6854a6b + deab14d ready, author 81/81, Curie stops source edits. Independent blackbox BASELINE/EVIDENCE only, no product fixes.",
+  "receivedAt": "2026-08-26T22:41:52Z",
+  "pluginExport": "networkCommands"
+}

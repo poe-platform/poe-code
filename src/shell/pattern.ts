@@ -7,28 +7,46 @@ const characterClasses: Readonly<Record<string, string>> = {
   space: " \\t\\r\\n\\v\\f", upper: "A-Z", word: "a-zA-Z0-9_", xdigit: "a-fA-F0-9",
 };
 
-function tokens(pattern: string): PatternToken[] {
+interface PatternWork { remaining: number; signal: AbortSignal; exhausted(): never }
+
+async function tokens(pattern: string, work: PatternWork): Promise<PatternToken[]> {
   const result: PatternToken[] = [];
   const characters = Array.from(pattern);
+  const lastClosingBracket = characters.lastIndexOf("]");
+  let steps = 0;
+  const tick = (): Promise<void> | undefined => {
+    if (--work.remaining < 0) work.exhausted();
+    if (++steps % 1024 === 0) return new Promise<void>((resolve) => setImmediate(resolve)).then(() => work.signal.throwIfAborted());
+    return undefined;
+  };
   for (let index = 0; index < characters.length; index++) {
+    const pending = tick();
+    if (pending) await pending;
     const character = characters[index]!;
     if (character === "\\" && index + 1 < characters.length) result.push({ kind: "literal", value: characters[++index]! });
     else if (character === "*") {
       if (result.at(-1)?.kind !== "star") result.push({ kind: "star" });
     } else if (character === "?") result.push({ kind: "any" });
-    else if (character === "[") {
+    else if (character === "[" && index < lastClosingBracket) {
       let cursor = index + 1;
       let contents = "";
       if (["!", "^"].includes(characters[cursor] ?? "")) { contents = "^"; cursor++; }
       if (characters[cursor] === "]") { contents += "\\]"; cursor++; }
       let valid = true;
       for (; cursor < characters.length && characters[cursor] !== "]"; cursor++) {
+        const pending = tick();
+        if (pending) await pending;
         const member = characters[cursor]!;
         if (member === "\\" && cursor + 1 < characters.length) {
-          contents += `\\${characters[++cursor]!}`;
+          contents += `\\u{${characters[++cursor]!.codePointAt(0)!.toString(16)}}`;
         } else if (member === "[" && characters[cursor + 1] === ":") {
-          const end = characters.indexOf(":", cursor + 2);
-          if (end !== -1 && characters[end + 1] === "]") {
+          let end = cursor + 2;
+          while (end < characters.length && characters[end] !== ":" && characters[end] !== "]") {
+            const pending = tick();
+            if (pending) await pending;
+            end++;
+          }
+          if (characters[end] === ":" && characters[end + 1] === "]") {
             const name = characters.slice(cursor + 2, end).join("");
             valid &&= characterClasses[name] !== undefined;
             contents += characterClasses[name] ?? "";
@@ -48,9 +66,18 @@ function tokens(pattern: string): PatternToken[] {
   return result;
 }
 
-export async function matchesPattern(pattern: string, value: string, work: { remaining: number; signal: AbortSignal; exhausted(): never }): Promise<boolean> {
+export async function compilePattern(pattern: string, work: PatternWork): Promise<(value: string) => Promise<boolean>> {
   work.signal.throwIfAborted();
-  const patternTokens = tokens(pattern);
+  const patternTokens = await tokens(pattern, work);
+  return (value) => matchTokens(patternTokens, value, work);
+}
+
+export async function matchesPattern(pattern: string, value: string, work: PatternWork): Promise<boolean> {
+  return (await compilePattern(pattern, work))(value);
+}
+
+async function matchTokens(patternTokens: PatternToken[], value: string, work: PatternWork): Promise<boolean> {
+  work.signal.throwIfAborted();
   const characters = Array.from(value);
   let position = 0;
   let tokenIndex = 0;

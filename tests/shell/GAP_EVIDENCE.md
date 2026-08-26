@@ -65,3 +65,19 @@ advance an enclosing descriptor's offset. NUL removal precedes newline trimming.
 Substitution status is visible to subsequent expansions in the same command,
 as observed with `false; printf '<%s>:%s' "$(<input)" "$?"` (status field 0).
 Target errors terminate the substitution environment, not the outer shell.
+
+## Pathname classes and pattern cancellation
+
+Pathname segments now use the same iterative matcher as case, including C/ASCII
+POSIX bracket classes, negation and quoted bracket members. The separate
+parameter-removal matcher is unchanged. Exact pathname output is compared to
+the existing C-locale Bash reference. Locale collation is not claimed.
+
+The auditor reproduced cancellation starvation for 65,536 unmatched `[` bytes
+in both the matcher and public shell, externally killed after 1.5 seconds.
+Tokenization now accounts for work and yields every 1,024 steps, before matching
+starts; when no closing bracket exists it avoids repeated suffix scans.
+Case retains its shared `maxExpansionBytes` work bound, now including compilation.
+Pathname matching uses a finite work allowance of `4 * maxExpansionBytes + 1024`
+(capped at the safe-integer maximum), separately from the unchanged strict
+output byte/field limits, so exact-budget output remains permitted.

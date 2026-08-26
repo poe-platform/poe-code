@@ -9,7 +9,7 @@ import { ShellLimitError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { ShellInput } from "./input.js";
 import { evaluateArithmetic } from "./arithmetic.js";
-import { matchesPattern } from "./pattern.js";
+import { compilePattern, matchesPattern } from "./pattern.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -899,7 +899,7 @@ export class Runtime {
       expansionBytes += size;
       const field = fields.at(-1)!;
       field.value += value;
-      field.pattern += glob ? value : value.replace(pattern ? /[\\*?[\]\-^]/gu : /[\\*?[\]]/gu, "\\$&");
+      field.pattern += glob ? value : value.replace(/[\\*?[\]\-^]/gu, "\\$&");
       field.present ||= present;
     };
     const parts = word.parts.map((part) => ({ part, splitText: false }));
@@ -966,6 +966,7 @@ export class Runtime {
   async glob(value: string, pattern: string, state: State): Promise<string[]> {
     if (!/(?:^|[^\\])[*?[]/u.test(pattern)) return [value];
     const absolute = pattern.startsWith("/");
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     let candidates = [absolute ? "/" : ""];
     for (const segment of pattern.split("/").filter((segment) => segment.length > 0)) {
       const next: string[] = [];
@@ -981,13 +982,13 @@ export class Runtime {
         const literal = segment.replace(/\\(.)/gu, "$1");
         for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
       } else {
-        const expression = globExpression(segment);
+        const matches = await compilePattern(segment, work);
         for (const candidate of candidates) {
           let entries;
           try { entries = await this.fs.readdir(resolvePath(state.cwd, candidate || "."), { signal: this.signal }); }
           catch (error) { if (["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) continue; throw error; }
           for (const entry of entries) {
-            if ((!entry.name.startsWith(".") || segment.startsWith(".")) && expression.test(entry.name)) {
+            if ((!entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
               addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
             }
           }

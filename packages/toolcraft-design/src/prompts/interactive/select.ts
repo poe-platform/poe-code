@@ -111,7 +111,7 @@ function renderSelectPrompt<Value>(prompt: SelectPrompt<Value>, opts: SelectOpti
     maxItems: opts.maxItems,
     columnPadding: 3,
     style: (option, active) => renderOption(option, active, false, false)
-  }).map((line) => `${color.cyan(GLYPHS.bar)}  ${line}`);
+  }).flatMap((line) => line.split("\n").map((physicalLine) => `${color.cyan(GLYPHS.bar)}  ${physicalLine}`));
 
   return `${color.gray(GLYPHS.barStart)} ${symbol(prompt.state)} ${opts.message}\n${lines.join("\n")}\n${color.cyan(GLYPHS.barEnd)}`;
 }

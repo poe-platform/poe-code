@@ -146,7 +146,7 @@ function renderMultiselectPrompt<Value>(prompt: MultiselectPrompt<Value>, opts: 
     maxItems: opts.maxItems,
     columnPadding: 3,
     style: (option, active) => renderOption(option, prompt.value, active, false, false)
-  }).map((line) => `${prompt.state === "error" ? color.yellow(GLYPHS.bar) : color.cyan(GLYPHS.bar)}  ${line}`);
+  }).flatMap((line) => line.split("\n").map((physicalLine) => `${prompt.state === "error" ? color.yellow(GLYPHS.bar) : color.cyan(GLYPHS.bar)}  ${physicalLine}`));
 
   const body = [`${color.gray(GLYPHS.barStart)} ${symbol(prompt.state)} ${opts.message}`, ...lines];
   if (prompt.state === "error") {

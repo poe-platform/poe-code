@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { wrapAnsi } from "fast-wrap-ansi";
+import { color } from "../../components/color.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 import { GLYPHS } from "./glyphs.js";
 import { multiselectPrompt } from "./multiselect.js";
@@ -12,6 +13,10 @@ const options = [
 ];
 
 describe("multiselectPrompt", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("toggles values with space and submits selected values", async () => {
     const { input, output, getOutput } = createPromptHarness();
     const result = multiselectPrompt({ message: "Pick", options, input, output });
@@ -130,8 +135,10 @@ describe("multiselectPrompt", () => {
     input.write("\r");
 
     await expect(result).resolves.toEqual(["Charlie long label"]);
-    expect(focused).toContain(wrapAnsi(`${GLYPHS.checkboxActive} Charlie long label`, 9, { hard: true, trim: false }));
-    expect(toggled).toContain(wrapAnsi(`${GLYPHS.checkboxSelected} Charlie long label`, 9, { hard: true, trim: false }));
+    expect(focused).toContain(wrapAnsi(`${GLYPHS.checkboxActive} Charlie long label`, 9, { hard: true, trim: false })
+      .split("\n").map((line) => `${GLYPHS.bar}  ${line}`).join("\n"));
+    expect(toggled).toContain(wrapAnsi(`${GLYPHS.checkboxSelected} Charlie long label`, 9, { hard: true, trim: false })
+      .split("\n").map((line) => `${GLYPHS.bar}  ${line}`).join("\n"));
   });
 
   it.each([{ rows: 7, columns: 80 }, { rows: 10, columns: 12 }])("preserves focus and selection through resize to $rows rows/$columns columns and back", async (size) => {
@@ -153,11 +160,100 @@ describe("multiselectPrompt", () => {
     input.write("\r");
 
     await expect(result).resolves.toEqual(["Echo"]);
-    expect(shrunk).toContain(wrapAnsi(`${GLYPHS.checkboxSelected} Echo long label`, size.columns - 3, { hard: true, trim: false }));
+    expect(shrunk).toContain(wrapAnsi(`${GLYPHS.checkboxSelected} Echo long label`, size.columns - 3, { hard: true, trim: false })
+      .split("\n").map((line) => `${GLYPHS.bar}  ${line}`).join("\n"));
     expect(grown).toContain(`${GLYPHS.checkboxSelected} Echo long label`);
     for (const choice of choices) {
       expect(grown).toContain(choice.label);
     }
     expect(grown).not.toContain("...");
+  });
+
+  it.each([4, 8, 12, 20, 80])("prefixes unchecked/checked labels and hints at width %i without changing rows or ANSI", async (columns) => {
+    vi.stubEnv("FORCE_COLOR", "1");
+    const { input, output } = createPromptHarness({ columns, rows: 20 });
+    const label = "Alpha long option label";
+    const hint = "a long descriptive hint";
+    const unchecked = wrapAnsi(`${color.cyan(GLYPHS.checkboxActive)} ${label}${color.dim(` (${hint})`)}`, columns - 3, { hard: true, trim: false }).split("\n");
+    const checked = wrapAnsi(`${color.green(GLYPHS.checkboxSelected)} ${label}${color.dim(` (${hint})`)}`, columns - 3, { hard: true, trim: false }).split("\n");
+    const result = multiselectPrompt({ message: "", options: [{ value: "alpha", label, hint }], input, output });
+
+    await tick();
+    const focused = (output.frames.at(-1) ?? "").split("\n").slice(1, -1);
+    input.write(" ");
+    const toggled = (output.frames.at(-1) ?? "").split("\n").slice(1, -1);
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(["alpha"]);
+    expect(focused).toHaveLength(unchecked.length);
+    expect(toggled).toHaveLength(checked.length);
+    expect(toggled).toHaveLength(focused.length);
+    expect(focused).toEqual(unchecked.map((line) => `${color.cyan(GLYPHS.bar)}  ${line}`));
+    expect(toggled).toEqual(checked.map((line) => `${color.cyan(GLYPHS.bar)}  ${line}`));
+  });
+
+  it("prefixes explicit label/hint newlines including blank lines", async () => {
+    const { input, output } = createPromptHarness({ columns: 80 });
+    const result = multiselectPrompt({
+      message: "Pick",
+      options: [{ value: "alpha", label: "Alpha\n\nsecond label", hint: "first hint\n\nlast hint" }],
+      input,
+      output
+    });
+
+    await tick();
+    input.write(" ");
+    const lines = stripAnsi(output.frames.at(-1) ?? "").split("\n").slice(1, -1);
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(["alpha"]);
+    expect(lines).toEqual([
+      `${GLYPHS.bar}  ${GLYPHS.checkboxSelected} Alpha`,
+      `${GLYPHS.bar}  `,
+      `${GLYPHS.bar}  second label (first hint`,
+      `${GLYPHS.bar}  `,
+      `${GLYPHS.bar}  last hint)`
+    ]);
+  });
+
+  it("prefixes every wrapped omission-marker row", async () => {
+    const { input, output } = createPromptHarness({ columns: 4, rows: 20 });
+    const choices = Array.from({ length: 10 }, (_, index) => ({ value: index, label: String(index) }));
+    const result = multiselectPrompt({ message: "Pick", options: choices, maxItems: 5, input, output });
+
+    await tick();
+    input.write(" ");
+    const lines = stripAnsi(output.frames.at(-1) ?? "").split("\n");
+    input.write("\r");
+
+    await expect(result).resolves.toEqual([0]);
+    expect(lines.slice(-4, -1)).toEqual([`${GLYPHS.bar}  .`, `${GLYPHS.bar}  .`, `${GLYPHS.bar}  .`]);
+  });
+
+  it.each([20, 80])("uses yellow prefixes for every error menu row and restores cyan at width %i", async (columns) => {
+    vi.stubEnv("FORCE_COLOR", "1");
+    const { input, output } = createPromptHarness({ columns, rows: 20 });
+    const label = "Alpha long option label\n\ncontinued label";
+    const hint = "a long descriptive hint\n\nlast hint";
+    const unchecked = wrapAnsi(`${color.cyan(GLYPHS.checkboxActive)} ${label}${color.dim(` (${hint})`)}`, columns - 3, { hard: true, trim: false }).split("\n");
+    const checked = wrapAnsi(`${color.green(GLYPHS.checkboxSelected)} ${label}${color.dim(` (${hint})`)}`, columns - 3, { hard: true, trim: false }).split("\n");
+    const settled = vi.fn();
+    const result = multiselectPrompt({ message: "Pick", options: [{ value: "alpha", label, hint }], required: true, input, output });
+    void result.then(settled);
+
+    await tick();
+    input.write("\r");
+    await tick();
+    const errorFrame = output.frames.at(-1) ?? "";
+    const pending = settled.mock.calls.length === 0;
+    input.write(" ");
+    const activeFrame = output.frames.at(-1) ?? "";
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(["alpha"]);
+    expect(pending).toBe(true);
+    expect(stripAnsi(errorFrame)).toContain("Please select");
+    expect(errorFrame.split("\n").slice(1, 1 + unchecked.length)).toEqual(unchecked.map((line) => `${color.yellow(GLYPHS.bar)}  ${line}`));
+    expect(activeFrame.split("\n").slice(1, -1)).toEqual(checked.map((line) => `${color.cyan(GLYPHS.bar)}  ${line}`));
   });
 });

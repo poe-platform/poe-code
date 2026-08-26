@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { wrapAnsi } from "fast-wrap-ansi";
+import { color } from "../../components/color.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 import { GLYPHS } from "./glyphs.js";
 import { selectPrompt } from "./select.js";
@@ -15,6 +16,7 @@ describe("selectPrompt", () => {
   const originalNoPrompt = process.env.POE_NO_PROMPT;
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     if (originalNoPrompt === undefined) {
       delete process.env.POE_NO_PROMPT;
     } else {
@@ -93,7 +95,8 @@ describe("selectPrompt", () => {
     input.write("\r");
 
     await expect(result).resolves.toBe("Charlie long label");
-    expect(frame).toContain(wrapAnsi(`${GLYPHS.radioActive} Charlie long label`, 9, { hard: true, trim: false }));
+    expect(frame).toContain(wrapAnsi(`${GLYPHS.radioActive} Charlie long label`, 9, { hard: true, trim: false })
+      .split("\n").map((line) => `${GLYPHS.bar}  ${line}`).join("\n"));
   });
 
   it.each([{ rows: 7, columns: 80 }, { rows: 10, columns: 12 }])("preserves focus through resize to $rows rows/$columns columns and back", async (size) => {
@@ -114,11 +117,65 @@ describe("selectPrompt", () => {
     input.write("\r");
 
     await expect(result).resolves.toBe("Echo");
-    expect(shrunk).toContain(wrapAnsi(`${GLYPHS.radioActive} Echo long label`, size.columns - 3, { hard: true, trim: false }));
+    expect(shrunk).toContain(wrapAnsi(`${GLYPHS.radioActive} Echo long label`, size.columns - 3, { hard: true, trim: false })
+      .split("\n").map((line) => `${GLYPHS.bar}  ${line}`).join("\n"));
     expect(grown).toContain(`${GLYPHS.radioActive} Echo long label`);
     for (const choice of choices) {
       expect(grown).toContain(choice.label);
     }
     expect(grown).not.toContain("...");
+  });
+
+  it.each([4, 8, 12, 20, 80])("prefixes wrapped labels and hints at width %i without changing rows or ANSI", async (columns) => {
+    vi.stubEnv("FORCE_COLOR", "1");
+    const { input, output } = createPromptHarness({ columns, rows: 20 });
+    const label = "Alpha long option label";
+    const hint = "a long descriptive hint";
+    const wrapped = wrapAnsi(`${color.green(GLYPHS.radioActive)} ${label}${color.dim(` (${hint})`)}`, columns - 3, { hard: true, trim: false }).split("\n");
+    const result = selectPrompt({ message: "", options: [{ value: "alpha", label, hint }], input, output });
+
+    await tick();
+    const lines = (output.frames.at(-1) ?? "").split("\n").slice(1, -1);
+    input.write("\r");
+
+    await expect(result).resolves.toBe("alpha");
+    expect(lines).toHaveLength(wrapped.length);
+    expect(lines).toEqual(wrapped.map((line) => `${color.cyan(GLYPHS.bar)}  ${line}`));
+  });
+
+  it("prefixes explicit label/hint newlines including blank lines", async () => {
+    const { input, output } = createPromptHarness({ columns: 80 });
+    const result = selectPrompt({
+      message: "Pick",
+      options: [{ value: "alpha", label: "Alpha\n\nsecond label", hint: "first hint\n\nlast hint" }],
+      input,
+      output
+    });
+
+    await tick();
+    const lines = stripAnsi(output.frames.at(-1) ?? "").split("\n").slice(1, -1);
+    input.write("\r");
+
+    await expect(result).resolves.toBe("alpha");
+    expect(lines).toEqual([
+      `${GLYPHS.bar}  ${GLYPHS.radioActive} Alpha`,
+      `${GLYPHS.bar}  `,
+      `${GLYPHS.bar}  second label (first hint`,
+      `${GLYPHS.bar}  `,
+      `${GLYPHS.bar}  last hint)`
+    ]);
+  });
+
+  it("prefixes every wrapped omission-marker row", async () => {
+    const { input, output } = createPromptHarness({ columns: 4, rows: 20 });
+    const choices = Array.from({ length: 10 }, (_, index) => ({ value: index, label: String(index) }));
+    const result = selectPrompt({ message: "Pick", options: choices, maxItems: 5, input, output });
+
+    await tick();
+    const lines = stripAnsi(output.frames.at(-1) ?? "").split("\n");
+    input.write("\r");
+
+    await expect(result).resolves.toBe(0);
+    expect(lines.slice(-4, -1)).toEqual([`${GLYPHS.bar}  .`, `${GLYPHS.bar}  .`, `${GLYPHS.bar}  .`]);
   });
 });

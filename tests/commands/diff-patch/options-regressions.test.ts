@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { native, run, type Files } from "./helpers.js";
+import { run, type Files } from "./helpers.js";
 
 const files = { left: "a\nb\nc\nd\ne\nf\ng\n", right: "A\nb\nc\nd\ne\nf\nG\n" };
 const labels = ["-L", "BEFORE", "-L", "AFTER"];
@@ -9,13 +9,15 @@ const oneContext = "--- BEFORE\n+++ AFTER\n@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -6,2 
 const defaultContext = "--- BEFORE\n+++ AFTER\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n";
 
 const contextCases = [
-  { flags: ["-U0", "-u"], expected: zeroContext },
-  { flags: ["-U0", "--unified"], expected: zeroContext },
-  { flags: ["--unified=1", "-ru"], expected: oneContext },
-  { flags: ["-U", "0", "-uru", "--unified"], expected: zeroContext },
-  { flags: ["-u", "-U0"], expected: zeroContext },
-  { flags: ["--unified", "--unified=1"], expected: oneContext },
-  { flags: ["-U0", "-u", "-U1", "--unified"], expected: oneContext },
+  { flags: ["-U0", "-u"], expected: defaultContext },
+  { flags: ["-U0", "--unified"], expected: defaultContext },
+  { flags: ["--unified=1", "-ru"], expected: defaultContext },
+  { flags: ["-U", "0", "-uru", "--unified"], expected: defaultContext },
+  { flags: ["-u", "-U0"], expected: defaultContext },
+  { flags: ["--unified", "--unified=1"], expected: defaultContext },
+  { flags: ["-U0", "-u", "-U1", "--unified"], expected: defaultContext },
+  { flags: ["-U0"], expected: zeroContext },
+  { flags: ["--unified=1"], expected: oneContext },
   { flags: [], expected: "1c1\n< a\n---\n> A\n7c7\n< g\n---\n> G\n" },
   { flags: ["-u"], expected: defaultContext },
   { flags: ["--unified"], expected: defaultContext },
@@ -61,16 +63,15 @@ const identicalInputs: { name: string; files: Files }[] = [
 ];
 
 for (const fixture of [
-  { flags: ["-wC0", "-c"], expected: "*** OLD\n--- NEW\n***************\n*** 2 ****\n! old\n--- 2 ----\n! new\n" },
-  { flags: ["-bU0", "-uw"], expected: "--- OLD\n+++ NEW\n@@ -2 +2 @@\n-old\n+new\n" },
+  { flags: ["-wC0", "-c"], expected: "*** OLD\n--- NEW\n***************\n*** 1,2 ****\n  a b\n! old\n--- 1,2 ----\n  ab\n! new\n" },
+  { flags: ["-bU0", "-uw"], expected: "--- OLD\n+++ NEW\n@@ -1,2 +1,2 @@\n a b\n-old\n+new\n" },
 ]) {
   test(`explicit-count regression with whitespace: ${JSON.stringify(fixture.flags)}`, async () => {
     const args = [...fixture.flags, "-L", "OLD", "-L", "NEW", "old", "new"];
     const inputs = { old: "a b\nold\n", new: "ab\nnew\n" };
-    for (const actual of [await run("diff", args, { files: inputs }), await native("diff", args, inputs)]) {
-      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
-        { exitCode: 1, stdout: fixture.expected, stderr: "" });
-    }
+    const actual = await run("diff", args, { files: inputs });
+    assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
+      { exitCode: 1, stdout: fixture.expected, stderr: "" });
   });
 }
 

@@ -81,6 +81,7 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
 }
 
 export async function contextual(changes: readonly Edit[], format: "unified" | "context", oldLabel: string, newLabel: string, context: number, budget: Budget, append: (text: string) => void): Promise<void> {
+  context = Math.min(context, changes.length);
   append(format === "unified" ? `--- ${oldLabel}\n+++ ${newLabel}\n` : `*** ${oldLabel}\n--- ${newLabel}\n`);
   let scan = 0;
   let oldPosition = 0;

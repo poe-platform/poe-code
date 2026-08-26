@@ -1,5 +1,5 @@
 import { basename, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
-import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
+import { Budget, ToolError, definition, host, inspect, type DiffPatchOptions } from "./shared.js";
 import { contextual, normal, type Edit } from "./diff-format.js";
 
 interface DiffFlags {
@@ -13,16 +13,32 @@ interface DiffFlags {
   files: string[];
 }
 
+function contextLength(value: string): number {
+  if (!/^(?:[ \t\n\v\f\r]*[+-]?\d+)?$/u.test(value) || Number(value) < 0) {
+    throw new ToolError(`invalid context length: ${value}`);
+  }
+  return Math.min(Number(value), Number.MAX_SAFE_INTEGER);
+}
+
 function flags(args: readonly string[]): DiffFlags {
-  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 3, brief: false, recursive: false, newFile: false, labels: [], files: [] };
+  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, labels: [], files: [] };
   let selectedFormat: DiffFlags["format"] | undefined;
   const selectFormat = (format: DiffFlags["format"]) => {
     if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
     selectedFormat = result.format = format;
   };
+  let explicitContext = false;
+  let legacyContext = -1;
+  let previousDigit = false;
+  const selectContext = (format: "unified" | "context", width: number, explicit: boolean) => {
+    selectFormat(format);
+    result.context = Math.max(result.context, width);
+    explicitContext ||= explicit;
+  };
   let operands = false;
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]!;
+    if (!operands && arg.startsWith("--")) previousDigit = false;
     const value = (attached: string | undefined, name: string) => {
       const next = attached ?? args[++index];
       if (next === undefined) throw new ToolError(`${name} requires an argument`);
@@ -36,17 +52,23 @@ function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--ignore-all-space") result.whitespace = "all";
     else if (arg === "--ignore-space-change") { if (result.whitespace !== "all") result.whitespace = "change"; }
     else if (arg === "--normal") selectFormat("normal");
-    else if (arg === "--unified") selectFormat("unified");
-    else if (arg.startsWith("--unified=")) { selectFormat("unified"); result.context = integer(arg.slice(10), "context"); }
-    else if (arg === "--context") selectFormat("context");
-    else if (arg.startsWith("--context=")) { selectFormat("context"); result.context = integer(arg.slice(10), "context"); }
+    else if (arg === "--unified") selectContext("unified", 3, true);
+    else if (arg.startsWith("--unified=")) selectContext("unified", contextLength(arg.slice(10)), true);
+    else if (arg === "--context") selectContext("context", 3, true);
+    else if (arg.startsWith("--context=")) selectContext("context", contextLength(arg.slice(10)), true);
     else if (arg === "--label" || arg.startsWith("--label=")) result.labels.push(value(arg.includes("=") ? arg.slice(8) : undefined, "--label"));
     else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
     else {
       for (let offset = 1; offset < arg.length; offset++) {
         const flag = arg[offset]!;
-        if (flag === "u") selectFormat("unified");
-        else if (flag === "c") selectFormat("context");
+        if (/^\d$/u.test(flag)) {
+          legacyContext = Math.min((previousDigit ? legacyContext : 0) * 10 + Number(flag), Number.MAX_SAFE_INTEGER);
+          previousDigit = true;
+          continue;
+        }
+        previousDigit = false;
+        if (flag === "u") selectContext("unified", 3, false);
+        else if (flag === "c") selectContext("context", 3, false);
         else if (flag === "q") result.brief = true;
         else if (flag === "r") result.recursive = true;
         else if (flag === "N") result.newFile = true;
@@ -54,13 +76,16 @@ function flags(args: readonly string[]): DiffFlags {
         else if (flag === "b") { if (result.whitespace !== "all") result.whitespace = "change"; }
         else if (flag === "U" || flag === "C" || flag === "L") {
           const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
-          if (flag === "U") { selectFormat("unified"); result.context = integer(parameter, "context"); }
-          else if (flag === "C") { selectFormat("context"); result.context = integer(parameter, "context"); }
+          if (flag === "U") selectContext("unified", contextLength(parameter), true);
+          else if (flag === "C") selectContext("context", contextLength(parameter), true);
           else result.labels.push(parameter);
           break;
         } else throw new ToolError(`unsupported option: -${flag}`);
       }
     }
+  }
+  if (legacyContext >= 0 && result.format !== "normal") {
+    result.context = explicitContext ? Math.max(result.context, legacyContext) : legacyContext;
   }
   if (result.files.length !== 2) throw new ToolError("expected two files or directories");
   if (result.labels.length > 2) throw new ToolError("at most two labels are supported");

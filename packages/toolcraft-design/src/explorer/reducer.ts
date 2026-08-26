@@ -1,3 +1,4 @@
+import { graphemes } from "../dashboard/terminal-width.js";
 import {
   buildActionContext,
   resolveAction,
@@ -165,8 +166,8 @@ function stepKey(
 
   if (isBackspace(key)) {
     if (isSecondListFocused(state))
-      return updateDetailFilter(state, (state.detail.filter ?? "").slice(0, -1));
-    return updateFilter(state, state.filter.slice(0, -1));
+      return updateDetailFilter(state, graphemes(state.detail.filter ?? "").slice(0, -1).join(""));
+    return updateFilter(state, graphemes(state.filter).slice(0, -1).join(""));
   }
 
   if (!state.multiSelect && isSelectionSpace(key)) {
@@ -200,7 +201,7 @@ function stepFilterKey(
   }
 
   if (isBackspace(key)) {
-    return updateFilter(state, state.filter.slice(0, -1));
+    return updateFilter(state, graphemes(state.filter).slice(0, -1).join(""));
   }
 
   if (isPrintable(key)) {
@@ -224,7 +225,7 @@ function stepModalKey(
       return modalDismissed(state, state.modal.value, runtimeHandles);
     }
     if (isBackspace(key)) {
-      return setModal(state, { ...state.modal, value: state.modal.value.slice(0, -1) });
+      return setModal(state, { ...state.modal, value: graphemes(state.modal.value).slice(0, -1).join("") });
     }
     if (isPrintable(key)) {
       return setModal(state, { ...state.modal, value: `${state.modal.value}${key.ch}` });
@@ -918,7 +919,7 @@ function paletteInput(state: ExplorerState, key: ExplorerKeypressEvent): StepRes
   }
 
   if (isBackspace(key)) {
-    return setPaletteQuery(state, state.modal.query.slice(0, -1));
+    return setPaletteQuery(state, graphemes(state.modal.query).slice(0, -1).join(""));
   }
 
   if (isPrintable(key)) {

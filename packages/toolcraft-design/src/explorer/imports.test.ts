@@ -14,7 +14,7 @@ const leafModules = new Set([
   "layout.ts",
   "theme.ts"
 ]);
-const reducerAllowed = new Set(["actions.ts", "events.ts", "filter.ts", "keymap.ts", "state.ts"]);
+const reducerAllowed = new Set(["actions.ts", "events.ts", "filter.ts", "keymap.ts", "state.ts", "dashboard/terminal-width.ts"]);
 const renderAllowed = new Set([
   "layout.ts",
   "state.ts",

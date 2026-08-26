@@ -380,9 +380,20 @@ export class WebDavFileSystem implements FileSystem {
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
     const normalized = normalize(path);
     const collection = requiresCollection(path);
-    const stat = (await this.entries(normalized, "0", options, collection)).get(normalized)!;
-    if (collection && stat.type !== "directory") fail("ENOTDIR", "stat", path);
-    return stat;
+    try {
+      const stat = (await this.entries(normalized, "0", options, collection)).get(normalized)!;
+      if (collection && stat.type !== "directory") fail("ENOTDIR", "stat", path);
+      return stat;
+    } catch (error) {
+      if (!isFsError(error, "ENOENT")) throw error;
+      let parent = "";
+      for (const segment of normalized.slice(1).split("/").slice(0, -1)) {
+        parent += `/${segment}`;
+        const ancestor = (await this.entries(parent, "0", options)).get(parent)!;
+        if (ancestor.type !== "directory") fail("ENOTDIR", "stat", path);
+      }
+      throw error;
+    }
   }
 
   async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {

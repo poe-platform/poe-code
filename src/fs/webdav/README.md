@@ -136,6 +136,9 @@ does not certify arbitrary production WebDAV providers or full POSIX behavior.
 PUT preflights each parent collection, rejecting known file ancestors with
 `ENOTDIR` before mutation. These metadata checks require PROPFIND access to the
 parents; they do not lock the tree or prevent concurrent ancestor replacement.
+When a target PROPFIND reports a missing resource, metadata lookup also probes
+its normalized ancestors to distinguish `ENOTDIR` from `ENOENT`. This does not
+change lexical dot-segment resolution or turn it into POSIX component walking.
 Normal PUT writes and source type checks still have the server's WebDAV
 semantics, not POSIX guarantees against every concurrent source replacement.
 `atomicRename` is false because collection MOVE can fail partially.

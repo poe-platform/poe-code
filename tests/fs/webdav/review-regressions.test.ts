@@ -5,6 +5,19 @@ import { test } from "node:test";
 import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
 import { MockDav } from "./mock.js";
 
+test("missing remote descendants distinguish non-directory from missing ancestors", async () => {
+  const mock = new MockDav();
+  mock.files.set("/file", new Uint8Array([0, 255]));
+  mock.files.set("/directory", null);
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch });
+  await assert.rejects(fs.readFile("/file/child"), { code: "ENOTDIR" });
+  await assert.rejects(fs.stat("/file/missing/child"), { code: "ENOTDIR" });
+  await assert.rejects(fs.readFile("/directory/missing/child"), { code: "ENOENT" });
+  await assert.rejects(fs.stat("/file/child", { signal: AbortSignal.abort() }), { code: "ECANCELED" });
+  assert.deepEqual(mock.files.get("/file"), new Uint8Array([0, 255]));
+  assert.ok(mock.requests.every((request) => request.init.method === "PROPFIND"));
+});
+
 for (const flag of ["w", "wx"] as const) {
   for (const descendant of ["child", "missing/child"]) {
     test(`write ${flag} rejects a file ancestor before PUT: ${descendant}`, async () => {

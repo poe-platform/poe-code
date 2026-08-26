@@ -3,7 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { gistFilenameForBundlePath } from "../bundle.js";
 import { hashFiles, sha256 } from "../hash.js";
 import { parseManifest, serializeManifest } from "../manifest.js";
-import { copyOrMoveItem } from "./copy-move.js";
+import { copyOrMoveItem, validateCopyOrMoveItem } from "./copy-move.js";
 import { uploadBundle } from "./upload.js";
 import { loadInventory } from "../inventory.js";
 import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
@@ -35,6 +35,87 @@ function createContext(files = createDummyAgentConfigFixture(), gistClient?: InM
 }
 
 describe("copy/move", () => {
+  describe.each([
+    { entrypoint: "validation", run: validateCopyOrMoveItem },
+    { entrypoint: "execution", run: copyOrMoveItem }
+  ])("$entrypoint", ({ run }) => {
+    describe.each(["copy", "move"] as const)("%s", (operation) => {
+      describe.each([
+        { from: "project", to: "global" },
+        { from: "global", to: "project" }
+      ] as const)("$from to $to", ({ from, to }) => {
+        describe.each([dummyHome, `${dummyHome}/.`])("cwd=%s", (cwd) => {
+          it.each([
+            { kind: "skill", name: "code-review", origins: false },
+            { kind: "hook", name: "PreToolUse-Bash-001-001", origins: false },
+            { kind: "hook", name: "PreToolUse-Bash-001-001", origins: true }
+          ] as const)("rejects same-path $kind (tracked origins=$origins) without mutations", async ({ kind, name, origins }) => {
+            const files = createDummyAgentConfigFixture();
+            files[`${dummyHome}/.claude/skills/code-review/references/context.md`] = "Supplemental context\n";
+            files[`${dummyHome}/.claude/skills/code-review/scripts/check.sh`] = "echo check\n";
+            files[`${dummyHome}/.claude/settings.json`] = JSON.stringify({
+              env: { KEEP: "1" },
+              hooks: {
+                PreToolUse: [{ matcher: "Bash", hooks: [
+                  { type: "command", command: "first command" },
+                  { type: "command", command: "second command" }
+                ] }],
+                Stop: [{ hooks: [{ type: "command", command: "unrelated command" }] }]
+              }
+            });
+            if (origins) {
+              files[`${dummyHome}/.agent-stash/hook-origins.json`] = JSON.stringify({
+                version: 1,
+                targets: {
+                  [`${dummyHome}/.claude/settings.json`]: {
+                    PreToolUse: [{ groupIndex: 0, hooks: [0, 1] }]
+                  }
+                }
+              });
+            }
+            const { ctx, volume } = createContext(files);
+            ctx.cwd = cwd;
+            const before = volume.toJSON();
+            const mutations = (["writeFile", "mkdir", "rename", "unlink", "rm"] as const)
+              .map((method) => vi.spyOn(ctx.fs, method));
+            const targetPath = `${dummyHome}/.claude/${kind === "skill" ? "skills/code-review" : "settings.json"}`;
+
+            await expect(run(ctx, {
+              operation, from, to, agent: "claude-code", kind, name, yes: true
+            })).rejects.toThrow(`Copy/move source and target resolve to the same local path: ${targetPath}`);
+
+            expect(volume.toJSON()).toEqual(before);
+            for (const mutation of mutations) {
+              expect(mutation).not.toHaveBeenCalled();
+            }
+          });
+        });
+
+        it.each([
+          { kind: "skill", name: "code-review" },
+          { kind: "hook", name: "Stop-all-tools-001-001" }
+        ] as const)("allows distinct-root $kind endpoints", async ({ kind, name }) => {
+          const { ctx, volume } = createContext();
+          const before = volume.toJSON();
+
+          const result = await run(ctx, {
+            operation, from, to, agent: "claude-code", kind, name, yes: true
+          });
+
+          if (result === undefined) {
+            expect(volume.toJSON()).toEqual(before);
+          } else {
+            expect(result.item).toMatchObject({ scope: to, kind, name });
+            const targetItems = await loadInventory(ctx, { scope: to, agent: "claude-code", kind });
+            expect(targetItems.some((item) => item.name === name)).toBe(true);
+            const sourceItems = await loadInventory(ctx, { scope: from, agent: "claude-code", kind });
+            expect(sourceItems.some((item) => item.name === name)).toBe(operation === "copy");
+          }
+        });
+      });
+    });
+  });
+
   it("rejects invalid copy and move option values before doing work", async () => {
     const { ctx } = createContext();
 

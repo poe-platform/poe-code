@@ -129,6 +129,14 @@ async function prepareCopyOrMoveItem(
   const source = await loadSourceItem(ctx, options);
   const target = retargetSourceItem(source, options);
   const itemForTarget = target.item;
+  if ((options.from === "project" || options.from === "global")
+    && (options.to === "project" || options.to === "global")) {
+    const sourcePath = path.resolve(targetPathForItem(ctx, source.item));
+    const targetPath = path.resolve(targetPathForItem(ctx, itemForTarget));
+    if (sourcePath === targetPath) {
+      throw new Error(`Copy/move source and target resolve to the same local path: ${targetPath}`);
+    }
+  }
   if (options.to === "project" || options.to === "global") {
     await assertLocalTargetNotIgnored(ctx, itemForTarget);
     validateItemForLocalWrite(itemForTarget, target.files);

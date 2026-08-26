@@ -322,7 +322,6 @@ no module bodies to inspect.
 
 ## Gotchas
 
-- **No mutable closures.** Lambdas cannot capture an outer `let`. The idiomatic loop is recursion (see `examples/experiment.md`) or `for…of` whose body does not return a closure that reads the loop variable.
 - **Harness lint rejects `function`.** The runtime can execute function declarations and expressions, but linted harnesses should use arrows. This commonly appears when porting existing JS.
 - **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.

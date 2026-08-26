@@ -49,7 +49,7 @@ capped at five.
 ## Supported JavaScript
 
 For linted harness files, prefer the conservative authoring subset: arrows
-(including async arrows), closures over `const`, parameters, and imports,
+(including async arrows), closures over `const`, `let`, parameters, and imports,
 `async`/`await`, regex literals, `new RegExp(...)`, `const`/`let`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,

@@ -1,5 +1,4 @@
 import { AS001 } from "./rules/AS001.js";
-import { AS002 } from "./rules/AS002.js";
 import { AS003 } from "./rules/AS003.js";
 import { AS004 } from "./rules/AS004.js";
 import { AS005 } from "./rules/AS005.js";
@@ -68,7 +67,6 @@ export type LintFixResult = {
 type LintRule = (source: string, options: LintOptions) => readonly Diagnostic[];
 
 const RULES: readonly LintRule[] = [
-  AS002,
   AS003,
   AS004,
   AS005,

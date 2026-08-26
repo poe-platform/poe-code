@@ -400,6 +400,43 @@ describe("run snapshot checkpointing", () => {
     });
   });
 
+  it("preserves shared mutable captures when restoring an await checkpoint", async () => {
+    const source = [
+      "let count = 1;",
+      "const increment = () => { count += 1; };",
+      "const read = () => count;",
+      "increment();",
+      "await wait();",
+      "increment();",
+      "return read();"
+    ].join("\n");
+    const pending = createDeferred<void>();
+    const result = run(source, {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(pending.promise),
+          name: "wait"
+        })
+      }
+    });
+    const snapshot = JSON.parse(await dump(result));
+    pending.resolve();
+    await expect(result).resolves.toMatchObject({ ok: true, returnValue: 3 });
+    await expect(
+      run(source, {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.resolve()),
+            name: "wait"
+          })
+        },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({ ok: true, returnValue: 3 });
+  });
+
   it("restores a snapshot taken before the first await and returns the original value", async () => {
     const source = ["const value = await wait();", 'return value.concat(":done");'].join("\n");
     const first = createDeferred<string>();

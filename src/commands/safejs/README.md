@@ -219,7 +219,7 @@ remaining deadline (one millisecond grace after expiry). A failed stderr is
 not written again; a blocked diagnostic can be dropped. Host help/not-installed
 messages are control output, not guest-budget output.
 
-## Verification and explicit upstream defect
+## Author verification and explicit upstream defect
 
 ```sh
 node --unhandled-rejections=strict --import tsx --test tests/commands/safejs/*.test.ts
@@ -274,3 +274,54 @@ is clean. The live type test reports source SHA256 values; inspected values:
 These are author-side integration checks, not the separately assigned verifier,
 an exhaustive SafeJS security audit, universal adapter durability, full Node/Bash
 support, or evidence of superiority over another virtual shell.
+
+## Independent stress verification, August 26, 2026
+
+The stress writer remeasured the author baseline (64/64 with the actual
+local engine; 39 passed/25 skipped without it) and the combined author/bridge
+scope (92/92), then added 51 checks. Full owned conventional scopes report
+115/115 with the engine and 59 passed/56 skipped without it. Five strict
+lifecycle/local/independent repetitions each report 107/107. Scoped and global
+typechecking plus production build passed at this fresh check.
+
+These totals include 10 explicitly labeled upstream-defect characterizations
+and one type-only probe: 55 tests execute the actual engine, including those
+10 characterizations, not 115 successful guest behaviors. A separate desired
+semantics probe remains **0 passed/9 failed**. The signal wrapper also loses
+Map/Set/RegExp construction, Array static methods and own `__proto__` data;
+raw pre-aborted pure runs can succeed. No plugin TypeScript or private source
+was changed by that worker, and signal propagation remains enabled.
+
+Final inclusive runs containing that probe report **115 passed/9 failed out of
+124** with the engine and **59 passed/65 skipped out of 124** without it. The
+engine-enabled inclusive run exits nonzero; upstream compatibility is unresolved.
+
+These are historical stress-writer results. The separate read-only final review
+at `/tmp/safe-bash-safejs-independent-final-review.txt`, linked by the current
+`/tmp/safe-bash-safejs-upstream-checkpoint.txt`, independently refreshed the
+115 conventional passes, inclusive 115 passes/9 failures, and no-env inclusive
+59 passes/65 skips on August 26, 2026. Private engine files changed externally
+between snapshots; stability was verified only across that review's final gate,
+not since the earlier author/writer hashes. Plugin runtime remains unchanged;
+no plugin implementation or adapter bug was confirmed by this bounded review.
+
+The reviewer also verified a separate actual-engine lifecycle limitation: an
+injected host callback aborts and supplies a rejected promise; the engine
+surfaces the abort, then a separate unhandled host rejection terminates strict
+Node. Expected behavior is to preserve the abort while observing the existing
+promise's rejection, without an unhandled rejection. The unapplied proposal
+is to observe existing promises before early-abort returns in both upstream
+promise wrappers, retaining cancellation and listener cleanup, not global
+rejection suppression. This action module is not installed by default by the
+plugin. Evidence is external at `/tmp/safe-bash-safejs-abort-in-action.mjs` and
+`/tmp/safe-bash-safejs-final-action-abort.log`; **no durable executable regression
+exists for this observation**. It is not among the nine desired probes and
+does not increase any passing count. This documentation handoff ran no engine
+or tests and made no private-engine changes.
+
+Exact commands, snapshot-specific counts and hashes, failed desired probes and the
+unapplied upstream patch proposal are in
+`tests/commands/safejs-stress/README.md` and
+`tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md` (workspace-relative).
+Passing characterization is not upstream compatibility acceptance or a
+comprehensive security claim.

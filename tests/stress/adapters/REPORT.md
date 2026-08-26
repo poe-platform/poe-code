@@ -124,7 +124,7 @@ subsequent HEAD changes alone do not invalidate or establish this evidence.
 After the final stable run, the remote owner changed `src/fs/webdav/webdav.ts`
 again to SHA-256
 `665fc53a805c08e4567ec07031b1cd15da0c16da2b5f92fd7d17da4234c49748`.
-That later working-tree source is not covered by the 271/272 result; root's
+That later source is not covered by the 271/272 result; root's
 final verifier must rerun rather than treating the recorded errno failure or
 its resolution as established for the later source. No further audit is taken.
 
@@ -153,9 +153,12 @@ explicit, and passing fail-closed tests do not establish operation support.
 ## Commit coordination
 
 After this worker staged the nine explicit owned files, concurrent commit
-`7db81494b5a7a9bcbe6d984456040c8dc26e0212` included them alongside three
-unrelated contract/command files. This worker did not create that mixed commit
-and does not rewrite its history. The updated report is committed separately
-with an explicit report-only path. The original atomic-owned-test-commit goal
-was therefore not achieved, despite explicit staging. Staged whitespace
-checking of the nine owned files passed before that concurrent commit.
+`7db81494b5a7a9bcbe6d984456040c8dc26e0212` temporarily included them alongside
+three unrelated contract/command files. Concurrent coordination subsequently
+removed the mixed commit from active history and restored the staged tests;
+this worker did not rewrite history. Report-only commit `21823dc` records the
+intermediate handoff. The final owned commit explicitly includes the eight
+test/helper/probe files and this updated report, not unrelated staged paths.
+Staged whitespace checking of the nine owned files passed. Later concurrent
+command/cancellation changes, including contracts/io.ts, are outside the final
+tested snapshot and require root verification as well.

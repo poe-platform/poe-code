@@ -57,14 +57,16 @@ No mutation method is ever called on lower. A backend's own read-side effects
   leave valid, equivalent copy-ups and changed parent/ctime metadata; it does not
   publish partial file contents or discard whiteouts. This is **not a transaction**.
   Overlay `atomicRename` is consequently false, even though upper must support it.
-- Calls are serialized within this instance. Stream input is collected outside
-  the lock, then destination existence is revalidated at publication. Concurrent
+- Namespace operations are serialized within this instance. Stream input is
+  staged outside the lock, then destination existence is revalidated at publication. Concurrent
   appends therefore concatenate at commit time, rather than stream-open time.
   Cancellation before publication preserves visible file contents. Cancellation
   that races a successful publication may complete successfully. Recursive mkdir
   and rename preparation can leave completed directory/copy-up work on failure.
 - Temporary `.virtual-bash-overlay-<UUID>` directories live in upper's root and
-  are hidden from this instance. They require a writable upper root. Cleanup
+  are hidden from this instance. Active input stages are tracked separately from
+  cleanup garbage, so reentrant input and concurrent `cleanup()` cannot remove
+  in-flight streams. They require a writable upper root. Cleanup
   deliberately does not use the canceled caller signal. Failed cleanup is retried
   on subsequent calls; `cleanup(options?)` reports remaining failures through
   `AggregateError`. A committed operation remains successful if cleanup fails.
@@ -77,10 +79,34 @@ No mutation method is ever called on lower. A backend's own read-side effects
   snapshot every named `FileStat` field, including optional zero-valued fields;
   prototype getters and nonenumerable backend properties are supported. Returned
   stats and directory entries are detached from backend objects.
-- Buffered `readStream`/`writeStream` conveniences exist, but `streamingRead` and
-  `streamingWrite` are false: these are not constant-memory streams. The default
-  `maxBufferBytes` is 64 MiB, applied per file/input, including copy-up. Larger
-  requests reject `EFBIG`; a read's `maxBytes` can further lower the bound.
+- `readStream` lazily resolves the visible layer and delegates ranges/chunk sizes
+  to its stream, copying chunks and preserving backpressure. Cancellation stops
+  waiting and closes the iterator; late failures are observed. Stream reads are
+  not snapshots against concurrent mutation. An unsupported selected stream
+  retains the bounded `readFile` fallback, not a fake streaming guarantee.
+- `writeStream` uses the atomic upper's real stream methods when available:
+  stage input outside the namespace lock, revalidate the destination, stream any
+  existing copy-up and append, then publish with upper rename. No full input
+  collection occurs in this path. If a lower entry cannot stream, its copy-up is
+  bounded and buffered. Nonstreaming upper adapters retain the bounded buffered
+  convenience path. Failed writes never publish their partially staged bytes.
+- `streamingRead` is true only when both layers advertise and expose reads,
+  false when neither can stream, and otherwise omitted. `streamingWrite` is true
+  only with a writable atomic upper exposing advertised read/write streams and
+  both layers advertising reads; a capable upper with a limited/unknown lower
+  omits this flag, while an incapable upper reports false. Omission denotes
+  conditional support, not a namespace-wide guarantee. `atomicRename` stays false.
+- The default `maxBufferBytes` is 64 MiB, applied per buffered file/input and to
+  streamed writes/copy-up. Larger writes reject `EFBIG`; a buffered read's
+  `maxBytes` can further lower its bound. Genuine streamed reads do not collect
+  the file and may read files/ranges larger than that buffer limit. Backend
+  memory usage and host-operation cancellation remain backend responsibilities.
+- On 2026-08-26, the complete overlay suite passed 154/154 tests with strict
+  unhandled-rejection checking. New streaming regressions include managed real
+  upper roots, no-`readFile` stream/copy-up probes, backpressure, reentrant cleanup,
+  binary/empty/range handling, failure atomicity, lower immutability, whiteouts,
+  non-atomic upper denial, and cancellation/late-error cleanup. Scoped strict
+  source/test typechecking also passed.
 - Symlink creation requires upper symlink support. Read-only traversal can still
   read links when the selected backend supplies `readlink`. Copied symlink targets
   and mode/atime/mtime are preserved; link metadata lives in the volatile sidecar

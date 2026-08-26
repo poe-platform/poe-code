@@ -179,7 +179,7 @@ test("owner permissions are checked before staged replacement", async (context) 
   await assert.rejects(overlay.stat("/no-search/file"), errno("EACCES"));
 });
 
-test("buffered stream methods preserve flags, slicing, and source isolation", async (context) => {
+test("delegated stream methods preserve flags, slicing, and source isolation", async (context) => {
   const { overlay } = await fixture(context, async (lower) => { await lower.writeFile("/file", encode("base")); });
   const reused = encode("12");
   await overlay.writeStream("/file", (async function* () { yield reused; reused.fill(51); yield reused; })(), { flag: "a" });
@@ -189,6 +189,6 @@ test("buffered stream methods preserve flags, slicing, and source isolation", as
   await overlay.writeStream("/file", toByteSource("replacement"));
   assert.equal(decode(await overlay.readFile("/file")), "replacement");
   await assert.rejects(overlay.writeStream("/file", toByteSource("bad"), { flag: "wx" }), errno("EEXIST"));
-  assert.equal(overlay.capabilities.streamingRead, false);
-  assert.equal(overlay.capabilities.streamingWrite, false);
+  assert.equal(overlay.capabilities.streamingRead, true);
+  assert.equal(overlay.capabilities.streamingWrite, true);
 });

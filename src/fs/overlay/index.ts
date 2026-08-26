@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
-  collectBytes, dirname, FsError, isPathWithin, normalizePath, validatePath,
+  collectBytes, dirname, FsError, isPathWithin, normalizePath, readBytes, validatePath,
 } from "../../contracts/index.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, ErrnoCode,
@@ -100,6 +100,7 @@ export class OverlayFileSystem implements FileSystem {
   private readonly whiteouts = new Set<string>();
   private readonly opaque = new Set<string>();
   private readonly garbage = new Set<string>();
+  private readonly activeStages = new Set<string>();
   private readonly linkMetadata = new Map<string, LinkMetadata>();
   private readonly linkOrigins = new Map<string, LinkOrigin>();
   private queue: Promise<void> = Promise.resolve();
@@ -111,6 +112,14 @@ export class OverlayFileSystem implements FileSystem {
     this.maxBufferBytes = options.maxBufferBytes ?? 64 * 1024 * 1024;
     integer(this.maxBufferBytes, "/");
     const writable = !this.#upper.capabilities.readOnly && this.#upper.capabilities.atomicRename === true;
+    const readable = [this.#upper, this.#lower].map((backend) =>
+      typeof backend.readStream === "function" ? backend.capabilities.streamingRead : false);
+    const streamingRead = readable.every((capability) => capability === true) ? true
+      : readable.every((capability) => capability === false) ? false : undefined;
+    const streamingWrite = writable && this.#upper.capabilities.streamingWrite === true
+      && this.#upper.capabilities.streamingRead === true
+      && typeof this.#upper.writeStream === "function" && typeof this.#upper.readStream === "function"
+      ? readable.every((capability) => capability === true) ? true : undefined : false;
     this.capabilities = Object.freeze({
       readOnly: !writable,
       atomicRename: false,
@@ -120,8 +129,8 @@ export class OverlayFileSystem implements FileSystem {
         && (this.#lower.capabilities.symlinks !== true || typeof this.#lower.readlink === "function"),
       permissions: writable && this.#upper.capabilities.permissions === true && typeof this.#upper.chmod === "function",
       timestamps: writable && this.#upper.capabilities.timestamps === true && typeof this.#upper.utimes === "function",
-      streamingRead: false,
-      streamingWrite: false,
+      ...(streamingRead === undefined ? {} : { streamingRead }),
+      ...(streamingWrite === undefined ? {} : { streamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
   }
@@ -166,7 +175,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private hidden(path: string): boolean {
-    return [...this.garbage].some((root) => isPathWithin(root, path));
+    return [...this.garbage, ...this.activeStages].some((root) => isPathWithin(root, path));
   }
 
   private async lowerVisible(path: string, options: FsOptions): Promise<boolean> {
@@ -358,11 +367,13 @@ export class OverlayFileSystem implements FileSystem {
   private async staged<Result>(options: FsOptions, operation: (path: string) => Promise<Result>): Promise<Result> {
     const root = `/.virtual-bash-overlay-${randomUUID()}`;
     if (await this.maybeStat(this.#upper, root, options) || await this.maybeStat(this.#lower, root, options)) fail("EEXIST", root);
-    this.garbage.add(root);
+    this.activeStages.add(root);
     try {
       await this.#upper.mkdir(root, { ...options, mode: 0o700 });
       return await operation(`${root}/entry`);
     } finally {
+      this.activeStages.delete(root);
+      this.garbage.add(root);
       await this.cleanGarbage(false);
     }
   }
@@ -374,7 +385,7 @@ export class OverlayFileSystem implements FileSystem {
     await this.#upper.utimes(path, stat.atimeMs, stat.mtimeMs, options);
   }
 
-  private async clone(entry: Entry, destination: string, options: FsOptions): Promise<void> {
+  private async clone(entry: Entry, destination: string, options: FsOptions, streaming = false): Promise<void> {
     if (entry.stat.type !== "directory" && ((entry.stat.nlink ?? 1) > 1
       || (entry.backend.capabilities.hardlinks === true && entry.stat.nlink === undefined))) {
       fail("ENOTSUP", entry.path, "copy-up cannot preserve hardlink identity");
@@ -385,7 +396,12 @@ export class OverlayFileSystem implements FileSystem {
       return;
     }
     if (entry.stat.type === "directory") await this.#upper.mkdir(destination, { ...options, mode: entry.stat.mode & 0o7777 });
-    else await this.#upper.writeFile(destination, await this.bytes(entry, options), { ...options, mode: 0o600, flag: "wx" });
+    else if (streaming && entry.backend.readStream && entry.backend.capabilities.streamingRead !== false && this.#upper.writeStream) {
+      this.permission(entry, 4);
+      if (entry.stat.size > this.maxBufferBytes) fail("EFBIG", entry.path);
+      const source = this.bounded(entry.backend.readStream(entry.path, options), entry.path, options);
+      await this.streamToUpper(destination, source, { ...options, mode: 0o600, flag: "wx" });
+    } else await this.#upper.writeFile(destination, await this.bytes(entry, options), { ...options, mode: 0o600, flag: "wx" });
     await this.preserve(destination, entry.stat, options);
   }
 
@@ -459,10 +475,10 @@ export class OverlayFileSystem implements FileSystem {
     return location;
   }
 
-  private async replace(location: Location, options: FsOptions, operation: (temporary: string) => Promise<void>): Promise<void> {
+  private async replace(location: Location, options: FsOptions, operation: (temporary: string) => Promise<void>, streaming = false): Promise<void> {
     await this.parent(location.path, options);
     await this.staged(options, async (temporary) => {
-      if (location.entry) await this.clone(location.entry, temporary, options);
+      if (location.entry) await this.clone(location.entry, temporary, options, streaming);
       await operation(temporary);
       options.signal?.throwIfAborted();
       await this.#upper.rename(temporary, location.path, options);
@@ -715,7 +731,20 @@ export class OverlayFileSystem implements FileSystem {
       integer(options.endExclusive, path);
       if (options.endExclusive < start) fail("EINVAL", path);
     }
-    const bytes = await this.readFile(path, options);
+    const entry = await this.run(options, async () => {
+      const entry = await this.required(path, options);
+      if (entry.stat.type !== "file") fail("EISDIR", path);
+      this.permission(entry, 4);
+      return entry;
+    });
+    if (entry.backend.readStream && entry.backend.capabilities.streamingRead !== false) {
+      for await (const chunk of readBytes(entry.backend.readStream(entry.path, options), options.signal)) {
+        yield new Uint8Array(chunk);
+      }
+      options.signal?.throwIfAborted();
+      return;
+    }
+    const bytes = await this.bytes(entry, options);
     const end = Math.min(bytes.byteLength, options.endExclusive ?? bytes.byteLength);
     for (let offset = start; offset < end; offset += chunkSize) {
       options.signal?.throwIfAborted();
@@ -724,10 +753,47 @@ export class OverlayFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
   }
 
+  private async *bounded(source: ByteSource, path: string, options: FsOptions): AsyncGenerator<Uint8Array> {
+    let size = 0;
+    for await (const chunk of readBytes(source, options.signal)) {
+      if (chunk.byteLength > this.maxBufferBytes - size) fail("EFBIG", path);
+      size += chunk.byteLength;
+      yield new Uint8Array(chunk);
+    }
+  }
+
+  private async streamToUpper(path: string, source: ByteSource, options: WriteFileOptions): Promise<void> {
+    if (!this.#upper.writeStream) fail("ENOTSUP", path);
+    const input = readBytes(source, options.signal);
+    let failed = false;
+    try { await this.#upper.writeStream(path, input, options); }
+    catch (error) { failed = true; throw error; }
+    finally {
+      try { await input.return(undefined); }
+      catch (error) { if (!failed) throw error; }
+    }
+  }
+
   async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     this.writeOptions(path, options);
     await this.run(options, () => this.writeLocation(path, options));
+    if (this.capabilities.streamingWrite !== false) {
+      await this.staged(options, async (incoming) => {
+        const bounded = this.bounded(source, path, options);
+        await this.streamToUpper(incoming, bounded, { ...options, flag: "wx", mode: 0o600 });
+        const size = (await this.#upper.stat(incoming, options)).size;
+        await this.run(options, async () => {
+          const location = await this.writeLocation(path, options);
+          const append = options.flag === "a" || options.flag === "ax";
+          if (append && (location.entry?.stat.size ?? 0) + size > this.maxBufferBytes) fail("EFBIG", path);
+          await this.replace(location, options, async (temporary) => {
+            await this.streamToUpper(temporary, this.#upper.readStream!(incoming, options), { ...options, flag: append ? "a" : "w" });
+          }, true);
+        });
+      });
+      return;
+    }
     const bytes = await collectBytes(source, { maxBytes: this.maxBufferBytes, ...(options.signal ? { signal: options.signal } : {}) });
     await this.writeFile(path, bytes, options);
   }

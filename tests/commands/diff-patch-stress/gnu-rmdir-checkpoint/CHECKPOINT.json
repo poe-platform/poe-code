@@ -1,0 +1,4204 @@
+{
+  "schemaVersion": 1,
+  "decision": "not-accepted",
+  "driver": {
+    "rawExitCode": 1,
+    "artifacts": {
+      "/tmp/safe-bash-diff-rmdir-verifier-run.stdout": {
+        "sha256": "86849fdc4131bb2932f820cd7a494a4bcd8dcdd3aa376a09461b83a1e3d3d5e5",
+        "bytes": 3556
+      },
+      "/tmp/safe-bash-diff-rmdir-verifier-run.stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "/tmp/safe-bash-diff-rmdir-verifier-run.exit": {
+        "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+        "bytes": 2
+      }
+    }
+  },
+  "evidenceDirectory": "/tmp/safe-bash-diff-rmdir-final-PRIFIp",
+  "snapshot": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+  "startedAt": "2026-08-26T23:13:59.487Z",
+  "finishedAt": "2026-08-26T23:15:08.493Z",
+  "head": "64b55e4e313a221dc9a460f4d4b8dd6654d6f2cc",
+  "sourceCommit": "4009efeef1ab909b4a5c8ffa7dbebc335dd9325c",
+  "readiness": {
+    "path": "/tmp/safe-bash-diff-rmdir-consumer.closed",
+    "contents": "ROOT READY RELEASE 2026-08-26\nSource author session 81269 exited successfully with no active test/native/build processes.\nConsumer source commit 4009efeef1ab909b4a5c8ffa7dbebc335dd9325c.\nChanged product file SHA256 3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af.\nConsumer61/61 plus20 repetitions and scoped noEmit pass; original70 unchanged.\nCurie contract1dc0652 optional rmdir; core rmdir/rm-d fix6b89de5.\nPoincare local/wrapper source3a9177a; remotee13c2d4.\nSource author confirms these checkpoints; S3/WebDAV honest empty-only unsupported,\nOverlay path-dependent. No universal backend-support or GNU-error-parity claim.\nRevised acceptance c623665 is closed,96/96 separately counted; original237 unchanged.\nIndependent verifier19601 may now freeze actual source and run original3758 unchanged,\nrevised96 separately, consumer61 separately, and its own independent safety probes.\nOriginal3758 must preserve its2 expectation failures; no edits or changed denominator.\nSeparate adversarial verifier6360 owns NEW pruning-adversarial/**, no product edits.\nIt is still authoring bounded patch/core rmdir/rm-d concurrency/backend checks.\nIts log/status are /tmp/safe-bash-diff-pruning-adversarial-worker.log and\n/tmp/safe-bash-diff-pruning-adversarial-status.txt. Its results must stay separately\ncounted. Do not edit its files. Freeze valid complete inputs; if its unfinished test\nfiles would spoil whole-repo typing, await its closure rather than hide those files.\nAll original product writers in diff-patch are closed; no additional source breadth.\n",
+    "sha256": "2fcbbfe4ca5dc111a848b1ca20717f13048ced88ec4959a50323b757c0e9da1b"
+  },
+  "inputs": {
+    "roots": [
+      "src",
+      "tests",
+      "benchmarks",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "AGENTS.md",
+      "README.md"
+    ],
+    "exclusions": [
+      "node_modules separately copied and hashed",
+      "benchmarks/reports",
+      "native temporary directories .native-*, .hunk-native-*, patch-gnu-native-*",
+      "root dist/.git/docs and other undeclared roots"
+    ],
+    "count": 1079,
+    "aggregateSha256": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+    "sourceAggregateSha256": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+    "immutable": true,
+    "undeclaredOutputs": [],
+    "attempts": [
+      {
+        "attempt": 1,
+        "candidate": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "before": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+        "after": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+        "copied": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+        "dependencyBefore": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+        "dependencyAfter": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+        "dependencyCopied": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+        "headBefore": "64b55e4e313a221dc9a460f4d4b8dd6654d6f2cc",
+        "headAfter": "64b55e4e313a221dc9a460f4d4b8dd6654d6f2cc",
+        "stable": true
+      }
+    ]
+  },
+  "dependencies": {
+    "count": 318,
+    "aggregateSha256": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+    "packages": {
+      "typescript": "5.9.3",
+      "tsx": "4.23.12",
+      "@types/node": "22.20.1"
+    },
+    "copiedNotLinked": true
+  },
+  "runtime": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0",
+    "binaries": {
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node": {
+        "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      "/usr/bin/git": {
+        "realpath": "/usr/bin/git",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      },
+      "/usr/bin/xcrun": {
+        "realpath": "/usr/bin/xcrun",
+        "sha256": "234a81668b43d610a78d9293a5ccef397f561a88af84757194aedaa1ec728ad3"
+      },
+      "/usr/bin/diff": {
+        "realpath": "/usr/bin/diff",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "/usr/bin/patch": {
+        "realpath": "/usr/bin/patch",
+        "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+      },
+      "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff": {
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch": {
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+      },
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/git": {
+        "realpath": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+      }
+    }
+  },
+  "originalIdentity": {
+    "original237": 237,
+    "original70": 70,
+    "revisedFiles": 9,
+    "manifestSha256": "9f33adce0d68795bc0620938e438e2c376cfbed6f2addfa58b4fc599b6034ec1",
+    "original70Sha256": "49fb7187a5a92fde54ac4c0ca24c74aa5ef6624ebf1bece98bd7adeec625a823",
+    "revisedFilesSha256": "3b2e94681ebaa15451fdb598b8bc21ea48d28cf00c453d965d6f1233f65f6435"
+  },
+  "sourceFiles": {
+    "src/commands/diff-patch/GNU-DIFF.md": {
+      "sha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "size": 10901,
+      "mode": 420
+    },
+    "src/commands/diff-patch/GNU-PATCH.md": {
+      "sha256": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "size": 20837,
+      "mode": 420
+    },
+    "src/commands/diff-patch/PARSER.md": {
+      "sha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "size": 9872,
+      "mode": 420
+    },
+    "src/commands/diff-patch/README.md": {
+      "sha256": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "size": 26486,
+      "mode": 420
+    },
+    "src/commands/diff-patch/diff-format.ts": {
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "size": 5221,
+      "mode": 420
+    },
+    "src/commands/diff-patch/diff.ts": {
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "size": 12580,
+      "mode": 420
+    },
+    "src/commands/diff-patch/index.ts": {
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "size": 961,
+      "mode": 420
+    },
+    "src/commands/diff-patch/patch-envelope.ts": {
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "size": 2408,
+      "mode": 420
+    },
+    "src/commands/diff-patch/patch-formats.ts": {
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "size": 10854,
+      "mode": 420
+    },
+    "src/commands/diff-patch/patch-gnu-paths.ts": {
+      "sha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "size": 9631,
+      "mode": 420
+    },
+    "src/commands/diff-patch/patch-gnu-reject.ts": {
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "size": 3400,
+      "mode": 420
+    },
+    "src/commands/diff-patch/patch-path.ts": {
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "size": 4210,
+      "mode": 420
+    },
+    "src/commands/diff-patch/patch.ts": {
+      "sha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "size": 18952,
+      "mode": 420
+    },
+    "src/commands/diff-patch/shared.ts": {
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "size": 6906,
+      "mode": 420
+    },
+    "src/commands/diff-patch/unified.ts": {
+      "sha256": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "size": 11068,
+      "mode": 420
+    },
+    "src/contracts/filesystem.ts": {
+      "sha256": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "size": 3604,
+      "mode": 420
+    },
+    "src/fs/memory/index.ts": {
+      "sha256": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "size": 20504,
+      "mode": 420
+    },
+    "src/fs/mount/index.ts": {
+      "sha256": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "size": 24014,
+      "mode": 420
+    },
+    "src/fs/overlay/index.ts": {
+      "sha256": "e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28",
+      "size": 39446,
+      "mode": 420
+    },
+    "src/fs/readonly/index.ts": {
+      "sha256": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "size": 5462,
+      "mode": 420
+    },
+    "src/fs/real/index.ts": {
+      "sha256": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "size": 23274,
+      "mode": 420
+    },
+    "src/fs/s3/index.ts": {
+      "sha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "size": 596,
+      "mode": 420
+    },
+    "src/fs/webdav/index.ts": {
+      "sha256": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "size": 121,
+      "mode": 420
+    }
+  },
+  "original3758": {
+    "tests": 3758,
+    "pass": 3750,
+    "fail": 8,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "files": 70,
+    "rawExitCode": 1,
+    "suites": [
+      {
+        "suite": "absolute-target",
+        "files": [
+          "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+          "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+        ],
+        "tests": 30,
+        "pass": 30,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "ddb96564f5a49667a4efd012f1e074da39a4cc5d7742327138c6c35586d554d2"
+      },
+      {
+        "suite": "compatibility",
+        "files": [
+          "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+          "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+          "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+          "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+          "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+        ],
+        "tests": 110,
+        "pass": 110,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "bde31a880b434ec9505e2493484157d7fd6ffcb536d32f6db6c2fcdb2c9a1384"
+      },
+      {
+        "suite": "editflows",
+        "files": [
+          "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+          "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+          "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+        ],
+        "tests": 31,
+        "pass": 30,
+        "fail": 1,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 1,
+        "signal": null,
+        "eventsSha256": "caf8b1c3988a48559e2a5bbd85c8627090caec20d22077a510659f0618f9365a"
+      },
+      {
+        "suite": "emptyfile-delta",
+        "files": [
+          "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts"
+        ],
+        "tests": 89,
+        "pass": 83,
+        "fail": 6,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 1,
+        "signal": null,
+        "eventsSha256": "dc7b18aa1acfa8a3f51f93296a243b2fa2d56b52a9c56aff7fbc3428166577e8"
+      },
+      {
+        "suite": "formats",
+        "files": [
+          "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+          "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+          "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+          "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+        ],
+        "tests": 1069,
+        "pass": 1069,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "134831a5b685f8c7a5f13e5b8adbde91216834d15ef6a8c4cc0c083ef0c9fa90"
+      },
+      {
+        "suite": "fuzz",
+        "files": [
+          "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+          "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+          "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+          "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+        ],
+        "tests": 38,
+        "pass": 37,
+        "fail": 1,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 1,
+        "signal": null,
+        "eventsSha256": "1dc1572997afed66f21475a92393e578523788f54eddf9aa284daa7c62c7c1de"
+      },
+      {
+        "suite": "gnu-auxiliary",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts"
+        ],
+        "tests": 56,
+        "pass": 56,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "30c7550b95853494b1a7fe419d0a78d6e4b0f75d128ad61206949855d0cd0b70"
+      },
+      {
+        "suite": "gnu-candidate-followup",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts"
+        ],
+        "tests": 21,
+        "pass": 21,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "eb204c181b5d8125ac8bdc8dab0633ee41817beef7844e22538084316b1a5fc1"
+      },
+      {
+        "suite": "gnu-editflows",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts",
+          "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts"
+        ],
+        "tests": 75,
+        "pass": 75,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "1110ac9cdad265dfe3ba33ba963c25bf62d4a6bf8792df33eab0b25611c2e87a"
+      },
+      {
+        "suite": "gnu-safety-strip-followup",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts"
+        ],
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "af22feb239bce4814854ac43c16309af795d53bd73aa124cf8cd532082d5bd09"
+      },
+      {
+        "suite": "gnu-target-classification",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts"
+        ],
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "54222d48caf0505647acbc210c4ca60bd646d5fb9858afcb98a967205eeb7afd"
+      },
+      {
+        "suite": "gnu-target-followup",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts",
+          "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+          "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts"
+        ],
+        "tests": 23,
+        "pass": 23,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "eed4cc71d226abc541a0b39d6fb587efcb1ca52ddcaa9c70aaa3b5fe811530b0"
+      },
+      {
+        "suite": "gnu-target",
+        "files": [
+          "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+          "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts",
+          "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts"
+        ],
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "8391e4359b47ed9a8c566810f4754d4b5680e33b617c4e57882dcfa1135bbedd"
+      },
+      {
+        "suite": "parser-regressions",
+        "files": [
+          "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+        ],
+        "tests": 80,
+        "pass": 80,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "0c90199c3da5ac3386cfb80bd52ae8ca967f13533063d2a79ace53228d8449dd"
+      },
+      {
+        "suite": "path-regressions",
+        "files": [
+          "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+          "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+          "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+          "tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+          "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+        ],
+        "tests": 619,
+        "pass": 619,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "ee133dd004a79f9e66d5c2a9a9c1cc08dcbd9974ba8fe81ee2facdfcc857d3d3"
+      },
+      {
+        "suite": "safety",
+        "files": [
+          "tests/commands/diff-patch-stress/safety/bounds.test.ts",
+          "tests/commands/diff-patch-stress/safety/cancellation.test.ts",
+          "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts",
+          "tests/commands/diff-patch-stress/safety/failures.test.ts",
+          "tests/commands/diff-patch-stress/safety/integration.test.ts",
+          "tests/commands/diff-patch-stress/safety/paths.test.ts"
+        ],
+        "tests": 152,
+        "pass": 152,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "2f6f7992c8a1d80a195025d12d03861451d9310b192f4ff0d62a98a8bd5406a3"
+      },
+      {
+        "suite": "author",
+        "files": [
+          "tests/commands/diff-patch/cancellation.test.ts",
+          "tests/commands/diff-patch/diff-formats.test.ts",
+          "tests/commands/diff-patch/diff-gnu-options.test.ts",
+          "tests/commands/diff-patch/diff.test.ts",
+          "tests/commands/diff-patch/hunk-regressions.test.ts",
+          "tests/commands/diff-patch/native-helper.test.ts",
+          "tests/commands/diff-patch/options-regressions.test.ts",
+          "tests/commands/diff-patch/patch-absolute.test.ts",
+          "tests/commands/diff-patch/patch-authorization-followup.test.ts",
+          "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts",
+          "tests/commands/diff-patch/patch-commit-followup.test.ts",
+          "tests/commands/diff-patch/patch-editflows.test.ts",
+          "tests/commands/diff-patch/patch-empty.test.ts",
+          "tests/commands/diff-patch/patch-epoch.test.ts",
+          "tests/commands/diff-patch/patch-formats.test.ts",
+          "tests/commands/diff-patch/patch-gnu-coordinates.test.ts",
+          "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+          "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+          "tests/commands/diff-patch/patch-interstitial-followup.test.ts",
+          "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts",
+          "tests/commands/diff-patch/patch-namespace-followup.test.ts",
+          "tests/commands/diff-patch/patch-parser.test.ts",
+          "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+          "tests/commands/diff-patch/patch-strip-followup.test.ts",
+          "tests/commands/diff-patch/patch.test.ts",
+          "tests/commands/diff-patch/safety.test.ts",
+          "tests/commands/diff-patch/shell.test.ts"
+        ],
+        "tests": 1325,
+        "pass": 1325,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "exitCode": 0,
+        "signal": null,
+        "eventsSha256": "6d57d68a9be7051b3424eb762f6405a0c5609ba5c8f3f8e5ab6cc3fa8ec5ffc4"
+      }
+    ]
+  },
+  "revised96": {
+    "tests": 96,
+    "pass": 96,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "exitCode": 0,
+    "files": [
+      "tests/commands/diff-patch-stress/gnu-revised-acceptance/revised.acceptance.ts"
+    ]
+  },
+  "consumerNew": {
+    "tests": 61,
+    "pass": 61,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "exitCode": 0,
+    "files": [
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts"
+    ]
+  },
+  "independentSafety": {
+    "initialExitCode": 1,
+    "supplementalExitCode": 0,
+    "checks": 22,
+    "cases": [
+      {
+        "kind": "empty-chain",
+        "atomic": false
+      },
+      {
+        "kind": "concurrent-child",
+        "atomic": false
+      },
+      {
+        "kind": "absent-rmdir",
+        "atomic": false
+      },
+      {
+        "kind": "EACCES",
+        "atomic": false
+      },
+      {
+        "kind": "EIO",
+        "atomic": false
+      },
+      {
+        "kind": "transport",
+        "atomic": false
+      },
+      {
+        "kind": "selected-final-symlink",
+        "atomic": false
+      },
+      {
+        "kind": "selected-ancestor-symlink",
+        "atomic": false
+      },
+      {
+        "kind": "selected-output-symlink",
+        "atomic": false
+      },
+      {
+        "kind": "rmdir-parent-replaced-by-symlink",
+        "atomic": false
+      },
+      {
+        "kind": "cancel-ENOENT",
+        "atomic": false
+      },
+      {
+        "kind": "empty-chain",
+        "atomic": true
+      },
+      {
+        "kind": "concurrent-child",
+        "atomic": true
+      },
+      {
+        "kind": "absent-rmdir",
+        "atomic": true
+      },
+      {
+        "kind": "EACCES",
+        "atomic": true
+      },
+      {
+        "kind": "EIO",
+        "atomic": true
+      },
+      {
+        "kind": "transport",
+        "atomic": true
+      },
+      {
+        "kind": "selected-final-symlink",
+        "atomic": true
+      },
+      {
+        "kind": "selected-ancestor-symlink",
+        "atomic": true
+      },
+      {
+        "kind": "selected-output-symlink",
+        "atomic": true
+      },
+      {
+        "kind": "rmdir-parent-replaced-by-symlink",
+        "atomic": true
+      },
+      {
+        "kind": "cancel-ENOENT",
+        "atomic": true
+      }
+    ],
+    "initialToolingFailuresRetained": [
+      "async wrapper incorrectly changed readStream return type",
+      "unsupported -o used instead of supported selected reject output"
+    ],
+    "supplements": [
+      {
+        "startedAt": "2026-08-26T23:16:47.469Z",
+        "finishedAt": "2026-08-26T23:16:48.861Z",
+        "supplement": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-l3ta4d",
+        "tool": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/safety-probe.mjs",
+        "evaluatedToolSha256": "31cf23a626c646ef5a658a163e177083cc84caf2772612ac9c9d50c71e3bd443",
+        "wrapper": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/supplement.mjs",
+        "wrapperSha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+        "snapshot": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+          "--input-type=module",
+          "--eval",
+          "<exact captured tool.mjs bytes>"
+        ],
+        "before": {
+          "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+          "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+          "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+          "toolSha256": "31cf23a626c646ef5a658a163e177083cc84caf2772612ac9c9d50c71e3bd443",
+          "wrapperSha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+          "binariesStable": true
+        },
+        "after": {
+          "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+          "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+          "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+          "toolSha256": "31cf23a626c646ef5a658a163e177083cc84caf2772612ac9c9d50c71e3bd443",
+          "wrapperSha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+          "binariesStable": true
+        },
+        "immutable": true,
+        "exitCode": 1,
+        "signal": null,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "056588ccbe166ae95a42eab9790174e0131771d0bba180065ec7c3c3c80d0d23",
+        "original3758Rerun": false,
+        "revised96Rerun": false,
+        "consumer61Rerun": false
+      },
+      {
+        "startedAt": "2026-08-26T23:18:42.936Z",
+        "finishedAt": "2026-08-26T23:18:43.365Z",
+        "supplement": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-SgmXmL",
+        "tool": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/safety-probe.mjs",
+        "evaluatedToolSha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+        "wrapper": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/supplement.mjs",
+        "wrapperSha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+        "snapshot": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+          "--input-type=module",
+          "--eval",
+          "<exact captured tool.mjs bytes>"
+        ],
+        "before": {
+          "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+          "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+          "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+          "toolSha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+          "wrapperSha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+          "binariesStable": true
+        },
+        "after": {
+          "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+          "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+          "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+          "toolSha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+          "wrapperSha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+          "binariesStable": true
+        },
+        "immutable": true,
+        "exitCode": 0,
+        "signal": null,
+        "stdoutSha256": "7581a8cb7e31804f63e3e202d9b4250368d1246beabb7dd0c2abe217dc489433",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "original3758Rerun": false,
+        "revised96Rerun": false,
+        "consumer61Rerun": false
+      },
+      {
+        "startedAt": "2026-08-26T23:20:30.897Z",
+        "finishedAt": "2026-08-26T23:20:31.868Z",
+        "supplement": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-lnAyeo",
+        "tool": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/safety-probe.mjs",
+        "evaluatedToolSha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+        "wrapper": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/supplement.mjs",
+        "wrapperSha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+        "snapshot": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+          "--input-type=module",
+          "--eval",
+          "<exact captured tool.mjs bytes>"
+        ],
+        "before": {
+          "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+          "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+          "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+          "outputAggregate": "5c479e7b3c9a87e993b64a2bb7432827287384fa32ba5974e4c6849936d96471",
+          "toolSha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+          "wrapperSha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+          "binariesStable": true
+        },
+        "after": {
+          "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+          "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+          "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+          "outputAggregate": "5c479e7b3c9a87e993b64a2bb7432827287384fa32ba5974e4c6849936d96471",
+          "toolSha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+          "wrapperSha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+          "binariesStable": true
+        },
+        "immutable": true,
+        "exitCode": 0,
+        "signal": null,
+        "stdoutSha256": "7581a8cb7e31804f63e3e202d9b4250368d1246beabb7dd0c2abe217dc489433",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "original3758Rerun": false,
+        "revised96Rerun": false,
+        "consumer61Rerun": false
+      }
+    ]
+  },
+  "independentDiagnosis": {
+    "cases": 6,
+    "supplement": {
+      "startedAt": "2026-08-26T23:20:31.914Z",
+      "finishedAt": "2026-08-26T23:20:33.122Z",
+      "supplement": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-NB64zq",
+      "tool": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/diagnose-emptyfile.mjs",
+      "evaluatedToolSha256": "0a358027559277b1f4ae71aa9b45d9ecb47a9995323a2cb08f4b0b487eff96f5",
+      "wrapper": "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/supplement.mjs",
+      "wrapperSha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+      "snapshot": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--input-type=module",
+        "--eval",
+        "<exact captured tool.mjs bytes>"
+      ],
+      "before": {
+        "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+        "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+        "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+        "outputAggregate": "5c479e7b3c9a87e993b64a2bb7432827287384fa32ba5974e4c6849936d96471",
+        "toolSha256": "0a358027559277b1f4ae71aa9b45d9ecb47a9995323a2cb08f4b0b487eff96f5",
+        "wrapperSha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+        "binariesStable": true
+      },
+      "after": {
+        "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+        "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+        "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+        "outputAggregate": "5c479e7b3c9a87e993b64a2bb7432827287384fa32ba5974e4c6849936d96471",
+        "toolSha256": "0a358027559277b1f4ae71aa9b45d9ecb47a9995323a2cb08f4b0b487eff96f5",
+        "wrapperSha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+        "binariesStable": true
+      },
+      "immutable": true,
+      "exitCode": 0,
+      "signal": null,
+      "stdoutSha256": "667740a15f81aadbf6a9743116a9119f6ac3dcc392d09b47646f7d3001e2d502",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original3758Rerun": false,
+      "revised96Rerun": false,
+      "consumer61Rerun": false
+    },
+    "observations": [
+      {
+        "name": "GNU default: normal/-E/apply",
+        "productExitCode": 0,
+        "nativeExitCode": 0,
+        "productRootNlink": [
+          4,
+          3
+        ],
+        "nativeRootNlink": [
+          4,
+          3
+        ],
+        "actualRemovalCalls": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "options": [
+              "signal"
+            ]
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "options": [
+              "signal"
+            ]
+          }
+        ],
+        "originalObservedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ],
+        "originalExpectedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          },
+          {
+            "method": "rm",
+            "path": "/authorized"
+          }
+        ],
+        "diagnosis": "successful pruning exposes stale parent-nlink and directory-rm instrumentation expectations; NOT waived, original test remains failing"
+      },
+      {
+        "name": "GNU default: normal/--remove-empty-files/apply",
+        "productExitCode": 0,
+        "nativeExitCode": 0,
+        "productRootNlink": [
+          4,
+          3
+        ],
+        "nativeRootNlink": [
+          4,
+          3
+        ],
+        "actualRemovalCalls": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "options": [
+              "signal"
+            ]
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "options": [
+              "signal"
+            ]
+          }
+        ],
+        "originalObservedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ],
+        "originalExpectedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          },
+          {
+            "method": "rm",
+            "path": "/authorized"
+          }
+        ],
+        "diagnosis": "successful pruning exposes stale parent-nlink and directory-rm instrumentation expectations; NOT waived, original test remains failing"
+      },
+      {
+        "name": "GNU default: context/-E/apply",
+        "productExitCode": 0,
+        "nativeExitCode": 0,
+        "productRootNlink": [
+          4,
+          3
+        ],
+        "nativeRootNlink": [
+          4,
+          3
+        ],
+        "actualRemovalCalls": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "options": [
+              "signal"
+            ]
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "options": [
+              "signal"
+            ]
+          }
+        ],
+        "originalObservedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ],
+        "originalExpectedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          },
+          {
+            "method": "rm",
+            "path": "/authorized"
+          }
+        ],
+        "diagnosis": "successful pruning exposes stale parent-nlink and directory-rm instrumentation expectations; NOT waived, original test remains failing"
+      },
+      {
+        "name": "GNU default: context/--remove-empty-files/apply",
+        "productExitCode": 0,
+        "nativeExitCode": 0,
+        "productRootNlink": [
+          4,
+          3
+        ],
+        "nativeRootNlink": [
+          4,
+          3
+        ],
+        "actualRemovalCalls": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "options": [
+              "signal"
+            ]
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "options": [
+              "signal"
+            ]
+          }
+        ],
+        "originalObservedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ],
+        "originalExpectedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          },
+          {
+            "method": "rm",
+            "path": "/authorized"
+          }
+        ],
+        "diagnosis": "successful pruning exposes stale parent-nlink and directory-rm instrumentation expectations; NOT waived, original test remains failing"
+      },
+      {
+        "name": "GNU default: unified/-E/apply",
+        "productExitCode": 0,
+        "nativeExitCode": 0,
+        "productRootNlink": [
+          4,
+          3
+        ],
+        "nativeRootNlink": [
+          4,
+          3
+        ],
+        "actualRemovalCalls": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "options": [
+              "signal"
+            ]
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "options": [
+              "signal"
+            ]
+          }
+        ],
+        "originalObservedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ],
+        "originalExpectedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          },
+          {
+            "method": "rm",
+            "path": "/authorized"
+          }
+        ],
+        "diagnosis": "successful pruning exposes stale parent-nlink and directory-rm instrumentation expectations; NOT waived, original test remains failing"
+      },
+      {
+        "name": "GNU default: unified/--remove-empty-files/apply",
+        "productExitCode": 0,
+        "nativeExitCode": 0,
+        "productRootNlink": [
+          4,
+          3
+        ],
+        "nativeRootNlink": [
+          4,
+          3
+        ],
+        "actualRemovalCalls": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "options": [
+              "signal"
+            ]
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "options": [
+              "signal"
+            ]
+          }
+        ],
+        "originalObservedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ],
+        "originalExpectedMutations": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          },
+          {
+            "method": "rm",
+            "path": "/authorized"
+          }
+        ],
+        "diagnosis": "successful pruning exposes stale parent-nlink and directory-rm instrumentation expectations; NOT waived, original test remains failing"
+      }
+    ]
+  },
+  "original30": {
+    "total": 30,
+    "pass": 14,
+    "fail": 16,
+    "rerun": false,
+    "report": "tests/commands/diff-patch-stress/original-thirty-replay/REPORT.md"
+  },
+  "failures": [
+    {
+      "suite": "editflows",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "name": "quoted-path security: quoted ancestor symlink",
+      "nesting": 0,
+      "testNumber": 31,
+      "details": {
+        "duration_ms": 2.797833,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected values to be strictly equal:\n\n0 !== 2\n",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:\n\n0 !== 2\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n0 !== 2\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 2\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts:59:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": true,
+            "code": "ERR_ASSERTION",
+            "actual": 0,
+            "expected": 2,
+            "operator": "strictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 2819,
+      "relativeFile": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "classification": "expectation-conflict-default-stripping",
+      "historicalClassification": "expectation-conflict-default-stripping"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: normal/-E/apply",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 3.59975,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 1.907417,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: context/-E/apply",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 1.978333,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "nesting": 0,
+      "testNumber": 12,
+      "details": {
+        "duration_ms": 2.406291,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: unified/-E/apply",
+      "nesting": 0,
+      "testNumber": 16,
+      "details": {
+        "duration_ms": 0.82325,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "nesting": 0,
+      "testNumber": 19,
+      "details": {
+        "duration_ms": 0.694167,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "fuzz",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+      "nesting": 0,
+      "testNumber": 21,
+      "details": {
+        "duration_ms": 1.720542,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "patch: hunk 2 does not match target\n\n\n1 !== 2\n",
+          "stack": "Error [ERR_TEST_FAILURE]: patch: hunk 2 does not match target\n\n\n1 !== 2\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "patch: hunk 2 does not match target\n\n\n1 !== 2\n",
+            "stack": "AssertionError [ERR_ASSERTION]: patch: hunk 2 does not match target\n\n\n1 !== 2\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/fuzz/edits.test.ts:97:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": 1,
+            "expected": 2,
+            "operator": "strictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 24,
+      "column": 4098,
+      "relativeFile": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "classification": "expectation-conflict-atomic-status",
+      "historicalClassification": "expectation-conflict-atomic-status"
+    }
+  ],
+  "unexpected": [
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: normal/-E/apply",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 3.59975,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 1.907417,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: context/-E/apply",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 1.978333,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "nesting": 0,
+      "testNumber": 12,
+      "details": {
+        "duration_ms": 2.406291,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: unified/-E/apply",
+      "nesting": 0,
+      "testNumber": 16,
+      "details": {
+        "duration_ms": 0.82325,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "file": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "nesting": 0,
+      "testNumber": 19,
+      "details": {
+        "duration_ms": 0.694167,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "stack": "Error [ERR_TEST_FAILURE]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n",
+            "stack": "AssertionError [ERR_ASSERTION]: no decoys, reject files, backup files, or unrelated paths changed\n+ actual - expected\n\n  {\n    '/': {\n      mode: 16877,\n+     nlink: 3,\n-     nlink: 4,\n      type: 'directory'\n    },\n    '/work': {\n      mode: 16895,\n      nlink: 2,\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 3
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "expected": {
+              "/": {
+                "type": "directory",
+                "mode": 16877,
+                "nlink": 4
+              },
+              "/work": {
+                "type": "directory",
+                "mode": 16895,
+                "nlink": 2
+              },
+              "/work/new-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "bmV3IGRlY295Cg=="
+              },
+              "/work/old-label": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "b2xkIGRlY295Cg=="
+              },
+              "/work/sentinel": {
+                "type": "file",
+                "mode": 33206,
+                "nlink": 1,
+                "bytes": "ZG8gbm90IHRvdWNoCg=="
+              }
+            },
+            "operator": "deepStrictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 245,
+      "relativeFile": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "classification": "unwaived-newly-exposed-nlink-and-rm-instrumentation-assertions",
+      "historicalClassification": "external-empty-directory-removal-contract"
+    }
+  ],
+  "cohortIntegrity": true,
+  "oracle": {
+    "stable": true,
+    "identities": [
+      {
+        "profile": "gnu",
+        "tool": "diff",
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      {
+        "profile": "gnu",
+        "tool": "patch",
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+        "dialect": "gnu",
+        "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+      },
+      {
+        "profile": "apple-calibration",
+        "tool": "diff",
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      {
+        "profile": "apple-calibration",
+        "tool": "patch",
+        "path": "/usr/bin/patch",
+        "realpath": "/usr/bin/patch",
+        "version": "patch 2.0-12u11-Apple",
+        "dialect": "apple-patch-2.0-12u11",
+        "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+      }
+    ]
+  },
+  "globalChecks": [
+    {
+      "name": "typecheck",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "startedAt": "2026-08-26T23:15:02.080Z",
+      "finishedAt": "2026-08-26T23:15:05.017Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/typecheck.stdout",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/typecheck.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "build",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json",
+        "--pretty",
+        "false",
+        "--outDir",
+        "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/dist"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "startedAt": "2026-08-26T23:15:05.313Z",
+      "finishedAt": "2026-08-26T23:15:06.711Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/build.stdout",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/build.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "fixture-probe",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "tests/commands/diff-patch-stress/gnu-followup-checkpoint/fixture-probe.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "startedAt": "2026-08-26T23:15:07.010Z",
+      "finishedAt": "2026-08-26T23:15:07.118Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fixture-probe.stdout",
+        "sha256": "9d13e427a4b965bd88c610826f4f6750d5269c7119bbc15b0415282fa2a78d22"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fixture-probe.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "public-probe",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "tests/commands/diff-patch-stress/gnu-followup-checkpoint/public-probe.mjs",
+        "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fixture-probe.stdout"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "startedAt": "2026-08-26T23:15:07.395Z",
+      "finishedAt": "2026-08-26T23:15:07.480Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/public-probe.stdout",
+        "sha256": "7f69fd2c7cdf103e10b6befef7ba0a72d48f7f54ad9f96251cc181c96e8909e0"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/public-probe.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "independent-safety",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/safety-probe.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1",
+      "startedAt": "2026-08-26T23:15:07.749Z",
+      "finishedAt": "2026-08-26T23:15:07.818Z",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/independent-safety.stdout",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/independent-safety.stderr",
+        "sha256": "34a772df167a1cfcf3ceb39ccd0f12a5e3dd563404629465af83e418e8f752d1"
+      }
+    }
+  ],
+  "publicPackage": {
+    "publicEntry": "/private/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-1/dist/index.js",
+    "fixtureCount": 115,
+    "probeCount": 3,
+    "taskCount": 118,
+    "fixture": {
+      "name": "plugin-diff-patch-roundtrip",
+      "tier": "plugin-integration",
+      "tags": [
+        "diff",
+        "patch",
+        "files"
+      ],
+      "source": "plugin-integration",
+      "script": "diff -u --label old --label new old new > change; patch /fixture/old < change; cat old",
+      "initialFiles": {
+        "old": "YQpiCg==",
+        "new": "YQpjCg=="
+      },
+      "stdin": "",
+      "env": {},
+      "expected": {
+        "stdout": "cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "old": "YQpjCg==",
+          "new": "YQpjCg==",
+          "change": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo="
+        }
+      }
+    },
+    "directFactory": {
+      "exitCode": 1,
+      "stdoutBase64": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo="
+    },
+    "result": {
+      "stdout": "patching file /fixture/old\na\nc\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "0": 112,
+        "1": 97,
+        "2": 116,
+        "3": 99,
+        "4": 104,
+        "5": 105,
+        "6": 110,
+        "7": 103,
+        "8": 32,
+        "9": 102,
+        "10": 105,
+        "11": 108,
+        "12": 101,
+        "13": 32,
+        "14": 47,
+        "15": 102,
+        "16": 105,
+        "17": 120,
+        "18": 116,
+        "19": 117,
+        "20": 114,
+        "21": 101,
+        "22": 47,
+        "23": 111,
+        "24": 108,
+        "25": 100,
+        "26": 10,
+        "27": 97,
+        "28": 10,
+        "29": 99,
+        "30": 10
+      },
+      "stderrBytes": {},
+      "exitCode": 0
+    },
+    "namespace": {
+      "/": {
+        "type": "directory"
+      },
+      "/fixture": {
+        "type": "directory"
+      },
+      "/fixture/change": {
+        "type": "file",
+        "base64": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo="
+      },
+      "/fixture/new": {
+        "type": "file",
+        "base64": "YQpjCg=="
+      },
+      "/fixture/old": {
+        "type": "file",
+        "base64": "YQpjCg=="
+      }
+    },
+    "hostFallback": false,
+    "typescriptLoader": false
+  },
+  "boundaries": [
+    {
+      "name": "oracle-before:before",
+      "at": "2026-08-26T23:14:00.782Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "oracle-before:after",
+      "at": "2026-08-26T23:14:01.419Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "absolute-target:before",
+      "at": "2026-08-26T23:14:01.558Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "absolute-target:after",
+      "at": "2026-08-26T23:14:02.152Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "compatibility:before",
+      "at": "2026-08-26T23:14:02.289Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "compatibility:after",
+      "at": "2026-08-26T23:14:03.750Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "editflows:before",
+      "at": "2026-08-26T23:14:03.885Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "editflows:after",
+      "at": "2026-08-26T23:14:04.855Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "emptyfile-delta:before",
+      "at": "2026-08-26T23:14:04.988Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "emptyfile-delta:after",
+      "at": "2026-08-26T23:14:05.545Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "formats:before",
+      "at": "2026-08-26T23:14:05.681Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "formats:after",
+      "at": "2026-08-26T23:14:18.095Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "fuzz:before",
+      "at": "2026-08-26T23:14:18.229Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "fuzz:after",
+      "at": "2026-08-26T23:14:41.672Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-auxiliary:before",
+      "at": "2026-08-26T23:14:41.846Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-auxiliary:after",
+      "at": "2026-08-26T23:14:43.237Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-candidate-followup:before",
+      "at": "2026-08-26T23:14:43.388Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-candidate-followup:after",
+      "at": "2026-08-26T23:14:44.121Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-editflows:before",
+      "at": "2026-08-26T23:14:44.310Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-editflows:after",
+      "at": "2026-08-26T23:14:45.302Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-safety-strip-followup:before",
+      "at": "2026-08-26T23:14:45.460Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-safety-strip-followup:after",
+      "at": "2026-08-26T23:14:45.927Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-target-classification:before",
+      "at": "2026-08-26T23:14:46.062Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-target-classification:after",
+      "at": "2026-08-26T23:14:46.338Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-target-followup:before",
+      "at": "2026-08-26T23:14:46.472Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-target-followup:after",
+      "at": "2026-08-26T23:14:47.022Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-target:before",
+      "at": "2026-08-26T23:14:47.153Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "gnu-target:after",
+      "at": "2026-08-26T23:14:51.054Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "parser-regressions:before",
+      "at": "2026-08-26T23:14:51.184Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "parser-regressions:after",
+      "at": "2026-08-26T23:14:52.051Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "path-regressions:before",
+      "at": "2026-08-26T23:14:52.182Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "path-regressions:after",
+      "at": "2026-08-26T23:14:53.015Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "safety:before",
+      "at": "2026-08-26T23:14:53.164Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "safety:after",
+      "at": "2026-08-26T23:14:54.090Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "author:before",
+      "at": "2026-08-26T23:14:54.221Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "author:after",
+      "at": "2026-08-26T23:15:00.583Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "revised96:before",
+      "at": "2026-08-26T23:15:00.717Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "revised96:after",
+      "at": "2026-08-26T23:15:01.432Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "consumer-new:before",
+      "at": "2026-08-26T23:15:01.581Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "consumer-new:after",
+      "at": "2026-08-26T23:15:01.942Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "typecheck:before",
+      "at": "2026-08-26T23:15:02.079Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "typecheck:after",
+      "at": "2026-08-26T23:15:05.179Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "build:before",
+      "at": "2026-08-26T23:15:05.312Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "build:after",
+      "at": "2026-08-26T23:15:06.862Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "fixture-probe:before",
+      "at": "2026-08-26T23:15:07.009Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "fixture-probe:after",
+      "at": "2026-08-26T23:15:07.255Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "public-probe:before",
+      "at": "2026-08-26T23:15:07.394Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "public-probe:after",
+      "at": "2026-08-26T23:15:07.616Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "independent-safety:before",
+      "at": "2026-08-26T23:15:07.748Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "independent-safety:after",
+      "at": "2026-08-26T23:15:07.949Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "oracle-after:before",
+      "at": "2026-08-26T23:15:08.082Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    },
+    {
+      "name": "oracle-after:after",
+      "at": "2026-08-26T23:15:08.318Z",
+      "inputAggregate": "c30e3a4d8625aea0be6ed5897c1f1e90d82f3d3a517adf2d3dbb1b7198be17db",
+      "sourceAggregate": "6878bf4927ff01c74b8d9f5f4d59a4942b9a8d98d29316999ba4f9bfa52c45a8",
+      "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+      "binariesStable": true,
+      "compiledSiblings": [],
+      "changed": []
+    }
+  ],
+  "activeSnapshotProcesses": [],
+  "artifacts": {
+    "absolute-target.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/absolute-target.events.jsonl",
+      "sha256": "ddb96564f5a49667a4efd012f1e074da39a4cc5d7742327138c6c35586d554d2",
+      "bytes": 10706
+    },
+    "absolute-target.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/absolute-target.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "absolute-target.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/absolute-target.stdout",
+      "sha256": "3476c3a48ba43bd297eb74a1d2569d665b6001200633589633617de41c9b3170",
+      "bytes": 11403
+    },
+    "author.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/author.events.jsonl",
+      "sha256": "6d57d68a9be7051b3424eb762f6405a0c5609ba5c8f3f8e5ab6cc3fa8ec5ffc4",
+      "bytes": 432090
+    },
+    "author.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/author.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "author.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/author.stdout",
+      "sha256": "b537ded3ce7d2370c76a5291990e345451c51b91243de2a918b9e30a32cafa9b",
+      "bytes": 261093
+    },
+    "boundary-1.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-1.json",
+      "sha256": "31f6e15493878369bdce46b4688e1843305543504b7402695cd4295c86f3824d",
+      "bytes": 412
+    },
+    "boundary-10.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-10.json",
+      "sha256": "b9c35464e2c2384d6a138de2f101b5c4ff8a600dd2a25b55b66d9ded9418c0ef",
+      "bytes": 413
+    },
+    "boundary-11.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-11.json",
+      "sha256": "bc426218fcbd02410c9b0e059f182226a4f8d6514ef73cd26ac6b1ececa12cfa",
+      "bytes": 406
+    },
+    "boundary-12.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-12.json",
+      "sha256": "12dc19bf489e78804d895ab40bac757496643e10f9bc2a9bcff4f2159d7e1d29",
+      "bytes": 405
+    },
+    "boundary-13.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-13.json",
+      "sha256": "c26ec4173f6da315c34d264ed65bf9db9ab20bdb73a32d50f0971c9f5a2d910d",
+      "bytes": 403
+    },
+    "boundary-14.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-14.json",
+      "sha256": "e8952c8917c1c6ddd4807da19334f88784dd75fc753ad3d32556dad4dd1e01cd",
+      "bytes": 402
+    },
+    "boundary-15.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-15.json",
+      "sha256": "8a468a6d65b52b39047a822805e131e7aa8eea0dcada5c270cb01ea298aade12",
+      "bytes": 412
+    },
+    "boundary-16.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-16.json",
+      "sha256": "cf84adc5e3f448f49d2c2258469d6d54f873ac3af1b8866a8b0edc76eab7855c",
+      "bytes": 411
+    },
+    "boundary-17.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-17.json",
+      "sha256": "e97f9f8d003718639eaed3a6aca3cdd36cc1877d789a18bdee79bfe81fad8c25",
+      "bytes": 421
+    },
+    "boundary-18.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-18.json",
+      "sha256": "5d58c46a4af6b9a57920e540305e6afd0984eb4bd788481d6c74355000664ff0",
+      "bytes": 420
+    },
+    "boundary-19.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-19.json",
+      "sha256": "3eeb2d04f88f81d6f3459f038d9231cbcc1f4fd55a7406a0c2514d977596ba79",
+      "bytes": 412
+    },
+    "boundary-2.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-2.json",
+      "sha256": "93d70e440f5e4689aa7bf34b5909e639b3db754173d5be7a156298d8f44dfc7d",
+      "bytes": 411
+    },
+    "boundary-20.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-20.json",
+      "sha256": "e8f9414ad9f7d4fa69965749f38ccddfa6088fda27a75371f00c25f14694e16b",
+      "bytes": 411
+    },
+    "boundary-21.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-21.json",
+      "sha256": "a7107287fc3e83a873a4b1d364a1cf2681f51dfa0d3b6b19509ee183adafad08",
+      "bytes": 424
+    },
+    "boundary-22.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-22.json",
+      "sha256": "2c1a2d357fa6aab6bd0fda943224e6b9e07d61cfbf08cc885383a8e15a759194",
+      "bytes": 423
+    },
+    "boundary-23.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-23.json",
+      "sha256": "da8f4dce8139f4d93b8f306ee989df5d4244f88e33c81611d9959e03e2d78e57",
+      "bytes": 424
+    },
+    "boundary-24.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-24.json",
+      "sha256": "51104338df6ef46412aa7df30cbdb0e876b8f5a14ea5e38891a7776f2263b5c6",
+      "bytes": 423
+    },
+    "boundary-25.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-25.json",
+      "sha256": "7ddacad1b6c996e408ae4e17d1783183378cf3325b648c70ce9ea98987f70f9a",
+      "bytes": 418
+    },
+    "boundary-26.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-26.json",
+      "sha256": "67027b4ed204f31151fb6f4376952c7263fa8f7fa33f1cd74f67e063445fd75e",
+      "bytes": 417
+    },
+    "boundary-27.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-27.json",
+      "sha256": "96c875b68fc063de1cd9be7154714f5ec6ae8c4e27d40e3f2a962701014768ca",
+      "bytes": 409
+    },
+    "boundary-28.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-28.json",
+      "sha256": "9acf477d636e03e23d0d76b35c072faa02f96321a21db15a80531d4368533a2a",
+      "bytes": 408
+    },
+    "boundary-29.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-29.json",
+      "sha256": "cb5ef907068a81bdb334f91da75a8d466396a2ba4bed2a74454fed6fda9be68c",
+      "bytes": 417
+    },
+    "boundary-3.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-3.json",
+      "sha256": "33e2f5781e2ccf46de11846d6964ee5404e14345674cc1d030675f8e228f1173",
+      "bytes": 414
+    },
+    "boundary-30.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-30.json",
+      "sha256": "8c47a91f66e582819f011a3b8c0df2575e36a8fee4dca0c3318d7a6d5c8633b4",
+      "bytes": 416
+    },
+    "boundary-31.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-31.json",
+      "sha256": "7b7556eeaca8ebe08c1c7ec3c83ed82135ba7bbb785fd09f7adaf296e4b0fb9e",
+      "bytes": 415
+    },
+    "boundary-32.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-32.json",
+      "sha256": "139d3cb4f2786f09075520c46e02213d0d0dac930c8eb9cac661f93ad0b25f7b",
+      "bytes": 414
+    },
+    "boundary-33.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-33.json",
+      "sha256": "e75587d2c1c4833091eaf70b1cd7a12058bd72be21011992b7a4f5c5653f1ff4",
+      "bytes": 405
+    },
+    "boundary-34.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-34.json",
+      "sha256": "d59b4db35eb33790144ee0cb5722d60a78a9c919242444090b009bfa5916c7bb",
+      "bytes": 404
+    },
+    "boundary-35.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-35.json",
+      "sha256": "ae20fad7a4cf8ca3088172a61944cdc4f129b5078fd3543497c7bf130214408e",
+      "bytes": 405
+    },
+    "boundary-36.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-36.json",
+      "sha256": "980bb3ec96881069b38613abc0bcfbdf47893f715ad551214c7dd6f561a60937",
+      "bytes": 404
+    },
+    "boundary-37.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-37.json",
+      "sha256": "4516a8e60861cd8a884bffe8dd1559ab01de33028b4413ac860f6b4d49891eeb",
+      "bytes": 408
+    },
+    "boundary-38.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-38.json",
+      "sha256": "c0f51321432a1bd58c4ef28b54131b4ad41c34cc2e78dc6a10c0f5dc4aeb90ca",
+      "bytes": 407
+    },
+    "boundary-39.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-39.json",
+      "sha256": "f39dedffb45ee31af0a852b22d5bcb9042e96c68ba84ba9e081b2daa736faaa1",
+      "bytes": 411
+    },
+    "boundary-4.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-4.json",
+      "sha256": "d611eb1b0dfc13913c04cb9328280946da4dc86aede04f4f02052655036ab63b",
+      "bytes": 413
+    },
+    "boundary-40.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-40.json",
+      "sha256": "79a0dbe83bc946c43b920466c4e5a43d527fc26dfddd55ea1653d55ab79fec18",
+      "bytes": 410
+    },
+    "boundary-41.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-41.json",
+      "sha256": "1d0f1a6d7b24673dc68254fe258846f92ec79b5af1ce6054f00f2b2fdd05a13c",
+      "bytes": 408
+    },
+    "boundary-42.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-42.json",
+      "sha256": "ffbd923ea7ceb7c6cca87aed48342ba054bdc13059ad548f9e3f319a618e192c",
+      "bytes": 407
+    },
+    "boundary-43.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-43.json",
+      "sha256": "2e22c7e91eda54da6aea3c6c5cc8d4d8d05477b84115695b6a95bc2ba9439aeb",
+      "bytes": 404
+    },
+    "boundary-44.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-44.json",
+      "sha256": "d5adecdd36247fb25cd5b6ba4e05e9b5a18b9d8e1bfd07257b60a97865fb1312",
+      "bytes": 403
+    },
+    "boundary-45.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-45.json",
+      "sha256": "deeafd0c7304acae90c8d6beaed79c87b1f7517af9c55cdb96b893799c241ac4",
+      "bytes": 412
+    },
+    "boundary-46.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-46.json",
+      "sha256": "f07bfb5edfbb7b02b7f565a0520521fbefd2a2e74ae1509469ba2c88726b76e0",
+      "bytes": 411
+    },
+    "boundary-47.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-47.json",
+      "sha256": "bf6e37d4f0499ea935fafa8cd269f53cf216ca6ff5737de1e1d85b66c5b2b061",
+      "bytes": 411
+    },
+    "boundary-48.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-48.json",
+      "sha256": "fb7c6a13458b743d5be8cf7fd86b951b25c9deb8c823169aeec0d57f73b55793",
+      "bytes": 410
+    },
+    "boundary-49.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-49.json",
+      "sha256": "e269703136aaad57c3108e50f92ff3fcd3820f669508c6980ff1fb3234cf09f7",
+      "bytes": 417
+    },
+    "boundary-5.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-5.json",
+      "sha256": "0ce3fc76e2eac269d2532d30733773f885b589ece0c62fe2aa935e9ae153292b",
+      "bytes": 412
+    },
+    "boundary-50.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-50.json",
+      "sha256": "6d0ee81df83f947b15db785c30858df9a9e347d1ab8e7f858ba7109f0c0e91f1",
+      "bytes": 416
+    },
+    "boundary-51.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-51.json",
+      "sha256": "0d213dab181bbb3eb3e76e596d71e07c1a50db82d2cfa6d31859cb6d93967f5f",
+      "bytes": 411
+    },
+    "boundary-52.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-52.json",
+      "sha256": "3d30055be702cbdc43fc152fef8ef0e69fd62f1796378fe75362d494d7caf2bd",
+      "bytes": 410
+    },
+    "boundary-6.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-6.json",
+      "sha256": "5f7171cd333c35cb4744c5a3e93f301c167b540534a1237708e20477c1084375",
+      "bytes": 411
+    },
+    "boundary-7.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-7.json",
+      "sha256": "84c755f1917a829dd296b5c69f994cca849d5f05114ab5491e66f95ba7ef1eee",
+      "bytes": 408
+    },
+    "boundary-8.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-8.json",
+      "sha256": "0028a1b2c4d85ae20402a8d99ac8e2f282eb9af1f339b0e32e220bcb118e1a0d",
+      "bytes": 407
+    },
+    "boundary-9.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/boundary-9.json",
+      "sha256": "5e8de8b948a86d82e4f0da73961367fa8c3d103bb016d537dc544ee7ae040adc",
+      "bytes": 414
+    },
+    "build.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/build.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/build.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cohort-absolute-target.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-absolute-target.json",
+      "sha256": "edfa81261da082d51c8ff0ebce860bd16a49c2f1aa63fd01085f44fb8eeeef85",
+      "bytes": 429
+    },
+    "cohort-author.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-author.json",
+      "sha256": "3c5ea228dc18458565f86e18af721cd75f31be3abe36e3fe3bcb6155a94ff506",
+      "bytes": 1880
+    },
+    "cohort-compatibility.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-compatibility.json",
+      "sha256": "7daab493250a3e45b2f3544266142b8515731ed80d0ec2eef5c17bc779bb6fea",
+      "bytes": 617
+    },
+    "cohort-consumer-new.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-consumer-new.json",
+      "sha256": "67eb1b99a363b19ad04a10d35c7079b178913b7c121d9a2afceaa980f6982696",
+      "bytes": 348
+    },
+    "cohort-editflows.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-editflows.json",
+      "sha256": "e0fcf26b82856edd6d6613162cee583fabbc1eadf722acc577e22d5a2f5c7627",
+      "bytes": 1929
+    },
+    "cohort-emptyfile-delta.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-emptyfile-delta.json",
+      "sha256": "1d42070f4c8654f7b0bc8faad65dea4ec282dfce7d7c62ffa8d58a3ed1ba3450",
+      "bytes": 23957
+    },
+    "cohort-formats.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-formats.json",
+      "sha256": "36b2f318be270ff472e4013f330e8927902d8a6510f39e08ed90c8fb7147d508",
+      "bytes": 542
+    },
+    "cohort-fuzz.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-fuzz.json",
+      "sha256": "6fe5940cf32723275a88b9d1408b7d80e653b818cf20bb45e4fb44d3077dd9cd",
+      "bytes": 1992
+    },
+    "cohort-gnu-auxiliary.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-auxiliary.json",
+      "sha256": "16d45f52eb184f492ec33278ceca957e0405fbeaf9af9e5bd413197973e6b390",
+      "bytes": 352
+    },
+    "cohort-gnu-candidate-followup.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-candidate-followup.json",
+      "sha256": "b0063964487bd72a5a29e654d62b1daabfffb757ac265a022123175d3a8d1fe4",
+      "bytes": 367
+    },
+    "cohort-gnu-editflows.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-editflows.json",
+      "sha256": "6e44f1520328cfd3cc05cfed2c0cfc54b64cb7dd12847c6d6516f8230aa2e2e5",
+      "bytes": 416
+    },
+    "cohort-gnu-safety-strip-followup.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-safety-strip-followup.json",
+      "sha256": "241613cfc77ba6fde556374bb6d934abc0e63dc6f4500442e4aa662680c06cac",
+      "bytes": 369
+    },
+    "cohort-gnu-target-classification.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-target-classification.json",
+      "sha256": "2dd0e12124390d96d0981e4bd53e06bbe94a1ad8653903a7ad4eb75bf7c8d183",
+      "bytes": 369
+    },
+    "cohort-gnu-target-followup.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-target-followup.json",
+      "sha256": "50275934262611ebb168f70e785289f8866b54214774ece2669151f62f7dc3ae",
+      "bytes": 534
+    },
+    "cohort-gnu-target.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-gnu-target.json",
+      "sha256": "7c019e2bc723218015ac036b2a591366f4f34e6ccc2c376c797d89f88f77b0be",
+      "bytes": 494
+    },
+    "cohort-parser-regressions.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-parser-regressions.json",
+      "sha256": "64dd8fd912724a918bc03b04e6398deed1d2a4bca86174b629be1f29e8da21c2",
+      "bytes": 355
+    },
+    "cohort-path-regressions.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-path-regressions.json",
+      "sha256": "dcb4c4d9d69a683529a1cda355d4b8770a1aded85fa30006b4ceccf2cf57dada",
+      "bytes": 655
+    },
+    "cohort-revised96.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-revised96.json",
+      "sha256": "aed8307f0c3534ff1be0180ed8af4fc2a2b2dfcda441f188d6853105d59d91f9",
+      "bytes": 357
+    },
+    "cohort-safety.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/cohort-safety.json",
+      "sha256": "3743df689031542c1dd5fbe30148b64749355f7aebdbbd8403556e17524584f7",
+      "bytes": 662
+    },
+    "compatibility.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/compatibility.events.jsonl",
+      "sha256": "bde31a880b434ec9505e2493484157d7fd6ffcb536d32f6db6c2fcdb2c9a1384",
+      "bytes": 37417
+    },
+    "compatibility.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/compatibility.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "compatibility.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/compatibility.stdout",
+      "sha256": "f537d75b175c22c97dbf555ac8d6198197ca6858c5e13030368fba06c7671504",
+      "bytes": 220875
+    },
+    "consumer-new.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/consumer-new.events.jsonl",
+      "sha256": "645f7b336f2b748f16e90705b28fdd68aa66408eab9b441d8a289d333dd9743e",
+      "bytes": 21804
+    },
+    "consumer-new.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/consumer-new.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "consumer-new.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/consumer-new.stdout",
+      "sha256": "8a5e0944300097ef075ab92b4c9bed7407cbb24852a809fc5e437494c1816ff2",
+      "bytes": 13849
+    },
+    "copy-attempt-1.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/copy-attempt-1.json",
+      "sha256": "f7a4819a75c44066381672fd4fa21fbb8ac85e846fe6abb8de550a3e59c14fb0",
+      "bytes": 781195
+    },
+    "dependencies-after.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/dependencies-after.json",
+      "sha256": "72f6064065f28a64c32445ccce3a2859290f9aad276905bbcdf3f2c21209a1db",
+      "bytes": 50445
+    },
+    "dependencies-before.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/dependencies-before.json",
+      "sha256": "72f6064065f28a64c32445ccce3a2859290f9aad276905bbcdf3f2c21209a1db",
+      "bytes": 50445
+    },
+    "editflows.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/editflows.events.jsonl",
+      "sha256": "caf8b1c3988a48559e2a5bbd85c8627090caec20d22077a510659f0618f9365a",
+      "bytes": 11765
+    },
+    "editflows.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/editflows.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "editflows.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/editflows.stdout",
+      "sha256": "75af5ac8d7630f07dd7332777c85834ab438db5187bc4a50f50bc66eb35df8ea",
+      "bytes": 8217
+    },
+    "emptyfile-delta.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/emptyfile-delta.events.jsonl",
+      "sha256": "dc7b18aa1acfa8a3f51f93296a243b2fa2d56b52a9c56aff7fbc3428166577e8",
+      "bytes": 43874
+    },
+    "emptyfile-delta.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/emptyfile-delta.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "emptyfile-delta.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/emptyfile-delta.stdout",
+      "sha256": "329bead1100c290ffdc40e32032851f75147065aa3c0f5e227dd39ce94e0b6ac",
+      "bytes": 27302
+    },
+    "fixture-probe.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fixture-probe.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "fixture-probe.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fixture-probe.stdout",
+      "sha256": "9d13e427a4b965bd88c610826f4f6750d5269c7119bbc15b0415282fa2a78d22",
+      "bytes": 761
+    },
+    "formats.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/formats.events.jsonl",
+      "sha256": "134831a5b685f8c7a5f13e5b8adbde91216834d15ef6a8c4cc0c083ef0c9fa90",
+      "bytes": 333377
+    },
+    "formats.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/formats.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "formats.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/formats.stdout",
+      "sha256": "224df7333aedb82eaf4ffd3cd896d7a3fce89475657bbcaf24fdc0736ca06de3",
+      "bytes": 175897
+    },
+    "fuzz.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fuzz.events.jsonl",
+      "sha256": "1dc1572997afed66f21475a92393e578523788f54eddf9aa284daa7c62c7c1de",
+      "bytes": 15107
+    },
+    "fuzz.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fuzz.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "fuzz.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/fuzz.stdout",
+      "sha256": "ef3fce617d5458be679af0a4d4641b0d732af10422f8efb7a8a7806faec06f8e",
+      "bytes": 14913
+    },
+    "gnu-auxiliary.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-auxiliary.events.jsonl",
+      "sha256": "30c7550b95853494b1a7fe419d0a78d6e4b0f75d128ad61206949855d0cd0b70",
+      "bytes": 18430
+    },
+    "gnu-auxiliary.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-auxiliary.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-auxiliary.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-auxiliary.stdout",
+      "sha256": "164fc220c3c033d32bf78e03d066d0eb693103809233f611e2b6e6f35558d56f",
+      "bytes": 9201
+    },
+    "gnu-candidate-followup.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-candidate-followup.events.jsonl",
+      "sha256": "eb204c181b5d8125ac8bdc8dab0633ee41817beef7844e22538084316b1a5fc1",
+      "bytes": 7730
+    },
+    "gnu-candidate-followup.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-candidate-followup.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-candidate-followup.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-candidate-followup.stdout",
+      "sha256": "01b7f6a7deafb4f429213355d0d847bbdf30f82e052def12e64c9b75aded9a87",
+      "bytes": 4331
+    },
+    "gnu-editflows.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-editflows.events.jsonl",
+      "sha256": "1110ac9cdad265dfe3ba33ba963c25bf62d4a6bf8792df33eab0b25611c2e87a",
+      "bytes": 24806
+    },
+    "gnu-editflows.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-editflows.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-editflows.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-editflows.stdout",
+      "sha256": "4e0739da1d8a8c2a258f8a68265f74b6d050354d28da883b864766cd7cc06c25",
+      "bytes": 13205
+    },
+    "gnu-safety-strip-followup.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-safety-strip-followup.events.jsonl",
+      "sha256": "af22feb239bce4814854ac43c16309af795d53bd73aa124cf8cd532082d5bd09",
+      "bytes": 2683
+    },
+    "gnu-safety-strip-followup.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-safety-strip-followup.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-safety-strip-followup.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-safety-strip-followup.stdout",
+      "sha256": "1bec8a298c1e41a4a2629a766fa232598fc74fbcf651351682ee00656bc14fc8",
+      "bytes": 1552
+    },
+    "gnu-target-classification.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target-classification.events.jsonl",
+      "sha256": "54222d48caf0505647acbc210c4ca60bd646d5fb9858afcb98a967205eeb7afd",
+      "bytes": 2984
+    },
+    "gnu-target-classification.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target-classification.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-target-classification.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target-classification.stdout",
+      "sha256": "536ce4accb8eb476834237e1349413eab2000c9978cd85cfc3820c885dcd19cf",
+      "bytes": 1662
+    },
+    "gnu-target-followup.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target-followup.events.jsonl",
+      "sha256": "eed4cc71d226abc541a0b39d6fb587efcb1ca52ddcaa9c70aaa3b5fe811530b0",
+      "bytes": 9276
+    },
+    "gnu-target-followup.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target-followup.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-target-followup.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target-followup.stdout",
+      "sha256": "cc2c8c2c0627e33f01482de57137b5332258deea3a9e6ecb3d6295b4b25bab32",
+      "bytes": 5035
+    },
+    "gnu-target.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target.events.jsonl",
+      "sha256": "8391e4359b47ed9a8c566810f4754d4b5680e33b617c4e57882dcfa1135bbedd",
+      "bytes": 10204
+    },
+    "gnu-target.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gnu-target.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/gnu-target.stdout",
+      "sha256": "1279bb1f8918e74ec8660c1e678521a8737e077294d0ffdc83ff56e152db0e04",
+      "bytes": 6635
+    },
+    "identity.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/identity.json",
+      "sha256": "8e64f76b20f303e468a546755e8dc455b992dc794e832870f85b30315e7b850f",
+      "bytes": 127198
+    },
+    "import-audit.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/import-audit.json",
+      "sha256": "d373f4650e1ae15e8baaebe4f571cff3f4907170e083430d6349d61bddfbb8b3",
+      "bytes": 28486
+    },
+    "independent-safety.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/independent-safety.stderr",
+      "sha256": "34a772df167a1cfcf3ceb39ccd0f12a5e3dd563404629465af83e418e8f752d1",
+      "bytes": 465
+    },
+    "independent-safety.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/independent-safety.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "inputs-after.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/inputs-after.json",
+      "sha256": "3e17b914d4e5df467fe72f02c11ccaae964edf1a128b2a824ea204f169b94eba",
+      "bytes": 193110
+    },
+    "inputs.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/inputs.json",
+      "sha256": "3e17b914d4e5df467fe72f02c11ccaae964edf1a128b2a824ea204f169b94eba",
+      "bytes": 193110
+    },
+    "oracle-after.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/oracle-after.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "oracle-after.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/oracle-after.stdout",
+      "sha256": "c3b03470d8c0f2fad0bed630ddfbeebdf51727f095949e4b4e76aa4bbe5ec727",
+      "bytes": 1939
+    },
+    "oracle-before.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/oracle-before.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "oracle-before.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/oracle-before.stdout",
+      "sha256": "c3b03470d8c0f2fad0bed630ddfbeebdf51727f095949e4b4e76aa4bbe5ec727",
+      "bytes": 1939
+    },
+    "original237.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/original237.json",
+      "sha256": "5e23b996e54265fd1e6cb11fb2c59ae4f7d90f0a03dd9cef8b8d6d6b0e53e68b",
+      "bytes": 32970
+    },
+    "original70.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/original70.json",
+      "sha256": "474e7176afcd3287aecf58722a6618c5c403d0e83f7dfaf3ff5581925b3d8f3b",
+      "bytes": 9290
+    },
+    "parser-regressions.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/parser-regressions.events.jsonl",
+      "sha256": "0c90199c3da5ac3386cfb80bd52ae8ca967f13533063d2a79ace53228d8449dd",
+      "bytes": 24403
+    },
+    "parser-regressions.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/parser-regressions.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "parser-regressions.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/parser-regressions.stdout",
+      "sha256": "9f24fb5542bb587bdbce25edc5adaec7b4668cfdc2d40f4670bd70c1af7e3a2d",
+      "bytes": 10043
+    },
+    "path-audit.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/path-audit.json",
+      "sha256": "a0d8620360da8b33f08a605bc48ad08ac589b45445a101e0b7a483ea7fe41f92",
+      "bytes": 9202
+    },
+    "path-regressions.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/path-regressions.events.jsonl",
+      "sha256": "ee133dd004a79f9e66d5c2a9a9c1cc08dcbd9974ba8fe81ee2facdfcc857d3d3",
+      "bytes": 206165
+    },
+    "path-regressions.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/path-regressions.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "path-regressions.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/path-regressions.stdout",
+      "sha256": "da693148d02b931cdb0b33cd2f944f0736cfb0b8921ba87b2a1255cb8f162bdf",
+      "bytes": 113156
+    },
+    "public-probe.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/public-probe.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "public-probe.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/public-probe.stdout",
+      "sha256": "7f69fd2c7cdf103e10b6befef7ba0a72d48f7f54ad9f96251cc181c96e8909e0",
+      "bytes": 2095
+    },
+    "result.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/result.json",
+      "sha256": "543fd05bec58e882c7d1908702672031adcd364a37f099c202ab3b8a39d2e954",
+      "bytes": 155369
+    },
+    "revised-files.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/revised-files.json",
+      "sha256": "4ae6f6a0ffdba1fe33c639d4931bb812089e993805ffbf1051dd535e70454752",
+      "bytes": 1285
+    },
+    "revised96.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/revised96.events.jsonl",
+      "sha256": "c859da70581b1eb4240dd3f490841b3050830f8263bcc6c8b64db52507ddd115",
+      "bytes": 33918
+    },
+    "revised96.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/revised96.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "revised96.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/revised96.stdout",
+      "sha256": "8e060e23074b549716b17cf68cd3cd129c80e9eed22479881acf4491b37121f8",
+      "bytes": 19225
+    },
+    "run-absolute-target.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-absolute-target.json",
+      "sha256": "d9c950cd1604c89d36ddbbcbb990a14b6af5c7a1d09f2dc278ae3076077cb4f6",
+      "bytes": 1268
+    },
+    "run-author.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-author.json",
+      "sha256": "89d1fc94190404d3635d55c0613f4ac0eb9204b93438cbea267208ff5d8533e0",
+      "bytes": 2688
+    },
+    "run-build.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-build.json",
+      "sha256": "dfaa9e59e685379b05a968192db1661eb96c373155aa06c1c26b793c5abd675b",
+      "bytes": 942
+    },
+    "run-compatibility.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-compatibility.json",
+      "sha256": "232220b63235ac1fe29e21d8232582e176a922d1d70c1b40993931ef73421b5c",
+      "bytes": 1448
+    },
+    "run-consumer-new.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-consumer-new.json",
+      "sha256": "3b7437e654cfd1fbbada18257dcb343d1a47035194b49088af2db2551bb57d33",
+      "bytes": 1178
+    },
+    "run-editflows.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-editflows.json",
+      "sha256": "94ecc1236774511916d3f6bb1ad62a807027072b5859e4eebce84baa009276de",
+      "bytes": 1296
+    },
+    "run-emptyfile-delta.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-emptyfile-delta.json",
+      "sha256": "3d5fd009cb6ca2eaf9014b761e198a2cb9c4536b1cd973388e8048f75ebb3ae3",
+      "bytes": 1191
+    },
+    "run-fixture-probe.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-fixture-probe.json",
+      "sha256": "94f15c3bb3594b6c3a0a427c6931efafe2c8806e13171f6bdc7a7c9db4b4b41f",
+      "bytes": 884
+    },
+    "run-formats.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-formats.json",
+      "sha256": "dc4173a067af0838432b03b791abd964929ae5710f5a65a4710c3e5ffc8d3a60",
+      "bytes": 1353
+    },
+    "run-fuzz.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-fuzz.json",
+      "sha256": "fa0116e91962a5dc786969d534fc37bf01b453ec35619bc2e5f4a3d892f67450",
+      "bytes": 1322
+    },
+    "run-gnu-auxiliary.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-auxiliary.json",
+      "sha256": "144245b509884646286ead8717bd0899868b32e49c01abb75694bb70a92abe09",
+      "bytes": 1185
+    },
+    "run-gnu-candidate-followup.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-candidate-followup.json",
+      "sha256": "4488ddac9a8b3df3ab5d2d8d031180955a6fce16f53347d39e86af6af7541526",
+      "bytes": 1227
+    },
+    "run-gnu-editflows.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-editflows.json",
+      "sha256": "8bf9233bbb88443cff68a6eba1e929d278d50c6691f329825dc87288d01e13e2",
+      "bytes": 1249
+    },
+    "run-gnu-safety-strip-followup.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-safety-strip-followup.json",
+      "sha256": "6f8f26109b0d30283610a5ba56c99917ae5b228e1f01ffb320320ea5a5074ce6",
+      "bytes": 1240
+    },
+    "run-gnu-target-classification.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-target-classification.json",
+      "sha256": "854a86c8aae9e495aa51ab71bac34c757fb817d7277d9cb6a162de554358aade",
+      "bytes": 1240
+    },
+    "run-gnu-target-followup.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-target-followup.json",
+      "sha256": "cda9bedb606569529119cae8797c2bcabe92df8ccf56339fa4882e1b656ccf22",
+      "bytes": 1385
+    },
+    "run-gnu-target.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-gnu-target.json",
+      "sha256": "f5834b6a5f64b68ecfc2745febba706c4a5acf530cc8bd22df556d7a05a1ec51",
+      "bytes": 1318
+    },
+    "run-independent-safety.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-independent-safety.json",
+      "sha256": "58990be70bdf3992739e82813248887fc3c6ef07db108a5d5c823a8ce22eea67",
+      "bytes": 868
+    },
+    "run-oracle-after.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-oracle-after.json",
+      "sha256": "935530ef4dbe46897ea55c86b034e12d68e03d8481bf47aff714c49e5db6b886",
+      "bytes": 1099
+    },
+    "run-oracle-before.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-oracle-before.json",
+      "sha256": "7fb5b64d2998b6522f0cfa96cc9941e1dc37c61447b2597a68eeed0bb4102958",
+      "bytes": 1102
+    },
+    "run-parser-regressions.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-parser-regressions.json",
+      "sha256": "889827dd99306afa1f6efd85dfca6cfdacb19945ad74b75bc148a600ea19f5f4",
+      "bytes": 1203
+    },
+    "run-path-regressions.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-path-regressions.json",
+      "sha256": "cfe6cdf034398b71fcdfd99d62d0673aebd634b8bc3014963d4c218ed0df1966",
+      "bytes": 1495
+    },
+    "run-public-probe.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-public-probe.json",
+      "sha256": "a4df6f97fc8ad3d1d473a8eb5b1297d176bf22cc82643acf0cc1416b57221dcd",
+      "bytes": 920
+    },
+    "run-revised96.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-revised96.json",
+      "sha256": "172ecb41266da89f9700abceac05e6064beaed57ee5f8b128af89629dcf81007",
+      "bytes": 1178
+    },
+    "run-safety.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-safety.json",
+      "sha256": "41cc7813ae36a3a3574df109ce7f8827e8af90ea53e22450e997d7c6e3396752",
+      "bytes": 1472
+    },
+    "run-typecheck.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/run-typecheck.json",
+      "sha256": "337e48b26394fd9ffb8271e7b6631523c7e3cc62042f90ddb74c3a256f50deba",
+      "bytes": 878
+    },
+    "safety.events.jsonl": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/safety.events.jsonl",
+      "sha256": "2f6f7992c8a1d80a195025d12d03861451d9310b192f4ff0d62a98a8bd5406a3",
+      "bytes": 54063
+    },
+    "safety.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/safety.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "safety.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/safety.stdout",
+      "sha256": "fcdf05161ff93e5fb7d0460f0cf674e4dd03b30e4e3700182f18eb3ef5f46d1e",
+      "bytes": 35163
+    },
+    "snapshot-outputs.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/snapshot-outputs.json",
+      "sha256": "139b1340e7b216a61b9d0a8e1236b2aeaea40dcb87ca9583a0a270999da2b9f8",
+      "bytes": 70413
+    },
+    "test-census.json": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/test-census.json",
+      "sha256": "81033f6c3ab326732967d07eb9cbc4256f609b9a7601b3f284234d43248423dc",
+      "bytes": 5535
+    },
+    "typecheck.stderr": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/typecheck.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "typecheck.stdout": {
+      "path": "/tmp/safe-bash-diff-rmdir-final-PRIFIp/typecheck.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "supplementalArtifacts": {
+    "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-l3ta4d": {
+      "after.json": {
+        "sha256": "10f22c9f51afccd77f4175abf269d43342c2a386d0c64f29e47297cc5130391a",
+        "bytes": 470
+      },
+      "before.json": {
+        "sha256": "10f22c9f51afccd77f4175abf269d43342c2a386d0c64f29e47297cc5130391a",
+        "bytes": 470
+      },
+      "stderr": {
+        "sha256": "056588ccbe166ae95a42eab9790174e0131771d0bba180065ec7c3c3c80d0d23",
+        "bytes": 531
+      },
+      "stdout": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "summary.json": {
+        "sha256": "ba1a2041bd88ed22020fbdbc5356b656dad237ec80619e8e140abab53efb5ff1",
+        "bytes": 2249
+      },
+      "tool.mjs": {
+        "sha256": "31cf23a626c646ef5a658a163e177083cc84caf2772612ac9c9d50c71e3bd443",
+        "bytes": 8569
+      },
+      "wrapper.mjs": {
+        "sha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+        "bytes": 5316
+      }
+    },
+    "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-SgmXmL": {
+      "after.json": {
+        "sha256": "4df6e2dbcacdd6df59707580ba35652c6746cfebc3c369db9b05c32b6c96f373",
+        "bytes": 470
+      },
+      "before.json": {
+        "sha256": "4df6e2dbcacdd6df59707580ba35652c6746cfebc3c369db9b05c32b6c96f373",
+        "bytes": 470
+      },
+      "stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "stdout": {
+        "sha256": "7581a8cb7e31804f63e3e202d9b4250368d1246beabb7dd0c2abe217dc489433",
+        "bytes": 48184
+      },
+      "summary.json": {
+        "sha256": "8e68b54d4b9bc0564d8961ce8b193274e57f50aec3f6dd77781f0e6eccc020d1",
+        "bytes": 2249
+      },
+      "tool.mjs": {
+        "sha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+        "bytes": 8690
+      },
+      "wrapper.mjs": {
+        "sha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+        "bytes": 5316
+      }
+    },
+    "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-h22FnD": {
+      "after.json": {
+        "sha256": "a9e41e0e660d91097de27f523c49d468644bfc119e758fe11876ee470786a515",
+        "bytes": 470
+      },
+      "before.json": {
+        "sha256": "a9e41e0e660d91097de27f523c49d468644bfc119e758fe11876ee470786a515",
+        "bytes": 470
+      },
+      "stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "stdout": {
+        "sha256": "ab439ac6d38745c8510f5ae7da317584dfa722913929a734d0c6d9794f1e97cc",
+        "bytes": 43670
+      },
+      "summary.json": {
+        "sha256": "c1b22b90555d8354360d1436554f2f3f546d5fe8e9712484c0e90cfd4b6ac4f7",
+        "bytes": 2282
+      },
+      "tool.mjs": {
+        "sha256": "0a358027559277b1f4ae71aa9b45d9ecb47a9995323a2cb08f4b0b487eff96f5",
+        "bytes": 5727
+      },
+      "wrapper.mjs": {
+        "sha256": "9b3c056ecfd001be5d5127dcfa0adaab44d37298254f2bb23495e11748538cdb",
+        "bytes": 5316
+      }
+    },
+    "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-lnAyeo": {
+      "after.json": {
+        "sha256": "cb3b960f3fc07f46d9c0cda93d48ebed62799db35b37574c60548fffae43b168",
+        "bytes": 559
+      },
+      "before.json": {
+        "sha256": "cb3b960f3fc07f46d9c0cda93d48ebed62799db35b37574c60548fffae43b168",
+        "bytes": 559
+      },
+      "stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "stdout": {
+        "sha256": "7581a8cb7e31804f63e3e202d9b4250368d1246beabb7dd0c2abe217dc489433",
+        "bytes": 48184
+      },
+      "summary.json": {
+        "sha256": "5a2022a0ae76e0480e8c4b248fca2daed961c1ff0a2179cb77b432b8ba35f2b9",
+        "bytes": 2431
+      },
+      "tool.mjs": {
+        "sha256": "37b4c908b4eec5ab2bd1a6ea5f4775810cc9dae7ce92b9b7db9df652a1683b69",
+        "bytes": 8690
+      },
+      "wrapper.mjs": {
+        "sha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+        "bytes": 5672
+      }
+    },
+    "/tmp/safe-bash-diff-rmdir-final-PRIFIp/supplement-NB64zq": {
+      "after.json": {
+        "sha256": "e43f7c79e98885289138455760411929b2dd8ddb31bbbf9d8aece548c4f12419",
+        "bytes": 559
+      },
+      "before.json": {
+        "sha256": "e43f7c79e98885289138455760411929b2dd8ddb31bbbf9d8aece548c4f12419",
+        "bytes": 559
+      },
+      "stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "stdout": {
+        "sha256": "667740a15f81aadbf6a9743116a9119f6ac3dcc392d09b47646f7d3001e2d502",
+        "bytes": 43670
+      },
+      "summary.json": {
+        "sha256": "7f0bdb289d76c2973e39c52829d13068a4804c7555324fd04814aa85e17c85c0",
+        "bytes": 2464
+      },
+      "tool.mjs": {
+        "sha256": "0a358027559277b1f4ae71aa9b45d9ecb47a9995323a2cb08f4b0b487eff96f5",
+        "bytes": 5727
+      },
+      "wrapper.mjs": {
+        "sha256": "a62a43ed4c9bc332b8042ce1338e5c5249ae89de453f67cff702936307765dc3",
+        "bytes": 5672
+      }
+    }
+  },
+  "limitations": [
+    "Original3758 retains its two unchanged expectations; revised96 and consumer-new never replace them or enlarge the denominator.",
+    "Original30 historical literal replay remains14 pass/16 fail; not rerun here.",
+    "GNU ignores native pruning errors; explicit unsupported, permission and transport failures are intentional divergence.",
+    "Independent deterministic races exercise Memory backend, not global remote atomicity or symlink-race immunity.",
+    "Backend readiness comes from ROOT marker and recorded commits, not a fresh complete adapter matrix.",
+    "No whole-shell, whole-product or just-bash-superiority claim."
+  ]
+}

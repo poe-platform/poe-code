@@ -94,6 +94,35 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
 
+## Optional SafeJS Command
+
+The root exports `safeJsCommands(options?)`, `createSafeJsCommands(options?)`,
+`SafeJsRuntime<Budget>`, `SafeJsCommandsOptions<Budget>`, limit types/defaults and
+`SafeJsCommandLimitError`. This plugin registers only `safejs`; `agentCommands()`
+does not install it. The application must explicitly provide its legitimate
+runtime, including `run`, `createBudget`, `makeFsModule` and `declareHostOperation`.
+The library neither installs nor dynamically loads a private SafeJS package.
+
+```ts
+import {
+  agentCommands, createMemoryFileSystem, safeJsCommands, Shell,
+  type SafeJsRuntime,
+} from "virtual-bash";
+
+function createShellWithSafeJs<Budget>(runtime: SafeJsRuntime<Budget>) {
+  return new Shell({ fs: createMemoryFileSystem() })
+    .use(agentCommands())
+    .use(safeJsCommands({ runtime, limits: { timeoutMs: 3000 } }));
+}
+```
+
+Dispose the returned shell after use. Explicitly registering the optional plugin
+without a runtime does not enable execution: source execution returns status
+127. There is no host JavaScript evaluator or native-process fallback. See the
+[command documentation](src/commands/safejs/README.md) for guest modules, limits
+and actual-host setup. Independent verification is ongoing; author integration
+results do not establish blanket SafeJS lifecycle or replay guarantees.
+
 ## Validate
 
 ```sh

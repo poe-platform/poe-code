@@ -114,6 +114,10 @@
   meaning/path and exact byte/namespace effects. Poincare may reconcile only the
   eight identified matrix errno-string assertions with stronger boundary checks
   and recorded evidence; no sweeping relaxation or unrelated expected changes.
+- SafeJS command execution is optional and host-injected. Root exports must not
+  auto-register it through `agentCommands()` or load a private package. Require
+  explicit runtime hooks (`run`, `createBudget`, `makeFsModule`,
+  `declareHostOperation`) for execution; preserve zero runtime dependencies.
 
 ## Utility dialect policy
 
@@ -163,7 +167,8 @@
   (Faraday, independent verifier after author handoff); no source ownership
   transfer to the foundation worker has been granted.
 - Exclude optional injected SafeJS commands in `src/commands/safejs/**` and
-  `tests/commands/safejs/**` (Plato), and cross-adapter tool integration in
+  `tests/commands/safejs/**` (Dirac, independent verifier after Plato's handoff),
+  and cross-adapter tool integration in
   `tests/integration/adapter-tools/**` (Poincare). Do not stage unowned native
   temporary directories left by other workers' oracle runs.
 - Use explicit-path `git commit --only` after staging owned paths so a concurrent worker's index entries do

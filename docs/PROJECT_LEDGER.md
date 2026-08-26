@@ -638,6 +638,49 @@ that any implementation, command, fixture, or test currently exists.
   evidence. This is not permission for broad expectation relaxation. Existing
   historical raw matrix failures stay unchanged. Zero runtime deps persist.
 
+### Optional injected SafeJS command root integration
+
+- Author delivery ea0867fb7e62b46ec8993d02af771234349f718f adds the optional
+  command plugin. Root integration c2c2651 exports
+  `safeJsCommands<Budget>(options?: SafeJsCommandsOptions<Budget>)` and
+  `createSafeJsCommands<Budget>(options?: SafeJsCommandsOptions<Budget>)`,
+  returning a `VirtualShellPlugin` and readonly command definitions respectively.
+  Root also exports structural runtime/budget/run/module/limits types,
+  `defaultSafeJsLimits` and `SafeJsCommandLimitError`. Existing `.` package
+  export supplies these names; no new dependency or manifest entry is needed.
+- `agentCommands()` remains the six-family, 49-command bundle: SafeJS is not
+  auto-enabled. Explicit installation adds only `safejs`; execution requires
+  host-supplied `run`, `createBudget`, `makeFsModule`, `declareHostOperation`.
+  Registering it explicitly without a runtime fails source execution with 127,
+  rather than loading a private package or falling back to host evaluation.
+  Generic `SafeJsRuntime<Budget>` keeps the host's budget implementation injected.
+- Independent root-wiring checks: **24/24 pass**, zero skips/TODO/cancelled,
+  comprising 19 existing aggregate tests and five new export/opt-in tests.
+  The first attempt had two new verifier-fixture failures from incorrectly
+  assuming synchronous Shell plugin setup; the tests now await actual setup
+  before registry assertions, with no product-source change to accommodate them.
+  These use a contract stub, explicitly not the actual private interpreter.
+- Working-tree `npm run typecheck`, `npm run build`, and fresh built-package
+  self-import smoke pass. Smoke confirms absent aggregate registration,
+  no-runtime status 127, explicit injected execution through a pipeline,
+  49 default versus 50 opt-in commands and zero runtime dependency metadata.
+  HEAD moved during this integration interval (df5bc45 through 476da9d);
+  these are not committed-archive/full-suite results. The two earlier reported
+  foreign diff/patch type errors did not reproduce in this check; no foreign
+  source was changed by this worker.
+- Attribute rather than conflate the user's author checkpoint: 92 actual-local
+  SafeJS tests pass, five 56-case lifecycle repetitions; without the local env,
+  39 passes and 25 explicit local-oracle skips. Dirac now independently verifies
+  the SafeJS command source/tests, including the reported upstream signal plus
+  `new Error` defect; Plato's author assignment is closed. The private
+  `poe-code` checkout is untouched by this root integration. Author results
+  are not independent approval of lifecycle, signal, journaling or replay claims.
+- The user separately reports readonly gzip 247756d with readonly matrix 10/10
+  and byte suite 390/390, zero skips. This attributed checkpoint does not
+  retroactively change old archived diagnostic failures or other suite totals.
+  README documents optional runtime injection; AGENTS preserves zero shipped
+  runtime deps and Dirac's ownership. The full goal remains unfulfilled.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

@@ -3,6 +3,9 @@ import { spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
+import { toByteSource } from "../../../src/contracts/index.js";
+import { Budget } from "../../../src/commands/diff-patch/shared.js";
+import { parseUnified, reversePatch } from "../../../src/commands/diff-patch/unified.js";
 import { contents, filesystem, run } from "./helpers.js";
 
 const headers = "--- target\n+++ target\n";
@@ -99,4 +102,155 @@ test("empty context parsing observes cancellation before mutation", async () => 
   try { await assert.rejects(pending, error => error === reason); }
   finally { clearTimeout(timer); }
   assert.equal(await contents(fs, "target"), "head\n\nold\n");
+});
+
+const dialectHunks = "@@ -1 +1,0 @@\n-a\n@@ -4,0 +4 @@\n+NEW\n@@ -7,0 +8 @@\n+b\n";
+const coordinateCases = [
+  ["reported BSD three-hunk sequence", "a\nb\na\nb\na\nb\na\n", "b\na\nb\nNEW\na\nb\na\nb\n", dialectHunks],
+  ["BSD beginning insertion", "a\nb\n", "new\na\nb\n", "@@ -1,0 +1 @@\n+new\n"],
+  ["BSD beginning deletion", "a\nb\n", "b\n", "@@ -1 +1,0 @@\n-a\n"],
+  ["BSD multiline beginning insertion", "a\nb\n", "new\nmore\na\nb\n", "@@ -1,0 +1,2 @@\n+new\n+more\n"],
+  ["BSD multiline beginning deletion", "a\nb\nc\n", "c\n", "@@ -1,2 +1,0 @@\n-a\n-b\n"],
+  ["canonical beginning insertion", "a\nb\n", "new\na\nb\n", "@@ -0,0 +1 @@\n+new\n"],
+  ["canonical beginning deletion", "a\nb\n", "b\n", "@@ -1 +0,0 @@\n-a\n"],
+  ["canonical first insertion after line one", "a\nb\n", "a\nnew\nb\n", "@@ -1,0 +2 @@\n+new\n"],
+  ["canonical first deletion after line one", "a\nb\nc\n", "a\nc\n", "@@ -2 +1,0 @@\n-b\n"],
+  ["subsequent empty range at one is not a beginning alias", "a\nb\n", "A\nnew\nb\n", "@@ -1 +1 @@\n-a\n+A\n@@ -1,0 +2 @@\n+new\n"],
+  ["normalized leading insertion followed by replacement", "a\nb\nc\n", "new\na\nB\nc\n", "@@ -1,0 +1 @@\n+new\n@@ -2 +3 @@\n-b\n+B\n"],
+  ["normalized leading deletion followed by replacement", "a\nb\nc\n", "b\nC\n", "@@ -1 +1,0 @@\n-a\n@@ -3 +2 @@\n-c\n+C\n"],
+  ["canonical empty file insertion", "", "new\n", "@@ -0,0 +1 @@\n+new\n"],
+  ["canonical entire file deletion", "old\n", "", "@@ -1 +0,0 @@\n-old\n"],
+  ["normalized deletion with incomplete final replacement", "a\nb\nc", "b\nC", "@@ -1 +1,0 @@\n-a\n@@ -3 +2 @@\n-c\n\\ No newline at end of file\n+C\n\\ No newline at end of file\n"],
+] as const;
+
+for (const [name, before, after, hunks] of coordinateCases) {
+  for (const reverse of [false, true]) {
+    test(`empty-range coordinates ${reverse ? "reverse" : "forward"}: ${name}`, async () => {
+      const result = await run("patch", reverse ? ["-R", "-F0"] : ["-F0"], {
+        files: { target: reverse ? after : before }, input: headers + hunks,
+      });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(await contents(result.fs, "target"), reverse ? before : after);
+    });
+  }
+}
+
+test("only the first beginning-empty coordinate is canonicalized before reversal", async () => {
+  const budget = new Budget({
+    command: "patch", args: [], cwd: "/work", env: {}, fs: await filesystem(), stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} }, signal: new AbortController().signal,
+  }, {});
+  const parsed = await parseUnified(headers + dialectHunks, budget);
+  assert.equal(parsed.length, 1);
+  const patch = parsed[0]!;
+  assert.deepEqual(patch.hunks.map(hunk => [hunk.oldStart, hunk.oldCount, hunk.newStart, hunk.newCount]), [
+    [1, 1, 0, 0], [4, 0, 4, 1], [7, 0, 8, 1],
+  ]);
+  assert.deepEqual(reversePatch(patch).hunks.map(hunk => [hunk.oldStart, hunk.oldCount, hunk.newStart, hunk.newCount]), [
+    [0, 0, 1, 1], [4, 1, 4, 0], [8, 1, 7, 0],
+  ]);
+  assert.deepEqual(reversePatch(reversePatch(patch)), patch);
+});
+
+test("beginning-empty normalization resets for each file section", async () => {
+  const input = headers + "@@ -1,0 +1 @@\n+new\n" + "--- other\n+++ other\n@@ -1 +1,0 @@\n-old\n";
+  const fs = await filesystem({ target: "a\n", other: "old\nb\n" });
+  for (const reverse of [false, true]) {
+    const result = await run("patch", reverse ? ["-R"] : [], { fs, input });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(fs, "target"), reverse ? "a\n" : "new\na\n");
+    assert.equal(await contents(fs, "other"), reverse ? "old\nb\n" : "b\n");
+  }
+});
+
+const invalidCoordinates = [
+  ["nonempty starts remain strict", "@@ -1 +2 @@\n-a\n+A\n"],
+  ["nonempty zero remains invalid", "@@ -0 +1 @@\n-a\n+A\n"],
+  ["both ranges empty", "@@ -1,0 +1,0 @@\n"],
+  ["arbitrary first insertion offset", "@@ -2,0 +2 @@\n+new\n"],
+  ["arbitrary first deletion offset", "@@ -2 +2,0 @@\n-a\n"],
+  ["beginning alias with nonbeginning opposite side", "@@ -1,0 +3 @@\n+new\n"],
+  ["nonzero later gap mismatch", "@@ -1 +1,0 @@\n-a\n@@ -4,0 +5 @@\n+new\n"],
+  ["subsequent alias cannot move backward", "@@ -1 +1 @@\n-a\n+A\n@@ -1,0 +1 @@\n+new\n"],
+  ["subsequent alias cannot hide a gap", "@@ -1 +1,0 @@\n-a\n@@ -2 +1,0 @@\n-b\n"],
+  ["overlapping old range", "@@ -1,2 +1,0 @@\n-a\n-b\n@@ -2 +1 @@\n-b\n+B\n"],
+  ["overlapping new range", "@@ -1,0 +1,2 @@\n+A\n+B\n@@ -1 +2 @@\n-a\n+C\n"],
+  ["unsafe coordinate integer", "@@ -9007199254740992,0 +1 @@\n+new\n"],
+  ["coordinate limit", "@@ -100001,0 +100002 @@\n+new\n"],
+  ["normalized header still checks body overflow", "@@ -1 +1,0 @@\n-a\n+new\n"],
+  ["normalized header still checks body truncation", "@@ -1,0 +1,2 @@\n+new\n"],
+  ["normalized header cannot hide incomplete middle line", "@@ -1,0 +1,2 @@\n+new\n\\ No newline at end of file\n+more\n"],
+] as const;
+
+for (const [name, hunks] of invalidCoordinates) {
+  test(`empty-range normalization retains rejection: ${name}`, async () => {
+    for (const reverse of [false, true]) {
+      const result = await run("patch", reverse ? ["-R"] : [], { files: { target: "a\nb\nc\n" }, input: headers + hunks });
+      assert.equal(result.exitCode, 2, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(await contents(result.fs, "target"), "a\nb\nc\n");
+    }
+  });
+}
+
+test("normalized hunks retain hunk and coordinate budgets", async () => {
+  for (const options of [{ maxHunks: 1 }, { maxLines: 7 }]) {
+    const result = await run("patch", [], {
+      files: { target: "a\nb\na\nb\na\nb\na\n" }, input: headers + dialectHunks, options,
+    });
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.match(result.stderr, /limit exceeded/u);
+    assert.equal(await contents(result.fs, "target"), "a\nb\na\nb\na\nb\na\n");
+  }
+});
+
+test("bounded native-generated zero-context patches have independent forward and reverse controls", async context => {
+  await nativeDirectory(async root => {
+    context.diagnostic(native(root, "diff", ["--version"]).stdout.trim());
+    context.diagnostic(native(root, "patch", ["--version"]).stdout.trim());
+    let oracleMismatches = 0;
+    let canonicalMismatches = 0;
+    let fullContextMismatches = 0;
+    for (const [name, before, after] of coordinateCases) {
+      await writeFile(join(root, "old"), before);
+      await writeFile(join(root, "next"), after);
+      const generated = native(root, "diff", ["-U0", "--label", "target", "--label", "target", "old", "next"]);
+      assert.equal(generated.status, 1, generated.stderr);
+      const fullContext = native(root, "diff", ["-U100", "--label", "target", "--label", "target", "old", "next"]);
+      assert.equal(fullContext.status, 1, fullContext.stderr);
+      for (const reverse of [false, true]) {
+        const original = reverse ? after : before;
+        const expected = reverse ? before : after;
+        const actual = await run("patch", reverse ? ["-R", "-F0"] : ["-F0"], {
+          files: { target: original }, input: generated.stdout,
+        });
+        assert.equal(actual.exitCode, 0, `${name}: ${actual.stderr}`);
+        assert.equal(await contents(actual.fs, "target"), expected, name);
+        await writeFile(join(root, "target"), original);
+        const reference = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], generated.stdout);
+        const referenceText = await readFile(join(root, "target"), "utf8");
+        if (reference.status !== 0 || referenceText !== expected) {
+          oracleMismatches++;
+          context.diagnostic(`native-native mismatch ${JSON.stringify({ name, reverse, status: reference.status, expected, actual: referenceText })}`);
+        }
+        const canonical = generated.stdout.replace(/^(@@ -)1,0 (\+1(?:,\d+)? @@)/mu, "$10,0 $2")
+          .replace(/^(@@ -1(?:,\d+)? \+)1,0 @@/mu, "$10,0 @@");
+        await writeFile(join(root, "target"), original);
+        const control = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], canonical);
+        const controlText = await readFile(join(root, "target"), "utf8");
+        if (control.status !== 0 || controlText !== expected) {
+          canonicalMismatches++;
+          context.diagnostic(`canonical-native mismatch ${JSON.stringify({ name, reverse, status: control.status, expected, actual: controlText })}`);
+        }
+        await writeFile(join(root, "target"), original);
+        const fullControl = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], fullContext.stdout);
+        const fullText = await readFile(join(root, "target"), "utf8");
+        if (fullControl.status !== 0 || fullText !== expected) {
+          fullContextMismatches++;
+          context.diagnostic(`full-context native-native mismatch ${JSON.stringify({ name, reverse, status: fullControl.status, expected, actual: fullText })}`);
+        }
+      }
+    }
+    context.diagnostic(`native-generated directions=${coordinateCases.length * 2}; native-native mismatches=${oracleMismatches}; canonical-native mismatches=${canonicalMismatches}; full-context native-native mismatches=${fullContextMismatches}`);
+  });
 });

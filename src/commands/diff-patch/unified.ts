@@ -49,14 +49,18 @@ export async function parseUnified(text: string, budget: Budget): Promise<FilePa
       budget.hunk();
       const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?: .*)?$/u.exec(physical[index++]!);
       if (!match) throw new ToolError("malformed unified hunk header");
-      const oldStart = integer(match[1]!, "old start");
+      let oldStart = integer(match[1]!, "old start");
       const oldCount = integer(match[2] ?? "1", "old count");
-      const newStart = integer(match[3]!, "new start");
+      let newStart = integer(match[3]!, "new start");
       const newCount = integer(match[4] ?? "1", "new count");
       for (const value of [oldStart, oldCount, newStart, newCount]) {
         if (value > budget.limits.maxLines) throw new ToolError("hunk coordinate exceeds line limit");
       }
       if ((oldCount > 0 && oldStart === 0) || (newCount > 0 && newStart === 0) || (!oldCount && !newCount)) throw new ToolError("invalid zero hunk range");
+      if (hunks.length === 0 && oldStart === 1 && newStart === 1) {
+        if (oldCount === 0) oldStart = 0;
+        if (newCount === 0) newStart = 0;
+      }
       const oldIndex = startIndex(oldStart, oldCount);
       const newIndex = startIndex(newStart, newCount);
       if (oldIndex < oldEnd || newIndex < newEnd || oldIndex - oldEnd !== newIndex - newEnd) throw new ToolError("overlapping or inconsistent hunk coordinates");

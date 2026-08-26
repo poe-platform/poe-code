@@ -1,6 +1,6 @@
 import { dirname, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
-import { applyHunks, reversePatch, type HunkOutcome } from "./unified.js";
+import { applyHunks, reversePatch, type FilePatch, type HunkOutcome } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-formats.js";
@@ -83,6 +83,44 @@ interface Prepared {
   readonly parents: readonly string[];
 }
 
+async function applyContent(sourcePatch: FilePatch, current: string, exists: boolean, options: PatchFlags, budget: Budget) {
+  let reversed = options.reverse;
+  let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
+  const emptyOld = () => patch.hunks.every(hunk => hunk.oldCount === 0 && hunk.oldStart === 0);
+  const creation = () => patch.oldPath === "/dev/null" || (emptyOld() && (patch.oldEpoch || !exists));
+  let autoReversed = false;
+  let reverseMismatch = false;
+  const declaredCreation = patch.oldPath === "/dev/null" || (patch.oldEpoch && emptyOld());
+  const declaredDeletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0));
+  if (!options.force && ((declaredCreation && current !== "") || (declaredDeletion && !exists))) {
+    patch = reversePatch(patch);
+    reversed = !reversed;
+    autoReversed = true;
+  }
+  if (!creation() && !exists) return undefined;
+  let outcomes: HunkOutcome[] = [];
+  let result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
+    partial: true, outcomes, rejectAll: creation() && current !== "",
+  });
+  if (!options.force && !autoReversed && (outcomes[0]?.failed || outcomes[0]?.fuzz)) {
+    const opposite = reversePatch(patch);
+    const probe: HunkOutcome[] = [];
+    const reverseFuzz = outcomes[0]!.failed ? options.fuzz : outcomes[0]!.fuzz - 1;
+    await applyHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe });
+    const oppositeCreation = opposite.oldPath === "/dev/null" || (opposite.oldEpoch && opposite.hunks.every(hunk => hunk.oldCount === 0));
+    if (!probe[0]?.failed && !(oppositeCreation && current !== "")) {
+      patch = opposite;
+      reversed = !reversed;
+      autoReversed = true;
+      reverseMismatch = true;
+      outcomes = [];
+      result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, { partial: true, outcomes });
+    }
+  }
+  const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0));
+  return { result, outcomes, reversed, autoReversed, reverseMismatch, deletion };
+}
+
 async function unchanged(item: Prepared, budget: Budget): Promise<void> {
   const stat = await inspect(budget, item.path);
   regular(stat, item.path);
@@ -137,9 +175,25 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   if (options.reject !== undefined && reject === undefined) throw new ToolError("/dev/null is not a reject file; use -r -");
   const paths: PathOptions = { strip: options.strip, explicit, reject,
     input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
-  const authorized = await authorizePaths(parsed, paths, budget);
+  const preview = new Map<string, string | undefined>();
+  const previewParents = new Set<string>();
+  const authorized = await authorizePaths(parsed, paths, budget, !options.dryRun || options.atomic ? {
+    reverse: options.atomic && options.reverse,
+    exists: async path => preview.has(path) ? preview.get(path) !== undefined
+      : previewParents.has(path) || await candidateStat(path, budget) !== undefined,
+    advance: async item => {
+      const path = resolvePath(context.cwd, item.selected!);
+      const current = preview.has(path) ? preview.get(path) : await inspect(budget, path) ? await budget.read(path) : undefined;
+      const applied = await applyContent(item.patch, current ?? "", current !== undefined, options, budget);
+      if (!applied) return;
+      const remove = applied.result === "" && (applied.deletion || options.removeEmpty);
+      preview.set(path, remove ? undefined : applied.result);
+      if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) previewParents.add(parent);
+    },
+  } : undefined);
   const targets = new Set(authorized.flatMap(item => item.selected === undefined ? [] : [resolvePath(context.cwd, item.selected)]));
   const staged = new Map<string, Prepared>();
+  const stagedParents = new Set<string>();
   const touched = new Set<string>();
   const rejects = new Set<string>();
   const backupPaths = new Set<string>();
@@ -163,10 +217,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       exitCode = 1;
       return;
     }
-    let reversed = options.reverse;
-    let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
     const name = await selectTarget(authorizedPatch, async path => options.atomic && staged.has(path)
-      ? !staged.get(path)!.remove : await candidateStat(path, budget) !== undefined, budget);
+      ? !staged.get(path)!.remove : (options.atomic && stagedParents.has(path)) || await candidateStat(path, budget) !== undefined, budget);
     const path = resolvePath(context.cwd, name);
     activePath = path;
     if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
@@ -177,44 +229,15 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const exists = prior ? !prior.remove : stat !== undefined;
     const original = prior ? prior.original : stat ? await budget.read(path) : undefined;
     const current = prior ? prior.remove ? "" : prior.result : original ?? "";
-    const emptyOld = () => patch.hunks.every(hunk => hunk.oldCount === 0 && hunk.oldStart === 0);
-    const creation = () => patch.oldPath === "/dev/null" || (emptyOld() && (patch.oldEpoch || !exists));
-    let autoReversed = false;
-    let reverseMismatch = false;
-    const declaredCreation = patch.oldPath === "/dev/null" || (patch.oldEpoch && emptyOld());
-    const declaredDeletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0));
-    if (!options.force && ((declaredCreation && current !== "") || (declaredDeletion && !exists))) {
-      patch = reversePatch(patch);
-      reversed = !reversed;
-      autoReversed = true;
-    }
-    if (!creation() && !exists) {
+    const applied = await applyContent(sourcePatch, current, exists, options, budget);
+    if (!applied) {
       if (options.atomic) throw new ToolError(`patch target does not exist: ${path}`, 1);
-      await status(`No file to patch.  Skipping patch ${name}.\n${patch.hunks.length} out of ${patch.hunks.length} hunks ignored\n`);
+      await status(`No file to patch.  Skipping patch ${name}.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
       exitCode = 1;
       return;
     }
-    let outcomes: HunkOutcome[] = [];
-    let result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-      partial: true, outcomes, rejectAll: creation() && current !== "",
-    });
-    if (!options.force && !autoReversed && (outcomes[0]?.failed || outcomes[0]?.fuzz)) {
-      const opposite = reversePatch(patch);
-      const probe: HunkOutcome[] = [];
-      const reverseFuzz = outcomes[0]!.failed ? options.fuzz : outcomes[0]!.fuzz - 1;
-      await applyHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe });
-      const oppositeCreation = opposite.oldPath === "/dev/null" || (opposite.oldEpoch && opposite.hunks.every(hunk => hunk.oldCount === 0));
-      if (!probe[0]?.failed && !(oppositeCreation && current !== "")) {
-        patch = opposite;
-        reversed = !reversed;
-        autoReversed = true;
-        reverseMismatch = true;
-        outcomes = [];
-        result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, { partial: true, outcomes });
-      }
-    }
+    const { result, outcomes, reversed, autoReversed, reverseMismatch, deletion } = applied;
     const failed = outcomes.filter(outcome => outcome.failed);
-    const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0));
     const conflict = failed.length > 0 || (deletion && result !== "");
     if (options.atomic && conflict) throw new ToolError(failed.length ? `hunk ${failed[0]!.index} does not match ${name}` : `deletion patch leaves content: ${name}`, 1);
     if (conflict) exitCode = 1;
@@ -248,7 +271,10 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (backup !== undefined) budget.output(backup);
     await status(message);
     touched.add(path);
-    if (options.atomic) staged.set(path, item);
+    if (options.atomic) {
+      staged.set(path, item);
+      if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
+    }
     else if (!options.dryRun) {
       publishing = true;
       await publish(item, budget, rejects);

@@ -19,6 +19,12 @@ export interface AuthorizedPatch {
   readonly selected?: string;
 }
 
+interface SelectionState {
+  readonly reverse: boolean;
+  readonly exists: (path: string) => Promise<boolean>;
+  readonly advance: (patch: AuthorizedPatch) => Promise<void>;
+}
+
 export function regular(stat: FileStat | undefined, path: string): void {
   if (stat && stat.type !== "file") throw new ToolError(`patch target is not a regular file: ${path}`);
   if (stat && (stat.nlink ?? 1) > 1) throw new ToolError(`hard-linked patch targets are unsupported: ${path}`);
@@ -44,7 +50,7 @@ export function pruneParents(target: string, cwd: string): string[] {
   return parents;
 }
 
-export async function authorizePaths(patches: readonly FilePatch[], options: PathOptions, budget: Budget): Promise<AuthorizedPatch[]> {
+export async function authorizePaths(patches: readonly FilePatch[], options: PathOptions, budget: Budget, state?: SelectionState): Promise<AuthorizedPatch[]> {
   const result: AuthorizedPatch[] = [];
   for (const patch of patches) {
     budget.step();
@@ -60,12 +66,21 @@ export async function authorizePaths(patches: readonly FilePatch[], options: Pat
     const indexName = patch.format === "normal" || (oldName === undefined && newName === undefined) ? indexHeader : undefined;
     const candidates = options.explicit === undefined ? [...new Set([oldName, newName, indexName].filter((name): name is string => name !== undefined))] : [options.explicit];
     if (!candidates.length) throw new ToolError("strip count removes every patch filename");
-    const authorized = { patch, oldName, newName, indexName, candidates };
-    const selected = await selectTarget(authorized, async path => await candidateStat(path, budget) !== undefined, budget);
+    result.push({ patch, oldName, newName, indexName, candidates });
+  }
+  const order = result.map((_patch, index) => index);
+  if (state?.reverse) order.reverse();
+  budget.step(order.length);
+  const lastChoice = order.findLastIndex(index => result[index]!.candidates.length > 1);
+  for (const [position, index] of order.entries()) {
+    const authorized = result[index]!;
+    if (authorized.patch.unlocated) continue;
+    const selected = await selectTarget(authorized, state?.exists ?? (async path => await candidateStat(path, budget) !== undefined), budget);
     const path = resolvePath(budget.context.cwd, selected);
     if (path === options.input) throw new ToolError(`patch target aliases patch input: ${path}`);
     regular(await inspect(budget, path), path);
-    result.push({ ...authorized, selected });
+    result[index] = { ...authorized, selected };
+    if (position < lastChoice) await state?.advance(result[index]!);
   }
   return result;
 }
@@ -123,7 +138,7 @@ export async function selectTarget(authorized: AuthorizedPatch, exists: (path: s
   if (!present.length) for (const candidate of candidates) {
     let missing = 0;
     for (let parent = dirname(resolvePath(budget.context.cwd, candidate)); parent !== "/"; parent = dirname(parent)) {
-      if (await candidateStat(parent, budget)) break;
+      if (await exists(parent)) break;
       missing++;
     }
     missingParents.set(candidate, missing);

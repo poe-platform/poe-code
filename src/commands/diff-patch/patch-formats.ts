@@ -1,5 +1,5 @@
 import { Budget, ToolError, integer } from "./shared.js";
-import { parseUnified, type FilePatch, type PatchLine } from "./unified.js";
+import { parseUnified, parseUnifiedSection, type FilePatch, type PatchLine } from "./unified.js";
 
 export type PatchFormat = "unified" | "normal" | "context";
 
@@ -46,6 +46,7 @@ async function normal(reader: Reader, target: string | undefined): Promise<strin
   const output = [`--- ${quoted}\n+++ ${quoted}\n`];
   while (reader.peek() !== undefined) {
     if (reader.peek() === "") { await reader.take(); continue; }
+    if (!/^\d/u.test(reader.peek()!)) break;
     const command = /^(\d+)(?:,(\d+))?([acd])(\d+)(?:,(\d+))?$/u.exec(await reader.take());
     if (!command) throw new ToolError("malformed normal patch command");
     const oldStart = reader.number(command[1]!);
@@ -159,20 +160,33 @@ async function context(reader: Reader): Promise<string> {
       }
     }
     if (!hunks) throw new ToolError("context file patch has no hunks");
+    break;
   }
   return output.join("");
 }
 
 export async function parsePatch(text: string, budget: Budget, format: PatchFormat | undefined, target: string | undefined): Promise<FilePatch[]> {
-  if (!text.trim()) return parseUnified(text, budget);
+  if (text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
   const reader = new Reader(text, budget);
-  while (reader.peek() === "" || /^diff /u.test(reader.peek() ?? "")) await reader.take();
-  const first = reader.peek() ?? "";
-  const detected: PatchFormat = first.startsWith("*** ") ? "context" : /^\d/u.test(first) ? "normal" : "unified";
-  if (format && detected !== format) throw new ToolError(`patch format is ${detected}, not requested ${format}`);
-  if (detected === "unified") return parseUnified(text, budget);
-  if (detected === "context") reader.index = 0;
-  const converted = detected === "normal" ? await normal(reader, target) : await context(reader);
-  if (Buffer.byteLength(converted) > budget.limits.maxInputBytes * 2 + 16_384) throw new ToolError("converted patch byte limit exceeded");
-  return parseUnified(converted, budget);
+  const patches: FilePatch[] = [];
+  let convertedBytes = 0;
+  while (reader.peek() !== undefined) {
+    if (reader.peek() === "") { await reader.take(); continue; }
+    const start = reader.index;
+    while (/^diff (?:--git |-[^ ]+ )/u.test(reader.peek() ?? "")) await reader.take();
+    const first = reader.peek() ?? "";
+    const detected: PatchFormat = first.startsWith("*** ") ? "context" : /^\d/u.test(first) ? "normal" : "unified";
+    if (format && detected !== format) throw new ToolError(`patch format is ${detected}, not requested ${format}`);
+    if (detected === "unified") {
+      reader.index = start;
+      patches.push(...await parseUnifiedSection(reader, budget));
+    } else {
+      if (detected === "context") reader.index = start;
+      const converted = detected === "normal" ? await normal(reader, target) : await context(reader);
+      convertedBytes += Buffer.byteLength(converted);
+      if (convertedBytes > budget.limits.maxInputBytes * 2 + 16_384) throw new ToolError("converted patch byte limit exceeded");
+      patches.push(...await parseUnified(converted, budget));
+    }
+  }
+  return patches;
 }

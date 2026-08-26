@@ -20,11 +20,21 @@ function header(line: string, prefix: string): string {
 
 export function startIndex(start: number, count: number): number { return count === 0 ? start : start - 1; }
 
+export interface UnifiedCursor { readonly lines: readonly string[]; index: number }
+
 export async function parseUnified(text: string, budget: Budget): Promise<FilePatch[]> {
   if (text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
-  const physical = budget.split(text).map(line => line.slice(0, -1));
+  return parseUnifiedReader({ lines: budget.split(text).map(line => line.slice(0, -1)), index: 0 }, budget, false);
+}
+
+export async function parseUnifiedSection(cursor: UnifiedCursor, budget: Budget): Promise<FilePatch[]> {
+  return parseUnifiedReader(cursor, budget, true);
+}
+
+async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single: boolean): Promise<FilePatch[]> {
+  const physical = cursor.lines;
   const patches: FilePatch[] = [];
-  let index = 0;
+  let index = cursor.index;
   let pendingMetadata = false;
   while (index < physical.length) {
     budget.step();
@@ -101,8 +111,10 @@ export async function parseUnified(text: string, budget: Budget): Promise<FilePa
     if (!hunks.length) throw new ToolError("file patch has no hunks");
     patches.push({ oldPath, newPath, oldEpoch, newEpoch, hunks });
     pendingMetadata = false;
+    if (single) break;
   }
   if (pendingMetadata) throw new ToolError("metadata without a file patch");
+  cursor.index = index;
   return patches;
 }
 

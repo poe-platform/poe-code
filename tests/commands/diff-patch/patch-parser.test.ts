@@ -1,11 +1,98 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, run } from "./helpers.js";
+import { contents, filesystem, run } from "./helpers.js";
 
 const contextHeader = "*** target\n--- target\n***************\n";
 const normal = "1c1\n< old\n---\n> new\n";
 const context = `${contextHeader}*** 1 ****\n! old\n--- 1 ----\n! new\n`;
 const unified = "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n";
+
+const formats = { normal, context, unified };
+for (const sequence of [
+  ["normal", "context"], ["context", "unified"], ["unified", "normal"], ["context", "normal", "unified"],
+] as const) {
+  const input = sequence.map((format, index) => formats[format].replaceAll("old\n", `value${index}\n`)
+    .replaceAll("new\n", `value${index + 1}\n`)).join("");
+  for (const target of ["target", "/work/target"]) {
+    test(`mixed ${sequence.join("/")} stages forward, dry-run and reverse for ${target}`, async () => {
+      const result = await run("patch", ["--dry-run", target], { files: { target: "value0\n" }, input });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(await contents(result.fs, "target"), "value0\n");
+      const forward = await run("patch", [target], { fs: result.fs, input });
+      assert.equal(forward.exitCode, 0, forward.stderr);
+      assert.equal(await contents(result.fs, "target"), `value${sequence.length}\n`);
+      const reverse = await run("patch", ["-R", target], { fs: result.fs, input });
+      assert.equal(reverse.exitCode, 0, reverse.stderr);
+      assert.equal(await contents(result.fs, "target"), "value0\n");
+    });
+  }
+  test(`mixed ${sequence.join("/")} rejects an incompatible later asserted format`, async () => {
+    const result = await run("patch", [`--${sequence[0]}`, "target"], { files: { target: "value0\n" }, input });
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr, /not requested/u);
+    assert.equal(await contents(result.fs, "target"), "value0\n");
+  });
+  for (const later of ["--- other\n+++ other\n@@ -1 +1 @@\n-old\n", "1c1\n< wrong\n---\n> value\n"]) {
+    test(`mixed ${sequence.join("/")} rejects later ${later.startsWith("1") ? "conflict" : "parse error"} before writing`, async () => {
+      const result = await run("patch", ["target"], { files: { target: "value0\n", other: "old\n" }, input: input + later });
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(await contents(result.fs, "target"), "value0\n");
+      assert.equal(await contents(result.fs, "other"), "old\n");
+    });
+  }
+}
+
+test("mixed sections honor the single authorized target rather than header labels", async () => {
+  const input = context.replaceAll("target", "/ignored/first")
+    + unified.replaceAll("target", "/ignored/second").replace("-old", "-new").replace("+new", "+final");
+  const result = await run("patch", ["/work/target"], { files: { target: "old\n", other: "untouched\n" }, input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "final\n");
+  assert.equal(await contents(result.fs, "other"), "untouched\n");
+});
+
+test("unified hunk body owns header-looking lines before a normal section", async () => {
+  const input = "--- target\n+++ target\n@@ -1,2 +1,2 @@\n--- old-label\n+++ new-label\n 1c1\n"
+    + "2c2\n< 1c1\n---\n> final\n";
+  const result = await run("patch", ["target"], { files: { target: "-- old-label\n1c1\n" }, input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "++ new-label\nfinal\n");
+});
+
+for (const options of [{ maxFiles: 1 }, { maxHunks: 1 }, { maxWork: 30 }]) {
+  test(`mixed sections share budgets ${JSON.stringify(options)}`, async () => {
+    const result = await run("patch", ["target"], { files: { target: "old\n" }, options,
+      input: context + unified.replace("-old", "-new").replace("+new", "+final") });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.equal(await contents(result.fs, "target"), "old\n");
+  });
+}
+
+test("mixed parse cancellation propagates its reason without mutations", async () => {
+  const memory = await filesystem({ target: "old\n" });
+  const mutations: PropertyKey[] = [];
+  const fs = new Proxy(memory, {
+    get(target, key) {
+      const member: unknown = Reflect.get(target, key);
+      if (typeof member !== "function") return member;
+      return (...args: unknown[]) => {
+        if (["writeFile", "rm", "rename", "mkdir"].includes(String(key))) mutations.push(key);
+        return Reflect.apply(member, target, args);
+      };
+    },
+  });
+  const controller = new AbortController();
+  const reason = new Error("cancel mixed parsing");
+  const timer = setImmediate(() => controller.abort(reason));
+  try {
+    await assert.rejects(run("patch", ["target"], { fs, signal: controller.signal,
+      input: (context + unified.replace("-old", "-new").replace("+new", "+old")).repeat(800) }), error => error === reason);
+    assert.deepEqual(mutations, []);
+    assert.equal(await contents(memory, "target"), "old\n");
+  } finally { clearImmediate(timer); }
+});
 
 for (const [format, input] of [["normal", normal], ["context", context], ["unified", unified]] as const) {
   for (const fileCR of [false, true]) for (const transport of [false, true]) {

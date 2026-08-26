@@ -174,5 +174,14 @@
   and cross-adapter tool integration in
   `tests/integration/adapter-tools/**` (Poincare). Do not stage unowned native
   temporary directories left by other workers' oracle runs.
+- Dirac's upstream SafeJS validation is isolated in `/tmp`; artifacts belong to
+  `docs/upstream-patches/safejs/**`, `tests/safejs-stress/**` and the existing
+  `tests/commands/safejs-stress/**`. Do not modify the private `poe-code`
+  checkout, vendor the engine or add a private runtime dependency. Keep
+  unpatched observations separate from any isolated-patch results; passing
+  known-defect characterizations are not successful guest semantics.
+- Exclude Archimedes' independent `tests/stress/remote-cancellation/**` and
+  `tests/integration/adapter-tools-diagnostics/**`. Their scope is not the
+  existing blocked-pipe cancellation test or a blanket matrix reclassification.
 - Use explicit-path `git commit --only` after staging owned paths so a concurrent worker's index entries do
   not enter another worker's commit.

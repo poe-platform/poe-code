@@ -681,7 +681,7 @@ that any implementation, command, fixture, or test currently exists.
   README documents optional runtime injection; AGENTS preserves zero shipped
   runtime deps and Dirac's ownership. The full goal remains unfulfilled.
 
-### Current committed S3 policy recheck and ownership
+### Historical S3 policy recheck at 677e03c and ownership
 
 - Renewed review archives current observed HEAD
   **677e03cd21e13e609a5f67d245b0b2f61d635024**, not stale source from the earlier
@@ -690,7 +690,7 @@ that any implementation, command, fixture, or test currently exists.
   strict types pass inside the archive. `tests/stress/s3-policy/677e03c-evidence.json`
   retains exact source/test hashes and transcripts. S3 source hashes match
   acef111; unchanged semantics are verified, not inferred from passing exports.
-- **Open concrete safety defect, Poincare:** default rename with conditional
+- **Open at 677e03c, later fixed in d52634b:** default rename with conditional
   deletion but absent/false destination conditional-copy capability writes
   without destination conditions. The independent hook creates a concurrent
   destination; rename overwrites it, deletes source and resolves successfully.
@@ -721,6 +721,54 @@ that any implementation, command, fixture, or test currently exists.
   BE BETTER than just-bash, much better"** remains unproven; the broad FS/tools/
   full-shell goal and **72-hour** request are not complete. Zero runtime
   dependencies and the full scope remain intact.
+
+### Exact S3 defect closure and independent SafeJS findings
+
+- **S3 source revision d52634b04aa2c91f52e5bf8c331bc6e9a7b35a95 independently
+  verified:** original **42/42** plus bounded **44/44**, five processes per
+  suite, zero failure/skip/TODO/cancel. Commit dae02637952bfabfb2c69cca53ec7e2b93b06ca8
+  retains exact-revision evidence; the earlier f9b3113 descendant-HEAD check
+  remains separate. All four reported S3 source SHA-256 values were matched
+  directly against `git show` at the exact source revision, and both test hashes
+  match their failing baselines. Scoped strict types pass inside the archive.
+  This closes the tested unsafe destination-guard downgrade without disabling
+  legitimate copy or conditional-PUT rename/replacement. All 18 same-ETag
+  identity-loss observations still reproduce; directory snapshot/global atomicity
+  and real-provider guarantees are not solved. Historical failures stay intact.
+- SafeJS independent handoff **fa6c095ac8137e853337d78456b0118bdeac48d6** reports
+  **124 inclusive checks: 115 pass / 9 fail / 0 skip** against the observed
+  unpatched engine, not a clean guest-compatibility gate. Inspected evidence is
+  `tests/commands/safejs-stress/README.md`; this update does not rerun that suite.
+  The conventional 115 comprise **59 fixture/configuration checks, 45 actual
+  engine behavior checks, 10 known-defect characterizations, and one structural
+  TypeScript probe**. Therefore 115 is not a count of successful guest behaviors.
+  The nine desired-semantics probes remain **0/9 accepted**. No-env inclusive
+  results are 59 pass / 65 skip, not equivalent to actual-engine coverage.
+- No plugin runtime implementation defect was confirmed by this bounded review;
+  that is not proof of absence. Supplied-signal upstream incompatibilities include
+  constructors, static methods, own `__proto__` preservation and raw pre-aborted
+  execution. Action-triggered abort also produced a separately observed unhandled
+  rejection; it is not included in the nine-probe denominator or any pass count.
+  Earlier externally changed private-engine snapshots remain separately recorded
+  in the source evidence; no clean-private-worktree claim is inferred.
+- **Isolated patched validation: pending at this handoff.** Dirac now validates
+  proposed upstream fixes only in an isolated `/tmp` copy, with artifacts in
+  `docs/upstream-patches/safejs/**` and `tests/safejs-stress/**`; existing
+  independent fixtures remain in `tests/commands/safejs-stress/**`. No patched
+  counts are supplied or inferred here. Do not relabel unpatched results,
+  remove signal forwarding, edit the private `poe-code` checkout, vendor SafeJS,
+  or add a private runtime dependency to improve the totals.
+- Archimedes now owns independent adapter-diagnostic and in-flight remote
+  cancellation verification. Reported diagnostic behavior is 8/8, but the
+  append assertion did not cover actual `writeFile` with flag `a`; Poincare owns
+  the stronger mutation-killing boundary checks. That observation is not a
+  retroactive pass of the old matrix. Existing blocked-pipe cancellation does
+  not establish in-flight remote cancellation. No root inventory work changes
+  implementation, these owners' files, or any historical cohort denominator.
+- Exact superiority requirement, broad full-shell/FS/tool scope and the 72-hour
+  request remain unfulfilled. Runtime dependencies stay zero; source-owner
+  checkpoints, independently frozen runs and isolated upstream experiments must
+  remain distinct.
 
 ### Remaining product validation
 

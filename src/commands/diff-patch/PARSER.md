@@ -80,3 +80,48 @@ Files”, and “patch Options”; POSIX `patch` DESCRIPTION and Patch File Form
 These define the intended formats/options, not a claim that GNU accepts every
 generated input. Transport decisions are additionally grounded in the exact
 native cases rather than a universal CRLF compatibility assertion.
+
+## Final focused checkpoint
+
+All five parser source hashes match the committed native evidence in
+`tests/commands/diff-patch/parser-reference-evidence.json`. Implementation commits:
+`f32cf89` (suppressed blanks), `e20bf44` (transport), `7fdfe5c` (mixed sections),
+and `6e1240e` (empty-file flows). No README, independent test, diff formatter,
+shared contract, root manifest, or other worker's implementation was edited.
+
+| Gate | Pass | Fail | Total |
+| --- | ---: | ---: | ---: |
+| All author `*.test.ts`, GNU whitespace oracle configured | 829 | 0 | 829 |
+| Literal-argv GNU reference driver | 156 | 0 | 156 |
+| Unmodified independent parser | 75 | 5 | 80 |
+| Unmodified independent formats | 1055 | 14 | 1069 |
+| Unmodified independent paths | 619 | 0 | 619 |
+| Unmodified independent editflows | 31 | 0 | 31 |
+| Unmodified absolute-target tests, GNU oracle configured | 30 | 0 | 30 |
+
+All final gates have zero skips/cancellations/TODOs. An initial absolute-target
+run omitted `SAFE_BASH_GNU_PATCH` and therefore had two existing native skips;
+the complete rerun above supplied it and passed all thirty. No test was weakened.
+
+Parser product expectations pass 76/76; the five raw gate failures are native
+failures listed above, including the native-native controls. The format failures
+are unchanged: three out-of-scope GNU context-selector profile expectations,
+six GNU native-native failures, and five cross-application gates blocked by
+incorrect Apple reverse bytes. All 256 independent normal/context parser gates
+within that format suite pass. Raw failing gates remain nonzero, not reclassified
+as successes or removed from denominators.
+
+Strict scoped TypeScript checks pass for all author TypeScript files and each
+of the five independent suite tsconfigs. `git diff --check` passes. There is no
+whole-repository test/build claim. Unrelated concurrent changes remain untouched.
+
+Reproduction uses `node --unhandled-rejections=strict --import tsx --test` with
+`tests/commands/diff-patch/*.test.ts`, or the relevant independent directory's
+`*.test.ts` (independent suites also use `--test-concurrency=1`). Author tests set
+`DIFF_WHITESPACE_ORACLE` to the verified GNU diff executable; absolute tests set
+`SAFE_BASH_GNU_PATCH` to the verified GNU patch executable. The native driver runs
+through `tsx tests/commands/diff-patch/patch-gnu-reference.ts` with
+`GNU_PATCH_BINARY` set. Final TAP logs are under `.git/parser-all-author.tap` and
+`.git/parser-independent-{tests,formats,paths,editflows,absolute}.tap`; full native
+results are `.git/parser-gnu-reference.json`. These are local diagnostic files,
+not modifications to the independent frozen evidence.

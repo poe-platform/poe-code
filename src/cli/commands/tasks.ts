@@ -21,7 +21,7 @@ import {
 } from "@poe-code/task-list";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
-import { isSilentError } from "../errors.js";
+import { isSilentError, OperationCancelledError } from "../errors.js";
 import { confirmDestructive } from "./confirm-destructive.js";
 import {
   resolveTasksOptions,
@@ -252,7 +252,10 @@ async function runSync(
         message: `Create missing GitHub Project resources (${formatMissingSyncResources(report)})?`
       });
 
-      if (!isCancel(shouldProvision) && shouldProvision === true) {
+      if (isCancel(shouldProvision)) {
+        throw new OperationCancelledError();
+      }
+      if (shouldProvision === true) {
         report = await syncGhProject({ ...syncOptions, yes: true });
       }
     }

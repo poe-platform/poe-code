@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol, fs as memfs } from "memfs";
 import { Command } from "commander";
+import { log } from "toolcraft-design";
 import { createCliContainer } from "../container.js";
+import { ErrorLogger } from "../error-logger.js";
+import { OperationCancelledError } from "../errors.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type {
   MoveTasksOptions,
@@ -36,8 +39,7 @@ const taskListMocks = vi.hoisted(() => {
 });
 
 const designSystemMocks = vi.hoisted(() => ({
-  confirm: vi.fn(),
-  isCancel: vi.fn(() => false)
+  confirm: vi.fn()
 }));
 
 vi.mock("@poe-code/task-list", async (importOriginal) => {
@@ -56,8 +58,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
-    confirm: designSystemMocks.confirm,
-    isCancel: designSystemMocks.isCancel
+    confirm: designSystemMocks.confirm
   };
 });
 
@@ -71,6 +72,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const { registerTasksCommand } = await import("./tasks.js");
+const { createCliMain } = await import("../bootstrap.js");
 
 const cwd = process.cwd();
 const homeDir = "/home/test";
@@ -202,7 +204,6 @@ describe("tasks command", () => {
     taskListMocks.moveTasks.mockReset().mockResolvedValue({ created: 0, skipped: 0, errors: [] });
     taskListMocks.resolveAuth.mockReset().mockResolvedValue("fallback-token");
     designSystemMocks.confirm.mockReset().mockResolvedValue(false);
-    designSystemMocks.isCancel.mockReset().mockReturnValue(false);
     process.exitCode = undefined;
   });
 
@@ -551,6 +552,104 @@ maestro:
     );
     expect(process.exitCode).toBe(1);
     expect(logs).toContain("[error] GitHub Project sync did not complete.");
+  });
+
+  describe("sync confirmation cancellation", () => {
+    beforeEach(() => {
+      seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`, "/audit/WORKFLOW.md");
+      taskListMocks.syncGhProject.mockResolvedValue(
+        createSyncReport({
+          ok: false,
+          missingStatusField: true,
+          missingOptions: ["queued", "done"]
+        })
+      );
+      designSystemMocks.confirm.mockResolvedValue(Symbol.for("poe.cancel"));
+    });
+
+    it.each([undefined, 130])(
+      "throws a silent cancellation without provisioning or reporting (exitCode: %s)",
+      async (exitCode) => {
+        const logs: string[] = [];
+        const before = vol.toJSON();
+        const restoreTTY = setStdinTTY(true);
+        process.exitCode = exitCode;
+
+        try {
+          await expect(
+            runTasks(["sync", "acme/12", "--workflow", "/audit/WORKFLOW.md"], logs)
+          ).rejects.toBeInstanceOf(OperationCancelledError);
+
+          expect(designSystemMocks.confirm).toHaveBeenCalledTimes(1);
+          expect(taskListMocks.syncGhProject).toHaveBeenCalledTimes(1);
+          expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+            expect.objectContaining({ yes: false })
+          );
+          expect(logs).toEqual([]);
+          expect(vol.toJSON()).toEqual(before);
+          expect(process.exitCode).toBe(exitCode);
+        } finally {
+          restoreTTY();
+          process.exitCode = undefined;
+        }
+      }
+    );
+
+    it.each([undefined, 130])(
+      "bootstrap handles cancellation without exits or error logs (exitCode: %s)",
+      async (exitCode) => {
+        const logs: string[] = [];
+        const before = vol.toJSON();
+        const restoreTTY = setStdinTTY(true);
+        const originalArgv = process.argv;
+        const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+          throw new Error("Unexpected process exit");
+        });
+        const errorLogSpy = vi.spyOn(ErrorLogger.prototype, "logErrorWithStackTrace")
+          .mockImplementation(() => {});
+        const errorSpy = vi.spyOn(log, "error").mockImplementation(() => {});
+        const messageSpy = vi.spyOn(log, "message").mockImplementation(() => {});
+        process.exitCode = exitCode;
+        process.argv = ["node", "cli", "tasks", "sync", "acme/12", "--workflow", "/audit/WORKFLOW.md"];
+
+        try {
+          const main = createCliMain(() => {
+            const program = createBaseProgram();
+            registerTasksCommand(program, createContainer(logs));
+            return program;
+          });
+
+          await expect(main()).resolves.toBeUndefined();
+
+          expect(designSystemMocks.confirm).toHaveBeenCalledTimes(1);
+          expect(taskListMocks.syncGhProject).toHaveBeenCalledTimes(1);
+          expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+            expect.objectContaining({ yes: false })
+          );
+          expect(process.exitCode).toBe(exitCode);
+          expect(exitSpy).not.toHaveBeenCalled();
+          expect(errorLogSpy).not.toHaveBeenCalled();
+          expect(errorSpy).not.toHaveBeenCalled();
+          expect(messageSpy).not.toHaveBeenCalled();
+          expect(logs).toEqual([]);
+          expect(vol.toJSON()).toEqual(before);
+        } finally {
+          restoreTTY();
+          process.argv = originalArgv;
+          process.exitCode = undefined;
+          exitSpy.mockRestore();
+          errorLogSpy.mockRestore();
+          errorSpy.mockRestore();
+          messageSpy.mockRestore();
+        }
+      }
+    );
   });
 
   it("sync prints GhProjectSyncError op and target on failure", async () => {

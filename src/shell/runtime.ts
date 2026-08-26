@@ -1,11 +1,11 @@
 import {
-  composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
+  ACCESS_MODES, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
 } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandRegistry, FileSystem, Middleware,
 } from "../contracts/index.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
-import { HereDocumentSyntaxError, hereDocumentWords } from "./parser.js";
+import { HereDocumentSyntaxError, hereDocumentWords, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { ShellInput } from "./input.js";
@@ -43,6 +43,7 @@ export class Budget {
   commands = 0;
   iterations = 0;
   bytes = 0;
+  sourceBytes = 0;
   readonly controller = new AbortController();
   readonly signal: AbortSignal;
 
@@ -64,6 +65,12 @@ export class Budget {
   loop(): void {
     this.signal.throwIfAborted();
     if (++this.iterations > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
+  }
+
+  source(bytes: number): void {
+    this.signal.throwIfAborted();
+    if (bytes > this.limits.maxSourceBytes - this.sourceBytes) this.fail("maxSourceBytes");
+    this.sourceBytes += bytes;
   }
 
   sink(sink: ByteSink, signal = this.signal): ByteSink {
@@ -119,6 +126,7 @@ export interface State {
   exported: Set<string>;
   functions: Map<string, Command>;
   positional: string[];
+  arg0?: string;
   status: number;
   substitutionStatus: number;
   depth: number;
@@ -137,6 +145,7 @@ interface IO {
   readonly stderr: ByteSink;
   readonly diagnosticLine?: number;
   readonly diagnosticOffset?: number;
+  readonly scriptName?: string;
   descriptors?: ReadonlyMap<number, Descriptor>;
 }
 
@@ -427,7 +436,7 @@ export class Runtime {
       }
       if (errorCode(error) === "EPIPE") return 141;
       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
-      try { await writeText(io.stderr, `shell: line ${line}: ${diagnostic ?? message(error)}\n`); }
+      try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof CommandFailure) return error.status;
@@ -494,6 +503,7 @@ export class Runtime {
       return {
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
         ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
+        ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),
         stdin: descriptor?.input ?? closedSource,
         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
         stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
@@ -739,7 +749,9 @@ export class Runtime {
         }
         const definition = this.commands.get(context.command);
         if (!definition) {
-          await writeText(context.stderr, `${context.command}: command not found\n`);
+          if (context.command === "bash" || context.command.includes("/")) return { exitCode: await this.scriptFile(context, state, io) };
+          const prefix = io.scriptName === undefined ? "" : `${io.scriptName}: line ${io.diagnosticLine ?? 1}: `;
+          await writeText(context.stderr, `${prefix}${context.command}: command not found\n`);
           return { exitCode: 127 };
         }
         return await definition.execute(context);
@@ -759,6 +771,73 @@ export class Runtime {
       if (builtinFailure && error === builtinFailure.error) throw new ExecutionFailure(error, io, builtinFailure.diagnostic);
       throw error;
     }
+  }
+
+  async scriptFile(context: CommandContext, state: State, io: IO): Promise<number> {
+    const direct = context.command !== "bash";
+    const args = [...context.args];
+    if (!direct && args[0] === "--") args.shift();
+    else if (!direct && /^[+-]/u.test(args[0] ?? "")) throw new CommandFailure("bash: unsupported option; supported form: bash [--] file [args...]", 2);
+    const target = direct ? context.command : args.shift();
+    if (target === undefined || (!direct && target === "-")) throw new CommandFailure("bash: a VFS script file is required; stdin execution is not supported", 2);
+    if (target === "") throw new CommandFailure("bash: : No such file or directory", 127);
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const path = resolvePath(state.cwd, target);
+    let source: string;
+    try {
+      const options = { signal: this.signal };
+      const stat = await interruptible(this.fs.stat(path, options), this.signal);
+      if (stat.type !== "file") throw new CommandFailure(`${target}: ${stat.type === "directory" ? "Is a directory" : "not a regular file"}`, 126);
+      if (direct && this.fs.capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
+      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK | (direct ? ACCESS_MODES.X_OK : 0), options), this.signal);
+      const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
+      if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+      const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
+      this.budget.source(bytes.byteLength);
+      if (bytes.some((byte) => byte < 9 || (byte > 10 && byte < 13) || (byte > 13 && byte < 32) || byte === 127)) throw new CommandFailure(`${target}: cannot execute binary script`, 126);
+      try { source = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+      catch { throw new CommandFailure(`${target}: cannot execute binary or non-UTF-8 script`, 126); }
+      if (source.startsWith("#!")) {
+        const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
+        if (interpreter !== "/bin/bash" && interpreter !== "/usr/bin/bash") throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+      } else if (direct) throw new CommandFailure(`${target}: direct execution requires a supported Bash shebang`, 126);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof ShellLimitError || error instanceof CommandFailure) throw error;
+      if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+      throw new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, errorCode(error) === "ENOENT" ? 127 : 126);
+    }
+    const units: Script[] = [];
+    try {
+      let position = 0;
+      do {
+        this.signal.throwIfAborted();
+        const unit = parseShellUnit(source, position, byteLocale(context.env));
+        units.push(unit.script);
+        position = unit.next;
+      } while (position < source.length);
+    } catch (error) {
+      if (!(error instanceof ShellSyntaxError)) throw error;
+      const line = source.slice(0, error.offset).split("\n").length;
+      await writeText(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
+      return error.exitCode;
+    }
+    const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
+    const child: State = {
+      cwd: state.cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(),
+      positional: args, arg0: target, status: 0, substitutionStatus: 0, depth: state.depth + 1,
+      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
+    };
+    const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
+    let status = 0;
+    for (const unit of units) {
+      for (const warning of unit.warnings ?? []) await writeText(context.stderr, `${target}: warning: ${warning}\n`);
+      if (!unit.lists.length) continue;
+      const result = await this.runUnit(unit, child, childIO);
+      status = result.exitCode;
+      if (result.terminated) break;
+    }
+    return status;
   }
 
   async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State): Promise<{ exitCode: number }> {
@@ -995,7 +1074,7 @@ export class Runtime {
     let value = part.name === "?" ? String(state.status)
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
-      : part.name === "0" ? "virtual-bash"
+      : part.name === "0" ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : state.variables[part.name];
     if (part.operator) {

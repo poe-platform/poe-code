@@ -68,6 +68,7 @@ export class Shell implements PluginHost {
     const limits = resolveLimits(this.#options.limits, options.limits);
     if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     const budget = new Budget(limits, options.signal);
+    budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
     const stdout = new Capture();
     const stderr = new Capture();

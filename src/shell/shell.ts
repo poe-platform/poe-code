@@ -102,8 +102,15 @@ export class Shell implements PluginHost {
       exitCode = await interruptible(runtime.run(script, state, io), budget.signal);
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;
-      await writeText(io.stderr, `shell: ${error.message}\n`);
-      exitCode = 2;
+      const line = source.slice(0, error.offset).split("\n").length;
+      if (error.exitCode === 127) {
+        const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+        await writeText(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
+      } else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
+        const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
+        await writeText(io.stderr, `shell: -c: line ${source.split("\n").length + 1}: syntax error: unexpected end of file${context}\n`);
+      } else await writeText(io.stderr, `shell: ${error.message}\n`);
+      exitCode = error.exitCode;
     } finally { await stdin?.close(); }
     const stdoutBytes = stdout.bytes();
     const stderrBytes = stderr.bytes();

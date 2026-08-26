@@ -64,17 +64,17 @@ for (const [source, expected] of [
   });
 }
 
-for (const source of [
-  "say ran >marker; pass <<<",
-  "say ran >marker; pass <<< >out",
-  "say ran >marker; false && pass <<<$(true |)",
-  "say ran >marker; pass <<<${bad",
-  "say ran >marker; pass 256<<<word",
-]) {
+for (const [source, status] of [
+  ["say ran >marker; pass <<<", 2],
+  ["say ran >marker; pass <<< >out", 2],
+  ["say ran >marker; false && pass <<<$(true |)", 127],
+  ["say ran >marker; pass <<<${bad", 2],
+  ["say ran >marker; pass 256<<<word", 2],
+] as const) {
   test(`malformed here-string rejects before effects: ${source}`, async () => {
     const { shell, fs } = setup();
     const result = await shell.exec(source);
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, status);
     assert.equal(result.stdout, "");
     assert.deepEqual(await fs.readdir("/"), []);
   });
@@ -122,7 +122,7 @@ test("here-string redirection expansion errors preserve ordinary fatal-expansion
   for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
     const { shell, fs } = setup();
     const result = await shell.exec(`pass 2>errors <<<"${expansion}"; status=$?; say after >marker; exit "$status"`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, expansion.startsWith("${") ? 127 : 1);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, "");
     assert.deepEqual((await fs.readdir("/")).map((entry) => entry.name).sort(), ["errors", "marker"]);

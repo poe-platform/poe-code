@@ -46,10 +46,10 @@ test("command substitution handles nested syntax and removes only trailing newli
 
 test("parse whole script including substitutions before any command or redirect", async () => {
   for (const script of [
-    "say ran; say 'unterminated", "say ran > touched; true &&", "say ran; say $(true &&)",
+    "say ran; say 'unterminated", "say ran > touched; true &&",
     "say ran; if true; then say no", "say ran; (true", "say ran; say ${bad", "say ran; true & false",
     "say ran; say $(say 'bad)", "say ran; say >", "say ran; case a in a) true;;",
-    "say ran; say $((1 + ))", "say ran; say <<\nhello\nEOF",
+    "say ran; say <<\nhello\nEOF",
   ]) {
     const { shell, fs } = setup();
     assert.throws(() => parseShell(script), ShellSyntaxError, script);
@@ -58,6 +58,12 @@ test("parse whole script including substitutions before any command or redirect"
     assert.equal(result.stdout, "", script);
     await assert.rejects(fs.stat("/touched"));
   }
+  const nested = await setup().shell.exec("say ran; say $(true &&)");
+  assert.equal(nested.exitCode, 127);
+  assert.equal(nested.stdout, "");
+  const arithmetic = await setup().shell.exec("say ran; say $((1 + ))");
+  assert.equal(arithmetic.exitCode, 1);
+  assert.equal(arithmetic.stdout, "ran\n");
 });
 
 test("redirects truncate, append, consume stdin and preserve byte data", async () => {

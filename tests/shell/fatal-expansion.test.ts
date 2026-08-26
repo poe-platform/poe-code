@@ -20,7 +20,7 @@ for (const expansion of ['"${missing:?stop}"', '"$((1/0))"']) {
       const actual = await shell.exec(source);
       assert.notEqual(actual.exitCode, 0);
       assert.equal(actual.stdout, expected.stdout);
-      assert.match(actual.stderr, /stop|division by zero/u);
+      assert.match(actual.stderr, /stop|division by 0/u);
       assert.equal(actual.stderr.split("\n").length, 2);
       assert.deepEqual(await fs.readdir("/"), []);
     });
@@ -38,7 +38,7 @@ for (const expansion of ['"${missing:?stop}"', '"$((1/0))"']) {
       const actual = await shell.exec(source);
       assert.equal(actual.exitCode === 0, expected.exitCode === 0);
       assert.equal(actual.stdout, expected.stdout);
-      assert.match(actual.stderr, /stop|division by zero/u);
+      assert.match(actual.stderr, /stop|division by 0/u);
       assert.deepEqual((await fs.readdir("/")).map((entry) => entry.name), ["after"]);
     });
   }

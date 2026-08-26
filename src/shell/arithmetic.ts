@@ -1,11 +1,30 @@
 import { ShellSyntaxError } from "./types.js";
 
-export type Arithmetic =
+export type Arithmetic = (
   | { kind: "literal"; value: bigint }
   | { kind: "name"; name: string }
   | { kind: "unary"; operator: string; operand: Arithmetic; postfix: boolean }
   | { kind: "binary"; operator: string; left: Arithmetic; right: Arithmetic }
-  | { kind: "conditional"; condition: Arithmetic; yes: Arithmetic; no: Arithmetic };
+  | { kind: "conditional"; condition: Arithmetic; yes: Arithmetic; no: Arithmetic }
+) & { start?: number };
+
+export interface ArithmeticProgram {
+  readonly source: string;
+  readonly tree?: Arithmetic;
+  readonly error?: ShellSyntaxError;
+}
+
+class ArithmeticFailure extends Error {
+  constructor(message: string, readonly offset: number) { super(message); }
+}
+
+export function prepareArithmetic(source: string): ArithmeticProgram {
+  try { return { source, tree: parseArithmetic(source) }; }
+  catch (error) {
+    if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
+    return { source, error };
+  }
+}
 
 const precedence: Record<string, number> = {
   ",": 1, "=": 2, "+=": 2, "-=": 2, "*=": 2, "/=": 2, "%=": 2,
@@ -50,6 +69,7 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
   const expression = (minimum = 1): Arithmetic => {
     if (++depth > 64) error("Arithmetic nesting exceeds 64");
     let left: Arithmetic;
+    const start = tokens[cursor]?.offset ?? offset + source.length;
     const token = current();
     cursor++;
     if (["+", "-", "!", "~", "++", "--"].includes(token)) {
@@ -65,12 +85,13 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
       try { left = { kind: "literal", value: BigInt.asIntN(64, integer(token)) }; }
       catch { error("Invalid arithmetic operand"); }
     }
+    left!.start = start;
     while (true) {
       const operator = current();
       if (operator === "++" || operator === "--") {
         if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
         cursor++;
-        left = { kind: "unary", operator, operand: left!, postfix: true };
+        left = { kind: "unary", operator, operand: left!, postfix: true, start };
         continue;
       }
       const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : 0;
@@ -80,12 +101,12 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
         const yes = expression();
         if (current() !== ":") error("Expected arithmetic colon");
         cursor++;
-        left = { kind: "conditional", condition: left!, yes, no: expression(3) };
+        left = { kind: "conditional", condition: left!, yes, no: expression(3), start };
       } else {
         const assignment = priority === 2;
         if (assignment && left!.kind !== "name") error("Arithmetic assignment requires a variable");
         const right = expression(priority + (assignment || operator === "**" ? 0 : 1));
-        left = { kind: "binary", operator, left: left!, right };
+        left = { kind: "binary", operator, left: left!, right, start };
       }
     }
     depth--;
@@ -110,18 +131,18 @@ export function arithmeticEnd(source: string, start: number): number {
   throw new ShellSyntaxError("Unterminated arithmetic expression", start);
 }
 
-export function evaluateArithmetic(tree: Arithmetic, variables: Record<string, string>): bigint {
+export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>): bigint {
   const visiting = new Set<string>();
   let steps = 0;
-  const binary = (operator: string, left: bigint, right: bigint): bigint => {
+  const binary = (operator: string, left: bigint, right: bigint, offset: number): bigint => {
     switch (operator) {
       case "+": return left + right;
       case "-": return left - right;
       case "*": return left * right;
-      case "/": if (right === 0n) throw new Error("Arithmetic division by zero"); return left / right;
-      case "%": if (right === 0n) throw new Error("Arithmetic division by zero"); return left % right;
+      case "/": if (right === 0n) throw new ArithmeticFailure("division by 0", offset); return left / right;
+      case "%": if (right === 0n) throw new ArithmeticFailure("division by 0", offset); return left % right;
       case "**": {
-        if (right < 0n) throw new Error("Negative arithmetic exponent");
+        if (right < 0n) throw new ArithmeticFailure("exponent less than 0", offset);
         let result = 1n;
         let base = left;
         let exponent = right;
@@ -175,11 +196,22 @@ export function evaluateArithmetic(tree: Arithmetic, variables: Record<string, s
         if (node.operator === "&&") return left ? BigInt(evaluate(node.right) !== 0n) : 0n;
         if (node.operator === "||") return left ? 1n : BigInt(evaluate(node.right) !== 0n);
         if (node.operator === ",") return evaluate(node.right);
-        value = binary(precedence[node.operator] === 2 ? node.operator.slice(0, -1) : node.operator, left, evaluate(node.right));
+        value = binary(precedence[node.operator] === 2 ? node.operator.slice(0, -1) : node.operator, left, evaluate(node.right), node.right.start ?? 0);
       }
       if (precedence[node.operator] === 2) variables[(node.left as Extract<Arithmetic, { kind: "name" }>).name] = String(BigInt.asIntN(64, value));
     }
     return BigInt.asIntN(64, value);
   };
-  return evaluate(tree);
+  try {
+    if (program.error) throw program.error;
+    return evaluate(program.tree!);
+  } catch (error) {
+    if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
+    if (error instanceof ShellSyntaxError) {
+      const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
+      const reason = error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
+      throw new Error(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
+    }
+    throw error;
+  }
 }

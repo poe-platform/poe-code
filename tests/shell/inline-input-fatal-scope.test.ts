@@ -25,7 +25,7 @@ for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
         const fatal = expansion.startsWith("${") && !isolated;
         const files = fatal ? ["errors"] : ["errors", "marker"];
         assert.equal(expected.exitCode, expansion.startsWith("${") && legacyReference ? 127 : 1);
-        assert.equal(actual.exitCode, 1);
+        assert.equal(actual.exitCode, expansion.startsWith("${") ? 127 : 1);
         for (const observation of [expected, actual]) {
           assert.equal(observation.stdout, "");
           assert.equal(observation.stderr, "");

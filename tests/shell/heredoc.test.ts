@@ -70,19 +70,19 @@ test("nested heredoc punctuation is literal, not Bash 3.2 parser syntax", async 
   context.diagnostic(JSON.stringify({ installedBash: await runBash(fixture) }));
 });
 
-for (const source of [
-  "say ran >marker; pass <<\n",
-  "say ran >marker; pass <<EOF\n$(true |)\nEOF\n",
-  "say ran >marker; false && pass <<EOF\n${bad\nEOF\n",
-  "say ran >marker; pass <<EOF\nbody\nEOF\nif true; then",
-  "say ran >marker; say \"$(pass <<EOF)\"",
-  "say ran >marker; pass <<$'EOF'\ntext\n$EOF\n",
-  'say ran >marker; pass <<$"EOF"\ntext\n$EOF\n',
-]) {
+for (const [source, status] of [
+  ["say ran >marker; pass <<\n", 2],
+  ["say ran >marker; pass <<EOF\n$(true |)\nEOF\n", 127],
+  ["say ran >marker; false && pass <<EOF\n${bad\nEOF\n", 2],
+  ["say ran >marker; pass <<EOF\nbody\nEOF\nif true; then", 2],
+  ["say ran >marker; say \"$(pass <<EOF)\"", 2],
+  ["say ran >marker; pass <<$'EOF'\ntext\n$EOF\n", 2],
+  ['say ran >marker; pass <<$"EOF"\ntext\n$EOF\n', 2],
+] as const) {
   test(`heredoc syntax errors precede all effects: ${JSON.stringify(source)}`, async () => {
     const { shell, fs } = setup();
     const result = await shell.exec(source, { signal: AbortSignal.timeout(2000) });
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, status);
     assert.equal(result.stdout, "");
     assert.deepEqual(await fs.readdir("/"), []);
   });
@@ -142,7 +142,7 @@ for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
     const expected = await runBash({ name: "heredoc expansion failure", script: source });
     const actual = await runVirtualScript({ name: "heredoc expansion failure", script: source });
     assert.equal(expected.exitCode, expansion.startsWith("${") && bashVersion().includes("version 3.2.") ? 127 : 1);
-    assert.equal(actual.exitCode, 1);
+    assert.equal(actual.exitCode, expansion.startsWith("${") ? 127 : 1);
     assert.equal(expected.stdout, "");
     assert.equal(expected.stderr, "");
     assert.deepEqual(Object.keys(expected.files).sort(), ["errors", "marker"]);
@@ -152,6 +152,6 @@ for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
     assert.deepEqual(actual.files.marker, expected.files.marker);
     const errorFile = actual.files.errors!;
     assert.ok(errorFile.type === "file");
-    assert.match(Buffer.from(errorFile.base64, "base64").toString(), /VALUE: stop|division by zero/u);
+    assert.match(Buffer.from(errorFile.base64, "base64").toString(), /VALUE: stop|division by 0/u);
   });
 }

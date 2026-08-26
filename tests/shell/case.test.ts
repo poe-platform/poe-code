@@ -53,18 +53,18 @@ for (const [source, stdout] of [
   });
 }
 
-for (const source of [
-  'say ran >marker; case x in x) :;;',
-  'say ran >marker; case x x) :;; esac',
-  'say ran >marker; case x in x|) :;; esac',
-  'say ran >marker; case x in x) : ;& ;& esac',
-  'say ran >marker; : ;; :',
-  'say ran >marker; case x in x) :;; y) say "$(true |)";; esac',
-]) {
+for (const [source, status] of [
+  ['say ran >marker; case x in x) :;;', 2],
+  ['say ran >marker; case x x) :;; esac', 2],
+  ['say ran >marker; case x in x|) :;; esac', 2],
+  ['say ran >marker; case x in x) : ;& ;& esac', 2],
+  ['say ran >marker; : ;; :', 2],
+  ['say ran >marker; case x in x) :;; y) say "$(true |)";; esac', 127],
+] as const) {
   test(`malformed case fails before effects: ${source}`, async () => {
     const { shell, fs } = setup();
     const result = await shell.exec(source);
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, status);
     assert.equal(result.stdout, "");
     assert.deepEqual(await fs.readdir("/"), []);
   });

@@ -52,8 +52,8 @@ export interface ShellResult {
 }
 
 export class ShellSyntaxError extends SyntaxError {
-  constructor(message: string, readonly offset: number) {
-    super(`${message} at offset ${offset}`);
+  constructor(readonly reason: string, readonly offset: number, readonly exitCode = 2, readonly incompleteCommand?: { name: string; line: number }) {
+    super(`${reason} at offset ${offset}`);
     this.name = "ShellSyntaxError";
   }
 }

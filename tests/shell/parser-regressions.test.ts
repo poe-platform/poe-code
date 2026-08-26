@@ -23,7 +23,7 @@ test("continuations preserve keyword, operator and descriptor recognition", asyn
 });
 
 test("misplaced negation and unsupported expansion syntax reject before effects", async () => {
-  for (const source of ["say touched; ! ! true", "say touched; true | ! false", "say touched; args $'unterminated", 'say touched; args $"text"', "say touched; args $$ $! $-", "say touched; args $((1 constructor 2))"]) {
+  for (const source of ["say touched; ! ! true", "say touched; true | ! false", "say touched; args $'unterminated", 'say touched; args $"text"', "say touched; args $$ $! $-"]) {
     const { shell } = setup();
     assert.throws(() => parseShell(source), ShellSyntaxError);
     const result = await shell.exec(source);
@@ -31,6 +31,10 @@ test("misplaced negation and unsupported expansion syntax reject before effects"
     assert.equal(result.stdout, "", source);
   }
   assert.equal((await setup().shell.exec("args ! '$$' \\$!")).stdout, '["!","$$","$!"]');
+  const arithmetic = await setup().shell.exec("say touched; args $((1 constructor 2))");
+  assert.equal(arithmetic.exitCode, 1);
+  assert.equal(arithmetic.stdout, "touched\n");
+  assert.match(arithmetic.stderr, /arithmetic syntax error in expression/u);
 });
 
 test("parameter alternates inherit outer double-quote rules", async () => {

@@ -37,7 +37,7 @@ test("file shortcut read failures stay inside substitution", async () => {
   const { shell, fs } = setup();
   const result = await shell.exec('value=$(<missing); say "$?:<$value>"; : >after');
   assert.equal(result.stdout, "1:<>\n");
-  assert.match(result.stderr, /ENOENT/u);
+  assert.match(result.stderr, /missing: No such file or directory/u);
   assert.equal(result.exitCode, 0);
   await fs.stat("/after");
 });

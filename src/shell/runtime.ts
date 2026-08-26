@@ -124,6 +124,7 @@ export interface State {
   functionDepth: number;
   locals: Map<string, { value: string | undefined; exported: boolean }>[];
   pipefail: boolean;
+  isolated?: boolean;
   redirectAssignments?: ReadonlyMap<string, string>;
 }
 
@@ -174,7 +175,13 @@ class ExecutionFailure extends Error {
   constructor(readonly original: unknown, readonly io: IO) { super(message(original)); }
 }
 
-class ExpansionFailure extends Error {}
+class ExpansionFailure extends Error {
+  constructor(message: string, readonly line?: number) { super(message); }
+}
+
+class CommandFailure extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
 
 class ParameterExpansionFailure extends ExpansionFailure {}
 
@@ -262,7 +269,7 @@ export class Runtime {
           }
         } };
         try {
-          return await interruptible(runtime.runCommandIsolated(command, cloneState(state), {
+          return await interruptible(runtime.runCommandIsolated(command, { ...cloneState(state), isolated: true }, {
             ...isolateIO(io),
             stdin: input,
             ...(incoming ? { stdinIsDefault: false } : {}),
@@ -313,9 +320,13 @@ export class Runtime {
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
-      if (command.kind === "arithmetic") return Number(evaluateArithmetic(command.expression, state.variables) === 0n);
+      if (command.kind === "arithmetic") {
+        try { return Number(evaluateArithmetic(command.expression, state.variables) === 0n); }
+        catch (error) { throw new Error(`((: ${message(error)}`); }
+      }
       if (command.kind === "subshell") {
         const child = cloneState(state);
+        child.isolated = true;
         child.loopDepth = 0;
         return await this.run(command.body, child, io);
       }
@@ -375,9 +386,11 @@ export class Runtime {
       this.signal.throwIfAborted();
       if (error instanceof Flow || error instanceof ShellLimitError) throw error;
       if (errorCode(error) === "EPIPE") return 141;
-      try { await writeText(io.stderr, `shell: ${message(error)}\n`); }
+      const line = error instanceof ExpansionFailure ? error.line ?? command.line ?? 1 : command.line ?? 1;
+      try { await writeText(io.stderr, `shell: line ${line}: ${message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
-      if (error instanceof ExpansionFailure) throw new Flow("exit", 1);
+      if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if (error instanceof CommandFailure) return error.status;
       return 1;
     } finally {
       for (const close of outputs) close();
@@ -409,6 +422,7 @@ export class Runtime {
       [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }],
     ]);
     const replaced = new Set<number>();
+    let errorTarget: string | undefined;
     if (io.stdin === closedSource) descriptors.delete(0);
     if (io.stdout === closedSink) descriptors.delete(1);
     if (io.stderr === closedSink) descriptors.delete(2);
@@ -431,6 +445,7 @@ export class Runtime {
         try { value = (await this.word(redirect.document?.body ?? redirect.target, state, currentIO(), false, false, hereString)).join(""); }
         catch (error) {
           if (error instanceof ParameterExpansionFailure && !isolatedInlineInput) throw error;
+          if (error instanceof ParameterExpansionFailure) throw new CommandFailure(error.message, state.isolated ? 1 : 127);
           if (error instanceof ExpansionFailure) throw new Error(error.message);
           throw error;
         }
@@ -446,6 +461,7 @@ export class Runtime {
       const targets = await this.word(redirect.target, state, currentIO());
       if (targets.length !== 1) throw new Error("Ambiguous redirect");
       const target = targets[0]!;
+      errorTarget = target;
       if (redirect.operator.endsWith("&")) {
         if (target === "-") descriptors.delete(redirect.descriptor);
         else {
@@ -516,7 +532,11 @@ export class Runtime {
           descriptors.set(redirect.descriptor, { output });
         }
       }
-    } } catch (error) { throw new ExecutionFailure(error, currentIO()); }
+    } } catch (error) {
+      const descriptions: Readonly<Record<string, string>> = { ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted", ENOTDIR: "Not a directory", EISDIR: "Is a directory", ELOOP: "Too many levels of symbolic links", ENOSPC: "No space left on device", EROFS: "Read-only file system" };
+      const description = descriptions[errorCode(error) ?? ""];
+      throw new ExecutionFailure(description && errorTarget !== undefined ? new Error(`${errorTarget}: ${description}`) : error, currentIO());
+    }
     return currentIO();
   }
 
@@ -867,12 +887,13 @@ export class Runtime {
   async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
     if (part.kind === "arithmetic") {
       try { return String(evaluateArithmetic(part.expression, state.variables)); }
-      catch (error) { throw new ExpansionFailure(message(error)); }
+      catch (error) { throw new ExpansionFailure(message(error), part.line); }
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       const capture = new Capture();
       const child = cloneState(state);
+      child.isolated = true;
       for (const [name, value] of state.redirectAssignments ?? []) {
         child.variables[name] = value;
         child.exported.add(name);
@@ -913,7 +934,7 @@ export class Runtime {
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
         const alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
-        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || "parameter null or not set"}`);
+        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, part.line);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
           state.variables[part.name] = alternate;

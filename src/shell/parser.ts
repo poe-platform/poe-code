@@ -1,12 +1,12 @@
 import { ShellSyntaxError } from "./types.js";
-import { arithmeticEnd, parseArithmetic } from "./arithmetic.js";
-import type { Arithmetic } from "./arithmetic.js";
+import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
+import type { ArithmeticProgram } from "./arithmetic.js";
 
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean }
-  | { kind: "arithmetic"; expression: Arithmetic; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; length?: boolean; operator?: string; alternate?: Word }
-  | { kind: "substitution"; script: Script; quoted: boolean };
+  | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word }
+  | { kind: "substitution"; script: Script; line: number; quoted: boolean };
 
 export interface Word {
   readonly parts: WordPart[];
@@ -55,8 +55,8 @@ export type Command = (
   | { kind: "until"; condition: Script; body: Script }
   | { kind: "for"; name: string; words?: Word[]; body: Script }
   | { kind: "function"; name: string; body: Command }
-  | { kind: "arithmetic"; expression: Arithmetic }
-) & { redirects: Redirect[] };
+  | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
+) & { redirects: Redirect[]; line?: number };
 
 export interface Pipeline {
   readonly commands: Command[];
@@ -78,9 +78,11 @@ class Lexer {
   delimiterOperator: string | undefined;
   readonly documents: HereDocument[] = [];
 
-  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = []) {
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
+
+  lineAt(position: number): number { return this.lineOffset + this.source.slice(0, position).split("\n").length; }
 
   error(message: string): never {
     throw new ShellSyntaxError(message, this.position);
@@ -319,6 +321,7 @@ class Lexer {
   }
 
   expansion(parts: WordPart[], quoted: boolean): void {
+    const line = this.lineAt(this.position);
     if (this.source[this.position] === "`") {
       this.position++;
       let source = "";
@@ -328,7 +331,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings), quoted });
+      parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1), line, quoted });
       return;
     }
     this.position++;
@@ -336,15 +339,22 @@ class Lexer {
     if (this.source.startsWith("((", this.position)) {
       const start = this.position + 2;
       const end = arithmeticEnd(this.source, start);
-      parts.push({ kind: "arithmetic", expression: parseArithmetic(this.source.slice(start, end), start), quoted });
+      const source = this.source.slice(start, end);
+      parts.push({ kind: "arithmetic", expression: prepareArithmetic(source), source, line, quoted });
       this.position = end + 2;
     } else if (this.source[this.position] === "(") {
-      const nested = new Parser(this.source.slice(this.position + 1), this.depth + 1, this.warnings);
-      const script = nested.script(new Set([")"]));
+      const start = this.position + 1;
+      const nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1);
+      let script: Script;
+      try { script = nested.script(new Set([")"])); }
+      catch (error) {
+        if (error instanceof ShellSyntaxError && !/Unterminated|nesting|exceeds/u.test(error.reason)) throw new ShellSyntaxError(error.reason, start + error.offset, 127);
+        throw error;
+      }
       if (nested.current.value !== ")") this.error("Unterminated command substitution");
       if (nested.lexer.documents.length) this.error("Here-document requires a newline before closing command substitution");
       this.position += nested.current.end + 1;
-      parts.push({ kind: "substitution", script, quoted });
+      parts.push({ kind: "substitution", script, line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position++;
       const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
@@ -361,7 +371,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;
-      parts.push({ kind: "variable", name, quoted, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}) });
+      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}) });
     } else {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
@@ -377,15 +387,17 @@ class Parser {
   current: Token;
   lookahead: Token | undefined;
   nesting = 0;
+  readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(source: string, depth: number, warnings: string[] = []) {
+  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0) {
     if (source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
-    this.lexer = new Lexer(source, depth, warnings);
+    this.lexer = new Lexer(source, depth, warnings, lineOffset);
     this.current = this.lexer.next();
   }
 
   error(message: string): never {
-    throw new ShellSyntaxError(message, this.current.offset);
+    const command = this.current.kind === "end" ? this.openCommands.findLast((command) => ["if", "while", "until", "for", "case"].includes(command.name)) : undefined;
+    throw new ShellSyntaxError(message, this.current.offset, 2, command);
   }
 
   advance(): Token {
@@ -444,7 +456,9 @@ class Parser {
 
   command(): Command {
     if (++this.nesting + this.lexer.depth > 64) this.error("Syntax nesting exceeds 64");
-    try { return this.commandInner(); } finally { this.nesting--; }
+    const line = this.lexer.lineAt(this.current.offset);
+    this.openCommands.push({ name: this.current.value, line });
+    try { return { ...this.commandInner(), line }; } finally { this.nesting--; this.openCommands.pop(); }
   }
 
   commandInner(): Command {
@@ -452,7 +466,8 @@ class Parser {
     if (this.is("(") && this.lexer.source.startsWith("((", this.current.offset)) {
       const start = this.current.offset + 2;
       const end = arithmeticEnd(this.lexer.source, start);
-      command = { kind: "arithmetic", expression: parseArithmetic(this.lexer.source.slice(start, end), start), redirects: [] };
+      const source = this.lexer.source.slice(start, end);
+      command = { kind: "arithmetic", expression: prepareArithmetic(source), source, redirects: [] };
       this.lexer.position = end + 2;
       this.lookahead = undefined;
       this.current = this.lexer.next();
@@ -588,8 +603,8 @@ export function parseShell(source: string, depth = 0): Script {
   return { ...script, ...(warnings.length ? { warnings } : {}) };
 }
 
-function parseSource(source: string, depth: number, warnings: string[]): Script {
-  const parser = new Parser(source, depth, warnings);
+function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0): Script {
+  const parser = new Parser(source, depth, warnings, lineOffset);
   const script = parser.script();
   if (parser.current.kind !== "end") parser.error("Unexpected token");
   return script;

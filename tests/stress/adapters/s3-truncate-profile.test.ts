@@ -35,7 +35,7 @@ test("s3: truncate condition conflicts preserve competing bytes and metadata", a
   assert.deepEqual((await mock.headObject({ Bucket: bucket, Key: "file" })).Metadata, { owner: "winner" });
 });
 
-test("s3: bounded truncate guards publication and zero truncate never downloads old bytes", async () => {
+test("s3: bounded truncate guards publication and zero truncate never downloads old bytes", async context => {
   const mock = new MockS3Client({ buckets: [bucket] });
   const fs = new S3FileSystem({ bucket, transport: mock, maxReadBytes: 16 });
   await fs.writeFile("/file", binary.slice(0, 16));
@@ -44,10 +44,12 @@ test("s3: bounded truncate guards publication and zero truncate never downloads 
   assert.ok(mock.requests.slice(before).every(request => request.operation === "headObject" || request.operation === "listObjectsV2"));
   assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
   const etag = (await mock.headObject({ Bucket: bucket, Key: "file" })).ETag;
+  const streamReads = context.mock.method(mock, "getObjectStream");
   const start = mock.requests.length;
   await fs.truncate("/file");
   const requests = mock.requests.slice(start);
-  assert.ok(requests.every(request => request.operation !== "getObject" && request.operation !== "getObjectStream"));
+  assert.ok(requests.every(request => request.operation !== "getObject"));
+  assert.equal(streamReads.mock.callCount(), 0);
   const writes = requests.filter(request => request.operation === "putObject");
   assert.equal(writes.length, 1);
   assert.ok("IfMatch" in writes[0]!.input);

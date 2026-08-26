@@ -131,6 +131,11 @@ interface Descriptor {
   readonly output?: ByteSink;
 }
 
+interface OutputFile {
+  data: Uint8Array | undefined;
+  references: number;
+}
+
 class Flow extends Error {
   constructor(readonly kind: "exit" | "return" | "break" | "continue", readonly status: number, public levels = 1) {
     super(kind);
@@ -176,6 +181,7 @@ export class Runtime {
     readonly budget: Budget,
     readonly signal: AbortSignal = budget.signal,
     readonly fileWrites = new Map<string, Promise<void>>(),
+    readonly outputFiles = new Map<string, OutputFile>(),
   ) {}
 
   async run(script: Script, state: State, io: IO): Promise<number> {
@@ -210,7 +216,7 @@ export class Runtime {
         const incoming = pipes[index - 1];
         const outgoing = pipes[index];
         const signal = AbortSignal.any([this.signal, controllers[index]!.signal]);
-        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites);
+        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles);
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
         try {
           return await interruptible(runtime.runCommandIsolated(command, cloneState(state), {
@@ -224,7 +230,7 @@ export class Runtime {
         } finally {
           controllers[index - 1]?.abort(new PipelineClosed());
           if (incoming) await incoming.abort();
-          await input.close();
+          await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
           if (outgoing) await outgoing.close().catch(() => undefined);
         }
       });
@@ -251,14 +257,15 @@ export class Runtime {
     this.budget.tick();
     this.signal.throwIfAborted();
     const inputs = new Set<ShellInput>();
+    const outputs = new Set<() => void>();
     let io = originalIO;
     try {
       if (command.kind === "function") {
         state.functions.set(command.name, command.body);
         return 0;
       }
-      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs);
-      io = await this.redirect(command.redirects, state, io, inputs);
+      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs);
+      io = await this.redirect(command.redirects, state, io, inputs, outputs);
       if (command.kind === "arithmetic") return Number(evaluateArithmetic(command.expression, state.variables) === 0n);
       if (command.kind === "subshell") {
         const child = cloneState(state);
@@ -304,7 +311,10 @@ export class Runtime {
       try { await writeText(io.stderr, `shell: ${message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
       return 1;
-    } finally { await Promise.all([...inputs].map((input) => input.close())); }
+    } finally {
+      for (const close of outputs) close();
+      await Promise.all([...inputs].map((input) => input.close()));
+    }
   }
 
   async loopBody(body: Script, state: State, io: IO): Promise<{ status: number; stop: boolean }> {
@@ -316,7 +326,7 @@ export class Runtime {
     }
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>): Promise<IO> {
     const descriptors = new Map<number, Descriptor>([
       [0, { input: io.stdin }], [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
@@ -351,18 +361,40 @@ export class Runtime {
           inputs.add(input);
           descriptors.set(redirect.descriptor, { input });
         } else {
-          await this.fileOperation(path, () => this.fs.writeFile(path, new Uint8Array(), { ...options, flag: redirect.operator === ">>" ? "a" : "w" }));
+          const append = redirect.operator === ">>";
+          let file!: OutputFile;
+          await this.fileOperation(path, async () => {
+            await this.fs.writeFile(path, new Uint8Array(), { ...options, flag: append ? "a" : "w" });
+            file = this.outputFiles.get(path) ?? { data: undefined, references: 0 };
+            if (!append) file.data = new Uint8Array();
+            file.references++;
+            this.outputFiles.set(path, file);
+          });
+          let closed = false;
+          outputs.add(() => {
+            closed = true;
+            if (--file.references === 0 && this.outputFiles.get(path) === file) this.outputFiles.delete(path);
+          });
           let offset = 0;
           const output = this.budget.sink({ write: (chunk) => {
             const copy = new Uint8Array(chunk);
             return this.fileOperation(path, async () => {
-              if (redirect.operator === ">>") await this.fs.appendFile(path, copy, options);
-              else {
-                const current = await this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes });
-                const bytes = new Uint8Array(Math.max(current.length, offset + copy.length));
-                bytes.set(current);
+              if (closed) throw new Error("Output descriptor is closed");
+              const current = file.data;
+              if (append) {
+                await this.fs.appendFile(path, copy, options);
+                if (current) {
+                  const bytes = new Uint8Array(current.length + copy.length);
+                  bytes.set(current);
+                  bytes.set(copy, current.length);
+                  file.data = bytes;
+                }
+              } else {
+                const bytes = new Uint8Array(Math.max(current?.length ?? 0, offset + copy.length));
+                if (current) bytes.set(current);
                 bytes.set(copy, offset);
                 await this.fs.writeFile(path, bytes, options);
+                file.data = bytes;
                 offset += copy.length;
               }
             });
@@ -390,7 +422,7 @@ export class Runtime {
     return { name: match[1]!, value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<() => void>): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: { name: string; value: Word }[] = [];
     let wordIndex = 0;
@@ -401,7 +433,7 @@ export class Runtime {
     }
     const commandWords = command.words.slice(wordIndex);
     const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[0]?.plain ?? ""));
-    const io = await this.redirect(command.redirects, state, originalIO, inputs);
+    const io = await this.redirect(command.redirects, state, originalIO, inputs, outputs);
     const previous = new Map<string, { value: string | undefined; exported: boolean }>();
     try {
       for (const assignment of assignments) {

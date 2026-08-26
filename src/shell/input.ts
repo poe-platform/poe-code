@@ -1,43 +1,106 @@
 import type { ByteSource } from "../contracts/index.js";
 import { Budget, interruptible } from "./runtime.js";
 
-export class ShellInput implements ByteSource {
+class InputCursor {
   readonly #iterator: AsyncIterator<Uint8Array>;
-  #pending: Uint8Array | undefined;
+  remainder: Uint8Array | undefined;
+  #read: Promise<IteratorResult<Uint8Array>> | undefined;
+  #readSettled = false;
+  #turn = Promise.resolve();
+  #returned: Promise<void> | undefined;
   #ended = false;
-  #reading = false;
+  #closed = false;
 
-  constructor(source: ByteSource, readonly budget: Budget, readonly signal = budget.signal) {
+  constructor(source: ByteSource) {
     this.#iterator = source[Symbol.asyncIterator]();
   }
 
-  async next(): Promise<IteratorResult<Uint8Array>> {
-    this.signal.throwIfAborted();
-    if (this.#pending) {
-      const value = this.#pending;
-      this.#pending = undefined;
+  async consume<Value>(signal: AbortSignal, operation: () => Promise<Value>): Promise<Value> {
+    signal.throwIfAborted();
+    const previous = this.#turn;
+    let release!: () => void;
+    const completed = new Promise<void>((resolve) => { release = resolve; });
+    this.#turn = previous.then(() => completed);
+    try {
+      await interruptible(previous, signal);
+      signal.throwIfAborted();
+      return await operation();
+    } finally { release(); }
+  }
+
+  async take(signal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
+    signal.throwIfAborted();
+    if (this.remainder) {
+      const value = this.remainder;
+      this.remainder = undefined;
       return { value, done: false };
     }
-    if (this.#ended) return { value: undefined, done: true };
-    this.#reading = true;
+    if (this.#ended || this.#closed) return { value: undefined, done: true };
+    if (!this.#read) {
+      this.#readSettled = false;
+      this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#iterator.next()).then((result) => {
+        if (result.done) return { value: undefined, done: true };
+        if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
+        return { value: new Uint8Array(result.value), done: false };
+      });
+      void this.#read.then(() => { this.#readSettled = true; }, () => { this.#readSettled = true; });
+    }
     try {
-      const result = await interruptible(this.#iterator.next(), this.signal);
+      const result = await interruptible(this.#read, signal);
+      signal.throwIfAborted();
+      this.#read = undefined;
       if (result.done) this.#ended = true;
-      else if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
       return result;
-    } finally { this.#reading = false; }
+    } catch (error) {
+      if (!signal.aborted) { this.#read = undefined; this.#closed = true; }
+      throw error;
+    }
+  }
+
+  async close(signal: AbortSignal): Promise<void> {
+    if (this.#ended) { signal.throwIfAborted(); return; }
+    this.#closed = true;
+    this.remainder = undefined;
+    const pendingRead = this.#read !== undefined && !this.#readSettled;
+    this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined, () => undefined);
+    if (!pendingRead) await interruptible(this.#returned, signal);
+    signal.throwIfAborted();
+  }
+}
+
+export class ShellInput implements ByteSource {
+  readonly #cursor: InputCursor;
+  readonly #owned: boolean;
+  readonly #lifetime = new AbortController();
+  readonly #cleanupSignal: AbortSignal;
+  readonly signal: AbortSignal;
+  #closing: Promise<void> | undefined;
+
+  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal) {
+    this.#owned = !(source instanceof ShellInput);
+    this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source);
+    this.#cleanupSignal = signal;
+    this.signal = AbortSignal.any([signal, this.#lifetime.signal]);
+  }
+
+  next(): Promise<IteratorResult<Uint8Array>> {
+    return this.#cursor.consume(this.signal, () => this.#cursor.take(this.signal));
   }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> {
     return { next: () => this.next(), [Symbol.asyncIterator]() { return this; } };
   }
 
-  async line(raw: boolean): Promise<{ value: string; terminated: boolean }> {
+  line(raw: boolean): Promise<{ value: string; terminated: boolean }> {
+    return this.#cursor.consume(this.signal, () => this.readLine(raw));
+  }
+
+  private async readLine(raw: boolean): Promise<{ value: string; terminated: boolean }> {
     const chunks: Uint8Array[] = [];
     let length = 0;
     let terminated = false;
     while (true) {
-      const result = await this.next();
+      const result = await this.#cursor.take(this.signal);
       if (result.done) break;
       const newline = result.value.indexOf(10);
       const chunk = newline < 0 ? result.value : result.value.subarray(0, newline);
@@ -45,7 +108,7 @@ export class ShellInput implements ByteSource {
       chunks.push(new Uint8Array(chunk));
       length += chunk.byteLength;
       if (newline >= 0) {
-        if (newline + 1 < result.value.length) this.#pending = result.value.subarray(newline + 1);
+        if (newline + 1 < result.value.length) this.#cursor.remainder = result.value.subarray(newline + 1);
         let slashes = 0;
         if (!raw) {
           for (let chunkIndex = chunks.length - 1; chunkIndex >= 0; chunkIndex--) {
@@ -69,12 +132,11 @@ export class ShellInput implements ByteSource {
     return { value: raw ? value : value.replace(/\\(.)/gsu, "$1"), terminated };
   }
 
-  async close(): Promise<void> {
-    if (this.#ended) return;
-    this.#ended = true;
-    try {
-      const returned = Promise.resolve(this.#iterator.return?.()).then(() => undefined, () => undefined);
-      if (!this.#reading && !this.signal.aborted) await returned;
-    } catch {}
+  close(): Promise<void> {
+    if (!this.#closing) {
+      this.#lifetime.abort(new Error("Shell input view closed"));
+      this.#closing = this.#owned ? this.#cursor.close(this.#cleanupSignal) : Promise.resolve();
+    }
+    return this.#closing;
   }
 }

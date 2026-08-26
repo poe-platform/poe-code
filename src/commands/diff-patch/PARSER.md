@@ -1,11 +1,19 @@
 # Focused parser repairs
 
+Current utility target: GNU Diffutils 3.12 / GNU patch 2.8. See `GNU-PATCH.md`
+for the current default publication, backup, rejection and `--atomic` contracts.
+The historical evidence and checkpoint counts below remain historical; they are
+not fresh validation of the GNU-default implementation.
+
 ## Suppressed blank bodies
 
 Normal `<`/`>` and context `!`/`+`/`-` without the usual following
 space represent complete empty data lines. Bare context blank lines represent
 shared empty data lines only while consuming the declared side range. Existing
-count, incomplete-EOF, paired-change, and unified overlap checks remain active.
+count, incomplete-EOF and paired-change checks remain active. Overlapping hunk
+coordinates are now judged by GNU placement/applicability in both modes, not
+rejected merely by the parser. An old-coordinate zero-range insertion after an
+earlier edit can be valid; a genuinely conflicting overlap becomes a hunk reject.
 
 GNU Diffutils 3.12 documents `--suppress-blank-empty` for these formats in its
 “Omitting trailing blanks” section. The frozen independent native evidence shows
@@ -35,14 +43,15 @@ range-bounded sides; normal parsing consumes consecutive commands as one section
 No scanner searches inside hunk payload for apparent file headers. File/hunk/work
 budgets remain shared across formats, with cumulative converted-byte accounting.
 
-An explicit `-n`, `-c`, or `-u` (including long spellings) asserts the format of
-every section, not just the first. A later incompatible section rejects the whole
-input before filesystem writes. Normal sections still require explicit TARGET.
-Existing sequential staging applies sections in input order, or reversed section
-order under `-R`; all sections are parsed and preflighted before commit. Explicit
+The last `-n`, `-c`, or `-u` selector (including long spellings) asserts the format
+of each accepted section. With `--atomic`, a later incompatible section prevents
+all writes. The default retains completed earlier sections when a later parse
+error occurs. Normal sections can use an `Index:` name or explicit TARGET; a
+bare `diff old new` line is not a native normal-format filename header. Explicit
 TARGET remains the only selected path even for differing authorized absolute
-header labels. The inspected starting implementation already permitted multiple
-sections under explicit TARGET; no single-section restriction needed removal.
+header labels. Default `-R` keeps section order and default dry-run reads the
+unmodified filesystem. Sequential hypothetical dry-run and inverse-order
+chain reversal now require `--atomic`; those are documented staging extensions.
 
 The unchanged independent 80-test parser checkpoint now reports 75 passes and
 five native-oracle failures, with no product issues in its 76 product fixtures.
@@ -52,16 +61,17 @@ zero-context middle deletion. All seven required valid-input product cases pass.
 
 ## Common empty-file flows
 
-`-E` / `--remove-empty-files` stages removal when a section's result is empty;
+`-E` / `--remove-empty-files` requests removal when a section's result is empty;
 nonempty results remain files. This composes with dry-run, reverse, and sequential
 delete/recreate sections. Without this flag, the existing `/dev/null` and epoch
 deletion rules remain unchanged.
 
 Creation from `/dev/null`, including reversed deletion, accepts an existing empty
-regular target, but rejects an existing nonempty target before writing. Creation
-hunks still require zero old content. Missing targets retain exclusive `wx`
-creation; existing targets retain the original bytes/existence preflight and
-symlink/hardlink guards. The existing backend race caveat is unchanged: portable
+regular target. The noninteractive default now follows GNU `--batch` reversal
+decisions for existing nonempty creation targets and missing deletion targets;
+`--force` disables reversal. Missing targets retain exclusive `wx` creation;
+existing targets retain bytes/existence revalidation and symlink/hardlink guards.
+The existing backend race caveat is unchanged: portable
 filesystem calls cannot make cross-file commits atomic or eliminate a concurrent
 replacement after validation. A failing backend write may have side effects.
 
@@ -81,7 +91,7 @@ These define the intended formats/options, not a claim that GNU accepts every
 generated input. Transport decisions are additionally grounded in the exact
 native cases rather than a universal CRLF compatibility assertion.
 
-## Final focused checkpoint
+## Historical parser checkpoint
 
 All five parser source hashes match the committed native evidence in
 `tests/commands/diff-patch/parser-reference-evidence.json`. Implementation commits:

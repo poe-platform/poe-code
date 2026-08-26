@@ -76,8 +76,8 @@ const malformedEmptyContext = [
 ] as const;
 
 for (const [name, input] of malformedEmptyContext) {
-  test(`empty context retains validation: ${name}`, async () => {
-    const result = await run("patch", [], { files: { target: "head\n\nold\n" }, input });
+  test(`--atomic empty context retains validation: ${name}`, async () => {
+    const result = await run("patch", ["--atomic"], { files: { target: "head\n\nold\n" }, input });
     assert.equal(result.exitCode, 2, result.stderr);
     assert.equal(result.stdout, "");
     assert.equal(await contents(result.fs, "target"), "head\n\nold\n");
@@ -127,9 +127,10 @@ const coordinateCases = [
 for (const [name, before, after, hunks] of coordinateCases) {
   for (const reverse of [false, true]) {
     test(`GNU interpretation of historical coordinates ${reverse ? "reverse" : "forward"}: ${name}`, async () => {
-      const expected = await nativeGNU(["-f", "--no-backup-if-mismatch", "-p0", "-F0", ...(reverse ? ["-R"] : [])],
+      const args = ["--batch", "-p0", "-F0", ...(reverse ? ["-R"] : [])];
+      const expected = await nativeGNU(args,
         { target: reverse ? after : before }, headers + hunks);
-      const result = await run("patch", reverse ? ["-R", "-F0"] : ["-F0"], {
+      const result = await run("patch", args, {
         files: { target: reverse ? after : before }, input: headers + hunks,
       });
       assert.equal(result.exitCode, expected.exitCode, result.stderr);
@@ -169,9 +170,6 @@ test("GNU empty coordinates remain literal for each file section", async () => {
 const invalidCoordinates = [
   ["nonempty zero remains invalid", "@@ -0 +1 @@\n-a\n+A\n"],
   ["both ranges empty", "@@ -1,0 +1,0 @@\n"],
-  ["subsequent alias cannot move backward", "@@ -1 +1 @@\n-a\n+A\n@@ -1,0 +1 @@\n+new\n"],
-  ["overlapping old range", "@@ -1,2 +1,0 @@\n-a\n-b\n@@ -2 +1 @@\n-b\n+B\n"],
-  ["overlapping new range", "@@ -1,0 +1,2 @@\n+A\n+B\n@@ -1 +2 @@\n-a\n+C\n"],
   ["unsafe coordinate integer", "@@ -9007199254740992,0 +1 @@\n+new\n"],
   ["coordinate limit", "@@ -100001,0 +100002 @@\n+new\n"],
   ["normalized header still checks body overflow", "@@ -1 +1,0 @@\n-a\n+new\n"],
@@ -180,9 +178,9 @@ const invalidCoordinates = [
 ] as const;
 
 for (const [name, hunks] of invalidCoordinates) {
-  test(`empty-range normalization retains rejection: ${name}`, async () => {
+  test(`--atomic empty-range normalization retains rejection: ${name}`, async () => {
     for (const reverse of [false, true]) {
-      const result = await run("patch", reverse ? ["-R"] : [], { files: { target: "a\nb\nc\n" }, input: headers + hunks });
+      const result = await run("patch", reverse ? ["--atomic", "-R"] : ["--atomic"], { files: { target: "a\nb\nc\n" }, input: headers + hunks });
       assert.equal(result.exitCode, 2, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(await contents(result.fs, "target"), "a\nb\nc\n");
@@ -218,10 +216,11 @@ test("bounded native-generated zero-context patches have independent forward and
       for (const reverse of [false, true]) {
         const original = reverse ? after : before;
         const expected = reverse ? before : after;
-        const actual = await run("patch", reverse ? ["-R", "-F0"] : ["-F0"], {
+        const args = ["--batch", "-p0", "-F0", ...(reverse ? ["-R"] : [])];
+        const actual = await run("patch", args, {
           files: { target: original }, input: generated.stdout,
         });
-        const gnu = await nativeGNU(["-f", "--no-backup-if-mismatch", "-p0", "-F0", ...(reverse ? ["-R"] : [])],
+        const gnu = await nativeGNU(args,
           { target: original }, generated.stdout);
         assert.equal(actual.exitCode, gnu.exitCode, `${name}: ${actual.stderr}`);
         assert.equal(await contents(actual.fs, "target"), gnu.files.target, name);

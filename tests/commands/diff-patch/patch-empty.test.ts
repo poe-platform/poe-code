@@ -45,15 +45,15 @@ for (const format of ["context", "unified"] as const) {
   }
 }
 
-test("remove-empty staging permits later recreation but rejects later conflict without writes", async () => {
+test("--atomic remove-empty stages recreation and preflights later conflicts", async () => {
   const create = "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+new\n";
-  const forward = await run("patch", ["-E", "target"], { files: { target: "old\n" }, input: deletion.normal + create });
+  const forward = await run("patch", ["--atomic", "-E", "target"], { files: { target: "old\n" }, input: deletion.normal + create });
   assert.equal(forward.exitCode, 0, forward.stderr);
   assert.equal(await contents(forward.fs, "target"), "new\n");
-  const reverse = await run("patch", ["-RE", "target"], { fs: forward.fs, input: deletion.normal + create });
+  const reverse = await run("patch", ["--atomic", "-RE", "target"], { fs: forward.fs, input: deletion.normal + create });
   assert.equal(reverse.exitCode, 0, reverse.stderr);
   assert.equal(await contents(forward.fs, "target"), "old\n");
-  const failed = await run("patch", ["-E", "target"], { files: { target: "old\n" },
+  const failed = await run("patch", ["--atomic", "-E", "target"], { files: { target: "old\n" },
     input: deletion.normal + "--- target\n+++ target\n@@ -1 +1 @@\n-wrong\n+new\n" });
   assert.equal(failed.exitCode, 1);
   assert.equal(failed.stdout, "");

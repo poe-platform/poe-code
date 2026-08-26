@@ -8,8 +8,16 @@ export interface Hunk {
   readonly newStart: number;
   readonly newCount: number;
   readonly lines: PatchLine[];
+  readonly section?: string;
 }
-export interface FilePatch { readonly oldPath: string; readonly newPath: string; readonly oldEpoch: boolean; readonly newEpoch: boolean; readonly hunks: Hunk[] }
+export interface FilePatch {
+  readonly oldPath: string; readonly newPath: string;
+  readonly oldEpoch: boolean; readonly newEpoch: boolean; readonly hunks: Hunk[];
+  readonly oldHeader?: string; readonly newHeader?: string;
+  readonly indexPath?: string;
+  readonly unlocated?: boolean;
+  readonly format?: "unified" | "normal" | "context";
+}
 
 function header(line: string, prefix: string): string {
   if (!line.startsWith(prefix)) throw new ToolError(`expected ${prefix.trim()} file header`);
@@ -48,19 +56,19 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
       continue;
     }
     const oldPath = header(line, "--- ");
+    const oldHeader = line.slice(4);
     const oldEpoch = isEpochHeader(line);
     const newPath = header(physical[++index] ?? "", "+++ ");
+    const newHeader = physical[index]!.slice(4);
     const newEpoch = isEpochHeader(physical[index]!);
     index++;
     budget.file();
     const hunks: Hunk[] = [];
-    let oldEnd = 0;
-    let newEnd = 0;
     let oldEnded = false;
     let newEnded = false;
     while (index < physical.length && physical[index]!.startsWith("@@")) {
       budget.hunk();
-      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?: .*)?$/u.exec(physical[index++]!);
+      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@( .*)?$/u.exec(physical[index++]!);
       if (!match) throw new ToolError("malformed unified hunk header");
       const oldStart = integer(match[1]!, "old start");
       const oldCount = integer(match[2] ?? "1", "old count");
@@ -70,12 +78,7 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
         if (value > budget.limits.maxLines) throw new ToolError("hunk coordinate exceeds line limit");
       }
       if ((oldCount > 0 && oldStart === 0) || (newCount > 0 && newStart === 0) || (!oldCount && !newCount)) throw new ToolError("invalid zero hunk range");
-      const oldIndex = startIndex(oldStart, oldCount);
-      const newIndex = startIndex(newStart, newCount);
-      if (oldIndex < oldEnd || newIndex < newEnd) throw new ToolError("overlapping hunk coordinates");
       if ((oldEnded && oldCount) || (newEnded && newCount)) throw new ToolError("hunk follows an incomplete final line");
-      oldEnd = oldIndex + oldCount;
-      newEnd = newIndex + newCount;
       let oldRead = 0;
       let newRead = 0;
       const lines: PatchLine[] = [];
@@ -102,10 +105,10 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
         }
       }
       if (!changed) throw new ToolError("hunk has no changes");
-      hunks.push({ oldStart, oldCount, newStart, newCount, lines });
+      hunks.push({ oldStart, oldCount, newStart, newCount, lines, section: match[5] ?? "" });
     }
     if (!hunks.length) throw new ToolError("file patch has no hunks");
-    patches.push({ oldPath, newPath, oldEpoch, newEpoch, hunks });
+    patches.push({ oldPath, newPath, oldEpoch, newEpoch, oldHeader, newHeader, hunks });
     pendingMetadata = false;
     if (single) break;
   }
@@ -116,16 +119,29 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
 
 export function reversePatch(patch: FilePatch): FilePatch {
   return {
+    ...patch,
     oldPath: patch.newPath, newPath: patch.oldPath,
     oldEpoch: patch.newEpoch, newEpoch: patch.oldEpoch,
     hunks: patch.hunks.map(hunk => ({
+      ...hunk,
       oldStart: hunk.newStart, oldCount: hunk.newCount, newStart: hunk.oldStart, newCount: hunk.oldCount,
       lines: hunk.lines.map(line => ({ kind: line.kind === "+" ? "-" : line.kind === "-" ? "+" : " ", text: line.text })),
     })),
   };
 }
 
-export async function applyHunks(original: string, patch: FilePatch, fuzz: number, budget: Budget, ignoreWhitespace = false): Promise<string> {
+export interface HunkOutcome {
+  readonly hunk: Hunk; readonly index: number; readonly failed: boolean;
+  readonly line: number; readonly outputOffset: number; readonly offset: number; readonly fuzz: number;
+}
+
+export interface HunkApplication {
+  readonly partial?: boolean;
+  readonly rejectAll?: boolean;
+  readonly outcomes?: HunkOutcome[];
+}
+
+export async function applyHunks(original: string, patch: FilePatch, fuzz: number, budget: Budget, ignoreWhitespace = false, application: HunkApplication = {}): Promise<string> {
   const source = budget.split(original);
   const result: string[] = [];
   let resultBytes = 0;
@@ -136,6 +152,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
   };
   let cursor = 0;
   let offset = 0;
+  let outputOffset = 0;
   for (const [hunkIndex, hunk] of patch.hunks.entries()) {
     budget.step();
     const oldLines = hunk.lines.filter(line => line.kind !== "+");
@@ -145,6 +162,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
     while (trailing < hunk.lines.length - leading && hunk.lines[hunk.lines.length - trailing - 1]!.kind === " ") trailing++;
     const expected = startIndex(hunk.oldStart, hunk.oldCount) + offset;
     let found = -1;
+    let usedFuzz = 0;
     const context = Math.max(leading, trailing);
     const matches = async (position: number, prefixFuzz: number, suffixFuzz: number) => {
       budget.step();
@@ -163,6 +181,8 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       return true;
     };
     for (let tolerance = 0; tolerance <= Math.min(fuzz, context); tolerance++) {
+      if (application.rejectAll) break;
+      usedFuzz = tolerance;
       const prefixFuzz = tolerance + leading - context;
       const suffixFuzz = tolerance + trailing - context;
       if (prefixFuzz < 0 && hunk.oldStart <= 1) {
@@ -187,7 +207,13 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       }
       if (found >= 0) break;
     }
-    if (found < 0) throw new ToolError(`hunk ${hunkIndex + 1} does not match ${patch.oldPath}`, 1);
+    application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0,
+      line: (found < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : found) + 1 + outputOffset,
+      outputOffset, offset: found - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });
+    if (found < 0) {
+      if (application.partial) continue;
+      throw new ToolError(`hunk ${hunkIndex + 1} does not match ${patch.oldPath}`, 1);
+    }
     while (cursor < found) append(source[cursor++]!);
     for (const line of hunk.lines) {
       if (line.kind === "+") append(line.text);
@@ -195,6 +221,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       else cursor++;
     }
     offset = found - startIndex(hunk.oldStart, hunk.oldCount);
+    outputOffset += hunk.newCount - hunk.oldCount;
   }
   while (cursor < source.length) append(source[cursor++]!);
   for (let index = 0; index < result.length - 1; index++) {

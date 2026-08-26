@@ -35,7 +35,7 @@ test("standard git text preambles and -p1", async () => {
 test("native patch offset matching and explicit fuzz preserve actual context", async () => {
   const input = "--- target\n+++ target\n@@ -1,3 +1,3 @@\n expected head\n-old\n+new\n expected tail\n";
   const files = { target: "prefix\nactual head\nold\nactual tail\nsuffix\n" };
-  const strict = await run("patch", [], { files, input });
+  const strict = await run("patch", ["-F0"], { files, input });
   assert.equal(strict.exitCode, 1, strict.stderr);
   assert.equal(await contents(strict.fs, "target"), files.target);
   const actual = await run("patch", ["--fuzz=1"], { files, input });
@@ -62,17 +62,17 @@ test("fuzz never ignores deletion content", async () => {
   assert.equal(await contents(result.fs, "target"), "head\nwrong\ntail\n");
 });
 
-test("all hunks are preflighted before modifying one file", async () => {
+test("--atomic preflights all hunks before modifying one file", async () => {
   const input = replacement + "@@ -3 +3 @@\n-missing\n+changed\n";
-  const result = await run("patch", [], { files: { target: "old\nsecond\nthird\n" }, input });
+  const result = await run("patch", ["--atomic"], { files: { target: "old\nsecond\nthird\n" }, input });
   assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(result.stdout, "");
   assert.equal(await contents(result.fs, "target"), "old\nsecond\nthird\n");
 });
 
-test("all files are preflighted before modifying any file", async () => {
+test("--atomic preflights all files before modifying any file", async () => {
   const input = replacement + replacement.replaceAll("target", "other");
-  const result = await run("patch", [], { files: { target: "old\n", other: "wrong\n" }, input });
+  const result = await run("patch", ["--atomic"], { files: { target: "old\n", other: "wrong\n" }, input });
   assert.equal(result.exitCode, 1);
   assert.equal(await contents(result.fs, "target"), "old\n");
   assert.equal(await contents(result.fs, "other"), "wrong\n");
@@ -95,22 +95,22 @@ test("multifile creation/deletion reverses without reject files", async () => {
   await assert.rejects(fs.stat("/work/fresh"));
 });
 
-test("create/delete failures never alter preexisting or remaining content", async () => {
+test("--atomic create/delete failures preserve preexisting content", async () => {
   const creation = "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n";
-  const existing = await run("patch", [], { files: { target: "existing\n" }, input: creation });
+  const existing = await run("patch", ["--atomic"], { files: { target: "existing\n" }, input: creation });
   assert.equal(existing.exitCode, 1);
   assert.equal(await contents(existing.fs, "target"), "existing\n");
   const deletion = "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n";
-  const remaining = await run("patch", [], { files: { target: "old\nretained\n" }, input: deletion });
+  const remaining = await run("patch", ["--atomic"], { files: { target: "old\nretained\n" }, input: deletion });
   assert.equal(remaining.exitCode, 1);
   assert.equal(await contents(remaining.fs, "target"), "old\nretained\n");
 });
 
-test("creation requires existing parent directories", async () => {
+test("creation makes missing parent directories with -p0", async () => {
   const input = "--- /dev/null\n+++ absent/target\n@@ -0,0 +1 @@\n+created\n";
-  const result = await run("patch", [], { input });
-  assert.equal(result.exitCode, 2);
-  assert.deepEqual(await result.fs.readdir("/work"), []);
+  const result = await run("patch", ["-p0"], { input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "absent/target"), "created\n");
 });
 
 test("empty patch is a successful no-op", async () => {
@@ -127,7 +127,6 @@ const malformed = [
   ["unsafe integer", replacement.replace("-1 +1", "-9007199254740992 +1")],
   ["empty range", replacement.replace("-1 +1", "-0,0 +0,0")],
   ["no changes", "--- target\n+++ target\n@@ -1 +1 @@\n old\n"],
-  ["overlapping hunks", replacement + "@@ -1 +1 @@\n-old\n+again\n"],
   ["unknown marker", replacement + "\\ unknown marker\n"],
   ["empty incomplete line", replacement.replace("+new\n", "+\n\\ No newline at end of file\n")],
   ["duplicate marker", replacement.replace("-old\n", "-old\n\\ No newline at end of file\n\\ No newline at end of file\n")],
@@ -141,15 +140,15 @@ const malformed = [
   ["both null", replacement.replaceAll("target", "/dev/null")],
 ];
 
-test("conflicting repeated target returns applicability conflict without early writes", async () => {
-  const result = await run("patch", [], { files: { target: "old\n" }, input: replacement + replacement });
+test("--atomic --force repeated target conflict has no early writes", async () => {
+  const result = await run("patch", ["--atomic", "--force"], { files: { target: "old\n" }, input: replacement + replacement });
   assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(result.stdout, "");
   assert.equal(await contents(result.fs, "target"), "old\n");
 });
 
-for (const [name, input] of malformed) test(`malformed patch rejected before modification: ${name}`, async () => {
-  const result = await run("patch", [], { files: { target: "old\n" }, input: input! });
+for (const [name, input] of malformed) test(`--atomic malformed patch rejected before modification: ${name}`, async () => {
+  const result = await run("patch", ["--atomic"], { files: { target: "old\n" }, input: input! });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.equal(result.stdout, "");
   assert.equal(await contents(result.fs, "target"), "old\n");

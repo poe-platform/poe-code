@@ -53,14 +53,14 @@ for (const input of [
   "*** target\n--- target\n***************\n*** 1 ****\n  old\n--- 1 ----\n  other\n",
   "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n+ new\n",
 ]) {
-  test(`malformed format never publishes ${JSON.stringify(input)}`, async () => {
-    const result = await run("patch", ["target"], { files: { target: "old\n" }, input });
+  test(`--atomic malformed format never publishes ${JSON.stringify(input)}`, async () => {
+    const result = await run("patch", ["--atomic", "target"], { files: { target: "old\n" }, input });
     assert.equal(result.exitCode, 2);
     assert.equal(await contents(result.fs, "target"), "old\n");
   });
 }
 
-test("normal format requires explicit target and preserves incomplete final lines", async () => {
+test("normal autodetection requires a target and explicit target preserves EOF", async () => {
   const input = "1c1\n< old\n\\ No newline at end of file\n---\n> new\n\\ No newline at end of file\n";
   assert.equal((await run("patch", [], { files: { target: "old" }, input })).exitCode, 2);
   const result = await run("patch", ["/work/target"], { files: { target: "old" }, input });

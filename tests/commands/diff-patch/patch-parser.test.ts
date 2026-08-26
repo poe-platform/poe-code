@@ -14,27 +14,27 @@ for (const sequence of [
   const input = sequence.map((format, index) => formats[format].replaceAll("old\n", `value${index}\n`)
     .replaceAll("new\n", `value${index + 1}\n`)).join("");
   for (const target of ["target", "/work/target"]) {
-    test(`mixed ${sequence.join("/")} stages forward, dry-run and reverse for ${target}`, async () => {
-      const result = await run("patch", ["--dry-run", target], { files: { target: "value0\n" }, input });
+    test(`--atomic mixed ${sequence.join("/")} stages forward, dry-run and reverse for ${target}`, async () => {
+      const result = await run("patch", ["--atomic", "--dry-run", target], { files: { target: "value0\n" }, input });
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(await contents(result.fs, "target"), "value0\n");
-      const forward = await run("patch", [target], { fs: result.fs, input });
+      const forward = await run("patch", ["--atomic", target], { fs: result.fs, input });
       assert.equal(forward.exitCode, 0, forward.stderr);
       assert.equal(await contents(result.fs, "target"), `value${sequence.length}\n`);
-      const reverse = await run("patch", ["-R", target], { fs: result.fs, input });
+      const reverse = await run("patch", ["--atomic", "-R", target], { fs: result.fs, input });
       assert.equal(reverse.exitCode, 0, reverse.stderr);
       assert.equal(await contents(result.fs, "target"), "value0\n");
     });
   }
-  test(`mixed ${sequence.join("/")} rejects an incompatible later asserted format`, async () => {
-    const result = await run("patch", [`--${sequence[0]}`, "target"], { files: { target: "value0\n" }, input });
+  test(`--atomic mixed ${sequence.join("/")} rejects a later asserted format`, async () => {
+    const result = await run("patch", ["--atomic", `--${sequence[0]}`, "target"], { files: { target: "value0\n" }, input });
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /not requested/u);
     assert.equal(await contents(result.fs, "target"), "value0\n");
   });
   for (const later of ["--- other\n+++ other\n@@ -1 +1 @@\n-old\n", "1c1\n< wrong\n---\n> value\n"]) {
-    test(`mixed ${sequence.join("/")} rejects later ${later.startsWith("1") ? "conflict" : "parse error"} before writing`, async () => {
-      const result = await run("patch", ["target"], { files: { target: "value0\n", other: "old\n" }, input: input + later });
+    test(`--atomic mixed ${sequence.join("/")} rejects later ${later.startsWith("1") ? "conflict" : "parse error"} before writing`, async () => {
+      const result = await run("patch", ["--atomic", "target"], { files: { target: "value0\n", other: "old\n" }, input: input + later });
       assert.notEqual(result.exitCode, 0);
       assert.equal(result.stdout, "");
       assert.equal(await contents(result.fs, "target"), "value0\n");

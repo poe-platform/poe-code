@@ -128,7 +128,7 @@ test("commit failures stop later files and disclose the committed prefix", async
   assert.equal(await contents(fs, "third"), "old\n");
 });
 
-test("late mutation observed in precommit validation prevents all command writes", async () => {
+test("--atomic late mutation in precommit validation prevents all command writes", async () => {
   const fs = await filesystem({ target: "old\n" });
   const originalRead = fs.readFile.bind(fs);
   let reads = 0;
@@ -143,7 +143,7 @@ test("late mutation observed in precommit validation prevents all command writes
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  const result = await run("patch", [], { fs: wrapper, input: replacement });
+  const result = await run("patch", ["--atomic"], { fs: wrapper, input: replacement });
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /changed during preflight/u);
   assert.equal(await contents(fs, "target"), "concurrent\n");

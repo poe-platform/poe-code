@@ -1,17 +1,18 @@
-import { dirname, resolvePath, writeBytes, type CommandContext, type FileStat } from "../../contracts/index.js";
+import { dirname, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
-import { applyHunks, reversePatch } from "./unified.js";
+import { applyHunks, reversePatch, type HunkOutcome } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
-import { parsePatch, type PatchFormat } from "./patch-formats.js";
+import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-formats.js";
+import { authorizeOutputs, authorizePaths, backupName, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type PathOptions } from "./patch-gnu-paths.js";
+import { rejectText } from "./patch-gnu-reject.js";
 
-interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
+interface PatchFlags { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; force: boolean; backup: boolean; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
 
 function flags(args: readonly string[]): PatchFlags {
-  const result: PatchFlags = { strip: 0, input: "-", reverse: false, dryRun: false, fuzz: 0, ignoreWhitespace: false, removeEmpty: false };
+  const result: PatchFlags = { input: "-", reverse: false, dryRun: false, atomic: false, force: false, backup: true, fuzz: 2, ignoreWhitespace: false, removeEmpty: false };
   const operands: string[] = [];
   const select = (format: PatchFormat) => {
-    if (result.format && result.format !== format) throw new ToolError("conflicting patch format options");
     result.format = format;
   };
   let literal = false;
@@ -25,31 +26,40 @@ function flags(args: readonly string[]): PatchFlags {
     if (literal || arg === "-" || !arg.startsWith("-")) operands.push(arg);
     else if (arg === "--") literal = true;
     else if (arg === "--dry-run") result.dryRun = true;
+    else if (arg === "--atomic") result.atomic = true;
+    else if (arg === "--force") result.force = true;
+    else if (arg === "--batch") continue;
+    else if (arg === "--no-backup-if-mismatch") result.backup = false;
+    else if (arg === "--backup-if-mismatch") result.backup = true;
     else if (arg === "--reverse") result.reverse = true;
     else if (arg === "--remove-empty-files") result.removeEmpty = true;
     else if (arg === "--ignore-whitespace" || arg === "--ignore-white-space") result.ignoreWhitespace = true;
     else if (arg === "--unified") select("unified");
     else if (arg === "--context") select("context");
     else if (arg === "--normal") select("normal");
-    else if (/^--(?:strip|input|fuzz)(?:=|$)/u.test(arg)) {
+    else if (/^--(?:strip|input|fuzz|reject-file)(?:=|$)/u.test(arg)) {
       const [name] = arg.split("=");
       const parameter = value(arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : undefined, name!);
       if (name === "--strip") result.strip = integer(parameter, "strip count");
       else if (name === "--fuzz") result.fuzz = integer(parameter, "fuzz");
+      else if (name === "--reject-file") result.reject = parameter;
       else result.input = parameter;
     } else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
     else for (let offset = 1; offset < arg.length; offset++) {
       const flag = arg[offset]!;
       if (flag === "R") result.reverse = true;
+      else if (flag === "f") result.force = true;
+      else if (flag === "t") continue;
       else if (flag === "E") result.removeEmpty = true;
       else if (flag === "l") result.ignoreWhitespace = true;
       else if (flag === "u") select("unified");
       else if (flag === "c") select("context");
       else if (flag === "n") select("normal");
-      else if (flag === "p" || flag === "i" || flag === "F") {
+      else if (flag === "p" || flag === "i" || flag === "F" || flag === "r") {
         const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
         if (flag === "p") result.strip = integer(parameter, "strip count");
         else if (flag === "F") result.fuzz = integer(parameter, "fuzz");
+        else if (flag === "r") result.reject = parameter;
         else result.input = parameter;
         break;
       } else throw new ToolError(`unsupported option: -${flag}`);
@@ -61,16 +71,53 @@ function flags(args: readonly string[]): PatchFlags {
   return result;
 }
 
-function regular(stat: FileStat | undefined, path: string): void {
-  if (stat && stat.type !== "file") throw new ToolError(`patch target is not a regular file: ${path}`);
-  if (stat && (stat.nlink ?? 1) > 1) throw new ToolError(`hard-linked patch targets are unsupported: ${path}`);
-}
-
 interface Prepared {
   readonly path: string;
   readonly original: string | undefined;
   readonly result: string;
   readonly remove: boolean;
+  readonly backup?: string;
+  readonly backupPath?: string;
+  readonly rejectPath?: string;
+  readonly reject?: string;
+  readonly parents: readonly string[];
+}
+
+async function unchanged(item: Prepared, budget: Budget): Promise<void> {
+  const stat = await inspect(budget, item.path);
+  regular(stat, item.path);
+  if ((stat === undefined) !== (item.original === undefined)
+    || (item.original !== undefined && await budget.read(item.path) !== item.original)) {
+    throw new ToolError(`target changed during preflight: ${item.path}`, 1);
+  }
+  for (const path of [item.backupPath, item.rejectPath]) {
+    if (path !== undefined) regular(await inspect(budget, path), path);
+  }
+  for (const parent of item.parents) await inspect(budget, parent);
+}
+
+async function publish(item: Prepared, budget: Budget, rejects: Set<string>): Promise<void> {
+  const context = budget.context;
+  await unchanged(item, budget);
+  const write = async (path: string, text: string, append = false, createParents = true) => {
+    if (createParents) await ensureParents(path, budget);
+    else if ((await inspect(budget, dirname(path)))?.type !== "directory") throw new ToolError(`reject parent does not exist: ${dirname(path)}`);
+    const stat = await inspect(budget, path);
+    regular(stat, path);
+    if (append) await host(context, () => context.fs.appendFile(path, Buffer.from(text), { signal: context.signal }));
+    else await host(context, () => context.fs.writeFile(path, Buffer.from(text), { signal: context.signal, flag: stat ? "w" : "wx" }));
+  };
+  if (item.backup !== undefined && item.backupPath !== undefined) await write(item.backupPath, item.backup);
+  if (item.remove) {
+    if (item.original !== undefined) {
+      regular(await inspect(budget, item.path), item.path);
+      await host(context, () => context.fs.rm(item.path, { signal: context.signal }));
+    }
+  } else await write(item.path, item.result);
+  if (item.rejectPath !== undefined && item.reject !== undefined) {
+    await write(item.rejectPath, item.reject, rejects.has(item.rejectPath), false);
+    rejects.add(item.rejectPath);
+  }
 }
 
 async function run(context: CommandContext, budget: Budget): Promise<number> {
@@ -82,74 +129,145 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
   }
   const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
-  const parsed = await parsePatch(await unwrapPatch(input, budget), budget, options.format, explicit);
+  const progress: ParseProgress | undefined = options.atomic ? undefined : {};
+  const sections = await parsePatch(await unwrapPatch(input, budget), budget, options.format, explicit, progress);
+  const parsed = options.format === "normal" ? sections : sections.filter(patch => !patch.unlocated);
+  if (sections.length && !parsed.length) throw new ToolError("no identifiable patch; normal input requires a target, Index header, or -n");
+  const reject = options.reject === undefined || options.reject === "-" ? options.reject : safeTarget(options.reject, 0, true);
+  if (options.reject !== undefined && reject === undefined) throw new ToolError("/dev/null is not a reject file; use -r -");
+  const paths: PathOptions = { strip: options.strip, explicit, reject,
+    input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
+  const authorized = await authorizePaths(parsed, paths, budget);
+  const targets = new Set(authorized.flatMap(item => item.candidates.map(name => resolvePath(context.cwd, name))));
   const staged = new Map<string, Prepared>();
-  for (const sourcePatch of options.reverse ? parsed.slice().reverse() : parsed) {
-    const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
-    const oldName = safeTarget(patch.oldPath, explicit === undefined ? options.strip : 0, explicit !== undefined);
-    const newName = safeTarget(patch.newPath, explicit === undefined ? options.strip : 0, explicit !== undefined);
-    if (oldName === undefined && newName === undefined) throw new ToolError("both patch filenames are /dev/null");
-    const oldPath = oldName === undefined ? undefined : resolvePath(context.cwd, explicit ?? oldName);
-    const newPath = newName === undefined ? undefined : resolvePath(context.cwd, explicit ?? newName);
-    const oldStat = oldPath === undefined ? undefined : await inspect(budget, oldPath);
-    const newStat = newPath === undefined || newPath === oldPath ? oldStat : await inspect(budget, newPath);
-    const oldExists = oldPath !== undefined && (staged.has(oldPath) ? !staged.get(oldPath)!.remove : oldStat !== undefined);
-    const newExists = newPath !== undefined && (staged.has(newPath) ? !staged.get(newPath)!.remove : newStat !== undefined);
-    const path = explicit ? resolvePath(context.cwd, explicit) : oldExists ? oldPath! : newExists ? newPath! : oldPath ?? newPath!;
-    const prior = staged.get(path);
+  const touched = new Set<string>();
+  const rejects = new Set<string>();
+  const backupPaths = new Set<string>();
+  const rejectPaths = new Set<string>();
+  const parents = new Set<string>();
+  const messages: string[] = [];
+  let exitCode = 0;
+  let committed = 0;
+  const status = async (text: string) => {
+    budget.output(text);
+    if (options.atomic) messages.push(text);
+    else await writeBytes(context.stdout, Buffer.from(text), context.signal);
+  };
+  for (const authorizedPatch of options.atomic && options.reverse ? authorized.slice().reverse() : authorized) {
+    const sourcePatch = authorizedPatch.patch;
+    if (sourcePatch.unlocated) {
+      if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);
+      await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+      exitCode = 1;
+      continue;
+    }
+    let reversed = options.reverse;
+    let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
+    const name = await selectTarget(authorizedPatch, async path => options.atomic && staged.has(path)
+      ? !staged.get(path)!.remove : await inspect(budget, path) !== undefined, budget);
+    const path = resolvePath(context.cwd, name);
+    const prior = options.atomic ? staged.get(path) : undefined;
     const stat = await inspect(budget, path);
     regular(stat, path);
-    const parent = await inspect(budget, dirname(path));
-    if (parent?.type !== "directory") throw new ToolError(`target parent directory must already exist: ${dirname(path)}`);
     const exists = prior ? !prior.remove : stat !== undefined;
-    const oldEmpty = patch.hunks.every(hunk => hunk.oldCount === 0 && hunk.oldStart === 0);
-    const newEmpty = patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0);
-    const creation = oldName === undefined || (oldEmpty && !exists);
-    const remove = newName === undefined || (patch.newEpoch && newEmpty);
-    if (!creation && !exists) throw new ToolError(`patch target does not exist: ${path}`, 1);
-    if (creation && patch.hunks.some(hunk => hunk.oldCount !== 0 || hunk.oldStart !== 0)) throw new ToolError("creation patch contains old content");
     const original = prior ? prior.original : stat ? await budget.read(path) : undefined;
     const current = prior ? prior.remove ? "" : prior.result : original ?? "";
-    if (creation && exists && current !== "") throw new ToolError(`creation target already exists: ${path}`, 1);
-    if (patch.oldEpoch && oldEmpty && current !== "") throw new ToolError(`creation target already exists: ${path}`, 1);
-    const result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace);
-    if (remove && result !== "") throw new ToolError(`deletion patch leaves content: ${path}`, 1);
-    staged.set(path, { path, original, result, remove: remove || (options.removeEmpty && result === "") });
-  }
-  const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
-  const status = prepared.map(item => `${options.dryRun ? "checking" : "patching"} file ${item.path}\n`).join("");
-  budget.output(status);
-  if (options.dryRun) {
-    await writeBytes(context.stdout, Buffer.from(status), context.signal);
-    return 0;
-  }
-  for (const item of prepared) {
-    const stat = await inspect(budget, item.path);
-    regular(stat, item.path);
-    if ((stat === undefined) !== (item.original === undefined)) throw new ToolError(`target changed during preflight: ${item.path}`, 1);
-    if (item.original !== undefined) {
-      const current = await budget.read(item.path);
-      if (current !== item.original) throw new ToolError(`target changed during preflight: ${item.path}`, 1);
+    const emptyOld = () => patch.hunks.every(hunk => hunk.oldCount === 0 && hunk.oldStart === 0);
+    const creation = () => patch.oldPath === "/dev/null" || (emptyOld() && (patch.oldEpoch || !exists));
+    let autoReversed = false;
+    let reverseMismatch = false;
+    const declaredCreation = patch.oldPath === "/dev/null" || (patch.oldEpoch && emptyOld());
+    const declaredDeletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0));
+    if (!options.force && ((declaredCreation && current !== "") || (declaredDeletion && !exists))) {
+      patch = reversePatch(patch);
+      reversed = !reversed;
+      autoReversed = true;
+    }
+    if (!creation() && !exists) {
+      if (options.atomic) throw new ToolError(`patch target does not exist: ${path}`, 1);
+      await status(`No file to patch.  Skipping patch ${name}.\n${patch.hunks.length} out of ${patch.hunks.length} hunks ignored\n`);
+      exitCode = 1;
+      continue;
+    }
+    let outcomes: HunkOutcome[] = [];
+    let result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
+      partial: true, outcomes, rejectAll: creation() && current !== "",
+    });
+    if (!options.force && !autoReversed && (outcomes[0]?.failed || outcomes[0]?.fuzz)) {
+      const opposite = reversePatch(patch);
+      const probe: HunkOutcome[] = [];
+      const reverseFuzz = outcomes[0]!.failed ? options.fuzz : outcomes[0]!.fuzz - 1;
+      await applyHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe });
+      const oppositeCreation = opposite.oldPath === "/dev/null" || (opposite.oldEpoch && opposite.hunks.every(hunk => hunk.oldCount === 0));
+      if (!probe[0]?.failed && !(oppositeCreation && current !== "")) {
+        patch = opposite;
+        reversed = !reversed;
+        autoReversed = true;
+        reverseMismatch = true;
+        outcomes = [];
+        result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, { partial: true, outcomes });
+      }
+    }
+    const failed = outcomes.filter(outcome => outcome.failed);
+    const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0));
+    const conflict = failed.length > 0 || (deletion && result !== "");
+    if (options.atomic && conflict) throw new ToolError(failed.length ? `hunk ${failed[0]!.index} does not match ${name}` : `deletion patch leaves content: ${name}`, 1);
+    if (conflict) exitCode = 1;
+    const mismatch = reverseMismatch || outcomes.some(outcome => outcome.failed || outcome.offset !== 0 || outcome.fuzz !== 0);
+    const backup = options.backup && mismatch && !touched.has(path) ? original ?? "" : undefined;
+    const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget);
+    const rejectDestination = rejectName(name, paths);
+    const rejectPath = failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
+    const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget);
+    await authorizeOutputs([backupPath, rejectPath], targets, paths.input, budget);
+    if ((backupPath !== undefined && rejectPaths.has(backupPath)) || (rejectPath !== undefined && backupPaths.has(rejectPath))) {
+      throw new ToolError("reject path aliases another section's backup");
+    }
+    if (backupPath !== undefined) backupPaths.add(backupPath);
+    if (rejectPath !== undefined) rejectPaths.add(rejectPath);
+    const remove = result === "" && (deletion || options.removeEmpty);
+    const item: Prepared = { path, original, result, remove,
+      ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
+      ...(backupPath === undefined ? {} : { backupPath }),
+      ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd) : [] };
+    let message = `${options.dryRun ? "checking" : "patching"} file ${name}\n`;
+    if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
+    for (const outcome of outcomes) {
+      if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
+      else if (outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${Math.abs(outcome.offset) === 1 ? "line" : "lines"})` : ""}.\n`;
+    }
+    if (failed.length) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
+    if (deletion && result !== "") message += `Not deleting file ${name} as content differs from patch\n`;
+    budget.output(result);
+    if (backup !== undefined) budget.output(backup);
+    await status(message);
+    touched.add(path);
+    if (options.atomic) staged.set(path, item);
+    else if (!options.dryRun) {
+      try { await publish(item, budget, rejects); committed++; }
+      catch (error) {
+        context.signal.throwIfAborted();
+        throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${path}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      for (const parent of item.parents) parents.add(parent);
     }
   }
-  let committed = 0;
-  for (const item of prepared) {
-    try {
-      const stat = await inspect(budget, item.path);
-      regular(stat, item.path);
-      if ((stat === undefined) !== (item.original === undefined)) throw new ToolError("target existence changed");
-      if (item.remove) await host(context, () => context.fs.rm(item.path, { signal: context.signal }));
-      else await host(context, () => context.fs.writeFile(item.path, Buffer.from(item.result), {
-        signal: context.signal, flag: item.original === undefined ? "wx" : "w",
-      }));
-      committed++;
-    } catch (error) {
-      context.signal.throwIfAborted();
-      throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${error instanceof Error ? error.message : String(error)}`);
+  if (options.atomic && !options.dryRun) {
+    const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
+    for (const item of prepared) await unchanged(item, budget);
+    for (const item of prepared) {
+      try { await publish(item, budget, rejects); committed++; }
+      catch (error) {
+        context.signal.throwIfAborted();
+        throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      for (const parent of item.parents) parents.add(parent);
     }
   }
-  await writeBytes(context.stdout, Buffer.from(status), context.signal);
-  return 0;
+  if (!options.dryRun) await pruneDirectories(parents, budget);
+  if (options.atomic) await writeBytes(context.stdout, Buffer.from(messages.join("")), context.signal);
+  if (progress?.error) throw progress.error;
+  return exitCode;
 }
 
 export function patchCommand(options: DiffPatchOptions) { return definition("patch", options, run); }

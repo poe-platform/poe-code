@@ -70,15 +70,15 @@ test("normal zero-origin insertion can create a missing authorized target", asyn
   assert.equal(await contents(result.fs, "target"), "new\n");
 });
 
-test("epoch create/delete sequence publishes nothing, and later conflict prevents every write", async () => {
+test("--atomic epoch create/delete sequence and later conflict preserve namespace", async () => {
   const create = creation("unified", epochDates[0]!);
   const remove = `--- target\t${currentDate}\n+++ target\t${epochDates[0]}\n@@ -1 +0,0 @@\n-new\n`;
   const fs = await filesystem();
-  const result = await run("patch", [], { fs, input: create + remove });
+  const result = await run("patch", ["--atomic"], { fs, input: create + remove });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "");
+  assert.equal(result.stdout, "patching file target\npatching file target\n");
   await assert.rejects(fs.stat("/work/target"), { code: "ENOENT" });
-  const failed = await run("patch", [], { fs, input: create + remove.replace("-new\n", "-wrong\n") });
+  const failed = await run("patch", ["--atomic"], { fs, input: create + remove.replace("-new\n", "-wrong\n") });
   assert.equal(failed.exitCode, 1);
   await assert.rejects(fs.stat("/work/target"), { code: "ENOENT" });
 });

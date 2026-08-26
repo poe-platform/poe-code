@@ -8,8 +8,17 @@ export const gnuPatch = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
 export const gnuDiff = "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff";
 
 export async function nativeGNU(args: readonly string[], files: Files = {}, input = "", tool = gnuPatch) {
-  const root = await mkdtemp(join(process.cwd(), "tests/commands/diff-patch/patch-gnu-native-"));
+  assert(tool === gnuPatch || tool === gnuDiff);
+  assert(Buffer.byteLength(input) <= 1024 * 1024);
+  for (const arg of args) {
+    assert(!arg.includes("\0") && !arg.startsWith("/") && !arg.split(/[=/]/u).includes(".."), "host argv must remain fixture-relative or use $ROOT");
+    assert(!arg.includes("=/"), "absolute option paths must use $ROOT");
+  }
+  const boundary = await mkdtemp(join(process.cwd(), "tests/commands/diff-patch/patch-gnu-native-"));
+  const root = join(boundary, "work");
   try {
+    await mkdir(root);
+    await writeFile(join(boundary, "boundary"), "fixture boundary\n", { flag: "wx" });
     for (const [path, text] of Object.entries(files)) {
       assert(path && !path.startsWith("/") && !path.split("/").includes(".."));
       await mkdir(dirname(join(root, path)), { recursive: true });
@@ -33,8 +42,13 @@ export async function nativeGNU(args: readonly string[], files: Files = {}, inpu
         else throw new Error(`unexpected native entry: ${path}`);
       }
     };
-    await visit("");
+    let rootExists = true;
+    try { await visit(""); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      rootExists = false;
+    }
     return { exitCode: result.status!, stdout: result.stdout.replaceAll(root, "$ROOT"),
-      stderr: result.stderr.replaceAll(root, "$ROOT"), files: final, directories: directories.sort() };
-  } finally { await rm(root, { recursive: true, force: true }); }
+      stderr: result.stderr.replaceAll(root, "$ROOT"), files: final, directories: directories.sort(), rootExists };
+  } finally { await rm(boundary, { recursive: true, force: true }); }
 }

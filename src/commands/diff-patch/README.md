@@ -16,9 +16,9 @@ diffPatchCommands(options?: DiffPatchOptions): VirtualShellPlugin
 The definitions are named `diff` and `patch`. The plugin is named
 `diff-patch-commands`, checks both registrations before registering either, and
 supports `replace?: boolean`. All options are optional. Each command invocation
-gets an independent budget. Root exports, package exports, and standard-plugin
-composition remain Curie's integration responsibility; this subtree does not
-claim an installed package import path. Existing shared contracts were inspected
+gets an independent budget. The agent bundle includes `diff` and `patch`;
+`diffPatchCommands(options?)` installs just that family. Existing package exports
+and plugin signatures are unchanged. Existing shared contracts were inspected
 and the source entry point was exercised directly through `Shell.use`.
 
 ## Supported diff subset
@@ -26,8 +26,12 @@ and the source entry point was exercised directly through `Shell.use`.
 - Two file/directory operands, with `-` for stdin; two `-` operands share one
   captured input. A file versus directory compares the file's basename inside
   the directory. `--` terminates options.
-- Normal output is the default; unified output is selected by `-u` / `--unified`.
+- Normal output is the default (`--normal`); unified output is selected by
+  `-u` / `--unified`.
   `-U N`, `-UN`, and `--unified=N` set context, including zero context.
+- Context output uses `-c`, `-C N`, or `--context[=N]`.
+- `-b` / `--ignore-space-change` and `-w` / `--ignore-all-space` affect
+  comparison rather than rewriting emitted file content.
 - `-q` / `--brief`, `-r` / `--recursive`, and `-N` / `--new-file`;
   short flags may be grouped. Directory entries are sorted by JavaScript's
   deterministic string ordering, not locale collation. Without recursion,
@@ -51,9 +55,12 @@ periodically to observe cancellation.
 
 ## Supported patch subset
 
-- Strict unified patches from stdin, `-i FILE` / `--input=FILE`, or
-  `--input FILE`; `-i -` means stdin. An optional positional target overrides
-  each section's target without bypassing header path validation.
+- Unified, normal, and context patches are autodetected from stdin,
+  `-i FILE` / `--input=FILE`, or `--input FILE`; `-i -` means stdin.
+  `-u` / `--unified`, `-n` / `--normal`, and `-c` / `--context` assert the
+  input format. Normal input requires one explicit target. An optional
+  positional target overrides each section's target without bypassing header
+  path validation.
 - `-p N`, `-pN`, and `--strip=N` strip path components; the default is zero,
   not a basename-selection heuristic. `-R` / `--reverse` swaps both headers,
   hunk coordinates, and added/deleted lines. `--dry-run` performs preparation
@@ -71,8 +78,14 @@ periodically to observe cancellation.
   additions are preserved, including their original whitespace.
 - `/dev/null` headers create/delete files. Creation requires absence and an
   existing parent directory. Deletion requires an empty resulting file.
-  Multiple distinct targets are supported. Normal patches prefer an existing
+  Multiple distinct targets are supported. Header-selected patches prefer an existing
   old header path, then an existing new header path; they do not rename files.
+- Epoch-dated empty sides in unified/context headers also support creation and
+  deletion. Timestamp recognition supports ISO-style and traditional `ctime`
+  headers, following GNU patch 2.8's measured near-epoch window (strictly between
+  -25 and +26 hours), not timestamp restoration or arbitrary date syntax.
+  Zero-origin insertions can create a missing target without an epoch marker;
+  deleting to an ordinary non-epoch empty side leaves an empty file.
 - Headers may have tab-separated timestamps or unquoted spaces in filenames.
   Git C-quoted paths support literal spaces/tabs, escaped quotes, and three-digit
   octal UTF-8 bytes. Unknown escapes, oversized octets, and invalid UTF-8 fail.
@@ -104,13 +117,17 @@ are preserved byte-for-byte; Unicode and line endings are not normalized.
 Unified patch transport uses LF-terminated physical lines and the exact
 `\ No newline at end of file` marker. A missing final physical LF is rejected.
 
-Patch header and explicit target paths must be relative to the virtual cwd.
-Absolute paths other than the `/dev/null` header sentinel, `..` components,
-backslashes, drive-prefix components, and control characters other than tabs are
-rejected **before stripping**, even when an explicit target overrides headers.
+An explicit target such as `patch /work/file < change` authorizes that absolute
+**virtual** path, not a host path; relative explicit targets work too. Without
+an explicit target, absolute header paths other than `/dev/null` are rejected.
+With one, headers are validated but never select another file, and `-p` does not
+strip the explicit target. Traversal (`..` components), backslashes, drive-prefix
+components, directory-shaped labels, and control characters other than tabs are
+rejected **before normalization or stripping**, even with an explicit target.
 Adjacent relative slashes collapse before stripping; traversal never collapses.
 Dot components are allowed; repeated normalized targets share staged state.
-Input patch files may be read from another virtual directory with `-i`.
+Input patch files may be read from another virtual directory with `-i`, including
+an absolute virtual path.
 Diff operands may use absolute virtual paths. Resolved paths are limited to
 4096 UTF-16 code units and 256 components; raw patch paths have the same bound.
 
@@ -156,7 +173,7 @@ synchronous JavaScript operation.
 | --- | ---: | --- |
 | `maxInputBytes` | 16 MiB | Aggregate captured input, including target rechecks |
 | `maxOutputBytes` | 16 MiB | Diff stdout, or aggregate patch results plus status |
-| `maxLines` | 100,000 | Aggregate tokenized lines and individual hunk-coordinate bound |
+| `maxLines` | 100,000 | Aggregate tokenized lines, including converted formats and target contents, and individual hunk-coordinate bound |
 | `maxWork` | 8,000,000 | Traversal, chunk, matching, and computation work units |
 | `maxMatrixCells` | 4,000,000 | Diff LCS table cells, four bytes each |
 | `maxFiles` | 1,024 | Diff visited pairs/queued-entry bound, or patch file sections |
@@ -171,14 +188,31 @@ directory listings must also be bounded by their owners.
 
 ## Known gaps
 
-This is not full GNU/BSD diff or patch compatibility. Context/ed/normal patch
-formats, binary patches, renames/copies, permission
+This is not full GNU/BSD diff or patch compatibility. Ed patches,
+binary patches, renames/copies, mode-only patches, permission
 changes, automatic parent-directory creation, empty-directory changes, and
 symlink patches are unsupported. `-N` treats absent content as empty and cannot
 express creation/deletion of a zero-byte file. Diagnostics, timestamps, default fuzz, default path
 selection, placement heuristics, and malformed-patch policy intentionally
 differ from native tools. No result here demonstrates superiority to just-bash
 or completion of the wider full-shell/72-hour objective.
+Option-order and whitespace-dialect differences remain separately recorded by
+the independent verifiers.
+
+## Optional GNU reference driver
+
+The source-owned native reference driver uses only a caller-selected GNU patch
+2.8 binary, bounded literal argv, and isolated temporary directories:
+
+```sh
+GNU_PATCH_BINARY=/path/to/patch-2.8/src/patch \
+  node --import tsx tests/commands/diff-patch/patch-gnu-reference.ts
+```
+
+It records executable identity plus 126 exact status/content/existence checks;
+native diagnostics are recorded rather than normalized into an asserted match.
+This focused evidence does not replace the full comparison denominator or prove
+full-shell compatibility or superiority.
 
 ## Author validation checkpoint
 

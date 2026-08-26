@@ -1,0 +1,149 @@
+{
+  "provenance": {
+    "capturedAt": "2026-08-26T20:52:48.460Z",
+    "executable": "/usr/bin/jq",
+    "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+    "version": {
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6a712d312e372e312d6170706c650a",
+      "stderrHex": "",
+      "stdoutSha256": "8f0cb494827734c0ed992bd222c9888398f880757e9156f3f3264ff061480bb4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+      "stderrHex": "",
+      "stdoutSha256": "91e521c87733f623b24c129f5fa117b52861aba52652a293ee3fa6c8db745703",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scriptSha256": "925996d55a6dbc25539b2c32bb20b69d7b0f602fce1bce01a6e3927a19ffc25f",
+    "productHashes": {
+      "input.ts": "c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829",
+      "jq.ts": "b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4",
+      "interpreter.ts": "18a6ec16d29f434244c78c2f842ed1c1e716e5c03d9b65c605a38a2ea02b2b93",
+      "parser.ts": "e5778a10fc6fefb211c3c4aa39edd937fb372803a0c92e4f0c3557fc184adbfd",
+      "limits.ts": "f55d8f084b980633247a193802226e54c92164434cabfd7e7ae8b460999d4bb0",
+      "values.ts": "d4816d016c7e889b4944703410bdbdbb3a05445d9f6bdba14b9bde2c1651830d"
+    },
+    "note": "Additive author investigation, native expectations captured before any phase-two product source changes. Same bounded literal-argv harness as phase one. Not independent final verification."
+  },
+  "cases": [
+    {
+      "id": "compare-mixed-double-grouped",
+      "category": "decimal-compare",
+      "inputHex": "39303037313939323534373430393933",
+      "argv": [
+        "-c",
+        "--",
+        "[.==(.+0),.>(.+0),([.,.+0]|unique)]"
+      ],
+      "inputSha256": "a1c367c29158357e62a3ff5d3e800fb7698a22396439dbc0a9d4929322afd35d",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b747275652c66616c73652c5b393030373139393235343734303939335d5d0a",
+        "stderrHex": "",
+        "stdoutSha256": "ae86a7a548883392618d807eed8ad910768d84b7bd273fb99731ca33de29f10b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "scalar-types-grouped",
+      "category": "numeric-integration",
+      "inputHex": "31322e33343030",
+      "argv": [
+        "-c",
+        "--",
+        "[type,numbers,scalars,(objects|type),(iterables|type),([.,\"s\",{},[],null,false]|sort)]"
+      ],
+      "inputSha256": "9a566073f0c3f0b22613b308f42619931d5c33adbe8451005abf57533575148c",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b226e756d626572222c31322e333430302c31322e333430302c5b6e756c6c2c66616c73652c31322e333430302c2273222c5b5d2c7b7d5d5d0a",
+        "stderrHex": "",
+        "stdoutSha256": "36676328f707fa189e7587acccf5ec2b7f5f12bb23b44b30a216e9f7fc2063fc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "preserve-through-copy-grouped",
+      "category": "numeric-integration",
+      "inputHex": "7b2261223a31322e333430302c2262223a393030373139393235343734303939337d",
+      "argv": [
+        "-c",
+        "--",
+        "[map_values(.),(to_entries|from_entries),(.a=0),(.b|numbers)]"
+      ],
+      "inputSha256": "d2e07fb52aa9b01dc104e92a643834b41e40745bd7c8fad11f542fcf7e310007",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b7b2261223a31322e333430302c2262223a393030373139393235343734303939337d2c7b2261223a31322e333430302c2262223a393030373139393235343734303939337d2c7b2261223a302c2262223a393030373139393235343734303939337d2c393030373139393235343734303939335d0a",
+        "stderrHex": "",
+        "stdoutSha256": "bb13cfde56db2a711c46cddd156379208da73e7e23a809557b61c5556222011b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "arithmetic-overflow",
+      "category": "numeric-integration",
+      "inputHex": "6e756c6c",
+      "argv": [
+        "-c",
+        "--",
+        "[1e308*1e308,-1e308*1e308,1e400*0,1e400-1e400]"
+      ],
+      "inputSha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b312e37393736393331333438363233313537652b3330382c2d312e37393736393331333438363233313537652b3330382c6e756c6c2c6e756c6c5d0a",
+        "stderrHex": "",
+        "stdoutSha256": "11193cd91436493e97b0193023bee1aeada0b27497666c25ee6cfd595f3910f7",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "conversion-large-token",
+      "category": "numeric-integration",
+      "inputHex": "6e756c6c",
+      "argv": [
+        "-c",
+        "--",
+        "[\"1e9999\"|tonumber,\"[1e9999]\"|fromjson]"
+      ],
+      "inputSha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d626572202831452b3939393929206f6e6c7920737472696e67732063616e206265207061727365640a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "8b465821e9cef3095f5abb5da019ac7544fa0df30b6bff94b0bf9ae9d321b416"
+      }
+    },
+    {
+      "id": "range-literal-first",
+      "category": "numeric-integration",
+      "inputHex": "6e756c6c",
+      "argv": [
+        "-c",
+        "--",
+        "[range(0.00;2.00),range(1.2300;3.00)]"
+      ],
+      "inputSha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b302e30302c312c312e323330302c322e32335d0a",
+        "stderrHex": "",
+        "stdoutSha256": "ccbb077532b7af87f94515db7c97198c41ecfcf6f4e954b3da087b8a13b56e7b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

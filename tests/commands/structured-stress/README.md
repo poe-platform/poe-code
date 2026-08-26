@@ -234,3 +234,235 @@ corpora. The invalid NUL/surrogate argv transport limitations are not counted as
 product bugs. Fractional slices, other grammar gaps, logical rather than exact
 resident-memory quotas, and cooperative rather than forced host cancellation
 also remain documented limitations. No broad jq parity or superiority claim.
+
+## Fresh independent increment verification: phase 1 (August 26, 2026)
+
+This is a new leaf verifier's investigation of `62315bc` and `e9b30e1`, not an
+author rerun presented as independence. **No product source changes, staging,
+or commits were made in this phase.** Source README changes are reserved for
+the fix phase. All new artifacts are in `independent-increment/` below this
+directory. Existing author fixtures, expectations, and tests are unchanged.
+
+### Frozen evidence and safe native execution
+
+The available oracle is `/usr/bin/jq`, `jq-1.7.1-apple`, build configuration
+`--with-oniguruma=builtin`. Neither `/opt/homebrew/bin/jq` nor
+`/usr/local/bin/jq` was available; this is not a cross-version jq matrix.
+`native-vectors.json` and `supplement-vectors.json` freeze literal hexadecimal
+input/stdout/stderr, exact argv, exit status, signal, per-stream SHA-256,
+executable hash, capture time, environment, platform, Node version, reviewed
+commits, and six structured-source hashes. Frozen expectations are exclusively
+native captures, never product-derived. Product observations are separate files.
+
+Each invocation uses literal argv, `shell: false`, a fresh isolated temporary
+directory under this test directory, a controlled locale/environment, a 2-second
+watchdog, and a 65,536-byte cap on each output stream. Files are fixed trusted
+basenames populated from literal byte vectors. Filters and pipeline stages are
+trusted probe definitions, not input-derived host commands. Native pipeline
+references run each bounded stage separately, supplying the previous stage's
+captured bytes; they do not launch a host shell. Product pipeline checks use
+actual virtual shell pipes with a one-byte high-water mark.
+
+There are **155 vector cases, 126 logical probes, and 160 native fixture
+invocations per complete capture/replay**, plus four version/build metadata
+invocations. The original batch is 140 cases / 145 fixture invocations; the
+supplement is 15 / 15. Twenty-nine bytewise transport variants are included in
+155, not additional logical probes. Three pipeline cases use eight invocations,
+already included in 160. Native write segmentation does not guarantee OS read
+segmentation; product chunk-boundary tests control the ByteSource explicitly.
+Capture and replay counts are per run, not total invocations across all reruns.
+
+Two initial probe definitions were accidentally malformed: `fromjson` contains
+unescaped inner JSON quotes; `join-mixed` contains a literal NUL in JSON input
+and a literal newline in its filter string. The latter also has a bytewise row.
+These **three frozen rows remain in every full denominator and in the red
+tests**, but are not evidence of intended valid-input feature failures.
+`fromjson-valid-precision` and `join-mixed-valid` add independently recaptured
+valid replacements without rewriting the original vectors. The valid join
+replacement passes; the valid fromjson replacement exposes precision loss.
+
+SHA-256 (full file bytes):
+
+| Artifact in `independent-increment/` | SHA-256 |
+| --- | --- |
+| `native-vectors.json` | `924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66` |
+| `supplement-vectors.json` | `3989c0678c2e87a6efff2bee562438fc0d03dfdbf167c2329cfebf296e3f4ba2` |
+| `phase1-observation.json` | `b1553f455aedaf709384b5c76d7571bca18f6bcc7ecdb0b4d752d5d1be12a238` |
+| `supplement-observation.json` | `8b1f9ea12ae069704dc54e9c6fc42c962e62883631c3056c2e3fae1be7ee449f` |
+
+### Checkpoint and denominators
+
+Fresh full comparison: **55/155 exact stdout/stderr/status matches, 92/155
+stdout or status differences, and 8/155 stderr-only differences**. "Semantic"
+in the observation JSON means stdout/status inequality, including rendering;
+it does not imply every mismatch changes a mathematical value. Removing the
+three invalid fixture-construction rows only for diagnosis gives 55 exact,
+90 stdout/status differences, and seven diagnostic-only differences out of
+152 valid-transport rows. The unmodified total remains 155, not 152.
+
+| Coverage category | Vector cases | Native fixture invocations | Exact | Stdout/status difference | Stderr only |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Object iteration / quantifiers | 21 | 21 | 1 | 20 | 0 |
+| Numeric identity | 12 | 12 | 1 | 11 | 0 |
+| Numeric conversions / join | 13 | 13 | 1 | 12 | 0 |
+| Numeric length | 14 | 14 | 9 | 5 | 0 |
+| Numeric transforms | 15 | 15 | 1 | 13 | 1 |
+| Raw input/output / join | 29 | 29 | 27 | 2 | 0 |
+| Generator / input error ordering | 21 | 21 | 6 | 10 | 5 |
+| Malformed UTF-8 / surrogate escapes | 18 | 18 | 0 | 16 | 2 |
+| File / repeated-stdin boundaries | 3 | 3 | 2 | 1 | 0 |
+| Actual virtual pipelines | 3 | 8 | 1 | 2 | 0 |
+| Native safety-reference outputs | 6 | 6 | 6 | 0 | 0 |
+| **Total** | **155** | **160** | **55** | **92** | **8** |
+
+The 100 differing rows are not 100 distinct bugs. Exclusive diagnostic groups
+are: object zero/one-argument iteration (16 rows), absent two-argument quantifier
+overloads (4), decimal preservation (29), computed-double rendering (6), decimal
+comparison/unique semantics (3), large positive exponent handling (3), Unicode
+acceptance/replacement (17), per-input runtime-error continuation (10), diagnostic
+formatting only (7), propagation of numeric/continuation differences through
+pipelines (2), and malformed probe definitions (3). The two pipeline rows repeat
+underlying categories rather than introducing two more bugs. All nonpipeline
+rows require one native fixture invocation each; the two differing pipeline
+cases require five invocations combined.
+
+### Concrete diagnoses and fix handoff
+
+1. **Object quantifiers:** `interpreter.ts` applies an array-only guard before
+   zero/one-argument `any`/`all`. On `{}`, native `any(empty)` emits `false\n`
+   and `all(empty)` emits `true\n`, status 0; product emits no stdout, status 5.
+   `[any(empty)?,all(empty)?]` silently becomes `[]\n` instead of
+   `[false,true]\n`. Nonempty objects, insertion order, and early short-circuit
+   cases are frozen too. Separately, parser arity preflight rejects native
+   `any(generator; condition)` and `all(generator; condition)` with status 3.
+   Treat this as a remaining compatibility feature gap, not desired behavior.
+
+2. **Decimal identity and precision:** `input.ts` parses tokens with
+   `JSON.parse`; `parser.ts` converts numeric literal tokens to `Number`.
+   `scalarJson` uses JavaScript serialization. Native retains `12.3400`,
+   `9007199254740993`, and `0.123456789012345678901`; product emits `12.34`,
+   `9007199254740992`, and `0.12345678901234568`. `tojson`, `tostring`, `join`,
+   `tonumber`, `fromjson`, `--argjson`, nested copying, and unrelated updates
+   expose the same loss. A formatting-only patch cannot restore lost digits.
+   Preserve original numeric information through parsing and value transport,
+   but do not blindly echo original spelling: native normalizes `42e+02` to
+   `4.2E+3`, retains input `-0.000`, and evaluates a filter literal `-0.000` to
+   `-0`. Arithmetic deliberately converts to binary64 in these native probes.
+
+3. **Computed-double rendering is separate:** `length` of a number converts
+   to an absolute binary value. Native length of `9007199254740993` is
+   `9007199254740992`, while identity preserves the original integer.
+   Native length of `100000000000000000000` is `1e+20`, not product's full
+   decimal; `0.0000001` becomes `1e-07`, not `1e-7`. Conversely native length
+   of `123456789012345678901234567890` is
+   `123456789012345680000000000000`, where product uses exponent notation.
+   Do not substitute one global exponent-case/threshold rule for native
+   decimal-token versus computed-double rendering.
+
+4. **Comparisons are not merely presentation:** adjacent large integer tokens
+   compare unequal natively but equal in product; adjacent precise fractions
+   order natively but collapse in product; `unique` incorrectly drops one of
+   two distinct large integers. Preserve decimal comparison semantics as well
+   as rendering. Native accepts and retains `1e400` as `1E+400`, while product
+   errors before evaluation; native length clamps to the largest finite double.
+   Native retains `1e-400`, while product underflows it to zero. Numeric semantics
+   here are specifically pinned to this Apple 1.7.1 executable/build, not
+   asserted identical across all jq versions/build configurations.
+
+5. **Runtime-error continuation:** native processes later input records after
+   an uncaught filter error. For `["ok"]\n[{}]\n["after"]\n` with `-j
+   'join("|")'`, native emits `okafter`, reports the middle error, and exits 0;
+   product emits `ok`, reports one error, and exits 5. With `-e`, a later false
+   result yields native status 1; a later empty-result input can yield 4.
+   A separator error stops the current generator, not all subsequent inputs.
+   `first`, `limit`, empty separators, caught errors, and backpressure have
+   passing controls. The top-level catch in `jq.ts` explains the stop-first
+   behavior. Diagnose error scope and exit-status aggregation separately from
+   message wording; not every native error should be made recoverable.
+
+6. **Unicode policy:** native repairs the tested malformed raw bytes and
+   malformed bytes inside JSON strings; product's fatal decoder rejects them.
+   Native repairs a lone low-surrogate JSON escape but rejects an unpaired high
+   surrogate. Do not replace the fatal decoder with a default TextDecoder and
+   assume parity: for UTF-8 bytes `ed a0 80`, this native raw-input capture emits
+   one replacement character. Native repairs incomplete UTF-8 separately at
+   file boundaries: `41 f0 9f` followed by `98 80 0a 42` in a second file emits
+   `"A���"\n"B"\n`, not a reconstructed emoji. Valid multibyte chunking, raw CR,
+   NUL, BOM, empty records/slurp, repeated stdin, and cross-file text records
+   have passing controls. Error diagnostics also differ in context/line/wording.
+
+Strict UTF-8 and stop-first-error are existing intentional implementation
+deviations, **not user-requested features and not compatibility passes**. The
+recommendation is to improve standard jq compatibility, subject to root's fix
+assignment: per-input recovery must still propagate cancellation and leave
+quotas uncatchable; replacement decoding must preserve byte accounting, safe
+streaming, native replacement grouping, and file boundaries. If strict modes
+are retained, make that an explicit separately approved choice rather than
+quietly labeling native behavior unsupported. No policy changes occur here.
+
+### Reproduction and validation
+
+Run from `/Users/kjopek/Workspace/safe-bash`:
+
+```sh
+node tests/commands/structured-stress/independent-increment/native.mjs --verify
+node tests/commands/structured-stress/independent-increment/supplement.mjs --verify
+node --import tsx tests/commands/structured-stress/independent-increment/diagnose.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/native-regressions.test.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/safety.test.ts
+```
+
+Exact single-case native/product reproducers (hex captures include all bytes):
+
+```sh
+node tests/commands/structured-stress/independent-increment/native.mjs --case 'object-vacant-any(empty)'
+node --import tsx tests/commands/structured-stress/independent-increment/diagnose.ts --case 'object-vacant-any(empty)'
+node tests/commands/structured-stress/independent-increment/native.mjs --case number-large-integer-identity
+node --import tsx tests/commands/structured-stress/independent-increment/diagnose.ts --case decimal-unique
+node tests/commands/structured-stress/independent-increment/native.mjs --case recover-following-json
+node tests/commands/structured-stress/independent-increment/native.mjs --case raw-surrogate
+node tests/commands/structured-stress/independent-increment/supplement.mjs --case large-length-1e20
+node --import tsx tests/commands/structured-stress/independent-increment/diagnose.ts --case large-length-1e20
+```
+
+Both native replays pass against the unmodified frozen artifacts. The new
+exact-byte suite intentionally **fails: 156 tests, 56 pass, 100 fail, zero
+skips/TODOs/cancellations** (155 cases plus one integrity check). It also has
+those exact counts with `PATH=/nonexistent`, using an absolute Node executable;
+tests do not require or spawn native jq. `--freeze` refuses existing vector
+files; never regenerate expectations from a fix or overwrite this baseline.
+
+The independent safety suite passes **28/28**, including 134 explicit split
+executions, four unsplit malformed-input baselines, empty chunks, internal
+16,384-byte boundaries, all nine quota kinds, exact UTF-8 byte limits,
+uncatchable hidden limits, generator backpressure, late rejection observation,
+pending read/write cancellation, CPU cancellation, and pre-aborted no-read.
+Ten additional native-free strict-unhandled-rejection repetitions pass 280/280
+test executions. These repetitions are not 280 different safety cases.
+The four strict-decoder chunk-invariance tests document current behavior, not
+native acceptance; adapt their policy assertions if replacement is approved.
+
+The unchanged existing author suite was independently rerun using the explicit
+top-level `tests/commands/structured/*.test.ts` and
+`tests/commands/structured-stress/*.test.ts` paths: **684/684 pass**. This does
+not include the new nested red tests. Scoped typechecking of all new TypeScript
+files and their imported code passed:
+
+```sh
+node_modules/.bin/tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --skipLibCheck --types node tests/commands/structured-stress/independent-increment/*.ts
+git diff --check -- tests/commands/structured-stress/README.md tests/commands/structured-stress/independent-increment
+```
+
+All six structured source hashes and both original capture-script hashes were
+rechecked against frozen provenance and remain unchanged. No whole-repository
+pass, full jq compatibility, or superiority is claimed. One accidentally
+unscoped `node --test` launch was terminated and is excluded from all validation
+counts; it may have left native-test temporary directories under other workers'
+stress paths. No unowned source/test definitions were edited or cleanup attempted. Root should coordinate
+any such cleanup rather than this leaf changing another worker's paths.
+
+Next phase belongs to root: assign atomic source fixes, preserve these frozen
+native vectors, update product documentation only with new evidence, then use
+a separate independent rerun. Prioritize object iteration and numeric value
+representation/comparison/rendering; do not convert red native expectations
+into passing product-policy expectations to satisfy the gate.

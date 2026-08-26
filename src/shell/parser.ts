@@ -109,7 +109,7 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = /^(?:;;&|<<-|;&|&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = /^(?:;;&|<<<|<<-|;&|&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
       if (["&", "&>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
@@ -207,7 +207,8 @@ class Lexer {
         if (current === closers.at(-1)) {
           closers.pop();
           if (!closers.length) return value;
-        } else if (current === "(" || current === "{") {
+        } else if ((current === "(" && (closers.at(-1) === ")" || this.source[this.position - 2] === "$"))
+          || (current === "{" && (closers.at(-1) === "}" || this.source[this.position - 2] === "$"))) {
           closers.push(current === "(" ? ")" : "}");
           if (closers.length + this.depth > 64) this.error("Syntax nesting exceeds 64");
         }
@@ -260,7 +261,10 @@ class Lexer {
         this.position++;
       } else if (current === "$" || current === "`") {
         plain = false;
-        if (literal) text(this.literalExpansion(), current === "`");
+        if (literal) {
+          if (current === "$" && ["'", '"'].includes(this.source[this.position + 1] ?? "")) this.error("Unsupported shell quoting in here-document delimiter");
+          text(this.literalExpansion(), current === "`");
+        }
         else this.expansion(parts, enclosingQuoted);
       } else {
         text(current, false);
@@ -522,9 +526,9 @@ class Parser {
     let descriptor: number | undefined;
     if (this.current.kind === "word" && /^\d+$/u.test(this.current.value)) {
       const next = this.peek();
-      if (/^(?:>|>>|<|<<|<<-|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
+      if (/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
     }
-    if (!/^(?:>|>>|<|<<|<<-|>&|<&|>\|)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
+    if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\|)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
     const operator = this.advance().value;
     descriptor ??= operator.startsWith("<") ? 0 : 1;
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");

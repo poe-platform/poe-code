@@ -49,6 +49,8 @@ const cases: [string, string][] = [
   ["quoted delimiter containing tabs matches before stripping", "cat <<-'\tEOF'\n\ttext\n\tEOF\n"],
   ["empty quote disables expansion", "cat <<EOF''\n$VALUE $(printf bad)\nEOF\n"],
   ["delimiter line has no terminal newline", "cat <<EOF\ntext\nEOF"],
+  ["command-shaped delimiter keeps literal brace", "cat <<$(printf {)\ntext\n$(printf {)\n"],
+  ["parameter-shaped delimiter keeps literal parenthesis", "cat <<${VALUE:-(}\ntext\n${VALUE:-(}\n"],
 ];
 
 for (const [name, script] of cases) {
@@ -74,6 +76,8 @@ for (const source of [
   "say ran >marker; false && pass <<EOF\n${bad\nEOF\n",
   "say ran >marker; pass <<EOF\nbody\nEOF\nif true; then",
   "say ran >marker; say \"$(pass <<EOF)\"",
+  "say ran >marker; pass <<$'EOF'\ntext\n$EOF\n",
+  'say ran >marker; pass <<$"EOF"\ntext\n$EOF\n',
 ]) {
   test(`heredoc syntax errors precede all effects: ${JSON.stringify(source)}`, async () => {
     const { shell, fs } = setup();

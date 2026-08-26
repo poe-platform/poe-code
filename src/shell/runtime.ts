@@ -22,6 +22,11 @@ export const defaultLimits: Required<ShellLimits> = {
   pipeHighWaterMark: 64 * 1024,
 };
 
+const shellBuiltinNames = new Set([
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
+  "exit", "return", "break", "continue", "echo", "printf", "test", "[",
+]);
+
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
   const result = Object.assign({}, defaultLimits, ...limits) as Required<ShellLimits>;
   for (const [key, value] of Object.entries(result)) {
@@ -119,6 +124,7 @@ export interface State {
   functionDepth: number;
   locals: Map<string, { value: string | undefined; exported: boolean }>[];
   pipefail: boolean;
+  redirectAssignments?: ReadonlyMap<string, string>;
 }
 
 interface IO {
@@ -378,12 +384,17 @@ export class Runtime {
       descriptors,
     });
     try { for (const redirect of redirects) {
-      if (redirect.document) {
+      if (redirect.document || redirect.operator === "<<<") {
+        const hereString = redirect.operator === "<<<";
         let value: string;
-        try { value = (await this.word(redirect.document.body, state, currentIO(), false)).join(""); }
+        try { value = (await this.word(redirect.document?.body ?? redirect.target, state, currentIO(), false, false, hereString)).join(""); }
         catch (error) {
           if (error instanceof ExpansionFailure) throw new Error(error.message);
           throw error;
+        }
+        if (hereString) {
+          if (Buffer.byteLength(value) >= this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          value += "\n";
         }
         const input = new ShellInput(toByteSource(value), this.budget, this.signal);
         inputs.add(input);
@@ -487,14 +498,39 @@ export class Runtime {
     }
     const commandWords = command.words.slice(wordIndex);
     const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[0]?.plain ?? ""));
-    const io = await this.redirect(command.redirects, state, originalIO, inputs, outputs);
+    const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
+    const functionCommand = words.length > 0 && state.functions.has(words[0]!);
+    if (inlineInput && words.length && !shellBuiltinNames.has(words[0]!) && !functionCommand) state = cloneState(state);
+    let io = originalIO;
     const previous = new Map<string, { value: string | undefined; exported: boolean }>();
-    try {
+    const assign = async () => {
       for (const assignment of assignments) {
         if (!previous.has(assignment.name)) previous.set(assignment.name, { value: state.variables[assignment.name], exported: state.exported.has(assignment.name) });
         state.variables[assignment.name] = (await this.word(assignment.value, state, io, false)).join("");
         if (words.length) state.exported.add(assignment.name);
       }
+    };
+    try {
+      if (inlineInput) await assign();
+      if (inlineInput && functionCommand && previous.size) {
+        const variables = Object.assign(Object.create(null) as Record<string, string>, state.variables);
+        const redirectAssignments = new Map<string, string>();
+        for (const [name, saved] of previous) {
+          redirectAssignments.set(name, state.variables[name]!);
+          if (saved.value === undefined) delete variables[name];
+          else variables[name] = saved.value;
+        }
+        const redirectState = { ...state, variables, redirectAssignments };
+        try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs); }
+        finally {
+          state.substitutionStatus = redirectState.substitutionStatus;
+          for (const [name, value] of Object.entries(variables)) {
+            if (!previous.has(name)) state.variables[name] = value;
+          }
+          for (const [name, saved] of previous) saved.value = variables[name];
+        }
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs);
+      if (!inlineInput) await assign();
       return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof ExecutionFailure || error instanceof Flow) throw error;
@@ -751,7 +787,7 @@ export class Runtime {
     return fields;
   }
 
-  async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO): Promise<string> {
+  async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
     if (part.kind === "arithmetic") {
       try { return String(evaluateArithmetic(part.expression, state.variables)); }
       catch (error) { throw new ExpansionFailure(message(error)); }
@@ -760,6 +796,11 @@ export class Runtime {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       const capture = new Capture();
       const child = cloneState(state);
+      for (const [name, value] of state.redirectAssignments ?? []) {
+        child.variables[name] = value;
+        child.exported.add(name);
+      }
+      delete child.redirectAssignments;
       child.depth++;
       child.loopDepth = 0;
       state.substitutionStatus = await this.run(part.script, child, { ...io, stdout: this.budget.sink(capture, this.signal) });
@@ -767,13 +808,13 @@ export class Runtime {
     }
     let value = part.name === "?" ? String(state.status)
       : part.name === "#" ? String(state.positional.length)
-      : part.name === "@" || part.name === "*" ? state.positional.join(Array.from(state.variables.IFS ?? " ")[0] ?? "")
+      : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : part.name === "0" ? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : state.variables[part.name];
     if (part.operator) {
       if (["#", "##", "%", "%%"].includes(part.operator)) {
-        const pattern = (await this.word(part.alternate!, state, io, false, true)).join("");
+        const pattern = (await this.word(part.alternate!, state, io, false, true, hereString)).join("");
         const expression = globExpression(pattern);
         const text = value ?? "";
         const lengths = Array.from({ length: text.length + 1 }, (_, index) => index);
@@ -789,7 +830,7 @@ export class Runtime {
       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
-        const alternate = (await this.word(part.alternate!, state, io, false)).join("");
+        const alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
         if (operator === "?") throw new ExpansionFailure(`${part.name}: ${alternate || "parameter null or not set"}`);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
@@ -801,7 +842,7 @@ export class Runtime {
     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
   }
 
-  async word(word: Word, state: State, io: IO, split = true, pattern = false): Promise<string[]> {
+  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false): Promise<string[]> {
     const fields: { value: string; pattern: string; present: boolean }[] = [{ value: "", pattern: "", present: false }];
     let expansionBytes = 0;
     const append = (value: string, glob: boolean, present: boolean) => {
@@ -837,7 +878,7 @@ export class Runtime {
         }
         if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
-        const value = part.kind === "text" ? part.value : await this.part(part, state, io);
+        const value = part.kind === "text" ? part.value : await this.part(part, state, io, hereString);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, part.quoted || !split || value.length > 0);
         else {
           const separators = state.variables.IFS ?? " \t\n";

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { Command } from "commander";
 import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
@@ -1057,6 +1057,10 @@ describe("gaslight command", () => {
   });
 
   it("refuses to autopick a plan with --yes and lists the discovered plans", async () => {
+    vi.useFakeTimers({ toFake: ["Date"], now: 0 });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
     const program = createProgram();
     registerGaslightCommand(program, createContainer());
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ScreenBuffer } from "../../dashboard/buffer.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 import type { ExplorerLayout } from "../layout.js";
+import { step } from "../reducer.js";
 import { REGION_LIST } from "../state.js";
 import { renderList } from "./list.js";
 import { dumpScreen, fixtureState, renderStateSnapshot } from "./test-fixtures.js";
@@ -85,6 +86,46 @@ describe("explorer list renderer", () => {
     const output = stripAnsi(dumpScreen(screen));
     expect(output).toContain("● Row 20");
     expect(output).not.toContain("● Row 0");
+  });
+
+  it("filters surrogate-fragment false positives before rendering highlights", () => {
+    const initial = fixtureState({
+      rows: [{ id: "no", title: "😁🈀" }, { id: "yes", title: "😀" }],
+      rowsLoading: false,
+      selected: new Set()
+    });
+    const { state } = step(initial, {
+      type: "key", key: { ch: "😀", ctrl: false, meta: false, shift: false }
+    });
+    const screen = new ScreenBuffer(36, 5);
+
+    renderList(state, screen, listLayout(36, 5));
+
+    expect(state.filtered).toEqual([1]);
+    expect(state.matchPositions.get(1)).toEqual([0, 1]);
+    const output = stripAnsi(dumpScreen(screen));
+    expect(output).toContain("1/2");
+    expect(output).toContain("😀");
+    expect(output).not.toContain("😁");
+    expect(output).not.toContain("🈀");
+    const cells = Array.from({ length: screen.width }, (_, index) => screen.get(index, 1));
+    expect(cells.filter((cell) => cell.ch && cell.style.underline).map((cell) => cell.ch)).toEqual(["😀"]);
+  });
+
+  it.each([
+    ["😀", "A😀B", "😀", [1, 2]],
+    ["B", "😀B", "B", [2]],
+    ["👩💻", "👩‍💻", "👩‍💻", [0, 1, 3, 4]]
+  ] as const)("highlights %s using UTF-16 spans in %s", (filter, title, highlighted, positions) => {
+    const state = fixtureState({ rows: [{ id: "match", title }], filter, selected: new Set() });
+    const screen = new ScreenBuffer(36, 3);
+
+    renderList(state, screen, listLayout(36, 3));
+
+    expect(state.matchPositions.get(0)).toEqual(positions);
+    const cells = Array.from({ length: screen.width }, (_, index) => screen.get(index, 1));
+    expect(cells.filter((cell) => cell.ch && cell.style.underline).map((cell) => cell.ch)).toEqual([highlighted]);
+    expect(stripAnsi(dumpScreen(screen))).toContain(title);
   });
 });
 

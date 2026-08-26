@@ -52,21 +52,28 @@ function stripAnsi(value: string): string {
 }
 
 function matchSubsequence(query: string, text: string): Omit<FilterMatch, "index"> | undefined {
+  const queryCharacters = Array.from(query);
+  const textCharacters = Array.from(text);
   let previousStates: Array<Omit<FilterMatch, "index"> | undefined> = [];
 
-  for (let queryIndex = 0; queryIndex < query.length; queryIndex += 1) {
+  for (let queryIndex = 0; queryIndex < queryCharacters.length; queryIndex += 1) {
     const states: Array<Omit<FilterMatch, "index"> | undefined> = [];
+    let offset = 0;
 
-    for (let textIndex = 0; textIndex < text.length; textIndex += 1) {
-      if (text[textIndex] !== query[queryIndex]) {
+    for (let textIndex = 0; textIndex < textCharacters.length; textIndex += 1) {
+      const character = textCharacters[textIndex];
+      const position = offset;
+      offset += character.length;
+      if (character !== queryCharacters[queryIndex]) {
         continue;
       }
+      const positions = character.length === 2 ? [position, position + 1] : [position];
 
       if (queryIndex === 0) {
         states[textIndex] = {
           score:
-            characterScore(text, textIndex, undefined) + Math.max(0, EARLY_MATCH_BONUS - textIndex),
-          positions: [textIndex]
+            characterScore(textCharacters, textIndex, undefined) + Math.max(0, EARLY_MATCH_BONUS - position),
+          positions
         };
         continue;
       }
@@ -79,8 +86,8 @@ function matchSubsequence(query: string, text: string): Omit<FilterMatch, "index
         }
 
         const next = {
-          score: previous.score + characterScore(text, textIndex, previousIndex),
-          positions: [...previous.positions, textIndex]
+          score: previous.score + characterScore(textCharacters, textIndex, previousIndex),
+          positions: [...previous.positions, ...positions]
         };
 
         if (isBetterMatch(next, states[textIndex])) {
@@ -102,7 +109,7 @@ function matchSubsequence(query: string, text: string): Omit<FilterMatch, "index
   );
 }
 
-function characterScore(text: string, index: number, previousIndex: number | undefined): number {
+function characterScore(text: readonly string[], index: number, previousIndex: number | undefined): number {
   let score = MATCH_SCORE;
 
   if (previousIndex !== undefined && index === previousIndex + 1) {
@@ -136,7 +143,7 @@ function isBetterMatch(
   return false;
 }
 
-function isWordStart(text: string, index: number): boolean {
+function isWordStart(text: readonly string[], index: number): boolean {
   if (index === 0) {
     return true;
   }

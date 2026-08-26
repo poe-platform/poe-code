@@ -94,4 +94,81 @@ describe("filterRows", () => {
 
     expect(matches).toEqual([{ index: 0, score: expect.any(Number), positions: [0, 1, 2, 3] }]);
   });
+
+  it.each([
+    ["😁🈀", undefined, false],
+    ["😁🈀", undefined, true],
+    ["😁", "🈀", false],
+    ["😁", "🈀", true]
+  ] as const)("does not assemble emoji from different characters in %s / %s (caseSensitive=%s)", (title, subtitle, caseSensitive) => {
+    expect(filterRows("😀", [
+      { id: "no", title, subtitle },
+      { id: "yes", title: "😀" }
+    ], { caseSensitive })).toEqual([
+      { index: 1, score: expect.any(Number), positions: [0, 1] }
+    ]);
+  });
+
+  it.each([
+    ["😀", "😀", undefined, [0, 1]],
+    ["😀🈀", "😀x🈀", undefined, [0, 1, 3, 4]],
+    ["😀😀", "😀😀", undefined, [0, 1, 2, 3]],
+    ["😀B", "😀", "B", [0, 1, 3]],
+    ["B", "😀B", undefined, [2]],
+    ["x", "😀", "x", [3]],
+    ["👩💻", "👩‍💻", undefined, [0, 1, 3, 4]],
+    ["\u0301", "e\u0301", undefined, [1]]
+  ] as const)("reports UTF-16 spans for the code-point subsequence %s in %s / %s", (query, title, subtitle, positions) => {
+    expect(filterRows(query, [{ id: "match", title, subtitle }])).toEqual([
+      { index: 0, score: expect.any(Number), positions }
+    ]);
+  });
+
+  it("scores adjacent code points once and keeps equal-score row order", () => {
+    expect(filterRows("😀B", [
+      { id: "spread", title: "😀xB" },
+      { id: "adjacent", title: "😀B" },
+      { id: "tied", title: "😀B" }
+    ])).toEqual([
+      { index: 1, score: 47, positions: [0, 1, 2] },
+      { index: 2, score: 47, positions: [0, 1, 2] },
+      { index: 0, score: 33, positions: [0, 1, 3] }
+    ]);
+  });
+
+  it.each([
+    ["abc", "abc", 71, [0, 1, 2]],
+    ["abc", "a-b-c", 63, [0, 2, 4]],
+    ["é文", "é文", 47, [0, 1]],
+    ["B", "😀B", 11, [2]]
+  ] as const)("preserves scoring for %s in %s", (query, title, score, positions) => {
+    expect(filterRows(query, [{ id: "match", title }])).toEqual([{ index: 0, score, positions }]);
+  });
+
+  it("preserves case conversion, ANSI stripping, and cross-field offsets", () => {
+    const styled = [{ id: "styled", title: "\u001b[31m𐐨\u001b[0m", subtitle: "\u001b[2mb\u001b[0m" }];
+
+    expect(filterRows("𐐀B", styled)).toEqual([
+      { index: 0, score: expect.any(Number), positions: [0, 1, 3] }
+    ]);
+    expect(filterRows("𐐀B", styled, { caseSensitive: true })).toEqual([]);
+    expect(filterRows("𐐨b", styled, { caseSensitive: true })).toEqual([
+      { index: 0, score: expect.any(Number), positions: [0, 1, 3] }
+    ]);
+  });
+
+  it.each(["\ud83d", "\ude00"])("does not match a lone surrogate query %j inside an emoji", (query) => {
+    expect(filterRows(query, [{ id: "emoji", title: "😀" }])).toEqual([]);
+  });
+
+  it("does not normalize combining sequences", () => {
+    expect(filterRows("é", [{ id: "combining", title: "e\u0301" }])).toEqual([]);
+  });
+
+  it("preserves whitespace-only queries with Unicode rows", () => {
+    expect(filterRows(" \t", [{ id: "first", title: "😁🈀" }, { id: "second", title: "😀" }])).toEqual([
+      { index: 0, score: 0, positions: [] },
+      { index: 1, score: 0, positions: [] }
+    ]);
+  });
 });

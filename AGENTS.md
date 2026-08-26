@@ -52,6 +52,15 @@
 - `CommandContext.invoke?: CommandInvoker` invokes literal argv; its optional
   overrides are stdin, stdout, stderr, cwd, and env. The shell retains filesystem,
   cancellation, middleware, and execution budgets; there is no signal override.
+- `CommandContext.stdinIsDefault?: boolean` records provenance, never byte count:
+  true is implicit no-input default; false is supplied/piped/redirected/closed
+  input; absent is unknown. Reads, EOF, and exhaustion never change it.
+  `CommandInvokeOptions.stdinIsDefault` applies only with supplied stdin; omitted
+  stdin inherits parent metadata, while replacement stdin defaults to false.
+  Transparent forwarders preserve metadata explicitly; replacing a stream must
+  deliberately choose its provenance. `xargs` gives children an implicit empty
+  default, rather than its consumed argument-input stream. Never probe a stream
+  to discover input origin or interpret this field as a readability guarantee.
 - Use `readBytes(source, signal)` and `writeBytes(sink, chunk, signal)` for command
   I/O that must stop waiting on cancellation. They observe late rejections;
   cancellation still cannot undo host side effects or interrupt synchronous work.

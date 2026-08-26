@@ -7,6 +7,7 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
     const invoke = context.invoke;
     if (invoke) return invoke(context.command, context.args, {
       stdin: context.stdin, cwd: context.cwd, env: context.env, stdout: context.stdout, stderr: context.stderr,
+      ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
     });
     return fallback(context);
   };
@@ -104,7 +105,7 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         const size = encoder.encode(command).length + 1 + args.reduce((sum, argument) => sum + encoder.encode(argument).length + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
         if (parsed.flags.has("t")) await writeBytes(context.stderr, encoder.encode([command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n"), context.signal);
-        const result = await execute({ ...context, command, args, stdin: emptyInput(), env: { ...context.env } });
+        const result = await execute({ ...context, command, args, stdin: emptyInput(), stdinIsDefault: true, env: { ...context.env } });
         executed = true;
         if (result.exitCode === 255) { status = 124; stop = true; }
         else if (result.exitCode === 126 || result.exitCode === 127) { status = result.exitCode; stop = true; }

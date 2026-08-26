@@ -5,12 +5,13 @@ import { Shell, type ShellCommandContext, type ShellInvokeOptions } from "../../
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 
 test("shared invocation types structurally match the existing shell hook", () => {
-  const shared: CommandInvokeOptions = { cwd: "/", env: { KEY: "value" }, stdin: toByteSource("") };
+  const shared: CommandInvokeOptions = { cwd: "/", env: { KEY: "value" }, stdin: toByteSource(""), stdinIsDefault: false };
   const shell: ShellInvokeOptions = shared;
   const roundtrip: CommandInvokeOptions = shell;
   const invoke: ShellCommandContext["invoke"] = async () => ({ exitCode: 0 });
   const contract: CommandInvoker = invoke;
   assert.equal(roundtrip, shared);
+  assert.equal(roundtrip.stdinIsDefault, false);
   assert.equal(contract, invoke);
 });
 

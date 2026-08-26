@@ -3,6 +3,7 @@ import type { ByteSink, ByteSource } from "./io.js";
 
 export interface CommandInvokeOptions {
   readonly stdin?: ByteSource;
+  readonly stdinIsDefault?: boolean;
   readonly stdout?: ByteSink;
   readonly stderr?: ByteSink;
   readonly cwd?: string;
@@ -19,6 +20,7 @@ export interface CommandContext {
   readonly command: string;
   readonly args: readonly string[];
   readonly stdin: ByteSource;
+  readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
   readonly stderr: ByteSink;
   cwd: string;

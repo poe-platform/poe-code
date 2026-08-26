@@ -808,9 +808,15 @@ export class Runtime {
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     }
     const result: string[] = [];
+    let resultBytes = 0;
     for (const field of fields) {
       if (!field.present && split) continue;
-      result.push(...(split ? await this.glob(field.value, field.pattern, state) : [field.value]));
+      for (const value of split ? await this.glob(field.value, field.pattern, state) : [field.value]) {
+        const size = Buffer.byteLength(value);
+        if (size > this.budget.limits.maxExpansionBytes - resultBytes) this.budget.fail("maxExpansionBytes");
+        resultBytes += size;
+        result.push(value);
+      }
       if (result.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     }
     return result;
@@ -822,9 +828,17 @@ export class Runtime {
     let candidates = [absolute ? "/" : ""];
     for (const segment of pattern.split("/").filter((segment) => segment.length > 0)) {
       const next: string[] = [];
+      let candidateBytes = 0;
+      const addCandidate = (candidate: string): void => {
+        const size = Buffer.byteLength(candidate);
+        if (size > this.budget.limits.maxExpansionBytes - candidateBytes) this.budget.fail("maxExpansionBytes");
+        candidateBytes += size;
+        next.push(candidate);
+        if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      };
       if (!/(?:^|[^\\])[*?[]/u.test(segment)) {
         const literal = segment.replace(/\\(.)/gu, "$1");
-        for (const candidate of candidates) next.push(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
+        for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
       } else {
         const expression = globExpression(segment);
         for (const candidate of candidates) {
@@ -833,8 +847,7 @@ export class Runtime {
           catch (error) { if (["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) continue; throw error; }
           for (const entry of entries) {
             if ((!entry.name.startsWith(".") || segment.startsWith(".")) && expression.test(entry.name)) {
-              next.push(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
-              if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+              addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
             }
           }
         }

@@ -71,10 +71,10 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
   ];
 }
 
-function completionWords(node: CompletionNode): string[] {
+function completionWords(node: CompletionNode, includeOptions = true): string[] {
   return [
     ...node.children.flatMap((child) => [child.name, ...child.aliases]),
-    ...node.options.map((option) => option.flag)
+    ...(includeOptions ? node.options.map((option) => option.flag) : [])
   ];
 }
 
@@ -82,37 +82,45 @@ function renderValueFlagCases(nodes: CompletionNode[]): string[] {
   return nodes
     .filter((node) => node.requiredValueFlags.length > 0)
     .map((node) =>
-      `      ${node.requiredValueFlags.map((flag) => `"${node.path.join(" ")}:${flag}"`).join("|")}) expecting_value=1; continue;;`
+      `        ${node.requiredValueFlags.map((flag) => `"${node.path.join(" ")}:${flag}"`).join("|")}) expecting_value=1; continue;;`
     );
 }
 
 function renderBash(nodes: CompletionNode[]): string {
-  const cases = nodes.map(
-    (node) => `    "${node.path.join(" ")}") completions="${completionWords(node).join(" ")}";;`
-  );
+  const cases = nodes.flatMap((node) => [
+    `    "0:${node.path.join(" ")}") completions="${completionWords(node).join(" ")}";;`,
+    `    "1:${node.path.join(" ")}") completions="${completionWords(node, false).join(" ")}";;`
+  ]);
   return [
     "# poe-code bash completion. Install with: eval \"$(poe-code completion bash)\"",
     "_poe_code_complete() {",
-    "  local current key word index expecting_value",
+    "  local current key word index expecting_value options_ended",
     "  COMPREPLY=()",
     '  current="${COMP_WORDS[COMP_CWORD]}"',
     '  key=""',
     "  expecting_value=0",
+    "  options_ended=0",
     "  for (( index=1; index < COMP_CWORD; index++ )); do",
     '    word="${COMP_WORDS[index]}"',
     "    if (( expecting_value )); then",
     "      expecting_value=0",
     "      continue",
     "    fi",
-    '    case "$key:$word" in',
+    "    if (( ! options_ended )); then",
+    '      if [[ "$word" == "--" ]]; then',
+    "        options_ended=1",
+    "        continue",
+    "      fi",
+    '      case "$key:$word" in',
     ...renderValueFlagCases(nodes),
-    "    esac",
-    '    [[ "$word" == -* ]] && continue',
+    "      esac",
+    '      [[ "$word" == -* ]] && continue',
+    "    fi",
     '    key="${key:+$key }$word"',
     "  done",
     "  (( expecting_value )) && return",
     "  local completions",
-    '  case "$key" in',
+    '  case "$options_ended:$key" in',
     ...cases,
     '    *) completions="";;',
     "  esac",
@@ -124,31 +132,39 @@ function renderBash(nodes: CompletionNode[]): string {
 }
 
 function renderZsh(nodes: CompletionNode[]): string {
-  const cases = nodes.map(
-    (node) => `    "${node.path.join(" ")}") completions=(${completionWords(node).join(" ")});;`
-  );
+  const cases = nodes.flatMap((node) => [
+    `    "0:${node.path.join(" ")}") completions=(${completionWords(node).join(" ")});;`,
+    `    "1:${node.path.join(" ")}") completions=(${completionWords(node, false).join(" ")});;`
+  ]);
   return [
     "#compdef poe-code poe",
     '# poe-code zsh completion. Install with: eval "$(poe-code completion zsh)"',
     "_poe_code() {",
-    "  local key word index expecting_value",
+    "  local key word index expecting_value options_ended",
     '  key=""',
     "  expecting_value=0",
+    "  options_ended=0",
     "  for (( index=2; index < CURRENT; index++ )); do",
     '    word="${words[index]}"',
     "    if (( expecting_value )); then",
     "      expecting_value=0",
     "      continue",
     "    fi",
-    '    case "$key:$word" in',
+    "    if (( ! options_ended )); then",
+    '      if [[ "$word" == "--" ]]; then',
+    "        options_ended=1",
+    "        continue",
+    "      fi",
+    '      case "$key:$word" in',
     ...renderValueFlagCases(nodes),
-    "    esac",
-    '    [[ "$word" == -* ]] && continue',
+    "      esac",
+    '      [[ "$word" == -* ]] && continue',
+    "    fi",
     '    key="${key:+$key }$word"',
     "  done",
     "  (( expecting_value )) && return",
     "  local -a completions",
-    '  case "$key" in',
+    '  case "$options_ended:$key" in',
     ...cases,
     "    *) completions=();;",
     "  esac",

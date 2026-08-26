@@ -88,11 +88,13 @@ async function emitCompletion(
   return chunks.join("");
 }
 
-function readCompletionWords(script: string, path: string): string[] {
-  const prefix = `    "${path}") completions=`;
-  const line = script.split("\n").find((line) => line.startsWith(prefix));
+function readCompletionWords(script: string, path: string, optionsEnded = false): string[] {
+  const prefix = `    "${Number(optionsEnded)}:${path}") completions=`;
+  const lines = script.split("\n");
+  const line = lines.find((line) => line.startsWith(prefix))
+    ?? lines.find((line) => line.startsWith("    *) completions="));
   expect(line, `Missing completion path ${path}`).toBeDefined();
-  return line!.slice(prefix.length + 1, -3).split(" ").filter(Boolean);
+  return line!.split("completions=")[1]!.slice(1, -3).split(" ").filter(Boolean);
 }
 
 describe("completion command", () => {
@@ -105,14 +107,14 @@ describe("completion command", () => {
 
     expect(script).toContain("complete -F _poe_code_complete poe-code");
     expect(script).toContain("complete -F _poe_code_complete poe");
-    expect(script).toContain('"") completions="agent completion configure plan plans p --yes"');
+    expect(script).toContain('"0:") completions="agent completion configure plan plans p --yes"');
   });
 
   it("emits bash completions for nested commands, aliases, and their options", async () => {
     const script = await emitCompletion("bash");
 
-    expect(script).toContain('"configure") completions="--agent --yes"');
-    expect(script).toContain('"agent") completions="add new list --yes"');
+    expect(script).toContain('"0:configure") completions="--agent --yes"');
+    expect(script).toContain('"0:agent") completions="add new list --yes"');
   });
 
   it.each(["bash", "zsh", "fish"])(
@@ -136,8 +138,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"${parent}") completions="open view show --directory --yes";;`
-        : `"${parent}") completions=(open view show --directory --yes);;`
+        ? `"0:${parent}") completions="open view show --directory --yes";;`
+        : `"0:${parent}") completions=(open view show --directory --yes);;`
     );
   });
 
@@ -152,8 +154,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"${path}") completions="--editor --directory --yes";;`
-        : `"${path}") completions=(--editor --directory --yes);;`
+        ? `"0:${path}") completions="--editor --directory --yes";;`
+        : `"0:${path}") completions=(--editor --directory --yes);;`
     );
   });
 
@@ -189,7 +191,7 @@ describe("completion command", () => {
 
     expect(script).toContain("#compdef poe-code poe");
     expect(script).toContain("compdef _poe_code poe-code poe");
-    expect(script).toContain('"agent") completions=(add new list --yes)');
+    expect(script).toContain('"0:agent") completions=(add new list --yes)');
   });
 
   it("emits fish completions carrying command descriptions", async () => {
@@ -321,6 +323,90 @@ describe("completion command", () => {
     );
   });
 
+  describe.each(["bash", "zsh"])("%s option terminator", (shell) => {
+    it.each([
+      { input: "-- mo", path: "", prefix: "mo", ended: true, expected: ["models"] },
+      { input: "plan -- v", path: "plan", prefix: "v", ended: true, expected: ["view"] },
+      { input: "plans -- v", path: "plans", prefix: "v", ended: true, expected: ["view"] },
+      { input: "-- plans v", path: "plans", prefix: "v", ended: true, expected: ["view"] },
+      { input: "-- --verb", path: "", prefix: "--verb", ended: true, expected: [] },
+      { input: "-- models --verb", path: "models", prefix: "--verb", ended: true, expected: [] },
+      { input: "plan -- view --out", path: "plan view", prefix: "--out", ended: true, expected: [] },
+      { input: "plan view -- --out", path: "plan view", prefix: "--out", ended: true, expected: [] },
+      { input: "plans -- view --out", path: "plans view", prefix: "--out", ended: true, expected: [] },
+      { input: "-- --verbose mo", path: "--verbose", prefix: "mo", ended: true, expected: [] },
+      { input: "plan -- --kind v", path: "plan --kind", prefix: "v", ended: true, expected: [] },
+      { input: "-- models <empty>", path: "models", prefix: "", ended: true, expected: [] },
+      { input: "models --verb", path: "models", prefix: "--verb", ended: false, expected: ["--verbose"] },
+      { input: "--", path: "", prefix: "--", ended: false, expected: ["--yes", "--dry-run", "--verbose", "--version"] },
+      { input: "harness run --dir -- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "harness run --dir -- -- --re", path: "harness run", prefix: "--re", ended: true, expected: [] },
+      { input: "harness run --dir=-- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "plan --kind=-- v", path: "plan", prefix: "v", ended: false, expected: ["view"] },
+      { input: "plan --kind -- v", path: "plan", prefix: "v", ended: false, expected: ["view"] },
+      { input: "plan --kind -- -- v", path: "plan", prefix: "v", ended: true, expected: ["view"] }
+    ])("generates the real-tree candidate branch for $input", async ({ path, prefix, ended, expected }) => {
+      const program = createProgram({
+        fs: createMemFs(),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+        logger: () => {},
+        exitOverride: true
+      });
+      const script = await emitCompletion(shell, program);
+
+      expect(readCompletionWords(script, path, ended).filter((word) => word.startsWith(prefix)))
+        .toEqual(expected);
+    });
+
+    it("keeps only visible children and aliases after termination", async () => {
+      const script = await emitCompletion(shell);
+
+      expect(readCompletionWords(script, "", true))
+        .toEqual(["agent", "completion", "configure", "plan", "plans", "p"]);
+      for (const parent of ["plan", "plans", "p"]) {
+        expect(readCompletionWords(script, parent, true)).toEqual(["open", "view", "show"]);
+        for (const child of ["open", "view", "show"]) {
+          expect(readCompletionWords(script, `${parent} ${child}`, true)).toEqual([]);
+        }
+      }
+      expect(script).toContain('  case "$options_ended:$key" in');
+    });
+
+    it("changes state only for completed standalone terminators after consuming pending values", async () => {
+      const script = await emitCompletion(shell, createRequiredValueProgram());
+
+      expect(script).toContain("  expecting_value=0\n  options_ended=0\n");
+      expect(script).toContain(
+        shell === "bash"
+          ? "  for (( index=1; index < COMP_CWORD; index++ )); do"
+          : "  for (( index=2; index < CURRENT; index++ )); do"
+      );
+      expect(script).toContain([
+        "    if (( expecting_value )); then",
+        "      expecting_value=0",
+        "      continue",
+        "    fi",
+        "    if (( ! options_ended )); then",
+        '      if [[ "$word" == "--" ]]; then',
+        "        options_ended=1",
+        "        continue",
+        "      fi",
+        '      case "$key:$word" in'
+      ].join("\n"));
+      expect(script).toContain([
+        "      esac",
+        '      [[ "$word" == -* ]] && continue',
+        "    fi",
+        '    key="${key:+$key }$word"'
+      ].join("\n"));
+    });
+  });
+
+  it("does not add terminator state to fish output", async () => {
+    expect(await emitCompletion("fish")).not.toContain("options_ended");
+  });
+
   describe.each(["bash", "zsh"])("%s required single-value options", (shell) => {
     it.each([
       "",
@@ -419,13 +505,19 @@ describe("completion command", () => {
         "      expecting_value=0",
         "      continue",
         "    fi",
-        '    case "$key:$word" in'
+        "    if (( ! options_ended )); then",
+        '      if [[ "$word" == "--" ]]; then',
+        "        options_ended=1",
+        "        continue",
+        "      fi",
+        '      case "$key:$word" in'
       ].join("\n"));
       expect(script).toContain('"plan:--kind"|"plan:-k"');
       expect(script).toContain(') expecting_value=1; continue;;');
       expect(script).toContain([
-        "    esac",
-        '    [[ "$word" == -* ]] && continue',
+        "      esac",
+        '      [[ "$word" == -* ]] && continue',
+        "    fi",
         '    key="${key:+$key }$word"'
       ].join("\n"));
     });
@@ -450,7 +542,7 @@ describe("completion command", () => {
           expect(script).not.toContain(`"${path}:${flag}"`);
         }
       }
-      const valueCases = script.split('    case "$key:$word" in\n')[1]?.split("    esac")[0];
+      const valueCases = script.split('      case "$key:$word" in\n')[1]?.split("      esac")[0];
       expect(valueCases).toBeDefined();
       expect(valueCases).not.toContain("*");
     });
@@ -460,8 +552,8 @@ describe("completion command", () => {
 
       expect(script).toContain(
         shell === "bash"
-          ? '"plan") completions="browse open view show --kind --optional --many --profile --boolean";;'
-          : '"plan") completions=(browse open view show --kind --optional --many --profile --boolean);;'
+          ? '"0:plan") completions="browse open view show --kind --optional --many --profile --boolean";;'
+          : '"0:plan") completions=(browse open view show --kind --optional --many --profile --boolean);;'
       );
     });
   });

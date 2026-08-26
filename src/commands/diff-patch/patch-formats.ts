@@ -24,7 +24,8 @@ class Reader {
   }
   async content(prefix: string): Promise<string> {
     const line = await this.take();
-    if (!line.startsWith(`${prefix} `) && !line.startsWith(`${prefix}\t`)) throw new ToolError("malformed patch body prefix");
+    if (line !== prefix && !(prefix === " " && line === "")
+      && !line.startsWith(`${prefix} `) && !line.startsWith(`${prefix}\t`)) throw new ToolError("malformed patch body prefix");
     let text = `${line.slice(2)}\n`;
     if (this.peek() === "\\ No newline at end of file") {
       await this.take();
@@ -77,10 +78,11 @@ async function contextRange(reader: Reader, old: boolean): Promise<Range> {
   return { start, last, multiple: match[2] !== undefined };
 }
 
-async function contextSide(reader: Reader, old: boolean): Promise<ContextLine[]> {
+async function contextSide(reader: Reader, old: boolean, range: Range): Promise<ContextLine[]> {
   const lines: ContextLine[] = [];
-  while (reader.peek() !== undefined) {
-    const kind = reader.peek()![0];
+  const count = range.start === 0 ? 0 : range.last - range.start + 1;
+  while (reader.peek() !== undefined && lines.length < count) {
+    const kind = reader.peek() === "" ? " " : reader.peek()![0];
     if (kind !== " " && kind !== "!" && kind !== (old ? "-" : "+")) break;
     if (old && /^--- \d+(?:,\d+)? ----$/u.test(reader.peek()!)) break;
     lines.push({ kind, text: await reader.content(kind) });
@@ -114,9 +116,9 @@ async function context(reader: Reader): Promise<string> {
       if (!/^\*{15}(?: .*)?$/u.test(delimiter)) throw new ToolError("malformed context hunk separator");
       if (++hunks > reader.budget.limits.maxHunks) throw new ToolError("hunk limit exceeded");
       const oldRange = await contextRange(reader, true);
-      let oldLines = await contextSide(reader, true);
+      let oldLines = await contextSide(reader, true, oldRange);
       const newRange = await contextRange(reader, false);
-      let newLines = await contextSide(reader, false);
+      let newLines = await contextSide(reader, false, newRange);
       if (!oldLines.length) {
         if (newLines.some(line => line.kind === "!")) throw new ToolError("missing old changed context body");
         oldLines = newLines.filter(line => line.kind === " ");

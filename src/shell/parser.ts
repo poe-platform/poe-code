@@ -78,7 +78,7 @@ class Lexer {
   delimiterOperator: string | undefined;
   readonly documents: HereDocument[] = [];
 
-  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0) {
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
 
@@ -159,7 +159,7 @@ class Lexer {
       if (!terminated) this.warnings.push(`here-document at offset ${document.offset} delimited by end-of-file (wanted ${JSON.stringify(document.delimiter)})`);
       document.body = document.quoted
         ? { offset: document.offset, parts: [{ kind: "text", value: body, quoted: true }] }
-        : new Lexer(body, this.depth, this.warnings).documentWord();
+        : new Lexer(body, this.depth, this.warnings, 0, this.byteLocale).documentWord();
     }
   }
 
@@ -307,7 +307,9 @@ class Lexer {
         this.position += digits.length;
         const code = parseInt(digits, 16);
         if (escape === "x") bytes.push(code);
-        else {
+        else if (this.byteLocale && code > 127) {
+          bytes.push(...encoder.encode(`\\${code <= 0xffff ? "u" : "U"}${code.toString(16).toUpperCase().padStart(code <= 0xffff ? 4 : 8, "0")}`));
+        } else {
           if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) this.error("Unsupported non-scalar ANSI-C Unicode escape");
           bytes.push(...encoder.encode(String.fromCodePoint(code)));
         }
@@ -331,7 +333,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1), line, quoted });
+      parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale), line, quoted });
       return;
     }
     this.position++;
@@ -344,7 +346,7 @@ class Lexer {
       this.position = end + 2;
     } else if (this.source[this.position] === "(") {
       const start = this.position + 1;
-      const nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1);
+      const nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
       let script: Script;
       try { script = nested.script(new Set([")"])); }
       catch (error) {
@@ -389,9 +391,9 @@ class Parser {
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number) {
+  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
-    this.lexer = new Lexer(source, depth, warnings, lineOffset);
+    this.lexer = new Lexer(source, depth, warnings, lineOffset, byteLocale);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -606,9 +608,9 @@ export function parseShell(source: string, depth = 0): Script {
   return { ...script, ...(warnings.length ? { warnings } : {}) };
 }
 
-export function parseShellUnit(source: string, position = 0): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false): { script: Script; next: number } {
   const warnings: string[] = [];
-  const parser = new Parser(source, 0, warnings, 0, position);
+  const parser = new Parser(source, 0, warnings, 0, position, byteLocale);
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
@@ -616,8 +618,8 @@ export function parseShellUnit(source: string, position = 0): { script: Script; 
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
-function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0): Script {
-  const parser = new Parser(source, depth, warnings, lineOffset);
+function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0, byteLocale = false): Script {
+  const parser = new Parser(source, depth, warnings, lineOffset, undefined, byteLocale);
   const script = parser.script();
   if (parser.current.kind !== "end") parser.error("Unexpected token");
   return script;

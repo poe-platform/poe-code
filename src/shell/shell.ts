@@ -5,6 +5,7 @@ import type {
 } from "../contracts/index.js";
 import { parseShellUnit } from "./parser.js";
 import { ShellInput } from "./input.js";
+import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime } from "./runtime.js";
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
@@ -84,7 +85,7 @@ export class Shell implements PluginHost {
     };
     let exitCode: number;
     try {
-      let unit = parseShellUnit(source);
+      let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
       stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
       io.stdin = stdin;
       await interruptible(this.#ready, budget.signal);
@@ -108,7 +109,7 @@ export class Shell implements PluginHost {
         }
         if (unit.next >= source.length) break;
         budget.signal.throwIfAborted();
-        unit = parseShellUnit(source, unit.next);
+        unit = parseShellUnit(source, unit.next, byteLocale(state.variables));
       }
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;

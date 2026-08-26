@@ -51,3 +51,19 @@ test("ANSI-C words preserve expansion and malformed-source guards", async () => 
     assert.deepEqual(await fs.readdir("/"), []);
   }
 });
+
+test("GNU 5.3 C-locale Unicode escapes retain canonical ASCII spellings", async () => {
+  const result = await setup().shell.exec(String.raw`args $'\U000000e9\u0080\u000A\U0001f600'`, { env: { LC_ALL: "C" } });
+  assert.equal(result.stdout, JSON.stringify(["\\u00E9\\u0080\n\\U0001F600"]));
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("ANSI-C locale follows input-unit parsing, not later same-unit assignments", async () => {
+  for (const [separator, value] of [["; ", "\\u00E9"], ["\n", "é"]] as const) {
+    const result = await setup().shell.exec(`LC_ALL=en_US.UTF-8${separator}args $'\\u00e9'`, { env: { LC_ALL: "C" } });
+    assert.equal(result.stdout, JSON.stringify([value]));
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  }
+});

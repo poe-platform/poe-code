@@ -123,12 +123,20 @@ so `$'a\0b'x` yields `ax`. Unknown/non-numeric escapes retain the backslash.
 ANSI-C quoting is word syntax, not expanded inside double quotes or heredoc
 bodies. Existing rejection of ANSI-C heredoc delimiters remains explicit.
 
-Non-scalar Unicode escapes are explicitly rejected before effects (status 2),
+In UTF-8 locale, non-scalar Unicode escapes are explicitly rejected before effects (status 2),
 rather than silently approximated: GNU 5.3 emits invalid UTF-8 for `\uD800`
 and `\U00110000`; those byte-valued textual forms are not supported by the
 virtual UTF-8 string model. This is a recorded limitation, not parity.
 The formerly unsupported valid-ANSI-C parser assertion is replaced by an
 unterminated-ANSI-C no-effect assertion; supported forms have new positive tests.
+
+The C/POSIX-locale follow-up preserves canonical ASCII spellings for Unicode
+escapes above ASCII: `\U000000e9` becomes literal `\u00E9`, and `\u000A` still
+becomes newline. Locale selection happens when parsing the current input unit,
+as directly captured from GNU 5.3: changing LC_ALL on the same line does not
+retroactively change ANSI-C decoding, whereas changing it before a new input
+unit does. The initial locale comes from explicit shell/exec environment, not an
+uncontrolled host locale. Existing `/bin/bash` references remain unchanged.
 
 ## Fatal status and diagnostics
 

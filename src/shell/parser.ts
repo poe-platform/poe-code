@@ -229,7 +229,10 @@ class Lexer {
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
       if (terminator ? current === terminator : /[ \t\n;|&()<>]/u.test(current)) break;
-      if (current === "'" && !enclosingQuoted) {
+      if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
+        plain = false;
+        text(this.ansiWord(), true);
+      } else if (current === "'" && !enclosingQuoted) {
         plain = false;
         const end = this.source.indexOf("'", this.position + 1);
         if (end === -1) this.error("Unterminated single quote");
@@ -272,6 +275,46 @@ class Lexer {
       }
     }
     return { parts, offset, ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
+  }
+
+  ansiWord(): string {
+    this.position += 2;
+    const bytes: number[] = [];
+    const encoder = new TextEncoder();
+    const escapes: Readonly<Record<string, number>> = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92, "'": 39, '"': 34, "?": 63 };
+    while (this.position < this.source.length) {
+      const character = String.fromCodePoint(this.source.codePointAt(this.position)!);
+      this.position += character.length;
+      if (character === "'") {
+        const nul = bytes.indexOf(0);
+        return new TextDecoder().decode(Uint8Array.from(nul < 0 ? bytes : bytes.slice(0, nul)));
+      }
+      if (character !== "\\") { bytes.push(...encoder.encode(character)); continue; }
+      const escape = this.source[this.position++];
+      if (escape === undefined) this.error("Unterminated ANSI-C quote");
+      if (escapes[escape] !== undefined) { bytes.push(escapes[escape]!); continue; }
+      if (/[0-7]/u.test(escape)) {
+        const digits = escape + (/^[0-7]{0,2}/u.exec(this.source.slice(this.position))?.[0] ?? "");
+        this.position += digits.length - 1;
+        bytes.push(parseInt(digits, 8) & 255);
+      } else if (["x", "u", "U"].includes(escape)) {
+        const maximum = escape === "x" ? 2 : escape === "u" ? 4 : 8;
+        const digits = new RegExp(`^[0-9a-fA-F]{1,${maximum}}`, "u").exec(this.source.slice(this.position))?.[0];
+        if (!digits) { bytes.push(92, escape.charCodeAt(0)); continue; }
+        this.position += digits.length;
+        const code = parseInt(digits, 16);
+        if (escape === "x") bytes.push(code);
+        else {
+          if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) this.error("Unsupported non-scalar ANSI-C Unicode escape");
+          bytes.push(...encoder.encode(String.fromCodePoint(code)));
+        }
+      } else if (escape === "c" && this.source[this.position] !== "'" && this.position < this.source.length) {
+        const control = this.source[this.position++]!;
+        if (control === "\\" && this.source[this.position] === "\\") this.position++;
+        bytes.push(control === "?" ? 127 : control.toUpperCase().charCodeAt(0) & 31);
+      } else bytes.push(92, ...encoder.encode(escape));
+    }
+    this.error("Unterminated ANSI-C quote");
   }
 
   expansion(parts: WordPart[], quoted: boolean): void {

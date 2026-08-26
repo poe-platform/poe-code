@@ -81,3 +81,30 @@ Case retains its shared `maxExpansionBytes` work bound, now including compilatio
 Pathname matching uses a finite work allowance of `4 * maxExpansionBytes + 1024`
 (capped at the safe-integer maximum), separately from the unchanged strict
 output byte/field limits, so exact-budget output remains permitted.
+
+## ANSI-C word quoting
+
+Common escapes have direct unchanged `/bin/bash` comparisons. Additional Unicode
+and control escapes were captured using the isolated signed-source GNU Bash
+5.3.0 binary `/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash`, under
+`en_US.UTF-8`, sanitized environment and a two-second per-command deadline.
+Source archive SHA-256:
+`0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba`.
+Full paired independent provenance is in `/tmp/safe-bash-shell-modern-reference.txt`
+and its referenced 137-case capture. Existing native helpers were not redirected.
+
+GNU 5.3 decodes `\u00e9\U0001f600` to `é😀`, `\c?` to DEL and trailing `\c`
+literally; Bash 3.2 leaves Unicode escapes literal, maps `\c?` to U+001F and
+leaves only a slash for trailing `\c`. The added modern tests use the exact
+captured values, status 0 and empty stderr, not Bash 3.2 normalization.
+Escaped UTF-8 bytes are decoded together. NUL truncates only its quoted segment,
+so `$'a\0b'x` yields `ax`. Unknown/non-numeric escapes retain the backslash.
+ANSI-C quoting is word syntax, not expanded inside double quotes or heredoc
+bodies. Existing rejection of ANSI-C heredoc delimiters remains explicit.
+
+Non-scalar Unicode escapes are explicitly rejected before effects (status 2),
+rather than silently approximated: GNU 5.3 emits invalid UTF-8 for `\uD800`
+and `\U00110000`; those byte-valued textual forms are not supported by the
+virtual UTF-8 string model. This is a recorded limitation, not parity.
+The formerly unsupported valid-ANSI-C parser assertion is replaced by an
+unterminated-ANSI-C no-effect assertion; supported forms have new positive tests.

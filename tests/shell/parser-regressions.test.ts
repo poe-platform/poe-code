@@ -23,7 +23,7 @@ test("continuations preserve keyword, operator and descriptor recognition", asyn
 });
 
 test("misplaced negation and unsupported expansion syntax reject before effects", async () => {
-  for (const source of ["say touched; ! ! true", "say touched; true | ! false", "say touched; args $'a\\nb'", 'say touched; args $"text"', "say touched; args $$ $! $-", "say touched; args $((1 constructor 2))"]) {
+  for (const source of ["say touched; ! ! true", "say touched; true | ! false", "say touched; args $'unterminated", 'say touched; args $"text"', "say touched; args $$ $! $-", "say touched; args $((1 constructor 2))"]) {
     const { shell } = setup();
     assert.throws(() => parseShell(source), ShellSyntaxError);
     const result = await shell.exec(source);

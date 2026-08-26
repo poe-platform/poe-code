@@ -1,6 +1,6 @@
 import { posix } from "node:path";
 import { setImmediate } from "node:timers/promises";
-import { collectBytes, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { collectBytes, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { parseArguments, type CurlArguments } from "./args.js";
 import { createBody, queryData } from "./body.js";
@@ -146,6 +146,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
     for (let attempt = 0; attempt <= args.retries; attempt++) {
       values.num_retries = String(attempt);
+      downloaded = 0;
+      failure = undefined;
       let current = new URL(initial);
       let method = initialMethod;
       let currentBody = body;
@@ -202,7 +204,38 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         }
         break;
       }
-      if (response && retryStatuses.has(response.status) && attempt < args.retries) {
+      if (!response) throw new CurlError(56, "No HTTP response");
+      if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
+      const suppressBody = args.fail && failure !== undefined;
+      let published = 0;
+      if (!suppressBody || included.length) {
+        const length = header(response.headers, "content-length");
+        if (!args.head && !suppressBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
+        const final = response;
+        const source: ByteSource = (async function* () {
+          for (const bytes of included) { published += bytes.length; yield bytes; }
+          if (!args.head && !suppressBody) {
+            let chunks = 0;
+            try {
+              for await (const chunk of readBytes(final.body, signal)) {
+                if (++chunks % 256 === 0) await setImmediate(undefined, { signal });
+                downloaded += chunk.length;
+                if (downloaded > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
+                published += chunk.length;
+                yield chunk;
+              }
+              if (length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
+            } catch (error) {
+              signal.throwIfAborted();
+              if (!(error instanceof CurlError) && length && /^\d+$/.test(length) && downloaded < Number(length)) throw new CurlError(18, "Partial HTTP response body");
+              throw networkError(error);
+            }
+          }
+        })();
+        await writeOutput(context, output, source, signal);
+      }
+      if (retryStatuses.has(response.status) && attempt < args.retries) {
+        if (failure && (!args.silent || args.showError)) await diagnostic(context, failure);
         const after = header(response.headers, "retry-after");
         let wait = args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000);
         if (after !== undefined) {
@@ -210,37 +243,11 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
           if (Number.isFinite(parsed)) wait = Math.max(wait, parsed);
         }
         await stop(response, signal); response = undefined;
+        if (published && output !== undefined && output !== "-") await writeOutput(context, output, toByteSource(""), signal);
         await delay(Math.min(wait, limits.maxTimeMs), signal);
         continue;
       }
       break;
-    }
-    if (!response) throw new CurlError(56, "No HTTP response");
-    if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
-    if (!args.fail || !failure) {
-      const length = header(response.headers, "content-length");
-      if (!args.head && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
-      const final = response;
-      const source: ByteSource = (async function* () {
-        for (const bytes of included) yield bytes;
-        if (!args.head) {
-          let chunks = 0;
-          try {
-            for await (const chunk of readBytes(final.body, signal)) {
-              if (++chunks % 256 === 0) await setImmediate(undefined, { signal });
-              downloaded += chunk.length;
-              if (downloaded > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
-              yield chunk;
-            }
-            if (length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
-          } catch (error) {
-            signal.throwIfAborted();
-            if (!(error instanceof CurlError) && length && /^\d+$/.test(length) && downloaded < Number(length)) throw new CurlError(18, "Partial HTTP response body");
-            throw networkError(error);
-          }
-        }
-      })();
-      await writeOutput(context, output, source, signal);
     }
   } catch (error) {
     if (context.signal.aborted) throw context.signal.reason;

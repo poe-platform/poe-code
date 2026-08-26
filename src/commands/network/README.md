@@ -58,7 +58,7 @@ An allow-all callback explicitly grants broad outbound HTTP(S) authority.
 | Response files | `-o/--output`, `-O/--remote-name`, `-D/--dump-header`; paths are VFS-relative, `-` means stdout. `-O` uses the original URL path basename without percent decoding or Content-Disposition trust. Parents must exist. Multiple URLs with file/header outputs are rejected instead of pretending curl's positional output rules. |
 | HTTP status | `-f/--fail`, `--fail-with-body`, `-s/--silent`, `-S/--show-error`; HTTP errors otherwise return zero. No progress meter is generated. `-v` emits method/origin, header names with all values redacted, and numeric response status. Explicit body/header outputs remain raw. |
 | Redirects | `-L/--location`, `--max-redirs`; 301/302/303 method/body changes and 307/308 replay; explicit `-X` is retained. HTTPS downgrade and credential-bearing Location URLs are rejected. All custom request headers and generated credentials are dropped permanently after crossing origins, more conservative than native curl. |
-| Deadlines/retries | `-m/--max-time` covers authorization, upload, response, body output and retry sleeps for each URL; host ceiling always applies. `--retry` retries HTTP 408/429/500/502/503/504 before body publication; `--retry-delay` and Retry-After are bounded by the deadline. Network errors and partially published transfers are not retried. |
+| Deadlines/retries | `-m/--max-time` covers authorization, upload, response, body output and retry sleeps for each URL; host ceiling always applies. `--retry` retries completed HTTP 408/429/500/502/503/504 responses after output publication (subject to fail modes); `--retry-delay` and Retry-After are bounded by the deadline. Network, partial-transfer and output failures are not retried. |
 | Write-out | `-w/--write-out`, including `@VFSFILE`/`@-`; `http_code`, `response_code`, `url_effective`, `redirect_url`, `content_type`, `size_download`, `size_upload`, `num_redirects`, `num_retries`, `time_total`, `exitcode`, `errormsg`, `filename_effective`, `method`, `http_version`; `%%`, `\n`, `\r`, `\t`. Unsupported variables fail before requests. Final write-out/diagnostics observe shell cancellation, outside the completed transfer deadline. |
 
 `--disable`, `--no-buffer`, `--no-progress-meter` are accepted because config
@@ -89,6 +89,20 @@ not be the same lexical file; aliases or concurrently replaced paths are not
 globally atomic. A downstream sink error disposes the response and destroys the
 Node request. Empty chunks yield periodically so timeout cancellation is not
 starved by an infinite microtask producer.
+
+Retry response bodies stream to stdout, including pipes, shell redirections and
+`-o -`; already emitted bytes are not withdrawn. Curl-managed `-o FILE`/`-O`
+outputs are written for each attempt and, if that attempt wrote bytes, reset to
+empty before retry sleep. Reset failures stop with 23; a later denial, timeout or
+cancellation can leave an empty file rather than the old content. Header dumps
+(`-D`) append all attempts; included headers (`-i`/`-I`) follow body-output
+destination/reset behavior. `--fail` suppresses HTTP-error bodies, not included
+headers, while `--fail-with-body` retains the body. Failed attempts in those modes
+emit diagnostics unless silenced; final status and `size_download` describe the
+last attempt. Download limits apply per response; shell output limits still
+cover all emitted attempts. Each retry is authorized anew and can duplicate
+accepted POST effects: file resets are not server-side rollback. This preserves
+the existing total per-URL deadline, not native curl's per-attempt timeout model.
 
 Exit codes include 1 unsupported protocol, 2 invalid/unsupported option,
 3 malformed URL, 6 DNS, 7 connection/policy rejection, 18 partial body,

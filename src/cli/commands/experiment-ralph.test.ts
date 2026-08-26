@@ -403,6 +403,147 @@ describe.each([
   );
 });
 
+describe.each([
+  { command: "ralph", register: registerRalphCommand, run: sdkRunRalph, planDoc: ralphPlanDoc },
+  {
+    command: "experiment",
+    register: registerExperimentCommand,
+    run: sdkRunExperiment,
+    planDoc: experimentPlanDoc
+  }
+])("$command CLI array override", ({ command, register, run, planDoc }) => {
+  describe.each([false, true])("dryRun: %s", (dryRun) => {
+    let volume: Volume;
+    let initialFiles: ReturnType<Volume["toJSON"]>;
+    let program: Command;
+    let logs: string[];
+    let prompts: ReturnType<typeof vi.fn>;
+    const configuredAgents = ["claude-code:front-claude", "codex:front-codex"];
+
+    beforeEach(() => {
+      volume = Volume.fromJSON({
+        "/repo/docs/loop.md": planDoc("Loop").replace(
+          "---",
+          `---\nagent: [claude:front-claude, codex:front-codex]${command === "ralph" ? "\niterations: 4" : ""}`
+        ),
+        "/repo/.poe-code/config.json": JSON.stringify({
+          core: { defaultAgent: "goose:core-model" }
+        })
+      });
+      volume.mkdirSync(homeDir, { recursive: true });
+      initialFiles = volume.toJSON();
+      logs = [];
+      prompts = vi.fn(() => {
+        throw new Error("Unexpected agent prompt");
+      });
+      const container = createCliContainer({
+        fs: createFsFromVolume(volume).promises as unknown as FileSystem,
+        prompts,
+        env: { cwd, homeDir },
+        logger: (message) => logs.push(message)
+      });
+      program = createBaseProgram();
+      register(program, container);
+      if (dryRun) {
+        for (const callback of [sdkRunRalph, sdkRunExperiment, braintrustLoadIntegrationsMock]) {
+          vi.mocked(callback).mockImplementation(() => {
+            throw new Error("Unexpected dry-run execution");
+          });
+        }
+      }
+    });
+
+    afterEach(() => {
+      try {
+        expect(volume.toJSON()).toEqual(initialFiles);
+        expect(prompts).not.toHaveBeenCalled();
+        expect(selectMock).not.toHaveBeenCalled();
+        expect(promptTextMock).not.toHaveBeenCalled();
+        expect(sdkSpawn).not.toHaveBeenCalled();
+        expect(sdkSpawn.autonomous).not.toHaveBeenCalled();
+        if (dryRun) {
+          expect(sdkRunRalph).not.toHaveBeenCalled();
+          expect(sdkRunExperiment).not.toHaveBeenCalled();
+          expect(braintrustLoadIntegrationsMock).not.toHaveBeenCalled();
+        }
+      } finally {
+        braintrustLoadIntegrationsMock.mockReset();
+        vi.clearAllMocks();
+      }
+    });
+
+    it.each([
+      { provided: "codex", expected: "codex" },
+      { provided: "claude", expected: "claude-code" },
+      { provided: "claude:cli-model", expected: "claude-code:cli-model" },
+      { provided: undefined, expected: configuredAgents },
+      { provided: "", expected: configuredAgents },
+      { provided: "   ", expected: command === "ralph" ? configuredAgents : "claude-code" }
+    ])(
+      "resolves explicit agent $provided without changing fallback semantics",
+      async ({ provided, expected }) => {
+        await program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          ...(dryRun ? ["--dry-run"] : []),
+          command,
+          "run",
+          "docs/loop.md",
+          "--no-tui",
+          ...(provided === undefined ? [] : ["--agent", provided])
+        ]);
+
+        if (dryRun) {
+          const agentSummary = Array.isArray(expected) ? expected.join(", ") : expected;
+          expect(logs.filter((message) => message.includes("Dry run: would run"))).toEqual([
+            expect.stringContaining(
+              command === "ralph"
+                ? `Agent: ${agentSummary} · Iterations: 4`
+                : `with ${agentSummary} for up to unlimited experiments.`
+            )
+          ]);
+        } else {
+          expect(run).toHaveBeenCalledTimes(1);
+          expect(run).toHaveBeenCalledWith(
+            expect.objectContaining({
+              agent: expected,
+              docPath: "docs/loop.md"
+            })
+          );
+        }
+      }
+    );
+
+    it("rejects an invalid explicit agent instead of using the array", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          ...(dryRun ? ["--dry-run"] : []),
+          command,
+          "run",
+          "docs/loop.md",
+          "--no-tui",
+          "--agent",
+          "mystery-agent"
+        ])
+      ).rejects.toThrow(
+        expect.objectContaining({
+          name: "ValidationError",
+          message: expect.stringContaining("mystery-agent")
+        })
+      );
+
+      expect(sdkRunRalph).not.toHaveBeenCalled();
+      expect(sdkRunExperiment).not.toHaveBeenCalled();
+      expect(braintrustLoadIntegrationsMock).not.toHaveBeenCalled();
+      expect(logs.some((message) => message.includes("Dry run: would run"))).toBe(false);
+    });
+  });
+});
+
 describe("experiment run command", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -916,7 +1057,7 @@ describe("experiment run command", () => {
   it("preserves comma-separated CLI agents for experiment run", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/loop.md": "# Loop"
+        "/repo/docs/loop.md": "---\nagent: [goose, codex]\n---\n# Loop"
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -932,13 +1073,13 @@ describe("experiment run command", () => {
       "run",
       "docs/loop.md",
       "--agent",
-      "claude,codex"
+      "claude:cli-model,codex"
     ]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: ["claude-code", "codex"],
+        agent: ["claude-code:cli-model", "codex"],
         docPath: "docs/loop.md"
       })
     );
@@ -3423,7 +3564,7 @@ describe("ralph run command", () => {
     );
   });
 
-  it("keeps frontmatter array fan-out when --agent is also provided", async () => {
+  it("lets an explicit CLI agent override frontmatter array fan-out", async () => {
     const container = createCliContainer({
       fs: createMemFs({
         "/repo/docs/loop.md": [
@@ -3452,7 +3593,7 @@ describe("ralph run command", () => {
     expect(promptTextMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: ["claude-code", "codex"],
+        agent: "goose",
         docPath: "docs/loop.md",
         maxIterations: 4
       })

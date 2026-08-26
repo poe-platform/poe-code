@@ -678,6 +678,9 @@ async function resolveRunAgent(options: {
   }
 
   if (Array.isArray(options.frontmatterAgent)) {
+    if (providedAgents.length === 1) {
+      return resolveExperimentAgent(options.providedAgent);
+    }
     return options.frontmatterAgent.map((a) => resolveExperimentAgent(a, "frontmatter agent"));
   }
 

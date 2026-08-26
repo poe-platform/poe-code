@@ -532,6 +532,9 @@ async function resolveRunAgent(options: {
 }): Promise<string | string[] | null> {
   const configured = resolveConfiguredAgents(options.frontmatterAgent);
   if (Array.isArray(configured)) {
+    if (options.providedAgent?.trim()) {
+      return resolveRalphAgent(options.providedAgent);
+    }
     return configured;
   }
 

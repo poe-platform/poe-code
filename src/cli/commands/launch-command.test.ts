@@ -551,6 +551,113 @@ describe("launch command", () => {
     expect(loggerOutput).not.toContain("Usage: poe-code launch");
   });
 
+  describe.each(["stdout", "stderr"])("%s logs", (stream) => {
+    it.each([
+      { name: "default history", args: [], lines: 50, history: ["A", "B"], next: "C" },
+      { name: "explicit history", args: ["--lines", "1"], lines: 1, history: ["B"], next: "C" },
+      { name: "no history", args: ["--lines", "0"], lines: 0, history: [], next: "C" },
+      { name: "genuinely repeated records", args: [], lines: 50, history: ["repeat", "repeat"], next: "repeat" }
+    ])("follows $name exactly once and cleans up on completion", async ({ args, lines, history, next }) => {
+      const logs: string[] = [];
+      const program = createBaseProgram();
+      registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+      const sigintListeners = process.listeners("SIGINT");
+      const sigtermListeners = process.listeners("SIGTERM");
+      readLaunchLogsMock.mockResolvedValue(history);
+      followLaunchLogsMock.mockReturnValueOnce((async function* () {
+        yield* history;
+        yield next;
+      })());
+
+      await program.parseAsync([
+        "node", "cli", "launch", "logs", "api", "--follow", ...args,
+        ...(stream === "stderr" ? ["--stderr"] : [])
+      ]);
+
+      expect(logs).toEqual([...history, next]);
+      expect(readLaunchLogsMock).not.toHaveBeenCalled();
+      expect(followLaunchLogsMock).toHaveBeenCalledExactlyOnceWith({
+        homeDir: "/home/test",
+        id: "api",
+        lines,
+        signal: expect.any(AbortSignal),
+        stream
+      });
+      expect(process.listeners("SIGINT")).toEqual(sigintListeners);
+      expect(process.listeners("SIGTERM")).toEqual(sigtermListeners);
+    });
+
+    it.each([
+      { args: [], lines: 50, history: ["A", "B"] },
+      { args: ["--lines", "1"], lines: 1, history: ["B"] },
+      { args: ["--lines", "0"], lines: 0, history: [] }
+    ])("reads only the requested history without follow (lines: $lines)", async ({ args, lines, history }) => {
+      const logs: string[] = [];
+      const program = createBaseProgram();
+      registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+      readLaunchLogsMock.mockResolvedValue(history);
+
+      await program.parseAsync([
+        "node", "cli", "launch", "logs", "api", ...args,
+        ...(stream === "stderr" ? ["--stderr"] : [])
+      ]);
+
+      expect(logs).toEqual(history.length > 0 ? [history.join("\n")] : []);
+      expect(readLaunchLogsMock).toHaveBeenCalledExactlyOnceWith({
+        homeDir: "/home/test", id: "api", lines, stream
+      });
+      expect(followLaunchLogsMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it("cleans up follow listeners when the iterator throws", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+    const sigintListeners = process.listeners("SIGINT");
+    const sigtermListeners = process.listeners("SIGTERM");
+    const failure = new Error("Log stream failed");
+    followLaunchLogsMock.mockReturnValueOnce((async function* () {
+      yield "A";
+      throw failure;
+    })());
+
+    await expect(
+      program.parseAsync(["node", "cli", "launch", "logs", "api", "--follow"])
+    ).rejects.toBe(failure);
+
+    expect(logs).toEqual(["A"]);
+    expect(readLaunchLogsMock).not.toHaveBeenCalled();
+    expect(process.listeners("SIGINT")).toEqual(sigintListeners);
+    expect(process.listeners("SIGTERM")).toEqual(sigtermListeners);
+  });
+
+  it.each(["SIGINT", "SIGTERM"])("aborts follow and cleans up through the captured %s callback", async (event) => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+    const sigintListeners = process.listeners("SIGINT");
+    const sigtermListeners = process.listeners("SIGTERM");
+    const onceSpy = vi.spyOn(process, "once");
+    followLaunchLogsMock.mockReturnValueOnce((async function* () {
+      yield "A";
+      const stop = onceSpy.mock.calls.find(([name]) => name === event)?.[1];
+      stop?.();
+    })());
+
+    try {
+      await program.parseAsync(["node", "cli", "launch", "logs", "api", "--follow"]);
+
+      expect(followLaunchLogsMock.mock.calls[0]?.[0].signal.aborted).toBe(true);
+      expect(logs).toEqual(["A"]);
+      expect(readLaunchLogsMock).not.toHaveBeenCalled();
+      expect(process.listeners("SIGINT")).toEqual(sigintListeners);
+      expect(process.listeners("SIGTERM")).toEqual(sigtermListeners);
+    } finally {
+      onceSpy.mockRestore();
+    }
+  });
+
   it("renders launch status as a table", async () => {
     listLaunchesMock.mockResolvedValue([
       {

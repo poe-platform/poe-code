@@ -155,18 +155,17 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
       const stream = options.stderr ? "stderr" : "stdout";
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, `launch:logs:${id}`);
-      const initial = await readLaunchLogs({
-        homeDir: container.env.homeDir,
-        id,
-        lines,
-        stream
-      });
-
-      if (initial.length > 0) {
-        resources.logger.info(initial.join("\n"));
-      }
-
       if (!options.follow) {
+        const initial = await readLaunchLogs({
+          homeDir: container.env.homeDir,
+          id,
+          lines,
+          stream
+        });
+
+        if (initial.length > 0) {
+          resources.logger.info(initial.join("\n"));
+        }
         return;
       }
 

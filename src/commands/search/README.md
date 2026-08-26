@@ -32,16 +32,27 @@ operations, not total process memory, adapter allocations, or regex CPU time.
 
 ### Choosing stdin or a directory
 
-`CommandContext` has no TTY/piped-input metadata. With no path operands, `auto`
-peeks at stdin: a nonempty chunk selects stdin; an exhausted stream selects the
-current directory. This differs from native rg for an *empty pipe* and is an
-unresolved shell/contract metadata defect, not the desired final behavior.
-An empty pipe or redirected input must never trigger a directory scan. Specify `-`
-or `defaultInput: "stdin"` for unambiguous empty-stdin searches. Use
-`defaultInput: "cwd"` to avoid reading stdin when paths are omitted. File listing
-and programs taking patterns from `-f -` default to the current directory.
-Explicit data paths do not consume unrelated stdin. An explicit `-` is labeled
-`<stdin>` in filename and JSON output.
+With no path operands, `auto` uses `CommandContext.stdinIsDefault` without
+acquiring, reading, peeking, or replaying stdin. `false` selects supplied input,
+including empty, exhausted, piped, or redirected streams. `true` selects the
+current directory. Omitted metadata is legacy/unknown and deterministically
+selects the current directory, regardless of any available input bytes.
+
+`defaultInput: "stdin"` and `defaultInput: "cwd"` explicitly override ordinary
+auto-selection. Explicit paths (including `-`) take precedence over those
+defaults. File listing and programs taking patterns from `-f -` default to the
+current directory, even with `defaultInput: "stdin"`. Pattern files other than
+`-` leave ordinary input selection intact. Simultaneously using `-f -` and a
+data operand `-` is an error before stdin is consumed. Explicit data paths do
+not consume unrelated stdin, except when stdin supplies patterns. An explicit
+`-` is labeled `<stdin>` in filename and JSON output.
+
+The shell and transparent command forwarders now propagate the metadata, so an
+empty pipe or input redirection does not fall back to filesystem discovery.
+Direct legacy callers that relied on probing nonempty stdin must now supply
+`stdinIsDefault: false`, an explicit `-`, or `defaultInput: "stdin"`. Stream
+exhaustion never changes its provenance. Transparent `invoke` callers forwarding
+stdin must also preserve its metadata in `CommandInvokeOptions`.
 
 ## Supported flags
 
@@ -180,8 +191,8 @@ untrusted regexes safe; callers requiring a hard deadline must isolate execution
 outside this command. Generated glob regexes use JavaScript matching as well.
 Cancellation-aware byte helpers stop blocked stream waits, and traversal/record
 loops yield periodically, but these guarantees do not extend into RegExp.
-Legacy auto-selection now also yields while receiving empty chunks, so timer
-cancellation is not starved; this does not fix the missing stdin provenance.
+Selection itself performs no stream operations. Once nondefault stdin is
+selected, empty-chunk processing yields so timer cancellation is not starved.
 Closed stdout (`EPIPE`) terminates successfully without scanning later files or
 emitting diagnostics. A private cancellation signal releases input cleanup waits
 on that path; an already-aborted caller signal still takes precedence.

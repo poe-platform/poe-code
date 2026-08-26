@@ -14,7 +14,10 @@ npm run build
 git diff --check -- src/commands/search tests/commands/search tests/commands/search-stress
 ```
 
-- Focused suites: **632/632 pass**, no skipped or cancelled tests.
+- Focused suites: **689/689 pass**, no skipped or cancelled tests.
+- The **57 new stdin metadata regressions** (21 direct consumer, 36 shell/invoke)
+  pass independently with `PATH` empty. They never require native rg and are not
+  added to the native-comparison denominator.
 - New top-level strict native comparisons: **504** (486 deterministic command
   cases, 10 Bash/rg versus virtual-shell pipelines, 8 minimized review cases).
   Including the baseline's 86 comparisons gives **590** top-level equality
@@ -31,7 +34,7 @@ git diff --check -- src/commands/search tests/commands/search tests/commands/sea
 - The streaming wrapper runs six isolated tests: three matched 25 ms producer
   comparisons, one whole-write comparison, and two backpressure/cancellation
   checks proving output is awaited before reading the next input chunk.
-- Ten fresh repetitions with `--unhandled-rejections=strict` pass: **100 safety
+- At the streaming checkpoint, ten repetitions with `--unhandled-rejections=strict` passed: **100 safety
   checks** (30 native EPIPE runs) and **60 streaming checks** (30 matched delayed
   native comparisons, 10 whole-write comparisons, 20 backpressure checks).
 - Fresh whole-repository typecheck, build, and owned-path diff-check pass. The
@@ -65,7 +68,8 @@ subdirectory roots; direct probes disable external parent/global ignores.
 - The reviewed binary/context no-match case and fragmented-input lost warning.
 - Stdout EPIPE stops traversal successfully, without diagnostics or later writes;
   cancellation wins races, and uncooperative iterator cleanup cannot hold EPIPE.
-- Legacy auto-input empty chunks yield to cancellation rather than starving it.
+- Auto-input selection uses provenance without probing; nondefault empty chunks
+  yield to cancellation rather than starving it.
 
 ## Matched-delivery correction
 
@@ -100,34 +104,54 @@ or host process is introduced. Existing incomplete-record/input/output bounds,
 cancellation, and EPIPE cleanup remain enforced. Native reader/mmap heuristics,
 other chunk groupings, and arbitrary scheduling remain comparison limits.
 
-## Upstream stdin metadata blocker
+## Stdin metadata integration
 
-The inspected contract still has no `stdinIsDefault` field. The proposed
-addition is `readonly stdinIsDefault?: boolean` on **both** `CommandContext` and
-`CommandInvokeOptions`: true means the implicit no-input default, false means
-connected/supplied/redirected/closed input, omitted means legacy/unknown. Reading
-or exhausting a stream must not change the metadata. Shell descriptors, exec,
-pipelines, nested invoke, and transparent core forwarders must propagate it.
+The upstream contract/core work landed in `1c0d9ae`, and shell propagation landed
+in `27e5c58`. Both `CommandContext` and `CommandInvokeOptions` now declare
+`readonly stdinIsDefault?: boolean`. This consumer compiles against those actual
+interfaces without casts, replacement declarations, or edits to upstream files.
 
-Once the actual contract lands, auto-selection must use metadata without reading
-stdin: false selects stdin, true/unknown selects cwd. Explicit operands,
-configured defaults, `--files`, and pattern-stdin precedence remain intact.
-Legacy callers relying on inferred nonempty input will need metadata or an
-explicit input mode. Simultaneous pattern/data stdin (`-f - -`) needs its own
-native error regression during that integration.
+- `true` means the host's implicit no-input default: ordinary rg auto-selection
+  searches cwd without acquiring stdin.
+- `false` means nondefault input, not a promise that bytes remain. Ordinary
+  auto-selection reads stdin, including empty or previously exhausted streams.
+- Omitted metadata means legacy/unknown and deterministically selects cwd. No
+  stream inspection attempts to recover the missing information.
+- Explicit operands, configured defaults, `--files`, and pattern-stdin precedence
+  remain intact. Simultaneous pattern/data stdin (`-f - -`) returns status 2
+  before input acquisition. Existing native expected bytes were not changed.
+- Test helpers derive metadata from whether the caller supplied input, never
+  its content or byte count. Dedicated legacy tests omit the property entirely.
 
-Four independently executed native/virtual acceptance probes remain **failing**:
+The four formerly failing empty-pipe, empty-file-redirection, empty-heredoc and
+explicit-empty-`Shell.exec` cases now pass, returning status 1 and no output even
+with a matching cwd file. Always-runnable tests also cover empty bytes/sources,
+exhausted sources, zero chunks followed by data, descriptor setup order and
+duplication, output-only redirects, groups/functions/substitutions, nested env,
+and custom literal-argv invoke inheritance/replacement/transparent forwarding.
+Middleware observations assert the metadata received by rg, not just output.
 
-| Input origin, with `match.txt = "foo\n"` and `empty = ""` | Native | Current virtual |
-| --- | --- | --- |
-| `printf '' \| rg foo` | status 1, empty output | status 0, `match.txt:foo\n` |
-| `rg foo < empty` | status 1, empty output | status 0, `match.txt:foo\n` |
-| Empty heredoc into `rg foo` | status 1, empty output | status 0, `match.txt:foo\n` |
-| `Shell.exec("rg foo", {stdin: ""})` | status 1, empty output | status 0, `match.txt:foo\n` |
+Invoke tests verify that replacement stdin defaults to nondefault, an explicit
+replacement metadata value is honored, and a metadata-only override without
+replacement stdin cannot change inherited provenance. Literal arguments with
+shell metacharacters are passed unchanged and never evaluated as shell source.
 
-These are genuine unmet acceptance requirements, not parity passes, and explicit
-`-` is not the final fix. The optional field was not invented in search code, and
-no upstream files were edited. Passing focused tests must not be read as passing
-these four integration checks. JavaScript/Rust regex differences, nonliteral
-zero-width edge cases, and lack of hard in-process regex preemption also remain;
-this work does not establish general rg parity or superiority to just-bash.
+```sh
+node --import tsx --test tests/commands/search-stress/stdin-metadata.test.ts tests/commands/search-stress/stdin-shell.test.ts
+```
+
+All 57 tests also pass in a child Node process with `PATH` empty. There are no
+skipped, expected-failure, or native-availability-gated metadata regressions.
+Ten fresh `--unhandled-rejections=strict` repetitions with empty `PATH` pass
+**570/570 metadata checks**.
+No outstanding cross-owner failure remains in the exercised stdin cases.
+
+The output-only redirection fixture uses `.result`, keeping the output artifact
+out of the search inventory. Its first version used `result`, which rg then read
+as another matching file. That unrelated stdout-file exclusion behavior was not
+changed in this metadata task and is not covered by its acceptance claims.
+
+Legacy callers relying on inferred nonempty input must provide metadata or an
+explicit input mode. JavaScript/Rust regex differences, nonliteral zero-width
+edge cases, and lack of hard in-process regex preemption remain. This work does
+not establish general rg parity, full shell support, or superiority to just-bash.

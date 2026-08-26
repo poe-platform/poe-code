@@ -46,9 +46,10 @@ test("no-match status is distinct from an error and quiet success wins prior err
   }
 });
 
-test("default input selection is explicit for empty stdin without TTY metadata", async () => {
+test("metadata selects supplied empty stdin while default input and overrides remain explicit", async () => {
   const fixture = { args: ["needle"], files: { source: "needle\n" } };
   assert.equal((await virtual(fixture)).stdout.toString(), "source:needle\n");
+  assert.equal((await virtual({ ...fixture, stdin: "" })).code, 1);
   assert.equal((await virtual(fixture, { defaultInput: "stdin" })).code, 1);
   assert.equal((await virtual({ ...fixture, stdin: "needle\n" }, { defaultInput: "cwd" })).stdout.toString(), "source:needle\n");
   assert.equal((await virtual({ ...fixture, args: ["needle", "-"] })).code, 1);

@@ -55,7 +55,7 @@ export async function virtual(fixture: Fixture, options: SearchOptions = {}, ove
   const output: Buffer[] = []; const errors: Buffer[] = [];
   const context: CommandContext = {
     command: "rg", args: fixture.args, cwd: "/work", env: { LC_ALL: "C", LANG: "C" }, fs,
-    stdin: toByteSource(fixture.stdin ?? ""), signal: new AbortController().signal,
+    stdin: toByteSource(fixture.stdin ?? ""), stdinIsDefault: fixture.stdin === undefined, signal: new AbortController().signal,
     stdout: { async write(bytes) { output.push(Buffer.from(bytes)); } },
     stderr: { async write(bytes) { errors.push(Buffer.from(bytes)); } }, ...overrides,
   };

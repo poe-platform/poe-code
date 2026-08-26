@@ -12,7 +12,7 @@ const warning = 'binary file matches (found "\\0" byte around offset 4)\n';
 
 async function search(stdin: ByteSource, write: (chunk: Uint8Array) => Promise<void>, signal = new AbortController().signal) {
   return createSearchCommands()[0]!.execute({
-    command: "rg", args: ["foo", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(), signal, stdin,
+    command: "rg", args: ["foo", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(), signal, stdin, stdinIsDefault: false,
     stdout: { write }, stderr: { async write() { assert.fail("unexpected diagnostic"); } },
   });
 }

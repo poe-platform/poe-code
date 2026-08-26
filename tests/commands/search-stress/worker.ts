@@ -29,7 +29,7 @@ for (const probe of probes) {
   };
   const context: CommandContext = {
     command: "rg", args: probe.args, cwd: "/work", env: { LC_ALL: "C", LANG: "C" }, fs,
-    stdin: probe.chunkSize ? source() : toByteSource(input), signal: new AbortController().signal,
+    stdin: probe.chunkSize ? source() : toByteSource(input), stdinIsDefault: probe.stdin === undefined, signal: new AbortController().signal,
     stdout: { async write(chunk) { output.push(Buffer.from(chunk)); } },
     stderr: { async write(chunk) { errors.push(Buffer.from(chunk)); } },
   };

@@ -199,7 +199,7 @@ function createEventQueue<T>(): EventQueue<T> {
     reject(error: unknown): void;
   }> = [];
   let closed = false;
-  let failure: unknown;
+  let failure: { error: unknown } | undefined;
 
   const next = (): Promise<IteratorResult<T>> => {
     if (values.length > 0) {
@@ -207,7 +207,7 @@ function createEventQueue<T>(): EventQueue<T> {
     }
 
     if (failure !== undefined) {
-      return Promise.reject(failure);
+      return Promise.reject(failure.error);
     }
 
     if (closed) {
@@ -248,7 +248,7 @@ function createEventQueue<T>(): EventQueue<T> {
         return;
       }
 
-      failure = error;
+      failure = { error };
       for (const waiter of waiters.splice(0)) {
         waiter.reject(error);
       }

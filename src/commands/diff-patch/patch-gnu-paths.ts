@@ -29,7 +29,7 @@ function headerName(path: string, options: PathOptions): string | undefined {
   if (safe === undefined) return undefined;
   if (options.explicit !== undefined) return safe;
   if (options.strip === undefined) return safe.split("/").at(-1)!;
-  if (safe.split("/").length <= options.strip) return undefined;
+  if (path.split(/\/+/u).filter(Boolean).length <= options.strip) return undefined;
   return safeTarget(path, options.strip);
 }
 

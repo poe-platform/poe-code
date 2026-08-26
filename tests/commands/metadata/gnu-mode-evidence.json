@@ -1,0 +1,15 @@
+{
+  "date": "2026-08-26",
+  "target": "GNU mode_adjust semantics, not universal BSD/GNU parity",
+  "primarySource": "https://raw.githubusercontent.com/coreutils/gnulib/master/lib/modechange.c",
+  "primarySourceSha256": "015bacdf9e27a3c2d393012dd0ca1530ea73161ffe12394a58ce28e0b27a04fe",
+  "observation": "MODE_X_IF_ANY_X checks evolving newmode; MODE_COPY_EXISTING also copies from evolving newmode. Directory numeric-mode preservation is controlled by explicitly mentioned setid bits and the number of octal digits.",
+  "liveOracle": "/bin/chmod via /bin/bash with umask 022 on Darwin",
+  "liveGnuExecutableTested": false,
+  "cases": [
+    { "initialOctal": "777", "mode": "a-x,a+X", "gnuExpectedOctal": "666", "bsdObservedOctal": "777" },
+    { "initialOctal": "644", "mode": "u+x,g+X", "gnuExpectedOctal": "754", "bsdObservedOctal": "744" }
+  ],
+  "history": "Initial author commit 64b55e4 followed the BSD observations for these two rows. Primary-source review identified the mismatch with the intended GNU profile. Both BSD observations remain asserted separately; implementation now follows the GNU source-derived expectations.",
+  "denominator": "15 live native ordinary-mode observations: 13 agree with the GNU target and 2 retain explicit disagreements; these are not 15 GNU-vs-BSD matches. Additional virtual tests do not certify a pinned native GNU binary."
+}

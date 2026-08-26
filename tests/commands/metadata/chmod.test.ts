@@ -11,13 +11,13 @@ import { runMetadata } from "./helpers.js";
 const cases = [
   [0o644, "755", 0o755], [0o777, "a-rwx,u+rw", 0o600], [0o600, "ug+x", 0o710],
   [0o741, "o+g", 0o745], [0o740, "g=u,o=g", 0o777], [0o644, "a+X", 0o644],
-  [0o744, "a+X", 0o755], [0o777, "a-x,a+X", 0o777], [0o644, "u+x,g+X", 0o744],
+  [0o744, "a+X", 0o755], [0o777, "a-x,a+X", 0o666, 0o777], [0o644, "u+x,g+X", 0o754, 0o744],
   [0o666, "=r", 0o444], [0o644, "u+t", 0o644], [0o644, "o+s", 0o644],
   [0o644, "+x", 0o755], [0o666, "-w", 0o466], [0o644, "u=rw+x", 0o744],
 ] as const;
 
-for (const [initial, mode, expected] of cases) {
-  test(`chmod common native profile ${initial.toString(8)} ${mode}`, async context => {
+for (const [initial, mode, expected, bsdExpected] of cases) {
+  test(`chmod GNU mode ${initial.toString(8)} ${mode}; ${bsdExpected === undefined ? "shared" : "distinct"} BSD observation`, async context => {
     const root = await native.mkdtemp(join(tmpdir(), "safe-bash-chmod-"));
     context.after(() => native.rm(root, { recursive: true, force: true }));
     await native.mkdir(join(root, "work"));
@@ -25,7 +25,7 @@ for (const [initial, mode, expected] of cases) {
     await native.chmod(join(root, "work", "file"), initial);
     const oracle = spawnSync("/bin/bash", ["-c", "umask 022; /bin/chmod -- \"$1\" file", "oracle", mode], { cwd: join(root, "work"), encoding: "utf8", timeout: 2000 });
     assert.equal(oracle.status, 0, oracle.stderr);
-    assert.equal((await native.stat(join(root, "work", "file"))).mode & 0o7777, expected);
+    assert.equal((await native.stat(join(root, "work", "file"))).mode & 0o7777, bsdExpected ?? expected);
     const fs = await createRealFileSystem({ root });
     await fs.chmod("/work/file", initial);
     const result = await runMetadata("chmod", ["--", mode, "file"], fs);

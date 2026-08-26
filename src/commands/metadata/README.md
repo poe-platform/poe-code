@@ -19,8 +19,10 @@ backends fail rather than claiming a mode change. Permissions/ownership
 enforcement and special-bit restrictions remain the backend's responsibility.
 
 The default virtual umask is 0022, configurable with `{ umask }`, not read from
-the host or inferred from environment variables. Symbolic `X` uses the original
-mode of each operand. GNU directory setid preservation and explicit clearing
+the host or inferred from environment variables. Symbolic `X` uses the evolving
+mode after preceding clauses, following GNU `mode_adjust`; BSD's original-mode
+behavior differs in two retained native observations. See the explicit matrix in
+`tests/commands/metadata/gnu-mode-evidence.json`. GNU directory setid preservation and explicit clearing
 forms are covered by documentation-derived tests. Ordinary numeric/symbolic
 cases are also checked against local native chmod; this is not a pinned GNU
 binary certification.
@@ -83,6 +85,6 @@ Limits: 100,000 visited entries, depth 128, 1 MiB stdout, 64 KiB argument bytes,
 128 temporary-name attempts; each can be configured under `{ limits }`.
 Forward cancellation to every filesystem operation and await output writes.
 
-Primary research: GNU Coreutils manual, chmod invocation, symbolic modes and
-directory setuid/setgid sections (manual observed as 9.11 on August 26, 2026).
-These are semantic references, not a claim that a GNU 9.11 executable was tested.
+Primary research: GNU Coreutils manual sections for these utilities and the
+GNU gnulib `mode_adjust` implementation (source SHA-256 recorded with the tests).
+These are semantic references, not a claim that a GNU executable was tested.

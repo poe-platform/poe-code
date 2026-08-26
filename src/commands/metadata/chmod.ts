@@ -25,7 +25,6 @@ function modeChange(text: string, umask: number): ModeChange {
   });
   return stat => {
     let current = stat.mode & 0o7777;
-    const executable = stat.type === "directory" || (current & 0o111) !== 0;
     for (const { who, operations } of clauses) {
       const all = !who || who.includes("a");
       const users = (all || who.includes("u") ? 0o4700 : 0) | (all || who.includes("g") ? 0o2070 : 0) | (all || who.includes("o") ? 0o1007 : 0);
@@ -38,7 +37,7 @@ function modeChange(text: string, umask: number): ModeChange {
         } else {
           if (permissions.includes("r")) bits |= 0o444;
           if (permissions.includes("w")) bits |= 0o222;
-          if (permissions.includes("x") || permissions.includes("X") && executable) bits |= 0o111;
+          if (permissions.includes("x") || permissions.includes("X") && (stat.type === "directory" || (current & 0o111) !== 0)) bits |= 0o111;
           if (permissions.includes("s")) bits |= 0o6000;
           if (permissions.includes("t")) bits |= 0o1000;
         }

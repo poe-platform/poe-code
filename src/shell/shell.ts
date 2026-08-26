@@ -84,6 +84,7 @@ export class Shell implements PluginHost {
     let exitCode: number;
     try {
       const script = parseShell(source);
+      for (const warning of script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
       stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
       io.stdin = stdin;
       await interruptible(this.#ready, budget.signal);

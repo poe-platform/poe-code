@@ -20,12 +20,22 @@ interface Token {
   offset: number;
   end: number;
   word?: Word;
+  document?: HereDocument;
+}
+
+interface HereDocument {
+  readonly delimiter: string;
+  readonly quoted: boolean;
+  readonly stripTabs: boolean;
+  readonly offset: number;
+  body: Word;
 }
 
 export interface Redirect {
   readonly descriptor: number;
   readonly operator: string;
   readonly target: Word;
+  readonly document?: HereDocument;
 }
 
 export interface CaseClause {
@@ -59,12 +69,15 @@ export interface AndOr {
 
 export interface Script {
   readonly lists: AndOr[];
+  readonly warnings?: readonly string[];
 }
 
 class Lexer {
   position = 0;
+  delimiterOperator: string | undefined;
+  readonly documents: HereDocument[] = [];
 
-  constructor(readonly source: string, readonly depth: number) {
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = []) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
 
@@ -84,7 +97,10 @@ class Lexer {
       } else break;
     }
     const offset = this.position;
-    if (offset === this.source.length) return { kind: "end", value: "", offset, end: offset };
+    if (offset === this.source.length) {
+      this.readDocuments();
+      return { kind: "end", value: "", offset, end: offset };
+    }
     let logical = "";
     let cursor = offset;
     const ends: number[] = [];
@@ -93,18 +109,114 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = /^(?:;;&|;&|&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = /^(?:;;&|<<-|;&|&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (["<<", "&", "&>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
+      if (["&", "&>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
+      if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
+      if (operator === "\n") this.readDocuments();
       return { kind: "operator", value: operator, offset, end: this.position };
     }
-    const word = this.word();
+    const delimiterOperator = this.delimiterOperator;
+    this.delimiterOperator = undefined;
+    const word = this.word(undefined, false, delimiterOperator !== undefined);
     if (this.position <= offset) this.error("Tokenizer made no progress");
-    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word };
+    let document: HereDocument | undefined;
+    if (delimiterOperator) {
+      document = {
+        delimiter: word.parts.map((part) => part.kind === "text" ? part.value : "").join(""),
+        quoted: word.parts.some((part) => part.quoted), stripTabs: delimiterOperator === "<<-", offset,
+        body: { offset, parts: [] },
+      };
+      this.documents.push(document);
+    }
+    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word, ...(document ? { document } : {}) };
   }
 
-  word(terminator?: string, enclosingQuoted = false): Word {
+  readDocuments(): void {
+    for (const document of this.documents.splice(0)) {
+      let body = "";
+      let terminated = false;
+      while (this.position < this.source.length) {
+        let line = "";
+        while (this.position < this.source.length) {
+          const current = this.source[this.position++]!;
+          if (!document.quoted && current === "\\" && this.position < this.source.length) {
+            const next = this.source[this.position++]!;
+            if (next !== "\n") line += current + next;
+          } else if (current === "\n") break;
+          else line += current;
+        }
+        if (line === document.delimiter || (document.stripTabs && line.replace(/^\t+/u, "") === document.delimiter)) {
+          terminated = true;
+          break;
+        }
+        body += (document.stripTabs ? line.replace(/^\t+/u, "") : line) + "\n";
+      }
+      if (!terminated) this.warnings.push(`here-document at offset ${document.offset} delimited by end-of-file (wanted ${JSON.stringify(document.delimiter)})`);
+      document.body = document.quoted
+        ? { offset: document.offset, parts: [{ kind: "text", value: body, quoted: true }] }
+        : new Lexer(body, this.depth, this.warnings).documentWord();
+    }
+  }
+
+  documentWord(): Word {
+    const parts: WordPart[] = [];
+    let text = "";
+    const flush = () => {
+      if (text) parts.push({ kind: "text", value: text, quoted: true });
+      text = "";
+    };
+    while (this.position < this.source.length) {
+      const current = this.source[this.position]!;
+      if (current === "$" || current === "`") {
+        flush();
+        this.expansion(parts, true);
+      } else if (current === "\\" && /[$`\\]/u.test(this.source[this.position + 1] ?? "")) {
+        text += this.source[this.position + 1]!;
+        this.position += 2;
+      } else {
+        text += current;
+        this.position++;
+      }
+    }
+    flush();
+    return { offset: 0, parts };
+  }
+
+  literalExpansion(): string {
+    const backtick = this.source[this.position] === "`";
+    const opening = this.source[this.position + 1];
+    if (!backtick && opening !== "(" && opening !== "{") return this.source[this.position++]!;
+    let value = backtick ? "`" : `$${opening}`;
+    this.position += backtick ? 1 : 2;
+    const closers = [backtick ? "`" : opening === "(" ? ")" : "}"];
+    let quote = "";
+    while (this.position < this.source.length) {
+      const current = this.source[this.position++]!;
+      if (current === "\\" && quote !== "'") {
+        const next = this.source[this.position++];
+        if (next === undefined) this.error("Trailing delimiter escape");
+        if (next !== "\n") value += quote === '"' && !/[$`"\\]/u.test(next) ? current + next : next;
+      } else if (quote) {
+        if (current === quote) quote = "";
+        else value += current;
+      } else if (current === "'" || current === '"') quote = current;
+      else {
+        value += current;
+        if (current === closers.at(-1)) {
+          closers.pop();
+          if (!closers.length) return value;
+        } else if (current === "(" || current === "{") {
+          closers.push(current === "(" ? ")" : "}");
+          if (closers.length + this.depth > 64) this.error("Syntax nesting exceeds 64");
+        }
+      }
+    }
+    this.error("Unterminated delimiter expansion syntax");
+  }
+
+  word(terminator?: string, enclosingQuoted = false, literal = false): Word {
     const offset = this.position;
     const parts: WordPart[] = [];
     let plain = true;
@@ -128,7 +240,7 @@ class Lexer {
         text("", true);
         while (this.position < this.source.length && this.source[this.position] !== '"') {
           const inner = this.source[this.position]!;
-          if (inner === "$" || inner === "`") this.expansion(parts, true);
+          if (!literal && (inner === "$" || inner === "`")) this.expansion(parts, true);
           else if (inner === "\\" && /[$`"\\\n]/u.test(this.source[this.position + 1] ?? "")) {
             const escaped = this.source[this.position + 1]!;
             if (escaped !== "\n") text(escaped, true);
@@ -148,7 +260,8 @@ class Lexer {
         this.position++;
       } else if (current === "$" || current === "`") {
         plain = false;
-        this.expansion(parts, enclosingQuoted);
+        if (literal) text(this.literalExpansion(), current === "`");
+        else this.expansion(parts, enclosingQuoted);
       } else {
         text(current, false);
         this.position++;
@@ -167,7 +280,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      parts.push({ kind: "substitution", script: parseShell(source, this.depth + 1), quoted });
+      parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings), quoted });
       return;
     }
     this.position++;
@@ -178,9 +291,10 @@ class Lexer {
       parts.push({ kind: "arithmetic", expression: parseArithmetic(this.source.slice(start, end), start), quoted });
       this.position = end + 2;
     } else if (this.source[this.position] === "(") {
-      const nested = new Parser(this.source.slice(this.position + 1), this.depth + 1);
+      const nested = new Parser(this.source.slice(this.position + 1), this.depth + 1, this.warnings);
       const script = nested.script(new Set([")"]));
       if (nested.current.value !== ")") this.error("Unterminated command substitution");
+      if (nested.lexer.documents.length) this.error("Here-document requires a newline before closing command substitution");
       this.position += nested.current.end + 1;
       parts.push({ kind: "substitution", script, quoted });
     } else if (this.source[this.position] === "{") {
@@ -216,9 +330,9 @@ class Parser {
   lookahead: Token | undefined;
   nesting = 0;
 
-  constructor(source: string, depth: number) {
+  constructor(source: string, depth: number, warnings: string[] = []) {
     if (source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
-    this.lexer = new Lexer(source, depth);
+    this.lexer = new Lexer(source, depth, warnings);
     this.current = this.lexer.next();
   }
 
@@ -408,19 +522,26 @@ class Parser {
     let descriptor: number | undefined;
     if (this.current.kind === "word" && /^\d+$/u.test(this.current.value)) {
       const next = this.peek();
-      if (/^(?:>|>>|<|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
+      if (/^(?:>|>>|<|<<|<<-|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
     }
-    if (!/^(?:>|>>|<|>&|<&|>\|)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
+    if (!/^(?:>|>>|<|<<|<<-|>&|<&|>\|)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
     const operator = this.advance().value;
     descriptor ??= operator.startsWith("<") ? 0 : 1;
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
-    return { descriptor, operator, target: this.advance().word! };
+    const target = this.advance();
+    return { descriptor, operator, target: target.word!, ...(target.document ? { document: target.document } : {}) };
   }
 }
 
 export function parseShell(source: string, depth = 0): Script {
-  const parser = new Parser(source, depth);
+  const warnings: string[] = [];
+  const script = parseSource(source, depth, warnings);
+  return { ...script, ...(warnings.length ? { warnings } : {}) };
+}
+
+function parseSource(source: string, depth: number, warnings: string[]): Script {
+  const parser = new Parser(source, depth, warnings);
   const script = parser.script();
   if (parser.current.kind !== "end") parser.error("Unexpected token");
   return script;

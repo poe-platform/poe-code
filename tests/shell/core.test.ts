@@ -49,7 +49,7 @@ test("parse whole script including substitutions before any command or redirect"
     "say ran; say 'unterminated", "say ran > touched; true &&", "say ran; say $(true &&)",
     "say ran; if true; then say no", "say ran; (true", "say ran; say ${bad", "say ran; true & false",
     "say ran; say $(say 'bad)", "say ran; say >", "say ran; case a in a) true;;",
-    "say ran; say $((1 + ))", "say ran; say <<EOF\nhello\nEOF",
+    "say ran; say $((1 + ))", "say ran; say <<\nhello\nEOF",
   ]) {
     const { shell, fs } = setup();
     assert.throws(() => parseShell(script), ShellSyntaxError, script);

@@ -378,6 +378,18 @@ export class Runtime {
       descriptors,
     });
     try { for (const redirect of redirects) {
+      if (redirect.document) {
+        let value: string;
+        try { value = (await this.word(redirect.document.body, state, currentIO(), false)).join(""); }
+        catch (error) {
+          if (error instanceof ExpansionFailure) throw new Error(error.message);
+          throw error;
+        }
+        const input = new ShellInput(toByteSource(value), this.budget, this.signal);
+        inputs.add(input);
+        descriptors.set(redirect.descriptor, { input });
+        continue;
+      }
       const targets = await this.word(redirect.target, state, currentIO());
       if (targets.length !== 1) throw new Error("Ambiguous redirect");
       const target = targets[0]!;

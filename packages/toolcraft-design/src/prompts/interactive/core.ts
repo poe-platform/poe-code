@@ -150,22 +150,32 @@ export class Prompt<Value> extends EventEmitter {
     return Promise.reject(new Error(nonTtyPromptMessage()));
   }
 
-  protected readNonTtyLine(): Promise<string> {
+  protected readNonTtyLine(): Promise<string | typeof CANCEL> {
     return new Promise((resolve) => {
       const rl = readline.createInterface({ input: this.input, terminal: false });
       let settled = false;
 
-      const settle = (value: string) => {
+      const settle = (value: string | typeof CANCEL) => {
         if (settled) {
           return;
         }
         settled = true;
+        this.signal?.removeEventListener("abort", onAbort);
         rl.close();
         resolve(value);
       };
 
+      const onAbort = () => {
+        this.state = "cancel";
+        settle(CANCEL);
+      };
+
       rl.once("line", settle);
       rl.once("close", () => settle(rl.line));
+      this.signal?.addEventListener("abort", onAbort, { once: true });
+      if (this.signal?.aborted) {
+        onAbort();
+      }
     });
   }
 

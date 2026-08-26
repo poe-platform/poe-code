@@ -1,0 +1,784 @@
+TAP version 13
+# Subtest: normal-empty-insert
+ok 1 - normal-empty-insert
+  ---
+  duration_ms: 16.911625
+  type: 'test'
+  ...
+# Subtest: normal-empty-insert-incomplete
+ok 2 - normal-empty-insert-incomplete
+  ---
+  duration_ms: 11.859583
+  type: 'test'
+  ...
+# Subtest: normal-delete-to-empty
+ok 3 - normal-delete-to-empty
+  ---
+  duration_ms: 9.127584
+  type: 'test'
+  ...
+# Subtest: normal-both-incomplete
+ok 4 - normal-both-incomplete
+  ---
+  duration_ms: 9.960125
+  type: 'test'
+  ...
+# Subtest: normal-blank-data
+ok 5 - normal-blank-data
+  ---
+  duration_ms: 12.077333
+  type: 'test'
+  ...
+# Subtest: normal-tab-prefix
+not ok 6 - normal-tab-prefix
+  ---
+  duration_ms: 9.745542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"normal-tab-prefix","before":"old\n","patch":"1c1\n<\told\n---\n>\tnew\n"}
+    + actual - expected
+    
+      {
+    +   nativeIssues: [
+    +     'GNU 2.8 valid control: exit=2, expected="new\\n", actual="old\\n"'
+    +   ],
+    -   nativeIssues: [],
+        productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+    nativeIssues:
+      0: 'GNU 2.8 valid control: exit=2, expected="new\\n", actual="old\\n"'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: normal-patch-looking-data
+ok 7 - normal-patch-looking-data
+  ---
+  duration_ms: 9.865542
+  type: 'test'
+  ...
+# Subtest: normal-crlf-data
+ok 8 - normal-crlf-data
+  ---
+  duration_ms: 8.371292
+  type: 'test'
+  ...
+# Subtest: normal-suppress-blank-empty
+not ok 9 - normal-suppress-blank-empty
+  ---
+  duration_ms: 11.3725
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"normal-suppress-blank-empty","before":"old\n","patch":"1c1\n< old\n---\n>\n"}
+    + actual - expected
+    
+      {
+    +   nativeIssues: [
+    +     'GNU 2.8 valid control: exit=2, expected="\\n", actual="old\\n"'
+    +   ],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: malformed patch body prefix\n',
+    +     'wrong target bytes: expected "\\n", got "old\\n"'
+    +   ]
+    -   nativeIssues: [],
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: malformed patch body prefix
+        
+      1: 'wrong target bytes: expected "\\n", got "old\\n"'
+    nativeIssues:
+      0: 'GNU 2.8 valid control: exit=2, expected="\\n", actual="old\\n"'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: normal-empty-patch-noop
+ok 10 - normal-empty-patch-noop
+  ---
+  duration_ms: 8.8525
+  type: 'test'
+  ...
+# Subtest: normal-leading-empty-lines
+ok 11 - normal-leading-empty-lines
+  ---
+  duration_ms: 7.596167
+  type: 'test'
+  ...
+# Subtest: normal-two-ordered-hunks
+ok 12 - normal-two-ordered-hunks
+  ---
+  duration_ms: 8.036542
+  type: 'test'
+  ...
+# Subtest: context-empty-insert
+ok 13 - context-empty-insert
+  ---
+  duration_ms: 10.134833
+  type: 'test'
+  ...
+# Subtest: context-delete-to-empty
+ok 14 - context-delete-to-empty
+  ---
+  duration_ms: 8.688291
+  type: 'test'
+  ...
+# Subtest: context-empty-insert-incomplete
+ok 15 - context-empty-insert-incomplete
+  ---
+  duration_ms: 7.402541
+  type: 'test'
+  ...
+# Subtest: context-both-incomplete
+ok 16 - context-both-incomplete
+  ---
+  duration_ms: 7.856459
+  type: 'test'
+  ...
+# Subtest: context-omitted-old-with-context
+ok 17 - context-omitted-old-with-context
+  ---
+  duration_ms: 8.491125
+  type: 'test'
+  ...
+# Subtest: context-omitted-new-with-context
+ok 18 - context-omitted-new-with-context
+  ---
+  duration_ms: 7.48475
+  type: 'test'
+  ...
+# Subtest: context-incomplete-shared-tail
+ok 19 - context-incomplete-shared-tail
+  ---
+  duration_ms: 7.867458
+  type: 'test'
+  ...
+# Subtest: context-patch-looking-data
+ok 20 - context-patch-looking-data
+  ---
+  duration_ms: 8.242667
+  type: 'test'
+  ...
+# Subtest: context-crlf-data
+ok 21 - context-crlf-data
+  ---
+  duration_ms: 10.735583
+  type: 'test'
+  ...
+# Subtest: context-crlf-transport
+not ok 22 - context-crlf-transport
+  ---
+  duration_ms: 8.834292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"context-crlf-transport","before":"old\n","patch":"*** target\r\n--- target\r\n***************\r\n*** 1 ****\r\n! old\r\n--- 1 ----\r\n! new\r\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: malformed context hunk separator\n',
+    +     'wrong target bytes: expected "new\\n", got "old\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: malformed context hunk separator
+        
+      1: 'wrong target bytes: expected "new\\n", got "old\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: context-suppress-blank-empty
+not ok 23 - context-suppress-blank-empty
+  ---
+  duration_ms: 8.876542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"context-suppress-blank-empty","before":"old\n","patch":"*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n!\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: malformed patch body prefix\n',
+    +     'wrong target bytes: expected "\\n", got "old\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: malformed patch body prefix
+        
+      1: 'wrong target bytes: expected "\\n", got "old\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: context-blank-context-line
+ok 24 - context-blank-context-line
+  ---
+  duration_ms: 8.954917
+  type: 'test'
+  ...
+# Subtest: mixed-normal-context
+not ok 25 - mixed-normal-context
+  ---
+  duration_ms: 8.794083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"mixed-normal-context","before":"old\n","patch":"1c1\n< old\n---\n> new\n*** target\n--- target\n***************\n*** 1 ****\n! new\n--- 1 ----\n! final\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: malformed normal patch command\n',
+    +     'wrong target bytes: expected "final\\n", got "old\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: malformed normal patch command
+        
+      1: 'wrong target bytes: expected "final\\n", got "old\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed-context-unified
+not ok 26 - mixed-context-unified
+  ---
+  duration_ms: 8.720208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"mixed-context-unified","before":"old\n","patch":"*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n--- target\n+++ target\n@@ -1 +1 @@\n-new\n+final\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: expected context file header\n',
+    +     'wrong target bytes: expected "final\\n", got "old\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: expected context file header
+        
+      1: 'wrong target bytes: expected "final\\n", got "old\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed-unified-normal
+not ok 27 - mixed-unified-normal
+  ---
+  duration_ms: 8.937333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"mixed-unified-normal","before":"old\n","patch":"--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n1c1\n< new\n---\n> final\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: expected --- file header\n',
+    +     'wrong target bytes: expected "final\\n", got "old\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: expected --- file header
+        
+      1: 'wrong target bytes: expected "final\\n", got "old\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed-context-normal-unified
+not ok 28 - mixed-context-normal-unified
+  ---
+  duration_ms: 8.925125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"mixed-context-normal-unified","before":"old\n","patch":"*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n1c1\n< new\n---\n> middle\n--- target\n+++ target\n@@ -1 +1 @@\n-middle\n+final\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'valid input rejected: exit=2; patch: expected context file header\n',
+    +     'wrong target bytes: expected "final\\n", got "old\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: |-
+        valid input rejected: exit=2; patch: expected context file header
+        
+      1: 'wrong target bytes: expected "final\\n", got "old\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:28:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: normal-truncated-new-body
+ok 29 - normal-truncated-new-body
+  ---
+  duration_ms: 7.744417
+  type: 'test'
+  ...
+# Subtest: normal-truncated-final-lf
+ok 30 - normal-truncated-final-lf
+  ---
+  duration_ms: 6.845125
+  type: 'test'
+  ...
+# Subtest: normal-missing-change-separator
+ok 31 - normal-missing-change-separator
+  ---
+  duration_ms: 7.420583
+  type: 'test'
+  ...
+# Subtest: normal-old-count-underflow
+ok 32 - normal-old-count-underflow
+  ---
+  duration_ms: 9.972584
+  type: 'test'
+  ...
+# Subtest: normal-new-count-overflow
+ok 33 - normal-new-count-overflow
+  ---
+  duration_ms: 11.75025
+  type: 'test'
+  ...
+# Subtest: normal-descending-range
+ok 34 - normal-descending-range
+  ---
+  duration_ms: 11.2555
+  type: 'test'
+  ...
+# Subtest: normal-append-old-range
+ok 35 - normal-append-old-range
+  ---
+  duration_ms: 14.091709
+  type: 'test'
+  ...
+# Subtest: normal-delete-new-range
+ok 36 - normal-delete-new-range
+  ---
+  duration_ms: 6.742625
+  type: 'test'
+  ...
+# Subtest: normal-overlapping-old-hunks
+ok 37 - normal-overlapping-old-hunks
+  ---
+  duration_ms: 7.729375
+  type: 'test'
+  ...
+# Subtest: normal-inconsistent-new-coordinates
+ok 38 - normal-inconsistent-new-coordinates
+  ---
+  duration_ms: 6.687875
+  type: 'test'
+  ...
+# Subtest: normal-unsafe-integer
+not ok 39 - normal-unsafe-integer
+  ---
+  duration_ms: 3003.581292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:628'
+  failureType: 'testCodeFailure'
+  error: 'GNU oracle exceeded 3000 ms'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/helpers.ts:113:43)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+  ...
+# Subtest: normal-marker-before-body
+ok 40 - normal-marker-before-body
+  ---
+  duration_ms: 12.518459
+  type: 'test'
+  ...
+# Subtest: normal-incomplete-nonfinal-new-line
+ok 41 - normal-incomplete-nonfinal-new-line
+  ---
+  duration_ms: 12.253791
+  type: 'test'
+  ...
+# Subtest: context-missing-new-range
+ok 42 - context-missing-new-range
+  ---
+  duration_ms: 10.979208
+  type: 'test'
+  ...
+# Subtest: context-old-count-mismatch
+ok 43 - context-old-count-mismatch
+  ---
+  duration_ms: 11.059166
+  type: 'test'
+  ...
+# Subtest: context-zero-nonempty-range
+ok 44 - context-zero-nonempty-range
+  ---
+  duration_ms: 9.369667
+  type: 'test'
+  ...
+# Subtest: context-overlapping-hunks
+ok 45 - context-overlapping-hunks
+  ---
+  duration_ms: 8.137167
+  type: 'test'
+  ...
+# Subtest: context-unsafe-integer
+ok 46 - context-unsafe-integer
+  ---
+  duration_ms: 9.0645
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-old-half
+ok 47 - context-missing-changed-old-half
+  ---
+  duration_ms: 8.861625
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-new-half
+ok 48 - context-missing-changed-new-half
+  ---
+  duration_ms: 8.125834
+  type: 'test'
+  ...
+# Subtest: context-halves-disagree
+ok 49 - context-halves-disagree
+  ---
+  duration_ms: 8.102834
+  type: 'test'
+  ...
+# Subtest: context-duplicate-newline-marker
+ok 50 - context-duplicate-newline-marker
+  ---
+  duration_ms: 7.953083
+  type: 'test'
+  ...
+# Subtest: normal-valid-then-malformed-context
+ok 51 - normal-valid-then-malformed-context
+  ---
+  duration_ms: 8.289459
+  type: 'test'
+  ...
+# Subtest: context-valid-then-malformed-unified
+ok 52 - context-valid-then-malformed-unified
+  ---
+  duration_ms: 8.273875
+  type: 'test'
+  ...
+# Subtest: mutation-0-normal
+ok 53 - mutation-0-normal
+  ---
+  duration_ms: 8.933
+  type: 'test'
+  ...
+# Subtest: mutation-1-context
+ok 54 - mutation-1-context
+  ---
+  duration_ms: 9.626875
+  type: 'test'
+  ...
+# Subtest: mutation-2-normal
+ok 55 - mutation-2-normal
+  ---
+  duration_ms: 8.722875
+  type: 'test'
+  ...
+# Subtest: mutation-3-context
+ok 56 - mutation-3-context
+  ---
+  duration_ms: 7.773292
+  type: 'test'
+  ...
+# Subtest: mutation-4-normal
+ok 57 - mutation-4-normal
+  ---
+  duration_ms: 7.919542
+  type: 'test'
+  ...
+# Subtest: mutation-5-context
+ok 58 - mutation-5-context
+  ---
+  duration_ms: 7.224667
+  type: 'test'
+  ...
+# Subtest: mutation-6-normal
+ok 59 - mutation-6-normal
+  ---
+  duration_ms: 9.046541
+  type: 'test'
+  ...
+# Subtest: mutation-7-context
+ok 60 - mutation-7-context
+  ---
+  duration_ms: 8.334958
+  type: 'test'
+  ...
+# Subtest: normal-maxLines-empty-flood
+ok 61 - normal-maxLines-empty-flood
+  ---
+  duration_ms: 0.240792
+  type: 'test'
+  ...
+# Subtest: normal-maxHunks-second-hunk
+ok 62 - normal-maxHunks-second-hunk
+  ---
+  duration_ms: 0.159916
+  type: 'test'
+  ...
+# Subtest: normal-maxWork-empty-flood
+ok 63 - normal-maxWork-empty-flood
+  ---
+  duration_ms: 0.120917
+  type: 'test'
+  ...
+# Subtest: normal-maxInput
+ok 64 - normal-maxInput
+  ---
+  duration_ms: 0.199834
+  type: 'test'
+  ...
+# Subtest: normal-maxOutput
+ok 65 - normal-maxOutput
+  ---
+  duration_ms: 0.323583
+  type: 'test'
+  ...
+# Subtest: normal-cancel-input
+ok 66 - normal-cancel-input
+  ---
+  duration_ms: 0.160167
+  type: 'test'
+  ...
+# Subtest: normal-cancel-parse
+ok 67 - normal-cancel-parse
+  ---
+  duration_ms: 7.57475
+  type: 'test'
+  ...
+# Subtest: context-maxLines-empty-flood
+ok 68 - context-maxLines-empty-flood
+  ---
+  duration_ms: 0.327208
+  type: 'test'
+  ...
+# Subtest: context-maxHunks-second-hunk
+ok 69 - context-maxHunks-second-hunk
+  ---
+  duration_ms: 0.163
+  type: 'test'
+  ...
+# Subtest: context-maxWork-empty-flood
+ok 70 - context-maxWork-empty-flood
+  ---
+  duration_ms: 0.150916
+  type: 'test'
+  ...
+# Subtest: context-maxInput
+ok 71 - context-maxInput
+  ---
+  duration_ms: 0.08625
+  type: 'test'
+  ...
+# Subtest: context-maxOutput
+ok 72 - context-maxOutput
+  ---
+  duration_ms: 0.248041
+  type: 'test'
+  ...
+# Subtest: context-cancel-input
+ok 73 - context-cancel-input
+  ---
+  duration_ms: 0.097708
+  type: 'test'
+  ...
+# Subtest: context-cancel-parse
+ok 74 - context-cancel-parse
+  ---
+  duration_ms: 4.805541
+  type: 'test'
+  ...
+# Subtest: GNU-normal-suppress-blank-empty
+not ok 75 - GNU-normal-suppress-blank-empty
+  ---
+  duration_ms: 14.007542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:1808'
+  failureType: 'testCodeFailure'
+  error: |-
+    version-specific native-native control GNU-normal-suppress-blank-empty
+    + actual - expected
+    
+    + [
+    +   'GNU patch 2.8 exit 2, expected "\\n", got "old\\n"'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'GNU patch 2.8 exit 2, expected "\\n", got "old\\n"'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:47:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU-context-suppress-blank-empty
+ok 76 - GNU-context-suppress-blank-empty
+  ---
+  duration_ms: 15.590417
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-middle-deletion
+not ok 77 - GNU-context-zero-middle-deletion
+  ---
+  duration_ms: 15.086584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:1808'
+  failureType: 'testCodeFailure'
+  error: |-
+    version-specific native-native control GNU-context-zero-middle-deletion
+    + actual - expected
+    
+    + [
+    +   'GNU patch 2.8 exit 2, expected "left\\nright\\n", got "left\\nremoved\\nright\\n"'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'GNU patch 2.8 exit 2, expected "left\\nright\\n", got "left\\nremoved\\nright\\n"'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:47:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU-context-zero-empty-insertion
+ok 78 - GNU-context-zero-empty-insertion
+  ---
+  duration_ms: 15.340625
+  type: 'test'
+  ...
+1..78
+# tests 78
+# suites 0
+# pass 67
+# fail 11
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3764.790792

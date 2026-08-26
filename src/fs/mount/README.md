@@ -1,0 +1,121 @@
+# Mount filesystem
+
+`index.ts` exports `MountFileSystem`, `createMountFileSystem`, and the
+`MountFileSystemOptions` type. The constructor and factory both take
+`{ root: FileSystem, mounts?: Readonly<Record<string, FileSystem>> }`.
+The factory returns `MountFileSystem`. Configuration is captured at construction;
+there is no dynamic mount/unmount API. Mount keys must be absolute POSIX paths.
+Configuration keys are normalized lexically; duplicate normalized keys, `/`
+overrides, and reuse of the same backend object at multiple mount locations are
+rejected with `EINVAL`. Each backend exposes its own `/` as a directory.
+When a backend is itself a `MountFileSystem`, its static mount table is flattened
+and rebased during construction, preserving its internal device and symlink
+boundaries. Collisions with the outer configuration are rejected, not overridden.
+Opaque decorators are not unwrapped. Their policy and namespace information are
+not assumed to match a single-device backend; see the verification limits below.
+
+## Namespace and symlinks
+
+- Routing uses the longest component-prefix, never a plain string prefix.
+  Relative operation paths start at virtual `/`, not the host working directory.
+- Operation paths are walked component by component. Symlinks are resolved before
+  subsequent `..`; trailing slashes require directories. Entry mutations such as
+  `rm` and `rename` reject a final symlink with a trailing slash instead of deleting
+  its referent. Root aliases cannot bypass mutation protection.
+- Absolute backend symlink targets mean the root of **that mount**, not global
+  `/`. Relative targets start at the link's backend parent. `readlink` returns the
+  stored target unchanged; `realpath` returns a canonical global path.
+- Following a symlink pins the rest of that path walk to its mount. Neither its
+  target nor remaining caller components may leave that mount or enter a nested
+  mount; violations return `EACCES`. Relative `..` at this pinned root also fails.
+  To access another mount, use a global path that does not traverse such a link.
+  Up to 40 link expansions are permitted; loops return `ELOOP`.
+- Symlink creation stores targets unchanged and permits dangling or currently
+  out-of-bounds targets. Traversal, not storage, enforces the boundary. A forbidden
+  link can still be inspected with `lstat`/`readlink`, renamed, or removed.
+- Before using a followed symlink's resolved location, the wrapper also asks the
+  selected backend to `realpath` the original link spelling plus its remaining
+  caller components. For entry operations that do not follow the final link,
+  this verifies the parent, retains the final name, and lstats the original full
+  spelling to preserve denials at a hidden final mountpoint. Backend denials propagate;
+  disagreement with the wrapper's canonical path returns `ENOTSUP`, not data from
+  the differently interpreted target. This check preserves opaque backend
+  denials such as `ReadOnlyFileSystem(innerMount)`'s nested-device boundaries.
+- This is deliberately conservative: dangling-link traversal and followed-link
+  paths with missing suffixes return `ENOENT` rather than creating an unverified
+  target, even on a single-device backend. Create targets by explicit global
+  paths first. Existing links work only when both interpretations agree. For
+  example, a relative link within an opaque inner mount can work, while an
+  absolute link interpreted relative to a hidden inner device root is rejected
+  with `ENOTSUP` when it resolves differently. Non-following inspection still
+  returns the stored link, and ordinary explicit-path reads remain supported.
+- Backends are trusted to implement their contracts, enforce their own host-root
+  isolation, and honor cancellation. The contract has no atomic no-follow handles:
+  this wrapper cannot secure resolution against external concurrent backend
+  symlink replacement. Do not expose writable backend references to adversaries.
+
+## Directories and mutations
+
+Mount roots hide the underlying entry entirely. Mount ancestors are directories
+even when the underlying entry is missing, a file, or a symlink. Such synthetic
+parents have stable `0555` metadata and never follow the hidden entry. Existing
+backing directories retain their metadata and ordinary children. `readdir`
+merges backing children with immediate mount/synthetic children, replaces hidden
+entry types with `directory`, deduplicates names, and sorts by name.
+
+Virtual `/`, mountpoints, and all directories containing mounts cannot be
+removed, renamed, replaced, chmodded, timestamped, or otherwise mutated through
+this wrapper (`EBUSY`). Recursive mkdir on an existing directory is a no-op.
+Ordinary children of real backing directories remain writable. Synthetic-only
+parents can be traversed to mounts but cannot acquire ordinary children
+(`ENOTSUP`); they are not implicitly materialized in a backend.
+
+Rename and hardlink require the same mount identity (`EXDEV` otherwise). Rename
+never falls back to copy/remove. Cross-mount copy also returns `EXDEV` before any
+data transfer or destination mutation: the shared contract does not specify safe
+transactional cross-backend copy semantics. Same-mount copy and streaming writes
+delegate to the selected backend and retain its failure/partial-write semantics;
+there is no rollback or unbounded buffering fallback.
+
+## Optional methods, errors, and streams
+
+All contract optional methods are exposed as guarded dispatchers. A method absent
+on the selected backend, or explicitly disabled by its associated capability,
+returns `ENOTSUP`; other mounts can still support it. Global capability flags are
+conservative intersections of explicit backend flags and required methods.
+`readOnly` is true only when all backends declare it; `atomicRename` is false with
+multiple mounts because global cross-mount rename is unavailable. Unknown
+capabilities are not advertised. `truncate` has no contract capability flag and
+is dispatched solely by method availability.
+
+Signals are forwarded throughout resolution and backend work. Data-operation and
+stream options are forwarded unchanged. Recursive mkdir is decomposed into
+nonrecursive backend calls, preserving its signal and mode; failures can leave
+already-created ordinary directories in place **only during execution**. Before
+any mkdir call, a nonmutating planning walk models missing directories and checks
+the entire path, including symlinks, dotdot, known mount boundaries, and backend
+realpath verification. A static planning denial does not create prefixes or
+modify backend content/metadata through mutating calls. Metadata-read side effects
+of a backend itself are outside the shared contract's guarantees.
+Read streams are lazy, preserve streaming, and close the underlying iterator when
+the consumer stops. Pre-aborted operations do not touch a backend. Backend errors
+are wrapped as `FsError` with the public operation's syscall, global input `path`,
+and global `dest` when applicable; backend-local details remain only in `cause`.
+Unrecognized failures become `EIO`. A signal's actual abort reason is preserved.
+
+Stat and directory-entry snapshots read named contract fields, including optional
+stat metadata, so prototype getters and nonenumerable properties are retained.
+
+## Shared-contract requirements for broader composition
+
+The current interface does not expose an owning device identity or its virtual
+root, nor a side-effect-free resolution operation for missing tails with an
+explicit final-symlink policy. These are needed to support generic opaque
+multi-device decorators without the conservative rejections above; decorators
+must preserve that information and their original path-traversal policy.
+The present verification assumes a trusted backend's `realpath` enforces the same
+static traversal boundaries as its other operations and returns a canonical path
+in its public namespace. It does not infer hidden device identities from `dev`
+or inspect decorator internals. Race-proof guarantees additionally require atomic
+no-follow/handle-based operations; neither planning nor realpath comparison can
+provide them using the existing contract.

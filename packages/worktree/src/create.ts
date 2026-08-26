@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readRegistry, writeRegistry } from "./registry.js";
+import { withRegistryTransaction } from "./registry.js";
 import type { Worktree, WorktreeDeps } from "./types.js";
 
 export type CreateWorktreeOptions = {
@@ -21,89 +21,90 @@ export async function createWorktree(
   opts: CreateWorktreeOptions
 ): Promise<Worktree> {
   assertSafeWorktreeName(opts.name);
-  await assertInsideGitWorkTree(opts.cwd, opts.deps);
-  const destinationStatus = await opts.deps.exec("git status --porcelain=v1 -z", {
-    cwd: opts.cwd
+  return withRegistryTransaction(opts.registryFile, opts.deps.fs, async (registry, write) => {
+    await assertInsideGitWorkTree(opts.cwd, opts.deps);
+    const destinationStatus = await opts.deps.exec("git status --porcelain=v1 -z", {
+      cwd: opts.cwd
+    });
+    if (destinationStatus.stdout.length > 0) {
+      throw new Error(
+        "Cannot run with --worktree because the destination checkout has uncommitted changes.\nCommit, stash, or discard those changes before starting a worktree run."
+      );
+    }
+    const baseHead = (
+      await opts.deps.exec(`git rev-parse ${shellQuote(opts.baseBranch)}`, { cwd: opts.cwd })
+    ).stdout.trim();
+    const branch = `poe-code/${opts.name}`;
+    const worktreePath = join(opts.worktreeDir, opts.name);
+    const existing = registry.worktrees.find((worktree) => worktree.name === opts.name);
+
+    if (existing !== undefined) {
+      await write({
+        worktrees: registry.worktrees.map((worktree) =>
+          worktree.name === opts.name ? { ...worktree, status: "removing" } : worktree
+        )
+      });
+    }
+
+    // Clean up any existing worktree/branch from a previous run
+    try {
+      await opts.deps.exec(`git worktree remove ${shellQuote(worktreePath)} --force`, { cwd: opts.cwd });
+    } catch { /* worktree may not exist */ }
+    try {
+      await opts.deps.exec(`git branch -D ${shellQuote(branch)}`, { cwd: opts.cwd });
+    } catch { /* branch may not exist */ }
+
+    try {
+      await opts.deps.exec(
+        `git worktree add -b ${shellQuote(branch)} ${shellQuote(worktreePath)} ${shellQuote(opts.baseBranch)}`,
+        { cwd: opts.cwd }
+      );
+    } catch (error) {
+      if (existing !== undefined) {
+        await write({
+          worktrees: registry.worktrees.map((worktree) =>
+            worktree.name === opts.name ? { ...worktree, status: "failed" } : worktree
+          )
+        }).catch(() => undefined);
+      }
+      throw error;
+    }
+
+    const entry: Worktree = {
+      name: opts.name,
+      path: worktreePath,
+      branch,
+      baseBranch: opts.baseBranch,
+      createdAt: new Date().toISOString(),
+      source: opts.source,
+      agent: opts.agent,
+      status: "active",
+      ...(opts.storyId !== undefined && { storyId: opts.storyId }),
+      ...(opts.planPath !== undefined && { planPath: opts.planPath }),
+      ...(opts.prompt !== undefined && { prompt: opts.prompt }),
+      sourceCwd: opts.sourceCwd ?? opts.cwd,
+      baseHead
+    };
+
+    try {
+      await write({
+        worktrees: [...registry.worktrees.filter((worktree) => worktree.name !== opts.name), entry]
+      });
+    } catch (error) {
+      await opts.deps.exec(`git worktree remove ${shellQuote(worktreePath)} --force`, { cwd: opts.cwd }).catch(() => undefined);
+      await opts.deps.exec(`git branch -D ${shellQuote(branch)}`, { cwd: opts.cwd }).catch(() => undefined);
+      if (existing !== undefined) {
+        await write({
+          worktrees: registry.worktrees.map((worktree) =>
+            worktree.name === opts.name ? { ...worktree, status: "failed" } : worktree
+          )
+        }).catch(() => undefined);
+      }
+      throw error;
+    }
+
+    return entry;
   });
-  if (destinationStatus.stdout.length > 0) {
-    throw new Error(
-      "Cannot run with --worktree because the destination checkout has uncommitted changes.\nCommit, stash, or discard those changes before starting a worktree run."
-    );
-  }
-  const baseHead = (
-    await opts.deps.exec(`git rev-parse ${shellQuote(opts.baseBranch)}`, { cwd: opts.cwd })
-  ).stdout.trim();
-  const branch = `poe-code/${opts.name}`;
-  const worktreePath = join(opts.worktreeDir, opts.name);
-  const registry = await readRegistry(opts.registryFile, opts.deps.fs);
-  const existing = registry.worktrees.find((worktree) => worktree.name === opts.name);
-
-  if (existing !== undefined) {
-    await writeRegistry(opts.registryFile, {
-      worktrees: registry.worktrees.map((worktree) =>
-        worktree.name === opts.name ? { ...worktree, status: "removing" } : worktree
-      )
-    }, opts.deps.fs);
-  }
-
-  // Clean up any existing worktree/branch from a previous run
-  try {
-    await opts.deps.exec(`git worktree remove ${shellQuote(worktreePath)} --force`, { cwd: opts.cwd });
-  } catch { /* worktree may not exist */ }
-  try {
-    await opts.deps.exec(`git branch -D ${shellQuote(branch)}`, { cwd: opts.cwd });
-  } catch { /* branch may not exist */ }
-
-  try {
-    await opts.deps.exec(
-      `git worktree add -b ${shellQuote(branch)} ${shellQuote(worktreePath)} ${shellQuote(opts.baseBranch)}`,
-      { cwd: opts.cwd }
-    );
-  } catch (error) {
-    if (existing !== undefined) {
-      await writeRegistry(opts.registryFile, {
-        worktrees: registry.worktrees.map((worktree) =>
-          worktree.name === opts.name ? { ...worktree, status: "failed" } : worktree
-        )
-      }, opts.deps.fs).catch(() => undefined);
-    }
-    throw error;
-  }
-
-  const entry: Worktree = {
-    name: opts.name,
-    path: worktreePath,
-    branch,
-    baseBranch: opts.baseBranch,
-    createdAt: new Date().toISOString(),
-    source: opts.source,
-    agent: opts.agent,
-    status: "active",
-    ...(opts.storyId !== undefined && { storyId: opts.storyId }),
-    ...(opts.planPath !== undefined && { planPath: opts.planPath }),
-    ...(opts.prompt !== undefined && { prompt: opts.prompt }),
-    sourceCwd: opts.sourceCwd ?? opts.cwd,
-    baseHead
-  };
-
-  try {
-    await writeRegistry(opts.registryFile, {
-      worktrees: [...registry.worktrees.filter((worktree) => worktree.name !== opts.name), entry]
-    }, opts.deps.fs);
-  } catch (error) {
-    await opts.deps.exec(`git worktree remove ${shellQuote(worktreePath)} --force`, { cwd: opts.cwd }).catch(() => undefined);
-    await opts.deps.exec(`git branch -D ${shellQuote(branch)}`, { cwd: opts.cwd }).catch(() => undefined);
-    if (existing !== undefined) {
-      await writeRegistry(opts.registryFile, {
-        worktrees: registry.worktrees.map((worktree) =>
-          worktree.name === opts.name ? { ...worktree, status: "failed" } : worktree
-        )
-      }, opts.deps.fs).catch(() => undefined);
-    }
-    throw error;
-  }
-
-  return entry;
 }
 
 async function assertInsideGitWorkTree(cwd: string, deps: WorktreeDeps): Promise<void> {

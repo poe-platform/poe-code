@@ -1159,6 +1159,7 @@ function createNodeWorktreeDeps(): WorktreeDeps {
       mkdir: async (targetPath, options) => {
         await fsPromises.mkdir(targetPath, options);
       },
+      rmdir: fsPromises.rmdir,
       rename: async (oldPath, newPath) => {
         await fsPromises.rename(oldPath, newPath);
       },

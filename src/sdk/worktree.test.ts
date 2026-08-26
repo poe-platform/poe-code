@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import type { CreateWorktreeOptions } from "@poe-code/worktree";
 import type { SpawnResult } from "./types.js";
 
 const worktreeMocks = vi.hoisted(() => ({
@@ -8,8 +10,13 @@ const worktreeMocks = vi.hoisted(() => ({
   removeWorktree: vi.fn(),
   updateWorktreeEntry: vi.fn()
 }));
+const rmdirMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/worktree", () => worktreeMocks);
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  return { ...actual, rmdir: rmdirMock };
+});
 
 const { reconcileManagedWorktree, runInWorktree, runWithOptionalWorktree } = await import(
   "./worktree.js"
@@ -18,6 +25,7 @@ const { reconcileManagedWorktree, runInWorktree, runWithOptionalWorktree } = awa
 describe("runInWorktree", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    rmdirMock.mockReset();
     worktreeMocks.createWorktree.mockResolvedValue({
       name: "wt",
       path: "/repo/.poe-code/worktrees/wt",
@@ -71,6 +79,31 @@ describe("runInWorktree", () => {
       })
     );
     expect(result.value).toEqual({ ok: true });
+  });
+
+  it("supports registry lock cleanup through the default Node worktree adapter", async () => {
+    const lockFs = createFsFromVolume(new Volume()).promises;
+    const lockPath = "/registry.yaml.lock";
+    const ownerPath = `${lockPath}/owner`;
+    await lockFs.mkdir(ownerPath, { recursive: true });
+    rmdirMock.mockImplementation(async (targetPath: string) => {
+      await lockFs.rmdir(targetPath);
+    });
+
+    await runInWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: true,
+      spawnAgent: async () => spawnResult(),
+      run: async () => "done"
+    });
+
+    const { deps } = worktreeMocks.createWorktree.mock.calls[0]![0] as CreateWorktreeOptions;
+    await expect(deps.fs.rmdir(lockPath)).rejects.toMatchObject({ code: "ENOTEMPTY" });
+    await deps.fs.rmdir(ownerPath);
+    await deps.fs.rmdir(lockPath);
+    expect(rmdirMock.mock.calls).toEqual([[lockPath], [ownerPath], [lockPath]]);
+    await expect(lockFs.lstat(lockPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("reconciles successful callback output through the selected SDK spawn agent", async () => {
@@ -295,6 +328,7 @@ function createFailureDeps(options: {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       mkdir: vi.fn(),
+      rmdir: vi.fn(),
       rename: vi.fn(),
       unlink: vi.fn(),
       lstat: vi.fn().mockRejectedValue(new Error("missing"))

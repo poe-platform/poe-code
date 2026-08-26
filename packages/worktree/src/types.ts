@@ -46,6 +46,7 @@ export type WorktreeFileSystem = {
     options?: { encoding?: BufferEncoding; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rmdir(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;

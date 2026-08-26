@@ -1,4 +1,4 @@
-import { removeWorktreeEntry, readRegistry, writeRegistry } from "./registry.js";
+import { withRegistryTransaction } from "./registry.js";
 import { worktreeNotFoundError } from "./not-found.js";
 import type { WorktreeDeps } from "./types.js";
 
@@ -13,34 +13,35 @@ export type RemoveWorktreeOptions = {
 export async function removeWorktree(
   opts: RemoveWorktreeOptions
 ): Promise<void> {
-  const registry = await readRegistry(opts.registryFile, opts.deps.fs);
-  const entry = registry.worktrees.find((w) => w.name === opts.name);
-  if (!entry) {
-    throw worktreeNotFoundError(opts.name, registry.worktrees);
-  }
+  await withRegistryTransaction(opts.registryFile, opts.deps.fs, async (registry, write) => {
+    const entry = registry.worktrees.find((worktree) => worktree.name === opts.name);
+    if (!entry) {
+      throw worktreeNotFoundError(opts.name, registry.worktrees);
+    }
 
-  await writeRegistry(opts.registryFile, {
-    worktrees: registry.worktrees.map((worktree) =>
-      worktree.name === opts.name ? { ...worktree, status: "removing" } : worktree
-    )
-  }, opts.deps.fs);
-
-  try {
-    await opts.deps.exec(`git worktree remove ${shellQuote(entry.path)}`, {
-      cwd: opts.cwd
+    await write({
+      worktrees: registry.worktrees.map((worktree) =>
+        worktree.name === opts.name ? { ...worktree, status: "removing" } : worktree
+      )
     });
-  } catch (error) {
-    await writeRegistry(opts.registryFile, registry, opts.deps.fs).catch(() => undefined);
-    throw error;
-  }
 
-  await removeWorktreeEntry(opts.registryFile, opts.name, opts.deps.fs);
+    try {
+      await opts.deps.exec(`git worktree remove ${shellQuote(entry.path)}`, {
+        cwd: opts.cwd
+      });
+    } catch (error) {
+      await write(registry).catch(() => undefined);
+      throw error;
+    }
 
-  if (opts.deleteBranch) {
-    await opts.deps.exec(`git branch -D ${shellQuote(entry.branch)}`, {
-      cwd: opts.cwd
-    });
-  }
+    await write({ worktrees: registry.worktrees.filter((worktree) => worktree.name !== opts.name) });
+
+    if (opts.deleteBranch) {
+      await opts.deps.exec(`git branch -D ${shellQuote(entry.branch)}`, {
+        cwd: opts.cwd
+      });
+    }
+  });
 }
 
 function shellQuote(value: string): string {

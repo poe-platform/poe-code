@@ -1,6 +1,7 @@
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import type { CreateWorktreeOptions } from "@poe-code/worktree";
 import type { SuperintendentFileSystem } from "../runtime/loop.js";
 
 const worktreeMocks = vi.hoisted(() => ({
@@ -9,8 +10,13 @@ const worktreeMocks = vi.hoisted(() => ({
   updateWorktreeEntry: vi.fn()
 }));
 const spawnMock = vi.hoisted(() => vi.fn());
+const rmdirMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/worktree", () => worktreeMocks);
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  return { ...actual, rmdir: rmdirMock };
+});
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
   return { ...actual, spawn: spawnMock };
@@ -93,6 +99,7 @@ function createFs(files: Record<string, string>): SuperintendentFileSystem {
 describe("superintendent run worktree mode", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    rmdirMock.mockReset();
     spawnMock.mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 });
     worktreeMocks.createWorktree.mockResolvedValue({
       name: "sup-wt",
@@ -189,6 +196,47 @@ describe("superintendent run worktree mode", () => {
       builderAgent: "codex",
       stopReason: "completed"
     });
+  });
+
+  it("supports registry lock cleanup through the default Node worktree adapter", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/superintendent.md": createDoc("codex"),
+      "/repo/.poe-code/worktrees/sup-wt/docs/plans/superintendent.md": createDoc("codex")
+    });
+    const lockFs = createFsFromVolume(new Volume()).promises;
+    const lockPath = "/registry.yaml.lock";
+    const ownerPath = `${lockPath}/owner`;
+    await lockFs.mkdir(ownerPath, { recursive: true });
+    rmdirMock.mockImplementation(async (targetPath: string) => {
+      await lockFs.rmdir(targetPath);
+    });
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/plans/superintendent.md",
+      assumeYes: true,
+      interactive: false,
+      useDashboard: false,
+      fs,
+      runLoop: vi.fn(async () => ({
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      })),
+      env: {},
+      worktree: true
+    });
+
+    const { deps } = worktreeMocks.createWorktree.mock.calls[0]![0] as CreateWorktreeOptions;
+    await expect(deps.fs.rmdir(lockPath)).rejects.toMatchObject({ code: "ENOTEMPTY" });
+    await deps.fs.rmdir(ownerPath);
+    await deps.fs.rmdir(lockPath);
+    expect(rmdirMock.mock.calls).toEqual([[lockPath], [ownerPath], [lockPath]]);
+    await expect(lockFs.lstat(lockPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("lets the shared spawn boundary choose failed-run cleanup mode", async () => {

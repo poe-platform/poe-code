@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
 import { hasOwnErrorCode } from "./error-codes.js";
+import { assertPathHasNoSymbolicLinks, withRegistryLock } from "./registry-lock.js";
 import type {
   Worktree,
   WorktreeRegistry,
@@ -34,6 +35,28 @@ export async function writeRegistry(
   registry: WorktreeRegistry,
   fs: WorktreeFileSystem
 ): Promise<void> {
+  await withRegistryLock(registryFile, fs, () => persistRegistry(registryFile, registry, fs));
+}
+
+export async function withRegistryTransaction<Result>(
+  registryFile: string,
+  fs: WorktreeFileSystem,
+  operation: (
+    registry: WorktreeRegistry,
+    write: (registry: WorktreeRegistry) => Promise<void>
+  ) => Promise<Result>
+): Promise<Result> {
+  return withRegistryLock(registryFile, fs, async () => {
+    const registry = await readRegistry(registryFile, fs);
+    return operation(registry, (next) => persistRegistry(registryFile, next, fs));
+  });
+}
+
+async function persistRegistry(
+  registryFile: string,
+  registry: WorktreeRegistry,
+  fs: WorktreeFileSystem
+): Promise<void> {
   await assertPathHasNoSymbolicLinks(registryFile, fs);
   await fs.mkdir(dirname(registryFile), { recursive: true });
   await assertPathHasNoSymbolicLinks(registryFile, fs);
@@ -60,34 +83,6 @@ function isNotFound(error: unknown): boolean {
 
 function isAlreadyExists(error: unknown): boolean {
   return hasOwnErrorCode(error, "EEXIST");
-}
-
-async function assertPathHasNoSymbolicLinks(
-  targetPath: string,
-  fs: Pick<WorktreeFileSystem, "lstat">
-): Promise<void> {
-  const segments = targetPath.split("/").filter(Boolean);
-  let currentPath = targetPath.startsWith("/") ? "" : ".";
-  for (const segment of segments) {
-    currentPath = `${currentPath}/${segment}`;
-    try {
-      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
-        if (isAllowedSystemAlias(currentPath)) {
-          continue;
-        }
-        throw new Error(`Refusing worktree registry path containing symbolic link: ${currentPath}`);
-      }
-    } catch (error) {
-      if (isNotFound(error)) {
-        return;
-      }
-      throw error;
-    }
-  }
-}
-
-function isAllowedSystemAlias(path: string): boolean {
-  return path === "/var";
 }
 
 function isWorktreeRegistry(value: unknown): value is WorktreeRegistry {
@@ -194,9 +189,10 @@ export async function addWorktreeEntry(
   entry: Worktree,
   fs: WorktreeFileSystem
 ): Promise<void> {
-  const registry = await readRegistry(registryFile, fs);
-  registry.worktrees.push(entry);
-  await writeRegistry(registryFile, registry, fs);
+  await withRegistryTransaction(registryFile, fs, async (registry, write) => {
+    registry.worktrees.push(entry);
+    await write(registry);
+  });
 }
 
 export async function removeWorktreeEntry(
@@ -204,9 +200,10 @@ export async function removeWorktreeEntry(
   name: string,
   fs: WorktreeFileSystem
 ): Promise<void> {
-  const registry = await readRegistry(registryFile, fs);
-  registry.worktrees = registry.worktrees.filter((w) => w.name !== name);
-  await writeRegistry(registryFile, registry, fs);
+  await withRegistryTransaction(registryFile, fs, async (registry, write) => {
+    registry.worktrees = registry.worktrees.filter((worktree) => worktree.name !== name);
+    await write(registry);
+  });
 }
 
 export async function updateWorktreeStatus(
@@ -216,13 +213,14 @@ export async function updateWorktreeStatus(
   deps: { fs: WorktreeFileSystem }
 ): Promise<void> {
   const { fs } = deps;
-  const registry = await readRegistry(registryFile, fs);
-  const entry = registry.worktrees.find((w) => w.name === name);
-  if (!entry) {
-    throw new Error(`Worktree "${name}" not found in registry`);
-  }
-  entry.status = status;
-  await writeRegistry(registryFile, registry, fs);
+  await withRegistryTransaction(registryFile, fs, async (registry, write) => {
+    const entry = registry.worktrees.find((worktree) => worktree.name === name);
+    if (!entry) {
+      throw new Error(`Worktree "${name}" not found in registry`);
+    }
+    entry.status = status;
+    await write(registry);
+  });
 }
 
 export async function updateWorktreeEntry(
@@ -232,18 +230,19 @@ export async function updateWorktreeEntry(
   deps: { fs: WorktreeFileSystem }
 ): Promise<Worktree> {
   const { fs } = deps;
-  const registry = await readRegistry(registryFile, fs);
-  let updated: Worktree | undefined;
-  const worktrees = registry.worktrees.map((entry) => {
-    if (entry.name !== name) {
-      return entry;
+  return withRegistryTransaction(registryFile, fs, async (registry, write) => {
+    let updated: Worktree | undefined;
+    const worktrees = registry.worktrees.map((entry) => {
+      if (entry.name !== name) {
+        return entry;
+      }
+      updated = update(entry);
+      return updated;
+    });
+    if (!updated) {
+      throw new Error(`Worktree "${name}" not found in registry`);
     }
-    updated = update(entry);
+    await write({ worktrees });
     return updated;
   });
-  if (!updated) {
-    throw new Error(`Worktree "${name}" not found in registry`);
-  }
-  await writeRegistry(registryFile, { worktrees }, fs);
-  return updated;
 }

@@ -6,7 +6,7 @@ import { BASE_SEED, CASE_COUNT, contents, editCount, example, golden, memory, na
 
 test("512 independent seeded diff/patch, reverse, native, golden, and minimality properties", { timeout: 180_000 }, async context => {
   const identity = await nativeIdentity();
-  context.diagnostic(`native identities ${JSON.stringify(identity)}; paths=/usr/bin/diff,/usr/bin/patch; locale=C; skips=0`);
+  context.diagnostic(`native identities ${JSON.stringify(identity)}; locale=C; skips=0`);
   const failures: { index: number; seed: number; family: string; phase: string; message: string }[] = [];
   const counts: Record<string, { pass: number; fail: number }> = {};
   const families: Record<string, number> = {};

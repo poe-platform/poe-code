@@ -1,5 +1,53 @@
 # Independent diff/patch edit-flow compatibility checkpoint
 
+## Explicit oracle selection and reconciliation
+
+The original checkpoint below is historical, including its raw Apple failures.
+Current native subprocesses in compatibility and fuzz share `oracle.ts`:
+
+```sh
+export DIFF_PATCH_NATIVE_DIFF=/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff
+export DIFF_PATCH_NATIVE_PATCH=/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch
+node tests/commands/diff-patch-stress/compatibility/run.mjs
+```
+
+The runner executes only compatibility, fuzz, and safety, then scoped strict
+TypeScript, records every diff/patch source SHA-256 before and after, and fails
+on any failed check or moving source snapshot. It does not run broad tests.
+The paths are host-local; build provenance is independently recorded under
+`../oracle/`. Verified executables are GNU diffutils 3.12 and GNU patch 2.8.
+Unset variables select `/usr/bin/diff` and `/usr/bin/patch` explicitly. Empty,
+relative, missing, broken, or non-executable overrides fail, never fall back or
+skip. Diagnostics include resolved path, complete version, dialect and binary
+SHA-256. GNU, BSD, and other identities are distinguished; only the exact
+`patch 2.0-12u11-Apple` identity receives its measured native-self expectations.
+
+`oracle.test.ts` independently asserts forward/reverse native-self controls for
+interior deletion, empty deletion, and unterminated context. Apple reverse wrong
+bytes/status are asserted as calibration facts, **not product acceptance**.
+Raw cross-application and fuzz failures remain red and retain their denominator;
+no failed product check is skipped, marked TODO, or reclassified as a pass.
+GNU cross-application must satisfy exact successful status and target bytes.
+Safety has no native subprocess and receives the same invocation environment.
+
+Immediately after adding selection, before changing semantic fixtures, the
+stable GNU snapshot produced compatibility **91/99**, fuzz **28/31**, safety
+**130/135**, zero skips/TODOs. All **7,168/7,168** primary seeded fuzz properties
+passed (512 cases, 14 properties); the three fuzz failures were separate legacy
+and boundary fixtures, not excluded corpus entries. Detailed reconciliation
+and the final source snapshot are recorded separately after fixture review.
+
+Binary SHA-256 at this checkpoint:
+
+| Executable | SHA-256 |
+| --- | --- |
+| GNU diff 3.12 | `f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9` |
+| GNU patch 2.8 | `c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00` |
+| Apple diff | `214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede` |
+| Apple patch | `ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84` |
+
+## Historical author checkpoint
+
 Independent leaf-verifier work on August 26, 2026. Exclusive writes are this
 directory; source, author tests, safety/fuzz verifier files, root documentation,
 and other workers' index entries were not modified. No packages were installed.

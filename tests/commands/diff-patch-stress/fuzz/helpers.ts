@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { toByteSource, type FileSystem } from "../../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../../../../src/commands/diff-patch/index.js";
+import { oracleIdentity, oraclePath } from "../compatibility/oracle.js";
 
 export const BASE_SEED = 0x6d2b79f5;
 export const CASE_COUNT = 512;
@@ -156,9 +157,9 @@ export async function nativeDirectory<Result>(operation: (root: string) => Promi
 }
 
 export function native(root: string, tool: "diff" | "patch", args: readonly string[], input = "") {
-  const result = spawnSync(`/usr/bin/${tool}`, [...args], {
+  const result = spawnSync(oraclePath(tool), [...args], {
     cwd: root, input, encoding: "utf8", timeout: 2000, killSignal: "SIGKILL", maxBuffer: OUTPUT_CAP,
-    env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LC_ALL: "C", LANG: "C" },
+    env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LC_ALL: "C", LANG: "C", TZ: "UTC" },
   });
   if (result.error) throw result.error;
   assert.equal(result.signal, null, `native ${tool} killed: ${result.signal}`);
@@ -166,12 +167,8 @@ export function native(root: string, tool: "diff" | "patch", args: readonly stri
   return { exitCode: result.status!, stdout: result.stdout, stderr: result.stderr };
 }
 
-export async function nativeIdentity(): Promise<Record<string, string>> {
-  return nativeDirectory(async root => Object.fromEntries(["diff", "patch"].map(tool => {
-    const result = native(root, tool as "diff" | "patch", ["--version"]);
-    assert.equal(result.exitCode, 0, result.stderr);
-    return [tool, `${result.stdout}${result.stderr}`.trim()];
-  })));
+export async function nativeIdentity() {
+  return { diff: oracleIdentity("diff"), patch: oracleIdentity("patch") };
 }
 
 export async function nativePatch(root: string, before: string, input: string, reverse = false): Promise<string> {

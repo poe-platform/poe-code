@@ -23,7 +23,6 @@ for (const fixture of flagCases) {
   });
   test(`native diff flags: ${fixture.name}`, async context => {
     const version = await availability("diff");
-    if (!version) { context.skip("/usr/bin/diff unavailable; static golden runs separately"); return; }
     const oracle = await native("diff", args, files);
     assert.deepEqual({ status: oracle.exitCode, output: oracle.stdout.toString() }, { status: 1, output: fixture.output }, `${version}\n${oracle.stderr}`);
     const actual = await virtual("diff", args, files);
@@ -44,7 +43,7 @@ for (const fixture of workflows) for (const width of [0, 1, 2, 5]) {
   test(`native cross-application: ${fixture.name}, U${width}`, async context => {
     const diffVersion = await availability("diff");
     const patchVersion = await availability("patch");
-    if (!diffVersion || !patchVersion) { context.skip("native diff/patch unavailable; golden patch cases remain active"); return; }
+    context.diagnostic(`${diffVersion}\n${patchVersion}`);
     const args = [`-U${width}`, ...labels, "left", "right"];
     const inputs = { left: fixture.old, right: fixture.next };
     const oracleDiff = await native("diff", args, inputs);

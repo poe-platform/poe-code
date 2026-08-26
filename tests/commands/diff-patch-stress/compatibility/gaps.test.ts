@@ -26,7 +26,6 @@ for (const fixture of gapCases) {
   });
   test(`native ${fixture.name}`, async context => {
     const version = await availability(fixture.tool);
-    if (!version) { context.skip("native utility unavailable; static gap expectation still runs"); return; }
     const args = fixture.tool === "patch" ? ["-f", "-F0", "-p0", ...fixture.args] : fixture.args;
     const oracle = await native(fixture.tool, args, fixture.files, fixture.input, Object.keys(fixture.expected));
     assert.deepEqual({ status: oracle.exitCode, files: oracle.files, output: fixture.output === undefined ? undefined : oracle.stdout.toString() },

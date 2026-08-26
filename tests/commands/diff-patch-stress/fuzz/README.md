@@ -1,5 +1,23 @@
 # Independent diff/patch algorithm verification
 
+## Oracle reconciliation update
+
+The historical Apple checkpoint and `report.json` below remain immutable raw
+evidence: 512 cases, 76 virtual-diff/native-patch reverse failures, plus 2 native
+self-forward and 70 native-self-reverse failures. They are not product failures
+merely because the selected native tool fails its own controls.
+
+Native calls now use `DIFF_PATCH_NATIVE_DIFF` / `DIFF_PATCH_NATIVE_PATCH`, shared
+with compatibility. See `../compatibility/README.md` for pinned GNU paths,
+identity hashes and the three-suite strict snapshot runner. Unset means explicit
+`/usr/bin` selection; invalid overrides fail without fallback or skips. Current
+reports are separate from `report.json`; do not overwrite the Apple checkpoint.
+The first GNU run passed all 7,168 primary corpus properties, but 3/31 standalone
+tests failed because legacy/boundary assumptions needed reconciliation. This is
+not a whole-product pass, a parity claim, or evidence of superiority.
+
+## Historical author checkpoint
+
 This is the independent algorithm/property verifier's exclusive subtree. No
 product source, author tests, compatibility verifier files, safety verifier files,
 or bytes commands were changed. This suite intentionally remains **red**: known

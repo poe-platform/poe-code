@@ -31,7 +31,7 @@ test("Shell+Memory multi-hunk pipeline cross-checks native target bytes", async 
   const expected = expectedFiles({ target: "prefix\nstart\nA\nb\nc\nd\ne\nf\nG\n" });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(await snapshot(workspace.fs, ["target"]), expected);
-  if (!await availability("diff") || !await availability("patch")) { context.diagnostic("Native comparison unavailable; static Shell byte check passed"); return; }
+  context.diagnostic(`${await availability("diff")}\n${await availability("patch")}`);
   const delta = await native("diff", ["-U1", "-L", "target", "-L", "target", "left", "right"], files);
   assert.equal(delta.exitCode, 1, delta.stderr.toString());
   const oracle = await native("patch", ["-f", "-p0", "-F0"], { target: files.target }, delta.stdout.toString());

@@ -7,6 +7,7 @@ import { toByteSource } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands, diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { Shell } from "../../../../src/shell/index.js";
+import { oracleIdentity, oraclePath } from "./oracle.js";
 
 export type Files = Readonly<Record<string, string>>;
 export type Snapshot = Record<string, Buffer | null>;
@@ -75,7 +76,7 @@ export async function native(tool: Tool, args: readonly string[], files: Files =
       await writeFile(join(root, path), text);
     }
     const result = await new Promise<Result>((resolve, reject) => {
-      const child = execFile(`/usr/bin/${tool}`, [...args], {
+      const child = execFile(oraclePath(tool), [...args], {
         cwd: root, timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024, encoding: "buffer",
         env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LANG: "C", LC_ALL: "C", TZ: "UTC" },
       }, (error, stdout, stderr) => {
@@ -100,13 +101,6 @@ export async function native(tool: Tool, args: readonly string[], files: Files =
   } finally { await rm(root, { recursive: true, force: true }); }
 }
 
-export async function availability(tool: Tool): Promise<string | undefined> {
-  try {
-    const result = await native(tool, ["--version"]);
-    assert.equal(result.exitCode, 0, result.stderr.toString());
-    return result.stdout.toString().trim();
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-    throw error;
-  }
+export async function availability(tool: Tool): Promise<string> {
+  return JSON.stringify(oracleIdentity(tool));
 }

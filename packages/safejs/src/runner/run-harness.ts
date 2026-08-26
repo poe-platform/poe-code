@@ -4,7 +4,7 @@ import { extname } from "node:path";
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
 import { hasOwnErrorCode } from "../error-codes.js";
-import { extractBlock } from "../loader/extract-block.js";
+import { countLineBreaks, extractBlock } from "../loader/extract-block.js";
 import { splitFrontmatter } from "../loader/frontmatter.js";
 import { lint, type Diagnostic } from "../lint.js";
 import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js";
@@ -209,9 +209,12 @@ function loadExecutableSource(
     throw new Error(`No code block found in empty harness file: ${filepath}`);
   }
 
-  const { source: executableBlock, lineOffset } = extractBlock(body);
-  const absoluteLineOffset =
-    countLineBreaks(source.slice(0, source.length - body.length)) + lineOffset;
+  const bodyStartOffset = source.length - body.length;
+  const { source: executableBlock, startOffset } = extractBlock(
+    body,
+    countLineBreaks(source, 0, bodyStartOffset) + 1
+  );
+  const absoluteLineOffset = countLineBreaks(source, 0, bodyStartOffset + startOffset);
 
   return {
     executableSource: createLineOffsetSource(stripHashbang(executableBlock), absoluteLineOffset),
@@ -318,24 +321,9 @@ function stripHashbang(source: string): string {
     return source;
   }
 
-  const lineBreakIndex = source.indexOf("\n");
-  if (lineBreakIndex === -1) {
-    return "";
-  }
-
-  return source.slice(lineBreakIndex + 1);
-}
-
-function countLineBreaks(source: string): number {
-  let count = 0;
-
-  for (const character of source) {
-    if (character === "\n") {
-      count += 1;
-    }
-  }
-
-  return count;
+  let end = 2;
+  while (end < source.length && source[end] !== "\n" && source[end] !== "\r") end += 1;
+  return `${" ".repeat(end)}${source.slice(end)}`;
 }
 
 function createLineOffsetSource(source: string, lineOffset: number): string {

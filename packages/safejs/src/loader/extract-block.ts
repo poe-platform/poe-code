@@ -3,11 +3,13 @@ export interface ExtractBlockResult {
   source: string;
   lineOffset: number;
   startOffset: number;
+  ranges: readonly (readonly [number, number])[];
 }
 
-export function extractBlock(markdown: string): ExtractBlockResult {
+export function extractBlock(markdown: string, startLine = 1): ExtractBlockResult {
   let index = 0;
-  let line = 1;
+  let line = startLine;
+  const blocks: { start: number; end: number; line: number }[] = [];
 
   while (index < markdown.length) {
     const lineStart = index;
@@ -26,12 +28,7 @@ export function extractBlock(markdown: string): ExtractBlockResult {
           );
         }
 
-        return {
-          endOffset: closingFence.start,
-          lineOffset: line,
-          source: markdown.slice(blockStart, closingFence.start),
-          startOffset: blockStart
-        };
+        blocks.push({ start: blockStart, end: closingFence.start, line });
       }
 
       const resumeIndex = findBlockResumeIndex(markdown, closingFence);
@@ -48,11 +45,33 @@ export function extractBlock(markdown: string): ExtractBlockResult {
     line += 1;
   }
 
+  if (blocks.length === 0)
+    return {
+      endOffset: markdown.length,
+      lineOffset: 1,
+      source: markdown,
+      startOffset: 0,
+      ranges: [[0, markdown.length]]
+    };
+
+  const first = blocks[0];
+  const parts: string[] = [];
+  let cursor = first.start;
+  for (const block of blocks) {
+    let gap = "";
+    for (let offset = cursor; offset < block.start; offset++) {
+      const character = markdown[offset];
+      gap += character === "\n" || character === "\r" ? character : " ";
+    }
+    parts.push(gap, markdown.slice(block.start, block.end));
+    cursor = block.end;
+  }
   return {
-    endOffset: markdown.length,
-    lineOffset: 1,
-    source: markdown,
-    startOffset: 0
+    endOffset: cursor,
+    lineOffset: first.line,
+    source: parts.join(""),
+    startOffset: first.start,
+    ranges: blocks.map((block) => [block.start, block.end])
   };
 }
 
@@ -140,7 +159,7 @@ function findBlockResumeIndex(markdown: string, closingFence: ClosingFence): num
   return closingLineEnd.index + closingLineEnd.lineBreakLength;
 }
 
-function countLineBreaks(markdown: string, start: number, end: number): number {
+export function countLineBreaks(markdown: string, start = 0, end = markdown.length): number {
   let count = 0;
   let index = start;
 

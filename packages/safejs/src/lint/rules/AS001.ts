@@ -604,8 +604,8 @@ class AS001Scanner {
   private advance(): void {
     const char = this.source[this.index];
     this.index += 1;
-    if (char === "\n") {
-      this.line += 1;
+    if (isLineBreak(char)) {
+      if (char !== "\n" || this.source[this.index - 2] !== "\r") this.line += 1;
       this.column = 1;
       return;
     }
@@ -635,8 +635,8 @@ class AS001Scanner {
     let column = 1;
 
     for (let index = 0; index < offset; index += 1) {
-      if (this.source[index] === "\n") {
-        line += 1;
+      if (isLineBreak(this.source[index])) {
+        if (this.source[index] !== "\n" || this.source[index - 1] !== "\r") line += 1;
         column = 1;
         continue;
       }

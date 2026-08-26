@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { lint } from "./index.js";
 
 describe("lint", () => {
+  it.each(["\n", "\r\n", "\r"])("locates unknown directives after %j line endings", (newline) => {
+    const source = `const value = 1;${newline}// @as-disable AS999${newline}return value;`;
+    expect(lint(source)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "AS-UNKNOWN-DIRECTIVE", line: 2, column: 16 })
+      ])
+    );
+  });
   it("returns AS001 diagnostics for disallowed syntax instead of throwing", () => {
     expect(() => lint("class Example {}", { filename: "rule.js" })).not.toThrow();
     expect(lint("class Example {}", { filename: "rule.js" })).toEqual([

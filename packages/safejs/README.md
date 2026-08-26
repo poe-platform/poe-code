@@ -95,7 +95,7 @@ npx poe-safejs examples/pipeline.md
 ```
 
 `poe-safejs` is a zero-cost local runner for markdown harness files. It
-reads the first `js` fenced block, lints it against the example module registry,
+reads all executable fenced blocks in order, lints them against the example module registry,
 then runs it with stub host modules: `agent.spawn` returns a canned successful
 summary, `git` and `metric` are deterministic fakes, and logs are printed as
 JSONL. If a markdown file has no `js` block, the CLI keeps backwards-compatible
@@ -218,7 +218,7 @@ That prints `"hello Ada [admin] Ada"`.
 `runHarness(filepath, options)` loads a script from disk, lints it, then runs it.
 
 - `.safejs` and legacy `.ajs` files: the entire file is the script. Frontmatter is `{}`. The `harness` module is auto-excluded since there's nothing for it to surface.
-- `.md` files: YAML frontmatter is parsed; the **first** `js` fenced block is the script. If there is no fenced block, the entire markdown body is treated as script source.
+- `.md` files: YAML frontmatter is parsed; executable fenced blocks form one script in document order. If there is no executable fenced block, the entire markdown body is treated as script source.
 
 ```ts
 import { makeHarnessModule, runHarness } from "@poe-code/safejs";
@@ -322,7 +322,6 @@ no module bodies to inspect.
 
 ## Gotchas
 
-- **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
 - **`Promise.all` is fine; user-defined promise constructors are not.** `Promise` is exposed for static helpers and promise instances expose `then`, `catch`, and `finally`. There is no `new Promise(...)`.
 - **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
@@ -348,7 +347,7 @@ This package does not read package-level environment variables. `makeEnvModule(a
 
 This package does not read package-level config files. Runner options come through the call sites:
 
-- `lint({ filename, modules })`
+- `lint({ filename, modules, fix, fixRanges })`
 - `run({ bindings, budget, modules, randomSeed, signal, snapshot, snapshotIntervalMs, snapshotPath, sink })`
 - `runHarness({ modulesFor, signal, snapshotPath })`
 - `makeFsModule({ root, fs })` — `root` confines every path argument to that directory, and is unconfined when omitted; `fs` injects the implementation to delegate to, defaulting to `node:fs/promises`. Registering the returned module under a name in `run({ modules })` is what gives a script a filesystem at all.

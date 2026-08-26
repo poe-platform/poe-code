@@ -18,7 +18,7 @@ language completeness from passing existing tests alone.
       ignoring code; verify fenced-block boundaries and actionable errors.
 - [ ] Snapshot evolution: provide an explicit, validated migration path without
       silently restoring incompatible execution state or repeating side effects.
-- [ ] Randomness: make default randomness resumable and deterministic without
+- [x] Randomness: make default randomness resumable and deterministic without
       requiring callers to remember an extra option.
 - [ ] Promise construction: implement sandboxed executors, settlement, chaining,
       rejection handling, budgets, and snapshot behavior.
@@ -30,7 +30,8 @@ language completeness from passing existing tests alone.
 - [ ] Budgets: support an explicit recoverable checkpoint/result policy without
       letting scripts bypass host resource limits.
 - [ ] Remaining lint/runtime syntax parity: var, switch, this, and supported new
-      expressions, including Map and Set; retain host-escape protections.
+      expressions, including Map and Set, plus top-level await inside nested
+      control-flow blocks; retain host-escape protections.
 - [ ] Classes and prototypes: implement language-level objects and inheritance
       inside the sandbox, never exposing host prototypes.
 - [ ] Generators: implement async generators and resumable suspended generators.
@@ -460,9 +461,68 @@ bundle, root/SafeJS typechecks, focused ESLint, Prettier, and diff checks passed
 Re-ran and inspected the real CLI screenshot: 8,192 random draws and 32 UUIDs,
 harness passed, zero spawns.
 
-Finish a separate verified release before checking off randomness. The full
-language-completeness goal remains active; no remaining checklist item is
-claimed complete by the durable-checkpoint correction.
+Committed and pushed as `d448eb8b`; full pre-push validation passed 20,100 tests
+(41 skipped). A further public standalone CLI matrix passed six raw/Markdown
+cases at widths 1, 128, and 1,024: 24 separate processes, three completed restores
+per original, with exact native-LCG outputs. The first release attempt
+(`33021450584`) passed 20,100 tests but failed one unrelated Gaslight plan-order
+assertion. No SafeJS failure occurred. The complete failed job passed on retry
+without altering or skipping tests. Verified GitHub release `v4.0.70` and npm's
+`gitHead` as `d448eb8b51da948f9682eccb02eedf22c9de1b9d`; workflow `33021450584`
+attempt 2 succeeded, including smoke and publication. Randomness is checked off;
+the separate language-completeness items remain open.
+
+### Multiple executable Markdown blocks
+
+Ten failing regressions reproduced ignored later blocks, absent original input
+offsets, and CLI/example autofix dropping or ignoring content. Executable `js`,
+`javascript`, and `ajs` blocks now form one source module in document order.
+Prose, non-executable fences, and fence markers become whitespace with matching
+UTF-16 offsets and line endings. An unclosed later executable block fails before
+earlier effects. Shared declarations and normal early-return semantics remain
+JavaScript, not separate per-block invocations.
+
+The linter returns actual selected edits and accepts allowed `fixRanges`.
+CLI/example fixes map only those edits back into original code spans. A fix
+crossing an intervening Markdown region stays unapplied; no prose is overwritten.
+Regression coverage verifies both entry points, CRLF, frontmatter, Unicode prose,
+and idempotent edits. Diagnostic checks found two additional line-mapping bugs:
+CLI/example prefixes omitted frontmatter, and AS001's independent scanner plus
+unknown-directive locations counted LF but not CR. Red tests preceded both fixes.
+SDK hashbang stripping also dropped a source line, or discarded the entire
+script with CR-only input. Three further red cases now preserve its line/offset
+layout by masking only the hashbang text.
+Additional red cases corrected unclosed-fence messages after frontmatter and
+kept the original BOM when the CLI writes autofixes.
+
+#### Native-reference and CLI stress procedure
+
+1. Generate declaration-hoisting/shared-mutation, async success/caught-rejection,
+   and autofix script families at widths 1, 32, and 128, with LF and CRLF.
+2. Alternate indented backtick/tilde fences and supported language tags. Insert
+   Unicode prose and executable-looking examples inside non-executable fences.
+3. Compare the real compiled standalone CLI's result with native JavaScript.
+   Dump and restore each completed result twice in new processes.
+4. For autofix cases, compare the entire Markdown file with independently
+   constructed expected edits, then check a second fix pass is idempotent.
+5. Inspect real success and error CLI screenshots: three blocks, 128 values,
+   total 8,256; forbidden `eval` in a later fence reports original line 11.
+
+All 18 cases passed, comprising 54 separate CLI processes. An initial async
+fixture exposed the still-existing AS008 restriction on top-level await inside
+`try` blocks; it is tracked under remaining syntax parity, not hidden by a
+suppression. The Markdown matrix uses an async function spanning blocks, which
+is accepted by current lint. Direct runtime native comparisons also cover the
+top-level form. This is not a claim of full lint/runtime parity.
+
+Validation after the CR/hashbang/fence/BOM corrections: 3,658 expanded tests passed,
+39 skipped; opt-in adversarial/parser fuzz passed 9, skipped 5. Focused ESLint,
+root/SafeJS typechecks, all 67 build tasks, and the root bundle passed. The
+18-case/54-process CLI matrix passed again against rebuilt output. Inspected
+the root CLI regression screenshot: 8,192 random draws and 32 UUIDs, zero spawns.
+
+Before release: commit and publish Markdown separately. The full
+language-completeness goal remains active.
 
 ## Stale artifact cleanup
 

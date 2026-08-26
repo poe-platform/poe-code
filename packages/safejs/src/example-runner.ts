@@ -1,9 +1,9 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { extractBlock } from "./loader/extract-block.js";
+import { countLineBreaks, extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
-import { lint } from "./lint.js";
+import { lint, type Fix } from "./lint.js";
 import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeFailModule } from "./modules/fail.js";
@@ -109,7 +109,7 @@ export async function runExampleFile(
           modules: createLintModulesFromRuntimeRegistry(runtime.registry)
         };
         const lintResult = options.fix
-          ? lint(executableSource, { ...lintOptions, fix: true })
+          ? lint(executableSource, { ...lintOptions, fix: true, fixRanges: loaded.fixRanges })
           : lint(executableSource, lintOptions);
         const diagnostics = Array.isArray(lintResult) ? lintResult : lintResult.diagnostics;
 
@@ -118,7 +118,7 @@ export async function runExampleFile(
           if (lintResult.fixed !== loaded.executableSource) {
             await writeMarkdownFile(
               filepath,
-              replaceExecutableSource(rawSource, loaded, lintResult.fixed),
+              replaceExecutableSource(rawSource, loaded, lintResult.fixes),
               {
                 encoding: "utf8"
               }
@@ -169,21 +169,25 @@ export async function runExampleFile(
 }
 
 function loadExecutableSource(source: string): {
-  blockEndOffset: number;
-  blockStartOffset: number;
+  sourceOffset: number;
+  fixRanges: readonly Fix["range"][];
   executableSource: string;
   frontmatter: Record<string, unknown>;
   hasScriptBlock: boolean;
 } {
   const { frontmatter, body } = splitFrontmatter(source);
-  const executableBlock = extractBlock(body);
-  const hasScriptBlock = executableBlock.source !== body || executableBlock.lineOffset !== 1;
   const bodyStartOffset = source.length - body.length;
+  const executableBlock = extractBlock(body, countLineBreaks(source, 0, bodyStartOffset) + 1);
+  const hasScriptBlock = executableBlock.source !== body || executableBlock.lineOffset !== 1;
+  const lineOffset = countLineBreaks(source, 0, bodyStartOffset + executableBlock.startOffset);
 
   return {
-    blockEndOffset: bodyStartOffset + executableBlock.endOffset,
-    blockStartOffset: bodyStartOffset + executableBlock.startOffset,
-    executableSource: executableBlock.source,
+    sourceOffset: bodyStartOffset + executableBlock.startOffset - lineOffset,
+    fixRanges: executableBlock.ranges.map(([start, end]) => [
+      start - executableBlock.startOffset + lineOffset,
+      end - executableBlock.startOffset + lineOffset
+    ]),
+    executableSource: `${"\n".repeat(lineOffset)}${executableBlock.source}`,
     frontmatter,
     hasScriptBlock
   };
@@ -192,9 +196,13 @@ function loadExecutableSource(source: string): {
 function replaceExecutableSource(
   source: string,
   loaded: ReturnType<typeof loadExecutableSource>,
-  fixed: string
+  fixes: readonly Fix[]
 ): string {
-  return `${source.slice(0, loaded.blockStartOffset)}${fixed}${source.slice(loaded.blockEndOffset)}`;
+  return fixes.reduce(
+    (result, fix) =>
+      `${result.slice(0, loaded.sourceOffset + fix.range[0])}${fix.replacement}${result.slice(loaded.sourceOffset + fix.range[1])}`,
+    source
+  );
 }
 
 function parseArgs(argv: readonly string[]): { filepath: string | undefined; fix: boolean } {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { extractBlock } from "./extract-block.js";
 
 describe("extractBlock", () => {
-  it("returns the first js fenced block source with its starting line offset", () => {
+  it("combines js fenced blocks with their original source offsets", () => {
     const markdown = [
       "# Plan",
       "",
@@ -18,8 +18,9 @@ describe("extractBlock", () => {
 
     expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 3,
-      source: "const value = 1;\nreturn value;\n"
+      source: expect.stringContaining("const value = 1;\nreturn value;\n")
     });
+    expect(extractBlock(markdown).source).toContain("throw new Error('ignored');");
   });
 
   it("accepts ajs info strings and ignores trailing info text", () => {
@@ -69,7 +70,7 @@ describe("extractBlock", () => {
     });
   });
 
-  it("keeps subsequent script fences inert once the first block has been selected", () => {
+  it("includes subsequent executable fences in source order", () => {
     const markdown = [
       "```js",
       "const actual = true;",
@@ -82,8 +83,9 @@ describe("extractBlock", () => {
 
     expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 1,
-      source: "const actual = true;\n"
+      source: expect.stringContaining("const actual = true;\n")
     });
+    expect(extractBlock(markdown).source).toContain("throw new Error('ignored');");
   });
 
   it("does not match info strings that only share a prefix like json", () => {

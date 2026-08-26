@@ -52,6 +52,7 @@ export type LintOptions = {
   allowedGlobals?: readonly string[];
   defaultExport?: DefaultExportSignature;
   fix?: boolean;
+  fixRanges?: readonly Fix["range"][];
   filename?: string;
   largeLiteralThreshold?: number;
   frontmatterFields?: readonly string[];
@@ -61,6 +62,7 @@ export type LintOptions = {
 export type LintFixResult = {
   diagnostics: Diagnostic[];
   fixed: string;
+  fixes: Fix[];
 };
 
 type LintRule = (source: string, options: LintOptions) => readonly Diagnostic[];
@@ -151,11 +153,12 @@ export function lint(source: string, options: LintOptions = {}): Diagnostic[] | 
     return diagnostics;
   }
 
-  const fixed = applyNonOverlappingFixes(source, diagnostics);
+  const { fixed, fixes } = applyNonOverlappingFixes(source, diagnostics, options.fixRanges);
   return {
     diagnostics:
       fixed === source ? diagnostics : collectDiagnostics(fixed, { ...options, fix: false }),
-    fixed
+    fixed,
+    fixes
   };
 }
 
@@ -185,9 +188,18 @@ function collectDiagnostics(source: string, options: LintOptions): Diagnostic[] 
   );
 }
 
-function applyNonOverlappingFixes(source: string, diagnostics: readonly Diagnostic[]): string {
+function applyNonOverlappingFixes(
+  source: string,
+  diagnostics: readonly Diagnostic[],
+  ranges?: readonly Fix["range"][]
+): { fixed: string; fixes: Fix[] } {
   const fixes = diagnostics
     .flatMap((diagnostic) => (diagnostic.fix === undefined ? [] : [diagnostic.fix]))
+    .filter(
+      (fix) =>
+        ranges === undefined ||
+        ranges.some((range) => fix.range[0] >= range[0] && fix.range[1] <= range[1])
+    )
     .sort(compareFixes);
   const selected: Fix[] = [];
 
@@ -198,13 +210,15 @@ function applyNonOverlappingFixes(source: string, diagnostics: readonly Diagnost
     selected.push(fix);
   }
 
-  return selected
-    .sort((left, right) => right.range[0] - left.range[0] || right.range[1] - left.range[1])
-    .reduce(
+  selected.sort((left, right) => right.range[0] - left.range[0] || right.range[1] - left.range[1]);
+  return {
+    fixes: selected,
+    fixed: selected.reduce(
       (result, fix) =>
         `${result.slice(0, fix.range[0])}${fix.replacement}${result.slice(fix.range[1])}`,
       source
-    );
+    )
+  };
 }
 
 function compareFixes(left: Fix, right: Fix): number {
@@ -528,7 +542,8 @@ function createLineStarts(source: string): number[] {
   const starts = [0];
   for (let index = 0; index < source.length; index += 1) {
     const char = source[index]!;
-    if (char === "\n") {
+    if (char === "\r" || char === "\n") {
+      if (char === "\r" && source[index + 1] === "\n") index += 1;
       starts.push(index + 1);
     }
   }

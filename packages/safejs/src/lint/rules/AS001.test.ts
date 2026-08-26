@@ -5,6 +5,20 @@ import { AS001 } from "./AS001.js";
 describe("AS001", () => {
   const messages = (source: string) => AS001(source).map((diagnostic) => diagnostic.message);
 
+  it.each(["\n", "\r\n", "\r"])("counts %j line endings in diagnostic spans", (newline) => {
+    const source = `const value = 1;${newline}  eval("value");`;
+    expect(AS001(source)).toEqual([
+      expect.objectContaining({
+        line: 2,
+        column: 3,
+        span: {
+          start: { line: 2, column: 3, offset: source.indexOf("eval") },
+          end: { line: 2, column: 7, offset: source.indexOf("eval") + 4 }
+        }
+      })
+    ]);
+  });
+
   it("reports each disallowed construct with its source span", () => {
     expect(AS001("function example() {}", { filename: "rule.js" })).toEqual([]);
     expect(AS001("function* example() {}")).toEqual([]);

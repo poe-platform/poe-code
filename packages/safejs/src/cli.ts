@@ -7,9 +7,9 @@ import { hasOwnErrorCode } from "./error-codes.js";
 import { formatInterpreterError } from "./error/format.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { Budget, SandboxError } from "./interp/budget.js";
-import { extractBlock } from "./loader/extract-block.js";
+import { countLineBreaks, extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
-import { lint, type Diagnostic } from "./lint.js";
+import { lint, type Diagnostic, type Fix } from "./lint.js";
 import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeFailModule } from "./modules/fail.js";
@@ -79,8 +79,8 @@ type ParsedArgs = {
 };
 
 type LoadedSource = {
-  blockEndOffset: number;
-  blockStartOffset: number;
+  sourceOffset: number;
+  fixRanges?: readonly Fix["range"][];
   executableSource: string;
   frontmatter: Record<string, unknown>;
   isRawScript: boolean;
@@ -306,6 +306,7 @@ async function runScriptFile(
         allowedExportNames: ["schema"],
         filename: filepath,
         fix: true,
+        fixRanges: loaded.fixRanges,
         frontmatterFields: Object.keys(loaded.frontmatter),
         modules: createLintModulesFromRuntimeRegistry(modules)
       })
@@ -322,7 +323,7 @@ async function runScriptFile(
     if (lintResult.fixed !== loaded.executableSource) {
       await options.writeFile(
         filepath,
-        replaceExecutableSource(loaded.rawSource, loaded, lintResult.fixed),
+        replaceExecutableSource(loaded.rawSource, loaded, lintResult.fixes),
         {
           encoding: "utf8"
         }
@@ -425,29 +426,33 @@ async function runScriptFile(
 
 function loadExecutableSource(filepath: string, rawSource: string): LoadedSource {
   const source = stripByteOrderMark(rawSource);
+  const byteOrderMarkLength = rawSource.length - source.length;
 
   if (isRawScriptExtension(extname(filepath))) {
     return {
-      blockEndOffset: source.length,
-      blockStartOffset: 0,
+      sourceOffset: byteOrderMarkLength,
       executableSource: source,
       frontmatter: {},
       isRawScript: true,
-      rawSource: source
+      rawSource
     };
   }
 
   const { frontmatter, body } = splitFrontmatter(source);
-  const executableBlock = extractBlock(body);
   const bodyStartOffset = source.length - body.length;
+  const executableBlock = extractBlock(body, countLineBreaks(source, 0, bodyStartOffset) + 1);
+  const lineOffset = countLineBreaks(source, 0, bodyStartOffset + executableBlock.startOffset);
 
   return {
-    blockEndOffset: bodyStartOffset + executableBlock.endOffset,
-    blockStartOffset: bodyStartOffset + executableBlock.startOffset,
-    executableSource: createLineOffsetSource(executableBlock.source, executableBlock.lineOffset),
+    sourceOffset: byteOrderMarkLength + bodyStartOffset + executableBlock.startOffset - lineOffset,
+    fixRanges: executableBlock.ranges.map(([start, end]) => [
+      start - executableBlock.startOffset + lineOffset,
+      end - executableBlock.startOffset + lineOffset
+    ]),
+    executableSource: createLineOffsetSource(executableBlock.source, lineOffset),
     frontmatter,
     isRawScript: false,
-    rawSource: source
+    rawSource
   };
 }
 
@@ -455,13 +460,16 @@ function isRawScriptExtension(extension: string): boolean {
   return extension === ".safejs" || extension === ".ajs";
 }
 
-function replaceExecutableSource(source: string, loaded: LoadedSource, fixed: string): string {
-  const lineOffset = countLeadingLineBreaks(fixed);
-  const fixedWithoutLineOffset = lineOffset === 0 ? fixed : fixed.slice(lineOffset);
-
-  return `${source.slice(0, loaded.blockStartOffset)}${fixedWithoutLineOffset}${source.slice(
-    loaded.blockEndOffset
-  )}`;
+function replaceExecutableSource(
+  source: string,
+  loaded: LoadedSource,
+  fixes: readonly Fix[]
+): string {
+  return fixes.reduce(
+    (result, fix) =>
+      `${result.slice(0, loaded.sourceOffset + fix.range[0])}${fix.replacement}${result.slice(loaded.sourceOffset + fix.range[1])}`,
+    source
+  );
 }
 
 function createRuntime(
@@ -710,16 +718,6 @@ function stripByteOrderMark(source: string): string {
 
 function createLineOffsetSource(source: string, lineOffset: number): string {
   return `${"\n".repeat(Math.max(lineOffset, 0))}${source}`;
-}
-
-function countLeadingLineBreaks(source: string): number {
-  let count = 0;
-
-  while (source[count] === "\n") {
-    count += 1;
-  }
-
-  return count;
 }
 
 function normalizeLogEntry(entry: LogModuleEntry): LogModuleEntry {

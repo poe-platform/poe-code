@@ -3187,6 +3187,7 @@ describe("ralph run command", () => {
   });
 
   it("shows frontmatter hints in the doc selection prompt", async () => {
+    vi.useFakeTimers({ toFake: ["Date"], now: 0 });
     selectMock.mockResolvedValueOnce("docs/plans/plan-a.md");
 
     const container = createCliContainer({

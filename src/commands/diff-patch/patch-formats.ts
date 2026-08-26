@@ -175,6 +175,10 @@ export async function parsePatch(text: string, budget: Budget, format: PatchForm
   while (reader.peek() !== undefined) {
     try {
       if (reader.peek() === "") { await reader.take(); continue; }
+      if (patches.length && !/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test(reader.peek()!)) {
+        await reader.take();
+        continue;
+      }
       let indexPath: string | undefined;
       if (reader.peek()?.startsWith("Index: ")) {
         indexPath = decodeHeaderPath((await reader.take()).slice(7));

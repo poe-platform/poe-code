@@ -107,14 +107,15 @@ async function applyContent(sourcePatch: FilePatch, current: string, exists: boo
     const probe: HunkOutcome[] = [];
     const reverseFuzz = outcomes[0]!.failed ? options.fuzz : outcomes[0]!.fuzz - 1;
     await applyHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe });
-    const oppositeCreation = opposite.oldPath === "/dev/null" || (opposite.oldEpoch && opposite.hunks.every(hunk => hunk.oldCount === 0));
-    if (!probe[0]?.failed && !(oppositeCreation && current !== "")) {
+    if (!probe[0]?.failed) {
       patch = opposite;
       reversed = !reversed;
       autoReversed = true;
       reverseMismatch = true;
       outcomes = [];
-      result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, { partial: true, outcomes });
+      result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
+        partial: true, outcomes, rejectAll: creation() && current !== "",
+      });
     }
   }
   const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0));

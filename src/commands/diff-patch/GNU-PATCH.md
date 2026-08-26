@@ -113,7 +113,71 @@ is promised. Supplied cancellation signals reach host work and bounded I/O;
 late rejection is observed, but an uncooperative backend may still mutate after
 the caller stops waiting.
 
-## Clean-source followup evidence
+## Failed-deletion reject-orientation followup
+
+Confirmed and repaired on **2026-08-26**, following source checkpoint `2206a92`.
+The exact exploratory fixture starts with `a = "wrong\n"` and
+`unused-long-name = "old\n"`, deletes `old` from `a` using a `/dev/null` new
+header, then replaces `old` with `new` using old/new headers `a` and
+`unused-long-name`. With identical `--batch -p0` arguments, the pinned GNU patch
+2.8 binary (SHA-256
+`c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00`)
+reverses the failed deletion into a creation, rejects that creation over the
+nonempty target, and appends the second section's forward reject to `a.rej`.
+Both targets remain unchanged and `a.orig` contains `wrong\n`. This was a genuine
+application-orientation defect, not mismatched force/batch flags or a serializer
+defect. The product now retains the successful reverse-probe orientation and
+applies the existing creation-conflict guard again before publishing anything.
+
+The new `patch-reject-orientation-followup.test.ts` records complete namespaces,
+exact `.orig`/`.rej` bytes, statuses, and both output streams. It covers unified
+and context creation/deletion, default/batch, reverse, force, force before batch,
+sequential selection, replaced/redirected/discarded auxiliaries, backup
+suppression, dry-run and atomic conflicts. Virtual default is deliberately paired
+with native `--batch`; force is never inserted implicitly. Native execution uses
+the hash/version-validating oracle helper and isolated boundary-sentinel roots.
+Native and virtual diagnostics have separate exact expectations: the existing
+generalized virtual reversal message and refusal/summary ordering are not
+claimed byte-identical to GNU's terminal output.
+
+Fresh strict-rejection results (all skips, cancellations and TODOs zero):
+
+| Gate | Pass | Fail | Total |
+| --- | ---: | ---: | ---: |
+| New regression suite before the source fix | 28 | 16 | 44 |
+| New regression suite after the source fix | 44 | 0 | 44 |
+| All author tests, including those 44 regressions | 1302 | 23 | 1325 |
+| Unchanged GNU editflows | 70 | 5 | 75 |
+| Unchanged GNU auxiliary | 56 | 0 | 56 |
+| Unchanged GNU target followup | 23 | 0 | 23 |
+| Post-fix aggregate, counting author regressions once | **1451** | **28** | **1479** |
+
+The 23 author and five editflow failures are the known missing-empty-directory-
+removal primitive (`EISDIR`) failures. No filesystem change, recursive removal
+fallback, swallowed error or failure reclassification is part of this fix.
+The independently reconciled author safety test is included as observed, not
+edited here. Strict author/source and all three requested independent-suite
+`tsc --noEmit` checks pass. The fresh global
+`npm run typecheck -- --pretty false` fails at the concurrently added, unowned
+`tests/shell/remote-close-probe.ts:80` (TS2722); it does not reproduce the previously
+reported six network errors and is not a global pass.
+
+Raw TAPs and compiler logs use the prefix
+`/tmp/safe-bash-reject-orientation-`: `before.tap`, `after.tap`, `author.tap`,
+`gnu-editflows.tap`, `gnu-auxiliary.tap`, `gnu-target-followup.tap`,
+`global-types.log` and `scoped-types.log`. Source SHA-256 values:
+
+- `patch.ts`: `b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe`.
+- All diff/patch TypeScript source, hashing JSON of sorted path-to-hash mappings:
+  `efc37d647d9860846b9d6fc4baed2e84a4a5f50ad5f6172cbc4628c510c212f0`.
+- New regression file:
+  `b3d367e3c0eb0b92eaea338b948d0bf541fee6934c557cacf42a57c7cb5f213e`.
+
+No source-tree JavaScript siblings were emitted. This closes the specific reject
+orientation gap, not full GNU compatibility, the external pruning blocker, the
+full project scope or the superiority requirement.
+
+## Historical clean-source followup evidence
 
 The root cleanup marker was observed before any resumed edit, test or Git write.
 The cleanup evidence is `.git/diff-emission-cleanup-proof.json` and
@@ -163,12 +227,13 @@ The **31 raw failures remain failures**:
   cases. Their owners must independently reconcile the contradictory assertions;
   this worker did not edit, skip or reclassify them into passes.
 
-An additional exploratory namespace test observed different reject orientation
+At this historical checkpoint, an exploratory namespace test observed different reject orientation
 for a failed deletion followed by another section. The original failure remains
-in `/tmp/safe-bash-diff-resume-namespace-clean-1.tap`; reject serialization is not
-claimed repaired. The committed candidate-selection control explicitly uses
+in `/tmp/safe-bash-diff-resume-namespace-clean-1.tap`; reject orientation was not
+yet repaired. The committed candidate-selection control explicitly uses
 `-r -` for that failed-deletion case so it tests selection without that separate
-reject-format behavior. No independent expectation was changed.
+reject-format behavior. No independent expectation was changed. The later
+44-case followup above closes this specific gap without changing that control.
 
 Fresh global `npm run typecheck -- --pretty false` and strict author/suite
 typechecks passed. One attempted safety `-p` check failed with TS5058 because that

@@ -130,9 +130,14 @@ periodically to observe cancellation.
   empty-ancestor pruning is requested, stopping before cwd for relative targets or before
   `/` for absolute targets. Nonempty directories remain; `.orig` or `.rej` files
   can keep a directory nonempty. Dry-run does not create or prune directories.
-  Pruning is currently blocked by the absence of a safe nonrecursive directory
-  removal primitive: MemoryFS returns `EISDIR`, which is reported, not swallowed
-  or replaced with recursive deletion. File publication can already have occurred.
+  Pruning uses optional `FileSystem.rmdir(path, {signal})`; a missing method or
+  unsupported backend reports `ENOTSUP`, never a fallback to `rm`. The backend
+  must enforce empty-only removal, preserving children created after listing.
+  Typed `ENOENT` means the ancestor disappeared; mutation `ENOTEMPTY` retains a
+  concurrent child without failing the patch. Other pruning failures are reported
+  after any completed file publication. Unlike GNU patch 2.8, permission and
+  transport failures are not silently ignored. See the separately counted
+  `tests/commands/diff-patch/pruning-consumer/README.md` profile and proof.
 - Epoch-dated empty sides in unified/context headers also support creation and
   deletion. Timestamp recognition supports ISO-style and traditional `ctime`
   headers, following GNU patch 2.8's measured near-epoch window (strictly between

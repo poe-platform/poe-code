@@ -84,13 +84,29 @@ explicit absolute targets may remove cwd, and virtual `/` is never removed.
 Nonempty ancestors and unrelated empty directories are retained. Reject parent
 directories are not implicitly created, matching the native failure behavior.
 
-**Current blocker:** the inspected `FileSystem` contract has no `rmdir` or
-empty-directory removal option; MemoryFS rejects `rm(directory, {recursive:
-false})` with `EISDIR`. The implementation uses that nonrecursive call and
-reports its failure after already-completed publication. It never substitutes
-recursive removal. Root/Poincare must supply a safe cross-adapter contract;
-no filesystem source or backend tests are owned or changed here. The resulting
-native namespace failures remain failures, not capability skips.
+**Empty-directory consumer follow-up:** contract commit `1dc0652` supplies
+optional `FileSystem.rmdir(path, options?: FsOptions)`. The consumer uses this
+empty-only operation with the command signal and original receiver, never
+`rm` or recursive deletion. Missing support is typed `ENOTSUP`. An ancestor
+that disappears (`ENOENT`) or becomes nonempty at removal (`ENOTEMPTY`) is an
+expected native-compatible outcome; neither implies a directory was removed.
+Authorization, ancestor bounds and symlink/type inspection remain in place.
+
+Pinned GNU patch 2.8 ignores *all* pruning errors. Ten separately captured
+native probes, including actual permission denial and explicitly instrumented
+race/IO errors, confirm status 0 and empty stderr even when ancestors remain.
+This consumer deliberately reports unsupported, permission and transport
+failures instead: an explicit safety divergence, not exact GNU error parity.
+File publication can already have completed; pruning does not add rollback.
+See `tests/commands/diff-patch/pruning-consumer/README.md` for complete namespaces,
+binary/source hashes, reproduction commands and 61 separately counted consumer
+checks. Backend support is path-specific; S3/WebDAV and live merged overlays
+can remain unsupported. No filesystem source is changed by this consumer leaf.
+
+Historical pruning failures below, including the frozen `4d4f5ca`
+3722/3758-pass checkpoint (34 pruning failures and two expectation conflicts),
+are not retroactively reclassified. The original3758 rerun belongs to a separate
+independent checkpoint; original70 test hashes and discovery remain unchanged.
 
 ## Explicit atomic extension
 

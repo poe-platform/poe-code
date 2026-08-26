@@ -1,4 +1,4 @@
-import { basename, dirname, isFsError, resolvePath, type FileStat } from "../../contracts/index.js";
+import { FsError, basename, dirname, isFsError, resolvePath, type FileStat } from "../../contracts/index.js";
 import { safeTarget } from "./patch-path.js";
 import { Budget, ToolError, host, inspect } from "./shared.js";
 import type { FilePatch } from "./unified.js";
@@ -181,12 +181,25 @@ export async function pruneDirectories(parents: ReadonlySet<string>, budget: Bud
     budget.step();
     await budget.checkpoint();
     const stat = await inspect(budget, parent);
+    budget.context.signal.throwIfAborted();
     if (!stat) continue;
     if (stat.type !== "directory") throw new ToolError(`pruning path changed type: ${parent}`);
-    const entries = await host(budget.context, () => budget.context.fs.readdir(parent, { signal: budget.context.signal }));
-    budget.step(entries.length);
-    if (entries.length) continue;
-    try { await host(budget.context, () => budget.context.fs.rm(parent, { recursive: false, signal: budget.context.signal })); }
-    catch (error) { if (!isFsError(error, "ENOTEMPTY") && !isFsError(error, "ENOENT")) throw error; }
+    try {
+      const entries = await host(budget.context, () => budget.context.fs.readdir(parent, { signal: budget.context.signal }));
+      budget.step(entries.length);
+      if (entries.length) continue;
+      const rmdir = budget.context.fs.rmdir;
+      if (!rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path: parent });
+      try { await host(budget.context, () => rmdir.call(budget.context.fs, parent, { signal: budget.context.signal })); }
+      catch (error) {
+        budget.context.signal.throwIfAborted();
+        if (!isFsError(error, "ENOTEMPTY")) throw error;
+      }
+    } catch (error) {
+      budget.context.signal.throwIfAborted();
+      if (isFsError(error, "ENOENT")) continue;
+      if (isFsError(error) || error instanceof ToolError) throw error;
+      throw new ToolError(`cannot prune directory ${parent}: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 }

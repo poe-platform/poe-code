@@ -39,6 +39,8 @@ function fileStat(stats: Stats): FileStat {
     type: fileType(stats), size: stats.size, mode: stats.mode,
     atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs, ctimeMs: stats.ctimeMs,
     birthtimeMs: stats.birthtimeMs, ino: stats.ino, dev: stats.dev,
+    ...(Number.isSafeInteger(stats.dev) && stats.dev >= 0 && Number.isSafeInteger(stats.ino) && stats.ino >= 0
+      ? { identityScope: Symbol.for("virtual-bash.fs.native") } : {}),
     nlink: stats.nlink, uid: stats.uid, gid: stats.gid,
   };
 }

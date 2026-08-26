@@ -20,6 +20,7 @@ class GetterStat implements FileStat {
   get atimeMs() { return this.#values.atimeMs; }
   get ctimeMs() { return this.#values.ctimeMs; }
   get birthtimeMs() { return this.#values.birthtimeMs; }
+  get identityScope() { return this.#values.identityScope; }
   get ino() { return this.#values.ino; }
   get dev() { return this.#values.dev; }
   get nlink() { return this.#values.nlink; }
@@ -29,7 +30,7 @@ class GetterStat implements FileStat {
 
 const metadata: MutableStat = {
   type: "file", size: 5, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
-  ctimeMs: 103, birthtimeMs: 104, ino: 105, dev: 0, nlink: 1, uid: 0, gid: 0,
+  ctimeMs: 103, birthtimeMs: 104, identityScope: Symbol(), ino: 105, dev: 0, nlink: 1, uid: 0, gid: 0,
 };
 
 const shapes: Record<string, (values: MutableStat) => FileStat> = {
@@ -74,6 +75,7 @@ for (const [name, shape] of Object.entries(shapes)) {
       values.mode = 0o40700;
       values.mtimeMs = values.atimeMs = values.ctimeMs = 987;
       values.birthtimeMs = values.ino = values.dev = values.nlink = values.uid = values.gid = 654;
+      values.identityScope = Symbol();
       assert.deepEqual(stat, metadata);
       assert.deepEqual(lstat, metadata);
       assert.deepEqual(listing, [{ name: "file", type: "file" }]);

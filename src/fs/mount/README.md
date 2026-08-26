@@ -5,9 +5,10 @@
 `{ root: FileSystem, mounts?: Readonly<Record<string, FileSystem>> }`.
 The factory returns `MountFileSystem`. Configuration is captured at construction;
 there is no dynamic mount/unmount API. Mount keys must be absolute POSIX paths.
-Configuration keys are normalized lexically; duplicate normalized keys, `/`
-overrides, and reuse of the same backend object at multiple mount locations are
-rejected with `EINVAL`. Each backend exposes its own `/` as a directory.
+Configuration keys are normalized lexically; duplicate normalized keys and `/`
+overrides are rejected with `EINVAL`. A backend can appear at multiple mount
+locations; its backing-entry identities remain shared across those views.
+Each backend exposes its own `/` as a directory.
 When a backend is itself a `MountFileSystem`, its static mount table is flattened
 and rebased during construction, preserving its internal device and symlink
 boundaries. Collisions with the outer configuration are rejected, not overridden.
@@ -77,6 +78,12 @@ the reader on failure. If either selected backend lacks streaming, a bounded
 64-MiB `readFile`/`writeFile` fallback is used; source overflow fails before the
 destination write. Destination exclusivity and read-only checks precede input
 consumption. New-file modes are requested only from permission-capable writers.
+Complete `identityScope`/`dev`/`ino` tuples reject observed aliases before source
+acquisition or target writes (`EINVAL`, or `EEXIST` for exclusive copies).
+Different complete scopes must denote genuinely disjoint storage; missing or
+invalid identity cannot justify an existing cross-mount overwrite (`ENOTSUP`).
+Observed missing targets use exclusive creation, preserving raced entries.
+These are point-in-time checks, not leases or pathname/ABA race protection.
 Copy is not a transaction: a failed destination write can leave partial bytes,
 but source deletion is never attempted. Same-mount copy and streaming writes
 delegate to the selected backend and retain its failure/partial-write semantics.

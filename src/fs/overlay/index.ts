@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   collectBytes, dirname, FsError, isPathWithin, normalizePath, readBytes, toFsError, validatePath,
 } from "../../contracts/index.js";
+import { compareIdentity } from "../mount/identity.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, ErrnoCode,
   FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
@@ -47,10 +48,11 @@ interface LinkOrigin {
 type LinkMetadata = Pick<FileStat, "mode" | "atimeMs" | "mtimeMs">;
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
+    ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
     ...(nlink === undefined ? {} : { nlink }),
@@ -512,11 +514,11 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    return this.run(options, async () => snapshotStat((await this.required(path, options)).stat));
+    return this.run(options, async () => snapshotStat((await this.required(path, options)).stat), false);
   }
 
   async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    return this.run(options, async () => snapshotStat((await this.required(path, options, false)).stat));
+    return this.run(options, async () => snapshotStat((await this.required(path, options, false)).stat), false);
   }
 
   async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
@@ -524,7 +526,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   async realpath(path: string, options: FsOptions = {}): Promise<string> {
-    return this.run(options, async () => (await this.required(path, options)).path);
+    return this.run(options, async () => (await this.required(path, options)).path, false);
   }
 
   async access(path: string, requestedMode = 0, options: FsOptions = {}): Promise<void> {
@@ -534,7 +536,7 @@ export class OverlayFileSystem implements FileSystem {
       if (requestedMode & 2) this.writable(path);
       this.permission(entry, requestedMode);
       await entry.backend.access(entry.path, requestedMode & ~2, options);
-    });
+    }, false);
   }
 
   async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
@@ -667,13 +669,19 @@ export class OverlayFileSystem implements FileSystem {
       const original = await this.required(source, options);
       const target = await this.writeLocation(destination, { ...options, flag: options.exclusive ? "wx" : "w" });
       if (original.path === target.path) fail("EINVAL", destination, "source and destination are the same file");
+      if (target.entry) {
+        const identity = compareIdentity(original.stat, target.entry.stat);
+        if (identity === "same") fail("EINVAL", destination, "source and destination are the same file");
+        if (identity === "unknown") fail("ENOTSUP", destination, "backing-entry identity is unknown");
+      }
+      await this.cleanGarbage(false);
       const bytes = await this.bytes(original, options);
       await this.replace(target, options, async (temporary) => {
         await this.#upper.writeFile(temporary, bytes, { ...options, mode: original.stat.mode & 0o7777, flag: "w" });
         if (this.#upper.chmod) await this.#upper.chmod(temporary, original.stat.mode & 0o7777, options);
         else if (((await this.#upper.lstat(temporary, options)).mode & 0o7777) !== (original.stat.mode & 0o7777)) fail("ENOTSUP", destination);
       });
-    });
+    }, false);
   }
 
   async readlink(path: string, options: FsOptions = {}): Promise<string> {
@@ -682,7 +690,7 @@ export class OverlayFileSystem implements FileSystem {
       if (entry.stat.type !== "symlink") fail("EINVAL", path);
       if (!entry.backend.readlink) fail("ENOTSUP", path);
       return entry.backend.readlink(entry.path, options);
-    });
+    }, false);
   }
 
   async symlink(target: string, path: string, options: FsOptions = {}): Promise<void> {

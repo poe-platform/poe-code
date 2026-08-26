@@ -61,6 +61,7 @@ export class MemoryFileSystem implements FileSystem {
     streamingWrite: true,
   });
 
+  private readonly identityScope = Symbol();
   private nextInode = 1;
   private readonly root: DirectoryNode = this.directory(0o755);
 
@@ -174,7 +175,7 @@ export class MemoryFileSystem implements FileSystem {
       type: node.type,
       size: node.type === "file" ? node.data.byteLength
         : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0,
-      mode: node.mode, ino: node.ino, dev: 0, uid: 0, gid: 0,
+      mode: node.mode, identityScope: this.identityScope, ino: node.ino, dev: 0, uid: 0, gid: 0,
       nlink: node.type === "directory"
         ? 2 + [...node.entries.values()].filter((entry) => entry.type === "directory").length : node.nlink,
       atimeMs: node.atimeMs, mtimeMs: node.mtimeMs, ctimeMs: node.ctimeMs, birthtimeMs: node.birthtimeMs,

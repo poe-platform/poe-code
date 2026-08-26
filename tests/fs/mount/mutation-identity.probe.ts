@@ -7,18 +7,48 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const temporary = await mkdtemp(join(root, "tests/fs/mount/.identity-mutation-"));
-const sources = ["memory", "real", "mount", "readonly", "overlay"].map((name) => `src/fs/${name}/index.ts`);
+const sources = [...["memory", "real", "mount", "readonly", "overlay"].map((name) => `src/fs/${name}/index.ts`), "src/fs/mount/identity.ts"];
 const originals = new Map(await Promise.all(sources.map(async (path) => [path, await readFile(join(root, path), "utf8")] as const)));
 const hashes = Object.fromEntries([...originals].map(([path, text]) => [path, createHash("sha256").update(text).digest("hex")]));
 const results: { name: string; exit: number | null; killed: boolean; stdout: string; stderr: string }[] = [];
 
 try {
   for (const path of ["src/contracts", "package.json", ...sources.map(dirname), "tests/fs/real/helpers.ts",
-    "tests/fs/real/copy-identity.test.ts", "tests/fs/mount/copy-identity.test.ts", "tests/fs/mount/copy-identity-guards.test.ts"]) {
+    "tests/fs/real/copy-identity.test.ts", "tests/fs/mount/copy-identity.test.ts", "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/overlay/helpers.ts", "tests/fs/overlay/copy-identity.test.ts"]) {
     await mkdir(dirname(join(temporary, path)), { recursive: true });
     await cp(join(root, path), join(temporary, path), { recursive: true });
   }
   const mutations = [
+    {
+      name: "mount scoped alias guard removed",
+      path: "src/fs/mount/index.ts",
+      before: '      if (identity === "same") fail("EINVAL");',
+      after: "",
+      tests: ["tests/fs/mount/copy-identity.test.ts", "tests/fs/mount/copy-identity-guards.test.ts"],
+    },
+    {
+      name: "mount unknown identity guard removed",
+      path: "src/fs/mount/index.ts",
+      before: '      if (target.stat && identity === "unknown") fail("ENOTSUP");',
+      after: "",
+      tests: ["tests/fs/mount/copy-identity-guards.test.ts"],
+      pattern: "unknown .* identity rejects",
+    },
+    {
+      name: "overlay scoped alias guard removed",
+      path: "src/fs/overlay/index.ts",
+      before: '        if (identity === "same") fail("EINVAL", destination, "source and destination are the same file");',
+      after: "",
+      tests: ["tests/fs/overlay/copy-identity.test.ts"],
+    },
+    {
+      name: "identity scopes ignored and colliding coordinates equated",
+      path: "src/fs/mount/identity.ts",
+      before: 'left.identityScope === right.identityScope && left.dev === right.dev && left.ino === right.ino',
+      after: 'left.dev === right.dev && left.ino === right.ino',
+      tests: ["tests/fs/mount/copy-identity.test.ts", "tests/fs/overlay/copy-identity.test.ts"],
+    },
     {
       name: "native same-file guard removed",
       path: "src/fs/real/index.ts",

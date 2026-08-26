@@ -42,7 +42,7 @@ function requiredStat(): Mutable<FileStat> {
 }
 
 function fullStat(): Mutable<Required<FileStat>> {
-  return { ...requiredStat(), birthtimeMs: 10, ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
+  return { ...requiredStat(), birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
 }
 
 for (const representation of ["prototype-accessors", "nonenumerable-own"] as const) {
@@ -72,6 +72,7 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
       delegate.change("atimeMs", 101);
       delegate.change("ctimeMs", 102);
       for (const key of optionalFields) delegate.change(key, 103);
+      delegate.change("identityScope", Symbol());
       assert.deepEqual(snapshot, expected);
       assert.deepEqual(await filesystem[method]("/file"), values);
       const mutable = snapshot as Mutable<FileStat>;

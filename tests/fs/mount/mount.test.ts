@@ -86,7 +86,7 @@ for (const prefix of ["", "/disk"]) {
   });
 }
 
-test("configuration snapshots mounts and rejects ambiguous identities and normalized keys", async () => {
+test("configuration snapshots mounts and rejects ambiguous normalized keys", async () => {
   const root = createMemoryFileSystem();
   const disk = createMemoryFileSystem();
   const mounts: Record<string, FileSystem> = { "/first/../disk//": disk };
@@ -94,11 +94,22 @@ test("configuration snapshots mounts and rejects ambiguous identities and normal
   mounts["/later"] = createMemoryFileSystem();
   assert.deepEqual(await fs.readdir("/"), [{ name: "disk", type: "directory" }]);
   for (const invalid of [
-    { "relative": disk }, { "/": disk }, { "/alias": root },
+    { "relative": disk }, { "/": disk },
     { "/disk": disk, "/disk/.": createMemoryFileSystem() },
-    { "/first": disk, "/second": disk },
   ]) assert.throws(() => new MountFileSystem({ root, mounts: invalid }), errno("EINVAL"));
   assert.throws(() => new MountFileSystem({ root, mounts: { "/bad\0": disk } }), errno("EINVAL"));
+});
+
+test("one backing store can be mounted at multiple locations without losing alias identity", async () => {
+  const root = createMemoryFileSystem();
+  const fs = new MountFileSystem({ root, mounts: { "/first": root, "/second": root } });
+  await fs.writeFile("/first/file", encode("shared"));
+  assert.equal(decode(await fs.readFile("/second/file")), "shared");
+  assert.deepEqual(await fs.stat("/first/file"), await fs.stat("/second/file"));
+  await assert.rejects(fs.copyFile("/first/file", "/second/file"), errno("EINVAL"));
+  assert.equal(decode(await fs.readFile("/file")), "shared");
+  await fs.copyFile("/first/file", "/second/distinct");
+  assert.equal(decode(await fs.readFile("/distinct")), "shared");
 });
 
 test("longest component prefix distinguishes siblings and nested mounts", async () => {
@@ -708,7 +719,10 @@ test("nested filesystem wrappers compose as backends without losing mount-local 
   const rootWrapper = createMountFileSystem({ root: inner });
   assert.deepEqual(await rootWrapper.readFile("/inner/alias"), bytes);
   assert.throws(() => createMountFileSystem({ root: inner, mounts: { "/inner": createMemoryFileSystem() } }), errno("EINVAL"));
-  assert.throws(() => createMountFileSystem({ root: inner, mounts: { "/alias": innerDisk } }), errno("EINVAL"));
+  const aliases = createMountFileSystem({ root: inner, mounts: { "/alias": innerDisk } });
+  assert.deepEqual(await aliases.stat("/inner/file"), await aliases.stat("/alias/file"));
+  await assert.rejects(aliases.copyFile("/inner/file", "/alias/file"), errno("EINVAL"));
+  assert.deepEqual(await innerDisk.readFile("/file"), bytes);
 });
 
 test("cross-device errors remain EXDEV even when a backend is read-only", async () => {

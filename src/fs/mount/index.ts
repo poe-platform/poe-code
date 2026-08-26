@@ -8,6 +8,7 @@ import type {
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { normalizePath, validatePath } from "../../contracts/path.js";
+import { compareIdentity } from "./identity.js";
 
 export interface MountFileSystemOptions {
   readonly root: FileSystem;
@@ -58,10 +59,11 @@ function fail(code: ErrnoCode): never {
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
+    ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
     ...(nlink === undefined ? {} : { nlink }),
@@ -77,7 +79,6 @@ export class MountFileSystem implements FileSystem {
   constructor(options: MountFileSystemOptions) {
     const mounts: Mount[] = [];
     const paths = new Set<string>();
-    const backends = new Set<FileSystem>();
     const add = (path: string, backend: FileSystem): void => {
       if (backend instanceof MountFileSystem) {
         for (const child of backend.mounts) {
@@ -85,11 +86,10 @@ export class MountFileSystem implements FileSystem {
         }
         return;
       }
-      if (paths.has(path) || backends.has(backend)) {
+      if (paths.has(path)) {
         throw new FsError("EINVAL", { syscall: "mount", path });
       }
       paths.add(path);
-      backends.add(backend);
       mounts.push({ path, backend });
     };
     add("/", options.root);
@@ -415,11 +415,14 @@ export class MountFileSystem implements FileSystem {
       this.mutable(target);
       if (options.exclusive && target.stat) fail("EEXIST");
       if (origin.mount.backend === target.mount.backend && origin.local === target.local) fail("EINVAL");
+      const identity = compareIdentity(origin.stat, target.stat);
+      if (identity === "same") fail("EINVAL");
       if (origin.mount === target.mount) {
-        await origin.mount.backend.copyFile(origin.local, target.local, options);
+        await origin.mount.backend.copyFile(origin.local, target.local, { ...options, exclusive: options.exclusive || !target.stat });
         return;
       }
       if (target.stat?.type === "directory") fail("EISDIR");
+      if (target.stat && identity === "unknown") fail("ENOTSUP");
       const reader = origin.mount.backend;
       const writer = target.mount.backend;
       const writeOptions: WriteFileOptions = {

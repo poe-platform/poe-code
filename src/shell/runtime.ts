@@ -135,6 +135,8 @@ interface IO {
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
   readonly stderr: ByteSink;
+  readonly diagnosticLine?: number;
+  readonly diagnosticOffset?: number;
   descriptors?: ReadonlyMap<number, Descriptor>;
 }
 
@@ -174,7 +176,7 @@ class Flow extends Error {
 }
 
 class ExecutionFailure extends Error {
-  constructor(readonly original: unknown, readonly io: IO) { super(message(original)); }
+  constructor(readonly original: unknown, readonly io: IO, readonly diagnostic?: string) { super(message(original)); }
 }
 
 class ExpansionFailure extends Error {
@@ -210,6 +212,12 @@ function errorCode(error: unknown): string | undefined {
 }
 
 function message(error: unknown): string { return error instanceof Error ? error.message : String(error); }
+
+function filesystemDiagnostic(error: unknown, target: string): string | undefined {
+  const descriptions: Readonly<Record<string, string>> = { ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted", ENOTDIR: "Not a directory", EISDIR: "Is a directory", ELOOP: "Too many levels of symbolic links", ENOSPC: "No space left on device", EROFS: "Read-only file system" };
+  const description = descriptions[errorCode(error) ?? ""];
+  return description ? `${target}: ${description}` : undefined;
+}
 
 const closedSink: ByteSink = { async write() { throw Object.assign(new Error("Bad file descriptor"), { code: "EBADF" }); } };
 const closedSource: ByteSource = { async *[Symbol.asyncIterator]() { throw Object.assign(new Error("Bad file descriptor"), { code: "EBADF" }); } };
@@ -312,6 +320,11 @@ export class Runtime {
 
   async command(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
     originalIO = activeIO(originalIO);
+    originalIO.descriptors ??= new Map<number, Descriptor>([
+      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
+      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
+    ]);
+    originalIO = { ...originalIO, diagnosticLine: (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0) };
     if (command.kind === "subshell") originalIO = isolateIO(originalIO);
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
@@ -388,6 +401,7 @@ export class Runtime {
       } finally { state.loopDepth--; }
       return status;
     } catch (error) {
+      const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;
       if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }
       this.signal.throwIfAborted();
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
@@ -396,8 +410,8 @@ export class Runtime {
         return 1;
       }
       if (errorCode(error) === "EPIPE") return 141;
-      const line = error instanceof ExpansionFailure ? error.line ?? command.line ?? 1 : command.line ?? 1;
-      try { await writeText(io.stderr, `shell: line ${line}: ${message(error)}\n`); }
+      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
+      try { await writeText(io.stderr, `shell: line ${line}: ${diagnostic ?? message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof CommandFailure) return error.status;
@@ -462,6 +476,8 @@ export class Runtime {
       const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
+        ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
+        ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
         stdin: descriptor?.input ?? closedSource,
         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
         stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
@@ -565,9 +581,8 @@ export class Runtime {
         }
       }
     } } catch (error) {
-      const descriptions: Readonly<Record<string, string>> = { ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted", ENOTDIR: "Not a directory", EISDIR: "Is a directory", ELOOP: "Too many levels of symbolic links", ENOSPC: "No space left on device", EROFS: "Read-only file system" };
-      const description = descriptions[errorCode(error) ?? ""];
-      throw new ExecutionFailure(description && errorTarget !== undefined ? new Error(`${errorTarget}: ${description}`) : error, currentIO());
+      const diagnostic = errorTarget === undefined ? undefined : filesystemDiagnostic(error, errorTarget);
+      throw new ExecutionFailure(error, currentIO(), diagnostic);
     }
     return currentIO();
   }
@@ -654,6 +669,7 @@ export class Runtime {
   }
 
   async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number> {
+    let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
       const value = state.variables[key];
@@ -677,7 +693,7 @@ export class Runtime {
         else { state.variables[key] = value; state.exported.add(key); }
       }
       try {
-        const builtin = await this.builtin(context, state, assignments);
+        const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; });
         if (builtin !== undefined) return { exitCode: builtin };
         const body = state.functions.get(context.command);
         if (body) {
@@ -722,7 +738,11 @@ export class Runtime {
         }
       }
     });
-    return validateExitCode((await interruptible(execute(context), this.signal)).exitCode);
+    try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
+    catch (error) {
+      if (builtinFailure && error === builtinFailure.error) throw new ExecutionFailure(error, io, builtinFailure.diagnostic);
+      throw error;
+    }
   }
 
   async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State): Promise<{ exitCode: number }> {
@@ -759,7 +779,7 @@ export class Runtime {
     finally { await input?.close(); }
   }
 
-  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number | undefined> {
+  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
@@ -774,7 +794,13 @@ export class Runtime {
       const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
       if (target === undefined) { await writeText(stderr, `cd: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
       const path = resolvePath(state.cwd, target || ".");
-      if ((await this.fs.stat(path, { signal: this.signal })).type !== "directory") throw new Error(`cd: ${target}: Not a directory`);
+      try {
+        if ((await this.fs.stat(path, { signal: this.signal })).type !== "directory") throw new Error(`cd: ${target}: Not a directory`);
+      } catch (error) {
+        const diagnostic = filesystemDiagnostic(error, `cd: ${target}`);
+        if (diagnostic) diagnose?.(error, diagnostic);
+        throw error;
+      }
       state.variables.OLDPWD = state.cwd;
       state.cwd = path;
       state.variables.PWD = path;
@@ -926,7 +952,7 @@ export class Runtime {
     }
     if (part.kind === "arithmetic") {
       try { return String(evaluateArithmetic(part.expression, state.variables)); }
-      catch (error) { throw new ExpansionFailure(message(error), part.line); }
+      catch (error) { throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -943,11 +969,11 @@ export class Runtime {
       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
       const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
-      const captureIO = { ...isolateIO(io), stdout: this.budget.sink(capture, this.signal) };
+      const captureIO = { ...isolateIO(io), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
-      if (bytes.includes(0)) await writeText(io.stderr, `shell: line ${part.line}: warning: command substitution: ignored null byte in input\n`);
+      if (bytes.includes(0)) await writeText(io.stderr, `shell: line ${io.diagnosticLine ?? part.line}: warning: command substitution: ignored null byte in input\n`);
       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)
@@ -975,7 +1001,7 @@ export class Runtime {
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
         const alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
-        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, part.line);
+        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
           state.variables[part.name] = alternate;

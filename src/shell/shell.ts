@@ -114,12 +114,14 @@ export class Shell implements PluginHost {
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;
       const line = source.slice(0, error.offset).split("\n").length;
-      if (error.exitCode === 127) {
+      if (error.unclosedQuote) {
+        await writeText(io.stderr, `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
+      } else if (error.exitCode === 127) {
         const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
         await writeText(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
       } else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
         const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
-        await writeText(io.stderr, `shell: -c: line ${source.split("\n").length + 1}: syntax error: unexpected end of file${context}\n`);
+        await writeText(io.stderr, `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
       } else await writeText(io.stderr, `shell: ${error.message}\n`);
       exitCode = error.exitCode;
     } finally { await stdin?.close(); }

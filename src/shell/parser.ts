@@ -7,7 +7,7 @@ export type WordPart =
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
   | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
-  | { kind: "substitution"; script: Script; line: number; quoted: boolean };
+  | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
 export interface Word {
   readonly parts: WordPart[];
@@ -44,6 +44,7 @@ export interface Redirect {
   readonly target: Word;
   readonly move?: boolean;
   readonly document?: HereDocument;
+  readonly line?: number;
 }
 
 export interface CaseClause {
@@ -78,6 +79,7 @@ export interface AndOr {
 export interface Script {
   readonly lists: AndOr[];
   readonly warnings?: readonly string[];
+  readonly line?: number;
 }
 
 class Lexer {
@@ -91,8 +93,8 @@ class Lexer {
 
   lineAt(position: number): number { return this.lineOffset + this.source.slice(0, position).split("\n").length; }
 
-  error(message: string): never {
-    throw new ShellSyntaxError(message, this.position);
+  error(message: string, unclosedQuote?: { quote: string; line: number }): never {
+    throw new ShellSyntaxError(message, this.position, 2, undefined, unclosedQuote);
   }
 
   next(): Token {
@@ -261,11 +263,12 @@ class Lexer {
       } else if (current === "'" && !enclosingQuoted) {
         plain = false;
         const end = this.source.indexOf("'", this.position + 1);
-        if (end === -1) this.error("Unterminated single quote");
+        if (end === -1) this.error("Unterminated single quote", { quote: "'", line: this.lineAt(this.position) });
         text(this.source.slice(this.position + 1, end), true);
         this.position = end + 1;
       } else if (current === '"') {
         plain = false;
+        const quoteLine = this.lineAt(this.position);
         this.position++;
         text("", true);
         while (this.position < this.source.length && this.source[this.position] !== '"') {
@@ -280,7 +283,7 @@ class Lexer {
             this.position++;
           }
         }
-        if (this.source[this.position] !== '"') this.error("Unterminated double quote");
+        if (this.source[this.position] !== '"') this.error("Unterminated double quote", { quote: '"', line: quoteLine });
         this.position++;
       } else if (current === "\\") {
         if (this.source[this.position + 1] !== "\n") plain = false;
@@ -304,6 +307,7 @@ class Lexer {
   }
 
   ansiWord(): string {
+    const quoteLine = this.lineAt(this.position);
     this.position += 2;
     const bytes: number[] = [];
     const encoder = new TextEncoder();
@@ -317,7 +321,7 @@ class Lexer {
       }
       if (character !== "\\") { bytes.push(...encoder.encode(character)); continue; }
       const escape = this.source[this.position++];
-      if (escape === undefined) this.error("Unterminated ANSI-C quote");
+      if (escape === undefined) this.error("Unterminated ANSI-C quote", { quote: "'", line: quoteLine });
       if (escapes[escape] !== undefined) { bytes.push(escapes[escape]!); continue; }
       if (/[0-7]/u.test(escape)) {
         const digits = escape + (/^[0-7]{0,2}/u.exec(this.source.slice(this.position))?.[0] ?? "");
@@ -342,7 +346,7 @@ class Lexer {
         bytes.push(control === "?" ? 127 : control.toUpperCase().charCodeAt(0) & 31);
       } else bytes.push(92, ...encoder.encode(escape));
     }
-    this.error("Unterminated ANSI-C quote");
+    this.error("Unterminated ANSI-C quote", { quote: "'", line: quoteLine });
   }
 
   expansion(parts: WordPart[], quoted: boolean): void {
@@ -390,7 +394,7 @@ class Lexer {
       }
       if (nested.lexer.documents.length) this.error("Here-document requires a newline before closing command substitution");
       this.position += nested.current.end + 1;
-      parts.push({ kind: "substitution", script, line, quoted });
+      parts.push({ kind: "substitution", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position++;
       const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
@@ -433,7 +437,7 @@ class Parser {
   }
 
   error(message: string): never {
-    const command = this.current.kind === "end" ? this.openCommands.findLast((command) => ["if", "while", "until", "for", "case"].includes(command.name)) : undefined;
+    const command = this.current.kind === "end" ? this.openCommands.findLast((command) => ["{", "if", "while", "until", "for", "case"].includes(command.name)) : undefined;
     throw new ShellSyntaxError(message, this.current.offset, 2, command);
   }
 
@@ -462,6 +466,7 @@ class Parser {
   script(stops = new Set<string>(), inputUnit = false): Script {
     const lists: AndOr[] = [];
     this.newlines();
+    const line = this.lexer.lineAt(this.current.offset);
     while (this.current.kind !== "end" && !stops.has(this.current.value)) {
       const pipelines = [this.pipeline()];
       const operators: ("&&" | "||")[] = [];
@@ -478,7 +483,7 @@ class Parser {
         this.newlines();
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
-    return { lists };
+    return { lists, line };
   }
 
   pipeline(): Pipeline {
@@ -497,7 +502,10 @@ class Parser {
     if (++this.nesting + this.lexer.depth > 64) this.error("Syntax nesting exceeds 64");
     const line = this.lexer.lineAt(this.current.offset);
     this.openCommands.push({ name: this.current.value, line });
-    try { return { ...this.commandInner(), line }; } finally { this.nesting--; this.openCommands.pop(); }
+    try {
+      const command = this.commandInner();
+      return { ...command, line: command.line ?? line };
+    } finally { this.nesting--; this.openCommands.pop(); }
   }
 
   commandInner(): Command {
@@ -600,14 +608,16 @@ class Parser {
       if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);
       const words: Word[] = [];
       const redirects: Redirect[] = [];
+      let line: number | undefined;
       while (true) {
+        const wordLine = this.lexer.lineAt(Math.max(this.current.offset, this.current.end - 1));
         const redirect = this.redirect();
-        if (redirect) redirects.push(redirect);
-        else if (this.current.kind === "word") words.push(this.advance().word!);
+        if (redirect) { line ??= redirect.line; redirects.push(redirect); }
+        else if (this.current.kind === "word") { line ??= wordLine; words.push(this.advance().word!); }
         else break;
       }
       if (!words.length && !redirects.length) this.error("Expected command");
-      return { kind: "simple", words, redirects };
+      return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }) };
     }
     let redirect: Redirect | undefined;
     while ((redirect = this.redirect())) command.redirects.push(redirect);
@@ -632,7 +642,7 @@ class Parser {
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
     const target = this.advance();
-    return { descriptor, operator, target: target.word!, ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
+    return { descriptor, operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
   }
 }
 

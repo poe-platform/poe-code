@@ -37,8 +37,8 @@ export class MetadataBudget {
     if (this.entries % 128 === 0) await new Promise<void>(resolve => setImmediate(resolve));
     this.context.signal.throwIfAborted();
   }
-  async output(text: string): Promise<void> {
-    const bytes = new TextEncoder().encode(text);
+  async output(text: string | Uint8Array): Promise<void> {
+    const bytes = typeof text === "string" ? new TextEncoder().encode(text) : text;
     if (bytes.byteLength > this.limits.maxOutputBytes - this.outputBytes) throw new FsError("EFBIG", { message: "metadata output limit exceeded" });
     this.outputBytes += bytes.byteLength;
     await writeBytes(this.context.stdout, bytes, this.context.signal);

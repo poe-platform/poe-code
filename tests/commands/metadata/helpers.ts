@@ -8,5 +8,5 @@ export async function runMetadata(name: string, args: readonly string[], fs: Fil
   const result = await definition.execute({ command: name, args, fs, cwd: "/work", env, signal, stdin: toByteSource(""),
     stdout: { async write(chunk) { stdout.push(chunk.slice()); } }, stderr: { async write(chunk) { stderr.push(chunk.slice()); } },
   });
-  return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
+  return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString(), stdoutBytes: Buffer.concat(stdout) };
 }

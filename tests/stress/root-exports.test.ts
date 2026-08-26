@@ -40,3 +40,12 @@ test("root wrapper factories preserve bytes and lower filesystem isolation", asy
     await merged.cleanup();
   }
 });
+
+test("root exposes delivered search, byte, and diff/patch plugins with their definitions", async () => {
+  const commands = new root.CommandRegistry();
+  const host: root.PluginHost = { commands, use() {}, registerFileSystem() {} };
+  for (const plugin of [root.searchCommands(), root.byteCommands(), root.diffPatchCommands()]) await plugin.setup(host);
+  const definitions = [...root.createSearchCommands(), ...root.createByteCommands(), ...root.createDiffPatchCommands()];
+  assert.deepEqual(commands.list().map(command => command.name), definitions.map(command => command.name));
+  for (const name of ["rg", "base64", "diff", "patch"]) assert.equal(typeof commands.get(name)?.execute, "function");
+});

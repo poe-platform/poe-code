@@ -1,7 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TaskListFs } from "../types.js";
 import { createFs } from "./test-helpers.js";
-import { hasErrorCode, statIfExists, withFileLock, writeAtomically } from "./utils.js";
+import {
+  applyOrder,
+  compareCreated,
+  hasErrorCode,
+  statIfExists,
+  withFileLock,
+  writeAtomically,
+  type OrderedEntry
+} from "./utils.js";
+
+function orderedEntry(qualifiedId: string, created: unknown): OrderedEntry {
+  const [list, id] = qualifiedId.split("/");
+  return {
+    task: { list, id, qualifiedId, name: id, state: "draft", description: "", metadata: {} },
+    raw: created === undefined ? {} : { created }
+  };
+}
 
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -31,6 +47,66 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("backend utilities", () => {
+  describe("created order", () => {
+    it.each([
+      ["offsets", "2026-01-01T12:00:00Z", "2026-01-01T10:00:00-05:00", -1],
+      ["mixed fractions", "2026-01-01T00:00:00.1Z", "2026-01-01T00:00:00.11Z", -1],
+      ["whole seconds", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00.1Z", -1],
+      ["equivalent offsets", "2026-01-01T12:00:00Z", "2026-01-01T07:00:00-05:00", 0],
+      ["equivalent fractions", "2026-01-01T00:00:00.1Z", "2026-01-01T00:00:00.100Z", 0]
+    ] as const)("compares %s by instant with stable ties", (_name, leftCreated, rightCreated, sign) => {
+      const left = orderedEntry("planning/zulu", leftCreated);
+      const right = orderedEntry("planning/alpha", rightCreated);
+
+      expect(Math.sign(compareCreated(left, right))).toBe(sign);
+      expect(Math.sign(compareCreated(right, left)) + sign).toBe(0);
+      expect(applyOrder([left, right], "created")).toEqual([left.task, right.task]);
+      expect(applyOrder([right, left], "created")).toEqual(
+        sign === 0 ? [right.task, left.task] : [left.task, right.task]
+      );
+    });
+
+    it("orders valid, invalid, and missing categories transitively", () => {
+      const entries = [
+        orderedEntry("planning/later-id", "2026-01-01T12:00:00Z"),
+        orderedEntry("planning/earlier-id", "2026-01-01T10:00:00-05:00"),
+        orderedEntry("planning/invalid-space", " "),
+        orderedEntry("planning/invalid-first", "!invalid"),
+        orderedEntry("planning/invalid-between", "2026-01-01T11:00:00-invalid"),
+        orderedEntry("planning/invalid-last", "z-invalid"),
+        orderedEntry("alpha/zulu", undefined),
+        orderedEntry("bravo/alpha", ""),
+        orderedEntry("charlie/null", null),
+        orderedEntry("delta/number", 123),
+        orderedEntry("echo/boolean", false),
+        orderedEntry("foxtrot/object", {}),
+        orderedEntry("golf/array", [])
+      ];
+
+      for (const [leftIndex, left] of entries.entries()) {
+        for (const [rightIndex, right] of entries.entries()) {
+          expect(Math.sign(compareCreated(left, right))).toBe(Math.sign(leftIndex - rightIndex));
+        }
+      }
+      expect(compareCreated(entries[3], orderedEntry("planning/other", "!invalid"))).toBe(0);
+      expect(applyOrder([...entries].reverse(), "created")).toEqual(entries.map((entry) => entry.task));
+    });
+
+    it("leaves default, priority, and alphabetical ordering unchanged", () => {
+      const entries = [
+        orderedEntry("planning/zulu", "2026-01-02T00:00:00Z"),
+        orderedEntry("planning/alpha", "2026-01-01T00:00:00Z")
+      ];
+      const tasks = entries.map((entry) => entry.task);
+
+      expect(applyOrder(entries, undefined)).toEqual(tasks);
+      expect(applyOrder(entries, "priority")).toEqual(tasks);
+      expect(applyOrder(entries, "alphabetical")).toEqual([...tasks].reverse());
+      expect(applyOrder(entries, "created")).toEqual([...tasks].reverse());
+      expect(entries.map((entry) => entry.task)).toEqual(tasks);
+    });
+  });
+
   it("does not match inherited filesystem error codes", async () => {
     await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
       expect(hasErrorCode(new Error("permission denied"), "ENOENT")).toBe(false);

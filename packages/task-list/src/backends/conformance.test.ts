@@ -1,5 +1,8 @@
 import type { Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { stringify } from "yaml";
+import { openTaskList } from "../index.js";
+import { STORE_SCHEMA_ID, TASK_SCHEMA_ID } from "../schema/ids.js";
 import { assertEvent, defaultStateMachine, type TaskEvent } from "../state.js";
 import {
   AnchorNotFoundError,
@@ -731,3 +734,105 @@ describeBackendConformance(
     taskPath: rootPath
   })
 );
+
+describe.each(["yaml-file", "markdown-dir"] as const)("%s persisted created order", (type) => {
+  it.each<{ name: string; created: unknown[]; expected: number[] }>([
+    {
+      name: "timezone chronology",
+      created: ["2026-01-01T10:00:00-05:00", "2026-01-01T12:00:00Z"],
+      expected: [1, 0]
+    },
+    {
+      name: "mixed fractional precision",
+      created: ["2026-01-01T00:00:00.11Z", "2026-01-01T00:00:00.1Z"],
+      expected: [1, 0]
+    },
+    {
+      name: "whole seconds before fractions",
+      created: ["2026-01-01T00:00:00.1Z", "2026-01-01T00:00:00Z"],
+      expected: [1, 0]
+    },
+    {
+      name: "equivalent offsets preserve priority",
+      created: ["2026-01-01T12:00:00Z", "2026-01-01T07:00:00-05:00"],
+      expected: [0, 1]
+    },
+    {
+      name: "equivalent fractions preserve priority",
+      created: ["2026-01-01T00:00:00.1Z", "2026-01-01T00:00:00.100Z"],
+      expected: [0, 1]
+    },
+    {
+      name: "invalid values cannot form a comparator cycle",
+      created: ["2026-01-01T10:00:00-05:00", "2026-01-01T11:00:00-invalid", "2026-01-01T12:00:00Z"],
+      expected: [2, 0, 1]
+    },
+    {
+      name: "invalid strings sort lexically after valid timestamps",
+      created: ["z-invalid", "!invalid", " ", "2026-01-01T00:00:00Z", "!invalid"],
+      expected: [3, 2, 1, 4, 0]
+    },
+    {
+      name: "missing and empty values sort last by qualified id",
+      created: [undefined, "", "!invalid", "2026-01-01T00:00:00Z"],
+      expected: [3, 2, 1, 0]
+    },
+    {
+      name: "null and numeric values remain missing",
+      created: [null, 123, "z-invalid", "2026-01-01T00:00:00Z"],
+      expected: [3, 2, 1, 0]
+    },
+    {
+      name: "boolean object and array values remain missing",
+      created: [false, {}, [], "z-invalid", "2026-01-01T00:00:00Z"],
+      expected: [4, 3, 2, 1, 0]
+    }
+  ])("$name", async ({ created, expected }) => {
+    const records = created.map((value, index) => ({
+      id: `task-${created.length - index}`,
+      raw: {
+        $schema: TASK_SCHEMA_ID,
+        kind: "task",
+        version: 1,
+        name: `Task ${index}`,
+        state: "draft",
+        ...(value === undefined ? {} : { created: value })
+      }
+    }));
+    const path = type === "yaml-file" ? "/repo/tasks.yaml" : "/repo/tasks";
+    const files = type === "yaml-file"
+      ? {
+          [path]: stringify({
+            $schema: STORE_SCHEMA_ID,
+            kind: "task-store",
+            version: 1,
+            lists: { planning: Object.fromEntries(records.map(({ id, raw }) => [id, raw])) }
+          })
+        }
+      : Object.fromEntries(records.map(({ id, raw }, index) => [
+          `${path}/planning/${String(index + 1).padStart(2, "0")}-${id}.md`,
+          `---\n${stringify(raw)}---\n`
+        ]));
+    const { fs, volume } = createFs(files);
+    const before = volume.toJSON();
+    const taskList = await openTaskList({
+      type,
+      path,
+      fs,
+      ...(type === "markdown-dir" ? { frontmatterMode: "strict" as const } : {})
+    });
+    const tasks = taskList.list("planning");
+    const priority = records.map(({ id }) => id);
+
+    expect((await tasks.all()).map((task) => task.id)).toEqual(priority);
+    expect((await tasks.all({ order: "priority" })).map((task) => task.id)).toEqual(priority);
+    expect((await tasks.all({ order: "alphabetical" })).map((task) => task.id)).toEqual(
+      [...priority].sort((left, right) => left.localeCompare(right))
+    );
+    expect((await tasks.all({ order: "created" })).map((task) => task.id)).toEqual(
+      expected.map((index) => records[index].id)
+    );
+    expect((await tasks.all()).map((task) => task.id)).toEqual(priority);
+    expect(volume.toJSON()).toEqual(before);
+  });
+});

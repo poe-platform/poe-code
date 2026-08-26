@@ -16,7 +16,14 @@ export function compareCreated(left: OrderedEntry, right: OrderedEntry): number 
   }
   if (leftCreated === "") return 1;
   if (rightCreated === "") return -1;
-  return leftCreated.localeCompare(rightCreated);
+
+  const leftTimestamp = Date.parse(leftCreated);
+  const rightTimestamp = Date.parse(rightCreated);
+  if (Number.isNaN(leftTimestamp)) {
+    return Number.isNaN(rightTimestamp) ? leftCreated.localeCompare(rightCreated) : 1;
+  }
+  if (Number.isNaN(rightTimestamp)) return -1;
+  return leftTimestamp - rightTimestamp;
 }
 
 export function applyOrder(entries: OrderedEntry[], order: ListFilter["order"]): Task[] {

@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "role": "leaf implementer, not final independent verifier",
+  "sourceStableForVerifier": true,
+  "sourceRevision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+  "originalNetworkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+  "fixedNetworkDigest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4",
+  "commits": {
+    "harness": "7f7ccfbdf684ed8b75388c5aef4fefea8a2e680f",
+    "nativeFreeze": "3b63f98a785b84d78bbc4080ea475ee426b471e2",
+    "source": "aa2da57a5d1be8571f450a27c7b971245c1b7025"
+  },
+  "historicalBaseline": {
+    "passed": 57,
+    "failed": 3,
+    "total": 60,
+    "rewritten": false
+  },
+  "postfix": {
+    "original": {
+      "passed": 60,
+      "total": 60,
+      "native": 54,
+      "securityLifecycle": 6
+    },
+    "supplement": {
+      "passed": 18,
+      "total": 18,
+      "native": 8,
+      "securityLifecycle": 10
+    },
+    "retryNative": {
+      "passed": 18,
+      "total": 18
+    },
+    "retryLifecycleV1": {
+      "passed": 14,
+      "total": 15,
+      "retained": true
+    },
+    "retryLifecycleV2": {
+      "passed": 15,
+      "total": 15
+    },
+    "author": {
+      "passed": 80,
+      "total": 81,
+      "remainingFailure": "tests/commands/network/http.test.ts:72 expects recovered:2 instead of retryretryrecovered:2; unchanged owner test"
+    },
+    "scopedTypecheck": 0
+  },
+  "evidenceHashes": {
+    "POSTFIX.md": "13b7706e28d70ffec1223b2b230f6c0192130905afcd99e8ee1e9eafdfa3a024",
+    "HARNESS-V2.md": "f33dcad2447e854b6fe175ef120a74008ecd13d5c4432c0537996f1c9302706d",
+    "RETRY-FREEZE.md": "5468c7a75a0c7e55994b32aae685f074e9694760675103c98284fbf4a09aa462",
+    "baseline.json": "b487fc61868f1f1592f93a1657bc3f480a5ef249e1cccb87cbcb7a8816aae02d",
+    "oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+    "retry-pins.json": "54fd9f946dd0b04e540131e568dc0e453e23977764fb27a32adb9d4d564a7620",
+    "retry-freeze.json": "7a84039e93c52bbc63d0f776963dbee518082a0d6a7c39541530e5930bc1660c",
+    "postfix60.json": "98275a1d411c4a98a34854ecc4325017984404ee57989ea65e45bc3067f2d1b4",
+    "postfix18.json": "1d53c3a4b3b53fb7f9953719407599406bc877a9921293239671482923393455",
+    "retry-product.json": "43dfe5daa135974fdb926fdad9d5c65dd7a74578e28e7d8e5a9eb8e696fb84e9",
+    "author-postfix.json": "81166fd5d48c730499e298ac417e999c06ce21223e14fbd008d1844198d93947",
+    "retry-lifecycle.json": "52c6e2c9d880535ce71b5849046197843411a208029e4cd2f43b8a29fffdb88d",
+    "retry-lifecycle-v2.json": "117d56e3a5ac61acedc60f21e033e461663848b65c8678e8d65c81d91710d26b",
+    "types-postfix.json": "74bd6781957066374ea7d7776bce99e117383d95d68d4daa81244252c7453666",
+    "types-final-postfix.json": "75df3069289f8420ab642a99a4bfe542980a0af01f7a40157c0e1732e0802f15",
+    "cleanup-final.json": "97655b5ec104e12866a4847f3ebf8c35f1bb4473d0b50881e6a9e878b214a8cd",
+    "provenance-selfcheck.json": "7439824b3dec256114b40fe754d58bad61d38f1c05d5654621a9e9b386f1c90d"
+  }
+}

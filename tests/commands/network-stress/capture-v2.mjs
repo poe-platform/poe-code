@@ -8,7 +8,7 @@ const handoffRevision = "deab14d9f4b3b6f0d73f96587c74a9de23091300";
 const revision = process.env.CURL_VERIFY_SOURCE_REVISION ?? handoffRevision;
 assert.match(revision, /^[a-f0-9]{40}$/);
 const mode = process.argv[2];
-assert(["cleanup-v2", "postfix60", "postfix18", "retry-native", "retry-freeze", "retry-product", "types-postfix", "author-postfix"].includes(mode));
+assert(["cleanup-v2", "cleanup-final", "provenance-selfcheck", "postfix60", "postfix18", "retry-native", "retry-freeze", "retry-product", "retry-lifecycle", "retry-lifecycle-v2", "types-postfix", "types-final-postfix", "author-postfix"].includes(mode));
 assert.equal(spawnSync("git", ["merge-base", "--is-ancestor", handoffRevision, revision]).status, 0);
 const target = `${owned}/${mode}.json`;
 try { await readFile(target); throw new Error(`Refusing to overwrite ${target}`); }
@@ -36,7 +36,7 @@ async function snapshot() {
   const network = Object.entries(hashes).filter(([path]) => path.startsWith("src/commands/network/"));
   return { at: new Date().toISOString(), head: git("rev-parse", "HEAD"), status: git("status", "--short"), hashes,
     networkDigest: createHash("sha256").update(JSON.stringify(network)).digest("hex"),
-    networkMatchesRevision: network.every(([path, hash]) => {
+    networkMatchesRevision: JSON.stringify(network.map(([path]) => path)) === JSON.stringify(git("ls-tree", "-r", "--name-only", revision, "--", "src/commands/network").split("\n").sort()) && network.every(([path, hash]) => {
       const result = spawnSync("git", ["show", `${revision}:${path}`]);
       return result.status === 0 && createHash("sha256").update(result.stdout).digest("hex") === hash;
     }) };
@@ -49,7 +49,7 @@ if (mode === "postfix18") {
 }
 const args = mode.startsWith("types") ? ["node_modules/typescript/bin/tsc", "--noEmit", "-p", owned + "/tsconfig.json"]
   : mode === "author-postfix" ? ["--unhandled-rejections=strict", "--import", "tsx", "--test", "tests/commands/network/*.test.ts"]
-  : ["--unhandled-rejections=strict", "--import", "tsx", owned + "/" + ({ "cleanup-v2": "cleanup-selfcheck.ts", postfix60: "product-v2.ts", postfix18: "supplement-v2.ts", "retry-native": "retry-native.ts", "retry-freeze": "retry-native.ts", "retry-product": "retry-product.ts" })[mode], ...(mode === "postfix18" ? ["product"] : [])];
+  : ["--unhandled-rejections=strict", "--import", "tsx", owned + "/" + ({ "cleanup-v2": "cleanup-selfcheck.ts", "cleanup-final": "cleanup-selfcheck.ts", "provenance-selfcheck": "provenance-selfcheck.ts", postfix60: "product-v2.ts", postfix18: "supplement-v2.ts", "retry-native": "retry-native.ts", "retry-freeze": "retry-native.ts", "retry-product": "retry-product.ts", "retry-lifecycle": "retry-lifecycle.ts", "retry-lifecycle-v2": "retry-lifecycle-v2.ts" })[mode], ...(mode === "postfix18" ? ["product"] : [])];
 const previousRoots = new Set(await readdir(owned));
 const child = spawn(process.execPath, args, { shell: false, detached: true, env: { ...process.env, CURL_VERIFY_AFTER_HANDOFF: handoffRevision, CURL_VERIFY_SOURCE_REVISION: revision }, stdio: ["ignore", "pipe", "pipe"] });
 const terminate = (signal) => {
@@ -75,7 +75,7 @@ for (const name of await readdir(owned)) {
   if (!previousRoots.has(name) && /^\.supp-native-[A-Za-z0-9]{6}$/.test(name)) await rm(`${owned}/${name}`, { recursive: true, force: true });
 }
 const after = await snapshot();
-const changes = Object.keys(before.hashes).filter((path) => before.hashes[path] !== after.hashes[path]);
+const changes = [...new Set([...Object.keys(before.hashes), ...Object.keys(after.hashes)])].filter((path) => before.hashes[path] !== after.hashes[path]);
 const artifact = { schema: 1, mode, revision, command: [process.execPath, ...args], environment: { CURL_VERIFY_AFTER_HANDOFF: handoffRevision, CURL_VERIFY_SOURCE_REVISION: revision, strictUnhandledRejections: true }, before, after, changes,
   networkStable: before.networkDigest === after.networkDigest, exit, stdout, stderr,
   records: mode.startsWith("types") || mode === "author-postfix" ? [] : stdout.trim().split("\n").filter(Boolean).map((line) => JSON.parse(line)) };

@@ -20,7 +20,7 @@ parentPort.on("message", async (message: { id: number; task: Task }) => {
           ...await harness.snapshot() };
         const assertions = compareObservation(fixture, observation);
         result = { ...base, assertions, status: assertionStatus(assertions), durationMs: performance.now() - executionStart,
-          details: { configuredCommandNames: harness.commands, stdoutCapture: observation.stdoutCapture,
+          details: { configuredCommandNames: harness.commands, configuredPluginNames: harness.plugins ?? [], stdoutCapture: observation.stdoutCapture,
             stderrCapture: observation.stderrCapture } };
       } finally { await harness.dispose(); }
     }

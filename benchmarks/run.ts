@@ -6,6 +6,8 @@ import { parseArgs } from "node:util";
 import { deterministicCases, parseFixtures, probes } from "./fixtures.js";
 import { engines, sha256, summarize, type CaseResult, type Task } from "./model.js";
 import { EngineSession } from "./session.js";
+import { pluginFixtures } from "./plugin-fixtures.js";
+import { dialectFixtures } from "./dialect-fixtures.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
@@ -52,7 +54,9 @@ async function main(): Promise<void> {
   const corpusText = await readFile(corpusPath, "utf8");
   const fixtures = parseFixtures(corpusText);
   const generated = deterministicCases(seed);
-  const tasks: Task[] = [...fixtures, ...generated].map((fixture) => ({ kind: "fixture", fixture }));
+  const integrations = pluginFixtures();
+  const dialects = dialectFixtures();
+  const tasks: Task[] = [...fixtures, ...generated, ...integrations, ...dialects].map((fixture) => ({ kind: "fixture", fixture }));
   tasks.push(...probes);
   const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as { version: string; dependencies?: Record<string, string> };
   const rootLockText = await readFile(join(root, "package-lock.json"), "utf8");
@@ -99,7 +103,8 @@ async function main(): Promise<void> {
       harnessSha256Before: benchmarkBefore, harnessSha256After: benchmarkAfter,
     },
     corpus: { path: "tests/fixtures/shell-cases.json", sha256: sha256(corpusText), fixtureCount: fixtures.length,
-      generatedCaseCount: generated.length, probeCount: probes.length, seed, filters: null, everyFixtureIncluded: true },
+      generatedCaseCount: generated.length, pluginIntegrationCount: integrations.length, pinnedGnuDialectCount: dialects.length,
+      probeCount: probes.length, totalPerEngine: tasks.length, seed, filters: null, everyFixtureIncluded: true },
     methodology: {
       cwd: "/fixture", environment: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC" },
       workerTimeoutMs: timeoutMs, runtimeTimeoutMs: 4500, maxOutputBytes: 4194304, maxCommands: 10000, maxLoopIterations: 10000,
@@ -108,6 +113,7 @@ async function main(): Promise<void> {
       binaryOutput: "Invalid-UTF-8 expected output is pending when only a text API is exposed; binary file contents use raw filesystem reads",
       timing: "Descriptive single-run execution plus snapshot timings; not warmed, randomized, statistically analyzed, or a performance superiority claim",
       workerIsolation: "Separate engine worker threads, fresh in-memory filesystem and shell for each fixture; concurrent probe intentionally shares one shell",
+      pluginInstallation: "All delivered standard/text/structured/search/byte/diff-patch plugins installed with Shell.use; empty execution awaits setup before timed workload; actual plugin and command names recorded per result",
       workerMemoryLimit: "256 MiB V8 old-generation limit only; not a hard RSS or external-buffer allocation bound",
       denominator: "All pass/fail/error/timeout/pending/unsupported results remain in totals, including every advanced-pending fixture",
     },

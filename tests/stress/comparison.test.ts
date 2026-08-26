@@ -108,6 +108,8 @@ test("worker comparison exercises the actual virtual runtime and tools", { timeo
     const result = await session.run({ kind: "fixture", fixture: example() });
     assert.equal(result.status, "pass", JSON.stringify(result));
     assert.equal(result.assertions.length, 4);
+    assert.deepEqual(result.details?.configuredPluginNames, ["standard-commands", "text-program-commands", "structured-commands", "search-commands", "byte-commands", "diff-patch-commands"]);
+    for (const name of ["sed", "awk", "jq", "rg", "base64", "gzip", "diff", "patch"]) assert.ok((result.details?.configuredCommandNames as string[]).includes(name), name);
     assert.deepEqual(session.backgroundErrors, []);
   } finally { await session.dispose(); }
 });

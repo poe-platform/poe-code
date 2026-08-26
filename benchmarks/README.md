@@ -88,3 +88,25 @@ not added to just-bash totals. `benchmarks/performance.ts` runs a separate warme
 paired twelve-workload performance pilot with per-sample correctness assertions.
 Read `benchmarks/COVERAGE_AUDIT.md` for methodology, protocol gaps, and limits on
 claims. Neither expansion establishes general superiority or complete coverage.
+
+## Delivered-plugin integration
+
+The virtual engine now installs standard, text-program, structured, search, byte,
+and diff/patch plugins through `Shell.use`, awaiting setup with an empty execution
+before the measured script. Every fixture records the actual installed plugin
+and command names. Missing delivered modules produce explicit pending results;
+no optional plugin is silently omitted while calling the runtime complete.
+
+The unfiltered denominator is now **118 per engine**: the original 88 Bash
+fixtures, 18 deterministic cases and three probes, plus seven plugin-integration
+cases and two independently pinned GNU sed 4.9 policy cases. `bySource` keeps
+the new cohorts distinguishable from the original 109; no old fixture was removed.
+Registration does not establish coverage of every command or flag.
+
+The integration cases include both implicit and explicit empty piped `rg` input;
+the implicit case must not fall back to searching seeded files. The diff/patch
+roundtrip deliberately measures a VFS absolute target, currently rejected by the
+guarded patch implementation. These remain raw failures, not successful skips
+or dialect exceptions. Primary snapshots assert all regular-file bytes/paths;
+metadata limitations remain explicit. Source-stable initial results are preserved
+in `reports/all-plugins-initial.json`, including comparator losses and failures.

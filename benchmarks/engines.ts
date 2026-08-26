@@ -3,6 +3,7 @@ import { posix } from "node:path";
 import { CommandRegistry } from "../src/contracts/command.js";
 import type { CommandDefinition } from "../src/contracts/command.js";
 import type { FileSystem } from "../src/contracts/filesystem.js";
+import type { VirtualShellPlugin } from "../src/contracts/plugin.js";
 import type { Engine, Observation } from "./model.js";
 
 export const fixtureRoot = "/fixture";
@@ -28,6 +29,7 @@ export interface SnapshotFs {
 
 export interface Harness {
   commands: string[];
+  plugins?: readonly string[];
   execute(script: string, stdin: Uint8Array, signal?: AbortSignal): Promise<Streams>;
   snapshot(): Promise<Pick<Observation, "files" | "unsupportedEntries">>;
   register?: (command: CommandDefinition) => void;
@@ -39,6 +41,7 @@ export interface Hooks {
 }
 
 interface VirtualShell {
+  use(plugin: VirtualShellPlugin): unknown;
   exec(source: string, options: { stdin: Uint8Array; signal?: AbortSignal }): Promise<{
     stdoutBytes: Uint8Array; stderrBytes: Uint8Array; exitCode: number;
   }>;
@@ -79,18 +82,25 @@ export async function createHarness(
   hooks: Hooks = {},
 ): Promise<Harness> {
   if (engine === "virtual-bash") {
-    const paths = ["../src/shell/index.ts", "../src/fs/memory/index.ts", "../src/commands/index.ts"];
-    for (const path of paths) {
+    const paths = ["../src/shell/index.ts", "../src/fs/memory/index.ts"];
+    const pluginSpecs = [
+      ["../src/commands/index.ts", "standardCommands"],
+      ["../src/commands/text-programs/index.ts", "textProgramCommands"],
+      ["../src/commands/structured/index.ts", "structuredCommands"],
+      ["../src/commands/search/index.ts", "searchCommands"],
+      ["../src/commands/bytes/index.ts", "byteCommands"],
+      ["../src/commands/diff-patch/index.ts", "diffPatchCommands"],
+    ] as const;
+    for (const path of [...paths, ...pluginSpecs.map(([path]) => path)]) {
       try { await access(new URL(path, import.meta.url)); }
       catch (error) {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") throw new PendingRuntimeError(`Runtime component not delivered: ${path}`);
         throw error;
       }
     }
-    const [{ Shell }, { MemoryFileSystem }, { createStandardCommands }] = await Promise.all(paths.map((path) => import(new URL(path, import.meta.url).href))) as [
+    const [{ Shell }, { MemoryFileSystem }] = await Promise.all(paths.map((path) => import(new URL(path, import.meta.url).href))) as [
       { Shell: new (options: unknown) => VirtualShell },
       { MemoryFileSystem: new () => FileSystem },
-      { createStandardCommands: () => readonly CommandDefinition[] },
     ];
     const fs = new MemoryFileSystem();
     await fs.mkdir(fixtureRoot, { recursive: true, mode: 0o755 });
@@ -98,27 +108,26 @@ export async function createHarness(
       await fs.mkdir(posix.dirname(`${fixtureRoot}/${path}`), { recursive: true, mode: 0o755 });
       await fs.writeFile(`${fixtureRoot}/${path}`, Buffer.from(contents, "base64"), { mode: 0o644 });
     }
-    const commands = [...createStandardCommands()];
-    const textPrograms = new URL("../src/commands/text-programs/index.ts", import.meta.url);
-    let textProgramsAvailable = true;
-    try { await access(textPrograms); }
-    catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      textProgramsAvailable = false;
-    }
-    if (textProgramsAvailable) {
-      const { createTextProgramCommands } = await import(textPrograms.href) as {
-        createTextProgramCommands: () => readonly CommandDefinition[];
-      };
-      commands.push(...createTextProgramCommands());
-    }
-    const shell = new Shell({ fs, commands: new CommandRegistry(commands), cwd: fixtureRoot,
+    const plugins = await Promise.all(pluginSpecs.map(async ([path, factory]) => {
+      const module = await import(new URL(path, import.meta.url).href) as Record<string, unknown>;
+      if (typeof module[factory] !== "function") throw new TypeError(`Missing plugin factory: ${factory}`);
+      return (module[factory] as () => VirtualShellPlugin)();
+    }));
+    const commands = new CommandRegistry();
+    const shell = new Shell({ fs, commands, cwd: fixtureRoot,
       env: { ...environment, ...env }, limits: { maxOutputBytes, maxCommands: 10000, maxLoopIterations: 10000, pipeHighWaterMark: 4096 } });
+    for (const plugin of plugins) shell.use(plugin);
+    const initialized = await shell.exec("", { stdin: new Uint8Array() });
+    if (initialized.exitCode || initialized.stdoutBytes.length || initialized.stderrBytes.length) {
+      await shell.dispose();
+      throw new Error(`Plugin initialization failed: ${Buffer.from(initialized.stderrBytes).toString()}`);
+    }
     if (hooks.wait) shell.register({ name: "bench_wait", async execute(context) {
       await hooks.wait!(context.signal); return { exitCode: 0 };
     } });
     return {
-      commands: commands.map((command) => command.name),
+      get commands() { return commands.list().map(command => command.name); },
+      plugins: plugins.map(plugin => plugin.name),
       async execute(script, stdin, signal) {
         const result = await shell.exec(script, { stdin, ...(signal ? { signal } : {}) });
         return { stdout: Buffer.from(result.stdoutBytes).toString("base64"),

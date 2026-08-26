@@ -112,8 +112,7 @@ test("safe writes, unsupported destination overwrites, exclusive copies, directo
 test("unsupported semantics fail without network or lossy read-modify-write", async () => {
   const { fs, mock } = fixture();
   await Promise.all([
-    fs.appendFile("/file", new Uint8Array()), fs.writeFile("/file", new Uint8Array(), { flag: "a" }),
-    fs.writeFile("/file", new Uint8Array(), { flag: "ax" }), fs.writeFile("/file", new Uint8Array(), { mode: 0o600 }),
+    fs.writeFile("/file", new Uint8Array(), { mode: 0o600 }),
     fs.mkdir("/dir", { mode: 0o700 }), fs.chmod("/file", 0o600), fs.utimes("/file", 0, 0),
     fs.truncate("/file"), fs.symlink("/file", "/link"), fs.link("/file", "/link"), fs.readlink("/link"),
     fs.access("/file", 4),

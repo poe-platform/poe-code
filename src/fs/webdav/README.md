@@ -46,6 +46,14 @@ remain transport/server responsibilities, not a host-filesystem sandbox.
 - `readFile`: metadata check followed by bounded binary `GET`.
 - `writeFile`: binary `PUT`, including empty files; `wx` uses
   `If-None-Match: *` rather than an existence-check race.
+- `appendFile`/`a`: bounded read-modify-write using the identity GET's strong
+  ETag in `If-Match` on PUT; missing targets use `If-None-Match: *`.
+  Changed existing targets fail with `EAGAIN`; creation races fail with
+  `EEXIST`. There are no automatic retries or lost-update fallback writes.
+  `ax` exclusively creates via `If-None-Match: *`, like `wx`.
+  Existing-file append requires a strong GET ETag and identity representation;
+  missing/weak validators or encoded responses produce `ENOTSUP` before PUT.
+  Combined append output is bounded by `maxResponseBytes`.
 - `mkdir`: `MKCOL`; recursive mode creates ancestors sequentially and handles
   a collection created concurrently by another client.
 - `rm`: `DELETE`; recursive directory deletion is explicit. Root deletion is
@@ -97,7 +105,7 @@ Normal PUT writes and source type checks still have the server's WebDAV
 semantics, not POSIX guarantees against every concurrent source replacement.
 `atomicRename` is false because collection MOVE can fail partially.
 
-Append (`a`, `ax`, `appendFile`), truncate, symlinks, hardlinks, chmod, utimes,
+Truncate, symlinks, hardlinks, chmod, utimes,
 explicit creation modes, permission checks, and nonrecursive directory removal
 return `ENOTSUP`. In particular, nonrecursive directory removal is not emulated
 by an empty check followed by recursive DELETE. Streaming methods are absent

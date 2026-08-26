@@ -34,6 +34,13 @@ function positive(value: number, name: string, zero = false): number {
   return value;
 }
 
+function strongEtag(value: string | null | undefined, path: string): string {
+  if (!value || !/^"[\x21\x23-\x7e\x80-\xff]*"$/.test(value)) {
+    fail("ENOTSUP", "webdav", path, "operation requires a strong entity tag");
+  }
+  return value;
+}
+
 function normalize(path: string): string {
   if (typeof path !== "string" || path.includes("\0") || path.includes("\\")) {
     fail("EINVAL", "resolve", String(path), "invalid WebDAV path");
@@ -378,8 +385,7 @@ export class WebDavFileSystem implements FileSystem {
   async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
     const normalized = normalize(path);
     if (options.mode !== undefined) this.unsupported("writeFile mode", path);
-    if (options.flag === "a" || options.flag === "ax") this.unsupported("appendFile", path);
-    if (options.flag !== undefined && options.flag !== "w" && options.flag !== "wx") fail("EINVAL", "writeFile", path);
+    if (options.flag !== undefined && !["w", "wx", "a", "ax"].includes(options.flag)) fail("EINVAL", "writeFile", path);
     if (!(data instanceof Uint8Array)) fail("EINVAL", "writeFile", path, "data must be Uint8Array");
     if (normalized === "/") fail("EISDIR", "writeFile", path);
     if (requiresCollection(path)) {
@@ -391,15 +397,36 @@ export class WebDavFileSystem implements FileSystem {
       parent += `/${segment}`;
       await this.stat(`${parent}/`, options);
     }
-    if (options.flag !== "wx" && (await this.maybeStat(normalized, options))?.type === "directory") fail("EISDIR", "writeFile", path);
+    const exclusive = options.flag === "wx" || options.flag === "ax";
+    const existing = exclusive ? undefined : await this.maybeStat(normalized, options);
+    if (existing?.type === "directory") fail("EISDIR", "writeFile", path);
+    let body = new Uint8Array(data);
+    const headers: Record<string, string> = { "Content-Type": "application/octet-stream" };
+    if (exclusive || (options.flag === "a" && !existing)) headers["If-None-Match"] = "*";
+    if (options.flag === "a" && existing) {
+      const snapshot = await this.request("GET", normalized, options, { headers: { "Accept-Encoding": "identity" } }, async (response, signal) => {
+        if (response.status !== 200) this.httpError(response.status, "GET", path);
+        const etag = strongEtag(response.headers.get("ETag"), path);
+        if (response.headers.get("Content-Encoding") && response.headers.get("Content-Encoding")!.toLowerCase() !== "identity") {
+          fail("ENOTSUP", "appendFile", path, "conditional append requires an identity representation");
+        }
+        return { etag, data: await this.bytes(response, this.maxResponseBytes, signal) };
+      });
+      if (snapshot.data.byteLength + body.byteLength > this.maxResponseBytes) fail("EFBIG", "appendFile", path);
+      const combined = new Uint8Array(snapshot.data.byteLength + body.byteLength);
+      combined.set(snapshot.data);
+      combined.set(body, snapshot.data.byteLength);
+      body = combined;
+      headers["If-Match"] = snapshot.etag;
+    }
+    if (options.flag === "a" && body.byteLength > this.maxResponseBytes) fail("EFBIG", "appendFile", path);
     await this.mutation("PUT", normalized, options, {
-      headers: { "Content-Type": "application/octet-stream", ...(options.flag === "wx" ? { "If-None-Match": "*" } : {}) },
-      body: new Uint8Array(data),
+      headers, body,
     });
   }
 
-  async appendFile(path: string, _data: Uint8Array, _options: AppendFileOptions = {}): Promise<void> {
-    this.unsupported("appendFile", path);
+  async appendFile(path: string, data: Uint8Array, options: AppendFileOptions = {}): Promise<void> {
+    await this.writeFile(path, data, { ...options, flag: "a" });
   }
 
   async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {

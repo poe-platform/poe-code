@@ -14,7 +14,7 @@ export class PropertyDav {
     const result = await this.base.fetch(url, init);
     if (init.method === "PROPPATCH" && result.status === 501) {
       if (!this.base.files.has(path)) return new Response(null, { status: 404 });
-      const body = String(init.body);
+      const body = init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body);
       if (!body.includes(`xmlns:v="${namespace}"`)) return new Response(null, { status: 400 });
       const match = /<v:timestamps>([^]*?)<\/v:timestamps>/.exec(body);
       if (!match) return new Response(null, { status: 400 });

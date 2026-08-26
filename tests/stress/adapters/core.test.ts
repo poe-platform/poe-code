@@ -3,7 +3,8 @@ import { mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
-import { adapters, binary, cancellation, errno } from "../../fs/conformance/fixtures.js";
+import { adapters, binary, cancellation, errno, loopbackDav } from "../../fs/conformance/fixtures.js";
+import { PropertyDav } from "../../fs/webdav/property-fixture.js";
 
 for (const adapter of adapters) {
   test(`${adapter.name}: traversal remains rooted under explicit backend policy`, async (context) => {
@@ -24,7 +25,9 @@ for (const adapter of adapters) {
   });
 
   test(`${adapter.name}: optional metadata capabilities are exercised or fail closed`, async (context) => {
-    const { fs } = await adapter.create(context);
+    const propertyFixture = adapter.name === "webdav" ? await loopbackDav(context) : undefined;
+    if (propertyFixture) propertyFixture.fixture.intercept = new PropertyDav().fetch;
+    const { fs } = propertyFixture ?? await adapter.create(context);
     await fs.writeFile("/file", binary);
     if (fs.capabilities.permissions) {
       assert.ok(fs.chmod);

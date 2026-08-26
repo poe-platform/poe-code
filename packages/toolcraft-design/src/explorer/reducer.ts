@@ -83,6 +83,11 @@ function stepKey(
 ): StepResult {
   const target = state.bindings.resolve(key);
 
+  if (target?.type === "builtin" && target.id === "quit") {
+    const next = state.modal === null ? state : modalDismissed(state, null, runtimeHandles).state;
+    return { state: markDirty(next, 0), effects: [{ type: "exit", result: null }] };
+  }
+
   if (state.modal !== null) {
     return stepModalKey(state, key, target, runtimeHandles);
   }
@@ -105,8 +110,6 @@ function stepKey(
 
   if (target?.type === "builtin") {
     switch (target.id) {
-      case "quit":
-        return { state: markDirty(state, 0), effects: [{ type: "exit", result: null }] };
       case "filter":
         return focusFilter(state);
       case "help":

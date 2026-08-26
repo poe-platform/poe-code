@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TerminalBuffer } from "terminal-pilot";
+import { parseKeypress } from "../dashboard/terminal.js";
 import { FakeTerminalDriver } from "./runtime.test-helpers.js";
 import type { ExplorerConfig, Row } from "./state.js";
 
@@ -31,6 +32,109 @@ describe("runExplorer", () => {
     expect(driver().startCount).toBe(1);
     expect(driver().stopCount).toBe(1);
   });
+
+  it("exits an open palette on one parsed Ctrl+C", async () => {
+    const settled = vi.fn();
+    const result = runExplorer(config()).then((value) => {
+      settled(value);
+      return value;
+    });
+    try {
+      await waitFor(() => screen().includes("One"));
+      const palette = parseKeypress(Buffer.from("\u0010"));
+      const quit = parseKeypress(Buffer.from("\u0003"));
+      expect(palette).toBeDefined();
+      expect(quit).toBeDefined();
+      driver().press(palette!);
+      await waitFor(() => screen().includes("Command Palette"));
+
+      driver().press(quit!);
+      await new Promise<void>((resolve) => setImmediate(resolve));
+
+      expect(driver().stopCount).toBe(1);
+      expect(settled).toHaveBeenCalledExactlyOnceWith(null);
+      await expect(result).resolves.toBeNull();
+      expect(driver().startCount).toBe(1);
+    } finally {
+      if (driver().started) {
+        driver().press(named("escape"));
+        driver().press(ctrl("c"));
+      }
+    }
+  });
+
+  it.each(["input", "confirm"])(
+    "cancels an awaited %s and waits for cleanup on one Ctrl+C",
+    async (modal) => {
+      const response = vi.fn();
+      const completed = vi.fn();
+      const settled = vi.fn();
+      let releaseCleanup!: () => void;
+      const cleanup = new Promise<void>((resolve) => {
+        releaseCleanup = resolve;
+      });
+      const result = runExplorer(
+        config({
+          actions: [
+            {
+              id: "prompt",
+              label: "Prompt",
+              accelerator: "e",
+              handler: async (ctx) => {
+                response(
+                  modal === "input"
+                    ? await ctx.promptText({
+                        title: "Pending input",
+                        label: "Name",
+                        initialValue: "draft"
+                      })
+                    : await ctx.confirm({
+                        title: "Pending confirm",
+                        message: "Continue?",
+                        destructive: true
+                      })
+                );
+                await cleanup;
+                completed();
+              }
+            }
+          ]
+        })
+      ).then((value) => {
+        settled(value);
+        return value;
+      });
+      try {
+        await waitFor(() => screen().includes("One"));
+        driver().press(ctrl("e"));
+        await waitFor(() => screen().includes(`Pending ${modal}`));
+        const quit = parseKeypress(Buffer.from("\u0003"));
+        expect(quit).toBeDefined();
+
+        driver().press(quit!);
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(response).toHaveBeenCalledExactlyOnceWith(modal === "input" ? null : false);
+        expect(driver().stopCount).toBe(1);
+        expect(completed).not.toHaveBeenCalled();
+        expect(settled).not.toHaveBeenCalled();
+
+        releaseCleanup();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(completed).toHaveBeenCalledTimes(1);
+        expect(settled).toHaveBeenCalledExactlyOnceWith(null);
+        await expect(result).resolves.toBeNull();
+        expect(driver().startCount).toBe(1);
+        expect(driver().stopCount).toBe(1);
+      } finally {
+        releaseCleanup();
+        if (driver().started) {
+          driver().press(named("escape"));
+          driver().press(ctrl("c"));
+        }
+      }
+    }
+  );
 
   it("treats every printable character as filter input", async () => {
     const handler = vi.fn();

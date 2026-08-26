@@ -389,9 +389,10 @@ class Parser {
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0) {
-    if (source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
+  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number) {
+    if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
     this.lexer = new Lexer(source, depth, warnings, lineOffset);
+    this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
 
@@ -422,7 +423,7 @@ class Parser {
 
   newlines(): void { while (this.is("\n")) this.advance(); }
 
-  script(stops = new Set<string>()): Script {
+  script(stops = new Set<string>(), inputUnit = false): Script {
     const lists: AndOr[] = [];
     this.newlines();
     while (this.current.kind !== "end" && !stops.has(this.current.value)) {
@@ -434,8 +435,10 @@ class Parser {
         pipelines.push(this.pipeline());
       }
       lists.push({ pipelines, operators });
+      if (inputUnit && this.is("\n")) break;
       if (this.is(";") || this.is("\n")) {
         this.advance();
+        if (inputUnit && this.is("\n")) break;
         this.newlines();
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
@@ -601,6 +604,16 @@ export function parseShell(source: string, depth = 0): Script {
   const warnings: string[] = [];
   const script = parseSource(source, depth, warnings);
   return { ...script, ...(warnings.length ? { warnings } : {}) };
+}
+
+export function parseShellUnit(source: string, position = 0): { script: Script; next: number } {
+  const warnings: string[] = [];
+  const parser = new Parser(source, 0, warnings, 0, position);
+  const script = parser.script(new Set(), true);
+  const next = parser.current.end;
+  const nul = source.indexOf("\0", position);
+  if (nul >= 0 && nul < next) throw new ShellSyntaxError("NUL bytes are not valid shell source", nul);
+  return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
 function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0): Script {

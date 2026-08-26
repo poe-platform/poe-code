@@ -1,0 +1,104 @@
+{
+  "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "version": "GNU Bash 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+  "argv0": "shell",
+  "locale": "C",
+  "records": [
+    {
+      "source": ": >before;\nvalue=$(true |); : >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error near unexpected token `)'\nshell: -c: line 2: `value=$(true |); : >after'\n",
+      "exitCode": 127,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": ": >before; value=$(true |); : >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `: >before; value=$(true |); : >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before\nif true; then\n value=$(true |)\nfi\n: >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 3: syntax error near unexpected token `)'\nshell: -c: line 3: ` value=$(true |)'\n",
+      "exitCode": 127,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": ": >before &&\nvalue=$(true |)\n: >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error near unexpected token `)'\nshell: -c: line 2: `value=$(true |)'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before |\nvalue=$(true |)\n: >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error near unexpected token `)'\nshell: -c: line 2: `value=$(true |)'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before; \\\nvalue=$(true |); : >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error near unexpected token `)'\nshell: -c: line 2: `value=$(true |); : >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": "printf \"line\ninside\" >before; value=$(true |); : >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error near unexpected token `)'\nshell: -c: line 2: `inside\" >before; value=$(true |); : >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": "cat <<EOF >before\nbody\nEOF\nvalue=$(true |); : >after",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: -c: line 4: syntax error near unexpected token `)'\nshell: -c: line 4: `value=$(true |); : >after'\n",
+      "exitCode": 127,
+      "files": {
+        "before": "body\n"
+      }
+    },
+    {
+      "source": "printf before >before\nexit 7\nvalue=$(true |)",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 7,
+      "files": {
+        "before": "before"
+      }
+    },
+    {
+      "source": ": \"${missing:?stop}\"\nvalue=$(true |)",
+      "stdin": "abcdef",
+      "stdout": "",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": "IFS= read -rn2 first\nprintf \"<%s>\" \"$first\"\ncat",
+      "stdin": "abcdef",
+      "stdout": "<ab>cdef",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {}
+    }
+  ]
+}

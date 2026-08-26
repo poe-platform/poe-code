@@ -3,7 +3,7 @@ import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
   RegisterCommandOptions, VirtualShellPlugin,
 } from "../contracts/index.js";
-import { parseShell } from "./parser.js";
+import { parseShellUnit } from "./parser.js";
 import { ShellInput } from "./input.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime } from "./runtime.js";
 import type { State } from "./runtime.js";
@@ -84,8 +84,7 @@ export class Shell implements PluginHost {
     };
     let exitCode: number;
     try {
-      const script = parseShell(source);
-      for (const warning of script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+      let unit = parseShellUnit(source);
       stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
       io.stdin = stdin;
       await interruptible(this.#ready, budget.signal);
@@ -99,7 +98,18 @@ export class Shell implements PluginHost {
         status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false,
       };
       const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget);
-      exitCode = await interruptible(runtime.run(script, state, io), budget.signal);
+      exitCode = 0;
+      while (true) {
+        for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+        if (unit.script.lists.length) {
+          const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);
+          exitCode = result.exitCode;
+          if (result.terminated) break;
+        }
+        if (unit.next >= source.length) break;
+        budget.signal.throwIfAborted();
+        unit = parseShellUnit(source, unit.next);
+      }
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;
       const line = source.slice(0, error.offset).split("\n").length;

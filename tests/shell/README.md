@@ -8,8 +8,14 @@ As with `exit`, a subshell or pipeline stage has its own execution boundary.
 Already completed effects are not rolled back. Supported positional-argument
 and pipefail forms remain unchanged.
 
-The shell validates the whole source, including ordinary command substitutions,
-before execution. This intentionally differs from incremental Bash parsing.
+`Shell.exec` validates each complete input unit, including ordinary command
+substitutions, before executing that unit. A top-level unescaped newline ends
+a unit; compound constructs, continuation operators, quoted newlines and queued
+heredocs remain within their unit. Earlier complete units retain their effects
+when a later unit is malformed. Exit and fatal expansion stop before parsing
+future units. `parseShell` remains a whole-source parse-only validator. Malformed
+ordinary substitutions in the current unit follow pinned GNU Bash 5.3 status
+127/no-current-unit-effects, not Bash 3.2's same-line earlier-effects behavior.
 Shell text uses JavaScript strings; byte stdin/stdout support does not imply
 byte-preserving textual expansions for arbitrary non-UTF-8 data.
 

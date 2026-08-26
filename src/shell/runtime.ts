@@ -224,9 +224,13 @@ export class Runtime {
   ) {}
 
   async run(script: Script, state: State, io: IO): Promise<number> {
-    try { return await this.script(script, state, io); }
+    return (await this.runUnit(script, state, io)).exitCode;
+  }
+
+  async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
+    try { return { exitCode: await this.script(script, state, io), terminated: false }; }
     catch (error) {
-      if (error instanceof Flow && error.kind === "exit") return error.status;
+      if (error instanceof Flow && error.kind === "exit") return { exitCode: error.status, terminated: true };
       throw error;
     }
   }

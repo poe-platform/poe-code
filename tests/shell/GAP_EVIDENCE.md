@@ -153,3 +153,19 @@ The new newline-boundary capture is preserved in `input-units.test.ts` for the
 separately assigned timing correction: GNU 5.3 executes `: >before;` before a
 newline followed by malformed substitution. It was originally one of the 22
 diagnostic captures; it is moved, not removed or waived, into its timing group.
+
+## Complete input units
+
+The separate timing group captures eleven bounded GNU 5.3 scripts in
+`unit-reference.json`: same-line versus cross-line nested syntax, complete
+compounds, continued and-or/pipelines, escaped/quoted newlines, queued heredocs,
+exit/fatal stopping and shared input offsets. The previous no-effect assertion
+for an invalid `if` following a completed heredoc unit now preserves the earlier
+`marker` file and `body\n` output; all same-unit malformed-source controls remain.
+No Bash 3.2 expectation or stress fixture is changed.
+
+Runtime execution shares one state, budget and input cursor across units. Parsing
+stops at the actual top-level newline token after its queued heredocs; it does
+not split raw source strings on newlines. Future units are neither parsed nor
+executed after exit/fatal completion. The public parse-only API still validates
+the complete source, and the global source-size limit remains checked first.

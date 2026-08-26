@@ -412,7 +412,7 @@ export class Runtime {
     }
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false): Promise<IO> {
     io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
       [1, { output: io.stdout }], [2, { output: io.stderr }],
@@ -488,8 +488,8 @@ export class Runtime {
         if (redirect.operator === "<") {
           await interruptible(this.fs.access(path, 4, options), this.signal);
           const stat = await interruptible(this.fs.stat(path, options), this.signal);
-          if (stat.type === "directory") throw new Error(`${target}: Is a directory`);
-          const source = this.fs.readStream
+          if (stat.type === "directory" && !fileShortcut) throw new Error(`${target}: Is a directory`);
+          const source = stat.type === "directory" ? toByteSource("") : this.fs.readStream
             ? this.fs.readStream(path, options)
             : toByteSource(await interruptible(this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes }), this.signal));
           const input = new ShellInput(source, this.budget, this.signal);
@@ -604,7 +604,7 @@ export class Runtime {
           }
           for (const [name, saved] of previous) saved.value = variables[name];
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut);
       if (!inlineInput) await assign();
       if (fileShortcut) {
         const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
@@ -913,7 +913,9 @@ export class Runtime {
       const captureIO = { ...isolateIO(io), stdout: this.budget.sink(capture, this.signal) };
       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
       state.status = state.substitutionStatus;
-      return new TextDecoder().decode(capture.bytes()).replace(/\0/gu, "").replace(/\n+$/u, "");
+      const bytes = capture.bytes();
+      if (bytes.includes(0)) await writeText(io.stderr, `shell: line ${part.line}: warning: command substitution: ignored null byte in input\n`);
+      return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)
       : part.name === "#" ? String(state.positional.length)

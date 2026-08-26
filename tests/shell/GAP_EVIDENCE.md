@@ -86,6 +86,14 @@ advance an enclosing descriptor's offset. NUL removal precedes newline trimming.
 Substitution status is visible to subsequent expansions in the same command,
 as observed with `false; printf '<%s>:%s' "$(<input)" "$?"` (status field 0).
 Target errors terminate the substitution environment, not the outer shell.
+The modern follow-up emits the captured GNU 5.3 ignored-NUL warning once per
+substitution, with its source line; the original GNU 3.2 warning-free reference
+remains active and unchanged. NUL removal now occurs on bytes before UTF-8
+decoding and trailing-newline removal. Ordinary binary pipelines are unchanged.
+The independently captured GNU 5.3 directory-only shortcut on this macOS host
+returns empty text/status 0 without a diagnostic; the shortcut follows that
+captured behavior while ordinary input redirects retain their directory check.
+This is not a cross-platform directory-read guarantee.
 
 ## Pathname classes and pattern cancellation
 

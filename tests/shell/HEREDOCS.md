@@ -29,10 +29,13 @@ redirection; normal word-expansion fatal scope remains unchanged.
 
 These are UTF-8 **string** constructs, not arbitrary binary literals. Source
 and environment NUL are rejected. Command substitution decodes with
-`TextDecoder`, replaces invalid UTF-8, removes NUL, and strips trailing LF;
+`TextDecoder`, replaces invalid UTF-8, removes NUL bytes before decoding, and strips trailing LF;
 document input is re-encoded as UTF-8. Literal non-ASCII text is preserved,
 but non-UTF-8 substitution output is not byte-preserving. Ordinary command
 streams still use `Uint8Array` unchanged.
+GNU 5.3 ignored-NUL diagnostics are now emitted once per substitution. Original
+Bash 3.2 warning-free raw references are retained. Invalid UTF-8 replacement is
+an existing, explicit string-model boundary, not byte-preserving Bash parity.
 
 The existing limits apply without new public API: `maxSourceBytes` bounds the
 whole source, `maxExpansionBytes` and `maxExpansionFields` bound individual

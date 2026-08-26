@@ -61,3 +61,24 @@ test("file shortcut fatal target expansion stops only the substitution", async (
   assert.match(result.stderr, /stop/u);
   await fs.stat("/after");
 });
+
+test("GNU 5.3 directory-only substitution returns empty success", async () => {
+  const { shell, fs } = setup();
+  await fs.mkdir("/folder");
+  await fs.writeFile("/folder/child", new TextEncoder().encode("kept"));
+  const result = await shell.exec('value=$(<folder); args "$value" "$?"; : >after');
+  assert.equal(result.stdout, '["","0"]');
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/folder/child")), "kept");
+  await fs.stat("/after");
+});
+
+test("GNU 5.3 NUL substitution warning is once per capture with its source line", async () => {
+  const { shell, fs } = setup();
+  await fs.writeFile("/input", new TextEncoder().encode("a\0b\0\n"));
+  const result = await shell.exec(':\nvalue=$(<input); args "$value" "$?"');
+  assert.equal(result.stdout, '["ab","0"]');
+  assert.equal(result.stderr, "shell: line 2: warning: command substitution: ignored null byte in input\n");
+  assert.equal(result.exitCode, 0);
+});

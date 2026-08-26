@@ -103,7 +103,7 @@ export async function diagnostic(context: CommandContext, error: unknown): Promi
   await context.stderr.write(encoder.encode(`${context.command}: ${error instanceof Error ? error.message : String(error)}\n`));
 }
 
-export function define(name: string, handler: CommandHandler): CommandDefinition {
+export function define(name: string, handler: CommandHandler, failureCode = 1): CommandDefinition {
   return {
     name,
     async execute(context) {
@@ -112,7 +112,7 @@ export function define(name: string, handler: CommandHandler): CommandDefinition
       catch (error) {
         context.signal.throwIfAborted();
         await diagnostic(context, error);
-        return { exitCode: error instanceof UsageError ? 2 : 1 };
+        return { exitCode: error instanceof UsageError ? 2 : failureCode };
       }
     },
   };

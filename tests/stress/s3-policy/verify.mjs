@@ -12,7 +12,9 @@ const { values } = parseArgs({ options: {
   revision: { type: "string", default: "HEAD" },
   output: { type: "string", default: "/tmp/safe-bash-s3-policy.json" },
   repeat: { type: "string", default: "1" },
+  suite: { type: "string", default: "policy" },
 } });
+assert.ok(values.suite === "policy" || values.suite === "bounded");
 const repeat = Number(values.repeat);
 assert.ok(Number.isInteger(repeat) && repeat >= 1 && repeat <= 100);
 const digest = value => createHash("sha256").update(value).digest("hex");
@@ -26,13 +28,20 @@ for (const file of ["package.json", "package-lock.json"]) {
   assert.equal(manifests[file], digest(readFileSync(join(root, file))), `cached dependencies differ: ${file}`);
 }
 symlinkSync(join(root, "node_modules"), join(directory, "node_modules"), "dir");
-const testPath = "tests/stress/s3-policy/rename.test.ts";
+const testPath = `tests/stress/s3-policy/${values.suite === "bounded" ? "bounded-races" : "rename"}.test.ts`;
 const tests = readFileSync(join(root, testPath));
 mkdirSync(dirname(join(directory, testPath)), { recursive: true });
 writeFileSync(join(directory, testPath), tests);
-const observationPath = "tests/stress/s3-policy/observe.ts";
+const observationPath = `tests/stress/s3-policy/${values.suite === "bounded" ? "bounded-observe" : "observe"}.ts`;
 const observationBytes = readFileSync(join(root, observationPath));
 writeFileSync(join(directory, observationPath), observationBytes);
+const helperHashes = {};
+if (values.suite === "bounded") {
+  const helperPath = "tests/stress/s3-policy/profile-fixture.ts";
+  const helper = readFileSync(join(root, helperPath));
+  writeFileSync(join(directory, helperPath), helper);
+  helperHashes[helperPath] = digest(helper);
+}
 const sourceHashes = {};
 for (const file of ["filesystem.ts", "mock.ts", "transport.ts", "index.ts"]) {
   sourceHashes[file] = digest(readFileSync(join(directory, "src/fs/s3", file)));
@@ -51,6 +60,7 @@ const report = {
   schemaVersion: 1, createdAt: new Date().toISOString(), node: process.version,
   snapshot: { revision, directory, archiveSha256: digest(archive), sourceHashes, manifests },
   testOverlay: { path: testPath, sha256: digest(tests), source: "current owned test only; all product source from archived revision" },
+  helperHashes,
   limitations: { path: observationPath, sha256: digest(observationBytes), exitCode: observed.status, stdout: observed.stdout, stderr: observed.stderr },
   command: [process.execPath, ...command], runs,
   claims: { providerCredentialsUsed: false, productionAdapterEdited: false, globalSuiteRun: false, atomicRenameGuaranteed: false },

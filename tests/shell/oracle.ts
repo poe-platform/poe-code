@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { CommandRegistry, dirname, resolvePath } from "../../src/contracts/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
+import { createTextProgramCommands } from "../../src/commands/text-programs/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
@@ -38,7 +39,7 @@ for (const fixture of corpus.fixtures) {
     await fs.mkdir(dirname(path), { recursive: true });
     await fs.writeFile(path, encoder.encode(content));
   }
-  const commands = new CommandRegistry(createStandardCommands());
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
   const shell = new Shell({ fs, commands });
   const differences: Record<string, unknown> = {};
   try {

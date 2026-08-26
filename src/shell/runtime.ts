@@ -124,6 +124,7 @@ interface IO {
   readonly stdin: ByteSource;
   readonly stdout: ByteSink;
   readonly stderr: ByteSink;
+  readonly descriptors?: ReadonlyMap<number, Descriptor>;
 }
 
 interface Descriptor {
@@ -233,6 +234,7 @@ export class Runtime {
         } };
         try {
           return await interruptible(runtime.runCommandIsolated(command, cloneState(state), {
+            ...io,
             stdin: input,
             stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
             stderr: signalSink(io.stderr, signal),
@@ -341,15 +343,20 @@ export class Runtime {
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>): Promise<IO> {
     const descriptors = new Map<number, Descriptor>([
+      ...io.descriptors ?? [],
       [0, { input: io.stdin }], [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
+    if (io.stdin === closedSource) descriptors.delete(0);
+    if (io.stdout === closedSink) descriptors.delete(1);
+    if (io.stderr === closedSink) descriptors.delete(2);
     const currentIO = (): IO => ({
       stdin: descriptors.get(0)?.input ?? closedSource,
       stdout: descriptors.get(1)?.output ?? closedSink,
       stderr: descriptors.get(2)?.output ?? closedSink,
+      descriptors,
     });
     try { for (const redirect of redirects) {
-      const targets = await this.word(redirect.target, state, io);
+      const targets = await this.word(redirect.target, state, currentIO());
       if (targets.length !== 1) throw new Error("Ambiguous redirect");
       const target = targets[0]!;
       if (redirect.operator.endsWith("&")) {
@@ -559,6 +566,7 @@ export class Runtime {
     child.locals = [];
     const input = options.stdin ? new ShellInput(options.stdin, this.budget, this.signal) : undefined;
     const io = {
+      ...context,
       stdin: input ?? context.stdin,
       stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
       stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,

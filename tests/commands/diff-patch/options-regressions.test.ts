@@ -16,7 +16,7 @@ const contextCases = [
   { flags: ["-u", "-U0"], expected: zeroContext },
   { flags: ["--unified", "--unified=1"], expected: oneContext },
   { flags: ["-U0", "-u", "-U1", "--unified"], expected: oneContext },
-  { flags: [], expected: defaultContext },
+  { flags: [], expected: "1c1\n< a\n---\n> A\n7c7\n< g\n---\n> G\n" },
   { flags: ["-u"], expected: defaultContext },
   { flags: ["--unified"], expected: defaultContext },
   { flags: ["-ru"], expected: defaultContext },

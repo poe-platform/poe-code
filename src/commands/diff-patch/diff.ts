@@ -1,7 +1,9 @@
 import { basename, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
+import { normal, type Edit } from "./diff-format.js";
 
 interface DiffFlags {
+  format: "normal" | "unified";
   context: number;
   brief: boolean;
   recursive: boolean;
@@ -11,7 +13,12 @@ interface DiffFlags {
 }
 
 function flags(args: readonly string[]): DiffFlags {
-  const result: DiffFlags = { context: 3, brief: false, recursive: false, newFile: false, labels: [], files: [] };
+  const result: DiffFlags = { format: "normal", context: 3, brief: false, recursive: false, newFile: false, labels: [], files: [] };
+  let selectedFormat: DiffFlags["format"] | undefined;
+  const selectFormat = (format: DiffFlags["format"]) => {
+    if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
+    selectedFormat = result.format = format;
+  };
   let operands = false;
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]!;
@@ -25,20 +32,21 @@ function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--brief") result.brief = true;
     else if (arg === "--recursive") result.recursive = true;
     else if (arg === "--new-file") result.newFile = true;
-    else if (arg === "--unified") continue;
-    else if (arg.startsWith("--unified=")) result.context = integer(arg.slice(10), "context");
+    else if (arg === "--normal") selectFormat("normal");
+    else if (arg === "--unified") selectFormat("unified");
+    else if (arg.startsWith("--unified=")) { selectFormat("unified"); result.context = integer(arg.slice(10), "context"); }
     else if (arg === "--label" || arg.startsWith("--label=")) result.labels.push(value(arg.includes("=") ? arg.slice(8) : undefined, "--label"));
     else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
     else {
       for (let offset = 1; offset < arg.length; offset++) {
         const flag = arg[offset]!;
-        if (flag === "u") continue;
+        if (flag === "u") selectFormat("unified");
         else if (flag === "q") result.brief = true;
         else if (flag === "r") result.recursive = true;
         else if (flag === "N") result.newFile = true;
         else if (flag === "U" || flag === "L") {
           const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
-          if (flag === "U") result.context = integer(parameter, "context");
+          if (flag === "U") { selectFormat("unified"); result.context = integer(parameter, "context"); }
           else result.labels.push(parameter);
           break;
         } else throw new ToolError(`unsupported option: -${flag}`);
@@ -52,8 +60,6 @@ function flags(args: readonly string[]): DiffFlags {
   }
   return result;
 }
-
-interface Edit { readonly kind: " " | "+" | "-"; readonly line: string }
 
 async function edits(oldLines: string[], newLines: string[], budget: Budget): Promise<Edit[]> {
   let prefix = 0;
@@ -103,8 +109,7 @@ function range(start: number, count: number): string {
   return count === 0 ? `${start},0` : count === 1 ? `${start + 1}` : `${start + 1},${count}`;
 }
 
-async function unified(oldText: string, newText: string, oldLabel: string, newLabel: string, context: number, budget: Budget, append: (text: string) => void): Promise<void> {
-  const changes = await edits(budget.split(oldText), budget.split(newText), budget);
+async function unified(changes: readonly Edit[], oldLabel: string, newLabel: string, context: number, budget: Budget, append: (text: string) => void): Promise<void> {
   append(`--- ${oldLabel}\n+++ ${newLabel}\n`);
   let scan = 0;
   let oldPosition = 0;
@@ -206,7 +211,11 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (oldText === newText) continue;
     different = true;
     if (options.brief) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
-    else await unified(oldText, newText, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
+    else {
+      const changes = await edits(budget.split(oldText), budget.split(newText), budget);
+      if (options.format === "normal") await normal(changes, budget, append);
+      else await unified(changes, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
+    }
   }
   await writeBytes(context.stdout, Buffer.from(pieces.join("")), context.signal);
   return different ? 1 : 0;

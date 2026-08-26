@@ -69,7 +69,7 @@ test("recursive order is deterministic and nonrecursive subdirectories stay unvi
 });
 
 test("file-directory matching uses the file basename", async () => {
-  const result = await run("diff", ["file", "directory"], { files: { file: "old\n", "directory/file": "new\n" } });
+  const result = await run("diff", ["-u", "file", "directory"], { files: { file: "old\n", "directory/file": "new\n" } });
   assert.equal(result.exitCode, 1);
   assert.match(result.stdout, /\+\+\+ directory\/file/u);
 });

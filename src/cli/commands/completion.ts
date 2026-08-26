@@ -1,4 +1,4 @@
-import { Argument, type Command } from "commander";
+import { Argument, type Command, type Option } from "commander";
 import { setHelpGuidance } from "./help-guidance.js";
 
 const SHELLS = ["bash", "zsh", "fish"] as const;
@@ -22,6 +22,7 @@ interface CompletionNode {
   path: string[];
   children: CompletionChild[];
   options: CompletionOption[];
+  requiredValueFlags: string[];
 }
 
 function isVisible(command: Command): boolean {
@@ -40,13 +41,26 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
   const options = command.options
     .filter((option) => !option.hidden && option.long !== undefined)
     .map((option) => ({ flag: option.long!, description: option.description }));
+  const optionsByFlag = new Map<string, Option>();
+  for (let current: Command | null = command; current; current = current.parent) {
+    for (const option of current.options) {
+      for (const flag of [option.long, option.short]) {
+        if (flag !== undefined && !optionsByFlag.has(flag)) {
+          optionsByFlag.set(flag, option);
+        }
+      }
+    }
+  }
+  const requiredValueFlags = [...optionsByFlag]
+    .filter(([, option]) => option.required && !option.variadic)
+    .map(([flag]) => flag);
 
-  if (children.length === 0 && options.length === 0) {
+  if (children.length === 0 && options.length === 0 && requiredValueFlags.length === 0) {
     return [];
   }
 
   return [
-    { path, children, options },
+    { path, children, options, requiredValueFlags },
     ...command.commands
       .filter(isVisible)
       .flatMap((child) =>
@@ -64,6 +78,14 @@ function completionWords(node: CompletionNode): string[] {
   ];
 }
 
+function renderValueFlagCases(nodes: CompletionNode[]): string[] {
+  return nodes
+    .filter((node) => node.requiredValueFlags.length > 0)
+    .map((node) =>
+      `      ${node.requiredValueFlags.map((flag) => `"${node.path.join(" ")}:${flag}"`).join("|")}) expecting_value=1; continue;;`
+    );
+}
+
 function renderBash(nodes: CompletionNode[]): string {
   const cases = nodes.map(
     (node) => `    "${node.path.join(" ")}") completions="${completionWords(node).join(" ")}";;`
@@ -71,15 +93,24 @@ function renderBash(nodes: CompletionNode[]): string {
   return [
     "# poe-code bash completion. Install with: eval \"$(poe-code completion bash)\"",
     "_poe_code_complete() {",
-    "  local current key word index",
+    "  local current key word index expecting_value",
     "  COMPREPLY=()",
     '  current="${COMP_WORDS[COMP_CWORD]}"',
     '  key=""',
+    "  expecting_value=0",
     "  for (( index=1; index < COMP_CWORD; index++ )); do",
     '    word="${COMP_WORDS[index]}"',
+    "    if (( expecting_value )); then",
+    "      expecting_value=0",
+    "      continue",
+    "    fi",
+    '    case "$key:$word" in',
+    ...renderValueFlagCases(nodes),
+    "    esac",
     '    [[ "$word" == -* ]] && continue',
     '    key="${key:+$key }$word"',
     "  done",
+    "  (( expecting_value )) && return",
     "  local completions",
     '  case "$key" in',
     ...cases,
@@ -100,12 +131,22 @@ function renderZsh(nodes: CompletionNode[]): string {
     "#compdef poe-code poe",
     '# poe-code zsh completion. Install with: eval "$(poe-code completion zsh)"',
     "_poe_code() {",
-    "  local key word",
+    "  local key word index expecting_value",
     '  key=""',
-    "  for word in ${words[2,$((CURRENT - 1))]}; do",
-    "    [[ $word == -* ]] && continue",
+    "  expecting_value=0",
+    "  for (( index=2; index < CURRENT; index++ )); do",
+    '    word="${words[index]}"',
+    "    if (( expecting_value )); then",
+    "      expecting_value=0",
+    "      continue",
+    "    fi",
+    '    case "$key:$word" in',
+    ...renderValueFlagCases(nodes),
+    "    esac",
+    '    [[ "$word" == -* ]] && continue',
     '    key="${key:+$key }$word"',
     "  done",
+    "  (( expecting_value )) && return",
     "  local -a completions",
     '  case "$key" in',
     ...cases,

@@ -42,7 +42,33 @@ function createFixtureProgram(): Command {
   return program;
 }
 
-async function emitCompletion(shell: string): Promise<string> {
+function createRequiredValueProgram(): Command {
+  const program = new Command()
+    .name("poe-code")
+    .option("-g, --profile <name>", "Profile.")
+    .option("-b, --boolean", "Boolean control.");
+  const plan = program
+    .command("plan")
+    .aliases(["plans", "p"])
+    .option("-k, --kind <kind>", "Plan kind.")
+    .option("-o, --optional [value]", "Optional value.")
+    .option("-v, --many <values...>", "Variadic values.")
+    .option("-x <value>", "Short-only value.")
+    .addOption(new Option("--hidden-value <value>").hideHelp());
+  plan.command("browse").option("--browse-only", "Browse control.");
+  plan
+    .command("open")
+    .aliases(["view", "show"])
+    .option("-e, --editor <name>", "Editor.");
+  program.command("agent").option("--agent-only <value>", "Unrelated value.");
+  registerCompletionCommand(program);
+  return program;
+}
+
+async function emitCompletion(
+  shell: string,
+  program: Command = createFixtureProgram()
+): Promise<string> {
   const chunks: string[] = [];
   const stdoutWrite = vi
     .spyOn(process.stdout, "write")
@@ -50,7 +76,6 @@ async function emitCompletion(shell: string): Promise<string> {
       chunks.push(String(chunk));
       return true;
     }) as unknown as typeof process.stdout.write);
-  const program = createFixtureProgram();
   for (const command of [program, ...program.commands]) {
     command.exitOverride();
     command.configureOutput({ writeOut: () => {}, writeErr: () => {} });
@@ -169,6 +194,161 @@ describe("completion command", () => {
     expect(script).toContain(
       "complete -c poe-code -n \"__fish_seen_subcommand_from agent\" -a 'list' -d 'List agents.'"
     );
+  });
+
+  describe.each(["bash", "zsh"])("%s required single-value options", (shell) => {
+    it.each([
+      "",
+      ...["plan", "plans", "p"],
+      ...["plan", "plans", "p"].flatMap((parent) =>
+        ["open", "view", "show"].map((child) => `${parent} ${child}`)
+      )
+    ])("keeps global value flags available at path '%s'", async (path) => {
+      const script = await emitCompletion(shell, createRequiredValueProgram());
+
+      expect(script).toContain(`"${path}:--profile"`);
+      expect(script).toContain(`"${path}:-g"`);
+      expect(script).not.toContain(`"${path}:--agent-only"`);
+    });
+
+    it.each(["plan", "plans", "p"])(
+      "scopes local and inherited required flags under %s",
+      async (parent) => {
+        const script = await emitCompletion(shell, createRequiredValueProgram());
+
+        for (const flag of ["--kind", "-k", "--hidden-value", "-x"]) {
+          expect(script).toContain(`"${parent}:${flag}"`);
+          expect(script).not.toContain(`":${flag}"`);
+          expect(script).not.toContain(`"agent:${flag}"`);
+          for (const child of ["open", "view", "show"]) {
+            expect(script).toContain(`"${parent} ${child}:${flag}"`);
+          }
+        }
+        for (const flag of ["--editor", "-e"]) {
+          expect(script).not.toContain(`"${parent}:${flag}"`);
+          expect(script).not.toContain(`"${parent} browse:${flag}"`);
+          for (const child of ["open", "view", "show"]) {
+            expect(script).toContain(`"${parent} ${child}:${flag}"`);
+          }
+        }
+      }
+    );
+
+    it.each([
+      { flags: "--profile", required: ["-g"], excluded: ["--profile"] },
+      { flags: "-g", required: ["--profile"], excluded: ["-g"] },
+      { flags: "-g, --profile", required: [], excluded: ["--profile", "-g"] },
+      { flags: "-g, --profile [name]", required: [], excluded: ["--profile", "-g"] },
+      { flags: "-g, --profile <names...>", required: [], excluded: ["--profile", "-g"] },
+      { flags: "-g, --profile [names...]", required: [], excluded: ["--profile", "-g"] }
+    ])("resolves spelling precedence before filtering $flags", async ({ flags, required, excluded }) => {
+      const program = createRequiredValueProgram();
+      program.commands.find((command) => command.name() === "plan")!.option(flags);
+      const script = await emitCompletion(shell, program);
+
+      for (const path of ["plan", "plans", "plan open", "plans show"]) {
+        for (const flag of required) {
+          expect(script).toContain(`"${path}:${flag}"`);
+        }
+        for (const flag of excluded) {
+          expect(script).not.toContain(`"${path}:${flag}"`);
+          expect(script).toContain(`":${flag}"`);
+        }
+      }
+    });
+
+    it("lets the nearest required option override an ancestor boolean", async () => {
+      const program = createRequiredValueProgram();
+      const plan = program.commands.find((command) => command.name() === "plan")!;
+      plan.option("-g, --profile");
+      plan.commands.find((command) => command.name() === "open")!.option("-g, --profile <name>");
+      const script = await emitCompletion(shell, program);
+
+      for (const flag of ["--profile", "-g"]) {
+        expect(script).not.toContain(`"plan:${flag}"`);
+        expect(script).toContain(`"plan open:${flag}"`);
+        expect(script).toContain(`"plans show:${flag}"`);
+      }
+    });
+
+    it("retains value metadata for leaves with no visible long options", async () => {
+      const program = createRequiredValueProgram();
+      program
+        .command("leaf")
+        .option("-q <value>")
+        .addOption(new Option("--hidden-leaf <value>").hideHelp());
+      const script = await emitCompletion(shell, program);
+
+      for (const flag of ["-q", "--hidden-leaf", "-g", "--profile"]) {
+        expect(script).toContain(`"leaf:${flag}"`);
+      }
+    });
+
+    it("consumes one pending value before interpreting command-looking or leading-dash words", async () => {
+      const script = await emitCompletion(shell, createRequiredValueProgram());
+
+      expect(script).toContain('  expecting_value=0\n');
+      expect(script).toContain([
+        shell === "bash" ? '    word="${COMP_WORDS[index]}"' : '    word="${words[index]}"',
+        "    if (( expecting_value )); then",
+        "      expecting_value=0",
+        "      continue",
+        "    fi",
+        '    case "$key:$word" in'
+      ].join("\n"));
+      expect(script).toContain('"plan:--kind"|"plan:-k"');
+      expect(script).toContain(') expecting_value=1; continue;;');
+      expect(script).toContain([
+        "    esac",
+        '    [[ "$word" == -* ]] && continue',
+        '    key="${key:+$key }$word"'
+      ].join("\n"));
+    });
+
+    it("returns without command candidates while a required value is pending", async () => {
+      const script = await emitCompletion(shell, createRequiredValueProgram());
+
+      expect(script).toContain("  done\n  (( expecting_value )) && return\n  local");
+      if (shell === "bash") {
+        expect(script).toContain("  COMPREPLY=()");
+      }
+    });
+
+    it("does not consume following words for inline, attached, boolean, optional, variadic, or clustered flags", async () => {
+      const script = await emitCompletion(shell, createRequiredValueProgram());
+
+      for (const flag of [
+        "--kind=pipeline", "-kpipeline", "--profile=work", "-gwork", "--editor=vim", "-evim",
+        "--boolean", "-b", "--optional", "-o", "--many", "-v", "-bk"
+      ]) {
+        for (const path of ["", "plan", "plans", "plan open", "plans show"]) {
+          expect(script).not.toContain(`"${path}:${flag}"`);
+        }
+      }
+      const valueCases = script.split('    case "$key:$word" in\n')[1]?.split("    esac")[0];
+      expect(valueCases).toBeDefined();
+      expect(valueCases).not.toContain("*");
+    });
+
+    it("keeps hidden and short-only value flags out of candidate lists", async () => {
+      const script = await emitCompletion(shell, createRequiredValueProgram());
+
+      expect(script).toContain(
+        shell === "bash"
+          ? '"plan") completions="browse open view show --kind --optional --many";;'
+          : '"plan") completions=(browse open view show --kind --optional --many);;'
+      );
+    });
+  });
+
+  it("leaves fish output unchanged when hidden and short-only required flags are added", async () => {
+    const program = createFixtureProgram();
+    const before = await emitCompletion("fish", program);
+    program.commands.find((command) => command.name() === "plan")!
+      .option("-x <value>")
+      .addOption(new Option("--hidden-value <value>").hideHelp());
+
+    expect(await emitCompletion("fish", program)).toBe(before);
   });
 
   it("rejects an unsupported shell", async () => {

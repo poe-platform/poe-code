@@ -1,0 +1,89 @@
+{
+  "date": "2026-08-26",
+  "sourceCommit": "6e1240ef82679996c2a6ba9a3566ec6a38f6e5a9",
+  "sourceTree": "72d66a91d7fd8cab320685b79469b2e31e6c2edb",
+  "baselineCommit": "b92841a8ceaba9fb1f9c8c7915e218f880a9d1ed",
+  "snapshot": "/tmp/safe-bash-diff-empty-Fghod8",
+  "verifiedUnchangedTrackedBlobs": 545,
+  "dependencySymlink": "/Users/kjopek/Workspace/safe-bash/node_modules",
+  "node": "v22.22.2",
+  "platform": "darwin/arm64",
+  "overlay": "Only NEW tests/commands/diff-patch-stress/emptyfile-delta; no source or existing-test modifications",
+  "independent": {
+    "total": 89,
+    "pass": 89,
+    "fail": 0,
+    "failures": []
+  },
+  "authorDefaultNative": {
+    "total": 829,
+    "pass": 825,
+    "fail": 4,
+    "failures": [
+      "whitespace native exact bytes: all C-locale whitespace, all, --normal",
+      "whitespace native exact bytes: all C-locale whitespace, all, -u",
+      "whitespace preserves original bodies and both context sides: -b, unified",
+      "whitespace context preserves per-side incomplete-line markers and native parity"
+    ]
+  },
+  "authorGnuWhitespace": {
+    "total": 829,
+    "pass": 829,
+    "fail": 0,
+    "failures": []
+  },
+  "safety": {
+    "total": 151,
+    "pass": 151,
+    "fail": 0,
+    "failures": []
+  },
+  "independentNative": {
+    "total": 27,
+    "statusAndTargetMatches": 27,
+    "parentDirectoryPruningDifferences": 6,
+    "rejectFileDifferences": 4,
+    "overlapsIndependentDenominator": true
+  },
+  "authorReference": {
+    "total": 156,
+    "pass": 156,
+    "independent": false
+  },
+  "strictSelectedTypecheck": {
+    "exitCode": 0,
+    "includes": [
+      "new independent tests and driver",
+      "author diff-patch tests and driver",
+      "safety tests",
+      "transitive public root source"
+    ]
+  },
+  "build": {
+    "exitCode": 0,
+    "location": "frozen snapshot only"
+  },
+  "builtPublicApi": {
+    "exitCode": 0,
+    "checks": [
+      "package root import",
+      "remove-empty",
+      "create into existing empty target"
+    ]
+  },
+  "hashes": {
+    "independent.tap": "2a8a805132b8388cbb6f0195d44f1830da9c12e76534a19a2a3d1cc350452867",
+    "author.tap": "b1730b3dca8c9b34cc45e059da8b57bb55b1cd32439db4f3f4a73d97f870fed2",
+    "author-gnu-whitespace.tap": "92a44f69e2c6835b83a0304a02ed08e445321e50736528d6caba72698d27c45c",
+    "safety.tap": "46f6049074fe69457b53b5b8f464d68e099f36b7243908ec13c5c536c2e3782c",
+    "author-reference.json": "0e83c085e7a1ad24eaac5cabb77e8c1a7680a812cd23429f45e8e36cac3d6685",
+    "native-evidence.json": "577bd8f1a1f9aa958e93b4cf4fa134a4a141eecb17f9cff930fcb8e1b2708331",
+    "selected-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.log": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+    "public-api.log": "8c65b5ff38c017ff4f5210f695c899e51c5b76c11bb1052df5bdfbaed569c4a9",
+    "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts": "60689054d52a744d68847acbc1cc14aaac7d90041c4b219e8cc46156a4379048",
+    "tests/commands/diff-patch-stress/emptyfile-delta/helpers.ts": "bfd6ed6e38e340a2cb8a6705791e10cccdcfd6a3ea7e82a7425fa784fbef46f2",
+    "tests/commands/diff-patch-stress/emptyfile-delta/native.ts": "31116c8202d58e6e6d1885faef5bab3b7f851168fff476187a2ece947d606f3a",
+    "tests/commands/diff-patch-stress/emptyfile-delta/vectors.ts": "f71fc72f84dcc8a18b2b520fc006ecb6f1851ca8e83ee15784704b7d566aa4bb"
+  }
+}

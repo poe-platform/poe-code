@@ -5,10 +5,10 @@ import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch, type PatchFormat } from "./patch-formats.js";
 
-interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; ignoreWhitespace: boolean; format?: PatchFormat; target?: string }
+interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
 
 function flags(args: readonly string[]): PatchFlags {
-  const result: PatchFlags = { strip: 0, input: "-", reverse: false, dryRun: false, fuzz: 0, ignoreWhitespace: false };
+  const result: PatchFlags = { strip: 0, input: "-", reverse: false, dryRun: false, fuzz: 0, ignoreWhitespace: false, removeEmpty: false };
   const operands: string[] = [];
   const select = (format: PatchFormat) => {
     if (result.format && result.format !== format) throw new ToolError("conflicting patch format options");
@@ -26,6 +26,7 @@ function flags(args: readonly string[]): PatchFlags {
     else if (arg === "--") literal = true;
     else if (arg === "--dry-run") result.dryRun = true;
     else if (arg === "--reverse") result.reverse = true;
+    else if (arg === "--remove-empty-files") result.removeEmpty = true;
     else if (arg === "--ignore-whitespace" || arg === "--ignore-white-space") result.ignoreWhitespace = true;
     else if (arg === "--unified") select("unified");
     else if (arg === "--context") select("context");
@@ -40,6 +41,7 @@ function flags(args: readonly string[]): PatchFlags {
     else for (let offset = 1; offset < arg.length; offset++) {
       const flag = arg[offset]!;
       if (flag === "R") result.reverse = true;
+      else if (flag === "E") result.removeEmpty = true;
       else if (flag === "l") result.ignoreWhitespace = true;
       else if (flag === "u") select("unified");
       else if (flag === "c") select("context");
@@ -104,15 +106,15 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const newEmpty = patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0);
     const creation = oldName === undefined || (oldEmpty && !exists);
     const remove = newName === undefined || (patch.newEpoch && newEmpty);
-    if (creation && exists) throw new ToolError(`creation target already exists: ${path}`, 1);
     if (!creation && !exists) throw new ToolError(`patch target does not exist: ${path}`, 1);
     if (creation && patch.hunks.some(hunk => hunk.oldCount !== 0 || hunk.oldStart !== 0)) throw new ToolError("creation patch contains old content");
     const original = prior ? prior.original : stat ? await budget.read(path) : undefined;
     const current = prior ? prior.remove ? "" : prior.result : original ?? "";
+    if (creation && exists && current !== "") throw new ToolError(`creation target already exists: ${path}`, 1);
     if (patch.oldEpoch && oldEmpty && current !== "") throw new ToolError(`creation target already exists: ${path}`, 1);
     const result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace);
     if (remove && result !== "") throw new ToolError(`deletion patch leaves content: ${path}`, 1);
-    staged.set(path, { path, original, result, remove });
+    staged.set(path, { path, original, result, remove: remove || (options.removeEmpty && result === "") });
   }
   const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
   const status = prepared.map(item => `${options.dryRun ? "checking" : "patching"} file ${item.path}\n`).join("");

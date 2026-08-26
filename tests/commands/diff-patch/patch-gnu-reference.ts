@@ -65,6 +65,38 @@ for (const [format, input] of [
   await compare(`${format}/explicit-absolute`, input, "old\n", ["/work/target"], "new\n");
   await compare(`${format}/explicit-absolute-reverse`, input, "new\n", ["-R", "/work/target"], "old\n");
 }
+const formats = {
+  normal: "1c1\n< old\n---\n> new\n",
+  context: "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+  unified: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+};
+for (const [format, input] of Object.entries(formats)) for (const fileCR of [false, true]) {
+  const data = fileCR ? input.replace("old\n", "old\r\n").replace("new\n", "new\r\n") : input;
+  await compare(`${format}/transport/fileCR=${fileCR}`, data.replaceAll("\n", "\r\n"),
+    fileCR ? "old\r\n" : "old\n", ["/work/target"], fileCR ? "new\r\n" : "new\n");
+}
+for (const sequence of [["normal", "context"], ["context", "unified"], ["unified", "normal"], ["context", "normal", "unified"]] as const) {
+  const input = sequence.map((format, index) => formats[format].replace("old\n", `value${index}\n`)
+    .replace("new\n", `value${index + 1}\n`)).join("");
+  await compare(`mixed/${sequence.join("/")}`, input, "value0\n", ["/work/target"], `value${sequence.length}\n`);
+}
+const deletions = {
+  normal: "1d0\n< old\n",
+  context: "*** target\n--- target\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+  unified: "--- target\n+++ target\n@@ -1 +0,0 @@\n-old\n",
+};
+for (const [format, input] of Object.entries(deletions)) for (const flag of ["-E", "--remove-empty-files"]) {
+  await compare(`${format}/${flag}`, input, "old\n", [flag, "/work/target"], undefined);
+  await compare(`${format}/${flag}/dry-run`, input, "old\n", [flag, "--dry-run", "/work/target"], "old\n");
+}
+for (const format of ["context", "unified"] as const) {
+  const input = format === "context" ? deletions[format].replace("--- target", "--- /dev/null")
+    : deletions[format].replace("+++ target", "+++ /dev/null");
+  for (const target of [[], ["/work/target"]]) for (const initial of [undefined, ""]) {
+    await compare(`${format}/null-reverse/${target.length ? "explicit" : "auto"}/${initial === undefined ? "missing" : "empty"}`,
+      input, initial, ["-R", ...target], "old\n");
+  }
+}
 console.log(JSON.stringify({ version: version.stdout.split("\n")[0], binary,
   binarySha256: createHash("sha256").update(await readFile(binary)).digest("hex"),
   assertions: "exit status and exact target bytes/existence; diagnostics recorded, not compared", total: results.length, results }, null, 2));

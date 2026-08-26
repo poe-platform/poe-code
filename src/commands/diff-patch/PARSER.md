@@ -49,3 +49,34 @@ five native-oracle failures, with no product issues in its 76 product fixtures.
 The native failures remain visible: tab-prefix normal, suppressed-blank normal,
 unsafe-integer oracle timeout, generated suppressed-blank normal, and generated
 zero-context middle deletion. All seven required valid-input product cases pass.
+
+## Common empty-file flows
+
+`-E` / `--remove-empty-files` stages removal when a section's result is empty;
+nonempty results remain files. This composes with dry-run, reverse, and sequential
+delete/recreate sections. Without this flag, the existing `/dev/null` and epoch
+deletion rules remain unchanged.
+
+Creation from `/dev/null`, including reversed deletion, accepts an existing empty
+regular target, but rejects an existing nonempty target before writing. Creation
+hunks still require zero old content. Missing targets retain exclusive `wx`
+creation; existing targets retain the original bytes/existence preflight and
+symlink/hardlink guards. The existing backend race caveat is unchanged: portable
+filesystem calls cannot make cross-file commits atomic or eliminate a concurrent
+replacement after validation. A failing backend write may have side effects.
+
+The extended literal-argv GNU patch 2.8 driver passes 156 checks: the original
+126 plus six transport/data-CR cases, four mixed sequences, twelve remove-empty
+checks, and eight reverse `/dev/null` creation checks (missing/existing-empty,
+inferred/explicit target). Every check asserts native status and exact final
+bytes/existence before comparing the product. Native calls use isolated working
+directories, a three-second timeout and bounded output; no native fallback is
+present in shipped implementation. The binary SHA-256 is
+`c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00`.
+
+Primary semantics references consulted on 2026-08-26: GNU Diffutils 3.12 manual,
+“Omitting trailing blanks”, “Multiple Patches in a File”, “Creating and Removing
+Files”, and “patch Options”; POSIX `patch` DESCRIPTION and Patch File Format.
+These define the intended formats/options, not a claim that GNU accepts every
+generated input. Transport decisions are additionally grounded in the exact
+native cases rather than a universal CRLF compatibility assertion.

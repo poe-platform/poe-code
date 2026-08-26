@@ -1,0 +1,5243 @@
+{
+  "role": "expectation editor/author, not independent reviewer",
+  "pins": [
+    {
+      "profile": "gnu",
+      "tool": "diff",
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+      "dialect": "gnu",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+    },
+    {
+      "profile": "gnu",
+      "tool": "patch",
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    {
+      "profile": "apple-calibration",
+      "tool": "diff",
+      "path": "/usr/bin/diff",
+      "realpath": "/usr/bin/diff",
+      "version": "Apple diff (based on FreeBSD diff)",
+      "dialect": "bsd",
+      "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+    },
+    {
+      "profile": "apple-calibration",
+      "tool": "patch",
+      "path": "/usr/bin/patch",
+      "realpath": "/usr/bin/patch",
+      "version": "patch 2.0-12u11-Apple",
+      "dialect": "apple-patch-2.0-12u11",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+    }
+  ],
+  "directoryLinkCounts": {
+    "virtual": "2 + immediate child directories",
+    "nativeHost": "2 + all immediate entries, asserted explicitly; not GNU utility dialect behavior",
+    "removedAuthorizedParent": "root 4 -> 3 in both"
+  },
+  "exact": [
+    {
+      "name": "quoted-path security: quoted ancestor symlink",
+      "protectedAliases": false,
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "args": [],
+      "product": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": [
+          {
+            "method": "writeFile",
+            "path": "/work/first",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/target",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-87DGJ0",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-87DGJ0/namespace",
+        "args": [],
+        "originalArgs": [],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file first\npatching file target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 6
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 6
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/target"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+      "protectedAliases": false,
+      "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+      "args": [
+        "--atomic"
+      ],
+      "product": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "patch: hunk 2 does not match target\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": []
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-fGnCHq",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-fGnCHq/namespace",
+        "args": [],
+        "originalArgs": [],
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "exitCode": 1,
+        "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "normalizedStdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 4
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 6
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "Y2hhbmdlZAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          },
+          "/work/target.orig": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target.orig"
+          },
+          "/work/target.rej": {
+            "type": "file",
+            "mode": 33188,
+            "nlink": 1,
+            "bytes": "LS0tIHRhcmdldAorKysgdGFyZ2V0CkBAIC0xICsxIEBACi1vbGQKK290aGVyCg==",
+            "alias": "/work/target.rej"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: normal/-E/apply",
+      "protectedAliases": false,
+      "vector": {
+        "name": "normal/-E/apply",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-gQLKwv",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-gQLKwv/namespace",
+        "args": [
+          "-E",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-gQLKwv/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-gQLKwv/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "protectedAliases": false,
+      "vector": {
+        "name": "normal/--remove-empty-files/apply",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-O80cU8",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-O80cU8/namespace",
+        "args": [
+          "--remove-empty-files",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-O80cU8/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-O80cU8/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: context/-E/apply",
+      "protectedAliases": false,
+      "vector": {
+        "name": "context/-E/apply",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-wCCvKc",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-wCCvKc/namespace",
+        "args": [
+          "-E",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-wCCvKc/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-wCCvKc/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "protectedAliases": false,
+      "vector": {
+        "name": "context/--remove-empty-files/apply",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-NpIOfT",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-NpIOfT/namespace",
+        "args": [
+          "--remove-empty-files",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-NpIOfT/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-NpIOfT/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: unified/-E/apply",
+      "protectedAliases": false,
+      "vector": {
+        "name": "unified/-E/apply",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-LISQTO",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-LISQTO/namespace",
+        "args": [
+          "-E",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-LISQTO/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-LISQTO/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "protectedAliases": false,
+      "vector": {
+        "name": "unified/--remove-empty-files/apply",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-JGky9A",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-JGky9A/namespace",
+        "args": [
+          "--remove-empty-files",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-JGky9A/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-JGky9A/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 5
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    }
+  ],
+  "controls": [
+    {
+      "name": "quoted-path security: quoted ancestor symlink",
+      "protectedAliases": true,
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "args": [],
+      "product": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": [
+          {
+            "method": "writeFile",
+            "path": "/work/first",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/target",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-yoE2Q7",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-yoE2Q7/namespace",
+        "args": [],
+        "originalArgs": [],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file first\npatching file target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 9
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 9
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/target"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+      "protectedAliases": true,
+      "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+      "args": [
+        "--atomic"
+      ],
+      "product": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "patch: hunk 2 does not match target\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": []
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-kBlbNK",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-kBlbNK/namespace",
+        "args": [],
+        "originalArgs": [],
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "exitCode": 1,
+        "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "normalizedStdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 7
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 9
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "Y2hhbmdlZAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          },
+          "/work/target.orig": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target.orig"
+          },
+          "/work/target.rej": {
+            "type": "file",
+            "mode": 33188,
+            "nlink": 1,
+            "bytes": "LS0tIHRhcmdldAorKysgdGFyZ2V0CkBAIC0xICsxIEBACi1vbGQKK290aGVyCg==",
+            "alias": "/work/target.rej"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "atomic extension malformed missing-new-body is not swallowed after a valid file section",
+      "protectedAliases": false,
+      "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+      "args": [
+        "--atomic"
+      ],
+      "product": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "patch: truncated or malformed hunk body\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": []
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-73epxk",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-73epxk/namespace",
+        "args": [],
+        "originalArgs": [],
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+        "exitCode": 2,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 10:  \n\n",
+        "normalizedStdout": "patching file first\npatching file target\n",
+        "normalizedStderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 10:  \n\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 4
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 4
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "Y2hhbmdlZAo=",
+            "alias": "/work/first"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "atomic extension malformed missing-new-body is not swallowed after a valid file section",
+      "protectedAliases": true,
+      "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+      "args": [
+        "--atomic"
+      ],
+      "product": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "patch: truncated or malformed hunk body\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": []
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-747h3o",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-747h3o/namespace",
+        "args": [],
+        "originalArgs": [],
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+        "exitCode": 2,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 10:  \n\n",
+        "normalizedStdout": "patching file first\npatching file target\n",
+        "normalizedStderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 10:  \n\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 7
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "a2VlcAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 7
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "Y2hhbmdlZAo=",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCm1pZGRsZQp0YWlsCg==",
+            "alias": "/work/target"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: normal/-E/apply",
+      "protectedAliases": true,
+      "vector": {
+        "name": "normal/-E/apply",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-AlJcSD",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-AlJcSD/namespace",
+        "args": [
+          "-E",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-AlJcSD/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-AlJcSD/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "protectedAliases": true,
+      "vector": {
+        "name": "normal/--remove-empty-files/apply",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-42zIiB",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-42zIiB/namespace",
+        "args": [
+          "--remove-empty-files",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-42zIiB/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-42zIiB/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: context/-E/apply",
+      "protectedAliases": true,
+      "vector": {
+        "name": "context/-E/apply",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-eGg7Qm",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-eGg7Qm/namespace",
+        "args": [
+          "-E",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-eGg7Qm/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-eGg7Qm/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "protectedAliases": true,
+      "vector": {
+        "name": "context/--remove-empty-files/apply",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-HRSaut",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-HRSaut/namespace",
+        "args": [
+          "--remove-empty-files",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-HRSaut/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-HRSaut/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: unified/-E/apply",
+      "protectedAliases": true,
+      "vector": {
+        "name": "unified/-E/apply",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "-E",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-fE58lZ",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-fE58lZ/namespace",
+        "args": [
+          "-E",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-fE58lZ/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "-E",
+          "/authorized/target"
+        ],
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-fE58lZ/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "protectedAliases": true,
+      "vector": {
+        "name": "unified/--remove-empty-files/apply",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "initial": "alpha\nbeta\n",
+        "expected": null,
+        "status": 0,
+        "native": true
+      },
+      "product": {
+        "stdout": "patching file /authorized/target\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 112,
+          "1": 97,
+          "2": 116,
+          "3": 99,
+          "4": 104,
+          "5": 105,
+          "6": 110,
+          "7": 103,
+          "8": 32,
+          "9": 102,
+          "10": 105,
+          "11": 108,
+          "12": 101,
+          "13": 32,
+          "14": 47,
+          "15": 97,
+          "16": 117,
+          "17": 116,
+          "18": 104,
+          "19": 111,
+          "20": 114,
+          "21": 105,
+          "22": 122,
+          "23": 101,
+          "24": 100,
+          "25": 47,
+          "26": 116,
+          "27": 97,
+          "28": 114,
+          "29": 103,
+          "30": 101,
+          "31": 116,
+          "32": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0,
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "trace": [
+          {
+            "method": "rm",
+            "path": "/authorized/target",
+            "recursive": false,
+            "signalPresent": true
+          },
+          {
+            "method": "rmdir",
+            "path": "/authorized",
+            "recursive": false,
+            "signalPresent": true
+          }
+        ],
+        "originalObserver": [
+          {
+            "method": "rm",
+            "path": "/authorized/target"
+          }
+        ]
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-E42eqo",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-E42eqo/namespace",
+        "args": [
+          "--remove-empty-files",
+          "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-E42eqo/namespace/authorized/target"
+        ],
+        "originalArgs": [
+          "--remove-empty-files",
+          "/authorized/target"
+        ],
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "exitCode": 0,
+        "stdout": "patching file /tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-E42eqo/namespace/authorized/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file /authorized/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 4
+          },
+          "/authorized": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/authorized/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "YWxwaGEKYmV0YQo=",
+            "alias": "/authorized/target"
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 8
+          },
+          "/work/new-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3IGRlY295Cg==",
+            "alias": "/work/new-label"
+          },
+          "/work/old-label": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkIGRlY295Cg==",
+            "alias": "/work/old-label"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "ZG8gbm90IHRvdWNoCg==",
+            "alias": "/work/sentinel"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "selected quoted ancestor -p0 ordinary",
+      "args": [
+        "-p0"
+      ],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "product": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "patch: symlink paths are unsupported: /work/alias\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": []
+      },
+      "native": {
+        "envelope": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-SXB0SY",
+        "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-native-SXB0SY/namespace",
+        "args": [
+          "-p0"
+        ],
+        "originalArgs": [
+          "-p0"
+        ],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file alias/target\n",
+        "stderr": "",
+        "normalizedStdout": "patching file first\npatching file alias/target\n",
+        "normalizedStderr": "",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 9
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 9
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "bmV3Cg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41453,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "sentinel": "unchanged",
+        "retained": true
+      }
+    },
+    {
+      "name": "selected quoted ancestor -p0 atomic",
+      "args": [
+        "--atomic",
+        "-p0"
+      ],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "product": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "patch: symlink paths are unsupported: /work/alias\n",
+        "before": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "nlink": 3
+          },
+          "/work": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 3
+          },
+          "/work/alias": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "dir"
+          },
+          "/work/dir": {
+            "type": "directory",
+            "mode": 16895,
+            "nlink": 2
+          },
+          "/work/dir/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/dir/target"
+          },
+          "/work/first": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/first"
+          },
+          "/work/proof-hard-alias": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/proof-link": {
+            "type": "symlink",
+            "mode": 41471,
+            "nlink": 1,
+            "link": "proof-sentinel"
+          },
+          "/work/proof-sentinel": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 2,
+            "bytes": "cHJvdGVjdGVkCg==",
+            "alias": "/work/proof-hard-alias"
+          },
+          "/work/target": {
+            "type": "file",
+            "mode": 33206,
+            "nlink": 1,
+            "bytes": "b2xkCg==",
+            "alias": "/work/target"
+          }
+        },
+        "trace": []
+      },
+      "native": null
+    }
+  ],
+  "generation": [
+    {
+      "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-diff-lpziKf",
+      "label": "first",
+      "stdout": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n",
+      "exitCode": 1
+    },
+    {
+      "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-diff-bJuya8",
+      "label": "first",
+      "stdout": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1
+    },
+    {
+      "root": "/tmp/safe-bash-diff-revised-full-T6lPmg/exact-eight-diff-JLA0Nh",
+      "label": "\"alias/target\"",
+      "stdout": "--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1
+    }
+  ],
+  "accepted": true
+}

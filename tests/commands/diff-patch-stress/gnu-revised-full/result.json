@@ -1,0 +1,197 @@
+{
+  "role": "expectation editor/author, NOT independent reviewer",
+  "evidence": "/tmp/safe-bash-diff-revised-full-T6lPmg",
+  "snapshot": "/private/tmp/safe-bash-diff-revised-full-T6lPmg/snapshot-1",
+  "original3758": {
+    "rerun": false,
+    "tests": 3758,
+    "pass": 3750,
+    "fail": 8,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "archived": "/tmp/safe-bash-diff-rmdir-final-PRIFIp"
+  },
+  "original30": {
+    "rerun": false,
+    "pass": 14,
+    "fail": 16,
+    "report": "tests/commands/diff-patch-stress/original-thirty-replay/REPORT.md"
+  },
+  "revised3758": {
+    "tests": 3758,
+    "pass": 3758,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "original3758Executed": false,
+  "original30Executed": false,
+  "revisedFullExecutions": 1,
+  "original237Unchanged": true,
+  "original70Unchanged": true,
+  "revised70FilenamesUnchanged": true,
+  "prePostCensusIdentical": true,
+  "groups": [
+    {
+      "name": "absolute-target",
+      "tests": 30,
+      "pass": 30,
+      "fail": 0
+    },
+    {
+      "name": "compatibility",
+      "tests": 110,
+      "pass": 110,
+      "fail": 0
+    },
+    {
+      "name": "editflows",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0
+    },
+    {
+      "name": "emptyfile-delta",
+      "tests": 89,
+      "pass": 89,
+      "fail": 0
+    },
+    {
+      "name": "formats",
+      "tests": 1069,
+      "pass": 1069,
+      "fail": 0
+    },
+    {
+      "name": "fuzz",
+      "tests": 38,
+      "pass": 38,
+      "fail": 0
+    },
+    {
+      "name": "gnu-auxiliary",
+      "tests": 56,
+      "pass": 56,
+      "fail": 0
+    },
+    {
+      "name": "gnu-candidate-followup",
+      "tests": 21,
+      "pass": 21,
+      "fail": 0
+    },
+    {
+      "name": "gnu-editflows",
+      "tests": 75,
+      "pass": 75,
+      "fail": 0
+    },
+    {
+      "name": "gnu-safety-strip-followup",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "name": "gnu-target-classification",
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "name": "gnu-target-followup",
+      "tests": 23,
+      "pass": 23,
+      "fail": 0
+    },
+    {
+      "name": "gnu-target",
+      "tests": 27,
+      "pass": 27,
+      "fail": 0
+    },
+    {
+      "name": "parser-regressions",
+      "tests": 80,
+      "pass": 80,
+      "fail": 0
+    },
+    {
+      "name": "path-regressions",
+      "tests": 619,
+      "pass": 619,
+      "fail": 0
+    },
+    {
+      "name": "safety",
+      "tests": 152,
+      "pass": 152,
+      "fail": 0
+    },
+    {
+      "name": "author",
+      "tests": 1325,
+      "pass": 1325,
+      "fail": 0
+    }
+  ],
+  "exactProof": {
+    "cases": 8,
+    "controls": 12,
+    "diffRegenerations": 3,
+    "sha256": "c23323e412724c4c415290998eb1d0e577b76a81079d8968103da8420e47a0e4"
+  },
+  "delta": {
+    "cases": 8,
+    "files": 3,
+    "sha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc"
+  },
+  "scopedTypecheck": {
+    "exitCode": 0,
+    "noEmit": true,
+    "files": 70
+  },
+  "snapshotBuild": {
+    "exitCode": 2,
+    "diagnostics": "src/commands/archive/internal.ts(91,45): error TS2550: Property 'isWellFormed' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2024' or later.\nsrc/commands/archive/stream.ts(9,74): error TS2353: Object literal may only specify known properties, and 'highWaterMark' does not exist in type 'ZlibOptions'.\nsrc/commands/archive/stream.ts(10,49): error TS2353: Object literal may only specify known properties, and 'highWaterMark' does not exist in type 'ZlibOptions'.\n",
+    "accepted": false
+  },
+  "publicFixture": {
+    "exitCode": 0,
+    "plainNode": true,
+    "absoluteVfsFixture": true,
+    "emittedByFailedBuild": true
+  },
+  "correctedPostPins": {
+    "exitCode": 0,
+    "sameAsFreshProof": true,
+    "originalFailedPinsLogRetained": true
+  },
+  "sourceBefore": "b8b4cb5827b512b9a7d181ae56fa1325caabc0df7c4aac0cf6ac2fb49503f4f2",
+  "sourceAfter": "b8b4cb5827b512b9a7d181ae56fa1325caabc0df7c4aac0cf6ac2fb49503f4f2",
+  "dependencyBefore": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+  "dependencyAfter": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+  "consumerSha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+  "importCount": 357,
+  "snapshotInputsAndDependenciesUnchanged": true,
+  "activeSnapshotProcesses": [],
+  "unsupportedRemote": "S3/WebDAV ENOTSUP is refusal, not support",
+  "overlayOutsideContract": {
+    "pass": 0,
+    "fail": 3,
+    "rerun": false
+  },
+  "revised96": {
+    "pass": 96,
+    "fail": 0,
+    "separate": true,
+    "rerun": false
+  },
+  "appleCalibrations": "separately pinned, unchanged original assertions; not GNU proof",
+  "revisedCohortPassed": true,
+  "allValidationGatesPassed": false,
+  "independentReviewPending": true,
+  "finishedAt": "2026-08-26T23:52:33.372Z"
+}

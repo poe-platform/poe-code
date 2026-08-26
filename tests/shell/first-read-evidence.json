@@ -226,6 +226,25 @@
     "attribution": "Separate read-only verifier report imported as evidence; not executed or independently certified by this author.",
     "reviewerFindingsSha256": "9404b65bd324889b0631a4032d1d3893419a4734e90df56b31948c9728eb6472",
     "scratchSha256": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa",
+    "archives": {
+      "classification": "Exact-byte archival correction after 13f8c3a; no rerun, new expectation or current-source result",
+      "script": {
+        "path": "tests/shell/first-read-independent.snapshot.mjs",
+        "originalPath": "/tmp/safe-bash-first-read-independent.mjs",
+        "bytes": 9489,
+        "sha256": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa"
+      },
+      "guard": {
+        "path": "tests/shell/first-read-guard.snapshot.mjs",
+        "originalPath": "/tmp/safe-bash-remote-close-additional-verifier.mjs",
+        "bytes": 5198,
+        "sha256": "8a9858bc16824951b9ade3f158cdb161b0a6d3870a72588220341f11e6a19031",
+        "required": "Bounds teardown beyond the script's 1200ms acceptance races; preserves the 6000ms process-group guard and descendant cleanup, without an output-size cap"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "command": ["node", "tests/shell/first-read-guard.snapshot.mjs", "first-read-archive-local-001", "6000", "node", "--unhandled-rejections=strict", "--import", "tsx", "tests/shell/first-read-independent.snapshot.mjs", "local-generator"],
+      "limitations": "Use a fresh label; guard refuses artifact overwrites. Absolute checkout imports/cwd, existing Node/tsx, apply_patch, git, ps and POSIX groups required. Imports live TypeScript, not pinned historical 90ddc74. Neither archive matches tests/**/*.test.ts. Historical rows and raw outputs below are unchanged."
+    },
     "counts": {
       "directHeadPass": 1,
       "directHeadTests": 1,

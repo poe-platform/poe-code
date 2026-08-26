@@ -3,7 +3,7 @@
 August 26, 2026. **This is a required custom resource-lifecycle objective, not
 a claim that every stronger cancellation requirement is a Bash parity bug.**
 No production code changes or lifecycle API approval accompany this checkpoint.
-Shell source remains `90ddc748f21e2164ea3f20e47f32bbdad6a5b20c`; the reporting
+The historical capture used shell source `90ddc748f21e2164ea3f20e47f32bbdad6a5b20c`; the reporting
 correction `adba1ea8c95dbaf8e4f4330d306d1d411d085b44` remains intact. Diagnostics,
 including the paused nested NUL-warning line 6-versus-8 difference, stay paused.
 
@@ -44,6 +44,51 @@ source scripts, raw child event snapshots, independent reviewer observations,
 native binary identities, sanitized environments, statuses, files and PIDs.
 It is evidence, not an expectation override. Original `/tmp` artifact hashes
 remain recorded, but the relevant observations are retained in this repository.
+
+### Exact independent archive (archival correction after `13f8c3a`)
+
+The independent script and its required external deadline guard are now exact-byte
+evidence attachments, not new tests or an implementation:
+
+| Repository archive | Original source | SHA-256 |
+| --- | --- | --- |
+| `tests/shell/first-read-independent.snapshot.mjs` | `/tmp/safe-bash-first-read-independent.mjs` | `b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa` |
+| `tests/shell/first-read-guard.snapshot.mjs` | `/tmp/safe-bash-remote-close-additional-verifier.mjs` | `8a9858bc16824951b9ade3f158cdb161b0a6d3870a72588220341f11e6a19031` |
+
+Neither filename matches the regular suite's `tests/**/*.test.ts` discovery.
+Historical commands, timestamps and raw results in `first-read-evidence.json`
+are unchanged; the archive metadata adds a runnable path, not a fresh result.
+To reproduce one historical scenario safely, use the existing guard, not the
+scratch script alone:
+
+```sh
+cd /Users/kjopek/Workspace/safe-bash
+node tests/shell/first-read-guard.snapshot.mjs first-read-archive-local-001 6000 \
+  node --unhandled-rejections=strict --import tsx \
+  tests/shell/first-read-independent.snapshot.mjs local-generator
+```
+
+Choose a fresh lowercase/alphanumeric/hyphen label for each run: the guard refuses
+to overwrite `/tmp/safe-bash-remote-close-additional-LABEL*` artifacts. The other
+preserved scenario arguments are `head-direct`, `local-pipefail`, `s3-first`,
+`s3-middle`, `dav-first` and `curl-first`. The guard retains the historical 6000ms
+outer process-group deadline, descendant cleanup, strict rejection mode and
+before/after source manifests. Its deadline is necessary because the script's
+1200ms acceptance races do not bound every teardown await; a forced stop is not
+a passing cleanup assertion. The unchanged guard has no output-size cap.
+
+This snapshot is intentionally **not portable**: its imports and the guard's cwd
+check name this absolute checkout. It requires the existing Node/`tsx` tooling,
+`apply_patch`, `git`, `ps` and POSIX process-group support; no installation is
+performed by this command. Remote scenarios use injected S3 or loopback HTTP,
+not provider credentials. Execution imports the checkout's actual TypeScript,
+not a pinned copy of `90ddc74`: compare the recorded source hashes before making
+a historical equivalence claim. The captured runtime SHA-256 is
+`0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d`.
+Concurrent source work may differ. This archival correction runs neither script,
+tests, native controls nor typechecking and makes no live-runtime pass claim.
+
+### Existing author reproductions
 
 Run the six existing author probes through their unchanged hard deadline:
 
@@ -207,6 +252,15 @@ Automatically applying it to every `pipeBytes` call can break the shared-input
 and delayed-error controls; a new sink hook alone cannot terminate an opaque
 generator's uncooperative promise. Do not add an API just to make tests green.
 
+Curie's `906d66b` review in `docs/OUTPUT_LIFECYCLE_REVIEW.md` recommends explicit
+**owned-lease opt-in**, not automatic `pipeBytes` activation. The candidate
+signatures in `/tmp/safe-bash-shell-lease-contract-proposal.txt` remain unapproved;
+root has routed the questions, not reported mutual agreement. Consent to abandon
+an enclosing stage's independent effects during nested invocation, and a rejected
+read hidden behind pending iterator cleanup, remain unresolved. The five custom
+first-read failures remain required unresolved cases, **not a universal curl
+acceptance blocker**.
+
 Curie owns contracts/core `pipeBytes` and cat's separate streaming loop;
 Archimedes owns curl's stdout-bound transfer integration. Shell owns stage-local
 tracking only after agreement. Hook/release names, activation scope, cursor
@@ -216,12 +270,12 @@ limit is not permission to relabel required failing cases as accepted.
 
 ## Checkpoint validation and limits
 
-This turn only captured 26 bounded native children: 12 rejected-head-zero
+The original `13f8c3a` checkpoint captured 26 bounded native children: 12 rejected-head-zero
 observations, 12 successful no-read contrasts, two valid head-one wait controls.
 All groups stopped with no residuals; temporary fixture directories were
 removed. No virtual blocked rerun, watcher, source implementation, contract
 change, full suite, emitting compiler, download or production network occurred.
-Fresh `node node_modules/typescript/bin/tsc --noEmit` exits **0**. The earlier
+That checkpoint's `node node_modules/typescript/bin/tsc --noEmit` exited **0**. The earlier
 exit 2 with two unowned readonly-FS typing errors remains preserved in the JSON.
 
 These tests exercise injected S3 and local HTTP resource seams, not AWS wire

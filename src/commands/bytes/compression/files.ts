@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import {
-  dirname, FsError, joinPath, resolvePath,
+  dirname, FsError, joinPath,
   type CommandContext, type FileStat,
 } from "../../../contracts/index.js";
-import { codeOf } from "../../internal.js";
+import { codeOf, pathOf } from "../../internal.js";
 import type { CompressionOptions } from "./options.js";
 import { chunkBytes, stagingLimit, transform } from "./stream.js";
 
@@ -61,7 +61,7 @@ export async function planOperands(context: CommandContext, options: Compression
     if (!context.fs.readStream || context.fs.capabilities.streamingRead === false) {
       throw new FsError("ENOTSUP", { message: "named input requires VFS streaming reads; no readFile fallback" });
     }
-    const source = resolvePath(context.cwd, name);
+    const source = pathOf(context, name);
     const sourceStat = await context.fs.lstat(source, { signal: context.signal });
     if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
     const realSource = await context.fs.realpath(source, { signal: context.signal });
@@ -72,7 +72,7 @@ export async function planOperands(context: CommandContext, options: Compression
     if (!options.keep && !options.force && (sourceStat.nlink ?? 1) > 1) {
       throw new FsError("EINVAL", { path: source, message: "input has multiple links (use -k or -f)" });
     }
-    const destination = outputPath(source, options);
+    const destination = outputPath(realSource, options);
     const destinationStat = await existing(context, destination);
     if (destinationStat) {
       if (destinationStat.type !== "file" || sameIdentity(sourceStat, destinationStat)

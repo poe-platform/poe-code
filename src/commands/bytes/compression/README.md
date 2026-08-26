@@ -67,6 +67,13 @@ actual permission enforcement and published-file metadata depend on the VFS.
 The `.tar` suffix transformation is only naming: there is no tar creation,
 extraction, or archive traversal.
 
+Input spelling is preserved until the virtual filesystem resolves it. In
+particular, a parent symlink followed by `..` must be resolved by the filesystem,
+not lexically normalized by the command. File destinations are derived from
+the resolved regular source path, so output publication and overlap checks
+refer to the actual source directory. Source identity checks still revalidate
+the original input path before publication/removal.
+
 ## Streaming, cancellation, and limits
 
 Input/output are `Uint8Array` streams. Named inputs require `readStream` and

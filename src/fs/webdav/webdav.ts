@@ -2,7 +2,7 @@ import { FsError, isFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
-  FsOptions, MkdirOptions, ReadFileOptions, RemoveOptions, WriteFileOptions,
+  FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { davChild, davChildren, parseXml, scalar } from "./xml.js";
 import type { XmlElement } from "./xml.js";
@@ -94,7 +94,7 @@ function statusCode(element: XmlElement): number {
 export class WebDavFileSystem implements FileSystem {
   readonly capabilities = Object.freeze({
     symlinks: false, hardlinks: false, permissions: false, timestamps: false,
-    atomicRename: false, streamingRead: false, streamingWrite: false,
+    atomicRename: false, streamingRead: true, streamingWrite: false,
   });
   private readonly base: URL;
   private readonly baseSegments: string[];
@@ -174,6 +174,15 @@ export class WebDavFileSystem implements FileSystem {
   private async request<T>(method: string, path: string, options: FsOptions, init: RequestInit,
     consume: (response: Response, signal: AbortSignal) => Promise<T>, collection = false,
     received?: (response: Response) => void): Promise<T> {
+    for await (const result of this.requestStream(method, path, options, init, async function* (response, signal) {
+      yield await consume(response, signal);
+    }, collection, received)) return result;
+    throw new Error("missing WebDAV response");
+  }
+
+  private async *requestStream<T>(method: string, path: string, options: FsOptions, init: RequestInit,
+    consume: (response: Response, signal: AbortSignal) => AsyncIterable<T>, collection = false,
+    received?: (response: Response) => void): AsyncGenerator<T> {
     if (options.signal?.aborted) fail("ECANCELED", method, path);
     const timeout = AbortSignal.timeout(this.timeoutMs);
     const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
@@ -200,7 +209,8 @@ export class WebDavFileSystem implements FileSystem {
           url += "/";
           continue;
         }
-        return await consume(response, signal);
+        yield* consume(response, signal);
+        return;
       }
     } catch (cause) {
       if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: method, path, cause });
@@ -208,11 +218,24 @@ export class WebDavFileSystem implements FileSystem {
       if (isFsError(cause)) throw cause;
       throw new FsError("EIO", { syscall: method, path, message: "WebDAV transport or response failure", cause });
     } finally {
-      if (response?.body && !response.body.locked) await response.body.cancel().catch(() => {});
+      if (response?.body && !response.body.locked) void response.body.cancel().catch(() => {});
     }
   }
 
   private async bytes(response: Response, limit: number, signal: AbortSignal): Promise<Uint8Array> {
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for await (const chunk of this.bodyChunks(response, limit, signal)) {
+      chunks.push(chunk);
+      size += chunk.byteLength;
+    }
+    const data = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.byteLength; }
+    return data;
+  }
+
+  private async *bodyChunks(response: Response, limit: number, signal: AbortSignal): AsyncGenerator<Uint8Array> {
     const length = response.headers.get("content-length");
     if (length !== null && (!/^\d+$/.test(length) || !Number.isSafeInteger(Number(length)))) {
       fail("EIO", "webdav", "", "invalid response Content-Length");
@@ -222,10 +245,9 @@ export class WebDavFileSystem implements FileSystem {
     if (expected !== undefined && expected > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
     if (!response.body) {
       if (expected !== undefined && expected !== 0) fail("EIO", "webdav", "", "response body length differs from Content-Length");
-      return new Uint8Array();
+      return;
     }
     const reader = response.body.getReader();
-    const chunks: Uint8Array[] = [];
     let size = 0;
     const abort = (): void => { void reader.cancel(signal.reason).catch(() => {}); };
     signal.addEventListener("abort", abort, { once: true });
@@ -237,16 +259,13 @@ export class WebDavFileSystem implements FileSystem {
         if (result.done) break;
         size += result.value.byteLength;
         if (size > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
-        chunks.push(new Uint8Array(result.value));
+        if (expected !== undefined && size > expected) fail("EIO", "webdav", "", "response body length differs from Content-Length");
+        yield new Uint8Array(result.value);
       }
       if (expected !== undefined && size !== expected) fail("EIO", "webdav", "", "response body length differs from Content-Length");
-      const data = new Uint8Array(size);
-      let offset = 0;
-      for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.byteLength; }
-      return data;
     } finally {
       signal.removeEventListener("abort", abort);
-      await reader.cancel().catch(() => {});
+      void reader.cancel().catch(() => {});
       reader.releaseLock();
     }
   }
@@ -449,6 +468,30 @@ export class WebDavFileSystem implements FileSystem {
     });
   }
 
+  async *readStream(path: string, options: ReadStreamOptions = {}): AsyncGenerator<Uint8Array> {
+    const normalized = normalize(path);
+    const start = positive(options.start ?? 0, "start", true);
+    const end = options.endExclusive === undefined ? Infinity : positive(options.endExclusive, "endExclusive", true);
+    const chunkSize = positive(options.chunkSize ?? 64 * 1024, "chunkSize");
+    if (end < start) fail("EINVAL", "readStream", path, "endExclusive precedes start");
+    if ((await this.stat(path, options)).type === "directory") fail("EISDIR", "readStream", path);
+    const filesystem = this;
+    yield* this.requestStream("GET", normalized, options, { headers: { "Accept-Encoding": "identity" } }, async function* (response, signal) {
+      if (response.status !== 200) filesystem.httpError(response.status, "GET", path);
+      let position = 0;
+      for await (const chunk of filesystem.bodyChunks(response, filesystem.maxResponseBytes, signal)) {
+        const first = Math.max(0, start - position);
+        const last = Math.min(chunk.byteLength, end - position);
+        for (let offset = first; offset < last; offset += chunkSize) {
+          signal.throwIfAborted();
+          yield chunk.slice(offset, Math.min(last, offset + chunkSize));
+        }
+        position += chunk.byteLength;
+        if (position >= end) return;
+      }
+    });
+  }
+
   async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
     const normalized = normalize(path);
     if (options.mode !== undefined) this.unsupported("writeFile mode", path);
@@ -635,8 +678,14 @@ export class WebDavFileSystem implements FileSystem {
 
   async access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) fail("EINVAL", "access", path);
-    if (mode !== 0) this.unsupported("access permission checks", path);
-    await this.stat(path, options);
+    if (mode & 3) this.unsupported("access write/execute permission checks", path);
+    const stat = await this.stat(path, options);
+    if (mode === 4) {
+      if (stat.type === "directory") await this.readdir(path, options);
+      else await this.request("GET", normalize(path), options, { headers: { "Accept-Encoding": "identity" } }, async (response) => {
+        if (response.status !== 200) this.httpError(response.status, "GET", path);
+      });
+    }
   }
 
   async readlink(path: string, _options: FsOptions = {}): Promise<string> { return this.unsupported("readlink", path); }

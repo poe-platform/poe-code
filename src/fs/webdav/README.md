@@ -44,6 +44,10 @@ remain transport/server responsibilities, not a host-filesystem sandbox.
 - `stat`/`lstat`: depth-zero `PROPFIND`, named DAV properties only.
 - `readdir`: depth-one `PROPFIND`, sorted direct children, no recursive crawl.
 - `readFile`: metadata check followed by bounded binary `GET`.
+- `readStream`: lazy, pull-based binary `GET`; start/endExclusive select byte
+  offsets locally without relying on optional server Range support. Chunks are
+  copied and capped by `chunkSize` (default 64 KiB). The response stays open only
+  until EOF, the selected end, cancellation, deadline, or iterator return.
 - `writeFile`: binary `PUT`, including empty files; `wx` uses
   `If-None-Match: *` rather than an existence-check race.
 - `appendFile`/`a`: bounded read-modify-write using the identity GET's strong
@@ -65,7 +69,11 @@ remain transport/server responsibilities, not a host-filesystem sandbox.
   can be replaced under the concurrency policy below; exclusive copies still
   return `EEXIST` for existing targets.
 - `realpath`: existence-checked lexical virtual path, not server alias discovery.
-- `access`: existence (`F_OK`) only, not an inferred authorization result.
+- `access`: existence (`F_OK`), or actual read authorization (`R_OK`) via GET
+  response headers for files and depth-one PROPFIND for directories. The GET
+  body is cancelled, not collected. This is a point-in-time probe, not a
+  guarantee that a later read succeeds. Write/execute permission probes remain
+  unsupported; synthesized mode bits never authorize access.
 
 Paths are virtual POSIX-style paths relative to the configured collection;
 relative paths resolve from `/`. Dot segments are normalized, but attempted
@@ -158,10 +166,10 @@ semantics, not POSIX guarantees against every concurrent source replacement.
 `atomicRename` is false because collection MOVE can fail partially.
 
 Truncate, symlinks, hardlinks, chmod, utimes,
-explicit creation modes, permission checks, and nonrecursive directory removal
+explicit creation modes, write/execute permission checks, and nonrecursive directory removal
 return `ENOTSUP`. In particular, nonrecursive directory removal is not emulated
-by an empty check followed by recursive DELETE. Streaming methods are absent
-and both streaming capability flags are false. These are explicit backend
+by an empty check followed by recursive DELETE. Streaming writes are absent;
+streamingRead is true and streamingWrite is false. These are explicit backend
 limitations, not claims of full POSIX or full WebDAV compliance.
 
 ## Metadata, XML, errors, and bounds
@@ -197,6 +205,9 @@ Default response limits, configurable through constructor options:
 | `timeoutMs` | 30,000 per HTTP request, including body consumption |
 
 `readFile.maxBytes` may lower the file-read limit, including to zero. Actual
+`readStream` transfer bytes (including discarded range prefixes) also count
+toward `maxResponseBytes`; streaming avoids whole-file buffering, not this bound.
+The request deadline includes consumer backpressure pauses. Actual
 stream bytes are counted even without Content-Length, and excess/aborted bodies
 are cancelled. Identity bodies must exactly match a valid declared
 Content-Length, including empty/null bodies; truncated, excessive or malformed

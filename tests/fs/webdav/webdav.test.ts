@@ -117,7 +117,7 @@ test("unsupported semantics fail without network or lossy read-modify-write", as
     fs.writeFile("/file", new Uint8Array(), { mode: 0o600 }),
     fs.mkdir("/dir", { mode: 0o700 }), fs.chmod("/file", 0o600), fs.utimes("/file", 0, 0),
     fs.truncate("/file"), fs.symlink("/file", "/link"), fs.link("/file", "/link"), fs.readlink("/link"),
-    fs.access("/file", 4),
+    fs.access("/file", 2),
   ].map((promise) => assert.rejects(promise, { code: "ENOTSUP" })));
   assert.equal(mock.requests.length, 0);
   await fs.mkdir("/dir");

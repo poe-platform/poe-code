@@ -27,7 +27,7 @@ import {
   resolveDefaultAgent
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
-import { ValidationError } from "../errors.js";
+import { OperationCancelledError, ValidationError } from "../errors.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { renderUnifiedDiff } from "../../utils/dry-run.js";
 import { addWorktreeOptions, pickWorktreeOptions } from "./worktree-options.js";
@@ -184,7 +184,7 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
     required: true
   });
   if (isCancel(selected)) {
-    throw new Error("Gaslight cancelled.");
+    throw new OperationCancelledError("Gaslight cancelled.");
   }
   return Array.isArray(selected) ? selected : [];
 }

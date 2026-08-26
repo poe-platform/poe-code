@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
+import { OperationCancelledError } from "../errors.js";
 
 const {
   ingestGaslightMock,
@@ -45,7 +46,6 @@ vi.mock("toolcraft-design", async (importOriginal) => {
     intro: introMock,
     multiselect: multiselectMock,
     outro: outroMock,
-    isCancel: vi.fn(() => false),
     select: selectMock,
     withSpinner: vi.fn(async ({ fn }: { fn: () => Promise<unknown> }) => await fn())
   };
@@ -606,6 +606,45 @@ describe("gaslight command", () => {
     );
     expect(runGaslightMock.mock.calls[0]?.[0]).not.toHaveProperty("model");
   });
+
+  it.each([false, true])(
+    "silently cancels plan selection without side effects (dryRun: %s)",
+    async (dryRun) => {
+      const volume = Volume.fromJSON({ "/repo/docs/plans/a.md": "# A" });
+      const before = volume.toJSON();
+      const prompts = vi.fn();
+      const logger = vi.fn();
+      const commandRunner = vi.fn();
+      const container = createCliContainer({
+        fs: createFsFromVolume(volume).promises as unknown as FileSystem,
+        prompts,
+        logger,
+        commandRunner,
+        env: { cwd: "/repo", homeDir: "/home/test" }
+      });
+      const program = createProgram();
+      registerGaslightCommand(program, container);
+      multiselectMock.mockResolvedValue(Symbol.for("poe.cancel"));
+
+      const result = withInteractiveStdin(() =>
+        program.parseAsync(["node", "cli", "gaslight", ...(dryRun ? ["--dry-run"] : [])])
+      );
+
+      await expect(result).rejects.toBeInstanceOf(OperationCancelledError);
+      await expect(result).rejects.toThrow("Gaslight cancelled.");
+      expect(multiselectMock).toHaveBeenCalledTimes(1);
+      expect(volume.toJSON()).toEqual(before);
+      expect(loadGaslightConfigMock).not.toHaveBeenCalled();
+      expect(runGaslightMock).not.toHaveBeenCalled();
+      expect(spawnPrettyMock).not.toHaveBeenCalled();
+      expect(commandRunner).not.toHaveBeenCalled();
+      expect(prompts).not.toHaveBeenCalled();
+      expect(selectMock).not.toHaveBeenCalled();
+      expect(logger).not.toHaveBeenCalled();
+      expect(introMock).not.toHaveBeenCalled();
+      expect(outroMock).not.toHaveBeenCalled();
+    }
+  );
 
   it("passes the configured default agent model through without prompting with --yes", async () => {
     const prompts = vi.fn();

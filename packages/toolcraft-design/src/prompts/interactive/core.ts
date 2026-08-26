@@ -58,6 +58,8 @@ export interface PromptOptions<Value> {
 
 type InputStream = NodeJS.ReadableStream & {
   isTTY?: boolean;
+  destroyed?: boolean;
+  readableEnded?: boolean;
   setRawMode?: (enabled: boolean) => void;
   unpipe?: () => void;
 };
@@ -81,7 +83,6 @@ export class Prompt<Value> extends EventEmitter {
   private readonly trackValue: boolean;
   private previousFrame = "";
   private readlineInterface?: readline.Interface;
-  private abortListener?: () => void;
   private closed = false;
 
   constructor(opts: PromptOptions<Value>, trackValue = true) {
@@ -111,19 +112,18 @@ export class Prompt<Value> extends EventEmitter {
       return this.promptNonTty();
     }
 
+    if (this.input.destroyed || this.input.readableEnded) {
+      this.state = "cancel";
+      return Promise.resolve(CANCEL);
+    }
+
     return new Promise((resolve) => {
       const onSubmit = (value: Value | undefined) => resolve(value as Value);
       const onCancel = () => resolve(CANCEL);
       this.once("submit", onSubmit);
       this.once("cancel", onCancel);
 
-      this.abortListener = () => {
-        this.state = "cancel";
-        this.emit("finalize");
-        this.render();
-        this.close();
-      };
-      this.signal?.addEventListener("abort", this.abortListener, { once: true });
+      this.signal?.addEventListener("abort", this.onCancel, { once: true });
 
       this.readlineInterface = readline.createInterface({
         input: this.input,
@@ -133,6 +133,8 @@ export class Prompt<Value> extends EventEmitter {
         escapeCodeTimeout: 50,
         terminal: true
       });
+      this.readlineInterface.once("close", this.onCancel);
+      this.input.once("close", this.onCancel);
       readline.emitKeypressEvents(this.input, this.readlineInterface);
       this.readlineInterface.prompt();
       this.input.on("keypress", this.onKeypress);
@@ -196,7 +198,22 @@ export class Prompt<Value> extends EventEmitter {
     this.emit("userInput", this.userInput);
   }
 
+  private readonly onCancel = () => {
+    if (this.closed || this.state === "submit" || this.state === "cancel") {
+      return;
+    }
+
+    this.state = "cancel";
+    this.emit("finalize");
+    this.render();
+    this.close();
+  };
+
   private readonly onKeypress = (char: string | undefined, key: KeyMeta = {}) => {
+    if (this.closed) {
+      return;
+    }
+
     let action = mapKey(key.name, char);
     if (this.trackValue && char && char >= " " && key.name !== "return" && key.name !== "enter" && key.name !== "escape") {
       action = undefined;
@@ -338,10 +355,10 @@ export class Prompt<Value> extends EventEmitter {
 
     this.closed = true;
     this.input.removeListener("keypress", this.onKeypress);
+    this.input.removeListener("close", this.onCancel);
     this.output.removeListener("resize", this.render);
-    if (this.abortListener) {
-      this.signal?.removeEventListener("abort", this.abortListener);
-    }
+    this.signal?.removeEventListener("abort", this.onCancel);
+    this.readlineInterface?.removeListener("close", this.onCancel);
     this.output.write(`${cursor.show}\n`);
     if (!process.platform.startsWith("win") && this.input.setRawMode) {
       this.input.setRawMode(false);

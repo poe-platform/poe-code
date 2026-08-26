@@ -236,16 +236,18 @@ and explicit non-passes. It found and fixed two compression bugs: unsafe lexical
 normalization through parent symlinks (`21b43cd`), and empty-only input starving
 timer cancellation (`06e0d27`). The public plugin/factory API is unchanged.
 
-On August 26, 2026, the combined author/independent byte run contains **322
-tests: 313 passed, five GNU-oracle skips, four native-parity TODOs**, with no
-ordinary failures/cancellations. The independent portion is **90 passes and
-four TODOs**; 130 additional cancellation repetitions pass. Scoped strict types
-and the product build pass, as does the final fresh whole-repository
-`npm run typecheck` after unrelated concurrent structured-stress errors resolved.
+On August 26, 2026, the pinned GNU follow-up contains **376 passed tests, zero
+failures, skips, TODOs or cancellations** (149 independent, 227 author tests).
+All five previously absent GNU checks ran against temporary coreutils 9.7.
+GNU gzip 1.14 confirms the selected behavior for the four former Apple-dialect
+TODOs; exact Apple observations are preserved separately. Always-runnable
+vectors retain 106 GNU observations, and live checks explicitly skip if their
+optional binaries are unavailable. See `tests/commands/bytes-stress/GNU-ORACLE.md`
+for official archive/signature pins, binary identities and reproduction.
 
-Available Python/BSD/Perl/Darwin alternatives and fixed RFC/digest vectors add
-coverage without relabeling the five GNU skips. Apple gzip differs on forced
-empty/one-byte input, trailing zero padding, and reserved header flags; the
-explicit TODOs are not compatibility passes. Existing strict-decoder policy,
-Node gzip warning/trailing-data differences, VFS races, cooperative writer
-cleanup, and external-provider verification limitations remain.
+The follow-up also fixes chunked zero-padding premature closure, trailing
+garbage warning/publication, forced suffix passthrough and forced-test behavior
+using bounded gzip framing around Node raw-DEFLATE streams. Scoped strict types
+pass. Earlier checkpoints retain their own historical counts. Decoder policy,
+VFS races, cooperative writer cleanup and external-provider verification limits
+remain distinct from this bounded GNU evidence.

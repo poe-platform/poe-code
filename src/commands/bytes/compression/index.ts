@@ -15,16 +15,21 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
     let exitCode = 0;
     for (const plan of plans) {
       try {
-        if (plan.destination) await writeFileOperand(context, plan, options);
+        let warned: boolean;
+        if (plan.destination) warned = await writeFileOperand(context, plan, options);
         else {
           await unchangedSource(context, plan);
           const source = plan.source === "-" ? context.stdin
             : (signal: AbortSignal) => context.fs.readStream!(plan.source, { signal, chunkSize: chunkBytes });
-          await transform(source, async (bytes, signal) => {
+          warned = await transform(source, async (bytes, signal) => {
             for await (const chunk of readBytes(bytes, signal)) {
               if (!options.test) await writeBytes(context.stdout, chunk, signal);
             }
-          }, { ...options, force: options.force && (options.stdout || plan.source === "-") }, context.signal);
+          }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, context.signal);
+        }
+        if (warned) {
+          await diagnostic(context, new Error(`${plan.source}: decompression OK, trailing garbage ignored`));
+          if (exitCode === 0) exitCode = 2;
         }
       } catch (error) {
         context.signal.throwIfAborted();

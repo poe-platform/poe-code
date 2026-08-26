@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { platform, release } from "node:os";
+import { platform, release, tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { chunks, encoder, fixture, run } from "./helpers.js";
@@ -22,7 +22,7 @@ function native(program: string, args: readonly string[], input = new Uint8Array
 
 async function discover(name: string): Promise<Oracle | undefined> {
   let fallback: Oracle | undefined;
-  for (const program of [`g${name}`, `/opt/homebrew/opt/coreutils/libexec/gnubin/${name}`, name]) {
+  for (const program of [...(process.env.BYTE_GNU_COREUTILS_DIR ? [join(process.env.BYTE_GNU_COREUTILS_DIR, name)] : []), `g${name}`, `/opt/homebrew/opt/coreutils/libexec/gnubin/${name}`, name]) {
     try {
       const result = await native(program, ["--version"]);
       const gnu = result.stdout.includes("GNU coreutils");
@@ -55,7 +55,7 @@ for (const name of ["sha256sum", "sha1sum", "md5sum", "cksum"]) {
     const oracle = await discover(name);
     if (!oracle?.gnu) { context.skip(`GNU coreutils ${name} unavailable; found ${oracle?.version ?? "none"}`); return; }
     context.diagnostic(`${oracle.program}: ${oracle.version}; platform ${platform()} ${release()}`);
-    const directory = await mkdtemp(join(import.meta.dirname, ".native-checksums-"));
+    const directory = await mkdtemp(join(tmpdir(), "safe-byte-native-checksums-"));
     const names = ["data", "back\\slash", "new\nline", "return\rname", "é😀", " leading "];
     try {
       const bytes = Uint8Array.of(0, 255, 128, 13, 10, 5);

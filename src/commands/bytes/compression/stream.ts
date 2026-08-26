@@ -1,9 +1,10 @@
 import { Readable, PassThrough } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { setImmediate } from "node:timers/promises";
-import { createGunzip, createGzip } from "node:zlib";
+import { createGzip } from "node:zlib";
 import { FsError, readBytes, type ByteSource } from "../../../contracts/index.js";
 import type { CompressionOptions } from "./options.js";
+import { gunzipMembers } from "./gunzip.js";
 
 export const chunkBytes = 64 * 1024;
 export const stagingLimit = 256 * 1024 * 1024;
@@ -29,7 +30,7 @@ export async function transform(
   options: CompressionOptions,
   parentSignal: AbortSignal,
   maxOutput = Infinity,
-): Promise<void> {
+): Promise<boolean> {
   const controller = new AbortController();
   const signal = AbortSignal.any([parentSignal, controller.signal]);
   let failure: unknown;
@@ -37,39 +38,14 @@ export async function transform(
     if (!controller.signal.aborted) { failure = error; controller.abort(error); }
   };
   let prepared: ByteSource = split(typeof source === "function" ? source(signal) : source, signal);
-  let passthrough = false;
-  if (options.decompress && options.force && !options.test) {
-    const iterator = readBytes(prepared, signal);
-    const prefix: Uint8Array[] = [];
-    let size = 0;
-    try {
-      while (size < 2) {
-        const next = await iterator.next();
-        if (next.done) break;
-        prefix.push(next.value);
-        size += next.value.length;
-      }
-    } catch (error) {
-      fail(error);
-      await iterator.return(undefined);
-      throw error;
-    }
-    const first = prefix[0];
-    passthrough = first?.[0] !== 0x1f || (first.length > 1 ? first[1] : prefix[1]?.[0]) !== 0x8b;
-    prepared = (async function* (): ByteSource {
-      try {
-        yield* prefix;
-        yield* iterator;
-      } finally { await iterator.return(undefined); }
-    })();
-  }
+  let warned = false;
+  if (options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const readable = Readable.from((async function* (): ByteSource {
     try { yield* prepared; }
     catch (error) { fail(error); throw error; }
   })(), { objectMode: false, highWaterMark: chunkBytes });
   const zlibOptions = { level: options.level, chunkSize: chunkBytes, highWaterMark: chunkBytes };
-  const codec = passthrough ? new PassThrough({ highWaterMark: chunkBytes })
-    : options.decompress ? createGunzip(zlibOptions) : createGzip(zlibOptions);
+  const codec = options.decompress ? new PassThrough({ highWaterMark: chunkBytes }) : createGzip(zlibOptions);
   codec.on("error", fail);
   let consuming: Promise<void> | undefined;
   try {
@@ -103,4 +79,5 @@ export async function transform(
     codec.destroy();
     await consuming?.catch(() => {});
   }
+  return warned;
 }

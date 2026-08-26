@@ -120,7 +120,7 @@ async function temporaryDirectory(context: CommandContext, destination: string):
   throw new FsError("EEXIST", { message: "unable to allocate a private gzip staging directory" });
 }
 
-export async function writeFileOperand(context: CommandContext, plan: Operand, options: CompressionOptions): Promise<void> {
+export async function writeFileOperand(context: CommandContext, plan: Operand, options: CompressionOptions): Promise<boolean> {
   const destination = plan.destination!;
   await unchangedSource(context, plan);
   const directory = await temporaryDirectory(context, destination);
@@ -131,6 +131,7 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
   let moved = false;
   let failure: unknown;
   let failed = false;
+  let warned = false;
   try {
     directoryStat = await context.fs.lstat(directory, { signal: context.signal });
     if (directoryStat.type !== "directory") throw new FsError("EBUSY", { path: directory });
@@ -138,7 +139,7 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     stageOwned = true;
     stageStat = await context.fs.lstat(staged, { signal: context.signal });
     if (stageStat.type !== "file" || stageStat.size !== 0) throw new FsError("EBUSY", { path: staged });
-    await transform((signal) => context.fs.readStream!(plan.source, { signal, chunkSize: chunkBytes }), async (output, signal) => {
+    warned = await transform((signal) => context.fs.readStream!(plan.source, { signal, chunkSize: chunkBytes }), async (output, signal) => {
       await context.fs.writeStream!(staged, output, { flag: "w", mode: 0o600, signal });
     }, { ...options, force: false }, context.signal, stagingLimit);
     await unchangedSource(context, plan);
@@ -186,4 +187,5 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     await unchangedSource(context, plan);
     await context.fs.rm(plan.source, { signal: context.signal });
   }
+  return warned;
 }

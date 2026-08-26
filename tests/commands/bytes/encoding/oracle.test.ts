@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { arch, platform, release } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { allBytes, run } from "./helpers.js";
 
@@ -11,7 +12,7 @@ function native(executable: string, args: readonly string[], input: Uint8Array =
 }
 
 for (const name of ["base64", "base32"] as const) test(`native GNU ${name}: valid vectors, wrapping and ignore garbage`, async context => {
-  const executable = [`g${name}`, name].find(candidate => {
+  const executable = [...(process.env.BYTE_GNU_COREUTILS_DIR ? [join(process.env.BYTE_GNU_COREUTILS_DIR, name)] : []), `g${name}`, name].find(candidate => {
     const version = native(candidate, ["--version"]);
     return version.status === 0 && version.stdout.toString().includes("GNU coreutils");
   });

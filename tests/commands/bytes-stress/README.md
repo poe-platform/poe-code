@@ -43,8 +43,10 @@ Native tests execute only fixed reviewed commands/argv and fixed Python standard
 library programs. Each run uses a fresh isolated temporary directory, clean
 environment, five-second deadline, eight-MiB output limit, and resulting-file
 snapshot. Fixture/symlink targets are confined to that directory. Malformed
-inputs are data, not executable programs. No network or dependency installation
-is used, and production code never invokes native tools.
+inputs are data, not executable programs. Test execution uses no network or
+dependency installation. Optional pinned GNU reference builds were downloaded,
+verified and compiled in temporary tooling directories; production code never
+invokes native tools. See `GNU-ORACLE.md` for provenance and reproduction.
 
 ## Observed references
 
@@ -56,36 +58,41 @@ On August 26, 2026, Node v22.22.2 on Darwin:
 - `/sbin/sha256sum`, `/sbin/sha1sum`, `/sbin/md5sum`: Darwin 1.0.
 - `/usr/bin/base64`: BSD `--break`/`-b` dialect, not GNU.
 - `/usr/bin/xxd`: Vim 2025-08-24; `/usr/bin/cksum`: system POSIX CRC.
+- Temporary verified GNU builds: gzip 1.14 and coreutils 9.7.
 
 Darwin digest generation does not escape problematic names like the target
 format; NUL-delimited records compare exactly. Perl shasum accepts escaped
 manifest inputs but prints literal status filenames, so native status comparisons
 use ordinary/space-containing names. Escaped output and MD5 verification also
-have fixed independent vectors, not claimed live GNU option parity. BSD base64
+have fixed independent vectors; the later GNU run additionally verifies the
+five previously unavailable coreutils command groups. BSD base64
 wrap tests map `-w` to `-b`; wrap-zero terminal-newline differences are not
 presented as exact parity.
 
-## Explicit non-passes
+## Resolved GNU/Apple dialect evidence
 
-The original **five GNU-only oracle tests still skip**: GNU base64/base32 and
-GNU sha256sum/sha1sum/md5sum manifest/options are unavailable. Alternatives and
-fixed vectors add evidence but do not turn those skips into GNU passes.
+The five original GNU-only checks now execute against pinned coreutils 9.7.
+Five additional always-runnable reference groups preserve 55 native observations
+without requiring installed GNU tools. Live-oracle skips remain explicit when
+the optional binaries are absent; they are not counted as passes.
 
-Four Apple gzip differences are executable **TODO tests**, not passing parity
-assertions. They reproduce the discrepancy and state its policy:
+The four previous Apple-equality TODOs are resolved against GNU gzip 1.14,
+the requested target dialect. Apple observations remain independently tested:
 
-| Input/mode | Virtual | Apple gzip 479 |
+| Input/mode | Virtual / selected GNU gzip 1.14 | Apple gzip 479 |
 | --- | --- | --- |
 | Empty stdin, `-dfc` | Success, empty passthrough | Status 1, unexpected EOF |
 | One-byte `0x1f`, `-dfc` | Success, byte passthrough | Status 1, unexpected EOF |
-| Zero padding after a member, `-t` | Success under Node zlib policy | Status 2, trailing-garbage warning |
+| Zero padding after a member, `-t` | Success | Status 2, trailing-garbage warning |
 | Reserved header flag, `-t` | Status 1, rejected | Success |
 
-The last case is not a request to weaken reserved-bit validation. Force
-passthrough and Node trailing-data handling were already documented. Original
-author assertions were not weakened to fit a native tool. Nonzero trailing junk
-also yields native warning status 2 versus virtual error status 1; both reject
-successful validation, but exact warning/diagnostic parity remains a gap.
+`gnu-evidence.json` preserves exact input hashes, native output and version/hash
+identities. `GNU-ORACLE.md` documents primary-source SHA256/signature verification.
+The chunked rerun exposed a genuine zero-padding premature-close bug, separate
+from Apple's dialect. Framed raw-DEFLATE streaming fixes it and GNU warning-2,
+zero-prefix garbage, forced suffix passthrough and forced-test behavior.
+`gnu-gzip-boundaries.json` preserves 47 further native observations, including
+safe output publication and input removal/retention under warning status.
 Strict malformed base decoding deliberately rejects some permissive native
 inputs; its tests verify the declared policy rather than GNU equivalence.
 
@@ -97,10 +104,12 @@ node --unhandled-rejections=strict --import tsx --test tests/commands/bytes/plug
 ```
 
 - Reproduced original baseline: **228 tests: 223 passed, five skipped**.
-- Independent suite: **94 tests: 90 passed, four TODO native differences**;
-  zero ordinary failures, skips, or cancellations on this host.
-- Combined final run: **322 tests: 313 passed, five skipped, four TODOs**;
-  zero ordinary failures or cancellations. Skips/TODOs are not passes.
+- Initial independent run: **94 tests: 90 passed, four TODO differences**.
+- Initial combined run: **322 tests: 313 passed, five skipped, four TODOs**.
+- GNU-enabled follow-up: **376 tests passed, zero failures, skips, TODOs or
+  cancellations**. All five formerly absent GNU tests ran. The independent
+  portion is **149 tests passed**; one old author error-1 suffix assertion was
+  replaced by the exact GNU warning/publication matrix, not disabled.
 - Repeated 26 cancellation cases five times under strict rejection handling:
   **130 additional passes**.
 - Strict scoped typechecking of every byte source, author test, and independent

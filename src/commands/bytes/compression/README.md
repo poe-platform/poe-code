@@ -38,7 +38,8 @@ execution after all options have been parsed successfully.
 
 Force does not bypass integrity checks on input starting with gzip magic
 `1f 8b`. Only decompression to stdout (including stdin's implicit stdout and
-`zcat`) with `-f` and without `-t` passes non-gzip input through unchanged.
+`zcat`) with `-f` passes non-gzip input and suffixes through unchanged.
+As in pinned GNU gzip 1.14, `-ft` accepts that data but discards all output.
 File-output decompression never uses this passthrough. No option switches
 `gunzip` or `zcat` back to compression.
 
@@ -55,10 +56,13 @@ Compression emits real gzip/DEFLATE, with zero MTIME, no original-name or commen
 fields, and OS byte `255`. The implementation normalizes the OS byte on the
 stream, so this policy is independent of the host OS. Given identical input and
 level, this removes name, time, and OS-header variation; identical compressed
-bytes across different Node/zlib versions are not promised. Decompression uses
-Node's gunzip validation of CRC32, ISIZE, truncation, and concatenated members,
-without permissive finish-flush overrides. Trailing-data handling is Node's,
-not an additional format parser implemented here.
+bytes across different Node/zlib versions are not promised. Decompression parses
+gzip framing around Node raw-DEFLATE streams, validating optional-header CRC,
+reserved flags, per-member CRC32, ISIZE and truncation. Concatenated members
+decode in order. Trailing zero padding succeeds; other trailing garbage reports
+warning status 2 while retaining validated output. A truncated next header
+fails with status 1. Forced stdout mode preserves non-gzip suffix bytes instead.
+These semantics have pinned GNU 1.14 evidence across input chunk boundaries.
 
 Embedded gzip filenames are never used as paths. File modes, ownership,
 timestamps, and other source metadata are not restored or copied by the
@@ -157,8 +161,10 @@ entries known to the checks.
 ## Diagnostics and compatibility boundaries
 
 Success (including `-t` and help) returns exit code `0`; processing or filesystem
-failure returns `1`; option-usage errors return `2`. These are not GNU's warning
-exit-code semantics. Diagnostics use stderr with the invoked command name.
+failure returns `1`; trailing-garbage warnings and option-usage errors return `2`.
+An error takes precedence over warnings across operands. GNU warning semantics
+are covered, but usage status and diagnostic wording are not universal GNU parity.
+Diagnostics use stderr with the invoked command name.
 Preflight failure stops the invocation; after preflight, per-operand processing
 errors are reported and later operands are attempted. Parent cancellation
 rejects with the parent abort reason instead of returning a normal exit code.

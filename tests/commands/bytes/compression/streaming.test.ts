@@ -107,15 +107,17 @@ test("sink error tears down a producer blocked in next and return", { timeout: 3
   assert.equal(returns, 1);
 });
 
-test("zlib error tears down a blocked source without waiting for EOF", { timeout: 3_000 }, async () => {
+test("invalid gzip input closes its source without waiting for EOF", { timeout: 3_000 }, async () => {
   const next = deferred<IteratorResult<Uint8Array>>();
   let first = true;
   let returned = false;
+  let pendingRead = false;
   const source: ByteSource = {
     [Symbol.asyncIterator]() {
       return {
         async next() {
           if (first) { first = false; return { done: false, value: Buffer.from("this is not gzip") }; }
+          pendingRead = true;
           return next.promise;
         },
         async return() { returned = true; return { done: true, value: undefined }; },
@@ -123,7 +125,7 @@ test("zlib error tears down a blocked source without waiting for EOF", { timeout
     },
   };
   assert.equal((await run("gunzip", [], source)).exitCode, 1);
-  next.reject(new Error("late invalid source"));
+  if (pendingRead) next.reject(new Error("late invalid source"));
   await delay(10);
   assert.equal(returned, true);
 });

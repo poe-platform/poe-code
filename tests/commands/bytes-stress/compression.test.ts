@@ -195,16 +195,3 @@ test("force stdout passes through non-gzip bytes without changing file inputs", 
     assert.deepEqual(actual.stdout, input); assert.deepEqual(actual.stdout, expected.stdout);
   }
 });
-
-const reservedFlag = storedMember(Buffer.from("payload")); reservedFlag[3] = 32;
-for (const [name, args, input, reason] of [
-  ["empty forced input", ["-dfc"], Buffer.alloc(0), "Documented force passthrough accepts empty input; Apple gzip rejects it"],
-  ["one-byte forced input", ["-dfc"], Buffer.from([0x1f]), "Documented force passthrough accepts non-magic prefixes; Apple gzip rejects short headers"],
-  ["zero padding after member", ["-t"], Buffer.concat([storedMember(Buffer.from("payload")), Buffer.alloc(8)]), "Node zlib accepts zero padding; Apple gzip reports trailing-garbage status 2"],
-  ["reserved header flag", ["-t"], reservedFlag, "Virtual decoder enforces reserved header bits; Apple gzip accepts this invalid header"],
-] as const) test(`known native parity gap: ${name}`, { skip: !nativePrograms.gzip, todo: reason }, async () => {
-  const expected = await native(nativePrograms.gzip, args, input);
-  const actual = await run("gzip", args, input);
-  assert.equal(actual.exitCode, expected.exitCode, reason);
-  assert.deepEqual(actual.stdout, expected.stdout);
-});

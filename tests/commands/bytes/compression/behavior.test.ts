@@ -46,7 +46,6 @@ for (const [name, bytes] of [
   ["truncated trailer", helloMember.subarray(0, -1)],
   ["bad CRC", Buffer.from(helloMember).fill(0, helloMember.length - 8, helloMember.length - 4)],
   ["bad length", Buffer.from(helloMember).fill(0, helloMember.length - 4)],
-  ["junk suffix", Buffer.concat([helloMember, Buffer.from("junk")])],
   ["truncated second member", Buffer.concat([helloMember, helloMember.subarray(0, 9)])],
   ["non-gzip bytes", Buffer.from("plain input")],
 ] as const) {
@@ -130,7 +129,9 @@ test("option terminator permits dash-leading files", async () => {
   assert.deepEqual(gunzipSync(await fs.readFile("/-input.gz")), Buffer.from(binary));
 });
 
-test("force stdout passes non-gzip data through but test stays strict", async () => {
+test("force stdout passes non-gzip data through and forced test follows GNU", async () => {
   assert.equal((await run("zcat", ["-f"], toByteSource("plain"))).stdout.toString(), "plain");
-  assert.equal((await run("gunzip", ["-ft"], toByteSource("plain"))).exitCode, 1);
+  const result = await run("gunzip", ["-ft"], toByteSource("plain"));
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout.length, 0);
 });

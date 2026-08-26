@@ -2,6 +2,16 @@
 
 ## Verified guarded-rename fix
 
+**Exact source-revision confirmation:** independent fresh archives of
+**d52634b04aa2c91f52e5bf8c331bc6e9a7b35a95 itself** pass **42/42 + 44/44**,
+five processes per suite, zero failures/skips/TODOs/cancellations. These are
+additional runs, not the descendant results below. `d52634b-exact-policy.json`,
+`d52634b-exact-bounded.json` and `d52634b-exact-validation.json` retain revision
+proof, unchanged-baseline test hashes, strict archived typecheck and all raw
+observations. All 18 same-ETag identity-loss observations still reproduce;
+directory snapshot limits remain. Closure concerns the tested unsafe guard
+downgrade only, not broader security, incarnation identity or atomicity.
+
 Source fix **d52634b04aa2c91f52e5bf8c331bc6e9a7b35a95**, tested in fresh frozen
 HEAD **075bda4ca170a59617478bd610169898f83f865f**, closes the three original
 capability-preflight regressions: **42/42 pass**, five separate processes, zero

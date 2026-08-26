@@ -97,9 +97,11 @@ options. Invalid options and malformed operands produce diagnostics and status
   RegExp, not a complete POSIX leftmost-longest engine. Lookaround/special groups
   are rejected. Full locale/collation classes, binary-file heuristics, recursive
   search, context lines, and hard regex execution budgets are not implemented.
-  All current input is treated as text; `-a` explicitly selects that default.
+  Matching uses a one-byte string view; literal argv patterns are UTF-8 encoded,
+  pattern files retain their raw bytes, and selected output retains original
+  bytes. `-a` explicitly selects the default without binary-file heuristics.
 - Text comparison is C-like byte ordering with ASCII case/whitespace rules,
-  except explicit UTF-8 character operations and regex matching. `cut -c` counts
+  except explicit UTF-8 character operations. `cut -c` counts
   codepoints, not graphemes or GNU implementations that treat it like bytes.
   `wc` prints plain space-separated fields rather than platform-specific padding.
   `ls -l` is a stable numeric/UTC presentation, not native locale formatting;

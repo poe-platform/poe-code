@@ -200,11 +200,30 @@ export function textCommands(): CommandDefinition[] {
             context.signal.throwIfAborted();
             let bytes: Uint8Array;
             if (mode === "f") {
-              const text = new TextDecoder().decode(line.bytes);
-              if (!text.includes(delimiter)) {
+              const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
+              const separator = encoder.encode(delimiter);
+              let boundary = record.indexOf(separator);
+              if (boundary < 0) {
                 if (parsed.flags.has("s")) continue;
                 bytes = line.bytes;
-              } else bytes = encoder.encode(text.split(delimiter).filter((_, index) => selected(index + 1)).join(outputDelimiter ?? delimiter));
+              } else {
+                const pieces: Uint8Array[] = [];
+                const joiner = encoder.encode(outputDelimiter ?? delimiter);
+                let field = 1;
+                let start = 0;
+                let emitted = false;
+                while (true) {
+                  if (selected(field++)) {
+                    if (emitted) pieces.push(joiner);
+                    pieces.push(record.subarray(start, boundary < 0 ? record.length : boundary));
+                    emitted = true;
+                  }
+                  if (boundary < 0) break;
+                  start = boundary + separator.length;
+                  boundary = record.indexOf(separator, start);
+                }
+                bytes = concatenate(pieces);
+              }
             } else if (mode === "b") {
               const chunks: Uint8Array[] = [];
               let start = -1;

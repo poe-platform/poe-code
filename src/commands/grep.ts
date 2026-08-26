@@ -38,11 +38,11 @@ export function grepCommands(): CommandDefinition[] {
       if (parts.length > 1 && parts.at(-1) === "") parts.pop();
       patterns.push(...parts);
     };
-    for (const pattern of parsed.values.get("e") ?? []) addPatterns(pattern, false);
-    for (const name of parsed.values.get("f") ?? []) addPatterns(new TextDecoder().decode(await collect(input(context, name), context.signal)), true);
+    for (const pattern of parsed.values.get("e") ?? []) addPatterns(Buffer.from(pattern).toString("latin1"), false);
+    for (const name of parsed.values.get("f") ?? []) addPatterns(Buffer.from(await collect(input(context, name), context.signal)).toString("latin1"), true);
     if (!parsed.flags.has("e") && !parsed.flags.has("f")) {
       if (!parsed.operands.length) throw new UsageError("missing pattern");
-      addPatterns(parsed.operands.shift()!, false);
+      addPatterns(Buffer.from(parsed.operands.shift()!).toString("latin1"), false);
     }
     if (parsed.flags.has("E") && parsed.flags.has("F")) throw new UsageError("conflicting matchers specified");
     const matchers = patterns.map(pattern => {
@@ -81,7 +81,7 @@ export function grepCommands(): CommandDefinition[] {
         if (maxCount > 0) for await (const line of lines(input(context, name), parsed.flags.has("z") ? 0 : 10)) {
           context.signal.throwIfAborted();
           number++;
-          const found = matches(new TextDecoder().decode(line.bytes));
+          const found = matches(Buffer.from(line.bytes).toString("latin1"));
           if ((found.length > 0) === parsed.flags.has("v")) continue;
           count++;
           if (!parsed.flags.has("L")) anySelected = true;
@@ -93,7 +93,9 @@ export function grepCommands(): CommandDefinition[] {
                 let end = -1;
                 for (const match of found) {
                   if (!match.text || match.index < end) continue;
-                  await output(context, prefix(true) + match.text + delimiter);
+                  await output(context, prefix(true));
+                  await output(context, line.bytes.subarray(match.index, match.index + match.text.length));
+                  await output(context, delimiter);
                   end = match.index + match.text.length;
                 }
               }

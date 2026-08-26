@@ -716,14 +716,14 @@ class Parser {
   }
 
   private parseExpression(options: ExpressionParseOptions = {}): ParsedExpression {
-    const first = this.parseNonSequenceExpression();
+    const first = this.parseAssignmentExpression();
     if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
       return first;
     }
 
     const expressions = [first.node];
     do {
-      expressions.push(this.parseNonSequenceExpression().node);
+      expressions.push(this.parseAssignmentExpression().node);
     } while (this.consumePunctuator(",") !== undefined);
 
     return {
@@ -736,7 +736,7 @@ class Parser {
     };
   }
 
-  private parseNonSequenceExpression(): ParsedExpression {
+  private parseAssignmentExpression(): ParsedExpression {
     const arrowFunction = this.tryParseArrowFunctionExpression();
     if (arrowFunction !== undefined) {
       return {
@@ -745,10 +745,6 @@ class Parser {
       };
     }
 
-    return this.parseAssignmentExpression();
-  }
-
-  private parseAssignmentExpression(): ParsedExpression {
     const patternAssignment = this.tryParsePatternAssignmentExpression();
     if (patternAssignment !== undefined) {
       return {
@@ -839,7 +835,7 @@ class Parser {
 
       const consequent = this.parseExpression();
       this.expectPunctuator(":");
-      const alternate = this.parseConditionalExpression();
+      const alternate = this.parseAssignmentExpression();
       return {
         node: {
           type: "ConditionalExpression",

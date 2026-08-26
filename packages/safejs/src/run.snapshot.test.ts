@@ -400,16 +400,63 @@ describe("run snapshot checkpointing", () => {
     });
   });
 
-  it("preserves shared mutable captures when restoring an await checkpoint", async () => {
-    const source = [
-      "let count = 1;",
-      "const increment = () => { count += 1; };",
-      "const read = () => count;",
-      "increment();",
-      "await wait();",
-      "increment();",
-      "return read();"
-    ].join("\n");
+  it.each([
+    {
+      name: "shared sibling captures",
+      source: `
+        let count = 1;
+        const increment = () => { count += 1; };
+        const read = () => count;
+        increment();
+        await wait();
+        increment();
+        return read();
+      `,
+      expected: 3
+    },
+    {
+      name: "per-iteration bindings",
+      source: `
+        const readers = [];
+        for (let index = 0; index < 8; index += 1) {
+          readers.push(() => { index += 10; return index; });
+        }
+        readers[0]();
+        await wait();
+        return readers.map((read) => read());
+      `,
+      expected: [20, 11, 12, 13, 14, 15, 16, 17]
+    },
+    {
+      name: "factory captures and default parameter readers",
+      source: `
+        const create = (count, read = () => count) => ({
+          read,
+          add: () => { count += 1; }
+        });
+        const first = create(5);
+        const second = create(10);
+        first.add();
+        await wait();
+        first.add();
+        second.add();
+        return [first.read(), second.read()];
+      `,
+      expected: [7, 11]
+    },
+    {
+      name: "recursive reassigned closures",
+      source: `
+        let recurse;
+        let count = 0;
+        recurse = (depth) => { count += 1; return depth === 0 ? count : recurse(depth - 1); };
+        recurse(3);
+        await wait();
+        return recurse(3);
+      `,
+      expected: 8
+    }
+  ])("preserves $name when restoring an await checkpoint", async ({ source, expected }) => {
     const pending = createDeferred<void>();
     const result = run(source, {
       bindings: {
@@ -422,7 +469,7 @@ describe("run snapshot checkpointing", () => {
     });
     const snapshot = JSON.parse(await dump(result));
     pending.resolve();
-    await expect(result).resolves.toMatchObject({ ok: true, returnValue: 3 });
+    await expect(result).resolves.toMatchObject({ ok: true, returnValue: expected });
     await expect(
       run(source, {
         bindings: {
@@ -434,7 +481,7 @@ describe("run snapshot checkpointing", () => {
         },
         snapshot: restore(snapshot, { source })
       })
-    ).resolves.toMatchObject({ ok: true, returnValue: 3 });
+    ).resolves.toMatchObject({ ok: true, returnValue: expected });
   });
 
   it("restores a snapshot taken before the first await and returns the original value", async () => {

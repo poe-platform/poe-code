@@ -5,6 +5,25 @@ import { ParseError } from "./format-error.js";
 import { parseModule } from "./parser.js";
 
 describe("parse", () => {
+  it.each([
+    "callback = () => 1;",
+    "callback = value => value;",
+    "callback = async () => await task();",
+    "callback = async value => value;",
+    "first = second = () => 1;",
+    "callback ||= () => 1;",
+    "callback &&= () => 1;",
+    "callback ??= () => 1;",
+    "const callback = condition ? () => 1 : () => 2;",
+    "const callback = condition ? first = () => 1 : second = () => 2;",
+    "[callback = () => 1] = [];",
+    "({ callback = () => 1 } = {});",
+    "({ callback: callback = () => 1 } = {});",
+    "function* callbacks() { yield () => 1; }"
+  ])("accepts arrows in assignment-expression positions: %s", (source) => {
+    expect(() => parseModule(source)).not.toThrow();
+  });
+
   it("accepts byte-zero hashbangs and leading byte order marks", () => {
     expect(parse("#!/usr/bin/env bun\n1")).toMatchObject({
       type: "NumericLiteral",

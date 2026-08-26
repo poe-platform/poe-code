@@ -41,6 +41,17 @@ language completeness from passing existing tests alone.
 
 ## Validation and release gates
 
+The user additionally requires thorough stress testing via varied scripts, not
+just acceptance examples. This is part of the goal for every item. Compare
+supported language behavior with native JavaScript using deterministic,
+reproducible script matrices. Exercise interactions, repeated mutations,
+asynchronous scheduling, checkpoint/restore, host failures, resource exhaustion,
+and sandbox escapes. An unexpected mismatch blocks that item's release until it
+is understood and fixed. Keep fast regression coverage in tests and manual QA
+steps in markdown; do not replace QA with a new automation script. Record the
+actual cases and results, including remaining gaps, rather than claiming
+perfection from a green suite.
+
 For every item: add failing regression tests first, implement the change, run
 focused tests and the SafeJS suite, typecheck/lint, and inspect CLI screenshots
 when output or CLI behavior changes. Unit tests use memfs and mock external
@@ -70,3 +81,12 @@ Record commit, workflow conclusion, and published version for each item here.
 - CLI screenshot inspected: `harness run /tmp/safejs-mutable-closures.md --yes`
   completes successfully with the shared mutable count of 2.
 - Updated the SafeJS skill template and ran `npm run sync-skills`.
+- Initial implementation commit: `486b9f1f` (not yet released).
+- Stress follow-up: eight script families at widths 1, 7, and 24 compare directly
+  with native JavaScript. They exposed rejection of arrow reassignment; fixed
+  assignment-expression parsing, including chained/logical assignments,
+  destructuring defaults, conditional alternates, and yielded arrows.
+- Added 14 parser regression cases and four closure checkpoint/restore scenarios.
+- Expanded SafeJS and agent-harness suites: 3,119 passed, 39 skipped.
+- Opt-in adversarial/parser fuzz run: 9 passed, 5 skipped. The skipped Test262
+  cases remain explicit gaps, not evidence of full language conformance.

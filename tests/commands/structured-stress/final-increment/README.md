@@ -30,6 +30,13 @@ unrelated diff tests, not runtime source. Runtime-tree SHA-256 is
 An earlier recording attempt rejected concurrent runtime edits and was rerun;
 its results were not recorded as a stable checkpoint.
 
+After verification commit `224fc654e7f00ded052cc4f3b609784b0ce2bdaf`, foreign
+diff/patch runtime edits changed the full-tree hash, not structured source.
+`post-checkpoint.json` preserves the original record and identifies those files.
+At that exact HEAD, affected checks were rerun with a stable new runtime hash:
+live matrix **79/79**, pinned matrix **71/79**, fresh comparisons/backend tests
+**65/65**. No later whole-repository or full numeric-suite rerun is implied.
+
 ## Results and denominators
 
 | Product comparison | Cases | Native fixture calls | Exact stdout/stderr/status | Stdout/status parity | Stdout or status differs | Diagnostic-only |

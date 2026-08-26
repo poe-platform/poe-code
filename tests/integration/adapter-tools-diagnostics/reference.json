@@ -1,0 +1,77 @@
+{
+  "capturedAt": "2026-08-26T21:42:09.323Z",
+  "productImported": false,
+  "nativeCalls": 2,
+  "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "executableSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "argv0": "shell",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools-diagnostics/.native-ENl9fy",
+  "version": {
+    "argv": [
+      "--version"
+    ],
+    "status": 0,
+    "signal": null,
+    "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+    "stderr": "",
+    "stdoutHex": "474e5520626173682c2076657273696f6e20352e332e302831292d72656c656173652028616172636836342d6170706c652d64617277696e32352e342e30290a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c687474703a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e0a0a54686973206973206672656520736f6674776172653b20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a",
+    "stderrHex": ""
+  },
+  "missing": {
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "cat < missing.txt"
+    ],
+    "status": 1,
+    "signal": null,
+    "stdout": "",
+    "stderr": "shell: line 1: missing.txt: No such file or directory\n",
+    "stdoutHex": "",
+    "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+    "namespaceBefore": [],
+    "namespaceAfter": [],
+    "normalizations": []
+  },
+  "readonly": {
+    "kind": "primary-source profile, NOT native EROFS execution",
+    "reason": "No read-only filesystem inside the owned temporary directory; no host mutation, chmod, remount, or EACCES substitution attempted.",
+    "sources": [
+      {
+        "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.42/sysdeps/gnu/errlist.h",
+        "sha256": "fcd83c4b4051b5f84484b62b4448cef106bc33025c14b18aff41b166208c7cfb",
+        "excerpt": "_S(EROFS, N_(\"Read-only file system\"))",
+        "line": 200
+      },
+      {
+        "url": "https://raw.githubusercontent.com/mirror/bash/bash-5.3/redir.c",
+        "sha256": "e67c09d0019b700e39f3636a8eb11094cdc688570fbffe43168d8cfac1823a3f",
+        "excerpt": "internal_error (\"%s: %s\", filename, strerror (error));",
+        "line": 223
+      },
+      {
+        "url": "https://raw.githubusercontent.com/mirror/bash/bash-5.3/execute_cmd.c",
+        "sha256": "edca6ab242353ca928d2d991eb5cd92d6267b6be39f990aac6532263bfe0548d",
+        "excerpt": "case EX_REDIRFAIL:",
+        "line": 4865
+      },
+      {
+        "url": "https://raw.githubusercontent.com/mirror/bash/bash-5.3/shell.h",
+        "sha256": "231edc00d19a7ad30aa38154e6c9855577b0177bda407c1c95821628781715cb",
+        "excerpt": "#define EXECUTION_FAILURE 1",
+        "line": 52
+      }
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": "shell: line 1: target.txt: Read-only file system\n",
+    "inference": "Bash 5.3 renders filename plus strerror; glibc 2.42 C-locale EROFS wording. Prefix is independently executed above. Redirection failure maps to EXECUTION_FAILURE (1). This pins a GNU profile, not Darwin libc or a live EROFS result."
+  }
+}

@@ -1,0 +1,1167 @@
+{
+  "recordedAt": "2026-08-26T21:45:35.453Z",
+  "nodeVersion": "v22.22.2",
+  "referenceSha256": "c62e4e68b6c2d79ce6e88ce958cc7df37a5b2cfa306d9779e0ba48f7f55039b4",
+  "testSha256": "b7e51340613e5f545c14c4905742d443b31f7af17496393ff519da51068b9a2b",
+  "loaderSha256": "e2db0ea6dfe28e50eb70a9ac3322827562755521e4428a5be715708f6ef09387",
+  "comparisonRevisions": {
+    "6a259ff": {
+      "commit": "6a259ff4c38f64efb506e39812166ff7f003f6ce",
+      "matrixBlob": "0b5abee4b9bf65590085c96d83eb599b50595523",
+      "fixtureBlob": "c54c2b95989d9c485d08ae42512d59d24e744ebf"
+    },
+    "19149d3": {
+      "commit": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+      "matrixBlob": "0b5abee4b9bf65590085c96d83eb599b50595523",
+      "fixtureBlob": "c54c2b95989d9c485d08ae42512d59d24e744ebf"
+    },
+    "d0fed8f": {
+      "commit": "d0fed8fb1b54ae7be4dadc1332750314d9bb108d",
+      "matrixBlob": "5ff401c166b0142641cbe045b87162ee125db532",
+      "fixtureBlob": "c54c2b95989d9c485d08ae42512d59d24e744ebf"
+    },
+    "df5bc45": {
+      "commit": "df5bc453de004a8eb483696cf4ae1986a012cca1",
+      "matrixBlob": "f007991b74b780e6aeb5fc4e8e570b1a18379528",
+      "fixtureBlob": "2ca18f3bb7fc336f54ccbfb27c228f420564afc2"
+    }
+  },
+  "runs": [
+    {
+      "revision": "worktree",
+      "headAtStart": "f9b3113844c3acd24e4219d8c86b754acdffc35e",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/integration/adapter-tools-diagnostics/register.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "summary": [
+        "# tests 8",
+        "# pass 8",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 1323.715667"
+      ],
+      "records": [
+        {
+          "id": "memory:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "readFile"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            }
+          ],
+          "afterSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "beforeRedirectSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "real:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "readFile"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            }
+          ],
+          "afterSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "beforeRedirectSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "s3:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "afterSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "beforeRedirectSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "webdav:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a20576562444156204854545020737461747573203430342c2050524f5046494e4420272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            }
+          ],
+          "afterSha256": "827f29b27659bd3f321276f2ebcccb6a404c80fe5a6e49d266cc1f8c0793f3dc",
+          "beforeRedirectSha256": "827f29b27659bd3f321276f2ebcccb6a404c80fe5a6e49d266cc1f8c0793f3dc",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "mount:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "readFile"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "10400cd6b90d2dbcc312504fe12c17e95bd357c58bd38e815b476eda7b3c7368",
+          "namespace": [
+            "/",
+            "/objects",
+            "/objects/seed.bin",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            }
+          ],
+          "afterSha256": "c67d398d878b7d15602268c99260440127495e6a693454ef73d185352c1a73e9",
+          "beforeRedirectSha256": "c67d398d878b7d15602268c99260440127495e6a693454ef73d185352c1a73e9",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "overlay:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c206f7665726c617920272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            }
+          ],
+          "afterSha256": "b3551e0e6e69c092ecd09d71332aff3f4faefed5c16391919681f11ccaf53d76",
+          "beforeRedirectSha256": "b3551e0e6e69c092ecd09d71332aff3f4faefed5c16391919681f11ccaf53d76",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "readonly:truncate:EROFS",
+          "source": "printf 'changed' > target.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "writeFile(empty,w)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            },
+            {
+              "operation": "writeFile(changed,w)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a207461726765742e7478743a20526561642d6f6e6c792066696c652073797374656d0a"
+          },
+          "observed": [
+            {
+              "operation": "writeFile",
+              "target": "/work/target.txt",
+              "bytesHex": "",
+              "flag": "w",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            }
+          ],
+          "afterSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "beforeRedirectSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "readonly:append:EROFS",
+          "source": "printf 'changed' >> target.txt",
+          "revision": "worktree",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "writeFile(empty,a)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            },
+            {
+              "operation": "appendFile(changed)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "appendFile"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a207461726765742e7478743a20526561642d6f6e6c792066696c652073797374656d0a"
+          },
+          "observed": [
+            {
+              "operation": "writeFile",
+              "target": "/work/target.txt",
+              "bytesHex": "",
+              "flag": "a",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            }
+          ],
+          "afterSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "beforeRedirectSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        }
+      ],
+      "changedPathsDuringRun": [],
+      "source": {
+        "fileCount": 101,
+        "sha256": "ca47fefc0209f5fe66abe49e642a48723bf1d8c3c1d8d3c7d11f713b73f257e2",
+        "keyFileSha256": {
+          "src/shell/runtime.ts": "538a52971da077c87f5dbaba2c5ffd5c972d434064ace412ba101aa70afdcb5a",
+          "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "src/fs/readonly/index.ts": "5caf8deac8569444eb6e3e922f063b2ca4577d472329eacb3ec58ee501393dbc",
+          "src/fs/mount/index.ts": "539f22e42f7505aaa20fa643ebeecf1a5b7a1e21f1fb2596fbd7e8fa2d7ae5e0",
+          "src/fs/overlay/index.ts": "2b91569d7f35380722cc3b9c8c15ba36e8e036ed9534632e7715d945288135f4",
+          "src/fs/s3/filesystem.ts": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f",
+          "src/fs/webdav/webdav.ts": "e457d338c395b5870de58f8291e607be997b4e3043d4b0425aa75302315fc4d8",
+          "tests/integration/adapter-tools/fixtures.ts": "59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab",
+          "tests/integration/adapter-tools/matrix.test.ts": "a4f79a93aae64a91fe764da7b9a2c096c8dd93a76fcdcc522828aea670a241f2"
+        }
+      }
+    },
+    {
+      "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+      "headAtStart": "f37203d86b7438dc3158d5be78ec7cf270fe2f39",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/integration/adapter-tools-diagnostics/register.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "summary": [
+        "# tests 8",
+        "# pass 8",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 4257.427209"
+      ],
+      "records": [
+        {
+          "id": "memory:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "readFile"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            }
+          ],
+          "afterSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "beforeRedirectSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "real:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "readFile"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            }
+          ],
+          "afterSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "beforeRedirectSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "s3:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "afterSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "beforeRedirectSha256": "6b31e378613a2544b4b05d047c00ac2be9b457ccbbb7bc3fc7054658547652ab",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "webdav:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a20576562444156204854545020737461747573203430342c2050524f5046494e4420272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "PROPFIND"
+            }
+          ],
+          "afterSha256": "827f29b27659bd3f321276f2ebcccb6a404c80fe5a6e49d266cc1f8c0793f3dc",
+          "beforeRedirectSha256": "827f29b27659bd3f321276f2ebcccb6a404c80fe5a6e49d266cc1f8c0793f3dc",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "mount:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "readFile"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "stat"
+            }
+          ],
+          "beforeSha256": "10400cd6b90d2dbcc312504fe12c17e95bd357c58bd38e815b476eda7b3c7368",
+          "namespace": [
+            "/",
+            "/objects",
+            "/objects/seed.bin",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207265616453747265616d20272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "access"
+            }
+          ],
+          "afterSha256": "c67d398d878b7d15602268c99260440127495e6a693454ef73d185352c1a73e9",
+          "beforeRedirectSha256": "c67d398d878b7d15602268c99260440127495e6a693454ef73d185352c1a73e9",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "overlay:ENOENT",
+          "source": "cat < missing.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "access(4)",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            },
+            {
+              "operation": "readFile",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            },
+            {
+              "operation": "stat",
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "errorLogHex": "6361743a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c206f7665726c617920272f776f726b2f6d697373696e672e747874270a",
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e672e7478743a204e6f20737563682066696c65206f72206469726563746f72790a"
+          },
+          "observed": [
+            {
+              "operation": "access",
+              "target": "/work/missing.txt",
+              "mode": 4,
+              "type": "FsError",
+              "code": "ENOENT",
+              "path": "/work/missing.txt",
+              "syscall": "overlay"
+            }
+          ],
+          "afterSha256": "b3551e0e6e69c092ecd09d71332aff3f4faefed5c16391919681f11ccaf53d76",
+          "beforeRedirectSha256": "b3551e0e6e69c092ecd09d71332aff3f4faefed5c16391919681f11ccaf53d76",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "readonly:truncate:EROFS",
+          "source": "printf 'changed' > target.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "writeFile(empty,w)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            },
+            {
+              "operation": "writeFile(changed,w)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a207461726765742e7478743a20526561642d6f6e6c792066696c652073797374656d0a"
+          },
+          "observed": [
+            {
+              "operation": "writeFile",
+              "target": "/work/target.txt",
+              "bytesHex": "",
+              "flag": "w",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            }
+          ],
+          "afterSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "beforeRedirectSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        },
+        {
+          "id": "readonly:append:EROFS",
+          "source": "printf 'changed' >> target.txt",
+          "revision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+          "nativeCalls": 0,
+          "direct": [
+            {
+              "operation": "writeFile(empty,a)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            },
+            {
+              "operation": "appendFile(changed)",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "appendFile"
+            }
+          ],
+          "beforeSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "namespace": [
+            "/",
+            "/work",
+            "/work/change.diff",
+            "/work/config.json",
+            "/work/empty.txt",
+            "/work/new.txt",
+            "/work/old.txt",
+            "/work/payload.bin",
+            "/work/src",
+            "/work/src/tasks.txt",
+            "/work/target.txt"
+          ],
+          "result": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a207461726765742e7478743a20526561642d6f6e6c792066696c652073797374656d0a"
+          },
+          "observed": [
+            {
+              "operation": "writeFile",
+              "target": "/work/target.txt",
+              "bytesHex": "",
+              "flag": "a",
+              "type": "FsError",
+              "code": "EROFS",
+              "path": "/work/target.txt",
+              "syscall": "writeFile"
+            }
+          ],
+          "afterSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "beforeRedirectSha256": "cc090bd2fbb422d8e76fe31979f31bc72f625cc37c8805d23c4950978f095461",
+          "targetHex": "616c7068610a626574610a",
+          "missingAbsent": true,
+          "failures": [],
+          "status": "PASS"
+        }
+      ],
+      "changedPathsDuringRun": [],
+      "source": {
+        "tree": "68f8d800dcc23da445c9586c863af8c7d56e4d3a",
+        "fixtureBlob": "c54c2b95989d9c485d08ae42512d59d24e744ebf",
+        "matrixBlob": "0b5abee4b9bf65590085c96d83eb599b50595523"
+      }
+    }
+  ],
+  "typecheck": {
+    "argv": [
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--forceConsistentCasingInFileNames",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "changedDuringSession": []
+}

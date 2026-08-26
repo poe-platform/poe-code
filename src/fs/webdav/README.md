@@ -104,8 +104,13 @@ Locks request `Second-60`, but servers choose the actual finite timeout. There
 is no refresh or automatic mutation retry. `UNLOCK` is attempted even after
 cancellation or failed/partial transfer, with a fresh request deadline. Cleanup
 failure does not mask the transfer result: a lock may remain until its granted
-timeout. A server returning a malformed lock response or losing the LOCK reply
-can also leave a lock behind. Infinite grants are rejected with cleanup.
+timeout. When a successful LOCK response is available at cancellation, its
+syntactically valid token is retained for cleanup only after response-origin,
+resource and redirect checks; no COPY/MOVE follows that cancellation. This
+also covers cancellation while reading the lock body. A lost LOCK response,
+an untrusted response URL or an unusable token can still leave a lock behind;
+cleanup is best-effort, not cancellation atomicity. Infinite grants are
+rejected with cleanup.
 Servers without the required lock support return `ENOTSUP`; there is no silent
 downgrade to an unprotected overwrite.
 

@@ -172,7 +172,8 @@ export class WebDavFileSystem implements FileSystem {
   }
 
   private async request<T>(method: string, path: string, options: FsOptions, init: RequestInit,
-    consume: (response: Response, signal: AbortSignal) => Promise<T>, collection = false): Promise<T> {
+    consume: (response: Response, signal: AbortSignal) => Promise<T>, collection = false,
+    received?: (response: Response) => void): Promise<T> {
     if (options.signal?.aborted) fail("ECANCELED", method, path);
     const timeout = AbortSignal.timeout(this.timeoutMs);
     const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
@@ -186,9 +187,10 @@ export class WebDavFileSystem implements FileSystem {
         response = await this.transport(url, {
           ...init, method, headers, redirect: "manual", credentials: "omit", signal,
         });
-        if (signal.aborted) signal.throwIfAborted();
         if (response.redirected || response.type === "opaqueredirect") fail("ENOTSUP", method, path, "transport followed or hid a redirect");
         if (response.url && this.hrefPath(response.url) !== path) fail("EACCES", method, path, "transport changed the requested resource");
+        received?.(response);
+        signal.throwIfAborted();
         const location = response.headers.get("Location");
         if (attempt === 0 && method === "PROPFIND" && !url.endsWith("/")
           && [301, 302, 307, 308].includes(response.status) && location !== null
@@ -557,9 +559,6 @@ export class WebDavFileSystem implements FileSystem {
         body: lockBody,
       }, async (response, signal) => {
         if (response.status !== 200) this.httpError(response.status, "LOCK", path);
-        const header = response.headers.get("Lock-Token");
-        if (!header || !/^<[a-z][a-z0-9+.-]*:[^<>\s\x00-\x20\x7f]+>$/i.test(header)) throw new Error("invalid LOCK token");
-        token = header;
         const root = await this.xml(response, signal);
         const discovery = davChild(root, "lockdiscovery");
         const active = discovery && davChild(discovery, "activelock");
@@ -577,7 +576,12 @@ export class WebDavFileSystem implements FileSystem {
           || !timeout || !/^Second-[1-9]\d*$/i.test(scalar(timeout)) || Number(scalar(timeout).slice(7)) > 4_294_967_295) {
           fail("ENOTSUP", "LOCK", path, "server did not grant a finite exclusive depth-infinity write lock");
         }
-      }, collection);
+      }, collection, (response) => {
+        if (response.status !== 200) return;
+        const header = response.headers.get("Lock-Token");
+        if (!header || !/^<[a-z][a-z0-9+.-]*:[^<>\s\x00-\x20\x7f]+>$/i.test(header)) throw new Error("invalid LOCK token");
+        token = header;
+      });
       await operation(token!);
     } finally {
       if (token) await this.request("UNLOCK", path, {}, { headers: { "Lock-Token": token } }, async (response) => {

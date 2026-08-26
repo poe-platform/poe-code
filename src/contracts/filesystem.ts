@@ -10,6 +10,7 @@ export interface FileStat {
   readonly atimeMs: number;
   readonly ctimeMs: number;
   readonly birthtimeMs?: number;
+  readonly identityScope?: object | symbol;
   readonly ino?: number;
   readonly dev?: number;
   readonly nlink?: number;

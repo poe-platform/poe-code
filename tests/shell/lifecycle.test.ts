@@ -8,7 +8,7 @@ import { ShellInput } from "../../src/shell/input.js";
 import { Budget, defaultLimits } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
 
-for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort"]) {
+for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort", "busy-loop-abort"]) {
   test(`hard-timeout lifecycle regression: ${scenario}`, () => {
     const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./lifecycle-probe.ts", import.meta.url)), scenario], {
       timeout: 3000, encoding: "utf8", maxBuffer: 1024 * 1024,

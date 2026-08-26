@@ -68,6 +68,18 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
   assert.equal((await shell.exec(script, { stdin })).stdout, scenario === "shared-repeated-cancellation" ? "" : "B");
   assert.equal(maximum, 1);
   assert.equal(position, 3);
+} else if (scenario === "busy-loop-abort") {
+  const { shell, fs } = setup();
+  const controller = new AbortController();
+  const reason = new Error("cancel busy loop");
+  const timer = setTimeout(() => controller.abort(reason), 20);
+  try {
+    await assert.rejects(shell.exec("while true; do :; done; : >after", {
+      signal: controller.signal,
+      limits: { maxCommands: 1_000_000_000, maxLoopIterations: 1_000_000_000 },
+    }), (error) => error === reason);
+    assert.deepEqual(await fs.readdir("/"), []);
+  } finally { clearTimeout(timer); }
 } else if (scenario === "owned-cleanup-abort") {
   const { shell, fs } = setup();
   await fs.writeFile("/input", new Uint8Array([65]));

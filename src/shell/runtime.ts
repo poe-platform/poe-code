@@ -269,6 +269,7 @@ export class Runtime {
 
   async command(command: Command, state: State, originalIO: IO): Promise<number> {
     this.budget.tick();
+    if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
     this.signal.throwIfAborted();
     const inputs = new Set<ShellInput>();
     const outputs = new Set<() => void>();

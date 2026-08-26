@@ -132,6 +132,7 @@ export function reversePatch(patch: FilePatch): FilePatch {
 
 export interface HunkOutcome {
   readonly hunk: Hunk; readonly index: number; readonly failed: boolean;
+  readonly misordered: boolean;
   readonly line: number; readonly outputOffset: number; readonly offset: number; readonly fuzz: number;
 }
 
@@ -162,12 +163,13 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
     while (trailing < hunk.lines.length - leading && hunk.lines[hunk.lines.length - trailing - 1]!.kind === " ") trailing++;
     const expected = startIndex(hunk.oldStart, hunk.oldCount) + offset;
     let found = -1;
+    let misordered = false;
     let usedFuzz = 0;
     const context = Math.max(leading, trailing);
     const matches = async (position: number, prefixFuzz: number, suffixFuzz: number) => {
       budget.step();
       await budget.checkpoint();
-      if (position < cursor || position > source.length - hunk.oldCount + suffixFuzz) return false;
+      if (position < 0 || position > source.length - hunk.oldCount + suffixFuzz) return false;
       for (let lineIndex = 0; lineIndex < oldLines.length; lineIndex++) {
         if (lineIndex < prefixFuzz || lineIndex >= oldLines.length - suffixFuzz) continue;
         const actual = source[position + lineIndex];
@@ -178,6 +180,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
           ignoreWhitespace ? expectedLine.replace(/[ \t]+/gu, " ") : expectedLine)) return false;
         await budget.checkpoint();
       }
+      if (position < cursor) { misordered = true; return false; }
       return true;
     };
     for (let tolerance = 0; tolerance <= Math.min(fuzz, context); tolerance++) {
@@ -207,7 +210,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       }
       if (found >= 0) break;
     }
-    application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0,
+    application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0, misordered: found < 0 && misordered,
       line: (found < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : found) + 1 + outputOffset,
       outputOffset, offset: found - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });
     if (found < 0) {

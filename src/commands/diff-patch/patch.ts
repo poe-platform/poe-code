@@ -238,6 +238,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     let message = `${options.dryRun ? "checking" : "patching"} file ${name}\n`;
     if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
     for (const outcome of outcomes) {
+      if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
       if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
       else if (outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${Math.abs(outcome.offset) === 1 ? "line" : "lines"})` : ""}.\n`;
     }

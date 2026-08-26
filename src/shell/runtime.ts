@@ -218,17 +218,27 @@ export class Runtime {
         const signal = AbortSignal.any([this.signal, controllers[index]!.signal]);
         const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles);
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
+        const pipeOutput: ByteSink | undefined = outgoing && { write: async (chunk) => {
+          try { await outgoing.writable.write(chunk); }
+          catch (error) {
+            if (errorCode(error) === "EPIPE") {
+              const closed = new PipelineClosed();
+              controllers[index]!.abort(closed);
+              throw closed;
+            }
+            throw error;
+          }
+        } };
         try {
           return await interruptible(runtime.runCommandIsolated(command, cloneState(state), {
             stdin: input,
-            stdout: outgoing ? this.budget.sink(outgoing.writable, signal) : signalSink(io.stdout, signal),
+            stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
             stderr: signalSink(io.stderr, signal),
           }), signal);
         } catch (error) {
           if (error instanceof PipelineClosed) return 141;
           throw error;
         } finally {
-          controllers[index - 1]?.abort(new PipelineClosed());
           if (incoming) await incoming.abort();
           await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
           if (outgoing) await outgoing.close().catch(() => undefined);

@@ -26,7 +26,7 @@ test("synchronous cancellation observes already-rejected input promises", async 
   await new Promise<void>((resolve) => setImmediate(resolve));
 });
 
-test("early consumers cancel upstream blocked on arbitrary stdin", { timeout: 2000 }, async () => {
+test("blocked upstream reads require caller cancellation, not consumer completion", { timeout: 2000 }, async () => {
   for (const script of ["pass | true", "pass | pass < input", "pass | pass | true"]) {
     const { shell, fs } = setup();
     await fs.writeFile("/input", new TextEncoder().encode("file\n"));
@@ -36,16 +36,21 @@ test("early consumers cancel upstream blocked on arbitrary stdin", { timeout: 20
         return { next: () => new Promise(() => {}), async return() { returned++; return { done: true, value: undefined }; } };
       },
     };
-    const result = await shell.exec(script, { stdin });
-    assert.equal(result.exitCode, 0, script);
+    const controller = new AbortController();
+    const reason = new Error("cancel blocked producer");
+    const timeout = setTimeout(() => controller.abort(reason), 30);
+    try { await assert.rejects(shell.exec(script, { stdin, signal: controller.signal }), (error) => error === reason); }
+    finally { clearTimeout(timeout); }
     assert.equal(returned, 1, script);
   }
 });
 
-test("early consumers cancel signal-waiting upstream commands", { timeout: 2000 }, async () => {
+test("broken-pipe writes cancel signal-waiting upstream commands", { timeout: 2000 }, async () => {
   const { shell, commands } = setup();
   let aborted = false;
-  commands.register({ name: "waiting", async execute({ signal }) {
+  commands.register({ name: "waiting", async execute({ signal, stdout }) {
+    try { while (true) await writeText(stdout, "chunk"); }
+    catch { aborted = signal.aborted; }
     await new Promise<void>((resolve) => {
       if (signal.aborted) resolve();
       else signal.addEventListener("abort", () => resolve(), { once: true });

@@ -29,7 +29,7 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
 } else if (scenario === "shared-delayed-generator") {
   const { shell } = setup();
   const stdin = (async function* () { await delay(40); yield new Uint8Array([65]); yield new Uint8Array([66]); })();
-  assert.equal((await shell.exec("pass | true; pass", { stdin })).stdout, "AB");
+  assert.equal((await shell.exec("pass | true; pass", { stdin })).stdout, "B");
 } else if (scenario === "shared-abandoned-rejection" || scenario === "shared-retained-rejection") {
   const { shell } = setup();
   let reads = 0;
@@ -40,8 +40,8 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
   }; } };
   const retained = scenario === "shared-retained-rejection";
   const result = await shell.exec(retained ? "pass | true; pass" : "pass | true", { stdin });
-  assert.equal(result.exitCode, retained ? 1 : 0);
-  if (retained) assert.match(result.stderr, /delayed source error/u);
+  assert.equal(result.exitCode, 0);
+  assert.match(result.stderr, /delayed source error/u);
   assert.equal(reads, 1);
   assert.equal(returns, 1);
   await delay(60);
@@ -65,7 +65,7 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
     };
   } };
   const script = scenario === "shared-repeated-cancellation" ? "pass | true; pass | true; pass" : "pass | true; pass";
-  assert.equal((await shell.exec(script, { stdin })).stdout, "AB");
+  assert.equal((await shell.exec(script, { stdin })).stdout, scenario === "shared-repeated-cancellation" ? "" : "B");
   assert.equal(maximum, 1);
   assert.equal(position, 3);
 } else if (scenario === "owned-cleanup-abort") {

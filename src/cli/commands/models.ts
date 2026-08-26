@@ -537,6 +537,14 @@ export function registerModelsCommand(
         return;
       }
 
+      if (commandOptions.view === "parameters") {
+        filtered = filtered.filter((model) => model.parameters.length > 0);
+        if (filtered.length === 0) {
+          resources.logger.info("No models with parameters match the given filters.");
+          return;
+        }
+      }
+
       filtered.sort((a, b) => b.created - a.created);
 
       const matchCount = filtered.length;
@@ -553,12 +561,6 @@ export function registerModelsCommand(
       let rows;
 
       if (commandOptions.view === "parameters") {
-        const withParams = filtered.filter((m) => m.parameters.length > 0);
-        if (withParams.length === 0) {
-          resources.logger.info("No models with parameters match the given filters.");
-          return;
-        }
-
         columns = [
           { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
           { name: "Parameter", title: "Parameter", alignment: "left" as const, maxLen: 28 },
@@ -568,7 +570,7 @@ export function registerModelsCommand(
         ];
 
         rows = [];
-        for (const model of withParams) {
+        for (const model of filtered) {
           const modelLabel = theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`);
           rows.push({ Model: modelLabel, Parameter: "", Type: "", Default: "", Values: "" });
           for (const param of model.parameters) {

@@ -1779,6 +1779,189 @@ describe("models command", () => {
     expect(output).toContain("showing 1 of 2 models");
   });
 
+  describe("parameter eligibility before limits", () => {
+    let models: ReturnType<typeof createModelEntry>[];
+
+    beforeEach(async () => {
+      fs = await createConfigVolume("test-key");
+      models = [
+        createModelEntry({
+          id: "eligible-oldest",
+          owned_by: "A",
+          created: 1_600_000_000_000,
+          parameters: [{ name: "top_p", schema: { type: "number" } }]
+        }),
+        createModelEntry({
+          id: "parameterless-newest",
+          owned_by: "A",
+          created: 1_800_000_000_000
+        }),
+        createModelEntry({
+          id: "eligible-newest",
+          owned_by: "A",
+          created: 1_700_000_000_000,
+          parameters: [
+            { name: "temperature", schema: { type: "number" } },
+            { name: "web_search", schema: { type: "boolean" } }
+          ]
+        })
+      ];
+      (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ object: "list", data: models })
+      });
+    });
+
+    it.each(["1", "2", "3"])("limits eligible models with --limit %s", async (limit) => {
+      const output = await runModels({
+        fs, httpClient, logs, args: ["--view", "parameters", "--limit", limit]
+      });
+
+      expect(output).toContain("a/eligible-newest");
+      expect(output).toContain("temperature");
+      expect(output).toContain("web_search");
+      expect(output).not.toContain("a/parameterless-newest");
+      expect(output).not.toContain("No models");
+      if (limit === "1") {
+        expect(output).not.toContain("a/eligible-oldest");
+        expect(output).toContain("showing 1 of 2 models (--limit 1)");
+      } else {
+        expect(output).toContain("a/eligible-oldest");
+        expect(output.indexOf("a/eligible-newest")).toBeLessThan(output.indexOf("a/eligible-oldest"));
+        expect(output).not.toContain("showing");
+      }
+    });
+
+    it("finds eligible models beyond 50 newer parameterless models", async () => {
+      models.push(...Array.from({ length: 50 }, (_, index) => createModelEntry({
+        id: `parameterless-${index}`,
+        owned_by: "A",
+        created: 1_800_000_000_000 + index * 1000
+      })));
+
+      const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+      expect(output).toContain("a/eligible-newest");
+      expect(output).toContain("a/eligible-oldest");
+      expect(output).not.toContain("a/parameterless");
+      expect(output).not.toContain("No models");
+      expect(output).not.toContain("showing");
+    });
+
+    it("counts only eligible models in the default-limit footer", async () => {
+      models = [models[1], ...Array.from({ length: 51 }, (_, index) => createModelEntry({
+        id: `eligible-${String(index).padStart(2, "0")}`,
+        owned_by: "A",
+        created: 1_700_000_000_000 - index * 1000,
+        parameters: [{ name: "temperature", schema: { type: "number" } }]
+      }))];
+
+      const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+      for (let index = 0; index < 50; index++) {
+        expect(output).toContain(`a/eligible-${String(index).padStart(2, "0")}`);
+      }
+      expect(output).not.toContain("a/eligible-50");
+      expect(output).not.toContain("a/parameterless-newest");
+      expect(output).toContain("showing 50 of 51 models (--limit 50)");
+    });
+
+    it.each(["1", "2"])("preserves the global filter banner with --limit %s", async (limit) => {
+      models.push(createModelEntry({
+        id: "excluded",
+        owned_by: "B",
+        created: 1_900_000_000_000,
+        parameters: [{ name: "excluded_parameter", schema: { type: "boolean" } }]
+      }));
+
+      const output = await runModels({
+        fs, httpClient, logs,
+        args: ["--view", "parameters", "--provider", "A", "--limit", limit]
+      });
+
+      expect(output).toContain("3/4 models");
+      expect(output).not.toContain("2/4 models");
+      expect(output).toContain("a/eligible-newest");
+      expect(output).not.toContain("a/parameterless-newest");
+      expect(output).not.toContain("b/excluded");
+      if (limit === "1") {
+        expect(output).not.toContain("a/eligible-oldest");
+        expect(output).toContain("showing 1 of 2 models (--limit 1)");
+      } else {
+        expect(output).toContain("a/eligible-oldest");
+        expect(output).not.toContain("showing");
+      }
+    });
+
+    it.each(["capabilities", "pricing"])("keeps parameterless models in the %s view", async (view) => {
+      const output = await runModels({ fs, httpClient, logs, args: ["--view", view, "--limit", "1"] });
+
+      expect(output).toContain("a/parameterless-newest");
+      expect(output).not.toContain("a/eligible-newest");
+      expect(output).not.toContain("a/eligible-oldest");
+      expect(output).toContain("showing 1 of 3 models (--limit 1)");
+    });
+
+    it("keeps parameterless models in raw YAML without a footer", async () => {
+      const output = await runModelsWithStdout({
+        fs, httpClient, args: ["--view", "raw", "--limit", "1"]
+      });
+
+      expect(yamlParse(output)).toEqual([
+        expect.objectContaining({ id: "parameterless-newest", parameters: [] })
+      ]);
+      expect(output).not.toContain("showing");
+    });
+
+    it("preserves the generic no-match message for global filters", async () => {
+      const output = await runModels({
+        fs, httpClient, logs, args: ["--view", "parameters", "--model", "missing"]
+      });
+
+      expect(output).toContain("0/3 models");
+      expect(output).toContain("No models match the given filters.");
+      expect(output).not.toContain("No models with parameters");
+      expect(output).not.toContain("showing");
+    });
+
+    it("preserves the since-empty message and global model count", async () => {
+      models = models.map((model) => ({ ...model, created: Date.now() - 86_400_000 }));
+
+      const output = await runModels({
+        fs, httpClient, logs, args: ["--view", "parameters", "--since", "1s"]
+      });
+
+      expect(output).toContain("0/3 models");
+      expect(output).toContain("No models added in the last 1s (of 3 total).");
+      expect(output).not.toContain("No models with parameters");
+      expect(output).not.toContain("showing");
+    });
+
+    it("preserves the empty API message", async () => {
+      models = [];
+
+      const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
+
+      expect(output).toContain("No models found.");
+      expect(output).not.toContain("No models with parameters");
+      expect(output).not.toContain("showing");
+    });
+
+    it("reports parameter emptiness only after the global filter banner", async () => {
+      const output = await runModels({
+        fs, httpClient, logs,
+        args: ["--view", "parameters", "--model", "parameterless-newest", "--limit", "1"]
+      });
+
+      expect(output).toContain("1/3 models");
+      expect(output).toContain("No models with parameters match the given filters.");
+      expect(output.indexOf("1/3 models")).toBeLessThan(output.indexOf("No models with parameters"));
+      expect(output).not.toContain("No models match the given filters.");
+      expect(output).not.toContain("showing");
+    });
+  });
+
   it("--view raw honors --limit without emitting the footer", async () => {
     fs = await createConfigVolume("test-key");
     const models = [

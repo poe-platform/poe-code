@@ -146,6 +146,8 @@ class ExecutionFailure extends Error {
   constructor(readonly original: unknown, readonly io: IO) { super(message(original)); }
 }
 
+class ExpansionFailure extends Error {}
+
 class PipelineClosed extends Error {
   readonly code = "EPIPE";
   constructor() { super("Pipeline consumer exited"); }
@@ -320,6 +322,7 @@ export class Runtime {
       if (errorCode(error) === "EPIPE") return 141;
       try { await writeText(io.stderr, `shell: ${message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
+      if (error instanceof ExpansionFailure) throw new Flow("exit", 1);
       return 1;
     } finally {
       for (const close of outputs) close();
@@ -689,7 +692,10 @@ export class Runtime {
   }
 
   async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO): Promise<string> {
-    if (part.kind === "arithmetic") return String(evaluateArithmetic(part.expression, state.variables));
+    if (part.kind === "arithmetic") {
+      try { return String(evaluateArithmetic(part.expression, state.variables)); }
+      catch (error) { throw new ExpansionFailure(message(error)); }
+    }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       const capture = new Capture();
@@ -724,7 +730,7 @@ export class Runtime {
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
         const alternate = (await this.word(part.alternate!, state, io, false)).join("");
-        if (operator === "?") throw new Error(`${part.name}: ${alternate || "parameter null or not set"}`);
+        if (operator === "?") throw new ExpansionFailure(`${part.name}: ${alternate || "parameter null or not set"}`);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
           state.variables[part.name] = alternate;

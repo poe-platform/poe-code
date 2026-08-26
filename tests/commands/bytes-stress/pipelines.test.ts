@@ -53,3 +53,18 @@ test("virtual file replacement refuses existing outputs until force is explicit"
   assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "original");
   assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "original");
 });
+
+test("GNU unpadded decoder input composes through compression and checksums", async () => {
+  const shell = new Shell({ fs: await memory(), cwd: "/work", limits: { pipeHighWaterMark: 1 } }).use(standardCommands()).use(byteCommands());
+  const actual = await shell.exec("set -o pipefail; printf Zg | base64 -d | gzip -c | zcat | base32 -w0 | base32 -d | sha256sum");
+  assert.equal(actual.exitCode, 0, actual.stderr);
+  assert.equal(actual.stdout, "252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111  -\n");
+});
+
+test("GNU decoder partial bytes remain observable while pipefail rejects invalid pad bits", async () => {
+  const shell = new Shell({ fs: await memory(), cwd: "/work", limits: { pipeHighWaterMark: 1 } }).use(standardCommands()).use(byteCommands());
+  const actual = await shell.exec("set -o pipefail; printf MZ====== | base32 -d | base64 -w0");
+  assert.equal(actual.exitCode, 1);
+  assert.equal(actual.stdout, "Zg==");
+  assert.equal(actual.stderr, "base32: invalid input\n");
+});

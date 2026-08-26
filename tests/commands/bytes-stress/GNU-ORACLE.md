@@ -112,10 +112,39 @@ Live replay does not overwrite files either.
 
 ## Denominators and remaining limits
 
-GNU-enabled checkpoint: **376 tests passed, zero failures/skips/TODOs**. All
+The gzip checkpoint `1c3d7cb` passed **376 tests, zero failures/skips/TODOs**.
+After the decoder correction, the GNU-enabled final run passed **381 tests,
+zero failures/skips/TODOs**. All
 five originally absent GNU coreutils tests executed, rather than being renamed
 or skipped. The frozen five command groups always run with no downloaded tool;
 optional live checks explicitly skip when their binaries are unavailable.
-An Apple-only run is not claimed to execute GNU checks. External VFS-provider
+With optional GNU variables unset the measured run is **373 passes and eight
+explicit external-oracle skips**, zero failures/TODOs. The five original GNU
+checks and three new live-replay groups skip; all 240 frozen GNU observations
+still run. An Apple-only run is not claimed to execute GNU checks. External VFS-provider
 durability, permissions, races and cooperative cleanup remain unverified here.
 This is bounded utility evidence, not complete GNU compatibility or superiority.
+
+## Decoder follow-up
+
+The same pinned coreutils 9.7 binaries confirmed genuine divergences beyond the
+five original valid-data checks: canonical unpadded `Zg`/`MY` succeed; partial
+padding can fail after output; `Zh==`/`MZ======` emit `f` and fail for nonzero
+unused bits. The old stricter policy was not a GNU/BSD exception and was fixed,
+not relabeled unsupported. The implementation keeps a bounded quantum and
+validates its remaining bits, exposing already-decoded prefixes and performing
+GNU EOF padding. The GNU source `src/basenc.c:do_decode` documents EOF auto-pad;
+the native observations, not copied implementation code, define these tests.
+
+`gnu-decoder-evidence.json` pins **134 independent native observations** with
+input hashes, command identities and exact output/status/stderr. Its SHA256 is
+`6676fffacfe2718098b322c4f3bb1861f4950bbfabd80a330738162c8bed56c9`.
+The tests replay every case at four virtual chunk widths, while a separate live
+test checks the original native observations. Capture for review with
+`node --import tsx tests/commands/bytes-stress/capture-decoder-reference.ts` and
+`BYTE_GNU_COREUTILS_DIR`; the script prints JSON and does not overwrite evidence.
+Two pipeline tests cover unpadded decoding through gzip/checksums and observable
+partial bytes plus a failing pipefail status. A separate deterministic 256-case
+native mutation probe also passed; it is additional evidence, not included in
+the 381-test denominator. No source/manifest/runtime dependency outside the
+owned byte subtree was changed.

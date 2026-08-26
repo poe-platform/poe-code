@@ -57,14 +57,22 @@ unless `-i` is present. Base32 lowercase is not case-folded; with `-i` those
 letters are discarded rather than decoded. URL-safe Base64 and extended-hex
 Base32 alphabets are unsupported.
 
-Validation is deliberately strict: each Base64 block must contain four symbols
-and each Base32 block eight, including any required `=` padding. Padding position,
-count, and zero unused bits are checked before emitting a block. Incomplete
-blocks, including unpadded partial final blocks, fail. Complete full blocks need
-no padding. Independently padded blocks can concatenate; valid preceding blocks
-may already have been emitted when a later block fails. `-i` does not repair
-padding or nonzero unused bits. This is a documented decoder policy, not a claim
-of identical GNU behavior on malformed input.
+Decoding follows independently captured GNU coreutils 9.7 behavior. Complete
+quanta use four Base64 or eight Base32 symbols. At EOF, a partial quantum whose
+last retained input byte is not `=` receives implicit padding; canonical `Zg`
+and `MY` therefore decode to `f`. Padding placement/count and unused bits must
+still be valid. A partially supplied padding suffix ending in `=` fails.
+LF is ignored for decoding but remains the last input byte unless `-i` removes
+it; consequently GNU also accepts `Zg=\n` without `-i`, but rejects it with `-i`.
+
+Bytes preceding an invalid symbol or nonzero unused bits may already have been
+emitted, even within the failing quantum. `Zh==`/`MZ======` emit `f` and fail;
+unpadded `Zg`/`MY` succeed. Base32 incomplete padded blocks can emit no bytes
+where Base64 emits a prefix. Independently padded blocks concatenate. Consumers
+must check completion/status, not treat partial output as validated data.
+`tests/commands/bytes-stress/gnu-decoder-evidence.json` pins 134 native cases;
+the independent suite checks every result at four virtual chunk widths. This
+does not claim compatibility with every older coreutils release or other dialect.
 
 ## `xxd`
 

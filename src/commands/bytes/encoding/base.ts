@@ -43,21 +43,20 @@ async function encode(context: CommandContext, files: readonly string[], alphabe
   if (pending) await output(context, pending);
 }
 
-function decodeQuantum(quantum: readonly number[], alphabet: Alphabet): number[] | undefined {
-  const firstPad = quantum.indexOf(-1);
-  const length = firstPad < 0 ? quantum.length : firstPad;
-  if (!alphabet.lengths.includes(length)) return undefined;
-  if (firstPad >= 0 && quantum.slice(firstPad).some(number => number !== -1)) return undefined;
+function decodeQuantum(quantum: readonly number[], alphabet: Alphabet): { bytes: number[]; valid: boolean } {
   const decoded: number[] = [];
+  if (alphabet.bits === 5 && quantum.length < alphabet.quantum) return { bytes: decoded, valid: false };
   let carry = 0;
   let bits = 0;
-  for (let index = 0; index < length; index++) {
-    carry = (carry << alphabet.bits) | quantum[index]!;
+  let length = 0;
+  while (length < quantum.length && quantum[length]! >= 0) {
+    carry = (carry << alphabet.bits) | quantum[length++]!;
     bits += alphabet.bits;
     if (bits >= 8) { bits -= 8; decoded.push((carry >> bits) & 255); }
     carry &= (1 << bits) - 1;
   }
-  return carry === 0 ? decoded : undefined;
+  return { bytes: decoded, valid: quantum.length === alphabet.quantum && alphabet.lengths.includes(length)
+    && quantum.slice(length).every(number => number === -1) && carry === 0 };
 }
 
 async function decode(context: CommandContext, files: readonly string[], alphabet: Alphabet, ignore: boolean): Promise<void> {
@@ -65,29 +64,32 @@ async function decode(context: CommandContext, files: readonly string[], alphabe
   for (let index = 0; index < alphabet.symbols.length; index++) lookup[alphabet.symbols.charCodeAt(index)] = index;
   lookup[61] = -1;
   let quantum: number[] = [];
+  let lastByte: number | undefined;
   for await (const chunk of sources(context, files)) {
     const pending: number[] = [];
     let invalid = false;
     for (const byte of chunk) {
-      if (byte === 10) continue;
       const symbol = lookup[byte]!;
-      if (symbol === -2) {
-        if (ignore) continue;
-        invalid = true;
-        break;
-      }
+      if (ignore && symbol === -2) continue;
+      lastByte = byte;
+      if (byte === 10) continue;
       quantum.push(symbol);
       if (quantum.length === alphabet.quantum) {
         const decoded = decodeQuantum(quantum, alphabet);
-        if (!decoded) { invalid = true; break; }
-        pending.push(...decoded);
+        pending.push(...decoded.bytes);
+        if (!decoded.valid) { invalid = true; break; }
         quantum = [];
       }
     }
     if (pending.length) await output(context, Uint8Array.from(pending));
     if (invalid) throw new Error("invalid input");
   }
-  if (quantum.length) throw new Error("invalid input: incomplete encoding quantum");
+  if (quantum.length) {
+    if (lastByte !== 61) while (quantum.length < alphabet.quantum) quantum.push(-1);
+    const decoded = decodeQuantum(quantum, alphabet);
+    if (decoded.bytes.length) await output(context, Uint8Array.from(decoded.bytes));
+    if (!decoded.valid) throw new Error("invalid input");
+  }
 }
 
 export function createBaseCommand(name: "base64" | "base32"): CommandDefinition {

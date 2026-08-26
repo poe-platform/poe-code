@@ -49,10 +49,10 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
     }
   });
 
-  test(`${name}: malformed blocks never emit their bytes`, async () => {
+  test(`${name}: malformed blocks fail with GNU-compatible partial output`, async () => {
     const invalid = name === "base64"
-      ? ["A", "Zg", "Zg=", "=g==", "Z===", "Zg=A", "Zg===", "Zh==", "Zm9=", "Zm!v", "Zm9v\r"]
-      : ["M", "MY", "MY=====", "=Y======", "M=======", "MY=====A", "MY=======", "MZ======", "MZXW7===", "mzxw6===", "MZX!6==="];
+      ? ["A", "Zg=", "=g==", "Z===", "Zg=A", "Zg===", "Zh==", "Zm9=", "Zm!v", "Zm9v\r"]
+      : ["M", "MY=====", "=Y======", "M=======", "MY=====A", "MY=======", "MZ======", "MZXW7===", "mzxw6===", "MZX!6==="];
     for (const text of invalid) for (const width of [1, 3, 100]) {
       const result = await run(name, ["-d"], sliced(Buffer.from(text), width));
       assert.equal(result.exitCode, 1, text);
@@ -62,7 +62,10 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
     const result = await run(name, ["-d"], valid + "!");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "foo");
-    assert.equal((await run(name, ["-d"], name === "base64" ? "Zh==" : "MZ======")).stdout, "");
+    assert.equal((await run(name, ["-d"], name === "base64" ? "Zh==" : "MZ======")).stdout, "f");
+    const unpadded = await run(name, ["-d"], name === "base64" ? "Zg" : "MY");
+    assert.equal(unpadded.exitCode, 0);
+    assert.equal(unpadded.stdout, "f");
   });
 
   test(`${name}: independently padded blocks concatenate`, async () => {

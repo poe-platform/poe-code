@@ -93,8 +93,10 @@ from Apple's dialect. Framed raw-DEFLATE streaming fixes it and GNU warning-2,
 zero-prefix garbage, forced suffix passthrough and forced-test behavior.
 `gnu-gzip-boundaries.json` preserves 47 further native observations, including
 safe output publication and input removal/retention under warning status.
-Strict malformed base decoding deliberately rejects some permissive native
-inputs; its tests verify the declared policy rather than GNU equivalence.
+The separate decoder regression commit replaces the former stricter-than-GNU policy
+with pinned GNU 9.7 EOF padding and partial-output behavior. Its 134 additional
+native observations run at four chunk widths; partial bytes do not imply valid
+input, and pipefail remains nonzero after invalid unused bits.
 
 ## Results
 
@@ -106,17 +108,28 @@ node --unhandled-rejections=strict --import tsx --test tests/commands/bytes/plug
 - Reproduced original baseline: **228 tests: 223 passed, five skipped**.
 - Initial independent run: **94 tests: 90 passed, four TODO differences**.
 - Initial combined run: **322 tests: 313 passed, five skipped, four TODOs**.
-- GNU-enabled follow-up: **376 tests passed, zero failures, skips, TODOs or
+- GNU-enabled gzip checkpoint: **376 tests passed, zero failures, skips, TODOs or
   cancellations**. All five formerly absent GNU tests ran. The independent
   portion is **149 tests passed**; one old author error-1 suffix assertion was
   replaced by the exact GNU warning/publication matrix, not disabled.
+- Final GNU-enabled run after decoder fixes: **381 passed, zero failures,
+  skips, TODOs or cancellations** (154 independent tests, 227 author tests).
+  The decoder's 134 native vectors run at four chunk widths; 256 additional
+  deterministic native mutation probes also passed. No unsupported label was
+  added to explain a mismatch.
+- With the optional GNU environment variables unset: **373 passed, eight
+  external-oracle skips, zero failures/TODOs**. Five skips are the original GNU
+  checks; three are the new pinned live-replay groups. All 240 frozen GNU
+  observations remain exercised. These skips are not passes.
 - Repeated 26 cancellation cases five times under strict rejection handling:
   **130 additional passes**.
 - Strict scoped typechecking of every byte source, author test, and independent
   test passed with repository compiler flags. `npm run build` passed.
-- A final fresh `npm run typecheck` also passes. Earlier concurrent errors in
-  structured-stress tests were outside ownership and resolved before this final
-  check; no files in that subtree were changed here.
+- Whole-repository `npm run typecheck` passed at the gzip checkpoint. The final
+  decoder rerun encountered an unrelated concurrent TS2322 at
+  `tests/integration/adapter-tools/matrix.test.ts:46`: a sink returning `void`
+  instead of `Promise<void>`. Scoped byte types and the product build pass;
+  no integration-test source was edited by this worker.
 
 Virtual tests use MemoryFileSystem and proxy adapters. Real/S3/WebDAV/mount/
 overlay streaming, permissions, atomic publication, races, cleanup, and durable

@@ -90,9 +90,10 @@ decode, verification, or decompression failure.
 
 ### Encoding and inspection
 
-- Base decoders ignore LF by default; other garbage needs `-i`. They require
-  complete encoding quanta, valid padding placement, and zero unused pad bits.
-  This deliberately rejects some permissive native-decoder inputs. There is no
+- Base decoders ignore LF by default; other garbage needs `-i`. GNU coreutils
+  9.7 EOF auto-padding accepts canonical unpadded final quanta. Padding placement
+  and unused bits remain validated; invalid quanta can emit a prefix before
+  failure, as pinned native evidence shows. There is no
   URL-safe alphabet or lowercase base32 extension. Encoding uses the declared
   wrap width, not locale or terminal settings.
 - `xxd -r -p` accepts hex and ASCII whitespace, rejecting other characters and
@@ -236,18 +237,20 @@ and explicit non-passes. It found and fixed two compression bugs: unsafe lexical
 normalization through parent symlinks (`21b43cd`), and empty-only input starving
 timer cancellation (`06e0d27`). The public plugin/factory API is unchanged.
 
-On August 26, 2026, the pinned GNU follow-up contains **376 passed tests, zero
-failures, skips, TODOs or cancellations** (149 independent, 227 author tests).
+On August 26, 2026, the pinned GNU follow-up contains **381 passed tests, zero
+failures, skips, TODOs or cancellations** (154 independent, 227 author tests).
 All five previously absent GNU checks ran against temporary coreutils 9.7.
 GNU gzip 1.14 confirms the selected behavior for the four former Apple-dialect
 TODOs; exact Apple observations are preserved separately. Always-runnable
-vectors retain 106 GNU observations, and live checks explicitly skip if their
+vectors retain 240 GNU observations, and live checks explicitly skip if their
 optional binaries are unavailable. See `tests/commands/bytes-stress/GNU-ORACLE.md`
 for official archive/signature pins, binary identities and reproduction.
 
 The follow-up also fixes chunked zero-padding premature closure, trailing
 garbage warning/publication, forced suffix passthrough and forced-test behavior
-using bounded gzip framing around Node raw-DEFLATE streams. Scoped strict types
-pass. Earlier checkpoints retain their own historical counts. Decoder policy,
-VFS races, cooperative writer cleanup and external-provider verification limits
-remain distinct from this bounded GNU evidence.
+using bounded gzip framing around Node raw-DEFLATE streams. A separate decoder
+fix follows GNU 9.7 EOF auto-padding and partial output on malformed input, with
+134 frozen cases at four chunk widths and pipeline regressions. Earlier
+checkpoints retain their historical counts. VFS races, cooperative writer
+cleanup and external-provider verification limits remain distinct from this
+bounded GNU evidence.

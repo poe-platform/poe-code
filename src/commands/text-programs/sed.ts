@@ -171,7 +171,13 @@ function parse(source: string, extended: boolean): Instruction[] {
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget): Promise<number> {
   const source = lineRecords(context, files, budget);
   let current = await source.next();
-  let following = current.done ? current : await source.next();
+  let following: IteratorResult<RecordLine, void> | undefined;
+  const peekNext = async (): Promise<IteratorResult<RecordLine, void>> => following ??= await source.next();
+  const readNext = async (): Promise<IteratorResult<RecordLine, void>> => {
+    const next = await peekNext();
+    following = undefined;
+    return next;
+  };
   let number = 0;
   let hold = "";
   let lastPattern: Pattern | undefined;
@@ -193,7 +199,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       let status = 0;
       const print = () => write(context, pattern + (record.terminated ? "\n" : ""));
       const flush = async () => { if (!quiet && !deleted) await print(); if (appended) { await write(context, appended); appended = ""; } };
-      const matches = (address: Address): boolean => address.kind === "number" ? number === address.number : address.kind === "last" ? following.done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;
+      const matches = async (address: Address): Promise<boolean> => address.kind === "number" ? number === address.number : address.kind === "last" ? (await peekNext()).done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;
       for (let pc = 0; pc < program.length;) {
         budget.step(); await budget.checkpoint();
         const instruction = program[pc]!;
@@ -203,16 +209,16 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           if (instruction.second) {
             if (active.has(pc)) {
               if (instruction.second.kind === "number" && number > instruction.second.number) selected = false;
-              ending = instruction.second.kind === "number" ? number >= instruction.second.number : matches(instruction.second);
+              ending = instruction.second.kind === "number" ? number >= instruction.second.number : await matches(instruction.second);
               if (ending) active.delete(pc);
             } else {
-              selected = matches(instruction.first);
+              selected = await matches(instruction.first);
               if (selected) {
-                ending = instruction.second.kind === "number" && number >= instruction.second.number || instruction.second.kind === "last" && following.done === true;
+                ending = instruction.second.kind === "number" && number >= instruction.second.number || instruction.second.kind === "last" && (await peekNext()).done === true;
                 if (!ending) active.add(pc);
               }
             }
-          } else selected = matches(instruction.first);
+          } else selected = await matches(instruction.first);
         }
         if (instruction.negate) selected = !selected;
         if (!selected) { pc = instruction.kind === "{" ? instruction.jump! : pc + 1; continue; }
@@ -234,7 +240,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "a": appended = budget.check(appended + instruction.text!); break;
           case "i": await write(context, instruction.text!); break;
           case "c":
-            if (!instruction.second || ending || following.done || instruction.negate) await write(context, instruction.text!);
+            if (!instruction.second || ending || instruction.negate || (await peekNext()).done) await write(context, instruction.text!);
             deleted = true; pc = program.length; continue;
           case "h": hold = pattern; break;
           case "H": hold = budget.check(hold + "\n" + pattern); break;
@@ -257,9 +263,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           }
           case "n": case "N": {
             if (instruction.kind === "n") await flush();
-            if (following.done) { if (instruction.kind === "N") await flush(); return 0; }
-            record = following.value; number++;
-            following = await source.next();
+            const next = await readNext();
+            if (next.done) { if (instruction.kind === "N") await flush(); return 0; }
+            record = next.value; number++;
             pattern = instruction.kind === "N" ? budget.check(pattern + "\n" + record.text) : record.text;
             substituted = false;
             break;
@@ -269,8 +275,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       }
       await flush();
       if (quit) return status;
-      current = following;
-      following = current.done ? current : await source.next();
+      current = await readNext();
     }
     return 0;
   } finally { await source.return(undefined); }

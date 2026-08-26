@@ -211,6 +211,18 @@ unapproved 8/9 with caveats. Full scope, superiority and 72-hour requirements
 remain unproven. Prior 49-name inventories and all historical failures remain
 unchanged; no refreshed comparative result is claimed by this integration.
 
+**Committed follow-up:** integration **097f56df1f3933f1dee6473f4effaed0c6500ab2**
+was freshly archived without overlays: global typecheck/build and **71/71**
+scoped tests pass, as does built-root/subpath factory identity, 52 unique default
+names and the exact-byte mktemp/chmod/stat/pipeline workflow. This is bounded
+author verification, separate from Dirac's audit. A live-worktree typecheck at
+the same HEAD exits 2 on a later unfinished archive error,
+`src/commands/archive/format.ts:45` TS1487 (octal escape); it does not invalidate
+or turn the committed snapshot into a clean moving-worktree result. Owned
+metadata/root integration paths were clean after commit. Earlier archive
+diagnostics remain historical, not silently erased. Exact follow-up evidence
+is appended to `tests/commands/metadata/AUTHOR_CHECKPOINT.md`.
+
 ## Curl author assignment — August 26, 2026 (historical)
 
 The user explicitly requires **"i also need curl"**. This supersedes the just

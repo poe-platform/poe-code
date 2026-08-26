@@ -83,6 +83,30 @@ Assertions: exit 0, stderr empty, stdout hex `3630303a370a`, exactly one created
 file with bytes hex `7061796c6f6164`. The script is executed by the virtual Shell,
 not the host shell. This author smoke does not exercise all backends or flags.
 
+## Committed-revision follow-up
+
+After integration commit **097f56df1f3933f1dee6473f4effaed0c6500ab2**, a fresh
+`git archive` of that exact revision (no overlaid files) was extracted to
+`/tmp/safe-bash-metadata-committed.DRZ0GZ`, with only cached dependencies linked.
+Global typecheck, build and the same scoped test command each exit 0:
+**71 pass, 0 fail/skip/TODO/cancel**. Raw log:
+`/tmp/safe-bash-metadata-097f56d.tap`.
+
+A fresh built-root/subpath smoke passes at this exact revision: factory identity,
+52 unique names excluding optional curl/SafeJS, and the actual virtual
+mktemp/chmod/stat/pipeline workflow with the same exact stdout/stderr/exit and
+file bytes asserted above. These are author integration checks, not the
+independent full-suite audit. The earlier 16-export/AST scan belongs to the
+explicit overlay cohort; it was not counted as a new full scan here.
+
+A simultaneous live-worktree typecheck at HEAD `097f56d` still exits 2, now
+reporting `src/commands/archive/format.ts:45` TS1487 (octal escape syntax).
+This changed diagnostic is in the other author's active untracked source, not
+the committed archive. It is routed to Archimedes without changing that file.
+Owned metadata/root paths and staging were clean immediately after integration;
+other workers' files remained untouched. No live-worktree build success or
+whole-repository test pass is inferred from the isolated revision.
+
 ## Review priorities and honest limits
 
 - GNU/BSD differences: 15 native ordinary chmod observations contain 13

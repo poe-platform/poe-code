@@ -88,6 +88,22 @@
 - Document verified code conventions and commands here when established;
   keep planned acceptance gates distinct from recorded test results.
 
+## Utility dialect policy
+
+- Preserve the user's decision to retain verified GNU sed 4.9 behavior for
+  global `^|$` substitution and invocation-wide successful quit under `-i`/`-s`.
+  Do not reproduce BSD's later-file truncation merely to match that oracle.
+- The two policy tests use independently captured GNU expectations pinned by
+  the hash of `tests/commands/text-programs-stress/dialect-evidence.json`.
+  Keep its BSD observations immutable; diagnostic reruns write separate files.
+- Report selected-dialect acceptance separately from the unmodified live-native
+  matrix, including exact expectation sources, versions/hashes and denominators.
+  No other failure, unsupported feature, or unavailable oracle becomes a dialect
+  exception. Fixture changes require new independently reviewed evidence.
+- This is not universal GNU/BSD utility compatibility, universal Bash support,
+  scope completion, or evidence of superiority. Ambiguous capture behavior still
+  differs across native dialects and remains explicitly documented.
+
 ## Documentation ownership
 
 - The initial documentation worker has finished. The user temporarily assigned
@@ -105,11 +121,12 @@
   it also owns `src/commands/text-programs/**`, its author tests, and independent
   `tests/commands/text-programs-stress/**` for stress-driven fixes.
 - Exclude all adapters, `tests/stress/adapters/**`, `tests/fs/conformance/**`,
-  `src/commands/bytes/**` and its tests (Faraday); `src/commands/structured/**`
-  and its tests (Poincare); `src/commands/search/**` and its tests (Plato); shell
+  `src/commands/bytes/**` and its tests (Plato); `src/commands/structured/**`
+  and its tests (assigned structured workers); `src/commands/search/**` and its tests (Poincare); shell
   source/tests and `benchmarks/shell-stress/**` (shell verifier). Other filesystem
   wrappers retain their assigned owners. Coordinate later transfers explicitly.
 - Also exclude `src/commands/diff-patch/**` and `tests/commands/diff-patch/**`
-  (Archimedes); no source ownership transfer has been granted.
+  (Faraday, independent verifier after author handoff); no source ownership
+  transfer to the foundation worker has been granted.
 - Use explicit-path `git commit --only` after staging owned paths so a concurrent worker's index entries do
   not enter another worker's commit.

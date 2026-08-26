@@ -16,7 +16,7 @@ export interface BenchmarkCase {
   name: string;
   tier: string;
   tags: string[];
-  source: "bash-oracle" | "deterministic";
+  source: "bash-oracle" | "deterministic" | "native-dialect" | "plugin-integration";
   script: string;
   initialFiles: Record<string, string>;
   stdin: string;

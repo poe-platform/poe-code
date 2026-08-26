@@ -159,6 +159,32 @@ diagnostic investigates dialects; it is not another compatibility score.
 - Ambiguous `((a|aa)*)` captures are `[aaaa][aa]` in BSD/virtual and `[aaaa][a]`
   in GNU. Thus claiming universal BSD/GNU equivalence would also be false.
 
-Both remaining BSD differences stay active in the default differential tests;
-no blanket skip/todo or relaxed byte assertion has been added. Resolving the
-acceptance policy for mutually different native dialects is still required.
+At that checkpoint both BSD differences remained active failures. The following
+explicit user decision changes their acceptance oracle, not their observed bytes.
+
+## Approved dialect acceptance
+
+The user chose the independently verified GNU sed 4.9 results for exactly
+`sed-regex-70` and `sed-inplace-quit-per-file`. `oracle-policy.ts` pins the entire
+prior native record by SHA-256, verifies the exact fixture inputs, and selects
+only those two GNU expectations. Tests still assert stdout/stderr bytes, status,
+the complete file/directory map, file bytes, and modes. Separate tests retain and
+assert the recorded BSD disagreements; unsupported/pending results remain errors
+against either selected expectation. The old BSD expectations were not erased.
+
+The primary acceptance matrix has **141 cases: 139 live host-native expectations
+and two independently recorded GNU sed 4.9 expectations**. It is not a claim of
+141 live GNU comparisons or 141 BSD matches. The machine report exposes
+`oraclePolicy`, `summary`, and the separate `liveNativeComparison` with all raw
+host observations. Safety retains its own 20-case denominator. Exact host OS and
+executable hashes remain recorded; no standalone BSD version is invented.
+
+`dialects.ts` now writes `native-dialect-current.json`, never the immutable
+`dialect-evidence.json` used by the policy. `benchmarks/text-dialects.ts` compares
+the two pinned GNU cases against actual virtual-bash and isolated just-bash 3.4.2,
+writing `benchmarks/reports/text-dialect-policy.json`. Both match global anchors.
+Just-bash differs on in-place quit: it omits the first backup and changes the
+later file to its first line. Virtual-bash matches both pinned GNU cases. The
+benchmark adapter checks all regular-file paths/bytes but not file modes; the
+native policy suite still checks modes. None of these two-case results establishes
+general compatibility or the user's superiority requirement.

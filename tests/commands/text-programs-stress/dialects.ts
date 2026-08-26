@@ -34,6 +34,6 @@ const report = {
   gnuSed: { version, executable, sourceArchive: "https://ftp.gnu.org/gnu/sed/sed-4.9.tar.xz", sourceArchiveSha256: "6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181" },
   hashes, backgroundErrors: session.backgroundErrors, results,
 };
-await writeFile(new URL("./dialect-evidence.json", import.meta.url), JSON.stringify(report, null, 2) + "\n");
+await writeFile(new URL("./native-dialect-current.json", import.meta.url), JSON.stringify(report, null, 2) + "\n");
 console.log(JSON.stringify(results.map(result => ({ name: result.fixture.name, bsd: result.bsd.status, gnu: result.gnu.status }))));
 if (results.some(result => result.bsd.status !== "pass" || result.gnu.status !== "pass") || session.backgroundErrors.length) process.exitCode = 1;

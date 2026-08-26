@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 1,
-  "startedAt": "2026-08-26T20:13:01.915Z",
-  "completedAt": "2026-08-26T20:13:03.962Z",
+  "schemaVersion": 2,
+  "startedAt": "2026-08-26T20:21:30.457Z",
+  "completedAt": "2026-08-26T20:21:32.344Z",
   "provenance": {
     "node": "v22.22.2",
     "platform": "darwin",
@@ -12,8 +12,8 @@
       "/usr/bin/awk": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
       "/bin/bash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
     },
-    "sourceBefore": "8da92c3ea2bd512a5f0d72bc642129dd50b9bb12da157ec3cfd758a5944835ed",
-    "sourceAfter": "8da92c3ea2bd512a5f0d72bc642129dd50b9bb12da157ec3cfd758a5944835ed",
+    "sourceBefore": "57f253dbfbad7611f9a2e02214f2860b325e1a5acb8858744143075616f48c39",
+    "sourceAfter": "57f253dbfbad7611f9a2e02214f2860b325e1a5acb8858744143075616f48c39",
     "sourceChanged": false,
     "casesSha256": "ebd0ccd3da07f7ecc572e25897ce9ba967f122e018d879fa13a83862abcc9da4"
   },
@@ -36,10 +36,28 @@
     "superiorityDemonstrated": false,
     "performanceClaim": "None: one cold-to-warm correctness run, not a controlled throughput benchmark"
   },
+  "oraclePolicy": {
+    "decision": "GNU sed 4.9 global-anchor substitution and invocation-wide successful quit; no claim of universal GNU/BSD utility or Bash compatibility",
+    "selectedCases": [
+      "sed-regex-70",
+      "sed-inplace-quit-per-file"
+    ],
+    "expectationSource": "independently executed, immutable GNU sed 4.9 records, not virtual output",
+    "record": "dialect-evidence.json",
+    "recordSha256": "64ebc42f733cde12a8f3f98c1bf3244ed6dd7440f96f683b3464591a46edb7c9",
+    "gnuSourceArchive": "https://ftp.gnu.org/gnu/sed/sed-4.9.tar.xz",
+    "gnuSourceArchiveSha256": "6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181",
+    "defaultOracle": "live host /usr/bin/sed, /usr/bin/awk and curated pipelines; OS release and executable hashes recorded",
+    "denominator": 141,
+    "byExpectationSource": {
+      "live-host-native": 139,
+      "pinned-gnu-sed-4.9": 2
+    }
+  },
   "summary": {
     "total": 141,
-    "pass": 139,
-    "fail": 2,
+    "pass": 141,
+    "fail": 0,
     "unsupported": 0,
     "pending": 0,
     "error": 0,
@@ -48,11 +66,4159 @@
     "oracle-rejected": 0,
     "skipped": 0
   },
+  "liveNativeComparison": {
+    "role": "Unmodified live host comparison; BSD disagreement is not a GNU failure or a reclassified unsupported feature",
+    "summary": {
+      "total": 141,
+      "pass": 139,
+      "fail": 2,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "results": [
+      {
+        "name": "sed-address-0",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.479083000000003
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 1.4307909999999993
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-1",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.692915999999968
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.22770799999995006
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-2",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.835332999999991
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4879579999999919
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-3",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.175666999999976
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.28304199999996627
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-4",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.840040999999985
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4404999999999859
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-5",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.438999999999965
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.17629199999998946
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-6",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.030957999999998
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2810840000000212
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-7",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.732166000000007
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15424999999999045
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-8",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "bGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.017291999999998
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "bGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.33370800000000145
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-9",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "bGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.990374999999972
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "bGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15995799999996052
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-10",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.022041000000002
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15354200000001583
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-11",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.041667000000018
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.13279199999999491
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-12",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.449958000000038
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1592499999999859
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-13",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.369291999999973
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1649590000000103
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-14",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.617833000000019
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.144457999999986
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-15",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.489750000000015
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18299999999999272
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-16",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.035082999999986
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.220957999999996
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-17",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.099249999999984
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18358299999999872
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-18",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKbGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.560124999999971
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKbGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.37529200000000174
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-19",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKbGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.111125000000015
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKbGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2426669999999831
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-20",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.363291000000004
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1678749999999809
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-21",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.186374999999998
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1333750000000009
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-22",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.19708300000002
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15037499999993997
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-23",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.000167000000033
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.13995900000008987
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-24",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "ZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 14.705666000000065
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "ZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.7129999999999654
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-25",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "ZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.197541999999999
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "ZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3402919999999767
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-26",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.644167000000039
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3217499999999518
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-27",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.136667000000102
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1608330000000251
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-28",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.772958000000017
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.13312499999994998
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-29",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.340332999999987
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.17462499999999181
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-30",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 14.109375
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.14266600000007656
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-31",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.118000000000052
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.29179199999998673
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-32",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.40766599999995
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 1.4368329999999787
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-33",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.307083000000034
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.5118330000000242
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-34",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.057375000000093
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.19495800000004238
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-35",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.934124999999995
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18033300000001873
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-36",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.059375000000045
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.26141599999994014
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-37",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.418499999999995
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3147919999998976
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-38",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.15154199999995
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2005420000000413
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-39",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.498500000000035
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.23087500000008276
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-40",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.386833000000024
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2442079999999578
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-41",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.433750000000032
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1646250000000009
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-42",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKbGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.84904199999994
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKbGFzdAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1854169999999158
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-43",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKbGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.971332999999959
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKbGFzdA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1752079999999978
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-44",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.88487500000008
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3382499999999027
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-45",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.82899999999995
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2642920000000686
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-46",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.006167000000005
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.20400000000006457
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-address-47",
+        "tool": "sed",
+        "feature": "sed.address-matrix",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.028083000000038
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18358299999999872
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-range-resumes-after-n",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Mwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.55424999999991
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Mwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1618750000000091
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-range-change-repeated",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Y2hhbmdlZApjaGFuZ2VkCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.09258299999999
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Y2hhbmdlZApjaGFuZ2VkCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.40012500000000273
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-range-change-single-match",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Y2hhbmdlZAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.418874999999957
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Y2hhbmdlZAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.16295800000000327
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-delete-restarts-addressed-group",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YQpiCmMK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.713374999999928
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YQpiCmMK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.20058300000005147
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-next-at-unterminated-eof",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.473416999999927
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.11745799999994233
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-append-next-order",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cXVldWVkCnR3bwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.566291000000092
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cXVldWVkCnR3bwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2051249999999527
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-append-delete-order",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cXVldWVkCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.087625000000003
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cXVldWVkCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.16120899999998528
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-hold-survives-delete",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "dHdvCm9uZQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.053540999999996
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "dHdvCm9uZQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15108300000008512
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-hold-leading-empty",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Cm9uZQoKb25lCnR3bwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 15.840249999999969
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Cm9uZQoKb25lCnR3bwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1620420000000422
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-exchange-initial-empty",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Cm9uZQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.856457999999975
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Cm9uZQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.36124999999992724
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-branch-test-reset",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.278084000000035
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.5740410000000793
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-branch-after-failed-substitution",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.413917000000083
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18004199999995762
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-empty-regex-address-reuse",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.222708000000011
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1840829999999869
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-empty-regex-skipped-command",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.046207999999979
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.29654200000004494
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-alternate-address-delimiter",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YS9iCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.990583999999899
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YS9iCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.17300000000000182
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-brace-negation",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "a2VlcCBBCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.083167000000003
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "a2VlcCBBCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.20870800000011513
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-repeated-files-empty-middle",
+        "tool": "sed",
+        "feature": "sed.control",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.638583000000153
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.09324999999989814
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-65",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FiXVthYl1bYV0K",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.948000000000093
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FiXVthYl1bYV0K",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.27337499999998727
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-66",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYV1bXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.571541999999909
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYV1bXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2545830000001388
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-67",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYWFdW2FhXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.758458000000019
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYWFdW2FhXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2576249999999618
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-68",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGJYY1gK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.86479200000008
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGJYY1gK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1796670000001086
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-69",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YVhiYwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.20308399999999
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YVhiYwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.17512499999998
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiYwpYCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.331083000000035
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.17945800000006784
+        },
+        "status": "fail",
+        "differences": [
+          "stdout"
+        ]
+      },
+      {
+        "name": "sed-regex-71",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YWItYWIxMmNkLWNkCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.567999999999984
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YWItYWIxMmNkLWNkCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.27366700000015953
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-72",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.675707999999986
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.19858300000009876
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-73",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.70354199999997
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.14837499999998727
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-74",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WFhiWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 9.468499999999949
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WFhiWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.20733300000006238
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-75",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FiXSBbXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.929292000000032
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FiXSBbXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.19575000000008913
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-regex-76",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YiZuJm4mCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.564374999999927
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YiZuJm4mCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.16183300000011513
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-script-comment-after-label",
+        "tool": "sed",
+        "feature": "sed.parser",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.198292000000038
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15491700000006858
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-script-first-line-quiet",
+        "tool": "sed",
+        "feature": "sed.parser",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.213917000000038
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1166249999998854
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-script-file-order",
+        "tool": "sed",
+        "feature": "sed.script-files",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ywo=",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "cy9hL2IvCg==",
+                "mode": 420
+              },
+              "input": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 12.715749999999844
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ywo=",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "cy9hL2IvCg==",
+                "mode": 420
+              },
+              "input": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.54037500000004
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-program-named-like-option",
+        "tool": "sed",
+        "feature": "sed.options",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHJlc2VydmUK",
+            "stderr": "",
+            "files": {
+              "-input": {
+                "type": "file",
+                "bytes": "cHJlc2VydmUK",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 12.21608399999991
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHJlc2VydmUK",
+            "stderr": "",
+            "files": {
+              "-input": {
+                "type": "file",
+                "bytes": "cHJlc2VydmUK",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.18612499999994725
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-file-boundary-no-newline",
+        "tool": "sed",
+        "feature": "sed.files",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MQpvbmUKMgp0d28K",
+            "stderr": "",
+            "files": {
+              "empty": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "first": {
+                "type": "file",
+                "bytes": "b25l",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "dHdvCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 14.684917000000041
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MQpvbmUKMgp0d28K",
+            "stderr": "",
+            "files": {
+              "empty": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "first": {
+                "type": "file",
+                "bytes": "b25l",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "dHdvCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.24037499999985812
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-file-final-address",
+        "tool": "sed",
+        "feature": "sed.files",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "Ygo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.060291000000007
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Ygo=",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "Ygo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.5883329999999205
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-inplace-quiet-truncates-by-request",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "input": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "input.bak": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 14.28733299999999
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "input": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "input.bak": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.5144580000001042
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-inplace-empty-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "input": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "input.bak": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 16.07333399999993
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "input": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "input.bak": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.21029199999998127
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "last.bak": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.657292000000098
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.2660000000000764
+        },
+        "status": "fail",
+        "differences": [
+          "file:last",
+          "file:last.bak"
+        ]
+      },
+      {
+        "name": "sed-inplace-existing-backup",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "input": {
+                "type": "file",
+                "bytes": "Ygo=",
+                "mode": 420
+              },
+              "input.bak": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 14.221583999999893
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "input": {
+                "type": "file",
+                "bytes": "Ygo=",
+                "mode": 420
+              },
+              "input.bak": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.20250000000010004
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-read-command-gap",
+        "tool": "sed",
+        "feature": "sed.file-read",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YQpleHRyYQpiCg==",
+            "stderr": "",
+            "files": {
+              "extra": {
+                "type": "file",
+                "bytes": "ZXh0cmEK",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 18.704541999999947
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YQpleHRyYQpiCg==",
+            "stderr": "",
+            "files": {
+              "extra": {
+                "type": "file",
+                "bytes": "ZXh0cmEK",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.24529200000006313
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-write-command-gap",
+        "tool": "sed",
+        "feature": "sed.file-write",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "written": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 16.48370799999998
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "written": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 0.3923330000000078
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-list-command-gap",
+        "tool": "sed",
+        "feature": "sed.list",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YVx0YiQK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 15.930708000000095
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YVx0YiQK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2786660000001575
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-pattern-backreference-gap",
+        "tool": "sed",
+        "feature": "sed.regex-backreference",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c2FtZQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 14.207166000000143
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "c2FtZQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 1.0789159999999356
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-binary-chunks-1",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.993708999999853
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1905829999998332
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-unicode-c-locale-1",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.83137499999998
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3677500000001146
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-binary-chunks-2",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.65883400000007
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2963330000000042
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-unicode-c-locale-2",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.377583000000186
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18062499999996362
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-binary-chunks-7",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.475792000000183
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.15366599999993014
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-unicode-c-locale-7",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.2634579999999
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.32579200000009223
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-binary-chunks-4096",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.807708000000048
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "/1oAgApa",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1577910000000884
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "sed-unicode-c-locale-4096",
+        "tool": "sed",
+        "feature": "sed.bytes",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.704833000000008
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.18962499999997817
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-fields-default-whitespace",
+        "tool": "awk",
+        "feature": "awk.fields",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBhIGMKMCAgCjEgbGFzdCBsYXN0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.926665999999841
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBhIGMKMCAgCjEgbGFzdCBsYXN0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 2.1645410000000993
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-field-assignment-rebuilds-record",
+        "tool": "awk",
+        "feature": "awk.field",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXxYfGN8Mwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.376500000000078
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXxYfGN8Mwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.940541999999823
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-record-assignment-rebuilds-fields",
+        "tool": "awk",
+        "feature": "awk.record",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.891916999999921
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.5355410000001939
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-nf-extending-clearing",
+        "tool": "awk",
+        "feature": "awk.nf",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXxifHx8CmEK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.943624999999884
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXxifHx8CmEK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.5654170000000249
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-regex-pattern-and-default-action",
+        "tool": "awk",
+        "feature": "awk.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "a2VlcDphCmtlZXA6Ywo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.217083000000002
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "a2VlcDphCmtlZXA6Ywo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.9700000000000273
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-range-pattern-restarts",
+        "tool": "awk",
+        "feature": "awk.range",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSBzdGFydAoyIHgKMyBlbmQKNSBzdGFydAo2IGVuZAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.286333000000013
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSBzdGFydAoyIHgKMyBlbmQKNSBzdGFydAo2IGVuZAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.8651250000000346
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-begin-end-empty-input",
+        "tool": "awk",
+        "feature": "awk.begin",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YmVnaW4KMCBlbmQK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.768957999999884
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YmVnaW4KMCBlbmQK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.21287499999993997
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-next-still-counts-records",
+        "tool": "awk",
+        "feature": "awk.next",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MiBiCjQgZAo0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.322291000000178
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MiBiCjQgZAo0Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4594999999999345
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-numeric-string-comparison",
+        "tool": "awk",
+        "feature": "awk.numeric",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAxIDEgMQoxIDAgMSAxCjAgMCAxIDAKMCAwIDAgMAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.01237500000002
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAxIDEgMQoxIDAgMSAxCjAgMCAxIDAKMCAwIDAgMAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.41124999999988177
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-arithmetic-assignment-precedence",
+        "tool": "awk",
+        "feature": "awk.arithmetic",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiA0Ci00IDUxMgo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.204208000000108
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiA0Ci00IDUxMgo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.6157500000001619
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-short-circuit-side-effects",
+        "tool": "awk",
+        "feature": "awk.short",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MCAxIDAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.025041999999985
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MCAxIDAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1982500000001437
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-concatenation-precedence",
+        "tool": "awk",
+        "feature": "awk.concatenation",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHJlM3Bvc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.589040999999952
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "cHJlM3Bvc3QK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.16875000000004547
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-array-membership-delete",
+        "tool": "awk",
+        "feature": "awk.array",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAwCjAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.39975000000004
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAwCjAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.29083300000002055
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-associative-aggregation",
+        "tool": "awk",
+        "feature": "awk.associative",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiAzCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.731042000000116
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiAzCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.42154200000004494
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-multidimensional-array",
+        "tool": "awk",
+        "feature": "awk.multidimensional",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "eCAxCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.121249999999918
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "eCAxCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4842080000000806
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-for-in-order-independent-count",
+        "tool": "awk",
+        "feature": "awk.for",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyAyCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.168999999999869
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyAyCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2339999999999236
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-split-clears-existing-array",
+        "tool": "awk",
+        "feature": "awk.split",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBiIDAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.38412500000004
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBiIDAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.44916699999998855
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-for-while-break-continue",
+        "tool": "awk",
+        "feature": "awk.for",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MjAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 14.632583999999952
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MjAK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.6451250000000073
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-do-while",
+        "tool": "awk",
+        "feature": "awk.do",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Mwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.167374999999993
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Mwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.21841699999981756
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-function-array-reference",
+        "tool": "awk",
+        "feature": "awk.function",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAyIDIK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 13.201332999999977
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAyIDIK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.28883299999984047
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-recursive-function",
+        "tool": "awk",
+        "feature": "awk.recursive",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NzIwCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.392166999999972
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NzIwCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3140000000000782
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-function-local-extra-parameter",
+        "tool": "awk",
+        "feature": "awk.function",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NCA5OQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.116334000000052
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NCA5OQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4974579999998241
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-sub-gsub-replacement-count",
+        "tool": "awk",
+        "feature": "awk.sub",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBiW2FdblthXW5bYV0K",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.989250000000084
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBiW2FdblthXW5bYV0K",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.3464999999998781
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-sub-target-field",
+        "tool": "awk",
+        "feature": "awk.sub",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YSBiWG5hbmEK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.49366699999996
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YSBiWG5hbmEK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2602080000001479
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-match-rstart-rlength",
+        "tool": "awk",
+        "feature": "awk.match",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MiAyIDMKMCAwIC0xCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.16170800000009
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MiAyIDMKMCAwIC0xCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.23441600000001017
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-substr-index-length",
+        "tool": "awk",
+        "feature": "awk.substr",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiAyIGJjZAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.252500000000055
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiAyIGJjZAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2696249999999054
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-sprintf-printf-width",
+        "tool": "awk",
+        "feature": "awk.sprintf",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "PCAgICAgMDEyPnw8PnwwMDA3Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.136834000000135
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "PCAgICAgMDEyPnw8PnwwMDA3Cg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.9219590000000153
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-exit-runs-end",
+        "tool": "awk",
+        "feature": "awk.exit",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 7,
+            "stdout": "YmVnaW4KZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.534124999999904
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 7,
+            "stdout": "YmVnaW4KZW5kCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.28254100000003746
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-end-overrides-exit-status",
+        "tool": "awk",
+        "feature": "awk.end",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 3,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.568500000000085
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 3,
+            "stdout": "",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.13229200000000674
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-paragraph-record-separator",
+        "tool": "awk",
+        "feature": "awk.paragraph",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAzIGFscGhhIGdhbW1hCjIgMSBkZWx0YSBkZWx0YQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.509167000000161
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSAzIGFscGhhIGdhbW1hCjIgMSBkZWx0YSBkZWx0YQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.24370799999996962
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-record-separator-colon",
+        "tool": "awk",
+        "feature": "awk.record",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSBvbmV8MiB0d298MyB8NCBsYXN0fA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.939750000000004
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MSBvbmV8MiB0d298MyB8NCBsYXN0fA==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.22029199999997218
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-redirection-and-close",
+        "tool": "awk",
+        "feature": "awk.redirection",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "written": {
+                "type": "file",
+                "bytes": "b25lCnR3bwo=",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 10.770207999999911
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "written": {
+                "type": "file",
+                "bytes": "b25lCnR3bwo=",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 0.20641700000010132
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-getline-from-file",
+        "tool": "awk",
+        "feature": "awk.getline",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc2Vjb25kCg==",
+            "stderr": "",
+            "files": {
+              "extra": {
+                "type": "file",
+                "bytes": "Zmlyc3QKc2Vjb25kCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 10.341084000000137
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Zmlyc3QKc2Vjb25kCg==",
+            "stderr": "",
+            "files": {
+              "extra": {
+                "type": "file",
+                "bytes": "Zmlyc3QKc2Vjb25kCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.5902500000001965
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-unicode-byte-length-c-locale",
+        "tool": "awk",
+        "feature": "awk.unicode",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NCDDqQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.438208000000031
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NCDDqQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.1969169999999849
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-fs-flag",
+        "tool": "awk",
+        "feature": "awk.flags",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBiCjMgYQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.906917000000021
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBiCjMgYQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.2021669999999176
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-v-variable-before-begin",
+        "tool": "awk",
+        "feature": "awk.flags",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MDA3IDcK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.718249999999898
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MDA3IDcK",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.7290419999999358
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-assignment-operands-between-files",
+        "tool": "awk",
+        "feature": "awk.assignments",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "CjEgMSBmaXJzdCBhCjIgMiBmaXJzdCBiCjEgMyBzZWNvbmQgYwo=",
+            "stderr": "",
+            "files": {
+              "one": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "two": {
+                "type": "file",
+                "bytes": "Ywo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 13.819083000000091
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "CjEgMSBmaXJzdCBhCjIgMiBmaXJzdCBiCjEgMyBzZWNvbmQgYwo=",
+            "stderr": "",
+            "files": {
+              "one": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "two": {
+                "type": "file",
+                "bytes": "Ywo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.4255829999999605
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-multiple-program-files",
+        "tool": "awk",
+        "feature": "awk.script-files",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Mgo=",
+            "stderr": "",
+            "files": {
+              "first.awk": {
+                "type": "file",
+                "bytes": "e3RvdGFsKz1sZW5ndGgoJDApfQo=",
+                "mode": 420
+              },
+              "last.awk": {
+                "type": "file",
+                "bytes": "RU5Ee3ByaW50IHRvdGFsfQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.183291999999938
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "Mgo=",
+            "stderr": "",
+            "files": {
+              "first.awk": {
+                "type": "file",
+                "bytes": "e3RvdGFsKz1sZW5ndGgoJDApfQo=",
+                "mode": 420
+              },
+              "last.awk": {
+                "type": "file",
+                "bytes": "RU5Ee3ByaW50IHRvdGFsfQo=",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 0.2927919999999631
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "awk-field-separator-regex",
+        "tool": "awk",
+        "feature": "awk.fields",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBhIGIgYwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 15.148750000000064
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "MyBhIGIgYwo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.28716700000018136
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "pipeline-sed-sort-uniq",
+        "tool": "pipeline",
+        "feature": "pipeline.sed",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXBwbGUKcGVhcgo=",
+            "stderr": "",
+            "files": {
+              "output": {
+                "type": "file",
+                "bytes": "YXBwbGUKcGVhcgo=",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 20.216958000000204
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXBwbGUKcGVhcgo=",
+            "stderr": "",
+            "files": {
+              "output": {
+                "type": "file",
+                "bytes": "YXBwbGUKcGVhcgo=",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 13.139958999999862
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "pipeline-sed-awk-aggregate",
+        "tool": "pipeline",
+        "feature": "pipeline.sed-awk",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiAzCg==",
+            "stderr": "",
+            "files": {
+              "output": {
+                "type": "file",
+                "bytes": "NiAzCg==",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 22.8560829999999
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "NiAzCg==",
+            "stderr": "",
+            "files": {
+              "output": {
+                "type": "file",
+                "bytes": "NiAzCg==",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 4.050707999999986
+        },
+        "status": "pass",
+        "differences": []
+      },
+      {
+        "name": "pipeline-awk-sed-format",
+        "tool": "pipeline",
+        "feature": "pipeline.awk-sed",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+            "stderr": "",
+            "files": {
+              "output": {
+                "type": "file",
+                "bytes": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 20.446707999999944
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+            "stderr": "",
+            "files": {
+              "output": {
+                "type": "file",
+                "bytes": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+                "mode": 438
+              }
+            }
+          },
+          "durationMs": 2.5279589999997825
+        },
+        "status": "pass",
+        "differences": []
+      }
+    ]
+  },
   "byTool": {
     "sed": {
       "total": 99,
-      "pass": 97,
-      "fail": 2,
+      "pass": 99,
+      "fail": 0,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
@@ -113,8 +4279,8 @@
     },
     "sed.regex": {
       "total": 12,
-      "pass": 11,
-      "fail": 1,
+      "pass": 12,
+      "fail": 0,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
@@ -173,8 +4339,8 @@
     },
     "sed.in-place": {
       "total": 4,
-      "pass": 3,
-      "fail": 1,
+      "pass": 4,
+      "fail": 0,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
@@ -909,7 +5075,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.46466600000030667
+          "durationMs": 0.5903330000001006
         }
       },
       {
@@ -923,7 +5089,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.18150000000014188
+          "durationMs": 0.23945800000001327
         }
       },
       {
@@ -937,7 +5103,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.04858300000023519
+          "durationMs": 0.15608399999996436
         }
       },
       {
@@ -951,7 +5117,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.2064580000001115
+          "durationMs": 0.3573750000000473
         }
       },
       {
@@ -965,7 +5131,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.38124999999990905
+          "durationMs": 0.3383330000001479
         }
       },
       {
@@ -979,7 +5145,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.2147500000000946
+          "durationMs": 0.0887079999999969
         }
       },
       {
@@ -993,7 +5159,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.16670799999974406
+          "durationMs": 0.14037499999994907
         }
       },
       {
@@ -1007,7 +5173,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.12741700000015044
+          "durationMs": 0.12191599999982827
         }
       },
       {
@@ -1021,7 +5187,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.19358299999976225
+          "durationMs": 0.1667499999998654
         }
       },
       {
@@ -1035,7 +5201,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.3259170000001177
+          "durationMs": 0.1475420000001577
         }
       },
       {
@@ -1049,7 +5215,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.23091599999997925
+          "durationMs": 0.13750000000004547
         }
       },
       {
@@ -1063,7 +5229,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.4955840000002354
+          "durationMs": 0.35750000000007276
         }
       },
       {
@@ -1077,7 +5243,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.6437090000003991
+          "durationMs": 0.5847499999999854
         }
       },
       {
@@ -1091,7 +5257,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 1.1980409999996482
+          "durationMs": 1.0008749999999509
         }
       },
       {
@@ -1105,7 +5271,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.6395410000000084
+          "durationMs": 0.9290419999999813
         }
       },
       {
@@ -1119,7 +5285,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.4070000000001528
+          "durationMs": 0.5515000000000327
         }
       },
       {
@@ -1133,7 +5299,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.12012500000037107
+          "durationMs": 0.24412499999993997
         }
       },
       {
@@ -1147,7 +5313,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.05741699999998673
+          "durationMs": 0.1872089999999389
         }
       },
       {
@@ -1161,7 +5327,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.1382090000001881
+          "durationMs": 0.16004199999997581
         }
       },
       {
@@ -1175,15 +5341,15 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.10933299999987867
+          "durationMs": 0.16137499999990723
         }
       }
     ]
   },
   "combinedSummary": {
     "total": 161,
-    "pass": 159,
-    "fail": 2,
+    "pass": 161,
+    "fail": 0,
     "unsupported": 0,
     "pending": 0,
     "error": 0,
@@ -2762,7 +6928,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 18.65299999999999
+        "durationMs": 13.479083000000003
       },
       "virtual": {
         "status": "completed",
@@ -2772,7 +6938,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 1.785541999999964
+        "durationMs": 1.4307909999999993
       },
       "status": "pass",
       "differences": []
@@ -2789,7 +6955,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 22.089499999999987
+        "durationMs": 11.692915999999968
       },
       "virtual": {
         "status": "completed",
@@ -2799,7 +6965,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.21724999999997863
+        "durationMs": 0.22770799999995006
       },
       "status": "pass",
       "differences": []
@@ -2816,7 +6982,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 16.10558400000002
+        "durationMs": 11.835332999999991
       },
       "virtual": {
         "status": "completed",
@@ -2826,7 +6992,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.7893329999999992
+        "durationMs": 0.4879579999999919
       },
       "status": "pass",
       "differences": []
@@ -2843,7 +7009,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 16.745790999999997
+        "durationMs": 10.175666999999976
       },
       "virtual": {
         "status": "completed",
@@ -2853,7 +7019,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2741250000000264
+        "durationMs": 0.28304199999996627
       },
       "status": "pass",
       "differences": []
@@ -2870,7 +7036,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.037458000000015
+        "durationMs": 12.840040999999985
       },
       "virtual": {
         "status": "completed",
@@ -2880,7 +7046,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.42275000000000773
+        "durationMs": 0.4404999999999859
       },
       "status": "pass",
       "differences": []
@@ -2897,7 +7063,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.899125000000026
+        "durationMs": 11.438999999999965
       },
       "virtual": {
         "status": "completed",
@@ -2907,7 +7073,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16191700000001674
+        "durationMs": 0.17629199999998946
       },
       "status": "pass",
       "differences": []
@@ -2924,7 +7090,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.743583999999998
+        "durationMs": 11.030957999999998
       },
       "virtual": {
         "status": "completed",
@@ -2934,7 +7100,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2498340000000212
+        "durationMs": 0.2810840000000212
       },
       "status": "pass",
       "differences": []
@@ -2951,7 +7117,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.596292000000005
+        "durationMs": 10.732166000000007
       },
       "virtual": {
         "status": "completed",
@@ -2961,7 +7127,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2636669999999981
+        "durationMs": 0.15424999999999045
       },
       "status": "pass",
       "differences": []
@@ -2978,7 +7144,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.495165999999983
+        "durationMs": 11.017291999999998
       },
       "virtual": {
         "status": "completed",
@@ -2988,7 +7154,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.34345799999999826
+        "durationMs": 0.33370800000000145
       },
       "status": "pass",
       "differences": []
@@ -3005,7 +7171,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.41416700000002
+        "durationMs": 13.990374999999972
       },
       "virtual": {
         "status": "completed",
@@ -3015,7 +7181,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.17416700000001129
+        "durationMs": 0.15995799999996052
       },
       "status": "pass",
       "differences": []
@@ -3032,7 +7198,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.632959000000028
+        "durationMs": 11.022041000000002
       },
       "virtual": {
         "status": "completed",
@@ -3042,7 +7208,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.14720800000003464
+        "durationMs": 0.15354200000001583
       },
       "status": "pass",
       "differences": []
@@ -3059,7 +7225,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.590540999999973
+        "durationMs": 12.041667000000018
       },
       "virtual": {
         "status": "completed",
@@ -3069,7 +7235,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4862089999999739
+        "durationMs": 0.13279199999999491
       },
       "status": "pass",
       "differences": []
@@ -3086,7 +7252,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.698499999999967
+        "durationMs": 10.449958000000038
       },
       "virtual": {
         "status": "completed",
@@ -3096,7 +7262,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4475410000000011
+        "durationMs": 0.1592499999999859
       },
       "status": "pass",
       "differences": []
@@ -3113,7 +7279,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.372625000000028
+        "durationMs": 11.369291999999973
       },
       "virtual": {
         "status": "completed",
@@ -3123,7 +7289,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.29262500000004366
+        "durationMs": 0.1649590000000103
       },
       "status": "pass",
       "differences": []
@@ -3140,7 +7306,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.941834000000028
+        "durationMs": 11.617833000000019
       },
       "virtual": {
         "status": "completed",
@@ -3150,7 +7316,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12850000000003092
+        "durationMs": 0.144457999999986
       },
       "status": "pass",
       "differences": []
@@ -3167,7 +7333,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.401417000000038
+        "durationMs": 10.489750000000015
       },
       "virtual": {
         "status": "completed",
@@ -3177,7 +7343,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.14212499999996453
+        "durationMs": 0.18299999999999272
       },
       "status": "pass",
       "differences": []
@@ -3194,7 +7360,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.964666999999963
+        "durationMs": 12.035082999999986
       },
       "virtual": {
         "status": "completed",
@@ -3204,7 +7370,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.24516600000004019
+        "durationMs": 0.220957999999996
       },
       "status": "pass",
       "differences": []
@@ -3221,7 +7387,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.387499999999989
+        "durationMs": 11.099249999999984
       },
       "virtual": {
         "status": "completed",
@@ -3231,7 +7397,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15899999999999181
+        "durationMs": 0.18358299999999872
       },
       "status": "pass",
       "differences": []
@@ -3248,7 +7414,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.30820799999998
+        "durationMs": 10.560124999999971
       },
       "virtual": {
         "status": "completed",
@@ -3258,7 +7424,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.33183400000001484
+        "durationMs": 0.37529200000000174
       },
       "status": "pass",
       "differences": []
@@ -3275,7 +7441,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.757665999999972
+        "durationMs": 12.111125000000015
       },
       "virtual": {
         "status": "completed",
@@ -3285,7 +7451,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2577079999999796
+        "durationMs": 0.2426669999999831
       },
       "status": "pass",
       "differences": []
@@ -3302,7 +7468,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.590874999999983
+        "durationMs": 10.363291000000004
       },
       "virtual": {
         "status": "completed",
@@ -3312,7 +7478,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19462499999997362
+        "durationMs": 0.1678749999999809
       },
       "status": "pass",
       "differences": []
@@ -3329,7 +7495,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.544415999999956
+        "durationMs": 11.186374999999998
       },
       "virtual": {
         "status": "completed",
@@ -3339,7 +7505,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.22612500000002456
+        "durationMs": 0.1333750000000009
       },
       "status": "pass",
       "differences": []
@@ -3356,7 +7522,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.655291000000034
+        "durationMs": 13.19708300000002
       },
       "virtual": {
         "status": "completed",
@@ -3366,7 +7532,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12233299999991232
+        "durationMs": 0.15037499999993997
       },
       "status": "pass",
       "differences": []
@@ -3383,7 +7549,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.337625000000003
+        "durationMs": 13.000167000000033
       },
       "virtual": {
         "status": "completed",
@@ -3393,7 +7559,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16412499999989905
+        "durationMs": 0.13995900000008987
       },
       "status": "pass",
       "differences": []
@@ -3410,7 +7576,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.375709000000029
+        "durationMs": 14.705666000000065
       },
       "virtual": {
         "status": "completed",
@@ -3420,7 +7586,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.22804099999996197
+        "durationMs": 0.7129999999999654
       },
       "status": "pass",
       "differences": []
@@ -3437,7 +7603,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.677832999999964
+        "durationMs": 13.197541999999999
       },
       "virtual": {
         "status": "completed",
@@ -3447,7 +7613,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13479199999994762
+        "durationMs": 0.3402919999999767
       },
       "status": "pass",
       "differences": []
@@ -3464,7 +7630,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.083124999999995
+        "durationMs": 13.644167000000039
       },
       "virtual": {
         "status": "completed",
@@ -3474,7 +7640,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18683399999997619
+        "durationMs": 0.3217499999999518
       },
       "status": "pass",
       "differences": []
@@ -3491,7 +7657,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.26279199999999
+        "durationMs": 12.136667000000102
       },
       "virtual": {
         "status": "completed",
@@ -3501,7 +7667,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18479100000001836
+        "durationMs": 0.1608330000000251
       },
       "status": "pass",
       "differences": []
@@ -3518,7 +7684,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 17.542582999999922
+        "durationMs": 11.772958000000017
       },
       "virtual": {
         "status": "completed",
@@ -3528,7 +7694,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19416599999999562
+        "durationMs": 0.13312499999994998
       },
       "status": "pass",
       "differences": []
@@ -3545,7 +7711,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 20.49762499999997
+        "durationMs": 13.340332999999987
       },
       "virtual": {
         "status": "completed",
@@ -3555,7 +7721,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18883400000004258
+        "durationMs": 0.17462499999999181
       },
       "status": "pass",
       "differences": []
@@ -3572,7 +7738,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 20.903166000000056
+        "durationMs": 14.109375
       },
       "virtual": {
         "status": "completed",
@@ -3582,7 +7748,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.26766700000007404
+        "durationMs": 0.14266600000007656
       },
       "status": "pass",
       "differences": []
@@ -3599,7 +7765,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 15.080291999999986
+        "durationMs": 13.118000000000052
       },
       "virtual": {
         "status": "completed",
@@ -3609,7 +7775,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.30291699999997945
+        "durationMs": 0.29179199999998673
       },
       "status": "pass",
       "differences": []
@@ -3626,7 +7792,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.250084000000015
+        "durationMs": 12.40766599999995
       },
       "virtual": {
         "status": "completed",
@@ -3636,7 +7802,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 1.1761659999999665
+        "durationMs": 1.4368329999999787
       },
       "status": "pass",
       "differences": []
@@ -3653,7 +7819,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.517875000000004
+        "durationMs": 13.307083000000034
       },
       "virtual": {
         "status": "completed",
@@ -3663,7 +7829,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3345409999999447
+        "durationMs": 0.5118330000000242
       },
       "status": "pass",
       "differences": []
@@ -3680,7 +7846,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.022417000000019
+        "durationMs": 11.057375000000093
       },
       "virtual": {
         "status": "completed",
@@ -3690,7 +7856,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19762500000001637
+        "durationMs": 0.19495800000004238
       },
       "status": "pass",
       "differences": []
@@ -3707,7 +7873,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.328834000000029
+        "durationMs": 10.934124999999995
       },
       "virtual": {
         "status": "completed",
@@ -3717,7 +7883,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.21633399999996072
+        "durationMs": 0.18033300000001873
       },
       "status": "pass",
       "differences": []
@@ -3734,7 +7900,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.325708000000077
+        "durationMs": 11.059375000000045
       },
       "virtual": {
         "status": "completed",
@@ -3744,7 +7910,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23570900000004258
+        "durationMs": 0.26141599999994014
       },
       "status": "pass",
       "differences": []
@@ -3761,7 +7927,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.653584000000023
+        "durationMs": 11.418499999999995
       },
       "virtual": {
         "status": "completed",
@@ -3771,7 +7937,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.436458000000016
+        "durationMs": 0.3147919999998976
       },
       "status": "pass",
       "differences": []
@@ -3788,7 +7954,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.164875000000052
+        "durationMs": 12.15154199999995
       },
       "virtual": {
         "status": "completed",
@@ -3798,7 +7964,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3391670000000886
+        "durationMs": 0.2005420000000413
       },
       "status": "pass",
       "differences": []
@@ -3815,7 +7981,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.921499999999924
+        "durationMs": 11.498500000000035
       },
       "virtual": {
         "status": "completed",
@@ -3825,7 +7991,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19012500000008004
+        "durationMs": 0.23087500000008276
       },
       "status": "pass",
       "differences": []
@@ -3842,7 +8008,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.30262499999992
+        "durationMs": 11.386833000000024
       },
       "virtual": {
         "status": "completed",
@@ -3852,7 +8018,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3261250000000473
+        "durationMs": 0.2442079999999578
       },
       "status": "pass",
       "differences": []
@@ -3869,7 +8035,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.764957999999979
+        "durationMs": 10.433750000000032
       },
       "virtual": {
         "status": "completed",
@@ -3879,7 +8045,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18679199999996854
+        "durationMs": 0.1646250000000009
       },
       "status": "pass",
       "differences": []
@@ -3896,7 +8062,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.015917000000059
+        "durationMs": 10.84904199999994
       },
       "virtual": {
         "status": "completed",
@@ -3906,7 +8072,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.36533300000007785
+        "durationMs": 0.1854169999999158
       },
       "status": "pass",
       "differences": []
@@ -3923,7 +8089,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.802124999999933
+        "durationMs": 10.971332999999959
       },
       "virtual": {
         "status": "completed",
@@ -3933,7 +8099,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3422090000000253
+        "durationMs": 0.1752079999999978
       },
       "status": "pass",
       "differences": []
@@ -3950,7 +8116,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.121041999999989
+        "durationMs": 9.88487500000008
       },
       "virtual": {
         "status": "completed",
@@ -3960,7 +8126,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1915840000000344
+        "durationMs": 0.3382499999999027
       },
       "status": "pass",
       "differences": []
@@ -3977,7 +8143,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.348666999999978
+        "durationMs": 10.82899999999995
       },
       "virtual": {
         "status": "completed",
@@ -3987,7 +8153,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16137500000002092
+        "durationMs": 0.2642920000000686
       },
       "status": "pass",
       "differences": []
@@ -4004,7 +8170,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.98479199999997
+        "durationMs": 12.006167000000005
       },
       "virtual": {
         "status": "completed",
@@ -4014,7 +8180,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2687919999999622
+        "durationMs": 0.20400000000006457
       },
       "status": "pass",
       "differences": []
@@ -4031,7 +8197,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.999625000000037
+        "durationMs": 11.028083000000038
       },
       "virtual": {
         "status": "completed",
@@ -4041,7 +8207,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.413791999999944
+        "durationMs": 0.18358299999999872
       },
       "status": "pass",
       "differences": []
@@ -4058,7 +8224,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.709082999999964
+        "durationMs": 12.55424999999991
       },
       "virtual": {
         "status": "completed",
@@ -4068,7 +8234,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.22958299999993415
+        "durationMs": 0.1618750000000091
       },
       "status": "pass",
       "differences": []
@@ -4085,7 +8251,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.901874999999905
+        "durationMs": 12.09258299999999
       },
       "virtual": {
         "status": "completed",
@@ -4095,7 +8261,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23954200000002857
+        "durationMs": 0.40012500000000273
       },
       "status": "pass",
       "differences": []
@@ -4112,7 +8278,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.763749999999959
+        "durationMs": 11.418874999999957
       },
       "virtual": {
         "status": "completed",
@@ -4122,7 +8288,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18062499999996362
+        "durationMs": 0.16295800000000327
       },
       "status": "pass",
       "differences": []
@@ -4139,7 +8305,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.41945899999996
+        "durationMs": 11.713374999999928
       },
       "virtual": {
         "status": "completed",
@@ -4149,7 +8315,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3310829999999214
+        "durationMs": 0.20058300000005147
       },
       "status": "pass",
       "differences": []
@@ -4166,7 +8332,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.674874999999929
+        "durationMs": 11.473416999999927
       },
       "virtual": {
         "status": "completed",
@@ -4176,7 +8342,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1436670000000504
+        "durationMs": 0.11745799999994233
       },
       "status": "pass",
       "differences": []
@@ -4193,7 +8359,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.185207999999989
+        "durationMs": 10.566291000000092
       },
       "virtual": {
         "status": "completed",
@@ -4203,7 +8369,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.49479199999996126
+        "durationMs": 0.2051249999999527
       },
       "status": "pass",
       "differences": []
@@ -4220,7 +8386,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 18.24183400000004
+        "durationMs": 11.087625000000003
       },
       "virtual": {
         "status": "completed",
@@ -4230,7 +8396,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15508299999999053
+        "durationMs": 0.16120899999998528
       },
       "status": "pass",
       "differences": []
@@ -4247,7 +8413,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.31291699999997
+        "durationMs": 11.053540999999996
       },
       "virtual": {
         "status": "completed",
@@ -4257,7 +8423,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1851249999999709
+        "durationMs": 0.15108300000008512
       },
       "status": "pass",
       "differences": []
@@ -4274,7 +8440,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.770917000000054
+        "durationMs": 15.840249999999969
       },
       "virtual": {
         "status": "completed",
@@ -4284,7 +8450,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16345799999999144
+        "durationMs": 0.1620420000000422
       },
       "status": "pass",
       "differences": []
@@ -4301,7 +8467,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.922584000000029
+        "durationMs": 13.856457999999975
       },
       "virtual": {
         "status": "completed",
@@ -4311,7 +8477,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23737499999992906
+        "durationMs": 0.36124999999992724
       },
       "status": "pass",
       "differences": []
@@ -4328,7 +8494,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.410291000000143
+        "durationMs": 10.278084000000035
       },
       "virtual": {
         "status": "completed",
@@ -4338,7 +8504,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.5317499999998745
+        "durationMs": 0.5740410000000793
       },
       "status": "pass",
       "differences": []
@@ -4355,7 +8521,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.320708999999852
+        "durationMs": 10.413917000000083
       },
       "virtual": {
         "status": "completed",
@@ -4365,7 +8531,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16487499999993815
+        "durationMs": 0.18004199999995762
       },
       "status": "pass",
       "differences": []
@@ -4382,7 +8548,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.939082999999982
+        "durationMs": 11.222708000000011
       },
       "virtual": {
         "status": "completed",
@@ -4392,7 +8558,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.22670799999991686
+        "durationMs": 0.1840829999999869
       },
       "status": "pass",
       "differences": []
@@ -4409,7 +8575,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.49891700000012
+        "durationMs": 10.046207999999979
       },
       "virtual": {
         "status": "completed",
@@ -4419,7 +8585,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3852079999999205
+        "durationMs": 0.29654200000004494
       },
       "status": "pass",
       "differences": []
@@ -4436,7 +8602,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.58833299999992
+        "durationMs": 10.990583999999899
       },
       "virtual": {
         "status": "completed",
@@ -4446,7 +8612,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.14695800000004056
+        "durationMs": 0.17300000000000182
       },
       "status": "pass",
       "differences": []
@@ -4463,7 +8629,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.014499999999998
+        "durationMs": 11.083167000000003
       },
       "virtual": {
         "status": "completed",
@@ -4473,7 +8639,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.24316700000008495
+        "durationMs": 0.20870800000011513
       },
       "status": "pass",
       "differences": []
@@ -4490,7 +8656,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.337582999999995
+        "durationMs": 9.638583000000153
       },
       "virtual": {
         "status": "completed",
@@ -4500,7 +8666,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10941699999989396
+        "durationMs": 0.09324999999989814
       },
       "status": "pass",
       "differences": []
@@ -4517,7 +8683,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.85958299999993
+        "durationMs": 9.948000000000093
       },
       "virtual": {
         "status": "completed",
@@ -4527,7 +8693,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.31062500000007276
+        "durationMs": 0.27337499999998727
       },
       "status": "pass",
       "differences": []
@@ -4544,7 +8710,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.93508299999985
+        "durationMs": 10.571541999999909
       },
       "virtual": {
         "status": "completed",
@@ -4554,7 +8720,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23987499999998363
+        "durationMs": 0.2545830000001388
       },
       "status": "pass",
       "differences": []
@@ -4571,7 +8737,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.683166999999912
+        "durationMs": 9.758458000000019
       },
       "virtual": {
         "status": "completed",
@@ -4581,7 +8747,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19766699999991033
+        "durationMs": 0.2576249999999618
       },
       "status": "pass",
       "differences": []
@@ -4598,7 +8764,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.803249999999935
+        "durationMs": 9.86479200000008
       },
       "virtual": {
         "status": "completed",
@@ -4608,7 +8774,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15441600000008293
+        "durationMs": 0.1796670000001086
       },
       "status": "pass",
       "differences": []
@@ -4625,7 +8791,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.84595800000011
+        "durationMs": 10.20308399999999
       },
       "virtual": {
         "status": "completed",
@@ -4635,7 +8801,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.28987499999993815
+        "durationMs": 0.17512499999998
       },
       "status": "pass",
       "differences": []
@@ -4648,11 +8814,11 @@
         "status": "completed",
         "observation": {
           "exitCode": 0,
-          "stdout": "WGFiYwpYCg==",
+          "stdout": "WGFiY1gKWAo=",
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.998542000000043
+        "durationMs": 12.527750000000026
       },
       "virtual": {
         "status": "completed",
@@ -4662,12 +8828,10 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.42333300000018426
+        "durationMs": 0.17945800000006784
       },
-      "status": "fail",
-      "differences": [
-        "stdout"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-regex-71",
@@ -4681,7 +8845,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.657209000000194
+        "durationMs": 9.567999999999984
       },
       "virtual": {
         "status": "completed",
@@ -4691,7 +8855,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.39470799999980954
+        "durationMs": 0.27366700000015953
       },
       "status": "pass",
       "differences": []
@@ -4708,7 +8872,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.189916999999923
+        "durationMs": 9.675707999999986
       },
       "virtual": {
         "status": "completed",
@@ -4718,7 +8882,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4774169999998321
+        "durationMs": 0.19858300000009876
       },
       "status": "pass",
       "differences": []
@@ -4735,7 +8899,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.572791000000052
+        "durationMs": 9.70354199999997
       },
       "virtual": {
         "status": "completed",
@@ -4745,7 +8909,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1685419999998885
+        "durationMs": 0.14837499999998727
       },
       "status": "pass",
       "differences": []
@@ -4762,7 +8926,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.471542
+        "durationMs": 9.468499999999949
       },
       "virtual": {
         "status": "completed",
@@ -4772,7 +8936,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2862920000000031
+        "durationMs": 0.20733300000006238
       },
       "status": "pass",
       "differences": []
@@ -4789,7 +8953,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.577625000000126
+        "durationMs": 11.929292000000032
       },
       "virtual": {
         "status": "completed",
@@ -4799,7 +8963,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3047080000001188
+        "durationMs": 0.19575000000008913
       },
       "status": "pass",
       "differences": []
@@ -4816,7 +8980,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.803249999999935
+        "durationMs": 10.564374999999927
       },
       "virtual": {
         "status": "completed",
@@ -4826,7 +8990,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2134169999999358
+        "durationMs": 0.16183300000011513
       },
       "status": "pass",
       "differences": []
@@ -4843,7 +9007,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.506959000000052
+        "durationMs": 10.198292000000038
       },
       "virtual": {
         "status": "completed",
@@ -4853,7 +9017,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1597910000000411
+        "durationMs": 0.15491700000006858
       },
       "status": "pass",
       "differences": []
@@ -4870,7 +9034,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.881417000000056
+        "durationMs": 11.213917000000038
       },
       "virtual": {
         "status": "completed",
@@ -4880,7 +9044,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16470800000001873
+        "durationMs": 0.1166249999998854
       },
       "status": "pass",
       "differences": []
@@ -4908,7 +9072,7 @@
             }
           }
         },
-        "durationMs": 14.45358299999998
+        "durationMs": 12.715749999999844
       },
       "virtual": {
         "status": "completed",
@@ -4929,7 +9093,7 @@
             }
           }
         },
-        "durationMs": 0.6945419999999558
+        "durationMs": 0.54037500000004
       },
       "status": "pass",
       "differences": []
@@ -4952,7 +9116,7 @@
             }
           }
         },
-        "durationMs": 12.857665999999881
+        "durationMs": 12.21608399999991
       },
       "virtual": {
         "status": "completed",
@@ -4968,7 +9132,7 @@
             }
           }
         },
-        "durationMs": 0.16895899999985886
+        "durationMs": 0.18612499999994725
       },
       "status": "pass",
       "differences": []
@@ -5001,7 +9165,7 @@
             }
           }
         },
-        "durationMs": 13.793541999999889
+        "durationMs": 14.684917000000041
       },
       "virtual": {
         "status": "completed",
@@ -5027,7 +9191,7 @@
             }
           }
         },
-        "durationMs": 0.28129100000001017
+        "durationMs": 0.24037499999985812
       },
       "status": "pass",
       "differences": []
@@ -5055,7 +9219,7 @@
             }
           }
         },
-        "durationMs": 13.403250000000071
+        "durationMs": 15.060291000000007
       },
       "virtual": {
         "status": "completed",
@@ -5076,7 +9240,7 @@
             }
           }
         },
-        "durationMs": 0.2777920000000904
+        "durationMs": 0.5883329999999205
       },
       "status": "pass",
       "differences": []
@@ -5104,7 +9268,7 @@
             }
           }
         },
-        "durationMs": 16.475417000000107
+        "durationMs": 14.28733299999999
       },
       "virtual": {
         "status": "completed",
@@ -5125,7 +9289,7 @@
             }
           }
         },
-        "durationMs": 0.3989999999998872
+        "durationMs": 0.5144580000001042
       },
       "status": "pass",
       "differences": []
@@ -5153,7 +9317,7 @@
             }
           }
         },
-        "durationMs": 16.365124999999807
+        "durationMs": 16.07333399999993
       },
       "virtual": {
         "status": "completed",
@@ -5174,7 +9338,7 @@
             }
           }
         },
-        "durationMs": 0.8152079999999842
+        "durationMs": 0.21029199999998127
       },
       "status": "pass",
       "differences": []
@@ -5202,17 +9366,12 @@
             },
             "last": {
               "type": "file",
-              "bytes": "",
-              "mode": 420
-            },
-            "last.bak": {
-              "type": "file",
               "bytes": "YwpkCg==",
               "mode": 420
             }
           }
         },
-        "durationMs": 17.699457999999822
+        "durationMs": 15.619374999999991
       },
       "virtual": {
         "status": "completed",
@@ -5238,13 +9397,10 @@
             }
           }
         },
-        "durationMs": 0.34129200000006676
+        "durationMs": 0.2660000000000764
       },
-      "status": "fail",
-      "differences": [
-        "file:last",
-        "file:last.bak"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-inplace-existing-backup",
@@ -5269,7 +9425,7 @@
             }
           }
         },
-        "durationMs": 17.57158299999992
+        "durationMs": 14.221583999999893
       },
       "virtual": {
         "status": "completed",
@@ -5290,7 +9446,7 @@
             }
           }
         },
-        "durationMs": 0.23216600000000653
+        "durationMs": 0.20250000000010004
       },
       "status": "pass",
       "differences": []
@@ -5313,7 +9469,7 @@
             }
           }
         },
-        "durationMs": 18.061374999999998
+        "durationMs": 18.704541999999947
       },
       "virtual": {
         "status": "completed",
@@ -5329,7 +9485,7 @@
             }
           }
         },
-        "durationMs": 0.31045800000015333
+        "durationMs": 0.24529200000006313
       },
       "status": "pass",
       "differences": []
@@ -5352,7 +9508,7 @@
             }
           }
         },
-        "durationMs": 14.951083000000153
+        "durationMs": 16.48370799999998
       },
       "virtual": {
         "status": "completed",
@@ -5368,7 +9524,7 @@
             }
           }
         },
-        "durationMs": 0.4371659999999338
+        "durationMs": 0.3923330000000078
       },
       "status": "pass",
       "differences": []
@@ -5385,7 +9541,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.750667000000021
+        "durationMs": 15.930708000000095
       },
       "virtual": {
         "status": "completed",
@@ -5395,7 +9551,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2849580000001879
+        "durationMs": 0.2786660000001575
       },
       "status": "pass",
       "differences": []
@@ -5412,7 +9568,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.914417000000185
+        "durationMs": 14.207166000000143
       },
       "virtual": {
         "status": "completed",
@@ -5422,7 +9578,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3306670000001759
+        "durationMs": 1.0789159999999356
       },
       "status": "pass",
       "differences": []
@@ -5439,7 +9595,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 15.207125000000133
+        "durationMs": 13.993708999999853
       },
       "virtual": {
         "status": "completed",
@@ -5449,7 +9605,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.20629199999984849
+        "durationMs": 0.1905829999998332
       },
       "status": "pass",
       "differences": []
@@ -5466,7 +9622,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.843208000000004
+        "durationMs": 12.83137499999998
       },
       "virtual": {
         "status": "completed",
@@ -5476,7 +9632,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.34712500000000546
+        "durationMs": 0.3677500000001146
       },
       "status": "pass",
       "differences": []
@@ -5493,7 +9649,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 18.427124999999933
+        "durationMs": 10.65883400000007
       },
       "virtual": {
         "status": "completed",
@@ -5503,7 +9659,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1736670000000231
+        "durationMs": 0.2963330000000042
       },
       "status": "pass",
       "differences": []
@@ -5520,7 +9676,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 16.174792000000025
+        "durationMs": 13.377583000000186
       },
       "virtual": {
         "status": "completed",
@@ -5530,7 +9686,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.5027500000001055
+        "durationMs": 0.18062499999996362
       },
       "status": "pass",
       "differences": []
@@ -5547,7 +9703,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.608584000000064
+        "durationMs": 12.475792000000183
       },
       "virtual": {
         "status": "completed",
@@ -5557,7 +9713,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.25662499999998545
+        "durationMs": 0.15366599999993014
       },
       "status": "pass",
       "differences": []
@@ -5574,7 +9730,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.931249999999864
+        "durationMs": 10.2634579999999
       },
       "virtual": {
         "status": "completed",
@@ -5584,7 +9740,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16695800000002237
+        "durationMs": 0.32579200000009223
       },
       "status": "pass",
       "differences": []
@@ -5601,7 +9757,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.513584000000037
+        "durationMs": 10.807708000000048
       },
       "virtual": {
         "status": "completed",
@@ -5611,7 +9767,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2545000000000073
+        "durationMs": 0.1577910000000884
       },
       "status": "pass",
       "differences": []
@@ -5628,7 +9784,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.978417000000036
+        "durationMs": 10.704833000000008
       },
       "virtual": {
         "status": "completed",
@@ -5638,7 +9794,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.21700000000009823
+        "durationMs": 0.18962499999997817
       },
       "status": "pass",
       "differences": []
@@ -5655,7 +9811,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.29995800000006
+        "durationMs": 10.926665999999841
       },
       "virtual": {
         "status": "completed",
@@ -5665,7 +9821,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 1.925375000000031
+        "durationMs": 2.1645410000000993
       },
       "status": "pass",
       "differences": []
@@ -5682,7 +9838,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.657166000000188
+        "durationMs": 11.376500000000078
       },
       "virtual": {
         "status": "completed",
@@ -5692,7 +9848,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.5905410000000302
+        "durationMs": 0.940541999999823
       },
       "status": "pass",
       "differences": []
@@ -5709,7 +9865,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.424833000000035
+        "durationMs": 12.891916999999921
       },
       "virtual": {
         "status": "completed",
@@ -5719,7 +9875,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.6450830000001133
+        "durationMs": 0.5355410000001939
       },
       "status": "pass",
       "differences": []
@@ -5736,7 +9892,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.635291000000052
+        "durationMs": 11.943624999999884
       },
       "virtual": {
         "status": "completed",
@@ -5746,7 +9902,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.8207079999999678
+        "durationMs": 0.5654170000000249
       },
       "status": "pass",
       "differences": []
@@ -5763,7 +9919,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.933667000000014
+        "durationMs": 12.217083000000002
       },
       "virtual": {
         "status": "completed",
@@ -5773,7 +9929,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.5865420000000086
+        "durationMs": 0.9700000000000273
       },
       "status": "pass",
       "differences": []
@@ -5790,7 +9946,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.790708999999879
+        "durationMs": 12.286333000000013
       },
       "virtual": {
         "status": "completed",
@@ -5800,7 +9956,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.7221660000000156
+        "durationMs": 0.8651250000000346
       },
       "status": "pass",
       "differences": []
@@ -5817,7 +9973,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.892458000000033
+        "durationMs": 12.768957999999884
       },
       "virtual": {
         "status": "completed",
@@ -5827,7 +9983,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.20033300000000054
+        "durationMs": 0.21287499999993997
       },
       "status": "pass",
       "differences": []
@@ -5844,7 +10000,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.225832999999966
+        "durationMs": 12.322291000000178
       },
       "virtual": {
         "status": "completed",
@@ -5854,7 +10010,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.534832999999935
+        "durationMs": 0.4594999999999345
       },
       "status": "pass",
       "differences": []
@@ -5871,7 +10027,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.926582999999937
+        "durationMs": 12.01237500000002
       },
       "virtual": {
         "status": "completed",
@@ -5881,7 +10037,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4154999999998381
+        "durationMs": 0.41124999999988177
       },
       "status": "pass",
       "differences": []
@@ -5898,7 +10054,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 15.791749999999865
+        "durationMs": 12.204208000000108
       },
       "virtual": {
         "status": "completed",
@@ -5908,7 +10064,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.25645799999983865
+        "durationMs": 0.6157500000001619
       },
       "status": "pass",
       "differences": []
@@ -5925,7 +10081,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.298791000000165
+        "durationMs": 12.025041999999985
       },
       "virtual": {
         "status": "completed",
@@ -5935,7 +10091,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23033299999997325
+        "durationMs": 0.1982500000001437
       },
       "status": "pass",
       "differences": []
@@ -5952,7 +10108,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.237540999999965
+        "durationMs": 11.589040999999952
       },
       "virtual": {
         "status": "completed",
@@ -5962,7 +10118,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.35054200000013225
+        "durationMs": 0.16875000000004547
       },
       "status": "pass",
       "differences": []
@@ -5979,7 +10135,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.605457999999999
+        "durationMs": 12.39975000000004
       },
       "virtual": {
         "status": "completed",
@@ -5989,7 +10145,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3733750000001237
+        "durationMs": 0.29083300000002055
       },
       "status": "pass",
       "differences": []
@@ -6006,7 +10162,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.573208000000022
+        "durationMs": 11.731042000000116
       },
       "virtual": {
         "status": "completed",
@@ -6016,7 +10172,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.39912500000014006
+        "durationMs": 0.42154200000004494
       },
       "status": "pass",
       "differences": []
@@ -6033,7 +10189,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.600625000000036
+        "durationMs": 12.121249999999918
       },
       "virtual": {
         "status": "completed",
@@ -6043,7 +10199,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.43191700000011224
+        "durationMs": 0.4842080000000806
       },
       "status": "pass",
       "differences": []
@@ -6060,7 +10216,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.552832999999964
+        "durationMs": 12.168999999999869
       },
       "virtual": {
         "status": "completed",
@@ -6070,7 +10226,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23891699999990124
+        "durationMs": 0.2339999999999236
       },
       "status": "pass",
       "differences": []
@@ -6087,7 +10243,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.756709
+        "durationMs": 12.38412500000004
       },
       "virtual": {
         "status": "completed",
@@ -6097,7 +10253,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.5529579999999896
+        "durationMs": 0.44916699999998855
       },
       "status": "pass",
       "differences": []
@@ -6114,7 +10270,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.743458000000146
+        "durationMs": 14.632583999999952
       },
       "virtual": {
         "status": "completed",
@@ -6124,7 +10280,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4197079999999005
+        "durationMs": 0.6451250000000073
       },
       "status": "pass",
       "differences": []
@@ -6141,7 +10297,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.711416999999983
+        "durationMs": 11.167374999999993
       },
       "virtual": {
         "status": "completed",
@@ -6151,7 +10307,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.25299999999992906
+        "durationMs": 0.21841699999981756
       },
       "status": "pass",
       "differences": []
@@ -6168,7 +10324,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.366582999999991
+        "durationMs": 13.201332999999977
       },
       "virtual": {
         "status": "completed",
@@ -6178,7 +10334,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.32991599999991195
+        "durationMs": 0.28883299999984047
       },
       "status": "pass",
       "differences": []
@@ -6195,7 +10351,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.571541000000025
+        "durationMs": 12.392166999999972
       },
       "virtual": {
         "status": "completed",
@@ -6205,7 +10361,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4879169999999249
+        "durationMs": 0.3140000000000782
       },
       "status": "pass",
       "differences": []
@@ -6222,7 +10378,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.177457999999888
+        "durationMs": 11.116334000000052
       },
       "virtual": {
         "status": "completed",
@@ -6232,7 +10388,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18370900000013535
+        "durationMs": 0.4974579999998241
       },
       "status": "pass",
       "differences": []
@@ -6249,7 +10405,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.100124999999935
+        "durationMs": 12.989250000000084
       },
       "virtual": {
         "status": "completed",
@@ -6259,7 +10415,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2978750000002037
+        "durationMs": 0.3464999999998781
       },
       "status": "pass",
       "differences": []
@@ -6276,7 +10432,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.636124999999993
+        "durationMs": 11.49366699999996
       },
       "virtual": {
         "status": "completed",
@@ -6286,7 +10442,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2873749999998836
+        "durationMs": 0.2602080000001479
       },
       "status": "pass",
       "differences": []
@@ -6303,7 +10459,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.626416999999947
+        "durationMs": 12.16170800000009
       },
       "virtual": {
         "status": "completed",
@@ -6313,7 +10469,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23187499999994543
+        "durationMs": 0.23441600000001017
       },
       "status": "pass",
       "differences": []
@@ -6330,7 +10486,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.665459000000055
+        "durationMs": 11.252500000000055
       },
       "virtual": {
         "status": "completed",
@@ -6340,7 +10496,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.26749999999992724
+        "durationMs": 0.2696249999999054
       },
       "status": "pass",
       "differences": []
@@ -6357,7 +10513,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.60091599999987
+        "durationMs": 11.136834000000135
       },
       "virtual": {
         "status": "completed",
@@ -6367,7 +10523,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.6349579999998696
+        "durationMs": 0.9219590000000153
       },
       "status": "pass",
       "differences": []
@@ -6384,7 +10540,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.010999999999967
+        "durationMs": 11.534124999999904
       },
       "virtual": {
         "status": "completed",
@@ -6394,7 +10550,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.31775000000016007
+        "durationMs": 0.28254100000003746
       },
       "status": "pass",
       "differences": []
@@ -6411,7 +10567,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.617334000000028
+        "durationMs": 10.568500000000085
       },
       "virtual": {
         "status": "completed",
@@ -6421,7 +10577,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.14733400000000074
+        "durationMs": 0.13229200000000674
       },
       "status": "pass",
       "differences": []
@@ -6438,7 +10594,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.271541999999954
+        "durationMs": 10.509167000000161
       },
       "virtual": {
         "status": "completed",
@@ -6448,7 +10604,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.26070800000002237
+        "durationMs": 0.24370799999996962
       },
       "status": "pass",
       "differences": []
@@ -6465,7 +10621,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.077666000000136
+        "durationMs": 10.939750000000004
       },
       "virtual": {
         "status": "completed",
@@ -6475,7 +10631,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2448749999998654
+        "durationMs": 0.22029199999997218
       },
       "status": "pass",
       "differences": []
@@ -6498,7 +10654,7 @@
             }
           }
         },
-        "durationMs": 12.145958000000064
+        "durationMs": 10.770207999999911
       },
       "virtual": {
         "status": "completed",
@@ -6514,7 +10670,7 @@
             }
           }
         },
-        "durationMs": 0.2128339999999298
+        "durationMs": 0.20641700000010132
       },
       "status": "pass",
       "differences": []
@@ -6537,7 +10693,7 @@
             }
           }
         },
-        "durationMs": 14.424792000000025
+        "durationMs": 10.341084000000137
       },
       "virtual": {
         "status": "completed",
@@ -6553,7 +10709,7 @@
             }
           }
         },
-        "durationMs": 0.6944999999998345
+        "durationMs": 0.5902500000001965
       },
       "status": "pass",
       "differences": []
@@ -6570,7 +10726,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.0618750000001
+        "durationMs": 11.438208000000031
       },
       "virtual": {
         "status": "completed",
@@ -6580,7 +10736,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.21791700000017045
+        "durationMs": 0.1969169999999849
       },
       "status": "pass",
       "differences": []
@@ -6597,7 +10753,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.606792000000269
+        "durationMs": 10.906917000000021
       },
       "virtual": {
         "status": "completed",
@@ -6607,7 +10763,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2172089999999116
+        "durationMs": 0.2021669999999176
       },
       "status": "pass",
       "differences": []
@@ -6624,7 +10780,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.115332999999737
+        "durationMs": 11.718249999999898
       },
       "virtual": {
         "status": "completed",
@@ -6634,7 +10790,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.25479200000017954
+        "durationMs": 0.7290419999999358
       },
       "status": "pass",
       "differences": []
@@ -6662,7 +10818,7 @@
             }
           }
         },
-        "durationMs": 12.89850000000024
+        "durationMs": 13.819083000000091
       },
       "virtual": {
         "status": "completed",
@@ -6683,7 +10839,7 @@
             }
           }
         },
-        "durationMs": 0.5210420000003069
+        "durationMs": 0.4255829999999605
       },
       "status": "pass",
       "differences": []
@@ -6711,7 +10867,7 @@
             }
           }
         },
-        "durationMs": 14.95108399999981
+        "durationMs": 15.183291999999938
       },
       "virtual": {
         "status": "completed",
@@ -6732,7 +10888,7 @@
             }
           }
         },
-        "durationMs": 0.4183330000000751
+        "durationMs": 0.2927919999999631
       },
       "status": "pass",
       "differences": []
@@ -6749,7 +10905,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 13.02145900000005
+        "durationMs": 15.148750000000064
       },
       "virtual": {
         "status": "completed",
@@ -6759,7 +10915,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3398339999998825
+        "durationMs": 0.28716700000018136
       },
       "status": "pass",
       "differences": []
@@ -6782,7 +10938,7 @@
             }
           }
         },
-        "durationMs": 20.334540999999717
+        "durationMs": 20.216958000000204
       },
       "virtual": {
         "status": "completed",
@@ -6798,7 +10954,7 @@
             }
           }
         },
-        "durationMs": 11.090040999999928
+        "durationMs": 13.139958999999862
       },
       "status": "pass",
       "differences": []
@@ -6821,7 +10977,7 @@
             }
           }
         },
-        "durationMs": 16.74350000000004
+        "durationMs": 22.8560829999999
       },
       "virtual": {
         "status": "completed",
@@ -6837,7 +10993,7 @@
             }
           }
         },
-        "durationMs": 2.4407920000003287
+        "durationMs": 4.050707999999986
       },
       "status": "pass",
       "differences": []
@@ -6860,7 +11016,7 @@
             }
           }
         },
-        "durationMs": 18.122749999999996
+        "durationMs": 20.446707999999944
       },
       "virtual": {
         "status": "completed",
@@ -6876,7 +11032,7 @@
             }
           }
         },
-        "durationMs": 2.3579579999995985
+        "durationMs": 2.5279589999997825
       },
       "status": "pass",
       "differences": []

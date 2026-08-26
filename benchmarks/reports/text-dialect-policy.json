@@ -1,0 +1,988 @@
+{
+  "createdAt": "2026-08-26T20:21:13.690Z",
+  "node": "v22.22.2",
+  "purpose": "Two explicit GNU sed 4.9 utility-policy cases; not a universal Bash or superiority claim",
+  "versions": {
+    "expected": "GNU sed 4.9",
+    "comparatorPinned": "just-bash 3.4.2",
+    "comparatorInstalled": "3.4.2",
+    "comparatorLockSha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+  },
+  "validity": {
+    "sourceBefore": "be3743d11f696af0cf261f9a0cc717f058b34402c29b17dfd99418e339aaa058",
+    "sourceAfter": "be3743d11f696af0cf261f9a0cc717f058b34402c29b17dfd99418e339aaa058",
+    "sourceChanged": false,
+    "backgroundErrors": []
+  },
+  "oraclePolicy": {
+    "decision": "GNU sed 4.9 global-anchor substitution and invocation-wide successful quit; no claim of universal GNU/BSD utility or Bash compatibility",
+    "selectedCases": [
+      "sed-regex-70",
+      "sed-inplace-quit-per-file"
+    ],
+    "expectationSource": "independently executed, immutable GNU sed 4.9 records, not virtual output",
+    "record": "dialect-evidence.json",
+    "recordSha256": "64ebc42f733cde12a8f3f98c1bf3244ed6dd7440f96f683b3464591a46edb7c9",
+    "gnuSourceArchive": "https://ftp.gnu.org/gnu/sed/sed-4.9.tar.xz",
+    "gnuSourceArchiveSha256": "6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181",
+    "defaultOracle": "live host /usr/bin/sed, /usr/bin/awk and curated pipelines; OS release and executable hashes recorded"
+  },
+  "assertions": [
+    "stdout bytes",
+    "stderr bytes",
+    "exit status",
+    "complete regular-file paths and bytes"
+  ],
+  "limitations": [
+    "This comparison adapter does not assert directory metadata or file modes; the native policy tests retain those assertions"
+  ],
+  "fixtures": [
+    {
+      "name": "gnu-sed-4.9:sed-regex-70",
+      "tier": "gnu-sed-4.9-policy",
+      "tags": [
+        "sed.regex"
+      ],
+      "source": "native-dialect",
+      "script": "'sed' '-E' 's/^|$/X/g'",
+      "initialFiles": {},
+      "stdin": "YWJjCgo=",
+      "env": {},
+      "expected": {
+        "stdout": "WGFiY1gKWAo=",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {}
+      }
+    },
+    {
+      "name": "gnu-sed-4.9:sed-inplace-quit-per-file",
+      "tier": "gnu-sed-4.9-policy",
+      "tags": [
+        "sed.in-place"
+      ],
+      "source": "native-dialect",
+      "script": "'sed' '-i.bak' '1q' 'first' 'last'",
+      "initialFiles": {
+        "first": "YQpiCg==",
+        "last": "YwpkCg=="
+      },
+      "stdin": "",
+      "env": {},
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "first": "YQo=",
+          "first.bak": "YQpiCg==",
+          "last": "YwpkCg=="
+        }
+      }
+    }
+  ],
+  "preservedNativeMatrix": [
+    {
+      "fixture": {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "args": [
+          "-E",
+          "s/^|$/X/g"
+        ],
+        "stdin": "YWJjCgo=",
+        "files": {}
+      },
+      "bsd": {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiYwpYCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.504833999999988
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4898330000000328
+        },
+        "status": "fail",
+        "differences": [
+          "stdout"
+        ]
+      },
+      "gnu": {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.527750000000026
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4898330000000328
+        },
+        "status": "pass",
+        "differences": []
+      }
+    },
+    {
+      "fixture": {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "args": [
+          "-i.bak",
+          "1q",
+          "first",
+          "last"
+        ],
+        "stdin": "",
+        "files": {
+          "first": "YQpiCg==",
+          "last": "YwpkCg=="
+        }
+      },
+      "bsd": {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "last.bak": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.539125000000013
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 1.2764169999999808
+        },
+        "status": "fail",
+        "differences": [
+          "file:last",
+          "file:last.bak"
+        ]
+      },
+      "gnu": {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.619374999999991
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 1.2764169999999808
+        },
+        "status": "pass",
+        "differences": []
+      }
+    }
+  ],
+  "results": [
+    {
+      "engine": "virtual-bash",
+      "name": "gnu-sed-4.9:sed-regex-70",
+      "tier": "gnu-sed-4.9-policy",
+      "tags": [
+        "sed.regex"
+      ],
+      "source": "native-dialect",
+      "assertions": [
+        {
+          "name": "stdout.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 8,
+            "sha256": "b84470853fee624e8a823f33ba1ee8fdcb2b814ae3982f0679245ca914a59a8a",
+            "base64Prefix": "WGFiY1gKWAo=",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 8,
+            "sha256": "b84470853fee624e8a823f33ba1ee8fdcb2b814ae3982f0679245ca914a59a8a",
+            "base64Prefix": "WGFiY1gKWAo=",
+            "truncated": false
+          },
+          "detail": "native-bytes"
+        },
+        {
+          "name": "stderr.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "detail": "native-bytes"
+        },
+        {
+          "name": "exitCode",
+          "status": "pass",
+          "expected": 0,
+          "actual": 0
+        },
+        {
+          "name": "filesystem.complete-regular-file-snapshot",
+          "status": "pass",
+          "expected": {},
+          "actual": {},
+          "detail": "{\"fileDifferences\":[],\"rejectedNonRegularEntries\":[]}"
+        }
+      ],
+      "status": "pass",
+      "durationMs": 3.7281670000000133,
+      "details": {
+        "configuredCommandNames": [
+          "true",
+          "false",
+          "echo",
+          "pwd",
+          "basename",
+          "dirname",
+          "printf",
+          "mkdir",
+          "touch",
+          "cp",
+          "mv",
+          "rm",
+          "rmdir",
+          "ln",
+          "readlink",
+          "realpath",
+          "ls",
+          "cat",
+          "head",
+          "tail",
+          "wc",
+          "tee",
+          "tr",
+          "sort",
+          "uniq",
+          "cut",
+          "grep",
+          "test",
+          "[",
+          "env",
+          "xargs",
+          "find",
+          "sed",
+          "awk"
+        ],
+        "stdoutCapture": "native-bytes",
+        "stderrCapture": "native-bytes"
+      }
+    },
+    {
+      "engine": "just-bash",
+      "name": "gnu-sed-4.9:sed-regex-70",
+      "tier": "gnu-sed-4.9-policy",
+      "tags": [
+        "sed.regex"
+      ],
+      "source": "native-dialect",
+      "assertions": [
+        {
+          "name": "stdout.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 8,
+            "sha256": "b84470853fee624e8a823f33ba1ee8fdcb2b814ae3982f0679245ca914a59a8a",
+            "base64Prefix": "WGFiY1gKWAo=",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 8,
+            "sha256": "b84470853fee624e8a823f33ba1ee8fdcb2b814ae3982f0679245ca914a59a8a",
+            "base64Prefix": "WGFiY1gKWAo=",
+            "truncated": false
+          },
+          "detail": "public-text-utf8"
+        },
+        {
+          "name": "stderr.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "detail": "public-text-utf8"
+        },
+        {
+          "name": "exitCode",
+          "status": "pass",
+          "expected": 0,
+          "actual": 0
+        },
+        {
+          "name": "filesystem.complete-regular-file-snapshot",
+          "status": "pass",
+          "expected": {},
+          "actual": {},
+          "detail": "{\"fileDifferences\":[],\"rejectedNonRegularEntries\":[]}"
+        }
+      ],
+      "status": "pass",
+      "durationMs": 13.655208000000016,
+      "details": {
+        "configuredCommandNames": [
+          "echo",
+          "cat",
+          "printf",
+          "ls",
+          "mkdir",
+          "rmdir",
+          "touch",
+          "rm",
+          "cp",
+          "mv",
+          "ln",
+          "chmod",
+          "pwd",
+          "readlink",
+          "head",
+          "tail",
+          "wc",
+          "stat",
+          "grep",
+          "fgrep",
+          "egrep",
+          "rg",
+          "sed",
+          "awk",
+          "sort",
+          "uniq",
+          "comm",
+          "cut",
+          "paste",
+          "tr",
+          "rev",
+          "nl",
+          "fold",
+          "expand",
+          "unexpand",
+          "strings",
+          "split",
+          "column",
+          "join",
+          "tee",
+          "find",
+          "basename",
+          "dirname",
+          "tree",
+          "du",
+          "env",
+          "printenv",
+          "alias",
+          "unalias",
+          "history",
+          "xargs",
+          "true",
+          "false",
+          "clear",
+          "bash",
+          "sh",
+          "jq",
+          "base64",
+          "diff",
+          "date",
+          "sleep",
+          "timeout",
+          "time",
+          "seq",
+          "expr",
+          "md5sum",
+          "sha1sum",
+          "sha256sum",
+          "file",
+          "html-to-markdown",
+          "help",
+          "which",
+          "tac",
+          "hostname",
+          "whoami",
+          "od",
+          "gzip",
+          "gunzip",
+          "zcat",
+          "tar",
+          "yq",
+          "xan",
+          "sqlite3"
+        ],
+        "stdoutCapture": "public-text-utf8",
+        "stderrCapture": "public-text-utf8"
+      }
+    },
+    {
+      "engine": "virtual-bash",
+      "name": "gnu-sed-4.9:sed-inplace-quit-per-file",
+      "tier": "gnu-sed-4.9-policy",
+      "tags": [
+        "sed.in-place"
+      ],
+      "source": "native-dialect",
+      "assertions": [
+        {
+          "name": "stdout.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "detail": "native-bytes"
+        },
+        {
+          "name": "stderr.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "detail": "native-bytes"
+        },
+        {
+          "name": "exitCode",
+          "status": "pass",
+          "expected": 0,
+          "actual": 0
+        },
+        {
+          "name": "filesystem.complete-regular-file-snapshot",
+          "status": "pass",
+          "expected": {
+            "first": {
+              "byteLength": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "base64Prefix": "YQo=",
+              "truncated": false
+            },
+            "first.bak": {
+              "byteLength": 4,
+              "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+              "base64Prefix": "YQpiCg==",
+              "truncated": false
+            },
+            "last": {
+              "byteLength": 4,
+              "sha256": "a5567b11c329e9609dac4da00f406c208706b081a2df5244e2e03e1f272d33ff",
+              "base64Prefix": "YwpkCg==",
+              "truncated": false
+            }
+          },
+          "actual": {
+            "first": {
+              "byteLength": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "base64Prefix": "YQo=",
+              "truncated": false
+            },
+            "first.bak": {
+              "byteLength": 4,
+              "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+              "base64Prefix": "YQpiCg==",
+              "truncated": false
+            },
+            "last": {
+              "byteLength": 4,
+              "sha256": "a5567b11c329e9609dac4da00f406c208706b081a2df5244e2e03e1f272d33ff",
+              "base64Prefix": "YwpkCg==",
+              "truncated": false
+            }
+          },
+          "detail": "{\"fileDifferences\":[],\"rejectedNonRegularEntries\":[]}"
+        }
+      ],
+      "status": "pass",
+      "durationMs": 1.2148750000000064,
+      "details": {
+        "configuredCommandNames": [
+          "true",
+          "false",
+          "echo",
+          "pwd",
+          "basename",
+          "dirname",
+          "printf",
+          "mkdir",
+          "touch",
+          "cp",
+          "mv",
+          "rm",
+          "rmdir",
+          "ln",
+          "readlink",
+          "realpath",
+          "ls",
+          "cat",
+          "head",
+          "tail",
+          "wc",
+          "tee",
+          "tr",
+          "sort",
+          "uniq",
+          "cut",
+          "grep",
+          "test",
+          "[",
+          "env",
+          "xargs",
+          "find",
+          "sed",
+          "awk"
+        ],
+        "stdoutCapture": "native-bytes",
+        "stderrCapture": "native-bytes"
+      }
+    },
+    {
+      "engine": "just-bash",
+      "name": "gnu-sed-4.9:sed-inplace-quit-per-file",
+      "tier": "gnu-sed-4.9-policy",
+      "tags": [
+        "sed.in-place"
+      ],
+      "source": "native-dialect",
+      "assertions": [
+        {
+          "name": "stdout.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "detail": "public-text-utf8"
+        },
+        {
+          "name": "stderr.bytes",
+          "status": "pass",
+          "expected": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "actual": {
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64Prefix": "",
+            "truncated": false
+          },
+          "detail": "public-text-utf8"
+        },
+        {
+          "name": "exitCode",
+          "status": "pass",
+          "expected": 0,
+          "actual": 0
+        },
+        {
+          "name": "filesystem.complete-regular-file-snapshot",
+          "status": "fail",
+          "expected": {
+            "first": {
+              "byteLength": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "base64Prefix": "YQo=",
+              "truncated": false
+            },
+            "first.bak": {
+              "byteLength": 4,
+              "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+              "base64Prefix": "YQpiCg==",
+              "truncated": false
+            },
+            "last": {
+              "byteLength": 4,
+              "sha256": "a5567b11c329e9609dac4da00f406c208706b081a2df5244e2e03e1f272d33ff",
+              "base64Prefix": "YwpkCg==",
+              "truncated": false
+            }
+          },
+          "actual": {
+            "first": {
+              "byteLength": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "base64Prefix": "YQo=",
+              "truncated": false
+            },
+            "last": {
+              "byteLength": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "base64Prefix": "Ywo=",
+              "truncated": false
+            }
+          },
+          "detail": "{\"fileDifferences\":[{\"path\":\"first.bak\",\"expected\":{\"byteLength\":4,\"sha256\":\"911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2\",\"base64Prefix\":\"YQpiCg==\",\"truncated\":false},\"actual\":null},{\"path\":\"last\",\"expected\":{\"byteLength\":4,\"sha256\":\"a5567b11c329e9609dac4da00f406c208706b081a2df5244e2e03e1f272d33ff\",\"base64Prefix\":\"YwpkCg==\",\"truncated\":false},\"actual\":{\"byteLength\":2,\"sha256\":\"a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478\",\"base64Prefix\":\"Ywo=\",\"truncated\":false}}],\"rejectedNonRegularEntries\":[]}"
+        }
+      ],
+      "status": "fail",
+      "durationMs": 1.7887080000000424,
+      "details": {
+        "configuredCommandNames": [
+          "echo",
+          "cat",
+          "printf",
+          "ls",
+          "mkdir",
+          "rmdir",
+          "touch",
+          "rm",
+          "cp",
+          "mv",
+          "ln",
+          "chmod",
+          "pwd",
+          "readlink",
+          "head",
+          "tail",
+          "wc",
+          "stat",
+          "grep",
+          "fgrep",
+          "egrep",
+          "rg",
+          "sed",
+          "awk",
+          "sort",
+          "uniq",
+          "comm",
+          "cut",
+          "paste",
+          "tr",
+          "rev",
+          "nl",
+          "fold",
+          "expand",
+          "unexpand",
+          "strings",
+          "split",
+          "column",
+          "join",
+          "tee",
+          "find",
+          "basename",
+          "dirname",
+          "tree",
+          "du",
+          "env",
+          "printenv",
+          "alias",
+          "unalias",
+          "history",
+          "xargs",
+          "true",
+          "false",
+          "clear",
+          "bash",
+          "sh",
+          "jq",
+          "base64",
+          "diff",
+          "date",
+          "sleep",
+          "timeout",
+          "time",
+          "seq",
+          "expr",
+          "md5sum",
+          "sha1sum",
+          "sha256sum",
+          "file",
+          "html-to-markdown",
+          "help",
+          "which",
+          "tac",
+          "hostname",
+          "whoami",
+          "od",
+          "gzip",
+          "gunzip",
+          "zcat",
+          "tar",
+          "yq",
+          "xan",
+          "sqlite3"
+        ],
+        "stdoutCapture": "public-text-utf8",
+        "stderrCapture": "public-text-utf8"
+      }
+    }
+  ],
+  "summary": {
+    "byEngine": {
+      "virtual-bash": {
+        "total": 2,
+        "pass": 2,
+        "fail": 0,
+        "error": 0,
+        "timeout": 0,
+        "pending": 0,
+        "unsupported": 0,
+        "passRate": 1
+      },
+      "just-bash": {
+        "total": 2,
+        "pass": 1,
+        "fail": 1,
+        "error": 0,
+        "timeout": 0,
+        "pending": 0,
+        "unsupported": 0,
+        "passRate": 0.5
+      }
+    },
+    "byFeature": {
+      "sed.in-place": {
+        "virtual-bash": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 1
+        },
+        "just-bash": {
+          "total": 1,
+          "pass": 0,
+          "fail": 1,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 0
+        }
+      },
+      "sed.regex": {
+        "virtual-bash": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 1
+        },
+        "just-bash": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 1
+        }
+      }
+    },
+    "byTier": {
+      "gnu-sed-4.9-policy": {
+        "virtual-bash": {
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 1
+        },
+        "just-bash": {
+          "total": 2,
+          "pass": 1,
+          "fail": 1,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 0.5
+        }
+      }
+    },
+    "bySource": {
+      "native-dialect": {
+        "virtual-bash": {
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 1
+        },
+        "just-bash": {
+          "total": 2,
+          "pass": 1,
+          "fail": 1,
+          "error": 0,
+          "timeout": 0,
+          "pending": 0,
+          "unsupported": 0,
+          "passRate": 0.5
+        }
+      }
+    },
+    "overall": "fail"
+  }
+}

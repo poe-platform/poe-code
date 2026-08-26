@@ -330,6 +330,44 @@ that any implementation, command, fixture, or test currently exists.
   `tests/commands/diff-patch/**`. Existing byte/search/structured/shell/adapter
   exclusions remain; no excluded implementation was changed in this checkpoint.
 
+### Explicit utility dialect decision: 2026-08-26
+
+- User decision: retain independently verified GNU sed 4.9 behavior for global
+  `^|$` substitution and invocation-wide successful quit, rather than reproduce
+  BSD later-file truncation. This is not universal Bash/utility compatibility,
+  scope completion, or a superiority claim. Ambiguous native captures still
+  differ between GNU and BSD and are not silently relabeled.
+- The two acceptance tests use immutable independently captured GNU expectations
+  from `tests/commands/text-programs-stress/dialect-evidence.json`, pinned by
+  SHA-256 with exact fixture identity checks. Historical BSD expectations remain
+  present and independently asserted as dialect disagreements. Native reruns
+  write separate records; missing/unsupported behavior never becomes success.
+- Primary text acceptance is explicitly 141 cases: 139 live host-native
+  expectations and two pinned GNU sed 4.9 expectations. The raw live-native
+  matrix remains separately reported, including both BSD mismatches. Safety is
+  a separate 20-case matrix. Do not call a BSD mismatch a GNU-policy failure.
+- Actual just-bash 3.4.2 comparison is in
+  `benchmarks/reports/text-dialect-policy.json`: virtual-bash passes 2/2; just-bash
+  passes anchors and fails in-place file-state assertions (1/2). It omits the
+  first backup and truncates the later file to its first line, unlike pinned GNU
+  behavior. Source is stable and no background errors occur in that diagnostic.
+- Text implementation commits: `a769bce` bounded capture states/backreferences,
+  `4cc5457` virtual read/write commands, `1745ddc`/`86d3655` listings, `abd7e08`
+  file getline/cursor cleanup, `3fa0846` successful quit propagation, `a0215f6`
+  resource regressions. `9801865` corrected two invalid oracle fixtures; these
+  were test defects, not product fixes. Evidence history remains committed.
+- Root exports now include search, byte, and diff/patch plugin factories
+  (`7fc9fd4`). Current excluded verifiers are Poincare for search, Plato for
+  bytes, Faraday for diff/patch, and assigned shell/structured/filesystem owners.
+  The foundation worker does not edit those implementations during validation.
+- Focused dialect checkpoint: 331/331 text tests pass, zero skips/todos; selected
+  acceptance is 141/141 plus 20/20 safety, with the raw BSD matrix still 139/141.
+  The report is source-stable with no background errors. Benchmark-scoped types
+  pass. Whole-repo types currently report two unfinished Faraday helper sinks
+  returning void rather than Promise<void> in
+  `tests/commands/diff-patch-stress/compatibility/helpers.ts:58` and `:59`.
+  Full global validation waits for a sufficiently stable shared worktree.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

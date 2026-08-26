@@ -47,6 +47,15 @@ than entering an uninterruptible native-regex backtracking operation.
 
 ## Sed grammar and behavior
 
+Utility dialect policy explicitly retains independently verified GNU sed 4.9
+semantics for global `^|$` substitution and successful invocation-wide quit,
+including in-place editing. This avoids BSD's suppression of the final anchor
+match and truncation of later input files. The two expected results come from
+immutable native GNU observations, not from this interpreter. BSD observations
+remain in the dialect matrix. This does not claim complete GNU/BSD or Bash
+compatibility: ambiguous capture selection, listing presentation, and other
+documented differences still exist across native implementations.
+
 Options: `-n`, repeated ordered `-e PROGRAM`/`-f FILE`, `-E`/`-r`, `-s`, and
 `-i[SUFFIX]`. `-i ''` is also accepted for a BSD-style empty backup suffix.
 Other long/short options are rejected. A first-line `#n` suppresses automatic

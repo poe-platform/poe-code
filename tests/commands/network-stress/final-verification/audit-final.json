@@ -1,0 +1,532 @@
+{
+  "at": "2026-08-26T23:16:10.922Z",
+  "source": {
+    "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+    "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+  },
+  "results": [
+    {
+      "id": "historical-files-unchanged",
+      "count": 17,
+      "status": "passed"
+    },
+    {
+      "id": "supplement-pins.json",
+      "count": 3,
+      "status": "passed"
+    },
+    {
+      "id": "retry-pins.json",
+      "count": 6,
+      "status": "passed"
+    },
+    {
+      "id": "freeze-before-product-revision",
+      "earlier": "06d1aecb1322954608857d3716d1af2085e793a5",
+      "later": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+      "status": "passed"
+    },
+    {
+      "id": "freeze-before-product-revision",
+      "earlier": "3b63f98a785b84d78bbc4080ea475ee426b471e2",
+      "later": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+      "status": "passed"
+    },
+    {
+      "id": "exact-versioned-harness-transformations",
+      "count": 3,
+      "status": "passed"
+    },
+    {
+      "id": "sink-observation-boundary-only-correction",
+      "status": "passed"
+    },
+    {
+      "id": "independent-type-annotation-only",
+      "before": "f7bdc3d6503debcd8def95c9d7f85c06c47eb052960173cbb749b282815a8c3f",
+      "after": "3ab85afa3176fcb7b0802074f44a3497e0ba52bee731897ded2949fc205c7d5a",
+      "status": "passed"
+    },
+    {
+      "id": "retry-native-replay-matches-frozen-bytes-effects-status-diagnostics",
+      "count": 18,
+      "status": "passed"
+    },
+    {
+      "id": "zero-runtime-deps-public-aliases-explicit-opt-in-no-network-subprocess",
+      "status": "passed"
+    }
+  ],
+  "immutable": [
+    {
+      "path": "tests/commands/network-stress/README.md",
+      "sha256": "51cfa220f9928b20664a21167672573e8ee403c008ac9bc33ef11c21f98c0d3f",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/REPORT.md",
+      "sha256": "551f67e81e5fb2ce8009753e648efc444c5b901f60d0e6a836b6248a7a50eba2",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/BASELINE.md",
+      "sha256": "786ada1b6fe8d0379c581cf3e3f080b4ae0dcaa438ed1c4a1fc628bbbdd8cb18",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/SUPPLEMENT.md",
+      "sha256": "cdce5f5c8e17a2fac7f0816e32f394657137581395f592b01a621b6208a9af4c",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/oracle.json",
+      "sha256": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/rows.ts",
+      "sha256": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/lab.ts",
+      "sha256": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/native.ts",
+      "sha256": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/evidence.ts",
+      "sha256": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/baseline.json",
+      "sha256": "b487fc61868f1f1592f93a1657bc3f480a5ef249e1cccb87cbcb7a8816aae02d",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/handoff.json",
+      "sha256": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/supplement-native.json",
+      "sha256": "95e2c8b3b17ef41250d3a44ea00a27871ed007fed2f3fbe56f999d7319fbb3fa",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/supplement-pins.json",
+      "sha256": "213725719d397678cd0798f5ed13418d36f98269b0e71bfc1e32b7b3db7fc128",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/supplement-product.json",
+      "sha256": "6ae1361874304c1c9eec3789adab06cf083fabbdc015f6d152638c4d7fc17d0b",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/supplement.ts",
+      "sha256": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/supplement-lab.ts",
+      "sha256": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    },
+    {
+      "path": "tests/commands/network-stress/supplement-rows.ts",
+      "sha256": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "revision": "0a3fb6ec419c5614457100757816671db7a39c4f"
+    }
+  ],
+  "captures": [
+    {
+      "name": "author-81.json",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "samples": 7,
+      "start": "2026-08-26T23:09:10.454Z",
+      "end": "2026-08-26T23:09:11.306Z",
+      "changes": [],
+      "summaries": [],
+      "sha256": "593264346dac4eea2bc0610415663c7eeb25b6046d568f98a361d66151506be9"
+    },
+    {
+      "name": "cleanup-100.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 3,
+      "start": "2026-08-26T23:09:09.931Z",
+      "end": "2026-08-26T23:09:10.340Z",
+      "changes": [],
+      "summaries": [],
+      "sha256": "18380a5b71d172a68dfcbe0cf1f159e0de982cc0def1525f7240602c299df4e3"
+    },
+    {
+      "name": "core-1.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 45,
+      "start": "2026-08-26T23:08:28.734Z",
+      "end": "2026-08-26T23:08:33.453Z",
+      "changes": [],
+      "summaries": [
+        {
+          "handoff": {
+            "author": "Curie",
+            "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+            "messageReference": "User delegation in this session, 2026-08-26: Handoff has now explicitly arrived: use this user message as messageReference, actual full source revision deab14d and documented networkCommands export. Curie author handoff 6854a6b + deab14d ready, author 81/81, Curie stops source edits. Independent blackbox BASELINE/EVIDENCE only, no product fixes.",
+            "receivedAt": "2026-08-26T22:41:52Z",
+            "pluginExport": "networkCommands"
+          },
+          "oracleSha256": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+          "total": 60,
+          "passed": 60,
+          "failed": 0,
+          "pending": 0,
+          "nativeParityRows": 54,
+          "independentContractRows": 6
+        }
+      ],
+      "sha256": "dbf15286cd7397ec5c91084a7232ead6267929c949b8b9f191119162f58ceb28"
+    },
+    {
+      "name": "core-2.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 45,
+      "start": "2026-08-26T23:08:44.431Z",
+      "end": "2026-08-26T23:08:49.137Z",
+      "changes": [],
+      "summaries": [
+        {
+          "handoff": {
+            "author": "Curie",
+            "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+            "messageReference": "User delegation in this session, 2026-08-26: Handoff has now explicitly arrived: use this user message as messageReference, actual full source revision deab14d and documented networkCommands export. Curie author handoff 6854a6b + deab14d ready, author 81/81, Curie stops source edits. Independent blackbox BASELINE/EVIDENCE only, no product fixes.",
+            "receivedAt": "2026-08-26T22:41:52Z",
+            "pluginExport": "networkCommands"
+          },
+          "oracleSha256": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+          "total": 60,
+          "passed": 60,
+          "failed": 0,
+          "pending": 0,
+          "nativeParityRows": 54,
+          "independentContractRows": 6
+        }
+      ],
+      "sha256": "d74ffddde6c24b30669c135bd6c76d4c8f40fba323af204d051b2d4f192ebc02"
+    },
+    {
+      "name": "independent-4.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 132,
+      "start": "2026-08-26T23:11:47.112Z",
+      "end": "2026-08-26T23:12:00.732Z",
+      "changes": [],
+      "summaries": [
+        {
+          "source": {
+            "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+            "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+          },
+          "total": 4,
+          "passed": 4,
+          "failed": 0,
+          "nativeParityRows": 3,
+          "authorReproContracts": 1,
+          "nativeInvocations": 4,
+          "nativeTransferInvocations": 3,
+          "nativeVersionInvocations": 1,
+          "virtualComparisonRows": 3,
+          "cleanup": "zero owned temporary roots, server listeners and tracked sockets"
+        }
+      ],
+      "sha256": "81a868cc680edd67fd3915cefc0b498e72efc4025df6c426e0cea9ea79052d34"
+    },
+    {
+      "name": "lifecycle-original.json",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "samples": 10,
+      "start": "2026-08-26T23:09:07.568Z",
+      "end": "2026-08-26T23:09:08.694Z",
+      "changes": [],
+      "summaries": [
+        {
+          "source": {
+            "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+            "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+          },
+          "total": 15,
+          "passed": 14,
+          "failed": 1,
+          "pending": 0,
+          "category": "separate injected lifecycle/security contracts, not native parity"
+        }
+      ],
+      "sha256": "d03703b2eb9558ad836a51cfd1ce788f842f9655e9a2869cd8a20f96007bf762"
+    },
+    {
+      "name": "lifecycle-v2.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 9,
+      "start": "2026-08-26T23:09:08.800Z",
+      "end": "2026-08-26T23:09:09.826Z",
+      "changes": [],
+      "summaries": [
+        {
+          "source": {
+            "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+            "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+          },
+          "total": 15,
+          "passed": 15,
+          "failed": 0,
+          "pending": 0,
+          "category": "separate injected lifecycle/security contracts, not native parity"
+        }
+      ],
+      "sha256": "5d07666f41af921aa7e1a9b06410e409b0482feae8736124c0ef0022aa3c01e0"
+    },
+    {
+      "name": "native-original-replay.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 54,
+      "start": "2026-08-26T23:09:29.159Z",
+      "end": "2026-08-26T23:09:34.765Z",
+      "changes": [],
+      "summaries": [],
+      "sha256": "39e65bb72e50cd70b1fa3ed0c9c59a22265e3dad26af60a1a92e85b0b4fca631"
+    },
+    {
+      "name": "retry-1.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 167,
+      "start": "2026-08-26T23:08:50.357Z",
+      "end": "2026-08-26T23:09:07.425Z",
+      "changes": [
+        "src/commands/diff-patch/GNU-PATCH.md",
+        "src/commands/diff-patch/patch-gnu-paths.ts"
+      ],
+      "summaries": [
+        {
+          "source": {
+            "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+            "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+          },
+          "total": 18,
+          "passed": 18,
+          "failed": 0,
+          "pending": 0
+        }
+      ],
+      "sha256": "d908abdc18a11c3c1035b3be9aafbdc34cf924d70fcc7067eb6a2cf4df089748"
+    },
+    {
+      "name": "retry-2-stable.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 168,
+      "start": "2026-08-26T23:15:35.479Z",
+      "end": "2026-08-26T23:15:52.632Z",
+      "changes": [],
+      "summaries": [
+        {
+          "source": {
+            "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+            "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+          },
+          "total": 18,
+          "passed": 18,
+          "failed": 0,
+          "pending": 0
+        }
+      ],
+      "sha256": "9b546d856396eee63cb018028ffc7fbc60a538ff2568286e30a450c0b879dec1"
+    },
+    {
+      "name": "retry-native-replay.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 166,
+      "start": "2026-08-26T23:09:34.903Z",
+      "end": "2026-08-26T23:09:51.930Z",
+      "changes": [],
+      "summaries": [
+        {
+          "nativeProfile": {
+            "executable": "/usr/bin/curl",
+            "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+            "version": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+            "headSha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1",
+            "config": [
+              "-q",
+              "--silent",
+              "--show-error",
+              "--globoff",
+              "--http1.1",
+              "--noproxy",
+              "*",
+              "--proxy",
+              "",
+              "--proto",
+              "=http",
+              "--proto-redir",
+              "=http",
+              "--connect-timeout",
+              "1",
+              "--max-time",
+              "3",
+              "--max-redirs",
+              "5"
+            ],
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "{ROOT}",
+              "CURL_HOME": "{ROOT}",
+              "XDG_CONFIG_HOME": "{ROOT}",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "NO_PROXY": "*",
+              "no_proxy": "*"
+            }
+          },
+          "productExecutions": 0,
+          "sourceEdits": 0,
+          "total": 18
+        }
+      ],
+      "sha256": "f788b0ff92944cd2d9910609ea6b6cd3641ab99afdeeebab698c516b0f7fc898"
+    },
+    {
+      "name": "scoped-types-final.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 14,
+      "start": "2026-08-26T23:13:22.342Z",
+      "end": "2026-08-26T23:13:23.961Z",
+      "changes": [],
+      "summaries": [],
+      "sha256": "064437bc4bf6f295f3b7d87af4c2158a3c96c5ca4b67c54359cf9ff992596736"
+    },
+    {
+      "name": "scoped-types.json",
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "samples": 28,
+      "start": "2026-08-26T23:12:30.170Z",
+      "end": "2026-08-26T23:12:33.389Z",
+      "changes": [],
+      "summaries": [],
+      "sha256": "bd13662e143bfacff4deff026107c3a75a4c14887d78bef122060079d320edc3"
+    },
+    {
+      "name": "supplement-1.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 8,
+      "start": "2026-08-26T23:08:33.576Z",
+      "end": "2026-08-26T23:08:34.544Z",
+      "changes": [],
+      "summaries": [
+        {
+          "mode": "product",
+          "total": 18,
+          "passed": 18,
+          "failed": 0,
+          "pending": 0,
+          "productExecutions": 18
+        }
+      ],
+      "sha256": "d4bbb1cdfeba9661a1f822b0a9bfcf9358a6889343066f31ceeb4fadc00f5df5"
+    },
+    {
+      "name": "supplement-2.json",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "samples": 8,
+      "start": "2026-08-26T23:08:49.257Z",
+      "end": "2026-08-26T23:08:50.237Z",
+      "changes": [],
+      "summaries": [
+        {
+          "mode": "product",
+          "total": 18,
+          "passed": 18,
+          "failed": 0,
+          "pending": 0,
+          "productExecutions": 18
+        }
+      ],
+      "sha256": "9dfc112d6fb4b06161637f3aeb7b9923dc8011afff2236e58b966fa1876b7b9e"
+    }
+  ],
+  "nativeCounts": {
+    "originalReplay": {
+      "transfers": 58,
+      "version": 1,
+      "headConsumers": 2,
+      "nodeTests": 65
+    },
+    "retryReplay": {
+      "transfers": 18,
+      "version": 1,
+      "nodeTests": 0
+    },
+    "independent": {
+      "transfers": 3,
+      "version": 1,
+      "nodeTests": 0
+    },
+    "author": {
+      "httpTransfers": 34,
+      "fileTransfers": 5,
+      "tlsTransfers": 1,
+      "version": 0,
+      "nodeTests": 81
+    },
+    "totalCurlInvocations": 122
+  },
+  "allChecksPassed": true
+}

@@ -61,6 +61,14 @@
   report absent support as `ENOTSUP`, and never approximate it with an empty
   listing followed by recursive deletion. Preserve cancellation even when its
   reason has an errno such as `ENOENT`; `-f` must not swallow caller aborts.
+- Optional `FileStat.identityScope` scopes backing-entry device/inode identity;
+  see `src/contracts/filesystem.md`. Compare opaque object/symbol tokens only
+  by reference, and require complete nonnegative safe-integer IDs. Different
+  scopes must mean disjoint storage, never merely different adapters/clients.
+  Wrappers preserve actual backing identity; incomplete/remote-unknown identity
+  cannot justify a truncating cross-backend destination open. This is not a
+  lease, transaction, ABA defense or pathname-race guarantee. Poincare owns all
+  backend identity propagation and copy guards; Curie owns contracts/type tests.
 - Middleware must await or return `next()`. Filesystem adapters and command
   implementations must propagate the supplied signal into host work; helper
   cancellation does not forcibly terminate an uncooperative host operation.

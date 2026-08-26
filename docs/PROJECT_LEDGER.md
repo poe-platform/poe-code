@@ -1,5 +1,40 @@
 # Requirements and Progress Ledger
 
+## Urgent mount identity dependency — August 26, 2026
+
+Root routes Poincare checkpoint `421ce3f`: three original mount alias
+source-truncation failures plus 38 required-red guards need truthful identity
+across backend instances and wrappers. Contract commit `fa539de` adds optional
+`FileStat.identityScope?: object | symbol`. Complete identity requires the opaque
+scope and nonnegative safe-integer device/inode; distinct scopes promise
+disjoint storage, not different clients. Wrappers preserve the actual backing
+identity, unknown remote identity cannot prove distinctness, and missing-target
+copies require actual exclusive creation rather than check-then-truncate.
+The native-host scope convention is `Symbol.for("virtual-bash.fs.native")`.
+Full semantics and remaining ABA/pathname-race limits are in
+`src/contracts/filesystem.md`.
+
+Curie's four new identity type/forwarding tests and the whole contract suite
+pass: **82/82**, zero skips/TODOs; scoped TypeScript passes. These tests do not
+certify backend identity publication or copy guards. Poincare owns all FS source
+remediation; no backend file is edited here. The original 1/4 result and 41
+required failures are not closed by a type field. Four prior FS stress
+classifications remain unresolved; root reports the revised adapter matrix as
+77/79, with remote `rmdir` returning honest `ENOTSUP`, not hidden passes.
+
+The precise contract-owner approval/handoff is also at
+`/tmp/safe-bash-mount-identity-contract-approved.txt`; the historical agent ID
+was unavailable for messaging, so no direct reply from Poincare is invented.
+The output-lifecycle proposal remains unagreed/design-only. Metadata source
+author commits (`64b55e4`, `cb707e6`, `7e14b72`, `f846ce4`, `c7f8d59`) are
+preserved. Urgent identity work pauses uncommitted metadata root wiring in
+`package.json`, `src/index.ts`, `src/plugins/index.ts`,
+`tests/plugins/agent-commands.test.ts`, and its new integration test; those paths
+are not included in the identity commits. No new metadata or lifecycle breadth
+is pursued during this blocker. Dirac's `0c1bfe2` upstream SafeJS proposal remains
+**unapproved, 8/9 with caveats**, not an accepted upstream fix. Broader product,
+superiority and 72-hour requirements remain unproven.
+
 ## Safe empty-directory contract and core consumers — August 26, 2026
 
 Contract commit `1dc0652` adds optional `FileSystem.rmdir(path, FsOptions)` without

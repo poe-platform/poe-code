@@ -191,6 +191,67 @@ describe("MigratingSecretStore", () => {
       await expect(primary.get()).resolves.toBe("new-credential");
     });
 
+    it.each([
+      { readOnly: false, setBeforeDelete: false },
+      { readOnly: false, setBeforeDelete: true },
+      { readOnly: true, setBeforeDelete: false },
+      { readOnly: true, setBeforeDelete: true }
+    ])("does not resurrect deleted credentials (readOnly=$readOnly, setBeforeDelete=$setBeforeDelete)", async ({ readOnly, setBeforeDelete }) => {
+      const legacyReadCaptured = deferred();
+      const releaseLegacyRead = deferred();
+      const primary = createMockStore(null);
+      const legacy = createMockStore("legacy-credential");
+      const getLegacy = legacy.get;
+      vi.mocked(legacy.get).mockImplementationOnce(async () => {
+        const capturedValue = await getLegacy();
+        legacyReadCaptured.resolve();
+        await releaseLegacyRead.promise;
+        return capturedValue;
+      });
+      const store = new MigratingSecretStore(primary, legacy);
+
+      const read = store.get({ readOnly });
+      await legacyReadCaptured.promise;
+      try {
+        if (setBeforeDelete) {
+          await store.set("new-credential");
+        }
+        await store.delete();
+        await expect(primary.get()).resolves.toBeNull();
+        await expect(legacy.get()).resolves.toBeNull();
+        vi.mocked(primary.set).mockClear();
+        vi.mocked(legacy.set).mockClear();
+        vi.mocked(primary.delete).mockClear();
+        vi.mocked(legacy.delete).mockClear();
+      } finally {
+        releaseLegacyRead.resolve();
+        await read;
+      }
+
+      await expect(primary.get()).resolves.toBeNull();
+      await expect(legacy.get()).resolves.toBeNull();
+      await expect(store.get()).resolves.toBeNull();
+      await expect(new MigratingSecretStore(primary, legacy).get()).resolves.toBeNull();
+      expect(primary.set).not.toHaveBeenCalled();
+      expect(legacy.set).not.toHaveBeenCalled();
+      expect(primary.delete).not.toHaveBeenCalled();
+      expect(legacy.delete).not.toHaveBeenCalled();
+    });
+
+    it("returns readable legacy credentials when migration revalidation fails", async () => {
+      const primary = createMockStore(null);
+      const legacy = createMockStore("legacy-credential");
+      vi.mocked(legacy.get)
+        .mockResolvedValueOnce("legacy-credential")
+        .mockRejectedValueOnce(new Error("legacy unavailable"));
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await expect(store.get()).resolves.toBe("legacy-credential");
+
+      expect(primary.set).not.toHaveBeenCalled();
+      await expect(primary.get()).resolves.toBeNull();
+    });
+
     it("returns null when both primary and legacy are empty", async () => {
       const primary = createMockStore(null);
       const legacy = createMockStore(null);
@@ -213,10 +274,11 @@ describe("MigratingSecretStore", () => {
       const store = new MigratingSecretStore(primary, legacy);
 
       await store.get();
+      vi.mocked(legacy.get).mockClear();
       const secondGet = await store.get();
 
       expect(secondGet).toBe("legacy-credential");
-      expect(legacy.get).toHaveBeenCalledTimes(1);
+      expect(legacy.get).not.toHaveBeenCalled();
     });
   });
 });

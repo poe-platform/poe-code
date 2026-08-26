@@ -23,6 +23,9 @@ export class MigratingSecretStore implements SecretStore {
       await this.mutate(async () => {
         if (await this.store.get() === null) {
           try {
+            if (await this.legacyStore?.get() !== legacyValue) {
+              return;
+            }
             await this.store.set(legacyValue);
           } catch {
             return;

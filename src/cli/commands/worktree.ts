@@ -72,12 +72,19 @@ async function executeWorktreeReconcile(
   name: string,
   options: WorktreeReconcileOptions
 ): Promise<void> {
+  const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(
     container,
-    resolveCommandFlags(program),
+    flags,
     "worktree:reconcile"
   );
   resources.logger.intro("worktree reconcile");
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      `Dry run: would reconcile worktree ${name} with agent ${options.agent}.`
+    );
+    return;
+  }
   const summary = await reconcileManagedWorktree({
     cwd: container.env.cwd,
     name,

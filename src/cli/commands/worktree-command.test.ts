@@ -102,19 +102,75 @@ describe("worktree command", () => {
   });
 
   it("reconciles a managed worktree through the requested agent", async () => {
+    const logs: string[] = [];
     await runWorktreeCommand([
       "worktree",
       "reconcile",
       "wt",
       "--agent",
       "codex"
-    ]);
+    ], logs);
 
     expect(worktreeMocks.reconcileManagedWorktree).toHaveBeenCalledWith({
       cwd,
       name: "wt",
       agent: "codex"
     });
+    expect(logs).toContain(
+      "Reconciled wt: committed merged_by_agent, uncommitted applied_by_agent, cleanup removed_by_agent"
+    );
+    expect(logs.join("\n")).not.toContain("Dry run:");
+  });
+
+  it.each([true, false])("previews reconciliation without --yes or a TTY (leading dry-run: %s)", async (leading) => {
+    vol.fromJSON({ "/repo/keep.txt": "unchanged" });
+    const initialFiles = vol.toJSON();
+    const logs: string[] = [];
+    const container = createContainer(logs);
+    vi.mocked(container.commandRunner).mockRejectedValue(new Error("Unexpected command execution"));
+    vi.mocked(container.prompts).mockRejectedValue(new Error("Unexpected prompt"));
+    const program = createProgram();
+    registerWorktreeCommand(program, container);
+    const restoreTTY = setStdinTTY(false);
+
+    try {
+      await program.parseAsync([
+        "node", "cli", ...(leading ? ["--dry-run"] : []),
+        "worktree", "reconcile", "example", "--agent", "codex",
+        ...(leading ? [] : ["--dry-run"])
+      ]);
+    } finally {
+      restoreTTY();
+    }
+
+    expect(worktreeMocks.reconcileManagedWorktree).not.toHaveBeenCalled();
+    expect(worktreeMocks.listManagedWorktrees).not.toHaveBeenCalled();
+    expect(worktreeMocks.removeManagedWorktree).not.toHaveBeenCalled();
+    expect(container.commandRunner).not.toHaveBeenCalled();
+    expect(container.prompts).not.toHaveBeenCalled();
+    expect(vol.toJSON()).toEqual(initialFiles);
+    expect(logs).toEqual([
+      "worktree reconcile",
+      "Dry run: would reconcile worktree example with agent codex."
+    ]);
+    expect(logs.join("\n")).not.toContain("Reconciled");
+  });
+
+  it.each([
+    { args: ["--agent", "codex"], code: "commander.missingArgument" },
+    { args: ["example"], code: "commander.missingMandatoryOptionValue" }
+  ])("preserves required reconcile arguments in dry run ($code)", async ({ args, code }) => {
+    const logs: string[] = [];
+    const program = createProgram();
+    program.configureOutput({ writeErr: vi.fn() });
+    registerWorktreeCommand(program, createContainer(logs));
+
+    await expect(program.parseAsync([
+      "node", "cli", "--dry-run", "worktree", "reconcile", ...args
+    ])).rejects.toMatchObject({ code });
+
+    expect(worktreeMocks.reconcileManagedWorktree).not.toHaveBeenCalled();
+    expect(logs).toEqual([]);
   });
 
   it("removes a managed worktree and optionally deletes the branch", async () => {

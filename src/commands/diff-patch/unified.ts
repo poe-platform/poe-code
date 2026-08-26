@@ -1,5 +1,5 @@
 import { Budget, ToolError, integer } from "./shared.js";
-import { decodeHeaderPath } from "./patch-path.js";
+import { decodeHeaderPath, isEpochHeader } from "./patch-path.js";
 
 export interface PatchLine { readonly kind: " " | "+" | "-"; text: string }
 export interface Hunk {
@@ -9,7 +9,7 @@ export interface Hunk {
   readonly newCount: number;
   readonly lines: PatchLine[];
 }
-export interface FilePatch { readonly oldPath: string; readonly newPath: string; readonly hunks: Hunk[] }
+export interface FilePatch { readonly oldPath: string; readonly newPath: string; readonly oldEpoch: boolean; readonly newEpoch: boolean; readonly hunks: Hunk[] }
 
 function header(line: string, prefix: string): string {
   if (!line.startsWith(prefix)) throw new ToolError(`expected ${prefix.trim()} file header`);
@@ -38,7 +38,9 @@ export async function parseUnified(text: string, budget: Budget): Promise<FilePa
       continue;
     }
     const oldPath = header(line, "--- ");
+    const oldEpoch = isEpochHeader(line);
     const newPath = header(physical[++index] ?? "", "+++ ");
+    const newEpoch = isEpochHeader(physical[index]!);
     index++;
     budget.file();
     const hunks: Hunk[] = [];
@@ -97,7 +99,7 @@ export async function parseUnified(text: string, budget: Budget): Promise<FilePa
       hunks.push({ oldStart, oldCount, newStart, newCount, lines });
     }
     if (!hunks.length) throw new ToolError("file patch has no hunks");
-    patches.push({ oldPath, newPath, hunks });
+    patches.push({ oldPath, newPath, oldEpoch, newEpoch, hunks });
     pendingMetadata = false;
   }
   if (pendingMetadata) throw new ToolError("metadata without a file patch");
@@ -107,6 +109,7 @@ export async function parseUnified(text: string, budget: Budget): Promise<FilePa
 export function reversePatch(patch: FilePatch): FilePatch {
   return {
     oldPath: patch.newPath, newPath: patch.oldPath,
+    oldEpoch: patch.newEpoch, newEpoch: patch.oldEpoch,
     hunks: patch.hunks.map(hunk => ({
       oldStart: hunk.newStart, oldCount: hunk.newCount, newStart: hunk.oldStart, newCount: hunk.oldCount,
       lines: hunk.lines.map(line => ({ kind: line.kind === "+" ? "-" : line.kind === "-" ? "+" : " ", text: line.text })),

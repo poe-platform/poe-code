@@ -46,3 +46,31 @@ export function safeTarget(path: string, strip: number, allowAbsolute = false): 
   if (!stripped) throw new ToolError(`strip count removes entire patch path: ${path}`);
   return allowAbsolute && path.startsWith("/") && strip === 0 ? `/${stripped}` : stripped;
 }
+
+export function isEpochHeader(line: string): boolean {
+  const separator = line.lastIndexOf("\t");
+  if (separator < 0) return false;
+  let timestamp = line.slice(separator + 1).trim();
+  const traditional = /^(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) +([0-9]{1,2}) (\d{2}:\d{2}:\d{2}) (\d{4})(?: (UTC|GMT|[+-]\d{4}))?$/u.exec(timestamp);
+  if (traditional) {
+    const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].indexOf(traditional[1]!) + 1;
+    timestamp = `${traditional[4]}-${String(month).padStart(2, "0")}-${traditional[2]!.padStart(2, "0")} ${traditional[3]} ${traditional[5] ?? "+0000"}`;
+  }
+  const match = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(?:\s*(Z|UTC|GMT|[+-]\d{2}:?\d{2}))?$/u.exec(timestamp);
+  if (!match) return false;
+  const iso = `${match[1]}T${match[2]}`;
+  const local = Date.parse(`${iso}Z`);
+  if (!Number.isFinite(local) || new Date(local).toISOString().slice(0, 19) !== iso) return false;
+  const zone = match[4];
+  let offset = 0;
+  if (zone && /^[+-]/u.test(zone)) {
+    const digits = zone.slice(1).replace(":", "");
+    const hours = Number(digits.slice(0, 2));
+    const minutes = Number(digits.slice(2));
+    if (hours > 25 || minutes > 59) return false;
+    offset = (hours * 60 + minutes) * 60 * (zone[0] === "+" ? 1 : -1);
+  }
+  const seconds = local / 1000 - offset;
+  const fractional = match[3] !== undefined && /[1-9]/u.test(match[3]);
+  return (seconds > -25 * 3600 || (seconds === -25 * 3600 && fractional)) && seconds < 26 * 3600;
+}

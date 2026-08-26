@@ -57,10 +57,12 @@ periodically to observe cancellation.
 
 - Unified, normal, and context patches are autodetected from stdin,
   `-i FILE` / `--input=FILE`, or `--input FILE`; `-i -` means stdin.
+  Autodetection supports mixed-format sections in one input.
   `-u` / `--unified`, `-n` / `--normal`, and `-c` / `--context` assert the
-  input format. Normal input requires one explicit target. An optional
-  positional target overrides each section's target without bypassing header
-  path validation.
+  format of every section; conflicting format flags or a later mismatched
+  section reject the input before writes. Normal input requires one explicit
+  target. An optional positional target overrides each section's target without
+  bypassing header path validation.
 - `-p N`, `-pN`, and `--strip=N` strip path components; the default is zero,
   not a basename-selection heuristic. `-R` / `--reverse` swaps both headers,
   hunk coordinates, and added/deleted lines. `--dry-run` performs preparation
@@ -76,16 +78,22 @@ periodically to observe cancellation.
   nonempty horizontal space/tab run loosely. Missing runs, other characters,
   and final newline presence must still match; actual context and literal
   additions are preserved, including their original whitespace.
-- `/dev/null` headers create/delete files. Creation requires absence and an
-  existing parent directory. Deletion requires an empty resulting file.
+- `/dev/null` headers create/delete files. Creation accepts a missing target or
+  an existing empty regular file, including under reverse; an existing nonempty
+  target conflicts. The parent directory must already exist, and creation hunks
+  must contain no old content. Deletion requires an empty resulting file.
   Multiple distinct targets are supported. Header-selected patches prefer an existing
   old header path, then an existing new header path; they do not rename files.
+- `-E` / `--remove-empty-files` stages removal when a section's result is empty,
+  including with dry-run, reverse, and sequential delete/recreate sections.
+  Nonempty results remain files.
 - Epoch-dated empty sides in unified/context headers also support creation and
   deletion. Timestamp recognition supports ISO-style and traditional `ctime`
   headers, following GNU patch 2.8's measured near-epoch window (strictly between
   -25 and +26 hours), not timestamp restoration or arbitrary date syntax.
   Zero-origin insertions can create a missing target without an epoch marker;
-  deleting to an ordinary non-epoch empty side leaves an empty file.
+  deleting to an ordinary non-epoch empty side leaves an empty file unless `-E`
+  is supplied.
 - Headers may have tab-separated timestamps or unquoted spaces in filenames.
   Git C-quoted paths support literal spaces/tabs, escaped quotes, and three-digit
   octal UTF-8 bytes. Unknown escapes, oversized octets, and invalid UTF-8 fail.
@@ -103,10 +111,16 @@ periodically to observe cancellation.
   Empty input is a successful no-op. Malformed/truncated input is not silently
   skipped, and no interactive questions, automatic reversal, reject files, or
   backup files are produced.
+- Suppressed blank bodies are accepted: normal `<`/`>` and context `!`/`+`/`-`
+  without a following space denote complete empty data lines. Bare blank context
+  lines denote shared empty data only within the declared side range; count and
+  incomplete-final-line validation still apply.
 - Exit 0 means success, 1 means a target/hunk applicability conflict, and 2
   means malformed input, unsupported behavior, resource or filesystem failure.
   Cancellation rejects with the supplied signal reason rather than converting
   it to an ordinary command exit.
+
+See [PARSER.md](PARSER.md) for focused parser details and recorded verification.
 
 ## Text and path rules
 
@@ -114,15 +128,21 @@ Both commands accept strictly valid UTF-8 text without NUL bytes. Invalid UTF-8
 and NUL-containing input are rejected, including identical binary files.
 UTF-8 BOMs in file content, Unicode, CRLF content, and unterminated final lines
 are preserved byte-for-byte; Unicode and line endings are not normalized.
-Unified patch transport uses LF-terminated physical lines and the exact
-`\ No newline at end of file` marker. A missing final physical LF is rejected.
+Patch transport accepts LF framing or uniformly CRLF-framed physical lines.
+Exactly one transport CR per line is removed once, before mail-envelope handling,
+only when every physical line has CRLF framing. Mixed LF/CRLF framing is left
+unchanged: LF-framed data CRs remain data, and CRCRLF transport retains one data
+CR. The exact `\ No newline at end of file` marker represents an unterminated
+data line; a missing final physical LF is rejected.
 
 An explicit target such as `patch /work/file < change` authorizes that absolute
 **virtual** path, not a host path; relative explicit targets work too. Without
-an explicit target, absolute header paths other than `/dev/null` are rejected.
-With one, headers are validated but never select another file, and `-p` does not
-strip the explicit target. Traversal (`..` components), backslashes, drive-prefix
-components, directory-shaped labels, and control characters other than tabs are
+an explicit target, absolute header paths other than `/dev/null` are rejected
+before stripping, so `-p` cannot make an unsafe auto-selected header safe.
+With one, otherwise-safe absolute header labels are allowed, but headers never
+select another file; `-p` strips neither the explicit target nor those labels.
+Traversal (`..` components), backslashes, drive-prefix components,
+directory-shaped labels, and control characters other than tabs are
 rejected **before normalization or stripping**, even with an explicit target.
 Adjacent relative slashes collapse before stripping; traversal never collapses.
 Dot components are allowed; repeated normalized targets share staged state.
@@ -181,6 +201,9 @@ synchronous JavaScript operation.
 
 Limits must be positive safe integers. Diagnostic messages have a separate
 fixed bound below 4096 bytes, even when an invalid argument is very large.
+Mixed patch formats share one invocation's file, hunk, line, and work budgets;
+normal/context conversion also shares a cumulative byte cap of
+`2 * maxInputBytes + 16,384` rather than resetting it per section.
 The text algorithms buffer inputs/results rather than providing streaming
 edits. Raising limits increases memory/CPU exposure; caller-selected limits
 are not an absolute host-memory guarantee. Adapter internals and returned
@@ -197,7 +220,10 @@ selection, placement heuristics, and malformed-patch policy intentionally
 differ from native tools. No result here demonstrates superiority to just-bash
 or completion of the wider full-shell/72-hour objective.
 Option-order and whitespace-dialect differences remain separately recorded by
-the independent verifiers.
+the independent verifiers. Known comparative gaps include nine GNU
+repeated-context selector checks, asymmetric `-F0` placement, and legacy BSD
+empty-range reverse semantics. These remain unresolved comparisons, not
+user-approved exemptions.
 
 ## Optional GNU reference driver
 
@@ -209,8 +235,9 @@ GNU_PATCH_BINARY=/path/to/patch-2.8/src/patch \
   node --import tsx tests/commands/diff-patch/patch-gnu-reference.ts
 ```
 
-It records executable identity plus 126 exact status/content/existence checks;
+It records executable identity plus exact status/content/existence checks;
 native diagnostics are recorded rather than normalized into an asserted match.
+The extended driver's recorded checkpoint is in `PARSER.md`.
 This focused evidence does not replace the full comparison denominator or prove
 full-shell compatibility or superiority.
 
@@ -219,7 +246,7 @@ full-shell compatibility or superiority.
 Author tests are in `tests/commands/diff-patch/`. They do not replace the
 different verifier the root orchestrator will assign after handoff.
 
-On August 26, 2026, the final author run passed **123/123 tests**, with no
+On August 26, 2026, the original author checkpoint passed **123/123 tests**, with no
 skips or cancellations. The scoped strict TypeScript command below passed.
 All nine cancellation tests also passed ten additional repetitions under
 `--unhandled-rejections=strict` (90/90 repeated test executions). These are

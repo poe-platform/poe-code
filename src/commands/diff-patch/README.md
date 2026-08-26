@@ -75,6 +75,9 @@ periodically to observe cancellation.
   Common `diff --git`, `diff -...`, `index`, and regular-file new/deleted mode
   preambles are accepted. Mode metadata does not change permissions. Existing
   permissions are left to the filesystem's normal overwrite semantics.
+  Recognized mail envelopes accept descriptive text and diffstat before the
+  patch (at most 1024 lines/64 KiB), and a `-- ` signature (128 lines/8 KiB).
+  Patch syntax in signatures and unsupported mode/rename metadata are rejected.
 - Counts, coordinate continuity, hunk ordering, newline markers, and all file
   sections are validated before writes. Duplicate target sections are rejected.
   Empty input is a successful no-op. Malformed/truncated input is not silently
@@ -159,7 +162,7 @@ directory listings must also be bounded by their owners.
 ## Known gaps
 
 This is not full GNU/BSD diff or patch compatibility. Context/ed/normal patch
-formats, whitespace-ignore modes, binary patches, mail preambles, renames/copies, permission
+formats, whitespace-ignore modes, binary patches, renames/copies, permission
 changes, automatic parent-directory creation, empty-directory changes, and
 symlink patches are unsupported. `-N` treats absent content as empty and cannot
 express creation/deletion of a zero-byte file. Repeated file sections are not

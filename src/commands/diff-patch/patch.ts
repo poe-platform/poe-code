@@ -2,6 +2,7 @@ import { dirname, resolvePath, writeBytes, type CommandContext, type FileStat } 
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
 import { applyHunks, parseUnified, reversePatch } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
+import { unwrapPatch } from "./patch-envelope.js";
 
 interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; target?: string }
 
@@ -67,7 +68,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
   }
   const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
-  const parsed = await parseUnified(input, budget);
+  const parsed = await parseUnified(await unwrapPatch(input, budget), budget);
   if (explicit && parsed.length !== 1) throw new ToolError("explicit target requires exactly one file patch");
   const prepared: Prepared[] = [];
   const paths = new Set<string>();

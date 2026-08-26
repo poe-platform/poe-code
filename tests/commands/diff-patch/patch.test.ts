@@ -134,7 +134,7 @@ const malformed = [
   ["duplicate marker", replacement.replace("-old\n", "-old\n\\ No newline at end of file\n\\ No newline at end of file\n")],
   ["content after missing newline", "--- target\n+++ target\n@@ -1,2 +1 @@\n-old\n\\ No newline at end of file\n-more\n+new\n"],
   ["truncated physical line", replacement.slice(0, -1)],
-  ["unsupported mail preamble", "Subject: patch\n" + replacement],
+  ["unsupported preamble", "Unrecognized preamble\n" + replacement],
   ["git symlink metadata", "diff --git a/target b/target\nindex 1111111..2222222 120000\n" + replacement],
   ["git rename metadata", "rename from target\nrename to other\n" + replacement],
   ["metadata without patch", "diff --git a/target b/target\n"],

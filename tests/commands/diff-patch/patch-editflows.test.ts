@@ -2,6 +2,29 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contents, replacement, run } from "./helpers.js";
 
+const mail = "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\n"
+  + "From: Example <example@example.invalid>\nSubject: [PATCH] change\n\nDescription.\n---\n target | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\n"
+  + "diff --git a/target b/target\nindex 1234567..abcdef0 100644\n"
+  + replacement.replace("--- target", "--- a/target").replace("+++ target", "+++ b/target") + "-- \n2.50.1\n";
+
+test("bounded mail preamble, diffstat and signature apply and reverse", async () => {
+  const result = await run("patch", ["-p1"], { files: { target: "old\n" }, input: mail });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "new\n");
+  assert.equal((await run("patch", ["-Rp1"], { fs: result.fs, input: mail })).exitCode, 0);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+});
+
+for (const input of [
+  "Subject: no patch\n\nbody\n", mail.replace("index 1234567..abcdef0 100644", "old mode 100644\nnew mode 100755"),
+  mail.replace("index 1234567..abcdef0 100644", "rename from target\nrename to other"),
+  mail.replace("+new\n", ""), mail + replacement, "Subject: oversized\n" + "body\n".repeat(1025) + replacement,
+]) test("mail never hides malformed, unsupported, or oversized patch data", async () => {
+  const result = await run("patch", ["-p1"], { files: { target: "old\n" }, input });
+  assert.equal(result.exitCode, 2, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+});
+
 for (const [name, encoded] of [
   ["file name", "file name"], ['a"quote', 'a\\"quote'], ["café", "caf\\303\\251"],
   ["tab\tname", "tab\\tname"], ["literal\ttab", "literal\ttab"],

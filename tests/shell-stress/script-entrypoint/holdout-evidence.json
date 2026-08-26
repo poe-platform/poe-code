@@ -1,0 +1,69 @@
+{
+  "sourceCommit": "f4d9d2dadd72c4e265bb5a1ebb0a0a7eb4fbc825",
+  "before": {
+    "time": "2026-08-26T23:24:03.698Z",
+    "revision": "77f859182e6bc9d1ea3dbf26852d529e77ea65ff",
+    "hashes": {
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+      "src/shell/shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    }
+  },
+  "after": {
+    "time": "2026-08-26T23:24:06.837Z",
+    "revision": "77f859182e6bc9d1ea3dbf26852d529e77ea65ff",
+    "hashes": {
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+      "src/shell/shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    }
+  },
+  "node": "v22.22.2",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=spec",
+    "tests/shell-stress/script-entrypoint/holdout.test.ts"
+  ],
+  "timeoutMs": 120000,
+  "result": {
+    "pid": 1929,
+    "status": 1,
+    "signal": null,
+    "stdout": "✔ independent script entrypoint: literal-paths-and-option-boundary (181.89325ms)\n✔ independent script entrypoint: builtin-function-registry-shadow (175.450125ms)\n✔ independent script entrypoint: nested-function-argv0-and-positional-restore (174.498833ms)\n✖ independent script entrypoint: descriptor-cursor-across-nested-scripts (165.530375ms)\n✔ independent script entrypoint: invoke-replacement-input-and-exhausted-origin (163.808916ms)\n✔ independent script entrypoint: parse-before-effects-with-caller-redirections (174.855333ms)\n✔ independent script entrypoint: vfs-traversal-and-symlink-permission-boundary (194.953042ms)\n✔ independent script entrypoint: strict-header-and-utf8-boundaries (177.263792ms)\n✔ independent script entrypoint: repeated-invoke-source-utf8-byte-budget (160.912875ms)\n✔ independent script entrypoint: mixed-invoke-script-loop-command-budgets (161.105375ms)\n✔ independent script entrypoint: mixed-invoke-script-recursion (162.134041ms)\n✔ independent script entrypoint: cancel-access-fserror-identity-and-late-rejection (207.129583ms)\n✔ independent script entrypoint: typed-budget-identity-at-source-boundary (172.323333ms)\n✔ independent script entrypoint: abort-wins-successful-stat-and-read (172.452625ms)\n✔ independent script entrypoint: cancel-nested-invoke-body-identity (162.534625ms)\n✔ independent script entrypoint: post-stat-disappearance-is-completed-failure (162.024791ms)\n✔ independent script entrypoint: middleware-literal-invoke-and-body-denial (162.049708ms)\nℹ tests 17\nℹ suites 0\nℹ pass 16\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3074.461625\n\n✖ failing tests:\n\ntest at tests/shell-stress/script-entrypoint/holdout.test.ts:1:625\n✖ independent script entrypoint: descriptor-cursor-across-nested-scripts (165.530375ms)\n  AssertionError [ERR_ASSERTION]: node:internal/modules/run_main:123\n      triggerUncaughtException(\n      ^\n  \n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  + actual - expected\n  \n  + 'read: invalid variable name or unsupported option\\n' +\n  +   'read: invalid variable name or unsupported option\\n' +\n  +   'read: invalid variable name or unsupported option\\n'\n  - ''\n  \n      at Object.descriptor-cursor-across-nested-scripts (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/script-entrypoint/cases.ts:62:12)\n      at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/script-entrypoint/probe.ts:6:1) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'read: invalid variable name or unsupported option\\n' +\n      'read: invalid variable name or unsupported option\\n' +\n      'read: invalid variable name or unsupported option\\n',\n    expected: '',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n  \n  Node.js v22.22.2\n  \n  \n  1 !== 0\n  \n      at TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/script-entrypoint/holdout.test.ts:22:12)\n      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 1,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+    "stderr": ""
+  }
+}

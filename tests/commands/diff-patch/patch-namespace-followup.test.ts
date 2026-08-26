@@ -44,6 +44,15 @@ for (const kind of ["symlink", "hardlink", "symlink-parent"] as const) {
 }
 
 for (const atomic of [false, true]) {
+  test(`followup input may remain an unused header candidate after creation, atomic=${atomic}`, async () => {
+    const input = create("a") + replace("a", "input.patch");
+    const fs = await filesystem({ "input.patch": input });
+    const result = await run("patch", ["-p0", "-i", "input.patch", ...(atomic ? ["--atomic"] : [])], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(fs, "a"), "new\n");
+    assert.equal(await contents(fs, "input.patch"), input);
+  });
+
   test(`followup repeated create/delete/recreate selects current target, atomic=${atomic}`, async () => {
     const fs = await filesystem({ sentinel: "untouched\n" });
     await fs.symlink("sentinel", "/work/unused-long-name");
@@ -85,6 +94,57 @@ for (const atomic of [false, true]) {
     await assert.rejects(fs.lstat("/work/a"), { code: "ENOENT" });
   });
 }
+
+for (const dryRun of [false, true]) test(`followup atomic reverse selection follows inverse section order, dryRun=${dryRun}`, async () => {
+  const fs = await filesystem({ sentinel: "untouched\n" });
+  await fs.symlink("sentinel", "/work/unused-long-name");
+  const before = await snapshot(fs);
+  const input = replace("a", "unused-long-name") + remove("a").replace("-old", "-new");
+  const result = await run("patch", ["--atomic", "-R", "-p0", ...(dryRun ? ["--dry-run"] : [])], { fs, input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  if (dryRun) assert.deepEqual(await snapshot(fs), before);
+  else {
+    assert.equal(await contents(fs, "a"), "old\n");
+    assert.equal(await contents(fs, "sentinel"), "untouched\n");
+    assert.equal(await fs.readlink("/work/unused-long-name"), "sentinel");
+  }
+});
+
+test("followup namespace preview observes cancellation during a pending target read", async () => {
+  const backing = await filesystem({ a: "old\n", sentinel: "untouched\n" });
+  await backing.symlink("sentinel", "/work/unused-long-name");
+  const before = await snapshot(backing);
+  const controller = new AbortController();
+  const reason = new Error("cancel namespace preview");
+  let reads = 0;
+  const fs = new Proxy(backing, {
+    get(target, key) {
+      if (key === "readStream") return undefined;
+      if (key === "readFile") return (path: string, options: { signal?: AbortSignal }) => {
+        assert.equal(path, "/work/a");
+        assert.equal(options.signal, controller.signal);
+        reads++;
+        controller.abort(reason);
+        return new Promise<Uint8Array>(() => {});
+      };
+      const value: unknown = Reflect.get(target, key);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  await assert.rejects(run("patch", ["-p0"], { fs, input: replace("a") + replace("a", "unused-long-name"), signal: controller.signal }), error => error === reason);
+  assert.equal(reads, 1);
+  assert.deepEqual(await snapshot(backing), before);
+});
+
+test("followup namespace preview shares the invocation input budget", async () => {
+  const fs = await filesystem({ a: "old\n" });
+  const before = await snapshot(fs);
+  const input = replace("a") + replace("a", "unused-long-name");
+  const result = await run("patch", ["-p0"], { fs, input, options: { maxInputBytes: Buffer.byteLength(input) + 1 } });
+  assert.equal(result.exitCode, 2, result.stderr);
+  assert.match(result.stderr, /EFBIG.*maxBytes/u);
+  assert.deepEqual(await snapshot(fs), before);
+});
 
 for (const [label, initial, input, args] of [
   ["create then replace", {}, create("a") + replace("a", "unused-long-name"), []],

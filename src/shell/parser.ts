@@ -232,6 +232,8 @@ class Parser {
 
   is(value: string): boolean { return this.current.value === value; }
 
+  isEnd(): boolean { return this.current.kind === "end"; }
+
   expect(value: string): void {
     if (!this.is(value)) this.error(`Expected ${value}`);
     this.advance();
@@ -254,7 +256,7 @@ class Parser {
       if (this.is(";") || this.is("\n")) {
         this.advance();
         this.newlines();
-      } else if (!this.is("") && !this.is(")")) this.error("Expected command separator");
+      } else if (!this.isEnd() && !this.is(")")) this.error("Expected command separator");
     }
     return { lists };
   }

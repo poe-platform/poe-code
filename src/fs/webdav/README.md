@@ -196,6 +196,23 @@ by an empty check followed by recursive DELETE. Both streaming capabilities
 are true. These remaining gaps are explicit backend
 limitations, not claims of full POSIX or full WebDAV compliance.
 
+Additive `rmdir(path, options?)` distinguishes observed files (`ENOTDIR`), missing
+paths (`ENOENT`), and nonempty collections (`ENOTEMPTY`). An observed-empty
+collection returns `ENOTSUP`; the root returns `EBUSY`. Inspection is read-only:
+no DELETE, LOCK, or other mutation is sent. Cancellation remains `ECANCELED`,
+and typed inspection failures retain their code and underlying cause while
+reporting the requested rmdir path. Existing `rm({ recursive: false })` behavior
+is unchanged.
+
+RFC 4918 section 9.6.1 requires collection DELETE to operate recursively, even
+without a Depth header. Neither an empty PROPFIND result nor a collection ETag
+establishes an atomic empty-collection deletion guarantee in this adapter.
+No provider-specific guarantee is configured, so `rmdir` never follows an empty
+listing with DELETE or invents a capability. A child created after the listing
+is preserved. Listings are not snapshots, and existing non-atomic MOVE and
+identity/overwrite caveats remain unchanged. Reference, consulted August 26, 2026:
+`https://www.rfc-editor.org/rfc/rfc4918.html#section-9.6.1`.
+
 ## Persistent virtual timestamps
 
 `utimes` sets the single dead property `{urn:virtual-bash:metadata}timestamps`
@@ -333,6 +350,16 @@ rollback. A mutation multistatus without a reported failure is also rejected
 rather than guessing that the operation completed.
 
 ## Verification
+
+The additive rmdir checkpoint (August 26, 2026) passed all 35 combined S3/WebDAV
+rmdir tests and all 503 combined adapter tests, with zero failures or skips:
+`node --unhandled-rejections=strict --import tsx --test 'tests/fs/s3/*.test.ts' 'tests/fs/webdav/*.test.ts'`.
+Strict NodeNext source-and-test typechecking for both owned adapter directories
+also passed. The new `tests/fs/webdav/rmdir.test.ts` covers typed errors and
+requested paths, empty/nonempty collections, post-PROPFIND child creation,
+no mutation requests under either overwrite policy, pre-abort and uncooperative
+in-flight cancellation with late rejection, and unchanged nonrecursive `rm`.
+The rmdir evidence uses an injected mock, not a live-provider atomicity claim.
 
 Run from the repository root:
 

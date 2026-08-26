@@ -488,6 +488,33 @@ export class S3FileSystem implements FileSystem {
     return [...objects.values()];
   }
 
+  async rmdir(input: string, options: FsOptions = {}): Promise<void> {
+    try {
+      const path = this.path(input);
+      this.checkAbort(options, "rmdir", input);
+      this.writable(path);
+      if (path === "/") fail("EBUSY", "rmdir", input, "cannot remove the mounted root");
+      const info = await this.lookup(path, options);
+      this.checkAbort(options, "rmdir", input);
+      if (!info) fail("ENOENT", "rmdir", input);
+      if (info.stat.type !== "directory") fail("ENOTDIR", "rmdir", input);
+      const prefix = this.directoryKey(path);
+      for await (const page of this.pages(prefix, path, options, "/")) {
+        this.checkAbort(options, "rmdir", input);
+        if (page.Contents?.some(item => item.Key !== prefix) || page.CommonPrefixes?.length) {
+          fail("ENOTEMPTY", "rmdir", input);
+        }
+      }
+      this.checkAbort(options, "rmdir", input);
+      fail("ENOTSUP", "rmdir", input, "S3 object deletion cannot atomically require an empty directory prefix");
+    } catch (error) {
+      if (isFsError(error) && (error.syscall !== "rmdir" || error.path !== input)) {
+        throw new FsError(error.code, { syscall: "rmdir", path: input, cause: error });
+      }
+      throw error;
+    }
+  }
+
   async rm(input: string, options: RemoveOptions = {}): Promise<void> {
     const path = this.path(input);
     this.writable(path);

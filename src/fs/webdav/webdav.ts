@@ -673,6 +673,26 @@ export class WebDavFileSystem implements FileSystem {
     if (normalized === "/") await this.stat(normalized, options);
   }
 
+  async rmdir(path: string, options: FsOptions = {}): Promise<void> {
+    try {
+      const normalized = normalize(path);
+      if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
+      if (normalized === "/") fail("EBUSY", "rmdir", path, "cannot remove WebDAV root");
+      const stat = await this.stat(path, options);
+      if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
+      if (stat.type !== "directory") fail("ENOTDIR", "rmdir", path);
+      const entries = await this.readdir(path, options);
+      if (options.signal?.aborted) fail("ECANCELED", "rmdir", path);
+      if (entries.length) fail("ENOTEMPTY", "rmdir", path);
+      this.unsupported("rmdir", path);
+    } catch (error) {
+      if (isFsError(error) && (error.syscall !== "rmdir" || error.path !== path)) {
+        throw new FsError(error.code, { syscall: "rmdir", path, cause: error });
+      }
+      throw error;
+    }
+  }
+
   async rm(path: string, options: RemoveOptions = {}): Promise<void> {
     const normalized = normalize(path);
     if (normalized === "/") fail("EBUSY", "rm", path, "cannot remove WebDAV root");

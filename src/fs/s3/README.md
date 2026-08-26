@@ -132,6 +132,25 @@ transport; the transport must honor its supplied signal and body cleanup hooks.
 
 ## Filesystem behavior and limits
 
+- Additive `rmdir(path, options?)` is directory-only: observed files fail with
+  `ENOTDIR`, missing paths with `ENOENT`, and observed descendants (including
+  child directory markers) with `ENOTEMPTY`. An observed-empty directory fails
+  with `ENOTSUP`, without any mutation request. The mounted root is `EBUSY`;
+  read-only mode and cancellation retain `EROFS` and `ECANCELED` respectively.
+  Inspection failures propagate as typed errors with the requested rmdir path
+  and the underlying error retained as their cause.
+- This transport has no atomic empty-prefix deletion operation. Deleting only
+  a directory marker would preserve concurrently created descendants, but would
+  neither require an empty prefix nor necessarily remove the virtual directory.
+  `conditionalDelete` guards the marker object, not prefix emptiness. `rmdir`
+  therefore does not delete even the marker, invent a capability, or fall back
+  to recursive `rm`. Listings are diagnostic observations, not snapshots.
+  Existing `rm({ recursive: false })` semantics are unchanged. This adds no
+  atomic rename, ABA protection, or snapshot guarantee; the caveats below remain.
+  Protocol references: AWS S3 `DeleteObject` request conditions and the S3
+  user guide's folder/prefix model, consulted August 26, 2026:
+  `https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html` and
+  `https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-folders.html`.
 - Empty directories use zero-byte keys ending in `/`. Prefixes with descendants
   are also directories without requiring a marker. Implicit directories disappear
   when their final descendant is removed; explicit markers persist until removed.
@@ -327,6 +346,17 @@ ACLs, encryption/KMS, multipart uploads, object lock, billing, network behavior,
 S3 Express directory buckets, or transactional directory operations.
 
 ## Mock and verification
+
+The additive rmdir checkpoint (August 26, 2026) passed all 35 combined S3/WebDAV
+rmdir tests and all 503 combined adapter tests, with zero failures or skips:
+`node --unhandled-rejections=strict --import tsx --test 'tests/fs/s3/*.test.ts' 'tests/fs/webdav/*.test.ts'`.
+Strict NodeNext source-and-test typechecking for both owned adapter directories
+also passed. The new `tests/fs/s3/rmdir.test.ts` covers typed errors and requested
+paths, explicit/implicit nonempty directories, empty-prefix rejection with and
+without conditional delete, post-list child creation, no mutation requests,
+pre-abort and uncooperative in-flight cancellation with late rejection, and
+unchanged nonrecursive `rm`. This is mock-backed evidence, not a live-provider
+atomicity or product-wide acceptance claim.
 
 `MockS3Client({ buckets, pageSize?, now?, authorize? })` stores flat, independently
 copied binary objects. It supports conditional requests, common-prefix grouping,

@@ -230,7 +230,7 @@ export function streamCommands(): CommandDefinition[] {
           targets.push(path);
         } catch (error) { await diagnostic(context, error); exitCode = 1; }
       }
-      for await (const chunk of context.stdin) {
+      for await (const chunk of input(context)) {
         await output(context, chunk);
         for (let index = 0; index < targets.length;) {
           try { await context.fs.appendFile(targets[index]!, chunk, { signal: context.signal }); index++; }
@@ -258,7 +258,7 @@ export function streamCommands(): CommandDefinition[] {
       const removed = new Set(deleting ? first : []);
       const squeezed = new Set(squeezing ? parsed.operands.length === 2 ? second : first : []);
       let previous = -1;
-      for await (const chunk of context.stdin) {
+      for await (const chunk of input(context)) {
         context.signal.throwIfAborted();
         const transformed = new Uint8Array(chunk.length);
         let count = 0;

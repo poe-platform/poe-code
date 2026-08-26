@@ -129,10 +129,15 @@ export async function writeText(sink: ByteSink, text: string): Promise<void> {
   await sink.write(new TextEncoder().encode(text));
 }
 
+export async function writeBytes(sink: ByteSink, chunk: Uint8Array, signal?: AbortSignal): Promise<void> {
+  if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
+  await abortable(() => sink.write(chunk), signal);
+}
+
 export async function pipeBytes(source: ByteSource, sink: ByteSink, signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
   for await (const chunk of readBytes(source, signal)) {
-    await abortable(() => sink.write(chunk), signal);
+    await writeBytes(sink, chunk, signal);
   }
   signal?.throwIfAborted();
 }
@@ -192,7 +197,7 @@ async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: 
   });
 }
 
-async function* readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
+export async function* readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
   signal?.throwIfAborted();
   const iterator = source[Symbol.asyncIterator]();
   let finished = false;

@@ -1,5 +1,5 @@
 import {
-  FsError, isAbsolutePath, toByteSource, validatePath,
+  FsError, isAbsolutePath, readBytes, toByteSource, validatePath, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
 } from "../contracts/index.js";
 
@@ -95,12 +95,12 @@ export function codeOf(error: unknown): string | undefined {
 
 export async function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
   context.signal.throwIfAborted();
-  await context.stdout.write(typeof text === "string" ? encoder.encode(text) : text);
+  await writeBytes(context.stdout, typeof text === "string" ? encoder.encode(text) : text, context.signal);
 }
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {
   context.signal.throwIfAborted();
-  await context.stderr.write(encoder.encode(`${context.command}: ${error instanceof Error ? error.message : String(error)}\n`));
+  await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
 }
 
 export function define(name: string, handler: CommandHandler, failureCode = 1): CommandDefinition {
@@ -133,10 +133,10 @@ export async function eachOperand(
 export async function* input(context: CommandContext, name = "-"): ByteSource {
   context.signal.throwIfAborted();
   if (name === "-") {
-    yield* context.stdin;
+    yield* readBytes(context.stdin, context.signal);
   } else {
     const path = pathOf(context, name);
-    if (context.fs.readStream) yield* context.fs.readStream(path, { signal: context.signal });
+    if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal);
     else yield await context.fs.readFile(path, { signal: context.signal });
   }
 }

@@ -1,4 +1,4 @@
-import { basename, dirname, type CommandDefinition } from "../contracts/index.js";
+import { basename, dirname, writeBytes, type CommandDefinition } from "../contracts/index.js";
 import { define, encoder, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 
 export function basicCommands(): CommandDefinition[] {
@@ -103,7 +103,7 @@ export function basicCommands(): CommandDefinition[] {
               else number = parseInt(supplied.replace(/^[+-]?0/u, ""), 8) * (supplied.startsWith("-") ? -1 : 1);
             }
             if (!Number.isFinite(number)) {
-              await context.stderr.write(new TextEncoder().encode(`printf: '${supplied}': invalid number\n`));
+              await writeBytes(context.stderr, encoder.encode(`printf: '${supplied}': invalid number\n`), context.signal);
               exitCode = 1; number = 0;
             }
             if (/[fF]/u.test(specifier)) text = number.toFixed(precision ?? 6);
@@ -123,7 +123,7 @@ export function basicCommands(): CommandDefinition[] {
                 }
               } catch {
                 integral = 0n;
-                if (exitCode === 0) await context.stderr.write(encoder.encode(`printf: '${supplied}': invalid integer\n`));
+                if (exitCode === 0) await writeBytes(context.stderr, encoder.encode(`printf: '${supplied}': invalid integer\n`), context.signal);
                 exitCode = 1;
               }
               text = (unsigned ? BigInt.asUintN(64, integral) : integral).toString(radix);

@@ -1,4 +1,4 @@
-import { FsError, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
 
 export function directExecutor(fallback: CommandHandler): CommandHandler {
@@ -37,7 +37,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
       if (current.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
     }
   };
-  for await (const chunk of source) { signal.throwIfAborted(); yield* parse(utf8.decode(chunk, { stream: true })); }
+  for await (const chunk of readBytes(source, signal)) { signal.throwIfAborted(); yield* parse(utf8.decode(chunk, { stream: true })); }
   yield* parse(utf8.decode());
   if (quote || escaped) throw new UsageError(quote ? "unmatched quote in input" : "trailing backslash in input");
   if (active) yield current;
@@ -103,7 +103,7 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         const args = replacement === undefined ? [...initial, ...batch] : initial.map(argument => argument.split(replacement).join(batch[0] ?? ""));
         const size = encoder.encode(command).length + 1 + args.reduce((sum, argument) => sum + encoder.encode(argument).length + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
-        if (parsed.flags.has("t")) await context.stderr.write(encoder.encode([command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n"));
+        if (parsed.flags.has("t")) await writeBytes(context.stderr, encoder.encode([command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n"), context.signal);
         const result = await execute({ ...context, command, args, stdin: emptyInput(), env: { ...context.env } });
         executed = true;
         if (result.exitCode === 255) { status = 124; stop = true; }

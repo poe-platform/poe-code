@@ -46,6 +46,12 @@
 - Middleware must await or return `next()`. Filesystem adapters and command
   implementations must propagate the supplied signal into host work; helper
   cancellation does not forcibly terminate an uncooperative host operation.
+- `CommandContext.invoke?: CommandInvoker` invokes literal argv; its optional
+  overrides are stdin, stdout, stderr, cwd, and env. The shell retains filesystem,
+  cancellation, middleware, and execution budgets; there is no signal override.
+- Use `readBytes(source, signal)` and `writeBytes(sink, chunk, signal)` for command
+  I/O that must stop waiting on cancellation. They observe late rejections;
+  cancellation still cannot undo host side effects or interrupt synchronous work.
 - `normalizePath`, `resolvePath`, and `relativePath` use virtual POSIX paths.
   `isPathWithin` and `assertPathWithin` are lexical containment helpers, not
   symlink security guarantees.
@@ -87,3 +93,7 @@
   and independent command verification. Exclude `src/commands/text-programs/**`
   and its tests (Plato), all adapters, `tests/stress/adapters/**`, and
   `tests/fs/conformance/**` (Faraday); coordinate later ownership transfers.
+- Also exclude `src/commands/structured/**` and its tests (Poincare), and
+  `benchmarks/shell-stress/**` (shell verifier). Use explicit-path `git commit
+  --only` after staging owned paths so a concurrent worker's index entries do
+  not enter another worker's commit.

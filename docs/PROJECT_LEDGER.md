@@ -163,7 +163,67 @@ that any implementation, command, fixture, or test currently exists.
   `08c737c`, `01c9a0f`, `f06a827`, `e5d18bc`, `ae53a51`; stress/fix work now
   excludes the separate `text-programs` implementation and tests.
 
-### Remaining validation
+### Foundation and independent core-tool handoff: 2026-08-26
+
+- Current architecture: Node 22+ TypeScript ESM; asynchronous byte filesystem
+  contracts; streaming command handlers and byte-backpressured pipelines;
+  buffered `Shell.exec` results with explicit byte fields; registry/middleware
+  plugins; separate filesystem, shell, tool, and SafeJS integration layers.
+  The runtime dependency map remains empty. Comparator dependencies remain
+  isolated in the optional benchmark package, not shipped with the library.
+- `7b95909` exposes `CommandContext.invoke?: CommandInvoker`, with
+  `(command: string, args: readonly string[], options?: CommandInvokeOptions)
+  => Promise<CommandResult>`. Options are stdin/stdout/stderr/cwd/env, exactly
+  matching `ShellInvokeOptions`. Cancellation, filesystem, and budgets are
+  inherited, not overridable. Tests exercise it without shell-specific casts.
+- Root exports include contracts, Shell, standard commands, delivered
+  text-program commands, MemoryFileSystem/createMemoryFileSystem,
+  RealFileSystem/createRealFileSystem, S3FileSystem/S3RenameError/MockS3Client/
+  createS3Transport/encodeCopySource/S3ServiceError, WebDavFileSystem, and the
+  three SafeJS bridge/module factories. Published export-map entries are `.`,
+  `./contracts`, `./contracts/*`, `./fs/s3`, and `./fs/webdav`; do not imply
+  unlisted package subpaths exist.
+- Independent regressions and fixes: `caabd21` prevents forced hardlink alias
+  source deletion and fixes physical dangling-symlink copies; `c01effc` preserves
+  raw cut/grep bytes; `9c97ae3` fixes integer precision, xargs quoting, and short
+  test expressions; `6794a05` fixes blocked stdin/stdout/stderr cancellation.
+  The latter exposes existing cancellation-aware `readBytes` plus `writeBytes`
+  for reuse; neither forcibly terminates host work. `110402f` adds seeded checks.
+- Forty-four new independent tests pass; 16 blocked-I/O cases failed before the
+  fix. Deterministic models execute 768 byte/chunk cases and 192 numeric-sort,
+  fixed-grep, and literal-xargs cases, plus filesystem isolation checks.
+  All 44 tests passed five additional strict-unhandled-rejection repetitions.
+  The scoped aggregate is 169 passed, zero failed/skipped: 69 contracts,
+  88 first-family command tests, and 12 comparison-harness tests.
+- `aab5b89` registers the delivered sed plugin in comparison and exports its
+  API. `benchmarks/reports/with-text-programs.json` records the unfiltered
+  109-case checkpoint: virtual-bash 100 pass/nine fail; just-bash 3.4.2
+  103 pass/five fail/one unsupported. No source drift or background errors
+  occurred during that run. Oracle-only totals are 79/88 and 84/88.
+  Five virtual failures require undelivered awk; four cover case/heredoc/
+  here-string syntax. Both engines pass concurrency and cooperative cancellation;
+  virtual streaming-extension backpressure passes, comparator API unsupported.
+  Overall failure and the superiority requirement remain explicit.
+- Full `npm test` during concurrent development: 1,412 total, 1,377 passed,
+  29 failed, six skipped. Failures: four mount-wrapper tests, 22 shell
+  differential tests, two shell lifecycle tests, one real-adapter metadata test.
+  The real metadata failure observed changed atime rather than expected 10000.
+  Raw local log: `/tmp/virtual-bash-foundation-global.JSuKor`. This is a live
+  development snapshot, not a fixed-revision product acceptance result.
+- Fresh whole-repo `npm run typecheck` and `npm run build` both exited 2 at
+  `src/fs/mount/index.ts:228` (`next.stat` possibly undefined); that unowned file
+  was not edited. Record fresh command outcomes as owners resolve their work.
+- Remaining tool limitations include JavaScript regex leftmost-first behavior
+  (`grep -Eo 'a|ab'` on `ab` selects `a` rather than native `ab`) and no hard
+  synchronous-regex preemption. The independent cycle does not establish full
+  tool compatibility or eliminate every known limitation.
+- A shared-index race initially combined invocation changes with Faraday's
+  staged tests. It was repaired immediately using an isolated index and an
+  expected-old-HEAD update; file contents and Faraday's staged state were
+  preserved. `7b95909` is the valid owned-only invocation commit; the abandoned
+  mixed commit is not part of current history. Subsequent commits use `--only`.
+
+### Remaining product work
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent
   workers deliver code; keep foundation checkpoint evidence separate from

@@ -386,7 +386,15 @@ describe("run snapshot checkpointing", () => {
     };
 
     expect(waitCalls).toBe(3);
-    expect(withoutPendingAwaits(secondSnapshot)).toEqual(withoutPendingAwaits(firstSnapshot));
+    expect(withoutCheckpointPosition(secondSnapshot)).toEqual(
+      withoutCheckpointPosition(firstSnapshot)
+    );
+    expect(secondSnapshot.promiseReplay.steps).toBeGreaterThan(firstSnapshot.promiseReplay.steps);
+    expect(secondSnapshot.promiseReplay.promises).toBe(firstSnapshot.promiseReplay.promises + 1);
+    expect(secondSnapshot.promiseReplay.settlements).toEqual([
+      ...firstSnapshot.promiseReplay.settlements,
+      expect.objectContaining({ id: 2 })
+    ]);
     expect(secondSnapshot.pendingAwaits).toEqual([
       expect.objectContaining({
         nodeId: expect.any(Number)
@@ -1188,10 +1196,15 @@ async function flushMicrotasks(iterations = 20) {
   }
 }
 
-function withoutPendingAwaits<TSnapshot extends { pendingAwaits?: unknown }>(
-  snapshot: TSnapshot
-): Omit<TSnapshot, "pendingAwaits"> {
-  const { pendingAwaits: ignoredPendingAwaits, ...rest } = snapshot;
+function withoutCheckpointPosition<
+  TSnapshot extends { pendingAwaits?: unknown; promiseReplay?: unknown }
+>(snapshot: TSnapshot): Omit<TSnapshot, "pendingAwaits" | "promiseReplay"> {
+  const {
+    pendingAwaits: ignoredPendingAwaits,
+    promiseReplay: ignoredPromiseReplay,
+    ...rest
+  } = snapshot;
   void ignoredPendingAwaits;
+  void ignoredPromiseReplay;
   return rest;
 }

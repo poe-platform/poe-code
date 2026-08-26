@@ -1,4 +1,6 @@
 import type { Budget } from "../budget.js";
+import type { HostCallJournal } from "../host-call.js";
+import { wrapCallerInjectedBindings } from "../host-bridge.js";
 import { resolveSandboxValue } from "../promise.js";
 import {
   createSandboxClosure,
@@ -19,6 +21,7 @@ export type ConsoleSink = {
 export type ConsoleJsonGlobalsOptions = {
   budget: Budget;
   sink?: ConsoleSink;
+  hostCalls?: HostCallJournal;
 };
 
 export function createConsoleJsonGlobals(
@@ -38,22 +41,41 @@ export function createConsoleJsonGlobals(
         name: "stringify"
       })
     },
-    console: {
-      error: createSandboxClosure({
-        call: async (args) => {
-          sink.error(...args.map((value) => deepCopyFromSandbox(value)));
-          return undefined;
-        },
-        name: "error"
-      }),
-      log: createSandboxClosure({
-        call: async (args) => {
-          sink.log(...args.map((value) => deepCopyFromSandbox(value)));
-          return undefined;
-        },
-        name: "log"
-      })
-    }
+    console:
+      options.hostCalls === undefined
+        ? {
+            error: createSandboxClosure({
+              call: async (args) => {
+                sink.error(...args.map((value) => deepCopyFromSandbox(value)));
+                return undefined;
+              },
+              name: "error"
+            }),
+            log: createSandboxClosure({
+              call: async (args) => {
+                sink.log(...args.map((value) => deepCopyFromSandbox(value)));
+                return undefined;
+              },
+              name: "log"
+            })
+          }
+        : wrapCallerInjectedBindings(
+            {
+              error: (...args: unknown[]) => {
+                sink.error(...args);
+                return undefined;
+              },
+              log: (...args: unknown[]) => {
+                sink.log(...args);
+                return undefined;
+              }
+            },
+            {
+              budget: options.budget,
+              hostCalls: options.hostCalls,
+              moduleId: "<console>"
+            }
+          )
   };
 }
 

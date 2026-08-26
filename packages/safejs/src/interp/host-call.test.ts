@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { Budget } from "./budget.js";
+import { createSandboxClosure } from "./values.js";
 
 import {
   digestHostCallArguments,
@@ -24,6 +26,84 @@ function pendingRecord(overrides: Partial<HostCallRecord> = {}): HostCallRecord 
 }
 
 describe("HostCallJournal", () => {
+  it("does not let snapshot consumers mutate journal capability or callback metadata", () => {
+    const journal = new HostCallJournal(sourceHash);
+    const record = journal.issue({
+      moduleId: "host",
+      operation: "apply",
+      argumentDigest: "args",
+      policy: "re-issue"
+    }).record;
+    journal.registerCallbackFunction(
+      record,
+      1,
+      createSandboxClosure({ call: () => 42 }),
+      async () => undefined
+    );
+    journal.recordCallback(record, 1, [42], 1);
+    const snapshot = journal.snapshotReplay();
+    snapshot.calls[0]!.functions!.push(99);
+    snapshot.calls[0]!.callbacks![0]!.id = 99;
+    expect(journal.snapshotReplay().calls[0]).toMatchObject({
+      functions: [1],
+      callbacks: [{ id: 1 }]
+    });
+  });
+  it("restores returned source capabilities only after their matching invocation registers them", () => {
+    const journal = new HostCallJournal(sourceHash);
+    const input = {
+      moduleId: "host",
+      operation: "echo",
+      argumentDigest: "args",
+      policy: "re-issue" as const
+    };
+    const first = journal.issue(input).record;
+    const closure = createSandboxClosure({ call: () => 42 });
+    journal.registerCallbackFunction(first, 1, closure, async () => undefined);
+    journal.settle(first, { status: "fulfilled", value: closure });
+    const replay = JSON.parse(JSON.stringify(journal.snapshotReplay()));
+    const restored = new HostCallJournal(sourceHash, [], undefined, replay);
+    const next = restored.issue(input).record;
+    expect(() => restored.replayOutcome(next)).toThrow(/capability/i);
+    const replacement = createSandboxClosure({ call: () => 42 });
+    restored.registerCallbackFunction(next, 1, replacement, async () => undefined);
+    expect(restored.replayOutcome(next)).toEqual({ status: "fulfilled", value: replacement });
+    replay.calls[0].functions = [];
+    expect(() => new HostCallJournal(sourceHash, [], undefined, replay)).toThrow(/capability/i);
+  });
+  it.each(["joined", "detached"] as const)(
+    "honors the proof's %s callback disposition",
+    async (callbackDisposition) => {
+      const record = pendingRecord();
+      const waitForCallbacks = vi.fn(async () => undefined);
+      const journal = new HostCallJournal(sourceHash, [record], (request) => ({
+        ...request,
+        callbackDisposition,
+        outcome: { status: "fulfilled", value: "done" }
+      }));
+      const outcome = await journal.reconcile(record, {
+        callbacks: new Map([[1, async () => undefined]]),
+        replayed: [],
+        waitForCallbacks
+      });
+      expect(outcome).toEqual({ status: "fulfilled", value: "done" });
+      expect(waitForCallbacks).toHaveBeenCalledTimes(callbackDisposition === "joined" ? 1 : 0);
+    }
+  );
+  it("charges the same callback data before and after restoring the journal", () => {
+    const budget = new Budget();
+    const journal = new HostCallJournal(sourceHash, [], undefined, undefined, budget);
+    const record = journal.issue({
+      moduleId: "host",
+      operation: "apply",
+      argumentDigest: "args",
+      policy: "re-issue"
+    }).record;
+    journal.recordCallback(record, 1, ["value", { count: 2 }], 3);
+    const restoredBudget = new Budget();
+    new HostCallJournal(sourceHash, [], undefined, journal.snapshotReplay(), restoredBudget);
+    expect(restoredBudget.currentDataSize).toBe(budget.currentDataSize);
+  });
   it("uses stable run-scoped ids and explicit lifecycle transitions", () => {
     const journal = new HostCallJournal(sourceHash);
     const issued = journal.issue({

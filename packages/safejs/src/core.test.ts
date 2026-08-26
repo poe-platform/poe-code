@@ -10,6 +10,9 @@ describe("@poe-code/safejs/core", () => {
     expect(core.Budget).toBe(Budget);
     expect(core.lint).toBe(lint);
     expect(core.run).toBe(run);
-    expect(Object.keys(core).sort()).toEqual(["Budget", "run", "lint"].sort());
+    expect(core.createReplayableRandom({ seed: 123 }).next()).toBe(0.2837369213812053);
+    expect(Object.keys(core).sort()).toEqual(
+      ["Budget", "createReplayableRandom", "run", "lint"].sort()
+    );
   });
 });

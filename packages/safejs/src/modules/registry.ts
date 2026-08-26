@@ -52,7 +52,12 @@ export function createUnknownExportMessage(
 export function resolveModuleImports(
   module: Module,
   modules: ModuleRegistry | undefined,
-  options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal }
+  options: {
+    budget: Budget;
+    hostCalls?: HostCallJournal;
+    signal?: AbortSignal;
+    allowMissing?: boolean;
+  }
 ): Record<string, SandboxValue> {
   const registry = normalizeModuleRegistry(modules);
   const bindings = createBindingRecord();
@@ -74,12 +79,18 @@ function bindImportDeclaration(
   registry: NormalizedModuleRegistry,
   wrappedModules: Map<string, Record<string, SandboxValue>>,
   bindings: Record<string, SandboxValue>,
-  options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal }
+  options: {
+    budget: Budget;
+    hostCalls?: HostCallJournal;
+    signal?: AbortSignal;
+    allowMissing?: boolean;
+  }
 ): void {
   const moduleName = declaration.source.value;
   const moduleExports = registry.get(moduleName);
 
   if (moduleExports === undefined) {
+    if (options.allowMissing) return;
     throw createModuleImportError(
       createUnknownModuleMessage(moduleName, [...registry.keys()]),
       declaration.source.span
@@ -110,6 +121,11 @@ function bindImportDeclaration(
       );
     }
 
+    if (options.allowMissing && specifier.type !== "ImportNamespaceSpecifier") {
+      const exportName =
+        specifier.type === "ImportDefaultSpecifier" ? "default" : specifier.imported.name;
+      if (!Object.hasOwn(wrappedExports, exportName)) continue;
+    }
     bindings[localName] = resolveImportSpecifier(moduleName, specifier, wrappedExports);
   }
 }

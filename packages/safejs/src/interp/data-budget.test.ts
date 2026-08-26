@@ -22,6 +22,80 @@ function expectDataBudgetError(error: unknown): void {
 }
 
 describe("aggregate sandbox data budget", () => {
+  it("charges source closures retained only by the replay capability registry", async () => {
+    const source =
+      "for (let index = 0; index < 32; index += 1) { const payload = ['abcdefgh'.repeat(64)]; remember(() => payload); } return 'done';";
+    await expect(
+      run(source, {
+        bindings: { remember: () => undefined },
+        budget: new Budget({ dataSize: 4096 })
+      })
+    ).rejects.toSatisfy((error: unknown) => {
+      expectDataBudgetError(error);
+      return true;
+    });
+  });
+
+  it("charges immutable initial input history after mutable input is discarded", async () => {
+    const source =
+      "payload.value = ''; await Promise.resolve(); const next = 'abcdefgh'.repeat(900); return next.length;";
+    expect(
+      await run(source, {
+        bindings: { payload: { value: "" } },
+        budget: new Budget({ dataSize: 16000 })
+      })
+    ).toMatchObject({ ok: true, returnValue: 7200 });
+    await expect(
+      run(source, {
+        bindings: { payload: { value: "x".repeat(4096) } },
+        budget: new Budget({ dataSize: 16000 })
+      })
+    ).rejects.toSatisfy((error: unknown) => {
+      expectDataBudgetError(error);
+      return true;
+    });
+  });
+  it("bounds replay metadata for synchronous calls returning no data", async () => {
+    await expect(
+      run("for (let index = 0; index < 512; index += 1) { read(); }", {
+        bindings: { read: () => undefined },
+        budget: new Budget({ dataSize: 128 })
+      })
+    ).rejects.toSatisfy((error: unknown) => {
+      expectDataBudgetError(error);
+      return true;
+    });
+  });
+
+  it("bounds the retained promise scheduling trace", async () => {
+    await expect(
+      run("for (let index = 0; index < 100; index += 1) { await Promise.resolve(index); }", {
+        budget: new Budget({ dataSize: 128 })
+      })
+    ).rejects.toSatisfy((error: unknown) => {
+      expectDataBudgetError(error);
+      return true;
+    });
+  });
+
+  it.each([false, true])(
+    "charges completed host replay values even after scope drops them (async: %s)",
+    async (asynchronous) => {
+      const source =
+        "for (let index = 0; index < 100; index += 1) { await read(); } return 'done';";
+      const read = () => "x".repeat(64);
+      await expect(
+        run(source, {
+          bindings: { read: asynchronous ? async () => read() : read },
+          budget: new Budget({ dataSize: 4096 })
+        })
+      ).rejects.toSatisfy((error: unknown) => {
+        expectDataBudgetError(error);
+        return true;
+      });
+    }
+  );
+
   it("rejects many small strings below the per-string limit", async () => {
     const budget = new Budget({ dataSize: 20, stringLength: 8 });
 

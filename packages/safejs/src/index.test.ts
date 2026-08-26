@@ -81,6 +81,7 @@ describe("@poe-code/safejs public exports", () => {
       "HostOperationResumePolicyError",
       "SandboxError",
       "SnapshotValidationError",
+      "createReplayableRandom",
       "createSpawnUsageAccumulator",
       "declareHostOperation",
       "deepCopyFromSandbox",

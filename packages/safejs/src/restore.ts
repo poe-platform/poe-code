@@ -12,6 +12,8 @@ export type SafeJSSnapshot = {
   random?: {
     seed: number;
     state: number;
+    initialState?: number;
+    resumeState?: number;
   };
   [key: string]: unknown;
 };

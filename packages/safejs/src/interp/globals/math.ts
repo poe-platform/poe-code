@@ -39,6 +39,7 @@ const mathMethods = {
 
 export type SeededRandom = {
   next: () => number;
+  restore: (state: number) => void;
   snapshot: () => number;
 };
 
@@ -91,7 +92,10 @@ export function createSeededRandom(seed: number): SeededRandom {
       state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
       return state / 4_294_967_296;
     },
-    snapshot: () => state
+    snapshot: () => state,
+    restore: (nextState) => {
+      state = normalizeSeed(nextState);
+    }
   };
 }
 

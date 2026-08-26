@@ -2,6 +2,7 @@ export { parse } from "./parse.js";
 export { parseModule } from "./parse/parser.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
+export { createReplayableRandom, type ReplayableRandom } from "./random.js";
 export type { RunClock, RunClockSnapshot, RunRandom } from "./run.js";
 export { noopOtelSink } from "./observability/otel.js";
 export type { OtelSink, OtelSpan } from "./observability/otel.js";
@@ -13,6 +14,7 @@ export type {
   HostCallLifecycle,
   HostCallOutcome,
   HostCallRecord,
+  HostCallResumeContext,
   HostCallResumeProof,
   HostCallResumeProvider,
   HostCallResumeRequest

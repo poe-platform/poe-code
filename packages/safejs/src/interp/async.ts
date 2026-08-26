@@ -39,6 +39,7 @@ export type InterpreterYieldPoint = {
   kind: "await" | "generator-yield" | "loop-iteration";
   nodeId?: number;
   otelSpan?: OtelSpan;
+  replayState?: unknown;
   snapshot: () => InterpreterSnapshot;
   span: SourceSpan;
 };
@@ -54,10 +55,12 @@ export type AsyncEvaluationContext = {
   budget: Budget;
   callStack: string[];
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
+  captureReplayState?: () => unknown;
   rootNode?: ParseResult;
   restoredLoopIterations: Map<number, LoopIterationSnapshot>;
+  resumeTarget?: { nodeId?: number };
   scope: Scope;
-  snapshot?: () => InterpreterSnapshot;
+  snapshot?: (scope: Scope) => InterpreterSnapshot;
   stats: {
     currentDataSize: number;
     nodeVisits: number;
@@ -82,7 +85,7 @@ export function emitResumeBreakpoint(
 ): void {
   context.onYield?.({
     ...breakpoint,
-    snapshot: context.snapshot ?? (() => context.scope.snapshot())
+    snapshot: () => context.snapshot?.(context.scope) ?? context.scope.snapshot()
   });
 }
 
@@ -242,6 +245,7 @@ export async function evaluateAwaitExpression(
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ): Promise<AsyncEvaluationResult> {
+  const replayState = context.captureReplayState?.();
   const argument = await evaluateNode(node.argument, context);
   if (argument.kind !== "normal") {
     return argument;
@@ -249,6 +253,7 @@ export async function evaluateAwaitExpression(
 
   emitResumeBreakpoint(context, {
     kind: "await",
+    replayState,
     nodeId: node.nodeId,
     ...(getBoundOtelSpan(argument.value) === undefined
       ? {}

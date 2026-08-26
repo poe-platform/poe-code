@@ -8,6 +8,7 @@ import {
   lint,
   FileSnapshotBackend,
   createSpawnUsageAccumulator,
+  createReplayableRandom,
   makeTimeModule,
   run,
   splitFrontmatter,
@@ -16,7 +17,7 @@ import {
   type OtelSink,
   type RunClock,
   type RunClockSnapshot,
-  type RunRandom,
+  type ReplayableRandom,
   type SnapshotBackend,
   type SpawnUsageTotal
 } from "@poe-code/safejs";
@@ -131,18 +132,14 @@ export async function runHarnessPair(
           restore: restoreClockState(runtimeClock),
           snapshot: runtimeClock.snapshot
         },
-        ...(runtimeRandom === undefined
-          ? {}
-          : {
-              "time.random": {
-                restore: restoreRandomState(runtimeRandom),
-                snapshot: runtimeRandom.snapshot
-              },
-              "time.uuid": {
-                restore: restoreRandomState(runtimeRandom),
-                snapshot: runtimeRandom.snapshot
-              }
-            })
+        "time.random": {
+          restore: restoreRandomState(runtimeRandom),
+          snapshot: runtimeRandom.snapshot
+        },
+        "time.uuid": {
+          restore: restoreRandomState(runtimeRandom),
+          snapshot: runtimeRandom.snapshot
+        }
       },
       { guardDefaultSnapshotPath }
     );
@@ -151,7 +148,7 @@ export async function runHarnessPair(
         options.modulesFor(validated, meta),
         makeTimeModule({
           now: runtimeClock.now,
-          random: runtimeRandom?.next
+          random: runtimeRandom.next
         })
       )
     );
@@ -298,60 +295,6 @@ function createReplayableClock(input: {
           };
     }
   };
-}
-
-type ReplayableRandom = RunRandom & {
-  restore: (state: number) => void;
-};
-
-function createReplayableRandom(input: {
-  seed: number | undefined;
-  snapshot: RunOptions["snapshot"] | undefined;
-}): ReplayableRandom | undefined {
-  if (input.snapshot?.random !== undefined) {
-    const generator = createSeededRandom(input.snapshot.random.state);
-    return {
-      seed: input.snapshot.random.seed,
-      next: generator.next,
-      restore: generator.restore,
-      snapshot: generator.snapshot
-    };
-  }
-
-  if (input.seed === undefined) {
-    return undefined;
-  }
-
-  const generator = createSeededRandom(input.seed);
-  return {
-    seed: Math.trunc(input.seed),
-    next: generator.next,
-    restore: generator.restore,
-    snapshot: generator.snapshot
-  };
-}
-
-function createSeededRandom(seed: number): Omit<ReplayableRandom, "seed"> {
-  let state = normalizeSeed(seed);
-
-  return {
-    next: () => {
-      state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
-      return state / 4_294_967_296;
-    },
-    restore: (nextState) => {
-      state = normalizeSeed(nextState);
-    },
-    snapshot: () => state
-  };
-}
-
-function normalizeSeed(seed: number): number {
-  if (!Number.isFinite(seed)) {
-    throw new TypeError("Seeded random requires a finite numeric seed.");
-  }
-
-  return Math.trunc(seed) >>> 0;
 }
 
 function restoreClockState(clock: ReplayableClock): (state: unknown) => void {

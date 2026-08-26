@@ -1,3 +1,4 @@
+import { promiseReplayContext } from "./promise-replay.js";
 import type {
   ArrayExpression,
   ArrayPattern,
@@ -153,6 +154,7 @@ export type InterpreterStats = {
 export type InterpreterSnapshot = {
   bindings: Record<string, InterpreterValue>;
   loopIterations?: Record<string, LoopIterationSnapshot>;
+  resumeNodeId?: number;
 };
 
 export type LoopIterationSnapshot =
@@ -189,6 +191,7 @@ export type InterpreterResult =
     };
 
 export type InterpretOptions = {
+  captureReplayState?: () => unknown;
   bindings?: Record<string, InterpreterValue>;
   budget?: Budget;
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
@@ -310,6 +313,7 @@ export async function interpret(
     budget,
     callStack: [],
     onYield: options.onYield,
+    captureReplayState: options.captureReplayState,
     rootNode: node,
     scope,
     stats,
@@ -322,7 +326,8 @@ export async function interpret(
       ])
     ),
     generatorResume: options.generatorResume,
-    generatorYield: options.generatorYield
+    generatorYield: options.generatorYield,
+    resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
   };
   const evaluation = await evaluateNode(node, context);
   await drainMicrotasks(context);
@@ -407,8 +412,14 @@ async function evaluateNode(
   node: ParseResult,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
+  if (replayWait !== undefined) await replayWait;
   context.budget.visitNode();
   context.stats.nodeVisits += 1;
+
+  if (node.nodeId !== undefined && context.resumeTarget?.nodeId === node.nodeId) {
+    context.resumeTarget.nodeId = undefined;
+  }
 
   const handler = dispatchTable[node.type];
   if (handler === undefined) {
@@ -465,9 +476,7 @@ function reconcileDataBudget(
   transient: SandboxValue | undefined
 ): void {
   budget.reconcileDataUsage(
-    measureSandboxData(
-      transient === undefined ? scope.retainedValues() : [...scope.retainedValues(), transient]
-    )
+    measureSandboxData([...scope.retainedValues(), ...budget.retainedValues(), transient])
   );
   stats.currentDataSize = budget.currentDataSize;
   stats.peakDataSize = budget.peakDataSize;
@@ -1099,6 +1108,24 @@ async function evaluateVariableDeclaration(
       continue;
     }
 
+    if (declarator.id.type === "ArrayPattern" || declarator.id.type === "ObjectPattern") {
+      const names = getPatternBindingNames(declarator.id);
+      const restoredBindings: Array<[string, InterpreterValue]> = [];
+      for (const name of names) {
+        const restored = context.scope.consumeRestoredBinding(name);
+        if (restored.found && isRestorableBindingValue(restored.value)) {
+          restoredBindings.push([name, restored.value]);
+        }
+      }
+      if (names.length > 0 && restoredBindings.length === names.length) {
+        for (const [name, value] of restoredBindings) {
+          if (node.kind === "var") context.scope.assign(name, value);
+          else context.scope.declare(name, node.kind, value);
+        }
+        continue;
+      }
+    }
+
     const restoredValue =
       declarator.id.type === "Identifier"
         ? context.scope.consumeRestoredBinding(declarator.id.name)
@@ -1255,11 +1282,14 @@ function findResumeStatementIndex(
   node: BlockStatement,
   context: EvaluationContext
 ): number | undefined {
-  if (context.restoredLoopIterations.size === 0) {
+  if (context.restoredLoopIterations.size === 0 && context.resumeTarget?.nodeId === undefined) {
     return undefined;
   }
 
   const targetNodeIds = new Set(context.restoredLoopIterations.keys());
+  if (context.resumeTarget?.nodeId !== undefined) {
+    targetNodeIds.add(context.resumeTarget.nodeId);
+  }
   const index = node.body.findIndex((statement) => containsResumeTarget(statement, targetNodeIds));
   return index === -1 ? undefined : index;
 }
@@ -1834,8 +1864,8 @@ function createLoopIterationContext(context: EvaluationContext, scope: Scope): E
   return {
     ...context,
     scope,
-    snapshot: () => ({
-      ...scope.snapshot(),
+    snapshot: (currentScope: Scope) => ({
+      ...currentScope.snapshot(),
       ...(context.activeLoopIterations.size === 0
         ? {}
         : { loopIterations: Object.fromEntries(context.activeLoopIterations) })

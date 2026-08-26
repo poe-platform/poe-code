@@ -14,6 +14,13 @@ import { run } from "./run.js";
 import { resolvePendingHostCallResumePolicy } from "./snapshot/policy.js";
 
 describe("run", () => {
+  it("continues to accept an injected promise without requiring durable snapshots", async () => {
+    await expect(
+      run("return await pending;", {
+        bindings: { pending: createSandboxPromise(Promise.resolve(42)) }
+      })
+    ).resolves.toMatchObject({ ok: true, returnValue: 42 });
+  });
   afterEach(() => {
     vi.unstubAllEnvs();
   });
@@ -1879,11 +1886,14 @@ try {
     });
   });
 
-  it("does not serialize random state for host randomness", async () => {
+  it("serializes automatically seeded random state by default", async () => {
     const result = await run("return Math.random()");
 
     expect(result.ok).toBe(true);
-    expect(result.snapshot.random).toBeUndefined();
+    expect(result.snapshot.random).toMatchObject({
+      seed: expect.any(Number),
+      state: expect.any(Number)
+    });
   });
 
   it("evaluates regex literals and constructable RegExp globals", async () => {

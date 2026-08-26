@@ -2,7 +2,8 @@ import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { GeneratorChannel } from "./generator.js";
 import { SandboxError } from "./budget.js";
-import { trackSandboxPromise } from "./promise-tracker.js";
+import { observeSandboxPromise, trackSandboxPromise } from "./promise-tracker.js";
+import { promiseReplayContext } from "./promise-replay.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -134,7 +135,7 @@ export function createSandboxClosure(input: {
     context?: SandboxCallContext
   ) => SandboxValue | Promise<SandboxValue>;
   name?: string;
-  properties?: SandboxObject;
+  properties?: SandboxObject | ((closure: SandboxClosure) => SandboxObject);
   retainedValues?: () => Iterable<SandboxValue>;
 }): SandboxClosure {
   const closure = {
@@ -153,7 +154,9 @@ export function createSandboxClosure(input: {
   if (input.properties !== undefined) {
     Object.defineProperty(closure, "properties", {
       enumerable: false,
-      value: Object.freeze(input.properties)
+      value: Object.freeze(
+        typeof input.properties === "function" ? input.properties(closure) : input.properties
+      )
     });
   }
 
@@ -176,7 +179,7 @@ export function createSandboxPromise(
 ): SandboxPromise {
   const sandboxPromise = {
     kind: "promise" as const,
-    promise
+    promise: promiseReplayContext.getStore()?.track(promise) ?? promise
   } as SandboxPromise;
 
   Object.defineProperty(sandboxPromise, sandboxPromiseBrand, {
@@ -324,7 +327,10 @@ export function allocateProducedSandboxValue(value: SandboxValue, budget: Budget
   return value;
 }
 
-export function measureSandboxData(values: Iterable<unknown>): number {
+export function measureSandboxData(
+  values: Iterable<unknown>,
+  options: { ignoreClosures?: boolean; ignoreClosureCaptures?: boolean } = {}
+): number {
   const seen = new WeakSet<object>();
   let usage = 0;
 
@@ -357,8 +363,10 @@ export function measureSandboxData(values: Iterable<unknown>): number {
       return;
     }
     if (isSandboxClosure(value)) {
+      if (options.ignoreClosures) return;
       if (value.properties !== undefined) visit(value.properties);
-      for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained);
+      if (!options.ignoreClosureCaptures)
+        for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained);
       return;
     }
     if (isSandboxGenerator(value)) {
@@ -597,6 +605,7 @@ function copyFromSandbox(
   }
 
   if (isSandboxPromise(value)) {
+    observeSandboxPromise(value);
     return value.promise.then(
       (resolved) => copyFromSandbox(resolved, { seen: new WeakMap() }, "<root>", options),
       (reason: SandboxValue) =>

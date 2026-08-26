@@ -1210,91 +1210,97 @@ describe("runHarnessPair", () => {
     });
   });
 
-  it("keeps seeded time.uuid and time.now stable across snapshot replay", async () => {
-    const mdPath = "/repo/harness/stable-id.md";
-    const snapshotPath = "/snapshots/stable-id.json";
-    const script = [
-      'import * as time from "time";',
-      'import { wait } from "host";',
-      "export default async (frontmatter) => {",
-      "  const first = time.uuid().concat('@').concat(String(time.now()));",
-      "  await wait('first');",
-      "  const second = time.uuid().concat('@').concat(String(time.now()));",
-      "  await wait('second');",
-      "  const third = time.uuid().concat('@').concat(String(time.now()));",
-      "  return first.concat('|').concat(second).concat('|').concat(third);",
-      "};"
-    ].join("\n");
-    vol.fromJSON({
-      [mdPath]: "---\nkind: stable-id\nversion: 1\n---\n",
-      "/repo/harness/stable-id.ajs": script
-    });
+  it.each([undefined, 123])(
+    "keeps time.uuid and time.now stable across snapshot replay with seed %s",
+    async (randomSeed) => {
+      const mdPath = "/repo/harness/stable-id.md";
+      const snapshotPath = "/snapshots/stable-id.json";
+      const script = [
+        'import * as time from "time";',
+        'import { wait } from "host";',
+        "export default async (frontmatter) => {",
+      "  const first = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
+        "  await wait('first');",
+      "  const second = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
+        "  await wait('second');",
+      "  const third = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
+        "  return first.concat('|').concat(second).concat('|').concat(third);",
+        "};"
+      ].join("\n");
+      vol.fromJSON({
+        [mdPath]: "---\nkind: stable-id\nversion: 1\n---\n",
+        "/repo/harness/stable-id.ajs": script
+      });
 
-    const first = createDeferred<string>();
-    const second = createDeferred<string>();
-    const controller = new AbortController();
-    const firstRun = runHarnessPair(mdPath, {
-      clock: {
-        now: () => 5_000
-      },
-      modulesFor: () => ({
-        host: {
-          async wait(name: string) {
-            return name === "first" ? first.promise : second.promise;
+      const first = createDeferred<string>();
+      const second = createDeferred<string>();
+      const controller = new AbortController();
+      const firstRun = runHarnessPair(mdPath, {
+        clock: {
+          now: () => 5_000
+        },
+        modulesFor: () => ({
+          host: {
+            async wait(name: string) {
+              return name === "first" ? first.promise : second.promise;
+            }
           }
-        }
-      }),
-      randomSeed: 123,
-      signal: controller.signal,
-      snapshotIntervalMs: -1,
-      snapshotPath
-    });
+        }),
+        randomSeed,
+        signal: controller.signal,
+        snapshotIntervalMs: -1,
+        snapshotPath
+      });
 
-    await flushMicrotasks();
-    first.resolve("alpha");
-    await flushMicrotasks();
+      await flushMicrotasks();
+      first.resolve("alpha");
+      await flushMicrotasks();
 
-    controller.abort();
-    second.reject(new Error("aborted"));
-    await expect(firstRun).rejects.toMatchObject({
-      name: "AbortError"
-    });
+      controller.abort();
+      second.reject(new Error("aborted"));
+      await expect(firstRun).rejects.toMatchObject({
+        name: "AbortError"
+      });
 
-    const resumed = await runHarnessPair(mdPath, {
-      clock: {
-        now: () => 99_999
-      },
-      modulesFor: () => ({
-        host: {
-          async wait() {
-            return "beta";
+      const saved = JSON.parse(vol.readFileSync(snapshotPath, "utf8") as string);
+      expect(saved.random?.seed).toEqual(expect.any(Number));
+
+      const resumed = await runHarnessPair(mdPath, {
+        clock: {
+          now: () => 99_999
+        },
+        modulesFor: () => ({
+          host: {
+            async wait() {
+              return "beta";
+            }
           }
-        }
-      }),
-      randomSeed: 123,
-      snapshotPath
-    });
+        }),
+        randomSeed,
+        snapshotPath
+      });
 
-    const fresh = await runHarnessPair(mdPath, {
-      clock: {
-        now: () => 5_000
-      },
-      modulesFor: () => ({
-        host: {
-          async wait() {
-            return "done";
+      const fresh = await runHarnessPair(mdPath, {
+        clock: {
+          now: () => 5_000
+        },
+        modulesFor: () => ({
+          host: {
+            async wait() {
+              return "done";
+            }
           }
-        }
-      }),
-      randomSeed: 123,
-      snapshotPath: "/snapshots/stable-id-fresh.json"
-    });
+        }),
+        randomSeed: saved.random.seed,
+        snapshotPath: "/snapshots/stable-id-fresh.json"
+      });
 
-    expect(resumed).toMatchObject({
-      ok: true,
-      returnValue: fresh.ok ? fresh.returnValue : undefined
-    });
-  });
+      expect(resumed).toMatchObject({
+        ok: true,
+        returnValue: fresh.ok ? fresh.returnValue : undefined
+      });
+    }
+  );
 
   it("does not replay stale host calls after a successful run with the same snapshotPath", async () => {
     const mdPath = "/repo/harness/fresh.md";

@@ -10,7 +10,7 @@ language completeness from passing existing tests alone.
 - [x] Mutable closures: accept shared mutable lexical captures in lint, verify
       read/write, shadowing, default parameters, per-iteration bindings, async branches,
       and snapshot/restore behavior.
-- [ ] Function syntax: lint declarations and expressions, including default
+- [x] Function syntax: lint declarations and expressions, including default
       exports, with the same semantics and diagnostics as runtime. Native-JavaScript
       audit also found missing ordinary-function `arguments` bindings; include their
       strict-mode semantics and arrow inheritance in this item.
@@ -96,7 +96,7 @@ Record commit, workflow conclusion, and published version for each item here.
 - Opt-in adversarial/parser fuzz run: 9 passed, 5 skipped. The skipped Test262
   cases remain explicit gaps, not evidence of full language conformance.
 
-### Ordinary functions — implementation verified, release pending
+### Ordinary functions — released in poe-code 4.0.59
 
 - Lint visits function declarations, expressions, default exports, parameter
   defaults, and yielded expressions. Hoisting, recursion, named-expression scope,
@@ -115,6 +115,11 @@ Record commit, workflow conclusion, and published version for each item here.
   14-case function stress suite including two additional budget regressions.
 - Opt-in adversarial/parser fuzz: 9 passed, 5 skipped. Root typecheck passed.
 - Updated the skill template and ran `npm run sync-skills`.
+- Commits: `a3fe17b3` and `be05fabc`, rebased onto concurrent main changes without
+  discarding them. Pre-push: 18,646 passed, 41 skipped; no hooks bypassed.
+- GitHub Release run `33004449377`: success, including build, signatures, package
+  lint, tests, smoke, and publication. Verified npm `latest` is `4.0.59` and GitHub
+  release `v4.0.59` was published on August 26, 2026 at 19:34:20 UTC.
 - Pre-push consumer coverage exposed a stale code-mode test that still expected
   functions to be rejected. Replaced its negative fixture with forbidden `eval`
   and added an ordinary-function/arguments integration regression.
@@ -143,3 +148,198 @@ Inspected the screenshot: all three harnesses passed with results 131040, 128,
 and 2000 respectively. No LLM calls or external services were needed.
 The same three large scripts also matched native strict JavaScript through the
 public SDK at widths 64, 128, and 1,000.
+
+## Randomness work in progress
+
+Not released. Tests first reproduced missing default RNG snapshot state and
+seeded top-level replay drift. The implementation now auto-seeds, normalizes
+seeds, records the run's initial state and pre-await argument state, and shares a
+replayable generator factory between the SDK and paired harness loader.
+
+Initial fixes to partial loop restoration were insufficient. Five new regressions
+exposed lost factory captures, repeated awaited-argument mutations, mismatched
+host-call ordinals, and RNG drift across consecutive checkpoints. New checkpoints
+now rebuild lexical state by replaying source and recorded host outcomes; legacy
+snapshots retain their existing restoration path.
+
+Completed replay outcomes are immutable copies, encoded as explicit portable
+graphs. Focused tests cover cyclic/aliased objects, sparse arrays, descriptors,
+strict arguments, collections, regular expressions, special numbers, and
+tag-shaped user objects. Accessor/prototype audits exposed getter invocation in
+the initial validator; replay data now rejects accessors, custom prototypes,
+proxies, and malformed arrays without invoking their properties.
+
+Immediate replay of completed promises changed `Promise.race` winners. A per-run
+settlement trace now gates promises by recorded interpreter positions and
+settlement order. Recording leaves the original promises intact so that it does
+not change cancellation timing. Native comparisons cover host/pure races,
+`Promise.any`, `Promise.allSettled`, and random draws in asynchronous reactions,
+including 1, 8, and 32 rounds. Console calls and caught sink failures now use the
+host journal to avoid repeating pre-checkpoint output.
+
+Replay results, host-call entries, and promise trace reservations count against
+the existing aggregate data budget. Regression tests cover discarded host
+results, synchronous calls returning no data, pure promise loops, provisional
+charges, reconciliation, and budget reset. Invalid legacy host-call identities
+are still rejected before external reconciliation even when replay data is
+present.
+
+Validation completed on August 26, 2026:
+
+- 28 dedicated RNG cases, 41 checkpoint interaction cases, 11 promise scheduling
+  cases, 9 portable result graph cases, and 42 paired harness loader cases pass.
+- Expanded SafeJS, harness, and code-mode suites: 3,340 passed, 39 skipped.
+- Opt-in adversarial/parser fuzz: 9 passed, 5 skipped. Skips remain gaps, not
+  evidence of conformance.
+- Full workspace build: 67 successful tasks, followed by successful root type
+  generation and bundle. SafeJS package typecheck, root typecheck, focused ESLint,
+  and diff whitespace checks pass.
+- Inspected the CLI screenshot from `npm run screenshot-poe-code -- harness run
+/tmp/safejs-random-stress.md --yes`: 4,096 iterations checked 8,192 direct
+  `Math.random`/`time.random` draws and 32 unique UUIDs, with an await every 128
+  iterations. The harness passed without LLM calls.
+
+### Callback replay and external recovery
+
+The original callback-resume hang is fixed and covered by a regression:
+
+```js
+const values = [];
+await apply((value) => values.push(value));
+await wait();
+return values;
+```
+
+Recorded host calls now retain immutable callback arguments and invocation
+identities. The execution trace orders callback starts, callback completions,
+and promise settlements. Coverage includes sequential and deferred callbacks,
+callbacks returned by callbacks, aliased cyclic arguments, caught rejections,
+nested host effects, repeated checkpoint chains, and checkpoints inside a
+re-issuable host operation's callback. Transferred promises are marked observed
+so native handling of callback rejection is not falsely reported as unhandled.
+
+Another audit found premature non-idempotent recovery: a resumed operation
+returned count 1 instead of 11 because its callback was still running. External
+proofs now explicitly specify `callbackDisposition` as `joined` or `detached`.
+`HostCallResumeContext` exposes saved callback results and adapters for continuing
+native protocols, without repeating the original non-idempotent operation.
+Future callbacks wait until replay catches up to the checkpoint. The public
+contract is documented in `packages/safejs/CHECKPOINT_REPLAY.md`.
+
+Malformed callback traces are cross-checked against the host journal before
+external reconciliation. A scheduled callback failure rejects pending replay
+work instead of leaving promises stalled or producing an unhandled rejection.
+Callback argument budget charges agree before and after restoration.
+
+#### Manual callback stress verification
+
+Run four script families at widths 1, 32, and 256. An asynchronous host `apply`
+calls a source callback sequentially. Each source callback records its index and
+one random draw, then awaits a pure promise. Compare original and resumed arrays
+with an independently generated native reference using the checkpoint's seed:
+
+1. Completed operation: checkpoint after the loop; assert the native `apply`
+   executes only once across original and resumed runs.
+2. Pending operation: checkpoint inside callback `floor(width / 2)`; assert the
+   re-issuable native `apply` executes twice, without repeating source mutations.
+3. Nested effects: each callback awaits a native `read(index)` before recording
+   its row; checkpoint after the loop and assert only `width` native reads.
+4. Pending nested effects: checkpoint inside the middle callback; assert total
+   native reads are `2 * width - floor(width / 2) - 1`, because only work after the
+   checkpoint runs again in the resumed continuation.
+
+All 12 scripts passed, including exact arrays and host invocation counts. Each
+case completed in 3–375 ms in the recorded run. They made no LLM calls.
+
+### Input and callable capability recovery
+
+Two additional public-SDK probes exposed defects, now fixed with regressions:
+
+1. **Initial injected data was not retained.** With
+   `const value = payload.value; await wait(); return value;`, the original run
+   returned 1, but restoring with `payload.value` set to 2 returned 2. Source replay
+   now preserves original bindings, imported data, entry arguments, and import
+   metadata, while rebinding explicitly named capabilities. Data-only inputs may
+   be omitted on resume. Tests also cover aliases, cycles, collections, and
+   mutable data attached to injected sandbox capabilities.
+2. **Returned source functions were treated as opaque host results.** With a
+   native asynchronous identity function `echo`, the script
+   `const callback = await echo(() => 42); await wait(); return callback();`
+   failed checkpoint creation. The bridge now recovers the original source
+   closure from its native adapter and records a validated capability reference.
+   Replay restores identity and lexical mutations, including callback factories,
+   functions passed back in callback arguments, both host-operation policies,
+   and repeated checkpoint chains.
+
+Further TDD audits fixed two issues in that implementation: retained source
+closures could escape the aggregate data budget, and callers could mutate
+capability/callback metadata through a returned snapshot. Registry roots now
+participate in scope reconciliation; snapshot metadata is copied. Initial input
+history also retains a budget reservation after source mutations drop its data.
+
+Preserving initial data initially rejected injected promises even without a
+durable backend. Injected promises now use the host journal: completed results
+restore without their original native objects, while pending operations require
+external reconciliation. A corruption regression verifies initial input shape
+validation happens before invoking that resumer.
+
+A detached producer callback exposed a replay stall, then a host-call ordering
+mismatch. Function references now resolve when their source functions are
+registered, rather than waiting for producer completion. Callback replay also
+records AST node order to keep competing continuations in their original order.
+Trace shape and source-node membership are validated before execution.
+
+#### Additional manual script matrix
+
+Run four script families at widths 1, 32, and 256, using a fixed seed and an
+independent native LCG to verify every returned random value:
+
+1. Mutate aliased, cyclic input data before checkpointing; omit it on resume.
+2. Pass source functions through native identity operations; verify source
+   identity, per-function lexical counters, and exactly one native call each.
+3. Return functions from asynchronous callback factories and invoke them after
+   replay reconstruction.
+4. Pass source functions back through callback arguments and verify identity.
+
+All 12 cases passed, including exact native-reference arrays and host counts.
+The recorded run took 3–968 ms per case. A separate matrix covers detached
+producers, completed promise inputs, and mutable callable input properties.
+All nine additional cases passed at widths 1, 32, and 256, including native
+reference equality and no repeated producer launches; times were 3–1,083 ms.
+
+Latest validation on August 26, 2026:
+
+- Expanded SafeJS, harness, harness-tool, and code-mode suites: 3,619 passed,
+  39 skipped.
+- Dedicated interaction suite: 56 cases; execution scheduler: 16; portable graph:
+  16; initial inputs: 7; host journal: 17.
+- Opt-in adversarial/parser fuzz: 9 passed, 5 skipped.
+- Workspace build: 67 successful tasks and completed root bundle. SafeJS
+  typecheck, focused ESLint across changed TypeScript files, and whitespace
+  checks pass.
+- Root typecheck passes. Re-ran and inspected the real CLI screenshot:
+  8,192 random draws and 32 UUIDs checked, harness passed, zero agent spawns.
+
+Final bridge review reproduced repeated execution of nested native methods.
+Nested methods and function-valued properties now use the same journaled bridge
+as top-level native bindings, while retaining existing diagnostic paths. Three
+more native-reference scripts at widths 1, 32, and 256 combine nested reads with
+returned source functions; they pass with exactly one read and echo per item
+(16–555 ms per case). This brings the additional script matrices to 24 cases.
+
+### Remaining release gates
+
+The identified replay regressions and the current validation gates pass. Review
+authoring guidance, commit this item, run the full pre-push suite, and verify
+actual GitHub/npm publication. No randomness release has been made yet. The full
+language-completeness goal remains active; the remaining checklist items are not
+claimed complete by this release.
+
+## Stale artifact cleanup
+
+- Removed ignored `dist` / `.turbo` output from obsolete `agent-maestro`,
+  `agent-script`, and `runner-e2b` package directories; workspace builds pass.
+- An empty, inactive rebase marker dated June 13, 2026 prevented integration of
+  newer main commits. Archived it to
+  `/tmp/poe-stale-rebase.oKpckf/rebase-merge.tar.gz`, then used `git rebase --quit`,
+  verifying HEAD did not change. No source changes were discarded.

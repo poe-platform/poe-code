@@ -13,6 +13,43 @@ function expectSandboxError(action: () => unknown, expected: Partial<SandboxErro
 }
 
 describe("Budget", () => {
+  it("keeps runtime-retained data charged across scope reconciliation", () => {
+    const budget = new Budget({ dataSize: 10 });
+    const owner = {};
+    budget.reconcileDataUsage(4);
+    budget.setRetainedDataUsage(owner, 5);
+    expect(budget.currentDataSize).toBe(9);
+    budget.reconcileDataUsage(3);
+    expect(budget.currentDataSize).toBe(8);
+    expectSandboxError(() => budget.reconcileDataUsage(6), {
+      budget: "dataSize",
+      current: 11,
+      limit: 10
+    });
+    expectSandboxError(() => budget.setRetainedDataUsage(owner, 8), {
+      budget: "dataSize",
+      current: 11,
+      limit: 10
+    });
+    expect(budget.currentDataSize).toBe(8);
+    budget.setRetainedDataUsage(owner, 0);
+    expect(budget.currentDataSize).toBe(3);
+    expect(budget.peakDataSize).toBe(9);
+  });
+
+  it("preserves retained charges when provisional data is released and clears them on reset", () => {
+    const budget = new Budget({ dataSize: 20 });
+    budget.reconcileDataUsage(2);
+    const release = budget.provisionDataUsage(3);
+    budget.setRetainedDataUsage({}, 4);
+    release();
+    release();
+    expect(budget.currentDataSize).toBe(6);
+    budget.reset();
+    budget.reconcileDataUsage(1);
+    expect(budget.currentDataSize).toBe(1);
+  });
+
   it.each([
     { option: "maxSteps", value: Number.NaN },
     { option: "maxSteps", value: Number.POSITIVE_INFINITY },

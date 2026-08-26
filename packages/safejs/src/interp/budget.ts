@@ -80,6 +80,9 @@ export class Budget {
   private allChecksSuspended = 0;
   private deadlineChecksSuspended = 0;
   private visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+  private retainedDataSize = 0;
+  private readonly retainedData = new Map<object, number>();
+  private readonly retainedValueSources = new Map<object, () => Iterable<unknown>>();
 
   constructor(options: BudgetOptions = {}) {
     this.deadline = normalizeDeadline(options.deadline);
@@ -144,13 +147,38 @@ export class Budget {
   }
 
   reconcileDataUsage(usage: number): void {
-    this.checkDataUsage(usage);
-    this.currentDataSize = usage;
-    this.peakDataSize = Math.max(this.peakDataSize, usage);
+    const total = usage + this.retainedDataSize;
+    this.checkDataUsage(total);
+    this.currentDataSize = total;
+    this.peakDataSize = Math.max(this.peakDataSize, total);
+  }
+
+  setRetainedDataUsage(owner: object, usage: number): void {
+    if (!Number.isSafeInteger(usage) || usage < 0) {
+      throw new TypeError("Retained data usage must be a non-negative safe integer.");
+    }
+    const delta = usage - (this.retainedData.get(owner) ?? 0);
+    const total = this.currentDataSize + delta;
+    this.checkDataUsage(total);
+    if (usage === 0) this.retainedData.delete(owner);
+    else this.retainedData.set(owner, usage);
+    this.retainedDataSize += delta;
+    this.currentDataSize = total;
+    this.peakDataSize = Math.max(this.peakDataSize, total);
+  }
+
+  setRetainedValues(owner: object, values: (() => Iterable<unknown>) | undefined): void {
+    if (values === undefined) this.retainedValueSources.delete(owner);
+    else this.retainedValueSources.set(owner, values);
+  }
+
+  *retainedValues(): Iterable<unknown> {
+    for (const values of this.retainedValueSources.values()) yield* values();
   }
 
   provisionDataUsage(usage: number): () => void {
     const previous = this.currentDataSize;
+    const previousRetained = this.retainedDataSize;
     const next = previous + usage;
     this.checkDataUsage(next);
     this.currentDataSize = next;
@@ -160,7 +188,7 @@ export class Budget {
     return () => {
       if (released) return;
       released = true;
-      this.currentDataSize = previous;
+      this.currentDataSize = previous + this.retainedDataSize - previousRetained;
     };
   }
 
@@ -178,6 +206,9 @@ export class Budget {
     this.currentCallDepth = 0;
     this.currentDataSize = 0;
     this.peakDataSize = 0;
+    this.retainedDataSize = 0;
+    this.retainedData.clear();
+    this.retainedValueSources.clear();
     this.allChecksSuspended = 0;
     this.deadlineChecksSuspended = 0;
     this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;

@@ -1,5 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { SandboxValue } from "./values.js";
+import {
+  createSandboxClosure,
+  deepCopyToSandbox,
+  measureSandboxData,
+  type SandboxClosure,
+  type SandboxValue
+} from "./values.js";
+import type { Budget } from "./budget.js";
+import { decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import { validateSnapshotData } from "../snapshot/validation.js";
 import {
   pendingHostCallResumeIdentityMatches,
   type PendingHostCallPolicyMode
@@ -20,6 +29,19 @@ export type HostCallRecord = {
   policy: PendingHostCallPolicyMode;
   lifecycle: HostCallLifecycle;
   outcome?: HostCallOutcome;
+  asynchronous?: boolean;
+  callbacks?: Array<{ id: number; step: number; arguments: ReplayData }>;
+  functions?: number[];
+};
+
+export type HostCallReplay = {
+  version: 1;
+  calls: Array<
+    Omit<HostCallRecord, "outcome" | "asynchronous"> & {
+      asynchronous: boolean;
+      outcome?: { status: "fulfilled" | "rejected"; data: ReplayData };
+    }
+  >;
 };
 
 export type HostCallResumeProof = {
@@ -29,6 +51,13 @@ export type HostCallResumeProof = {
   operation: string;
   argumentDigest: string;
   outcome: HostCallOutcome;
+  callbackDisposition?: "joined" | "detached";
+};
+
+export type HostCallResumeContext = {
+  callbacks: ReadonlyMap<number, (...args: readonly unknown[]) => Promise<unknown>>;
+  replayed: ReadonlyArray<{ callbackId: number; result: Promise<unknown> }>;
+  waitForCallbacks: () => Promise<void>;
 };
 
 export type HostCallResumeRequest = Omit<HostCallRecord, "id" | "outcome"> & {
@@ -37,7 +66,8 @@ export type HostCallResumeRequest = Omit<HostCallRecord, "id" | "outcome"> & {
 };
 
 export type HostCallResumeProvider = (
-  request: HostCallResumeRequest
+  request: HostCallResumeRequest,
+  context?: HostCallResumeContext
 ) => HostCallResumeProof | Promise<HostCallResumeProof>;
 
 export class HostCallResumabilityError extends Error {
@@ -58,21 +88,101 @@ export class HostCallResumabilityError extends Error {
   }
 }
 
+export class UnresolvedReplayCapabilityError extends TypeError {
+  constructor(readonly id: string) {
+    super(`Missing replay capability '${id}'.`);
+    this.name = "UnresolvedReplayCapabilityError";
+  }
+}
+
 export class HostCallJournal {
   readonly runId: string;
   private nextCall = 1;
   private readonly records: HostCallRecord[];
   private readonly restored: HostCallRecord[];
+  private readonly outcomes = new Map<string, HostCallOutcome>();
+  private readonly recordedReplay: boolean;
+  private retainedSize = 0;
+  private readonly outcomeSizes = new Map<string, number>();
+  private readonly capabilities = new Map<string, SandboxClosure>();
+  private readonly capabilityIds = new WeakMap<SandboxClosure, string>();
+  readonly nativeClosures = new WeakMap<object, SandboxClosure>();
+  private readonly encodedOutcomes = new Map<
+    string,
+    { status: "fulfilled" | "rejected"; data: ReplayData }
+  >();
+  private readonly callbackSizes = new Map<string, number>();
+  private readonly completedCallbackOwners = new Set<string>();
+  private readonly capabilityWaiters = new Map<
+    string,
+    {
+      promise: Promise<void>;
+      resolve: () => void;
+      reject: (reason: unknown) => void;
+    }
+  >();
+  readonly identifyCapability = this.capabilityIds.get.bind(this.capabilityIds);
+  readonly resolveCapability = (id: string): SandboxClosure => {
+    const capability = this.capabilities.get(id);
+    if (capability === undefined) throw new UnresolvedReplayCapabilityError(id);
+    return capability;
+  };
 
   constructor(
     private readonly sourceHash: string,
     records: readonly HostCallRecord[] = [],
-    private readonly resumeProvider?: HostCallResumeProvider
+    private readonly resumeProvider?: HostCallResumeProvider,
+    replay?: unknown,
+    private budget?: Budget
   ) {
+    this.recordedReplay = replay !== undefined;
+    if (replay !== undefined) {
+      const replayRecords = restoreReplayCalls(replay, this.encodedOutcomes, this.callbackSizes);
+      const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? randomUUID();
+      validateRestoredRecords(records, restoredRunId, sourceHash);
+      for (const record of records) {
+        const replayRecord = replayRecords[readCallOrdinal(record) - 1];
+        if (
+          replayRecord === undefined ||
+          !callIdentityMatches(record, replayRecord) ||
+          record.lifecycle !== replayRecord.lifecycle
+        ) {
+          throw new HostCallResumabilityError(
+            record,
+            "reset",
+            `Host call ${record.id} conflicts with the replay journal; reset is required.`
+          );
+        }
+      }
+      records = replayRecords;
+    }
     this.runId = records[0]?.runId ?? randomUUID();
-    this.records = records.map((record) => structuredClone(record));
+    this.records = records.map((record) => ({
+      ...record,
+      ...(record.functions === undefined ? {} : { functions: [...record.functions] }),
+      ...(record.callbacks === undefined ? {} : { callbacks: structuredClone(record.callbacks) }),
+      ...(record.outcome === undefined ? {} : { outcome: copyOutcome(record.outcome) })
+    }));
     validateRestoredRecords(this.records, this.runId, sourceHash);
+    this.retainedSize = this.records.length;
+    try {
+      this.budget?.setRetainedDataUsage(this, this.retainedSize);
+      for (const record of this.records) {
+        if (record.outcome !== undefined) this.retainOutcome(record, record.outcome);
+        for (const [index, callback] of (record.callbacks ?? []).entries()) {
+          this.retainedSize +=
+            1 +
+            (this.callbackSizes.get(`${record.id}/callback/${index + 1}`) ??
+              measureSandboxData([decodeReplayData(callback.arguments)]));
+        }
+      }
+      this.budget?.setRetainedDataUsage(this, this.retainedSize);
+    } catch (error) {
+      this.dispose();
+      throw error;
+    }
     this.restored = [...this.records];
+    this.budget?.setRetainedValues(this, () => this.capabilities.values());
   }
 
   issue(input: {
@@ -108,6 +218,8 @@ export class HostCallJournal {
     argumentDigest: string;
     policy: PendingHostCallPolicyMode;
   }): HostCallRecord {
+    this.budget?.setRetainedDataUsage(this, this.retainedSize + 1);
+    this.retainedSize += 1;
     const record: HostCallRecord = {
       id: `${this.runId}:${this.nextCall++}`,
       runId: this.runId,
@@ -129,7 +241,7 @@ export class HostCallJournal {
 
   settle(record: HostCallRecord, outcome: HostCallOutcome): void {
     if (record.lifecycle === "cancelled") return;
-    record.outcome = outcome;
+    this.retainOutcome(record, outcome);
     record.lifecycle = "settled";
   }
 
@@ -147,11 +259,14 @@ export class HostCallJournal {
 
   cancel(record: HostCallRecord, reason: SandboxValue): void {
     if (record.lifecycle === "settled" || record.lifecycle === "consumed") return;
-    record.outcome = { status: "rejected", reason };
+    this.retainOutcome(record, { status: "rejected", reason });
     record.lifecycle = "cancelled";
   }
 
-  async reconcile(record: HostCallRecord): Promise<HostCallOutcome> {
+  async reconcile(
+    record: HostCallRecord,
+    context?: HostCallResumeContext
+  ): Promise<HostCallOutcome> {
     if (record.lifecycle === "settled" && record.outcome !== undefined) return record.outcome;
     if (record.lifecycle === "consumed") {
       throw new HostCallResumabilityError(
@@ -183,12 +298,27 @@ export class HostCallJournal {
     }
     const { id, outcome: ignoredOutcome, ...request } = record;
     void ignoredOutcome;
-    const proof = await this.resumeProvider({
-      ...request,
-      callId: id,
-      requirement: "external-reconciliation"
-    });
+    const proof = await this.resumeProvider(
+      {
+        ...request,
+        callId: id,
+        requirement: "external-reconciliation"
+      },
+      context
+    );
     validateProof(record, proof);
+    if (
+      context !== undefined &&
+      context.callbacks.size > 0 &&
+      proof.callbackDisposition === undefined
+    ) {
+      throw new HostCallResumabilityError(
+        record,
+        "external-reconciliation",
+        `Host call ${record.id} has sandbox callbacks; its proof must specify callbackDisposition as joined or detached.`
+      );
+    }
+    if (proof.callbackDisposition === "joined") await context?.waitForCallbacks();
     this.settle(record, proof.outcome);
     return proof.outcome;
   }
@@ -202,8 +332,264 @@ export class HostCallJournal {
           record.lifecycle === "running" ||
           record.lifecycle === "cancelled"
       )
-      .map((record) => structuredClone(record));
+      .map(({ outcome, ...record }) => ({
+        ...structuredClone(record),
+        ...(outcome === undefined ? {} : { outcome: copyOutcome(outcome) })
+      }));
   }
+
+  dispose(): void {
+    this.budget?.setRetainedDataUsage(this, 0);
+    this.budget?.setRetainedValues(this, undefined);
+    this.capabilities.clear();
+    for (const [id, waiter] of this.capabilityWaiters)
+      waiter.reject(new UnresolvedReplayCapabilityError(id));
+    this.capabilityWaiters.clear();
+    this.budget = undefined;
+  }
+
+  registerCallbackFunction(
+    record: HostCallRecord,
+    id: number,
+    closure: SandboxClosure,
+    native: object
+  ): void {
+    const identity = `${record.id}/function/${id}`;
+    const existing = this.capabilities.get(identity);
+    if (existing !== undefined && existing !== closure)
+      throw new TypeError(`Conflicting replay capability '${identity}'.`);
+    if (!(record.functions ?? []).includes(id)) (record.functions ??= []).push(id);
+    this.capabilities.set(identity, closure);
+    this.capabilityWaiters.get(identity)?.resolve();
+    this.capabilityWaiters.delete(identity);
+    if (!this.capabilityIds.has(closure)) this.capabilityIds.set(closure, identity);
+    this.nativeClosures.set(native, closure);
+  }
+
+  waitForCapability(id: string): Promise<void> {
+    if (this.capabilities.has(id)) return Promise.resolve();
+    const owner = id.slice(0, id.lastIndexOf("/function/"));
+    if (this.completedCallbackOwners.has(owner))
+      return Promise.reject(new UnresolvedReplayCapabilityError(id));
+    let waiter = this.capabilityWaiters.get(id);
+    if (waiter === undefined) {
+      let resolve!: () => void;
+      let reject!: (reason: unknown) => void;
+      const promise = new Promise<void>((resolveResult, rejectResult) => {
+        resolve = resolveResult;
+        reject = rejectResult;
+      });
+      void promise.catch(() => undefined);
+      waiter = { promise, resolve, reject };
+      this.capabilityWaiters.set(id, waiter);
+    }
+    return waiter.promise;
+  }
+
+  trackCallbackCompletion(record: HostCallRecord, callbacks: readonly Promise<unknown>[]): void {
+    const complete = () => {
+      this.completedCallbackOwners.add(record.id);
+      for (const [id, waiter] of this.capabilityWaiters) {
+        if (!id.startsWith(`${record.id}/function/`)) continue;
+        waiter.reject(new UnresolvedReplayCapabilityError(id));
+        this.capabilityWaiters.delete(id);
+      }
+    };
+    if (callbacks.length === 0) complete();
+    else void Promise.allSettled(callbacks).then(complete);
+  }
+
+  recordCallback(record: HostCallRecord, id: number, args: SandboxValue[], step: number): string {
+    const retainedSize =
+      this.retainedSize + 1 + measureSandboxData([args], { ignoreClosures: true });
+    this.budget?.setRetainedDataUsage(this, retainedSize);
+    let data: ReplayData;
+    try {
+      data = encodeReplayData(args, { identifyCapability: this.identifyCapability });
+    } catch (error) {
+      this.budget?.setRetainedDataUsage(this, this.retainedSize);
+      throw error;
+    }
+    this.retainedSize = retainedSize;
+    (record.callbacks ??= []).push({ id, step, arguments: data });
+    return `${record.id}/callback/${record.callbacks.length}`;
+  }
+
+  callbackPositions(): ReadonlyMap<string, number> {
+    const positions = new Map<string, number>();
+    for (const record of this.records) {
+      for (const [index, callback] of (record.callbacks ?? []).entries()) {
+        positions.set(`${record.id}/callback/${index + 1}`, callback.step);
+      }
+    }
+    return positions;
+  }
+
+  private retainOutcome(record: HostCallRecord, outcome: HostCallOutcome): void {
+    const size = measureSandboxData(
+      [outcome.status === "fulfilled" ? outcome.value : outcome.reason],
+      { ignoreClosures: true }
+    );
+    const retainedSize = this.retainedSize + size - (this.outcomeSizes.get(record.id) ?? 0);
+    this.budget?.setRetainedDataUsage(this, retainedSize);
+    let copied: HostCallOutcome;
+    try {
+      copied = copyOutcome(outcome);
+    } catch (error) {
+      this.budget?.setRetainedDataUsage(this, this.retainedSize);
+      throw error;
+    }
+    this.retainedSize = retainedSize;
+    this.outcomeSizes.set(record.id, size);
+    this.outcomes.set(record.id, copied);
+    record.outcome = copied;
+  }
+
+  replayOutcome(record: HostCallRecord): HostCallOutcome | undefined {
+    if (!this.recordedReplay || (record.lifecycle !== "settled" && record.lifecycle !== "consumed"))
+      return undefined;
+    const encoded = this.encodedOutcomes.get(record.id);
+    if (encoded !== undefined) {
+      const value = decodeReplayData(encoded.data, { resolveCapability: this.resolveCapability });
+      return encoded.status === "fulfilled"
+        ? { status: "fulfilled", value }
+        : { status: "rejected", reason: value };
+    }
+    const outcome = this.outcomes.get(record.id);
+    return outcome === undefined ? undefined : copyOutcome(outcome);
+  }
+
+  snapshotReplay(): HostCallReplay {
+    return structuredClone({
+      version: 1,
+      calls: this.records.map(({ outcome: ignoredOutcome, asynchronous, ...record }) => {
+        void ignoredOutcome;
+        const outcome = this.outcomes.get(record.id);
+        return {
+          ...record,
+          asynchronous: asynchronous === true,
+          ...(outcome === undefined
+            ? {}
+            : {
+                outcome: {
+                  status: outcome.status,
+                  data:
+                    this.encodedOutcomes.get(record.id)?.data ??
+                    encodeReplayData(
+                      outcome.status === "fulfilled" ? outcome.value : outcome.reason,
+                      { identifyCapability: this.identifyCapability }
+                    )
+                }
+              })
+        };
+      })
+    });
+  }
+}
+
+function copyOutcome(outcome: HostCallOutcome): HostCallOutcome {
+  return outcome.status === "fulfilled"
+    ? { status: "fulfilled", value: deepCopyToSandbox(outcome.value) }
+    : { status: "rejected", reason: deepCopyToSandbox(outcome.reason) };
+}
+
+function restoreReplayCalls(
+  input: unknown,
+  encodedOutcomes: Map<string, { status: "fulfilled" | "rejected"; data: ReplayData }>,
+  callbackSizes: Map<string, number>
+): HostCallRecord[] {
+  validateSnapshotData(input);
+  if (
+    input === null ||
+    typeof input !== "object" ||
+    !("version" in input) ||
+    input.version !== 1 ||
+    !("calls" in input) ||
+    !Array.isArray(input.calls)
+  ) {
+    throw new TypeError("Invalid host call replay header.");
+  }
+  const capabilities = new Map<string, SandboxClosure>();
+  for (const entry of input.calls) {
+    if (entry?.functions === undefined) continue;
+    if (
+      !Array.isArray(entry.functions) ||
+      new Set(entry.functions).size !== entry.functions.length ||
+      entry.functions.some((id: unknown) => !Number.isSafeInteger(id) || Number(id) < 1)
+    )
+      throw new TypeError("Invalid replay capability declarations.");
+    for (const id of entry.functions) {
+      capabilities.set(
+        `${entry.id}/function/${id}`,
+        createSandboxClosure({
+          call: () => {
+            throw new TypeError("Replay capability has not been reconstructed.");
+          }
+        })
+      );
+    }
+  }
+  const resolveCapability = (id: string) => capabilities.get(id);
+  return input.calls.map((entry, index) => {
+    if (entry === null || typeof entry !== "object" || Array.isArray(entry))
+      throw new TypeError("Invalid replay call.");
+    for (const field of ["id", "runId", "sourceHash", "moduleId", "operation", "argumentDigest"]) {
+      if (
+        !Object.hasOwn(entry, field) ||
+        typeof entry[field] !== "string" ||
+        entry[field].length === 0
+      )
+        throw new TypeError(`Invalid replay call ${field}.`);
+    }
+    if (
+      typeof entry.asynchronous !== "boolean" ||
+      !["re-issue", "read-side-effect"].includes(entry.policy) ||
+      !["created", "running", "settled", "consumed", "cancelled"].includes(entry.lifecycle)
+    ) {
+      throw new TypeError("Invalid replay call state.");
+    }
+    if (readCallOrdinal(entry) !== index + 1)
+      throw new TypeError("Replay calls must have consecutive ordinals.");
+    if (entry.callbacks !== undefined) {
+      if (!Array.isArray(entry.callbacks)) throw new TypeError("Invalid replay callbacks.");
+      let previousStep = 0;
+      for (const [index, callback] of entry.callbacks.entries()) {
+        if (
+          callback === null ||
+          typeof callback !== "object" ||
+          !Number.isSafeInteger(callback.id) ||
+          callback.id < 1 ||
+          !Number.isSafeInteger(callback.step) ||
+          callback.step < previousStep ||
+          !Array.isArray(decodeReplayData(callback.arguments, { resolveCapability }))
+        )
+          throw new TypeError("Invalid replay callback.");
+        previousStep = callback.step;
+        callbackSizes.set(
+          `${entry.id}/callback/${index + 1}`,
+          measureSandboxData([decodeReplayData(callback.arguments, { resolveCapability })])
+        );
+      }
+    }
+    let outcome: HostCallOutcome | undefined;
+    if (entry.outcome !== undefined) {
+      if (
+        entry.outcome === null ||
+        typeof entry.outcome !== "object" ||
+        !["fulfilled", "rejected"].includes(entry.outcome.status)
+      )
+        throw new TypeError("Invalid replay call outcome.");
+      const value = decodeReplayData(entry.outcome.data, { resolveCapability });
+      encodedOutcomes.set(entry.id, structuredClone(entry.outcome));
+      outcome =
+        entry.outcome.status === "fulfilled"
+          ? { status: "fulfilled", value }
+          : { status: "rejected", reason: value };
+    } else if (["settled", "consumed", "cancelled"].includes(entry.lifecycle)) {
+      throw new TypeError("Missing replay call outcome.");
+    }
+    return { ...entry, ...(outcome === undefined ? {} : { outcome }) } as HostCallRecord;
+  });
 }
 
 function validateRestoredRecords(
@@ -282,6 +668,17 @@ export function digestHostCallArguments(args: readonly unknown[]): string {
 }
 
 function validateProof(record: HostCallRecord, proof: HostCallResumeProof): void {
+  if (
+    proof.callbackDisposition !== undefined &&
+    proof.callbackDisposition !== "joined" &&
+    proof.callbackDisposition !== "detached"
+  ) {
+    throw new HostCallResumabilityError(
+      record,
+      "external-reconciliation",
+      "Invalid callbackDisposition in external result proof."
+    );
+  }
   if (
     !pendingHostCallResumeIdentityMatches(
       {

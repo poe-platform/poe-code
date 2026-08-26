@@ -1,4 +1,5 @@
 import { replaceErrorStack } from "../error/shape.js";
+import { types } from "node:util";
 import type { Budget } from "../interp/budget.js";
 import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION } from "./dump-format.js";
@@ -64,7 +65,20 @@ type ValidationState = {
   dataSize: number;
   limits: ValidationLimits;
   validateTaggedPayloads: boolean;
+  dataPropertiesOnly?: boolean;
 };
+
+export function validateSnapshotData(value: unknown): void {
+  validateGenericValue(value, "$", 0, {
+    allowFunctions: false,
+    allowUndefined: false,
+    entries: 0,
+    dataSize: 0,
+    limits: defaultLimits(),
+    validateTaggedPayloads: false,
+    dataPropertiesOnly: true
+  });
+}
 
 export function validateDumpEnvelope(
   snapshot: unknown
@@ -151,6 +165,9 @@ function validateRunSnapshotState(root: Record<string, unknown>, state: Validati
     const random = requireRecord(root.random, "$.random");
     requireSafeInteger(random.seed, "$.random.seed", 0);
     requireSafeInteger(random.state, "$.random.state", 0);
+    for (const field of ["initialState", "resumeState"]) {
+      if (random[field] !== undefined) requireSafeInteger(random[field], `$.random.${field}`, 0);
+    }
   }
   if (root.loopIterations !== undefined) {
     const iterations = requireRecord(root.loopIterations, "$.loopIterations");
@@ -495,7 +512,7 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
 }
 
-function validateArgumentsProperties(record: Record<string, unknown>, path: string): void {
+export function validateArgumentsProperties(record: Record<string, unknown>, path: string): void {
   if (typeof record.extensible !== "boolean") {
     fail("invalidType", `${path}.extensible`, "expected boolean");
   }
@@ -561,6 +578,9 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
+  if (state.dataPropertiesOnly && types.isProxy(value)) {
+    fail("invalidType", path, "proxy objects are not snapshot data");
+  }
   if (depth > state.limits.maxDepth)
     fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
   state.entries += 1;
@@ -578,15 +598,36 @@ function validateGenericValue(
       fail("invalidValue", path, "integer must be safe");
   } else if (Array.isArray(value)) {
     if (value.length > state.limits.maxEntries) fail("budgetExceeded", path, "array is too large");
-    value.forEach((entry, index) =>
-      validateGenericValue(entry, `${path}[${index}]`, depth + 1, state)
-    );
+    if (state.dataPropertiesOnly) {
+      const entries = snapshotDataEntries(value, path).filter(([key]) => key !== "length");
+      if (entries.length !== value.length)
+        fail("invalidType", path, "snapshot arrays must be dense");
+      for (const [key, entry] of entries) {
+        const index = Number(key);
+        if (
+          !Number.isInteger(index) ||
+          index < 0 ||
+          index >= value.length ||
+          String(index) !== key
+        ) {
+          fail("invalidType", path, "snapshot arrays cannot have named properties");
+        }
+        validateGenericValue(entry, `${path}[${key}]`, depth + 1, state);
+      }
+    } else {
+      value.forEach((entry, index) =>
+        validateGenericValue(entry, `${path}[${index}]`, depth + 1, state)
+      );
+    }
   } else if (value !== null && typeof value === "object") {
     const record = value as Record<string, unknown>;
-    if (isTaggedValueShape(record)) {
-      if (state.validateTaggedPayloads) validateTaggedValue(record, path, state);
+    if (state.validateTaggedPayloads && isTaggedValueShape(record)) {
+      validateTaggedValue(record, path, state);
     }
-    for (const [key, entry] of Object.entries(value)) {
+    const entries = state.dataPropertiesOnly
+      ? snapshotDataEntries(value, path)
+      : Object.entries(value);
+    for (const [key, entry] of entries) {
       requireString(key, `${path}${formatKey(key)}`, state.limits);
       state.dataSize += key.length;
       validateGenericValue(entry, `${path}${formatKey(key)}`, depth + 1, state);
@@ -601,6 +642,24 @@ function validateGenericValue(
   }
   if (state.dataSize > state.limits.maxDataSize)
     fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
+}
+
+function snapshotDataEntries(value: object, path: string): Array<[string, unknown]> {
+  const prototype = Object.getPrototypeOf(value);
+  if (
+    prototype !== null &&
+    prototype !== (Array.isArray(value) ? Array.prototype : Object.prototype)
+  ) {
+    fail("invalidType", path, "snapshot data must not have a custom prototype");
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    fail("invalidType", path, "snapshot data must not have symbol properties");
+  }
+  return Object.entries(Object.getOwnPropertyDescriptors(value)).map(([key, descriptor]) => {
+    if (!("value" in descriptor))
+      fail("invalidType", `${path}${formatKey(key)}`, "snapshot data must not have accessors");
+    return [key, descriptor.value];
+  });
 }
 
 function validateScopeCycles(

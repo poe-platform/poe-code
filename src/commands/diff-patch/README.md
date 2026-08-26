@@ -26,7 +26,7 @@ and the source entry point was exercised directly through `Shell.use`.
 - Two file/directory operands, with `-` for stdin; two `-` operands share one
   captured input. A file versus directory compares the file's basename inside
   the directory. `--` terminates options.
-- Unified output is the default, also selected by `-u` / `--unified`.
+- Normal output is the default; unified output is selected by `-u` / `--unified`.
   `-U N`, `-UN`, and `--unified=N` set context, including zero context.
 - `-q` / `--brief`, `-r` / `--recursive`, and `-N` / `--new-file`;
   short flags may be grouped. Directory entries are sorted by JavaScript's
@@ -70,6 +70,8 @@ periodically to observe cancellation.
   Multiple distinct targets are supported. Normal patches prefer an existing
   old header path, then an existing new header path; they do not rename files.
 - Headers may have tab-separated timestamps or unquoted spaces in filenames.
+  Git C-quoted paths support literal spaces/tabs, escaped quotes, and three-digit
+  octal UTF-8 bytes. Unknown escapes, oversized octets, and invalid UTF-8 fail.
   Common `diff --git`, `diff -...`, `index`, and regular-file new/deleted mode
   preambles are accepted. Mode metadata does not change permissions. Existing
   permissions are left to the filesystem's normal overwrite semantics.
@@ -94,8 +96,9 @@ Unified patch transport uses LF-terminated physical lines and the exact
 
 Patch header and explicit target paths must be relative to the virtual cwd.
 Absolute paths other than the `/dev/null` header sentinel, `..` components,
-backslashes, drive prefixes, empty components, and control characters are
+backslashes, drive-prefix components, and control characters other than tabs are
 rejected **before stripping**, even when an explicit target overrides headers.
+Adjacent relative slashes collapse before stripping; traversal never collapses.
 Dot components are allowed, and duplicate normalized targets are rejected.
 Input patch files may be read from another virtual directory with `-i`.
 Diff operands may use absolute virtual paths. Resolved paths are limited to
@@ -155,9 +158,8 @@ directory listings must also be bounded by their owners.
 
 ## Known gaps
 
-This is not full GNU/BSD diff or patch compatibility. Default normal-format
-diff output, context/ed/normal patch formats, whitespace-ignore modes, binary
-patches, quoted/escaped Git paths, mail preambles, renames/copies, permission
+This is not full GNU/BSD diff or patch compatibility. Context/ed/normal patch
+formats, whitespace-ignore modes, binary patches, mail preambles, renames/copies, permission
 changes, automatic parent-directory creation, empty-directory changes, and
 symlink patches are unsupported. `-N` treats absent content as empty and cannot
 express creation/deletion of a zero-byte file. Repeated file sections are not

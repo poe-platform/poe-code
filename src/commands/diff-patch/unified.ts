@@ -1,4 +1,5 @@
 import { Budget, ToolError, integer } from "./shared.js";
+import { decodeHeaderPath } from "./patch-path.js";
 
 export interface PatchLine { readonly kind: " " | "+" | "-"; text: string }
 export interface Hunk {
@@ -12,8 +13,8 @@ export interface FilePatch { readonly oldPath: string; readonly newPath: string;
 
 function header(line: string, prefix: string): string {
   if (!line.startsWith(prefix)) throw new ToolError(`expected ${prefix.trim()} file header`);
-  const path = line.slice(prefix.length).split("\t", 1)[0]!;
-  if (!path || /[\0\r\n]/u.test(path) || path.startsWith('"')) throw new ToolError("unsupported or empty patch filename");
+  const path = decodeHeaderPath(line.slice(prefix.length));
+  if (!path || /[\0\r\n]/u.test(path)) throw new ToolError("unsupported or empty patch filename");
   return path;
 }
 

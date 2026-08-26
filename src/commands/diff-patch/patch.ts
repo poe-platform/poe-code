@@ -1,6 +1,7 @@
 import { dirname, resolvePath, writeBytes, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
 import { applyHunks, parseUnified, reversePatch } from "./unified.js";
+import { safeTarget } from "./patch-path.js";
 
 interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; target?: string }
 
@@ -43,17 +44,6 @@ function flags(args: readonly string[]): PatchFlags {
   if (operands.length) result.target = operands[0]!;
   if (!result.input || result.input.includes("\0")) throw new ToolError("invalid patch input path");
   return result;
-}
-
-function safeTarget(path: string, strip: number): string | undefined {
-  if (path === "/dev/null") return undefined;
-  if (path.length > 4096 || path.split("/").length > 256) throw new ToolError("path length/depth limit exceeded");
-  if (!path || path.startsWith("/") || /[\\\0-\x1f\x7f]/u.test(path) || /^[A-Za-z]:/u.test(path)) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
-  const parts = path.split("/");
-  if (parts.some(part => part === ".." || part === "")) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
-  const stripped = parts.slice(strip).filter(part => part !== ".").join("/");
-  if (!stripped) throw new ToolError(`strip count removes entire patch path: ${path}`);
-  return stripped;
 }
 
 function regular(stat: FileStat | undefined, path: string): void {

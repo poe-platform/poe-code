@@ -138,7 +138,7 @@ const malformed = [
   ["git symlink metadata", "diff --git a/target b/target\nindex 1111111..2222222 120000\n" + replacement],
   ["git rename metadata", "rename from target\nrename to other\n" + replacement],
   ["metadata without patch", "diff --git a/target b/target\n"],
-  ["quoted filename", replacement.replace("--- target", '--- "target"')],
+  ["unterminated quoted filename", replacement.replace("--- target", '--- "target')],
   ["duplicate target", replacement + replacement],
   ["both null", replacement.replaceAll("target", "/dev/null")],
 ];

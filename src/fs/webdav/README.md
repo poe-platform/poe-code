@@ -114,6 +114,15 @@ rejected with cleanup.
 Servers without the required lock support return `ENOTSUP`; there is no silent
 downgrade to an unprotected overwrite.
 
+A failed depth-infinity LOCK can return HTTP 207. Its multistatus is parsed
+within the XML byte and entry budgets; every member must remain in the requested
+destination subtree. A concrete member failure takes precedence over a root
+424 dependency failure: 423 maps to `EBUSY`, and 403 to `EACCES`. The outer error
+retains the LOCK syscall and destination path, with the member path and HTTP
+status in its `cause`. No transfer or token-based cleanup follows a failed
+multistatus, even if it includes a Lock-Token header. Malformed or success-only
+multistatus responses fail closed rather than authorizing a transfer.
+
 Opting into `"etag"` permits replacement of existing **files** without locks,
 using the destination's strong `DAV:getetag` in a single destination-tagged
 `If` condition. This policy requires a provider that keeps destination tags
@@ -281,7 +290,8 @@ contract change, or additional exported parser API is required.
 ## Primary references read
 
 - RFC 4918, HTTP Extensions for Web Distributed Authoring and Versioning:
-  sections 8.3, 9.1, 9.3, 9.6–9.9, 10.2–10.3, 10.6, 13, 14, and 20.6.
+  sections 8.3, 9.1, 9.3, 9.6–9.9, 9.10.1, 9.10.3, 9.11, 10.2–10.4, 10.6,
+  13, 14, and 20.6.
   `https://www.rfc-editor.org/rfc/rfc4918.html`
 - W3C Namespaces in XML 1.0 (Third Edition), qualified names, namespace
   declarations/scoping, and expanded-attribute uniqueness.

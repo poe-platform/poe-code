@@ -260,16 +260,44 @@ export class WebDavFileSystem implements FileSystem {
     });
   }
 
-  private async multistatus(response: Response, signal: AbortSignal): Promise<XmlElement[]> {
+  private async multistatus(response: Response, signal: AbortSignal, method = "PROPFIND", path = ""): Promise<XmlElement[]> {
     const link = response.headers.get("link");
     if (link && /\brel\s*=\s*(?:"[^"]*\bnext\b[^"]*"|'[^']*\bnext\b[^']*'|next\b)/i.test(link)) {
-      fail("ENOTSUP", "PROPFIND", "", "paginated WebDAV responses are unsupported");
+      fail("ENOTSUP", method, path, "paginated WebDAV responses are unsupported");
     }
     const root = await this.xml(response, signal);
     if (root.namespace !== "DAV:" || root.localName !== "multistatus") throw new Error("expected DAV:multistatus");
     const responses = davChildren(root, "response");
-    if (responses.length > this.maxEntries) fail("EFBIG", "PROPFIND", "", "response exceeds entry limit");
+    if (responses.length > this.maxEntries) fail("EFBIG", method, path, "response exceeds entry limit");
     return responses;
+  }
+
+  private async lockFailure(response: Response, signal: AbortSignal, path: string): Promise<never> {
+    try {
+      const members = new Set<string>();
+      let failure: { member: string; status: number } | undefined;
+      for (const element of await this.multistatus(response, signal, "LOCK", path)) {
+        const href = davChild(element, "href");
+        const status = davChild(element, "status");
+        if (!href || !status) throw new Error("invalid LOCK multistatus");
+        const member = this.hrefPath(scalar(href));
+        if (member !== path && !member.startsWith(`${path}/`)) {
+          fail("EACCES", "LOCK", path, "LOCK response member is outside requested subtree");
+        }
+        if (members.has(member)) throw new Error("duplicate LOCK response href");
+        members.add(member);
+        const code = statusCode(status);
+        if (code >= 300 && (!failure || (failure.status === 424 && code !== 424))) {
+          failure = { member, status: code };
+        }
+      }
+      if (!failure) throw new Error("LOCK multistatus without a reported failure");
+      this.httpError(failure.status, "LOCK", failure.member);
+    } catch (cause) {
+      throw new FsError(isFsError(cause) ? cause.code : "EIO", {
+        syscall: "LOCK", path, message: "WebDAV LOCK multistatus failure", cause,
+      });
+    }
   }
 
   private entryStat(element: XmlElement, path: string): FileStat {
@@ -558,6 +586,7 @@ export class WebDavFileSystem implements FileSystem {
           "If-Match": validator && /^"[\x21\x23-\x7e\x80-\xff]*"$/.test(validator) ? validator : "*" },
         body: lockBody,
       }, async (response, signal) => {
+        if (response.status === 207) return this.lockFailure(response, signal, path);
         if (response.status !== 200) this.httpError(response.status, "LOCK", path);
         const root = await this.xml(response, signal);
         const discovery = davChild(root, "lockdiscovery");

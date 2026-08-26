@@ -7,6 +7,7 @@ import { toByteSource } from "../../../src/contracts/index.js";
 import { Budget } from "../../../src/commands/diff-patch/shared.js";
 import { parseUnified, reversePatch } from "../../../src/commands/diff-patch/unified.js";
 import { contents, filesystem, run } from "./helpers.js";
+import { nativeGNU } from "./patch-gnu-native.js";
 
 const headers = "--- target\n+++ target\n";
 const emptyContext = headers + "@@ -1,3 +1,3 @@\n head\n\n-old\n+new\n";
@@ -125,17 +126,19 @@ const coordinateCases = [
 
 for (const [name, before, after, hunks] of coordinateCases) {
   for (const reverse of [false, true]) {
-    test(`empty-range coordinates ${reverse ? "reverse" : "forward"}: ${name}`, async () => {
+    test(`GNU interpretation of historical coordinates ${reverse ? "reverse" : "forward"}: ${name}`, async () => {
+      const expected = await nativeGNU(["-f", "--no-backup-if-mismatch", "-p0", "-F0", ...(reverse ? ["-R"] : [])],
+        { target: reverse ? after : before }, headers + hunks);
       const result = await run("patch", reverse ? ["-R", "-F0"] : ["-F0"], {
         files: { target: reverse ? after : before }, input: headers + hunks,
       });
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(await contents(result.fs, "target"), reverse ? before : after);
+      assert.equal(result.exitCode, expected.exitCode, result.stderr);
+      assert.equal(await contents(result.fs, "target"), expected.files.target);
     });
   }
 }
 
-test("only the first beginning-empty coordinate is canonicalized before reversal", async () => {
+test("GNU empty coordinates remain literal before reversal", async () => {
   const budget = new Budget({
     command: "patch", args: [], cwd: "/work", env: {}, fs: await filesystem(), stdin: toByteSource(""),
     stdout: { async write() {} }, stderr: { async write() {} }, signal: new AbortController().signal,
@@ -144,35 +147,29 @@ test("only the first beginning-empty coordinate is canonicalized before reversal
   assert.equal(parsed.length, 1);
   const patch = parsed[0]!;
   assert.deepEqual(patch.hunks.map(hunk => [hunk.oldStart, hunk.oldCount, hunk.newStart, hunk.newCount]), [
-    [1, 1, 0, 0], [4, 0, 4, 1], [7, 0, 8, 1],
+    [1, 1, 1, 0], [4, 0, 4, 1], [7, 0, 8, 1],
   ]);
   assert.deepEqual(reversePatch(patch).hunks.map(hunk => [hunk.oldStart, hunk.oldCount, hunk.newStart, hunk.newCount]), [
-    [0, 0, 1, 1], [4, 1, 4, 0], [8, 1, 7, 0],
+    [1, 0, 1, 1], [4, 1, 4, 0], [8, 1, 7, 0],
   ]);
   assert.deepEqual(reversePatch(reversePatch(patch)), patch);
 });
 
-test("beginning-empty normalization resets for each file section", async () => {
+test("GNU empty coordinates remain literal for each file section", async () => {
   const input = headers + "@@ -1,0 +1 @@\n+new\n" + "--- other\n+++ other\n@@ -1 +1,0 @@\n-old\n";
   const fs = await filesystem({ target: "a\n", other: "old\nb\n" });
   for (const reverse of [false, true]) {
     const result = await run("patch", reverse ? ["-R"] : [], { fs, input });
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(await contents(fs, "target"), reverse ? "a\n" : "new\na\n");
-    assert.equal(await contents(fs, "other"), reverse ? "old\nb\n" : "b\n");
+    assert.equal(await contents(fs, "target"), reverse ? "a\n" : "a\nnew\n");
+    assert.equal(await contents(fs, "other"), reverse ? "b\nold\n" : "b\n");
   }
 });
 
 const invalidCoordinates = [
-  ["nonempty starts remain strict", "@@ -1 +2 @@\n-a\n+A\n"],
   ["nonempty zero remains invalid", "@@ -0 +1 @@\n-a\n+A\n"],
   ["both ranges empty", "@@ -1,0 +1,0 @@\n"],
-  ["arbitrary first insertion offset", "@@ -2,0 +2 @@\n+new\n"],
-  ["arbitrary first deletion offset", "@@ -2 +2,0 @@\n-a\n"],
-  ["beginning alias with nonbeginning opposite side", "@@ -1,0 +3 @@\n+new\n"],
-  ["nonzero later gap mismatch", "@@ -1 +1,0 @@\n-a\n@@ -4,0 +5 @@\n+new\n"],
   ["subsequent alias cannot move backward", "@@ -1 +1 @@\n-a\n+A\n@@ -1,0 +1 @@\n+new\n"],
-  ["subsequent alias cannot hide a gap", "@@ -1 +1,0 @@\n-a\n@@ -2 +1,0 @@\n-b\n"],
   ["overlapping old range", "@@ -1,2 +1,0 @@\n-a\n-b\n@@ -2 +1 @@\n-b\n+B\n"],
   ["overlapping new range", "@@ -1,0 +1,2 @@\n+A\n+B\n@@ -1 +2 @@\n-a\n+C\n"],
   ["unsafe coordinate integer", "@@ -9007199254740992,0 +1 @@\n+new\n"],
@@ -224,8 +221,10 @@ test("bounded native-generated zero-context patches have independent forward and
         const actual = await run("patch", reverse ? ["-R", "-F0"] : ["-F0"], {
           files: { target: original }, input: generated.stdout,
         });
-        assert.equal(actual.exitCode, 0, `${name}: ${actual.stderr}`);
-        assert.equal(await contents(actual.fs, "target"), expected, name);
+        const gnu = await nativeGNU(["-f", "--no-backup-if-mismatch", "-p0", "-F0", ...(reverse ? ["-R"] : [])],
+          { target: original }, generated.stdout);
+        assert.equal(actual.exitCode, gnu.exitCode, `${name}: ${actual.stderr}`);
+        assert.equal(await contents(actual.fs, "target"), gnu.files.target, name);
         await writeFile(join(root, "target"), original);
         const reference = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], generated.stdout);
         const referenceText = await readFile(join(root, "target"), "utf8");

@@ -62,21 +62,17 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
       budget.hunk();
       const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(?: .*)?$/u.exec(physical[index++]!);
       if (!match) throw new ToolError("malformed unified hunk header");
-      let oldStart = integer(match[1]!, "old start");
+      const oldStart = integer(match[1]!, "old start");
       const oldCount = integer(match[2] ?? "1", "old count");
-      let newStart = integer(match[3]!, "new start");
+      const newStart = integer(match[3]!, "new start");
       const newCount = integer(match[4] ?? "1", "new count");
       for (const value of [oldStart, oldCount, newStart, newCount]) {
         if (value > budget.limits.maxLines) throw new ToolError("hunk coordinate exceeds line limit");
       }
       if ((oldCount > 0 && oldStart === 0) || (newCount > 0 && newStart === 0) || (!oldCount && !newCount)) throw new ToolError("invalid zero hunk range");
-      if (hunks.length === 0 && oldStart === 1 && newStart === 1) {
-        if (oldCount === 0) oldStart = 0;
-        if (newCount === 0) newStart = 0;
-      }
       const oldIndex = startIndex(oldStart, oldCount);
       const newIndex = startIndex(newStart, newCount);
-      if (oldIndex < oldEnd || newIndex < newEnd || oldIndex - oldEnd !== newIndex - newEnd) throw new ToolError("overlapping or inconsistent hunk coordinates");
+      if (oldIndex < oldEnd || newIndex < newEnd) throw new ToolError("overlapping hunk coordinates");
       if ((oldEnded && oldCount) || (newEnded && newCount)) throw new ToolError("hunk follows an incomplete final line");
       oldEnd = oldIndex + oldCount;
       newEnd = newIndex + newCount;
@@ -149,14 +145,15 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
     while (trailing < hunk.lines.length - leading && hunk.lines[hunk.lines.length - trailing - 1]!.kind === " ") trailing++;
     const expected = startIndex(hunk.oldStart, hunk.oldCount) + offset;
     let found = -1;
-    const maximum = source.length - hunk.oldCount;
-    const matches = async (position: number, tolerance: number) => {
+    const context = Math.max(leading, trailing);
+    const matches = async (position: number, prefixFuzz: number, suffixFuzz: number) => {
       budget.step();
       await budget.checkpoint();
-      if (position < cursor || position > maximum) return false;
+      if (position < cursor || position > source.length - hunk.oldCount + suffixFuzz) return false;
       for (let lineIndex = 0; lineIndex < oldLines.length; lineIndex++) {
-        if (lineIndex < Math.min(tolerance, leading) || lineIndex >= oldLines.length - Math.min(tolerance, trailing)) continue;
-        const actual = source[position + lineIndex]!;
+        if (lineIndex < prefixFuzz || lineIndex >= oldLines.length - suffixFuzz) continue;
+        const actual = source[position + lineIndex];
+        if (actual === undefined) return false;
         const expectedLine = oldLines[lineIndex]!.text;
         if (ignoreWhitespace) budget.step(actual.length + expectedLine.length);
         if (!budget.equal(ignoreWhitespace ? actual.replace(/[ \t]+/gu, " ") : actual,
@@ -165,14 +162,28 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       }
       return true;
     };
-    for (let tolerance = 0; tolerance <= Math.min(fuzz, Math.max(leading, trailing)); tolerance++) {
-      if (await matches(expected, tolerance)) { found = expected; break; }
-      const retained = oldLines.length - Math.min(tolerance, leading) - Math.min(tolerance, trailing);
+    for (let tolerance = 0; tolerance <= Math.min(fuzz, context); tolerance++) {
+      const prefixFuzz = tolerance + leading - context;
+      const suffixFuzz = tolerance + trailing - context;
+      if (prefixFuzz < 0 && hunk.oldStart <= 1) {
+        if (await matches(0, 0, suffixFuzz)) found = 0;
+        if (found >= 0) break;
+        continue;
+      }
+      if (suffixFuzz < 0) {
+        const end = source.length - hunk.oldCount;
+        if (await matches(end, Math.max(0, prefixFuzz), 0)) found = end;
+        if (found >= 0) break;
+        continue;
+      }
+      if (await matches(expected, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected; break; }
+      const retained = oldLines.length - Math.max(0, prefixFuzz) - suffixFuzz;
       if (retained === 0) continue;
+      const maximum = source.length - hunk.oldCount + suffixFuzz;
       const distanceLimit = Math.max(Math.abs(expected - cursor), Math.abs(maximum - expected));
       for (let distance = 1; distance <= distanceLimit; distance++) {
-        if (await matches(expected + distance, tolerance)) { found = expected + distance; break; }
-        if (await matches(expected - distance, tolerance)) { found = expected - distance; break; }
+        if (await matches(expected + distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected + distance; break; }
+        if (await matches(expected - distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected - distance; break; }
       }
       if (found >= 0) break;
     }
@@ -180,7 +191,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
     while (cursor < found) append(source[cursor++]!);
     for (const line of hunk.lines) {
       if (line.kind === "+") append(line.text);
-      else if (line.kind === " ") append(source[cursor++]!);
+      else if (line.kind === " ") { if (cursor < source.length) append(source[cursor++]!); }
       else cursor++;
     }
     offset = found - startIndex(hunk.oldStart, hunk.oldCount);

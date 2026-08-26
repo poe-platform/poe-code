@@ -124,7 +124,6 @@ const malformed = [
   ["extra body line", replacement + "+extra\n"],
   ["bad body prefix", replacement.replace("-old", "!old")],
   ["zero nonempty start", replacement.replace("-1 +1", "-0 +1")],
-  ["inconsistent coordinates", replacement.replace("-1 +1", "-1 +2")],
   ["unsafe integer", replacement.replace("-1 +1", "-9007199254740992 +1")],
   ["empty range", replacement.replace("-1 +1", "-0,0 +0,0")],
   ["no changes", "--- target\n+++ target\n@@ -1 +1 @@\n old\n"],

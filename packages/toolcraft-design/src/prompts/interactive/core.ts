@@ -268,6 +268,14 @@ export class Prompt<Value> extends EventEmitter {
   };
 
   private updateTrackedInput(char: string | undefined, key: KeyMeta, action: Action | undefined): void {
+    if (key.name === "home") {
+      this._cursor = 0;
+      return;
+    }
+    if (key.name === "end") {
+      this._cursor = this.userInput.length;
+      return;
+    }
     if (key.ctrl) {
       if (key.name === "a") {
         this._cursor = 0;

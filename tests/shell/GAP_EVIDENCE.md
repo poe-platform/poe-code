@@ -310,3 +310,35 @@ global typecheck encountered an unowned error, TS2722 at
 `tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts:37`; the error is
 recorded, not rewritten by the shell owner. A final full owned-suite run and
 unchanged original stress rerun follow this source commit.
+
+### Post-correction final validation
+
+Source fix: `d0bf4ce6ccd4240fe937255a6b6a9676e535ff4e`. The single complete
+post-fix owned-suite rerun passed **649/649**, with zero failures, skips, TODOs
+or cancellations (`/tmp/safe-bash-deferred-heredoc-full-owned.txt`). This includes
+all 33 new deferred-body tests and the focused prefix-assignment case previously
+invalidated by an external source change. The frozen modern holdout remains
+**57/57** passing on this source. Fresh final `npm run typecheck` exits 0 in
+`/tmp/safe-bash-deferred-heredoc-final-typecheck.txt`; the earlier unowned typing
+error was resolved outside this shell patch.
+
+The unchanged original stress run records **99/105 pass, six failures**, not a
+clean 100/105 aggregate (`/tmp/safe-bash-deferred-heredoc-original-stress.txt`).
+Five are the same retained legacy differences enumerated above. The sixth,
+`append-descriptor-observes-intervening-truncation`, is an external source-guard
+invalidation, not a semantic assertion failure. A separate one-case replay
+imports that unchanged fixture and its unchanged native/virtual helpers, passes
+exact stdout/stderr/status/file comparison, and verifies a stable source hash
+(`/tmp/safe-bash-deferred-heredoc-stress-guard-rerun.txt`). The original aggregate
+and invalidation remain visible. Readonly current-gaps is unchanged at **9/13**,
+with the same four legacy diagnostic/timing differences and both cancellation
+probes passing (`/tmp/safe-bash-deferred-heredoc-current-gaps.txt`).
+
+Whole-source before/after records are
+`/tmp/safe-bash-deferred-heredoc-final-before.json` and
+`/tmp/safe-bash-deferred-heredoc-final-after.json`. Only unowned
+`src/commands/diff-patch/GNU-PATCH.md` and `src/commands/safejs/README.md` differ;
+no shell source changed during validation. No guards, independent expectations,
+fixtures, harnesses, contracts, dependencies, or manifests were changed. All
+author-started validation commands finished. This remains a narrow correction
+ready for independent review, not a broader compatibility or completion claim.

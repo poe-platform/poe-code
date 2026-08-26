@@ -26,6 +26,10 @@ bounded and requires complete physical patch lines.
 Default `-R` reverses each section without reversing section order. Default
 `--dry-run` checks each section against the unmodified filesystem, not an
 imagined earlier result, and creates no targets, parents, backups or rejects.
+It does not authorize unwritten backup/reject destinations. Creating a short
+target and then editing it can therefore succeed while default dry-run selects
+and refuses a different pre-existing symlink; dry-run still leaves the namespace
+unchanged. Atomic dry-run deliberately uses the staged chain instead.
 Diagnostics identify failures, offsets and reversals, but are not claimed to be
 byte-for-byte GNU terminal diagnostics.
 
@@ -57,10 +61,19 @@ preserve timestamps and section labels with adjusted coordinates; normal rejects
 use GNU's context representation. Incomplete-line rejection bytes deliberately
 retain the native oracle's lack of an added newline marker.
 
-Automatic absolute headers, traversal, drive-like components, control bytes,
-symlinks and hard-linked target/output aliases remain prohibited. The complete
-recognized target namespace is inspected for aliases, without an all-input
-applicability preflight in the default. Only auxiliary destinations actually
+Automatic absolute headers, traversal, drive-like components and control bytes
+remain prohibited. Symlinks and hardlinks in selected targets or actual outputs
+are rejected, but unused candidates and stripped raw prefixes are not authorized.
+Candidate `stat` failures for missing paths, non-directory traversal and looping
+symlinks count as unresolved candidates; other I/O failures still propagate.
+Any selected path subsequently undergoes the strict no-symlink inspection.
+
+Whole-input target authorization accounts for earlier creation, deletion,
+reversal, failed hunks and newly created parents. When a later section has a
+choice of candidates, preceding results are previewed with the same application
+logic and invocation budgets used by execution. Default execution still reselects
+against the current filesystem; atomic execution uses staged state. This does
+not turn default hunk conflicts into all-or-nothing publication. Only auxiliary destinations actually
 needed by a section are authorized. Backups/rejects cannot alias a target,
 input, or one another. Each operation rechecks its path; portable contracts do
 not provide race-proof descriptor-relative mutation or a transaction.
@@ -88,6 +101,10 @@ chains stage their final contents. Atomic dry-run checks that hypothetical
 chain; atomic `-R` intentionally processes the chain in inverse section order
 as a documented extension. GNU coordinates, path ranking, default strip rules,
 format selection, fuzz and reversal decisions otherwise remain the same.
+The atomic extension also rejects orphan deletion payload after a complete hunk;
+default GNU scanning accepts that trailing text. Bare interstitial metadata still
+does not conceal later selected targets from authorization or acquire Git rename,
+mode-change or binary semantics.
 
 This is a preflight/staging guarantee, **not a filesystem transaction**. A backend
 failure or cancellation during publication can leave completed prefix effects,
@@ -96,7 +113,86 @@ is promised. Supplied cancellation signals reach host work and bounded I/O;
 late rejection is observed, but an uncooperative backend may still mutate after
 the caller stops waiting.
 
-## Reproducible evidence
+## Clean-source followup evidence
+
+The root cleanup marker was observed before any resumed edit, test or Git write.
+The cleanup evidence is `.git/diff-emission-cleanup-proof.json` and
+`.git/diff-emission-cleanup-verification.json`. Earlier emitted-JavaScript runtime
+results are not reused as acceptance evidence. Every compiler invocation below
+includes `--noEmit`, directly or through `npm run typecheck`.
+
+Fresh validation ran from **2026-08-26T22:16:09.161Z to
+2026-08-26T22:16:47.972Z**. Exact argv, status, TAP hashes, every failed test name,
+and per-file source/test hashes are recorded in
+`/tmp/safe-bash-diff-final-2026-08-26T22-16-09.154Z-validation.json`.
+Its sibling `-SUITE.tap` files retain all raw failures.
+
+| Gate | Pass | Fail | Total |
+| --- | ---: | ---: | ---: |
+| Unchanged GNU auxiliary | 56 | 0 | 56 |
+| Unchanged GNU target followup | 23 | 0 | 23 |
+| Unchanged safety | 150 | 2 | 152 |
+| Unchanged path regressions | 619 | 0 | 619 |
+| Unchanged parser regressions | 80 | 0 | 80 |
+| Requested five-suite aggregate | **928** | **2** | **930** |
+| Independent GNU candidate followup | 21 | 0 | 21 |
+| Unchanged GNU editflows | 70 | 5 | 75 |
+| GNU target/calibration/policy mirrors | 27 | 0 | 27 |
+| All author tests | 1257 | 24 | 1281 |
+| All executed suites, aggregate counted once | **2303** | **31** | **2334** |
+
+All skips, cancellations and TODOs are zero. The separate author-followup-only
+rerun passes **83/83**, already included in the author denominator. The two
+reviewed candidate defects have normal, atomic, dry-run and selected-link safety
+coverage; the 21-case independent suite also checks pinned live GNU behavior.
+The author additions cover pending-read cancellation, shared input budgets,
+inverse-order atomic selection, repeated create/delete/recreate, parent ranking,
+unused input headers and actual auxiliary aliases.
+
+The **31 raw failures remain failures**:
+
+- Five GNU editflows require pruning empty ancestors; MemoryFS returns `EISDIR`.
+- Twenty-three author checks hit the same missing primitive: one absolute
+  `/dev/null` flow, six normal/context/unified `-E` flows and sixteen absolute
+  epoch reverse-deletions. The old native reference driver also stops at its
+  first absolute epoch reverse-delete with `EISDIR`; it is not a 156-case pass.
+- Two independent safety checks (`pre-existing ancestor` and `pre-existing
+  file-parent`) and one author combined symlink check expect rejection of raw
+  prefixes discarded by default basename selection. The current selected-path
+  policy and GNU auxiliary/candidate controls accept those stripped-prefix
+  cases. Their owners must independently reconcile the contradictory assertions;
+  this worker did not edit, skip or reclassify them into passes.
+
+An additional exploratory namespace test observed different reject orientation
+for a failed deletion followed by another section. The original failure remains
+in `/tmp/safe-bash-diff-resume-namespace-clean-1.tap`; reject serialization is not
+claimed repaired. The committed candidate-selection control explicitly uses
+`-r -` for that failed-deletion case so it tests selection without that separate
+reject-format behavior. No independent expectation was changed.
+
+Fresh global `npm run typecheck -- --pretty false` and strict author/suite
+typechecks passed. One attempted safety `-p` check failed with TS5058 because that
+suite has no tsconfig; the corrected explicit-file strict `--noEmit` command
+passed, recorded in the sibling `-safety-types-corrected.log`. The initial error
+log is retained. Source and selected test hashes matched at the validation
+endpoints; none of their TypeScript inputs had emitted `.js` siblings.
+This records a bounded stability window, not a lock on other workers' source.
+
+Aggregate SHA-256 values hash JSON objects of sorted path-to-SHA-256 mappings:
+
+- Diff/patch TypeScript source:
+  `d12aa98d997b16e67554c51a1ba674395c621c7d51f73181704837a2971429ac`.
+- Executed suites' TypeScript, JSON and MJS fixture/helper inputs:
+  `10ca185caa88564ef3a9639a1bf38e65a285bae65056af06e9caa9e76bdca89d`.
+
+Resumed commits are `15159dd` (committed-prefix diagnostics), `7822b5f`
+(misordered-hunk diagnostics), `efa56b3` (unused loops), `87085fd` (sequential
+namespace authorization), `56e2c63` (atomic orphan-deletion guard), and `6982d43`
+(reverse/budget regressions). They preserve earlier `7f7fe63`, `cccf34c` and
+`bb74849`. No filesystem/contract changes, runtime dependencies, host product
+execution, full-GNU compatibility or project-superiority claim is included.
+
+## Historical publication evidence
 
 Oracle: `/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch`, reporting
 `GNU patch 2.8`, binary SHA-256

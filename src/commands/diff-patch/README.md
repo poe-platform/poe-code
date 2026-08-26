@@ -79,7 +79,7 @@ periodically to observe cancellation.
   `-i FILE` / `--input=FILE`, or `--input FILE`; `-i -` means stdin.
   Autodetection supports mixed-format sections in one input.
   `-u` / `--unified`, `-n` / `--normal`, and `-c` / `--context` assert the
-  format of every section. Conflicting flags fail immediately; a later format
+  format of every section; the last format selector wins. A later format
   mismatch can leave earlier sections published in default mode. Normal input
   needs a positional target or a usable `Index:` filename. At most one positional
   target is accepted; a second positional patch-input operand is not supported.
@@ -91,6 +91,10 @@ periodically to observe cancellation.
   Selection prefers existing candidates, then ranks candidates by missing
   parents, component count, basename length, and total length as applicable;
   it is not an unconditional old-header-first rule and never renames files.
+  Selection accounts for earlier target creation, deletion and parent creation.
+  Only selected effective paths are authorized, not discarded header prefixes
+  or unused alternatives. An unused looping symlink does not abort selection;
+  selecting that link still fails the no-symlink check.
 - `-R` / `--reverse` swaps headers, hunk coordinates, and additions/deletions.
   Default mode keeps section order. Without `-f` / `--force`, apparent reversed
   or already-applied input can be automatically reversed. `-t` / `--batch` is
@@ -98,7 +102,12 @@ periodically to observe cancellation.
   reversal, not path checks or resource limits. Reapplying a patch can therefore
   undo it rather than act as an idempotent no-op.
 - `--dry-run` checks without publishing targets, rejects, backups, or directory
-  changes. `--atomic` requests staged preflight, described below; neither flag
+  changes or authorizing auxiliary destinations that cannot be written.
+  Default dry-run selects against the unchanged filesystem; atomic dry-run
+  selects against hypothetical preceding results. Thus a create-then-edit
+  sequence can succeed normally but refuse a different selected path in default
+  dry-run, without changing the namespace. `--atomic` requests staged preflight,
+  described below; neither flag
   changes the default fuzz or reversal policy.
 - `-F N`, `-FN`, `--fuzz=N`, and `--fuzz N` set bounded context fuzz. The
   default is **two**; use `-F0` to require all context to match.
@@ -118,9 +127,12 @@ periodically to observe cancellation.
   unmatched remaining content is retained and reported as a conflict.
   Multiple distinct targets are supported.
 - `-E` / `--remove-empty-files` removes other empty results too. After removals,
-  empty ancestors are pruned, stopping before cwd for relative targets or before
+  empty-ancestor pruning is requested, stopping before cwd for relative targets or before
   `/` for absolute targets. Nonempty directories remain; `.orig` or `.rej` files
   can keep a directory nonempty. Dry-run does not create or prune directories.
+  Pruning is currently blocked by the absence of a safe nonrecursive directory
+  removal primitive: MemoryFS returns `EISDIR`, which is reported, not swallowed
+  or replaced with recursive deletion. File publication can already have occurred.
 - Epoch-dated empty sides in unified/context headers also support creation and
   deletion. Timestamp recognition supports ISO-style and traditional `ctime`
   headers, following GNU patch 2.8's measured near-epoch window (strictly between
@@ -137,6 +149,9 @@ periodically to observe cancellation.
   Recognized mail envelopes accept descriptive text and diffstat before the
   patch (at most 1024 lines/64 KiB), and a `-- ` signature (128 lines/8 KiB).
   Patch syntax in signatures and unsupported mode/rename metadata are rejected.
+  Bare interstitial descriptive text is scanned through, including text that
+  resembles rename, mode or binary metadata. This does not implement Git rename,
+  mode-change or binary-patch semantics; actual unsupported Git envelopes fail.
 - Successful hunks are published even when other hunks fail; later file
   sections can still succeed. Failed hunks normally produce `TARGET.rej`.
   `-r FILE`, `-rFILE`, `--reject-file=FILE`, and `--reject-file FILE` select a
@@ -145,14 +160,18 @@ periodically to observe cancellation.
   one invocation are appended after the first write replaces that destination.
 - Mismatches (failed, offset, fuzzed, or automatically reversed application)
   enable `TARGET.orig` backups by default. `--no-backup-if-mismatch` disables
-  them; `--backup-if-mismatch` enables them. This is not unconditional `-b`
+  them; `--backup-if-mismatch` enables them. Existing `.orig` is replaced unless
+  numbered backups exist, in which case the next `.~N~` number is chosen.
+  This is not unconditional `-b`
   backup support or GNU's complete backup-naming/versioning interface.
 - Counts, coordinates, hunk ordering, and newline markers are checked, but
   default mode is not all-input preflight: some later parse failures are
   reported after earlier sections publish. Safety and parsing limits can still
   reject input before publication. Malformed/truncated input is not silently
-  accepted; empty input is a successful no-op. Git rename/copy semantics are
-  not supported.
+  accepted inside declared hunks; empty input is a successful no-op. Default
+  scanning can ignore trailing deletion-like text after a complete section,
+  as verified against GNU. Atomic staging instead rejects that orphan payload
+  before any publication. Git rename/copy semantics are not supported.
 - Suppressed blank bodies are accepted: normal `<`/`>` and context `!`/`+`/`-`
   without a following space denote complete empty data lines. Bare blank context
   lines denote shared empty data only within the declared side range; count and
@@ -189,7 +208,8 @@ Traversal (`..` components), backslashes, drive-prefix components,
 directory-shaped labels, and control characters other than tabs are
 rejected **before normalization or stripping**, even with an explicit target.
 Adjacent relative slashes collapse before stripping; traversal never collapses.
-Dot components are allowed. Repeated normalized targets see published state in
+Dot components are allowed and count toward explicit strip depth before path
+normalization. Repeated normalized targets see published state in
 default mode, or staged state with `--atomic`. In the inspected default
 `--dry-run` path, preceding results are neither published nor staged: repeated
 sections read unchanged VFS content. Do not assume that this simulates a
@@ -201,7 +221,9 @@ Diff operands may use absolute virtual paths. Resolved paths are limited to
 
 Both tools reject symlinks in inspected path components, including cwd
 ancestors, final targets, and patch-input paths. Patch also rejects hard-linked
-targets when `nlink` reports more than one link. Directory targets are never
+targets and actual auxiliary outputs when `nlink` reports more than one link.
+Unused headers and stripped prefixes are not inspected for authorization;
+lexically unsafe automatic headers are still rejected. Directory targets are never
 overwritten. These checks are not a replacement for adapter sandboxing:
 `FileSystem` has no no-follow file handles or compare-and-swap operation, so
 concurrent path replacement cannot be made race-free here. Host-root confinement
@@ -210,13 +232,18 @@ outside the supplied virtual filesystem API.
 
 ## Failure and cancellation policy
 
-**Default mode:** input is buffered and candidate paths are authorized before
-publication, but applicability and result budgets are evaluated section by
-section. Successful hunks/files can remain published after a conflict, later
+**Default mode:** input is buffered and selected paths are authorized before
+publication. Where a later choice depends on earlier changes, bounded read-only
+application previews determine the evolving namespace using the same hunk and
+reversal logic as execution. These previews consume the existing invocation
+budgets; they are not unmetered or filesystem writes. Actual application and
+publication remain section by section. Successful hunks/files can remain published after a conflict, later
 parse error, resource failure, or sink failure. Status is emitted as sections
 are processed. A conflict returns 1 and does not itself prevent later sections
 from applying. A fatal publication error stops processing; a file section may
 already have written its backup or target before a reject write fails.
+Failures between publications, including target stat/read errors, report the
+completed file-section prefix rather than losing that context.
 
 **Explicit `--atomic` extension:** parse and stage all sections, reject hunk or
 target conflicts, and check prepared result budgets before publication. Repeated
@@ -292,7 +319,22 @@ observations remain separately recorded, with current GNU patch migration
 verification still in progress. No result here demonstrates superiority to
 just-bash or completion of the wider full-shell/72-hour objective.
 
-## Evidence during GNU migration
+## Clean-source followup checkpoint
+
+After the coordinated compiler-artifact cleanup, the August 26, 2026 checkpoint
+in [GNU-PATCH.md](GNU-PATCH.md) ran **2,334 tests: 2,303 passed, 31 failed**, with
+zero skips, cancellations or TODOs. The unchanged 930-test aggregate passed
+928/930; the independent candidate followup passed 21/21; all author followup
+regressions passed 83/83 (a subset of the full author suite, not extra coverage).
+Fresh `npm run typecheck` passed. No build or compiler emission was run.
+
+The raw failures remain visible: 28 pruning-related checks and three old
+stripped-prefix rejection assertions across the executed suites. Neither
+category is silently waived. Source/test hashes were stable during the recorded
+run and no `.js` siblings shadowed its TypeScript inputs. This is a bounded
+checkpoint, not a globally frozen repository or full GNU/project acceptance.
+
+## Historical evidence during GNU migration
 
 This README was reconciled against active source on August 26, 2026, without
 running the global suites. Source inspection is not a test pass. Earlier
@@ -316,10 +358,10 @@ they do not certify the changed patch default or the `--atomic` extension.
   before/after acceptance claim. All three logs recorded zero skips and
   cancellations; failures are retained, not waived.
 
-Source and verification are still changing. In particular, historical
-preflight-only parser documentation must not be read as the default publication
-contract, and the default dry-run/repeated-target limitation above still needs
-source-owner verification. No whole-repository pass is claimed.
+Those historical preflight-only descriptions must not be read as the default
+publication contract. Default and atomic dry-run namespace behavior now has
+focused author and independent coverage described in the clean-source checkpoint.
+No whole-repository runtime pass is claimed.
 
 ## Optional GNU reference driver
 

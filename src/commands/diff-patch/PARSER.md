@@ -5,6 +5,31 @@ for the current default publication, backup, rejection and `--atomic` contracts.
 The historical evidence and checkpoint counts below remain historical; they are
 not fresh validation of the GNU-default implementation.
 
+## Clean-source followup
+
+The August 26, 2026 post-cleanup checkpoint in `GNU-PATCH.md` supersedes older
+runtime observations for the changed implementation: parser regressions pass
+80/80, path regressions 619/619, target followup 23/23, and author followups 83/83.
+The complete requested five-suite gate is still 928/930, not acceptance; broader
+author/pruning failures remain visible there. Global `npm run typecheck` passed
+with `--noEmit`; no generated JavaScript shadowed the tested TypeScript sources.
+
+Last format selector wins. Between complete sections, bare descriptive metadata
+is scanned through rather than hiding later targets from authorization. This
+does not interpret Git rename, copy, binary or mode-change instructions. A
+matched hunk behind the consumed output cursor is an applicability conflict and
+emits the measured misordered-hunks diagnostic, not a parser-range exception.
+Atomic staging rejects orphan deletion payload outside declared hunks; default
+GNU scanning can ignore that trailing text. Default partial publication and
+explicit nontransactional atomic staging remain distinct.
+
+Selected-path authorization uses the appropriate namespace: preceding actual
+results in ordinary execution, hypothetical results in atomic mode, and the
+unchanged filesystem in default dry-run. Read-only selection previews use the
+same hunk/reversal logic and existing resource/cancellation budgets. Dry-run
+does not create targets, auxiliary files or directories; it is not required to
+select the same path as an actual create-then-edit invocation.
+
 ## Suppressed blank bodies
 
 Normal `<`/`>` and context `!`/`+`/`-` without the usual following
@@ -53,7 +78,7 @@ header labels. Default `-R` keeps section order and default dry-run reads the
 unmodified filesystem. Sequential hypothetical dry-run and inverse-order
 chain reversal now require `--atomic`; those are documented staging extensions.
 
-The unchanged independent 80-test parser checkpoint now reports 75 passes and
+The historical independent 80-test parser checkpoint reported 75 passes and
 five native-oracle failures, with no product issues in its 76 product fixtures.
 The native failures remain visible: tab-prefix normal, suppressed-blank normal,
 unsafe-integer oracle timeout, generated suppressed-blank normal, and generated

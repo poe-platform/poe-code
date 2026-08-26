@@ -175,6 +175,9 @@ export async function parsePatch(text: string, budget: Budget, format: PatchForm
   while (reader.peek() !== undefined) {
     try {
       if (reader.peek() === "") { await reader.take(); continue; }
+      if (!progress && patches.length && reader.peek()!.startsWith("-") && !reader.peek()!.startsWith("---")) {
+        throw new ToolError("unexpected deletion outside a patch hunk");
+      }
       if (patches.length && !/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test(reader.peek()!)) {
         await reader.take();
         continue;

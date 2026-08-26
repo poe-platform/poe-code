@@ -117,8 +117,8 @@ describe("plans", () => {
     });
   });
 
-  it("sorts ready plans before drafts while preserving source order", async () => {
-    const { fs } = createFs({
+  it("sorts ready plans before drafts with filename ordering when modification times tie", async () => {
+    const { fs, rawFs } = createFs({
       "/repo/.poe-code/plans/01-draft.md": planDoc({ kind: "pipeline", name: "Draft" }),
       "/repo/.poe-code/plans/02-ready.md": planDoc({
         kind: "pipeline",
@@ -131,6 +131,9 @@ describe("plans", () => {
         readiness: "draft"
       })
     });
+    await rawFs.utimes("/repo/.poe-code/plans/01-draft.md", 1, 1);
+    await rawFs.utimes("/repo/.poe-code/plans/02-ready.md", 1, 1);
+    await rawFs.utimes("/repo/.poe-code/plans/03-explicit-draft.md", 1, 1);
 
     const plans = await discoverPlans({ cwd, homeDir, planDirectory, fs });
 

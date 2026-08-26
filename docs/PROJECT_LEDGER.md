@@ -480,6 +480,49 @@ that any implementation, command, fixture, or test currently exists.
   all broader-suite failures. Full-shell parity, broad performance and protocol
   coverage, and the user's superiority requirement remain unproven.
 
+### Individual failure triage and updated complete run
+
+- `benchmarks/reports/FAILURE_TRIAGE.md` enumerates all 51 original failure IDs,
+  exact files/test names, owners, later commits, native controls and current
+  repro instructions. `failure-triage-index.json` is the machine-readable index;
+  raw Apple/GNU/latest focused reports and independent mutation probes remain
+  committed beside it. No expected values or other owners' source were edited.
+- Original f4eb0b3's 51 classify as **23 verified later source fixes, 1 corrected
+  pipeline-format fixture, 11 Apple reference limitations, 6 dialect-specific
+  expectations, 4 obsolete duplicate-status assertions, 1 live patch-boundary
+  semantic gap, and 5 remaining shell differences**. No race was demonstrated.
+  Missing/renamed cases are not passes: seven old labels are retained and mapped
+  to their owner's independently documented replacements.
+- Focused archived 9d6d292: 660/693 pass with Apple, 669/693 with pinned GNU;
+  same-source original labels are 19/51 versus 34/51 passes. Focused archived
+  07da999: 684/716 pass, 32 fail; original labels are 24 pass / 20 fail /
+  7 renamed. A separate pinned-GNU gate run is 18/28 pass, 10 fail, zero skips
+  or TODOs, retaining GNU mixed-format/context flag and boundary-anchoring gaps.
+- Priority routes: Faraday's asymmetric non-EOF `-F0` acceptance and mixed GNU
+  format/context flag ordering; Sagan's ANSI-C quoting, pinned Bash 3.2 fatal
+  parameter exit status and exact diagnostics; root/Sagan decision on whole-
+  source prevalidation versus Bash's earlier effects before a substitution error.
+  Duplicate conflicts independently show no mutations and unchanged namespace;
+  authorized explicit-target header labels do not redirect writes elsewhere.
+- Updated complete archived **22fd7e5d46fb00409761196cbaf1ddc27f16f9bf**:
+  **6,797 tests: 6,729 pass, 59 fail, 9 skip, 0 TODO, 0 cancelled**. Failures
+  route to Faraday (45) and Sagan (14), including newly added test files rather
+  than 59 newly introduced bugs. Exact diagnostics are retained in
+  `triage-head-integration.json`; no failure is removed from the denominator.
+  Build/typecheck, 49-command built-root smoke and six actual-local SafeJS tests
+  pass. Private SafeJS HEAD 9fdf6658d809e721caf0f801e6cef539c4386f37 has unchanged
+  scoped status/package metadata during the run. Comparator: virtual 118/118;
+  just-bash 3.4.2 108 pass / 9 fail / 1 unsupported.
+- Later focused checks verify epoch creation (`90b4765`), input-only substitution
+  (`7a869af`), pathname classes and bounded unmatched-bracket compilation
+  (`50cefdd`). Those do not retroactively make the earlier complete run green.
+  Bytes' later 381/381 actual pinned-GNU checkpoint and 373 passes/eight optional
+  skips without GNU are attributed owner reports, not this global rerun.
+- Zero runtime dependencies remain. New excluded scopes are Plato's optional
+  injected `src/commands/safejs/**` and tests, and Poincare's
+  `tests/integration/adapter-tools/**`. The requested superiority and full-shell
+  goal remain unmet; the small passing comparator is not a substitute.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

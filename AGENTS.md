@@ -144,5 +144,9 @@
 - Also exclude `src/commands/diff-patch/**` and `tests/commands/diff-patch/**`
   (Faraday, independent verifier after author handoff); no source ownership
   transfer to the foundation worker has been granted.
+- Exclude optional injected SafeJS commands in `src/commands/safejs/**` and
+  `tests/commands/safejs/**` (Plato), and cross-adapter tool integration in
+  `tests/integration/adapter-tools/**` (Poincare). Do not stage unowned native
+  temporary directories left by other workers' oracle runs.
 - Use explicit-path `git commit --only` after staging owned paths so a concurrent worker's index entries do
   not enter another worker's commit.

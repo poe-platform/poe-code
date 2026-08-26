@@ -29,6 +29,13 @@ The failures include 30 diff/patch cases, 10 shell differential gaps, and 11
 stdin-origin integrations whose rg consumer changes were not yet committed in
 that snapshot. All 19 aggregate tests pass. Earlier evidence remains recorded.
 
+A later complete archive, `22fd7e5d46fb00409761196cbaf1ddc27f16f9bf`, has
+6,729 passes, 59 failures, 9 external-oracle skips and zero TODOs out of 6,797;
+build/typecheck and actual-local SafeJS pass. Newly added tests and native
+reference differences affect the totals. `benchmarks/reports/FAILURE_TRIAGE.md`
+classifies every original failure and distinguishes source fixes, live gaps,
+fixture changes, dialects and oracle limitations. No clean full-suite claim is made.
+
 A later **comparison-only** archive at
 `e432c52147a4f355fbae9083cfe1d94a3f78f86d` includes the committed rg provenance
 and absolute patch-target fixes: virtual passes 118/118, while just-bash retains

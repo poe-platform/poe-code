@@ -109,13 +109,13 @@ for (const kind of ["final", "ancestor", "dangling", "cwd", "input", "hardlink",
     let args: string[] = [];
     let working = cwd;
     if (kind === "final") { await backing.symlink("target", `${cwd}/alias`); input += replacement("alias"); }
-    if (kind === "ancestor") { await backing.symlink("dir", `${cwd}/alias`); input += replacement("alias/target"); }
+    if (kind === "ancestor") { await backing.symlink("dir", `${cwd}/alias`); input += replacement("alias/target"); args = ["-p0"]; }
     if (kind === "dangling") { await backing.symlink("missing", `${cwd}/alias`); input += creation("alias"); }
     if (kind === "cwd") { await backing.symlink("work", "/sandbox/alias"); working = "/sandbox/alias"; input = replacement(); }
     if (kind === "input") { await backing.symlink("patch", `${cwd}/alias`); args = ["-i", "alias"]; }
     if (kind === "hardlink") { await backing.link(`${cwd}/target`, `${cwd}/alias`); input += deletion("alias"); }
     if (kind === "directory") input += replacement("dir");
-    if (kind === "file-parent") input += creation("blocker/child");
+    if (kind === "file-parent") { input += creation("blocker/child"); args = ["-p0"]; }
     const before = await snapshot(backing);
     const observed = instrument(backing);
     const result = await invoke(observed.fs, "patch", { input, args, cwd: working });

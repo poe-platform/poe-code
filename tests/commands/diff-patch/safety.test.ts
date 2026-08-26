@@ -23,13 +23,13 @@ test("strip removing the entire pathname is an error", async () => {
   assert.equal((await run("patch", ["-p1"], { files: { target: "old\n" }, input: replacement })).exitCode, 2);
 });
 
-test("symlink target, symlink ancestor, and symlink patch input are rejected", async () => {
+test("selected-path policy rejects symlink target, retained ancestor (-p0), and patch input", async () => {
   const fs = await filesystem({ target: "old\n", "dir/target": "old\n", input: replacement });
   await fs.symlink("target", "/work/alias");
   await fs.symlink("dir", "/work/linkdir");
   await fs.symlink("input", "/work/linkinput");
   for (const path of ["alias", "linkdir/target"]) {
-    const result = await run("patch", [], { fs, input: replacement.replaceAll("target", path) });
+    const result = await run("patch", path === "linkdir/target" ? ["-p0"] : [], { fs, input: replacement.replaceAll("target", path) });
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /symlink/u);
   }

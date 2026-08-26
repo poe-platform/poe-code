@@ -6,6 +6,7 @@ import type {
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
+import { readBytes } from "../../contracts/io.js";
 import { normalizePath, validatePath } from "../../contracts/path.js";
 
 export interface MountFileSystemOptions {
@@ -106,6 +107,11 @@ export class MountFileSystem implements FileSystem {
     const all = (capability: string, methods: readonly (keyof FileSystem)[] = []): boolean =>
       mounts.every(({ backend }) => backend.capabilities[capability] === true
         && methods.every((method) => typeof backend[method] === "function"));
+    const streaming = (capability: "streamingRead" | "streamingWrite", method: "readStream" | "writeStream"): boolean | undefined =>
+      all(capability, [method]) ? true : mounts.some(({ backend }) =>
+        backend.capabilities[capability] !== false && typeof backend[method] === "function") ? undefined : false;
+    const streamingRead = streaming("streamingRead", "readStream");
+    const streamingWrite = streaming("streamingWrite", "writeStream");
     this.capabilities = Object.freeze({
       readOnly: all("readOnly"),
       symlinks: all("symlinks", ["readlink", "symlink"]),
@@ -113,8 +119,8 @@ export class MountFileSystem implements FileSystem {
       permissions: all("permissions", ["chmod"]),
       timestamps: all("timestamps", ["utimes"]),
       atomicRename: mounts.length === 1 && all("atomicRename"),
-      streamingRead: all("streamingRead", ["readStream"]),
-      streamingWrite: all("streamingWrite", ["writeStream"]),
+      ...(streamingRead === undefined ? {} : { streamingRead }),
+      ...(streamingWrite === undefined ? {} : { streamingWrite }),
     });
   }
 
@@ -393,9 +399,36 @@ export class MountFileSystem implements FileSystem {
       if (origin.stat?.type === "directory") fail("EISDIR");
       const target = await this.resolve(destination, options, { allowMissing: true, followFinal: !options.exclusive });
       if (this.protected(target.path)) fail("EBUSY");
-      if (origin.mount !== target.mount) fail("EXDEV");
       this.mutable(target);
-      await origin.mount.backend.copyFile(origin.local, target.local, options);
+      if (origin.mount === target.mount) {
+        await origin.mount.backend.copyFile(origin.local, target.local, options);
+        return;
+      }
+      if (options.exclusive && target.stat) fail("EEXIST");
+      if (target.stat?.type === "directory") fail("EISDIR");
+      const reader = origin.mount.backend;
+      const writer = target.mount.backend;
+      const writeOptions: WriteFileOptions = {
+        ...options, flag: options.exclusive ? "wx" : "w",
+        ...(writer.capabilities.permissions === true ? { mode: origin.stat!.mode & 0o7777 } : {}),
+      };
+      if (reader.readStream && reader.capabilities.streamingRead !== false
+        && writer.writeStream && writer.capabilities.streamingWrite !== false) {
+        const source = readBytes(reader.readStream(origin.local, options), options.signal);
+        let failed = false;
+        try { await writer.writeStream(target.local, source, writeOptions); }
+        catch (error) { failed = true; throw error; }
+        finally {
+          try { await source.return(undefined); }
+          catch (error) { if (!failed) throw error; }
+        }
+      } else {
+        const maxBytes = 64 * 1024 * 1024;
+        const data = await reader.readFile(origin.local, { ...options, maxBytes });
+        if (data.byteLength > maxBytes) fail("EFBIG");
+        options.signal?.throwIfAborted();
+        await writer.writeFile(target.local, data, writeOptions);
+      }
     }, destination);
   }
 
@@ -474,7 +507,7 @@ export class MountFileSystem implements FileSystem {
       const location = await this.resolve(path, options);
       if (location.synthetic) fail("EISDIR");
       const source = this.optional(location, "readStream", "streamingRead").call(location.mount.backend, location.local, options);
-      for await (const chunk of source) {
+      for await (const chunk of readBytes(source, options.signal)) {
         options.signal?.throwIfAborted();
         yield chunk;
       }

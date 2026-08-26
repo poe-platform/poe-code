@@ -333,7 +333,19 @@ test("existing directories containing mounts are protected even through same-bac
   assert.equal((await fs.stat("/parent/store")).type, "directory");
 });
 
-for (const method of ["rename", "copyFile", "link"] as const) {
+test("cross-mount copyFile transfers bytes without deleting its source", async () => {
+  const { fs, root, disk } = fixture();
+  await root.writeFile("/source", bytes);
+  await disk.writeFile("/destination", encode("old"));
+  await fs.copyFile("/source", "/disk/destination");
+  assert.deepEqual(await disk.readFile("/destination"), bytes);
+  assert.deepEqual(await root.readFile("/source"), bytes);
+  await fs.copyFile("/disk/destination", "/returned", { exclusive: true });
+  assert.deepEqual(await root.readFile("/returned"), bytes);
+  await assert.rejects(fs.copyFile("/source", "/disk/destination", { exclusive: true }), errno("EEXIST"));
+});
+
+for (const method of ["rename", "link"] as const) {
   test(`cross-mount ${method} is EXDEV and never transfers or mutates data`, async () => {
     const root = createMemoryFileSystem();
     const disk = createMemoryFileSystem();
@@ -385,7 +397,9 @@ test("heterogeneous capability intersections do not disable a capable selected m
     chmod: undefined, utimes: undefined, truncate: undefined, readStream: undefined, writeStream: undefined,
   });
   const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/limited": unsupported } });
-  for (const key of ["symlinks", "hardlinks", "permissions", "timestamps", "streamingRead", "streamingWrite", "atomicRename"]) assert.equal(fs.capabilities[key], false);
+  for (const key of ["symlinks", "hardlinks", "permissions", "timestamps", "atomicRename"]) assert.equal(fs.capabilities[key], false);
+  assert.equal(fs.capabilities.streamingRead, undefined);
+  assert.equal(fs.capabilities.streamingWrite, undefined);
   await fs.writeFile("/limited/file", bytes);
   await fs.writeFile("/file", bytes);
   await fs.symlink("file", "/alias");
@@ -703,12 +717,15 @@ test("cross-device errors remain EXDEV even when a backend is read-only", async 
   await root.writeFile("/source", bytes);
   await disk.writeFile("/source", bytes);
   const fs = createMountFileSystem({ root, mounts: { "/disk": backend({ capabilities: { readOnly: true } }, disk) } });
-  for (const method of ["rename", "copyFile", "link"] as const) {
+  for (const method of ["rename", "link"] as const) {
     await assert.rejects(fs[method]("/source", "/disk/new"), errno("EXDEV"));
     await assert.rejects(fs[method]("/disk/source", "/new"), errno("EXDEV"));
   }
   assert.deepEqual(await root.readFile("/source"), bytes);
   assert.deepEqual(await disk.readFile("/source"), bytes);
+  await assert.rejects(fs.copyFile("/source", "/disk/new"), errno("EROFS"));
+  await fs.copyFile("/disk/source", "/new");
+  assert.deepEqual(await root.readFile("/new"), bytes);
 });
 
 test("same-device backend rename failure preserves source and remaps both error paths", async () => {

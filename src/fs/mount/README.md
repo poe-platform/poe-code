@@ -71,18 +71,27 @@ parents can be traversed to mounts but cannot acquire ordinary children
 (`ENOTSUP`); they are not implicitly materialized in a backend.
 
 Rename and hardlink require the same mount identity (`EXDEV` otherwise). Rename
-never falls back to copy/remove. Cross-mount copy also returns `EXDEV` before any
-data transfer or destination mutation: the shared contract does not specify safe
-transactional cross-backend copy semantics. Same-mount copy and streaming writes
-delegate to the selected backend and retain its failure/partial-write semantics;
-there is no rollback or unbounded buffering fallback.
+never falls back to copy/remove. Cross-mount copy transfers bytes using the
+selected source reader and destination writer, awaiting consumption and closing
+the reader on failure. If either selected backend lacks streaming, a bounded
+64-MiB `readFile`/`writeFile` fallback is used; source overflow fails before the
+destination write. Destination exclusivity and read-only checks precede input
+consumption. New-file modes are requested only from permission-capable writers.
+Copy is not a transaction: a failed destination write can leave partial bytes,
+but source deletion is never attempted. Same-mount copy and streaming writes
+delegate to the selected backend and retain its failure/partial-write semantics.
 
 ## Optional methods, errors, and streams
 
 All contract optional methods are exposed as guarded dispatchers. A method absent
 on the selected backend, or explicitly disabled by its associated capability,
 returns `ENOTSUP`; other mounts can still support it. Global capability flags are
-conservative intersections of explicit backend flags and required methods.
+conservative intersections of explicit backend flags and required methods,
+except streaming: true requires all backends to advertise support and expose
+the method; false means no backend can support that dispatcher; the flag is
+omitted for heterogeneous/unknown support. An omitted flag is not a guarantee.
+Dispatch still checks the selected backend before consuming input, so an
+unstreamable remote mount neither disables local streams nor gains fake support.
 `readOnly` is true only when all backends declare it; `atomicRename` is false with
 multiple mounts because global cross-mount rename is unavailable. Unknown
 capabilities are not advertised. `truncate` has no contract capability flag and
@@ -97,11 +106,33 @@ the entire path, including symlinks, dotdot, known mount boundaries, and backend
 realpath verification. A static planning denial does not create prefixes or
 modify backend content/metadata through mutating calls. Metadata-read side effects
 of a backend itself are outside the shared contract's guarantees.
-Read streams are lazy, preserve streaming, and close the underlying iterator when
-the consumer stops. Pre-aborted operations do not touch a backend. Backend errors
+Read streams are lazy, preserve streaming, and use `readBytes` to stop waiting on
+cancellation and close the underlying iterator when the consumer stops. Late
+read/cleanup rejections are observed. Pre-aborted operations do not touch a backend. Backend errors
 are wrapped as `FsError` with the public operation's syscall, global input `path`,
 and global `dest` when applicable; backend-local details remain only in `cause`.
 Unrecognized failures become `EIO`. A signal's actual abort reason is preserved.
+
+### Production-fix checkpoint (2026-08-26)
+
+`node --unhandled-rejections=strict --import tsx --test tests/fs/mount/*.test.ts`
+passes 105/105 tests. Cross-device copy's former `EXDEV` prohibition is replaced
+by exact-byte transfer, exclusivity, no-source-deletion, and partial-write error
+tests; rename and hardlink still require one mount identity.
+
+The three owned wrapper suites pass 361/361; the unmodified shared conformance
+suite passes 202/202. The unmodified complete filesystem test glob passes
+1,091/1,091, and `npm run typecheck` passes in the concurrent working tree.
+No shared conformance or integration expectations were edited.
+
+The unchanged 79-case adapter-tools matrix initially reproduced 58 passes and
+21 failures, reached a 77-pass checkpoint during concurrent remote fixes, and
+most recently reports 70 passes and nine failures: six shell missing-path
+diagnostics no longer contain `ENOENT`, two readonly redirection diagnostics no
+longer contain `EROFS`, and jq still rejects `split/1`. Mount cross-backend copies,
+mount/overlay named-file probes, and readonly named gzip pass. These are observed
+working-tree results including other owners' concurrent changes, not isolated
+wrapper attribution, a complete product gate, or comparative superiority evidence.
 
 Stat and directory-entry snapshots read named contract fields, including optional
 stat metadata, so prototype getters and nonenumerable properties are retained.

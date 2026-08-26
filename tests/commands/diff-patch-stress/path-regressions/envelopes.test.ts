@@ -1,4 +1,6 @@
 import test from "node:test";
+import { assertDefaultParity } from "../gnu-target-followup/evidence.js";
+import { metadataProbes } from "../gnu-target-followup/fixtures.js";
 import { exactUpdate, quoted, rejectsWithoutMutation, section } from "./helpers.js";
 
 const preamble = "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\n"
@@ -38,10 +40,14 @@ for (const metadata of [
 ]) {
   for (const position of ["between-sections", "after-signature"] as const) {
     if (metadata === "unknown extension metadata" && position === "after-signature") continue;
-    test(`unsupported metadata cannot disappear ${position}: ${metadata}`, async () => {
+    test(position === "between-sections" ? `GNU default accepts interstitial metadata: ${metadata}` : `unsupported metadata cannot disappear ${position}: ${metadata}`, async () => {
+      if (position === "between-sections") {
+        const probe = metadataProbes.find(item => item.id === `metadata between-sections: ${metadata}`)!;
+        await assertDefaultParity(probe);
+        return;
+      }
       const first = preamble + section("a/first");
-      const suffix = position === "after-signature" ? `-- \n2.50.1\n${metadata}\n`
-        : `${metadata}\n${section("a/target")}`;
+      const suffix = `-- \n2.50.1\n${metadata}\n`;
       await rejectsWithoutMutation(first + suffix, ["-p1"]);
     });
   }

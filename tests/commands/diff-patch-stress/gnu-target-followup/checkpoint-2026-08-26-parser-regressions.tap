@@ -1,0 +1,490 @@
+TAP version 13
+# Subtest: normal-empty-insert
+ok 1 - normal-empty-insert
+  ---
+  duration_ms: 16.933459
+  type: 'test'
+  ...
+# Subtest: normal-empty-insert-incomplete
+ok 2 - normal-empty-insert-incomplete
+  ---
+  duration_ms: 8.452666
+  type: 'test'
+  ...
+# Subtest: normal-delete-to-empty
+ok 3 - normal-delete-to-empty
+  ---
+  duration_ms: 9.115791
+  type: 'test'
+  ...
+# Subtest: normal-both-incomplete
+ok 4 - normal-both-incomplete
+  ---
+  duration_ms: 11.325583
+  type: 'test'
+  ...
+# Subtest: normal-blank-data
+ok 5 - normal-blank-data
+  ---
+  duration_ms: 9.105167
+  type: 'test'
+  ...
+# Subtest: normal-tab-prefix
+ok 6 - normal-tab-prefix
+  ---
+  duration_ms: 0.61725
+  type: 'test'
+  ...
+# Subtest: normal-patch-looking-data
+ok 7 - normal-patch-looking-data
+  ---
+  duration_ms: 7.331375
+  type: 'test'
+  ...
+# Subtest: normal-crlf-data
+ok 8 - normal-crlf-data
+  ---
+  duration_ms: 8.234
+  type: 'test'
+  ...
+# Subtest: normal-suppress-blank-empty
+ok 9 - normal-suppress-blank-empty
+  ---
+  duration_ms: 1.292083
+  type: 'test'
+  ...
+# Subtest: normal-empty-patch-noop
+ok 10 - normal-empty-patch-noop
+  ---
+  duration_ms: 8.884584
+  type: 'test'
+  ...
+# Subtest: normal-leading-empty-lines
+ok 11 - normal-leading-empty-lines
+  ---
+  duration_ms: 8.064375
+  type: 'test'
+  ...
+# Subtest: normal-two-ordered-hunks
+ok 12 - normal-two-ordered-hunks
+  ---
+  duration_ms: 8.651084
+  type: 'test'
+  ...
+# Subtest: context-empty-insert
+ok 13 - context-empty-insert
+  ---
+  duration_ms: 8.826333
+  type: 'test'
+  ...
+# Subtest: context-delete-to-empty
+ok 14 - context-delete-to-empty
+  ---
+  duration_ms: 9.114542
+  type: 'test'
+  ...
+# Subtest: context-empty-insert-incomplete
+ok 15 - context-empty-insert-incomplete
+  ---
+  duration_ms: 7.750375
+  type: 'test'
+  ...
+# Subtest: context-both-incomplete
+ok 16 - context-both-incomplete
+  ---
+  duration_ms: 7.957917
+  type: 'test'
+  ...
+# Subtest: context-omitted-old-with-context
+ok 17 - context-omitted-old-with-context
+  ---
+  duration_ms: 9.296708
+  type: 'test'
+  ...
+# Subtest: context-omitted-new-with-context
+ok 18 - context-omitted-new-with-context
+  ---
+  duration_ms: 9.69525
+  type: 'test'
+  ...
+# Subtest: context-incomplete-shared-tail
+ok 19 - context-incomplete-shared-tail
+  ---
+  duration_ms: 9.741
+  type: 'test'
+  ...
+# Subtest: context-patch-looking-data
+ok 20 - context-patch-looking-data
+  ---
+  duration_ms: 8.01625
+  type: 'test'
+  ...
+# Subtest: context-crlf-data
+ok 21 - context-crlf-data
+  ---
+  duration_ms: 11.327959
+  type: 'test'
+  ...
+# Subtest: context-crlf-transport
+ok 22 - context-crlf-transport
+  ---
+  duration_ms: 11.332291
+  type: 'test'
+  ...
+# Subtest: context-suppress-blank-empty
+ok 23 - context-suppress-blank-empty
+  ---
+  duration_ms: 9.244334
+  type: 'test'
+  ...
+# Subtest: context-blank-context-line
+ok 24 - context-blank-context-line
+  ---
+  duration_ms: 8.48475
+  type: 'test'
+  ...
+# Subtest: mixed-normal-context
+ok 25 - mixed-normal-context
+  ---
+  duration_ms: 9.026
+  type: 'test'
+  ...
+# Subtest: mixed-context-unified
+ok 26 - mixed-context-unified
+  ---
+  duration_ms: 9.819833
+  type: 'test'
+  ...
+# Subtest: mixed-unified-normal
+ok 27 - mixed-unified-normal
+  ---
+  duration_ms: 9.07025
+  type: 'test'
+  ...
+# Subtest: mixed-context-normal-unified
+ok 28 - mixed-context-normal-unified
+  ---
+  duration_ms: 11.117125
+  type: 'test'
+  ...
+# Subtest: normal-truncated-new-body
+ok 29 - normal-truncated-new-body
+  ---
+  duration_ms: 8.044416
+  type: 'test'
+  ...
+# Subtest: normal-truncated-final-lf
+ok 30 - normal-truncated-final-lf
+  ---
+  duration_ms: 7.486666
+  type: 'test'
+  ...
+# Subtest: normal-missing-change-separator
+ok 31 - normal-missing-change-separator
+  ---
+  duration_ms: 8.2
+  type: 'test'
+  ...
+# Subtest: normal-old-count-underflow
+ok 32 - normal-old-count-underflow
+  ---
+  duration_ms: 8.909667
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-new-count-overflow
+ok 33 - atomic-extension-normal-new-count-overflow
+  ---
+  duration_ms: 7.874291
+  type: 'test'
+  ...
+# Subtest: normal-descending-range
+ok 34 - normal-descending-range
+  ---
+  duration_ms: 6.762292
+  type: 'test'
+  ...
+# Subtest: normal-append-old-range
+ok 35 - normal-append-old-range
+  ---
+  duration_ms: 7.910708
+  type: 'test'
+  ...
+# Subtest: normal-delete-new-range
+ok 36 - normal-delete-new-range
+  ---
+  duration_ms: 7.485833
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-overlapping-old-hunks
+ok 37 - atomic-extension-normal-overlapping-old-hunks
+  ---
+  duration_ms: 10.52225
+  type: 'test'
+  ...
+# Subtest: GNU-normal-new-coordinates-are-advisory
+ok 38 - GNU-normal-new-coordinates-are-advisory
+  ---
+  duration_ms: 9.316459
+  type: 'test'
+  ...
+# Subtest: normal-unsafe-integer
+ok 39 - normal-unsafe-integer
+  ---
+  duration_ms: 0.253041
+  type: 'test'
+  ...
+# Subtest: normal-marker-before-body
+ok 40 - normal-marker-before-body
+  ---
+  duration_ms: 7.303292
+  type: 'test'
+  ...
+# Subtest: normal-incomplete-nonfinal-new-line
+ok 41 - normal-incomplete-nonfinal-new-line
+  ---
+  duration_ms: 7.731417
+  type: 'test'
+  ...
+# Subtest: context-missing-new-range
+ok 42 - context-missing-new-range
+  ---
+  duration_ms: 8.381625
+  type: 'test'
+  ...
+# Subtest: context-old-count-mismatch
+ok 43 - context-old-count-mismatch
+  ---
+  duration_ms: 7.159125
+  type: 'test'
+  ...
+# Subtest: context-zero-nonempty-range
+ok 44 - context-zero-nonempty-range
+  ---
+  duration_ms: 7.671417
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-overlapping-hunks
+ok 45 - atomic-extension-context-overlapping-hunks
+  ---
+  duration_ms: 11.588
+  type: 'test'
+  ...
+# Subtest: context-unsafe-integer
+ok 46 - context-unsafe-integer
+  ---
+  duration_ms: 8.033
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-old-half
+ok 47 - context-missing-changed-old-half
+  ---
+  duration_ms: 7.516709
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-new-half
+ok 48 - context-missing-changed-new-half
+  ---
+  duration_ms: 7.270417
+  type: 'test'
+  ...
+# Subtest: context-halves-disagree
+ok 49 - context-halves-disagree
+  ---
+  duration_ms: 7.40525
+  type: 'test'
+  ...
+# Subtest: context-duplicate-newline-marker
+ok 50 - context-duplicate-newline-marker
+  ---
+  duration_ms: 7.847416
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-valid-then-malformed-context
+ok 51 - atomic-extension-normal-valid-then-malformed-context
+  ---
+  duration_ms: 7.821875
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-valid-then-malformed-unified
+ok 52 - atomic-extension-context-valid-then-malformed-unified
+  ---
+  duration_ms: 8.748125
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-valid-then-truncated-normal
+ok 53 - atomic-extension-normal-valid-then-truncated-normal
+  ---
+  duration_ms: 7.266875
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-valid-then-truncated-context
+ok 54 - atomic-extension-context-valid-then-truncated-context
+  ---
+  duration_ms: 7.700625
+  type: 'test'
+  ...
+# Subtest: mutation-0-normal
+ok 55 - mutation-0-normal
+  ---
+  duration_ms: 7.459125
+  type: 'test'
+  ...
+# Subtest: mutation-1-context
+ok 56 - mutation-1-context
+  ---
+  duration_ms: 8.267292
+  type: 'test'
+  ...
+# Subtest: mutation-2-normal
+ok 57 - mutation-2-normal
+  ---
+  duration_ms: 9.152417
+  type: 'test'
+  ...
+# Subtest: mutation-3-context
+ok 58 - mutation-3-context
+  ---
+  duration_ms: 7.881333
+  type: 'test'
+  ...
+# Subtest: mutation-4-normal
+ok 59 - mutation-4-normal
+  ---
+  duration_ms: 6.607833
+  type: 'test'
+  ...
+# Subtest: mutation-5-context
+ok 60 - mutation-5-context
+  ---
+  duration_ms: 6.808417
+  type: 'test'
+  ...
+# Subtest: mutation-6-normal
+ok 61 - mutation-6-normal
+  ---
+  duration_ms: 6.958917
+  type: 'test'
+  ...
+# Subtest: mutation-7-context
+ok 62 - mutation-7-context
+  ---
+  duration_ms: 6.701292
+  type: 'test'
+  ...
+# Subtest: normal-maxLines-empty-flood
+ok 63 - normal-maxLines-empty-flood
+  ---
+  duration_ms: 0.227125
+  type: 'test'
+  ...
+# Subtest: normal-maxHunks-second-hunk
+ok 64 - normal-maxHunks-second-hunk
+  ---
+  duration_ms: 0.144667
+  type: 'test'
+  ...
+# Subtest: normal-maxWork-empty-flood
+ok 65 - normal-maxWork-empty-flood
+  ---
+  duration_ms: 0.11025
+  type: 'test'
+  ...
+# Subtest: normal-maxInput
+ok 66 - normal-maxInput
+  ---
+  duration_ms: 0.175542
+  type: 'test'
+  ...
+# Subtest: normal-maxOutput
+ok 67 - normal-maxOutput
+  ---
+  duration_ms: 0.256083
+  type: 'test'
+  ...
+# Subtest: normal-cancel-input
+ok 68 - normal-cancel-input
+  ---
+  duration_ms: 0.144333
+  type: 'test'
+  ...
+# Subtest: normal-cancel-parse
+ok 69 - normal-cancel-parse
+  ---
+  duration_ms: 9.326166
+  type: 'test'
+  ...
+# Subtest: context-maxLines-empty-flood
+ok 70 - context-maxLines-empty-flood
+  ---
+  duration_ms: 0.196708
+  type: 'test'
+  ...
+# Subtest: context-maxHunks-second-hunk
+ok 71 - context-maxHunks-second-hunk
+  ---
+  duration_ms: 0.102625
+  type: 'test'
+  ...
+# Subtest: context-maxWork-empty-flood
+ok 72 - context-maxWork-empty-flood
+  ---
+  duration_ms: 0.094209
+  type: 'test'
+  ...
+# Subtest: context-maxInput
+ok 73 - context-maxInput
+  ---
+  duration_ms: 0.071416
+  type: 'test'
+  ...
+# Subtest: context-maxOutput
+ok 74 - context-maxOutput
+  ---
+  duration_ms: 0.243083
+  type: 'test'
+  ...
+# Subtest: context-cancel-input
+ok 75 - context-cancel-input
+  ---
+  duration_ms: 0.090208
+  type: 'test'
+  ...
+# Subtest: context-cancel-parse
+ok 76 - context-cancel-parse
+  ---
+  duration_ms: 6.104333
+  type: 'test'
+  ...
+# Subtest: GNU-normal-suppress-blank-empty
+ok 77 - GNU-normal-suppress-blank-empty
+  ---
+  duration_ms: 15.221417
+  type: 'test'
+  ...
+# Subtest: GNU-context-suppress-blank-empty
+ok 78 - GNU-context-suppress-blank-empty
+  ---
+  duration_ms: 14.698541
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-middle-deletion
+ok 79 - GNU-context-zero-middle-deletion
+  ---
+  duration_ms: 16.899667
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-empty-insertion
+ok 80 - GNU-context-zero-empty-insertion
+  ---
+  duration_ms: 13.367542
+  type: 'test'
+  ...
+1..80
+# tests 80
+# suites 0
+# pass 80
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 759.234208

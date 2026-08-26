@@ -1,0 +1,6568 @@
+TAP version 13
+# Subtest: bounded 4079-byte path accepts 16318-character octal quoted header
+ok 1 - bounded 4079-byte path accepts 16318-character octal quoted header
+  ---
+  duration_ms: 26.616625
+  type: 'test'
+  ...
+# Subtest: decoder limit quoted source length rejects before earlier section writes
+ok 2 - decoder limit quoted source length rejects before earlier section writes
+  ---
+  duration_ms: 0.610709
+  type: 'test'
+  ...
+# Subtest: decoder limit decoded path length rejects before earlier section writes
+ok 3 - decoder limit decoded path length rejects before earlier section writes
+  ---
+  duration_ms: 3.797334
+  type: 'test'
+  ...
+# Subtest: decoder limit decoded depth rejects before earlier section writes
+ok 4 - decoder limit decoded depth rejects before earlier section writes
+  ---
+  duration_ms: 1.214042
+  type: 'test'
+  ...
+# Subtest: encoded headers obey input budget before mutations
+ok 5 - encoded headers obey input budget before mutations
+  ---
+  duration_ms: 1.014417
+  type: 'test'
+  ...
+# Subtest: encoded headers obey work budget before mutations
+ok 6 - encoded headers obey work budget before mutations
+  ---
+  duration_ms: 0.232833
+  type: 'test'
+  ...
+# Subtest: encoded headers obey files budget before mutations
+ok 7 - encoded headers obey files budget before mutations
+  ---
+  duration_ms: 0.725125
+  type: 'test'
+  ...
+# Subtest: bounded bulk quoted decoding yields to cancellation before committing
+ok 8 - bounded bulk quoted decoding yields to cancellation before committing
+  ---
+  duration_ms: 58.206
+  type: 'test'
+  ...
+# Subtest: Shell uses explicit diff -u headers through quoted-filename patch pipeline
+ok 9 - Shell uses explicit diff -u headers through quoted-filename patch pipeline
+  ---
+  duration_ms: 13.247166
+  type: 'test'
+  ...
+# Subtest: mail with safely quoted Unicode/tab target and signature really applies
+ok 10 - mail with safely quoted Unicode/tab target and signature really applies
+  ---
+  duration_ms: 12.614958
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 0 after-patch
+ok 11 - mail cannot conceal later section 0 after-patch
+  ---
+  duration_ms: 2.667542
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 0 after-signature
+ok 12 - mail cannot conceal later section 0 after-signature
+  ---
+  duration_ms: 0.808125
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 1 after-patch
+ok 13 - mail cannot conceal later section 1 after-patch
+  ---
+  duration_ms: 1.208792
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 1 after-signature
+ok 14 - mail cannot conceal later section 1 after-signature
+  ---
+  duration_ms: 0.592291
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 2 after-patch
+ok 15 - atomic extension mail cannot conceal later section 2 after-patch
+  ---
+  duration_ms: 0.717
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 2 after-signature
+ok 16 - atomic extension mail cannot conceal later section 2 after-signature
+  ---
+  duration_ms: 0.753959
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 3 after-patch
+ok 17 - atomic extension mail cannot conceal later section 3 after-patch
+  ---
+  duration_ms: 0.627292
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 3 after-signature
+ok 18 - atomic extension mail cannot conceal later section 3 after-signature
+  ---
+  duration_ms: 0.752208
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 4 after-patch
+ok 19 - atomic extension mail cannot conceal later section 4 after-patch
+  ---
+  duration_ms: 1.195667
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 4 after-signature
+ok 20 - atomic extension mail cannot conceal later section 4 after-signature
+  ---
+  duration_ms: 0.680958
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 5 after-patch
+ok 21 - atomic extension mail cannot conceal later section 5 after-patch
+  ---
+  duration_ms: 1.110583
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 5 after-signature
+ok 22 - atomic extension mail cannot conceal later section 5 after-signature
+  ---
+  duration_ms: 0.370792
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: rename from target
+not ok 23 - GNU default accepts interstitial metadata: rename from target
+  ---
+  duration_ms: 46.920583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: rename from target
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: rename from target
+ok 24 - unsupported metadata cannot disappear after-signature: rename from target
+  ---
+  duration_ms: 0.971667
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: rename to sentinel
+not ok 25 - GNU default accepts interstitial metadata: rename to sentinel
+  ---
+  duration_ms: 25.503541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: rename to sentinel
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: rename to sentinel
+ok 26 - unsupported metadata cannot disappear after-signature: rename to sentinel
+  ---
+  duration_ms: 0.568167
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: copy from target
+not ok 27 - GNU default accepts interstitial metadata: copy from target
+  ---
+  duration_ms: 20.736917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: copy from target
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: copy from target
+ok 28 - unsupported metadata cannot disappear after-signature: copy from target
+  ---
+  duration_ms: 0.414291
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: copy to sentinel
+not ok 29 - GNU default accepts interstitial metadata: copy to sentinel
+  ---
+  duration_ms: 23.678292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: copy to sentinel
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: copy to sentinel
+ok 30 - unsupported metadata cannot disappear after-signature: copy to sentinel
+  ---
+  duration_ms: 0.394
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: new file mode 120000
+not ok 31 - GNU default accepts interstitial metadata: new file mode 120000
+  ---
+  duration_ms: 21.566917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: new file mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: new file mode 120000
+ok 32 - unsupported metadata cannot disappear after-signature: new file mode 120000
+  ---
+  duration_ms: 0.545041
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: deleted file mode 120000
+not ok 33 - GNU default accepts interstitial metadata: deleted file mode 120000
+  ---
+  duration_ms: 20.377375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: deleted file mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: deleted file mode 120000
+ok 34 - unsupported metadata cannot disappear after-signature: deleted file mode 120000
+  ---
+  duration_ms: 0.5555
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: old mode 120000
+not ok 35 - GNU default accepts interstitial metadata: old mode 120000
+  ---
+  duration_ms: 20.867167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: old mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: old mode 120000
+ok 36 - unsupported metadata cannot disappear after-signature: old mode 120000
+  ---
+  duration_ms: 0.559167
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: new mode 120000
+not ok 37 - GNU default accepts interstitial metadata: new mode 120000
+  ---
+  duration_ms: 23.32225
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: new mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: new mode 120000
+ok 38 - unsupported metadata cannot disappear after-signature: new mode 120000
+  ---
+  duration_ms: 0.459167
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: similarity index 100%
+not ok 39 - GNU default accepts interstitial metadata: similarity index 100%
+  ---
+  duration_ms: 17.72725
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: similarity index 100%
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: similarity index 100%
+ok 40 - unsupported metadata cannot disappear after-signature: similarity index 100%
+  ---
+  duration_ms: 0.392875
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: dissimilarity index 100%
+not ok 41 - GNU default accepts interstitial metadata: dissimilarity index 100%
+  ---
+  duration_ms: 19.684583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: dissimilarity index 100%
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: dissimilarity index 100%
+ok 42 - unsupported metadata cannot disappear after-signature: dissimilarity index 100%
+  ---
+  duration_ms: 0.318083
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: GIT binary patch
+not ok 43 - GNU default accepts interstitial metadata: GIT binary patch
+  ---
+  duration_ms: 17.35575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: GIT binary patch
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: GIT binary patch
+ok 44 - unsupported metadata cannot disappear after-signature: GIT binary patch
+  ---
+  duration_ms: 0.544959
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: unknown extension metadata
+not ok 45 - GNU default accepts interstitial metadata: unknown extension metadata
+  ---
+  duration_ms: 20.531042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: unknown extension metadata
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mail preamble must not discard symlink metadata: new file mode 120000
+ok 46 - mail preamble must not discard symlink metadata: new file mode 120000
+  ---
+  duration_ms: 0.384458
+  type: 'test'
+  ...
+# Subtest: mail preamble must not discard symlink metadata: deleted file mode 120000
+ok 47 - mail preamble must not discard symlink metadata: deleted file mode 120000
+  ---
+  duration_ms: 0.191375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\" garbage"
+ok 48 - unsafe/malformed old "\\"a/target\\" garbage"
+  ---
+  duration_ms: 10.429833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\" garbage"
+ok 49 - unsafe/malformed new "\\"a/target\\" garbage"
+  ---
+  duration_ms: 1.125083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\" garbage"
+ok 50 - unsafe/malformed explicit-old "\\"a/target\\" garbage"
+  ---
+  duration_ms: 0.919541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\" garbage"
+ok 51 - unsafe/malformed explicit-new "\\"a/target\\" garbage"
+  ---
+  duration_ms: 0.757708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\" "
+ok 52 - unsafe/malformed old "\\"a/target\\" "
+  ---
+  duration_ms: 0.676
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\" "
+ok 53 - unsafe/malformed new "\\"a/target\\" "
+  ---
+  duration_ms: 1.011166
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\" "
+ok 54 - unsafe/malformed explicit-old "\\"a/target\\" "
+  ---
+  duration_ms: 0.60175
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\" "
+ok 55 - unsafe/malformed explicit-new "\\"a/target\\" "
+  ---
+  duration_ms: 0.742875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\"/suffix"
+ok 56 - unsafe/malformed old "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 1.671916
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\"/suffix"
+ok 57 - unsafe/malformed new "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 1.041666
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\"/suffix"
+ok 58 - unsafe/malformed explicit-old "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 1.084125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\"/suffix"
+ok 59 - unsafe/malformed explicit-new "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 0.279583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\"\\""
+ok 60 - unsafe/malformed old "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.324291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\"\\""
+ok 61 - unsafe/malformed new "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.552125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\"\\""
+ok 62 - unsafe/malformed explicit-old "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.672292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\"\\""
+ok 63 - unsafe/malformed explicit-new "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.350458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target"
+ok 64 - unsafe/malformed old "\\"a/target"
+  ---
+  duration_ms: 0.384333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target"
+ok 65 - unsafe/malformed new "\\"a/target"
+  ---
+  duration_ms: 0.577209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target"
+ok 66 - unsafe/malformed explicit-old "\\"a/target"
+  ---
+  duration_ms: 0.793334
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target"
+ok 67 - unsafe/malformed explicit-new "\\"a/target"
+  ---
+  duration_ms: 0.524541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\"
+ok 68 - unsafe/malformed old "\\"a/target\\\\"
+  ---
+  duration_ms: 0.609417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\"
+ok 69 - unsafe/malformed new "\\"a/target\\\\"
+  ---
+  duration_ms: 0.517708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\"
+ok 70 - unsafe/malformed explicit-old "\\"a/target\\\\"
+  ---
+  duration_ms: 1.227458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\"
+ok 71 - unsafe/malformed explicit-new "\\"a/target\\\\"
+  ---
+  duration_ms: 0.5335
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\0\\""
+ok 72 - unsafe/malformed old "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.337042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\0\\""
+ok 73 - unsafe/malformed new "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.33475
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\0\\""
+ok 74 - unsafe/malformed explicit-old "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.294791
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\0\\""
+ok 75 - unsafe/malformed explicit-new "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.226208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\00\\""
+ok 76 - unsafe/malformed old "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.571917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\00\\""
+ok 77 - unsafe/malformed new "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.486416
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\00\\""
+ok 78 - unsafe/malformed explicit-old "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.348584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\00\\""
+ok 79 - unsafe/malformed explicit-new "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.420834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\08\\""
+ok 80 - unsafe/malformed old "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.371958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\08\\""
+ok 81 - unsafe/malformed new "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.310417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\08\\""
+ok 82 - unsafe/malformed explicit-old "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.342292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\08\\""
+ok 83 - unsafe/malformed explicit-new "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.252667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\008\\""
+ok 84 - unsafe/malformed old "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 0.224084
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\008\\""
+ok 85 - unsafe/malformed new "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 1.094167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\008\\""
+ok 86 - unsafe/malformed explicit-old "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 0.907625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\008\\""
+ok 87 - unsafe/malformed explicit-new "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 0.306
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\378\\""
+ok 88 - unsafe/malformed old "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.292708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\378\\""
+ok 89 - unsafe/malformed new "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.231375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\378\\""
+ok 90 - unsafe/malformed explicit-old "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.206375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\378\\""
+ok 91 - unsafe/malformed explicit-new "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.207209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\401\\""
+ok 92 - unsafe/malformed old "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.199291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\401\\""
+ok 93 - unsafe/malformed new "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.192375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\401\\""
+ok 94 - unsafe/malformed explicit-old "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.189
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\401\\""
+ok 95 - unsafe/malformed explicit-new "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.204292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\x41\\""
+ok 96 - unsafe/malformed old "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.438958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\x41\\""
+ok 97 - unsafe/malformed new "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.229875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\x41\\""
+ok 98 - unsafe/malformed explicit-old "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.273
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\x41\\""
+ok 99 - unsafe/malformed explicit-new "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.7075
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\u0041\\""
+ok 100 - unsafe/malformed old "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.251083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\u0041\\""
+ok 101 - unsafe/malformed new "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.221167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\u0041\\""
+ok 102 - unsafe/malformed explicit-old "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.24925
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\u0041\\""
+ok 103 - unsafe/malformed explicit-new "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.259458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\U00000041\\""
+ok 104 - unsafe/malformed old "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.212333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\U00000041\\""
+ok 105 - unsafe/malformed new "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.205375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\U00000041\\""
+ok 106 - unsafe/malformed explicit-old "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.278792
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\U00000041\\""
+ok 107 - unsafe/malformed explicit-new "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.464625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\/\\""
+ok 108 - unsafe/malformed old "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.293875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\/\\""
+ok 109 - unsafe/malformed new "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.222291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\/\\""
+ok 110 - unsafe/malformed explicit-old "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.206791
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\/\\""
+ok 111 - unsafe/malformed explicit-new "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.200041
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\200\\""
+ok 112 - unsafe/malformed old "\\"a/\\\\200\\""
+  ---
+  duration_ms: 0.346917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\200\\""
+ok 113 - unsafe/malformed new "\\"a/\\\\200\\""
+  ---
+  duration_ms: 0.260875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\200\\""
+ok 114 - unsafe/malformed explicit-old "\\"a/\\\\200\\""
+  ---
+  duration_ms: 3.070959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\200\\""
+ok 115 - unsafe/malformed explicit-new "\\"a/\\\\200\\""
+  ---
+  duration_ms: 0.501667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\301\\\\251\\""
+ok 116 - unsafe/malformed old "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.373708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\301\\\\251\\""
+ok 117 - unsafe/malformed new "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.374833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\301\\\\251\\""
+ok 118 - unsafe/malformed explicit-old "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.301833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\301\\\\251\\""
+ok 119 - unsafe/malformed explicit-new "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.36975
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\302\\""
+ok 120 - unsafe/malformed old "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.912708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\302\\""
+ok 121 - unsafe/malformed new "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.857042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\302\\""
+ok 122 - unsafe/malformed explicit-old "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.394833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\302\\""
+ok 123 - unsafe/malformed explicit-new "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.356875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\342\\\\202\\""
+ok 124 - unsafe/malformed old "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.379125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\342\\\\202\\""
+ok 125 - unsafe/malformed new "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.355916
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\342\\\\202\\""
+ok 126 - unsafe/malformed explicit-old "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.3665
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\342\\\\202\\""
+ok 127 - unsafe/malformed explicit-new "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.408541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\355\\\\240\\\\200\\""
+ok 128 - unsafe/malformed old "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 1.127209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\355\\\\240\\\\200\\""
+ok 129 - unsafe/malformed new "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 0.529125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\355\\\\240\\\\200\\""
+ok 130 - unsafe/malformed explicit-old "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 0.316417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\355\\\\240\\\\200\\""
+ok 131 - unsafe/malformed explicit-new "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 0.408125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 132 - unsafe/malformed old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.496375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 133 - unsafe/malformed new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.528459
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 134 - unsafe/malformed explicit-old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.393292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 135 - unsafe/malformed explicit-new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.341709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 136 - unsafe/malformed old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.334083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 137 - unsafe/malformed new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.389375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 138 - unsafe/malformed explicit-old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.531083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 139 - unsafe/malformed explicit-new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.65775
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 140 - unsafe/malformed old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.594792
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 141 - unsafe/malformed new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.554833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 142 - unsafe/malformed explicit-old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 1.279125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 143 - unsafe/malformed explicit-new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.404334
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\303x\\""
+ok 144 - unsafe/malformed old "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.297208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\303x\\""
+ok 145 - unsafe/malformed new "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.227167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\303x\\""
+ok 146 - unsafe/malformed explicit-old "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.276333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\303x\\""
+ok 147 - unsafe/malformed explicit-new "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.566417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"\\\\057sandbox/work/target\\""
+ok 148 - unsafe/malformed old "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 1.370625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"\\\\057sandbox/work/target\\""
+ok 149 - unsafe/malformed new "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 0.735542
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-old "\\"\\\\057sandbox/work/target\\""
+ok 150 - explicit target overrides absolute header explicit-old "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 1.69025
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-new "\\"\\\\057sandbox/work/target\\""
+ok 151 - explicit target overrides absolute header explicit-new "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 0.673167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"\\\\057\\\\057target\\""
+ok 152 - unsafe/malformed old "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 0.730709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"\\\\057\\\\057target\\""
+ok 153 - unsafe/malformed new "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 1.478583
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-old "\\"\\\\057\\\\057target\\""
+ok 154 - explicit target overrides absolute header explicit-old "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 0.827417
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-new "\\"\\\\057\\\\057target\\""
+ok 155 - explicit target overrides absolute header explicit-new "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 1.290459
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\056\\\\056/target\\""
+ok 156 - unsafe/malformed old "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.773458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\056\\\\056/target\\""
+ok 157 - unsafe/malformed new "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.464542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\056\\\\056/target\\""
+ok 158 - unsafe/malformed explicit-old "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.257041
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\056\\\\056/target\\""
+ok 159 - unsafe/malformed explicit-new "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.215458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a//\\\\056./target\\""
+ok 160 - unsafe/malformed old "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.441959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a//\\\\056./target\\""
+ok 161 - unsafe/malformed new "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.88775
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a//\\\\056./target\\""
+ok 162 - unsafe/malformed explicit-old "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.459875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a//\\\\056./target\\""
+ok 163 - unsafe/malformed explicit-new "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.349625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/dir/.\\\\056/target\\""
+ok 164 - unsafe/malformed old "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 2.660375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/dir/.\\\\056/target\\""
+ok 165 - unsafe/malformed new "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 0.490292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/dir/.\\\\056/target\\""
+ok 166 - unsafe/malformed explicit-old "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 0.274334
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/dir/.\\\\056/target\\""
+ok 167 - unsafe/malformed explicit-new "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 0.36825
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\103\\\\072target\\""
+ok 168 - unsafe/malformed old "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.539708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\103\\\\072target\\""
+ok 169 - unsafe/malformed new "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.393917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\103\\\\072target\\""
+ok 170 - unsafe/malformed explicit-old "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.241584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\103\\\\072target\\""
+ok 171 - unsafe/malformed explicit-new "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.249666
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/dir/\\\\172:target\\""
+ok 172 - unsafe/malformed old "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.331208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/dir/\\\\172:target\\""
+ok 173 - unsafe/malformed new "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.373666
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/dir/\\\\172:target\\""
+ok 174 - unsafe/malformed explicit-old "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.430291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/dir/\\\\172:target\\""
+ok 175 - unsafe/malformed explicit-new "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 1.396833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\134target\\""
+ok 176 - unsafe/malformed old "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.664125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\134target\\""
+ok 177 - unsafe/malformed new "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.31925
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\134target\\""
+ok 178 - unsafe/malformed explicit-old "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.633125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\134target\\""
+ok 179 - unsafe/malformed explicit-new "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.6205
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/dir\\\\134target\\""
+ok 180 - unsafe/malformed old "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.923167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/dir\\\\134target\\""
+ok 181 - unsafe/malformed new "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.817833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/dir\\\\134target\\""
+ok 182 - unsafe/malformed explicit-old "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 2.345375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/dir\\\\134target\\""
+ok 183 - unsafe/malformed explicit-new "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.382208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\177\\""
+ok 184 - unsafe/malformed old "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.669833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\177\\""
+ok 185 - unsafe/malformed new "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.535834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\177\\""
+ok 186 - unsafe/malformed explicit-old "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.269708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\177\\""
+ok 187 - unsafe/malformed explicit-new "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.210166
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\001\\""
+ok 188 - unsafe/malformed old "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 0.518875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\001\\""
+ok 189 - unsafe/malformed new "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 0.538333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\001\\""
+ok 190 - unsafe/malformed explicit-old "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 0.251625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\001\\""
+ok 191 - unsafe/malformed explicit-new "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 0.211791
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\a\\""
+ok 192 - unsafe/malformed old "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 0.313625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\a\\""
+ok 193 - unsafe/malformed new "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 0.288458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\a\\""
+ok 194 - unsafe/malformed explicit-old "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 1.117584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\a\\""
+ok 195 - unsafe/malformed explicit-new "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 0.214833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\b\\""
+ok 196 - unsafe/malformed old "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.329167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\b\\""
+ok 197 - unsafe/malformed new "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.687083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\b\\""
+ok 198 - unsafe/malformed explicit-old "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.286792
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\b\\""
+ok 199 - unsafe/malformed explicit-new "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.209708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\v\\""
+ok 200 - unsafe/malformed old "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.346417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\v\\""
+ok 201 - unsafe/malformed new "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.499167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\v\\""
+ok 202 - unsafe/malformed explicit-old "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.234917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\v\\""
+ok 203 - unsafe/malformed explicit-new "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.28525
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\f\\""
+ok 204 - unsafe/malformed old "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 0.579959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\f\\""
+ok 205 - unsafe/malformed new "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 0.828375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\f\\""
+ok 206 - unsafe/malformed explicit-old "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 2.3665
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\f\\""
+ok 207 - unsafe/malformed explicit-new "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 0.381084
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\000tail\\""
+ok 208 - unsafe/malformed old "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.64275
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\000tail\\""
+ok 209 - unsafe/malformed new "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.458958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\000tail\\""
+ok 210 - unsafe/malformed explicit-old "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.60875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\000tail\\""
+ok 211 - unsafe/malformed explicit-new "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.65825
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\012tail\\""
+ok 212 - unsafe/malformed old "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.558541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\012tail\\""
+ok 213 - unsafe/malformed new "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.565541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\012tail\\""
+ok 214 - unsafe/malformed explicit-old "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.388167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\012tail\\""
+ok 215 - unsafe/malformed explicit-new "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.4665
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\015tail\\""
+ok 216 - unsafe/malformed old "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.345333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\015tail\\""
+ok 217 - unsafe/malformed new "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.258916
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\015tail\\""
+ok 218 - unsafe/malformed explicit-old "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.253875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\015tail\\""
+ok 219 - unsafe/malformed explicit-new "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.300667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/../target"
+ok 220 - unsafe/malformed old "a/../target"
+  ---
+  duration_ms: 0.449
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/../target"
+ok 221 - unsafe/malformed new "a/../target"
+  ---
+  duration_ms: 1.267291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/../target"
+ok 222 - unsafe/malformed explicit-old "a/../target"
+  ---
+  duration_ms: 0.2265
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/../target"
+ok 223 - unsafe/malformed explicit-new "a/../target"
+  ---
+  duration_ms: 0.172917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a//../target"
+ok 224 - unsafe/malformed old "a//../target"
+  ---
+  duration_ms: 0.297625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a//../target"
+ok 225 - unsafe/malformed new "a//../target"
+  ---
+  duration_ms: 0.691541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a//../target"
+ok 226 - unsafe/malformed explicit-old "a//../target"
+  ---
+  duration_ms: 0.171834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a//../target"
+ok 227 - unsafe/malformed explicit-new "a//../target"
+  ---
+  duration_ms: 0.21775
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/dir/../../target"
+ok 228 - unsafe/malformed old "a/dir/../../target"
+  ---
+  duration_ms: 0.344542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/dir/../../target"
+ok 229 - unsafe/malformed new "a/dir/../../target"
+  ---
+  duration_ms: 0.358875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/dir/../../target"
+ok 230 - unsafe/malformed explicit-old "a/dir/../../target"
+  ---
+  duration_ms: 0.158291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/dir/../../target"
+ok 231 - unsafe/malformed explicit-new "a/dir/../../target"
+  ---
+  duration_ms: 0.151916
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/Z:target"
+ok 232 - unsafe/malformed old "a/Z:target"
+  ---
+  duration_ms: 0.241916
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/Z:target"
+ok 233 - unsafe/malformed new "a/Z:target"
+  ---
+  duration_ms: 1.408083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/Z:target"
+ok 234 - unsafe/malformed explicit-old "a/Z:target"
+  ---
+  duration_ms: 0.350959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/Z:target"
+ok 235 - unsafe/malformed explicit-new "a/Z:target"
+  ---
+  duration_ms: 0.280542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/dir/c:target"
+ok 236 - unsafe/malformed old "a/dir/c:target"
+  ---
+  duration_ms: 0.46475
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/dir/c:target"
+ok 237 - unsafe/malformed new "a/dir/c:target"
+  ---
+  duration_ms: 0.593167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/dir/c:target"
+ok 238 - unsafe/malformed explicit-old "a/dir/c:target"
+  ---
+  duration_ms: 0.251041
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/dir/c:target"
+ok 239 - unsafe/malformed explicit-new "a/dir/c:target"
+  ---
+  duration_ms: 0.408834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/dir\\\\target"
+ok 240 - unsafe/malformed old "a/dir\\\\target"
+  ---
+  duration_ms: 0.471
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/dir\\\\target"
+ok 241 - unsafe/malformed new "a/dir\\\\target"
+  ---
+  duration_ms: 0.713291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/dir\\\\target"
+ok 242 - unsafe/malformed explicit-old "a/dir\\\\target"
+  ---
+  duration_ms: 0.525333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/dir\\\\target"
+ok 243 - unsafe/malformed explicit-new "a/dir\\\\target"
+  ---
+  duration_ms: 0.467875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/target"
+ok 244 - unsafe/malformed old "a/target"
+  ---
+  duration_ms: 0.513667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/target"
+ok 245 - unsafe/malformed new "a/target"
+  ---
+  duration_ms: 1.771
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/target"
+ok 246 - unsafe/malformed explicit-old "a/target"
+  ---
+  duration_ms: 0.295
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/target"
+ok 247 - unsafe/malformed explicit-new "a/target"
+  ---
+  duration_ms: 0.187292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/target\\u0001"
+ok 248 - unsafe/malformed old "a/target\\u0001"
+  ---
+  duration_ms: 0.371208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/target\\u0001"
+ok 249 - unsafe/malformed new "a/target\\u0001"
+  ---
+  duration_ms: 0.319834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/target\\u0001"
+ok 250 - unsafe/malformed explicit-old "a/target\\u0001"
+  ---
+  duration_ms: 0.449291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/target\\u0001"
+ok 251 - unsafe/malformed explicit-new "a/target\\u0001"
+  ---
+  duration_ms: 0.310792
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes 80
+ok 252 - raw invalid header bytes 80
+  ---
+  duration_ms: 0.371125
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes c0af
+ok 253 - raw invalid header bytes c0af
+  ---
+  duration_ms: 0.1875
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes e282
+ok 254 - raw invalid header bytes e282
+  ---
+  duration_ms: 0.35175
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes eda080
+ok 255 - raw invalid header bytes eda080
+  ---
+  duration_ms: 0.230625
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes f4908080
+ok 256 - raw invalid header bytes f4908080
+  ---
+  duration_ms: 0.529125
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes ff
+ok 257 - raw invalid header bytes ff
+  ---
+  duration_ms: 0.401959
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes 00
+ok 258 - raw invalid header bytes 00
+  ---
+  duration_ms: 0.400333
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n"
+ok 259 - atomic extension later section truncation "--- \\"target\\"\\n"
+  ---
+  duration_ms: 0.289791
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target"
+ok 260 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target"
+  ---
+  duration_ms: 0.276833
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n"
+ok 261 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n"
+  ---
+  duration_ms: 0.355417
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n"
+ok 262 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n"
+  ---
+  duration_ms: 0.3775
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n+new"
+ok 263 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n+new"
+  ---
+  duration_ms: 0.276875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-0-café-Ångström.txt"
+ok 264 - valid filename git-octal "family-0-0-café-Ångström.txt"
+  ---
+  duration_ms: 15.593875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-0-café-Ångström.txt"
+ok 265 - valid filename literal "family-0-0-café-Ångström.txt"
+  ---
+  duration_ms: 2.142792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-1-café-Ångström.txt"
+ok 266 - valid filename git-octal "family-0-1-café-Ångström.txt"
+  ---
+  duration_ms: 2.558208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-1-café-Ångström.txt"
+ok 267 - valid filename literal "family-0-1-café-Ångström.txt"
+  ---
+  duration_ms: 1.828542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-2-café-Ångström.txt"
+ok 268 - valid filename git-octal "family-0-2-café-Ångström.txt"
+  ---
+  duration_ms: 2.23775
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-2-café-Ångström.txt"
+ok 269 - valid filename literal "family-0-2-café-Ångström.txt"
+  ---
+  duration_ms: 1.170333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-3-café-Ångström.txt"
+ok 270 - valid filename git-octal "family-0-3-café-Ångström.txt"
+  ---
+  duration_ms: 1.181583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-3-café-Ångström.txt"
+ok 271 - valid filename literal "family-0-3-café-Ångström.txt"
+  ---
+  duration_ms: 0.942
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-4-café-Ångström.txt"
+ok 272 - valid filename git-octal "family-0-4-café-Ångström.txt"
+  ---
+  duration_ms: 2.50375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-4-café-Ångström.txt"
+ok 273 - valid filename literal "family-0-4-café-Ångström.txt"
+  ---
+  duration_ms: 1.26625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-5-café-Ångström.txt"
+ok 274 - valid filename git-octal "family-0-5-café-Ångström.txt"
+  ---
+  duration_ms: 0.574708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-5-café-Ångström.txt"
+ok 275 - valid filename literal "family-0-5-café-Ångström.txt"
+  ---
+  duration_ms: 0.440458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-6-café-Ångström.txt"
+ok 276 - valid filename git-octal "family-0-6-café-Ångström.txt"
+  ---
+  duration_ms: 0.441792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-6-café-Ångström.txt"
+ok 277 - valid filename literal "family-0-6-café-Ångström.txt"
+  ---
+  duration_ms: 0.482666
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-7-café-Ångström.txt"
+ok 278 - valid filename git-octal "family-0-7-café-Ångström.txt"
+  ---
+  duration_ms: 0.828584
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-7-café-Ångström.txt"
+ok 279 - valid filename literal "family-0-7-café-Ångström.txt"
+  ---
+  duration_ms: 1.387333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-8-café-Ångström.txt"
+ok 280 - valid filename git-octal "family-0-8-café-Ångström.txt"
+  ---
+  duration_ms: 0.807417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-8-café-Ångström.txt"
+ok 281 - valid filename literal "family-0-8-café-Ångström.txt"
+  ---
+  duration_ms: 0.53975
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-9-café-Ångström.txt"
+ok 282 - valid filename git-octal "family-0-9-café-Ångström.txt"
+  ---
+  duration_ms: 0.513292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-9-café-Ångström.txt"
+ok 283 - valid filename literal "family-0-9-café-Ångström.txt"
+  ---
+  duration_ms: 0.430667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-10-café-Ångström.txt"
+ok 284 - valid filename git-octal "family-0-10-café-Ångström.txt"
+  ---
+  duration_ms: 0.54775
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-10-café-Ångström.txt"
+ok 285 - valid filename literal "family-0-10-café-Ångström.txt"
+  ---
+  duration_ms: 0.484
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-11-café-Ångström.txt"
+ok 286 - valid filename git-octal "family-0-11-café-Ångström.txt"
+  ---
+  duration_ms: 5.313834
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-11-café-Ångström.txt"
+ok 287 - valid filename literal "family-0-11-café-Ångström.txt"
+  ---
+  duration_ms: 0.942125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-12-café-Ångström.txt"
+ok 288 - valid filename git-octal "family-0-12-café-Ångström.txt"
+  ---
+  duration_ms: 0.913708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-12-café-Ångström.txt"
+ok 289 - valid filename literal "family-0-12-café-Ångström.txt"
+  ---
+  duration_ms: 0.912167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-13-café-Ångström.txt"
+ok 290 - valid filename git-octal "family-0-13-café-Ångström.txt"
+  ---
+  duration_ms: 1.259917
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-13-café-Ångström.txt"
+ok 291 - valid filename literal "family-0-13-café-Ångström.txt"
+  ---
+  duration_ms: 1.26075
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-14-café-Ångström.txt"
+ok 292 - valid filename git-octal "family-0-14-café-Ångström.txt"
+  ---
+  duration_ms: 1.250375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-14-café-Ångström.txt"
+ok 293 - valid filename literal "family-0-14-café-Ångström.txt"
+  ---
+  duration_ms: 2.114709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-15-café-Ångström.txt"
+ok 294 - valid filename git-octal "family-0-15-café-Ångström.txt"
+  ---
+  duration_ms: 1.554042
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-15-café-Ångström.txt"
+ok 295 - valid filename literal "family-0-15-café-Ångström.txt"
+  ---
+  duration_ms: 0.934375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-0-日本語-漢字.txt"
+ok 296 - valid filename git-octal "family-1-0-日本語-漢字.txt"
+  ---
+  duration_ms: 1.091542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-0-日本語-漢字.txt"
+ok 297 - valid filename literal "family-1-0-日本語-漢字.txt"
+  ---
+  duration_ms: 1.221625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-1-日本語-漢字.txt"
+ok 298 - valid filename git-octal "family-1-1-日本語-漢字.txt"
+  ---
+  duration_ms: 0.94575
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-1-日本語-漢字.txt"
+ok 299 - valid filename literal "family-1-1-日本語-漢字.txt"
+  ---
+  duration_ms: 0.945667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-2-日本語-漢字.txt"
+ok 300 - valid filename git-octal "family-1-2-日本語-漢字.txt"
+  ---
+  duration_ms: 1.699167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-2-日本語-漢字.txt"
+ok 301 - valid filename literal "family-1-2-日本語-漢字.txt"
+  ---
+  duration_ms: 0.693959
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-3-日本語-漢字.txt"
+ok 302 - valid filename git-octal "family-1-3-日本語-漢字.txt"
+  ---
+  duration_ms: 0.610792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-3-日本語-漢字.txt"
+ok 303 - valid filename literal "family-1-3-日本語-漢字.txt"
+  ---
+  duration_ms: 0.885
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-4-日本語-漢字.txt"
+ok 304 - valid filename git-octal "family-1-4-日本語-漢字.txt"
+  ---
+  duration_ms: 0.878208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-4-日本語-漢字.txt"
+ok 305 - valid filename literal "family-1-4-日本語-漢字.txt"
+  ---
+  duration_ms: 1.125375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-5-日本語-漢字.txt"
+ok 306 - valid filename git-octal "family-1-5-日本語-漢字.txt"
+  ---
+  duration_ms: 1.102417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-5-日本語-漢字.txt"
+ok 307 - valid filename literal "family-1-5-日本語-漢字.txt"
+  ---
+  duration_ms: 3.457834
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-6-日本語-漢字.txt"
+ok 308 - valid filename git-octal "family-1-6-日本語-漢字.txt"
+  ---
+  duration_ms: 1.053167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-6-日本語-漢字.txt"
+ok 309 - valid filename literal "family-1-6-日本語-漢字.txt"
+  ---
+  duration_ms: 0.881709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-7-日本語-漢字.txt"
+ok 310 - valid filename git-octal "family-1-7-日本語-漢字.txt"
+  ---
+  duration_ms: 0.692084
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-7-日本語-漢字.txt"
+ok 311 - valid filename literal "family-1-7-日本語-漢字.txt"
+  ---
+  duration_ms: 0.549625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-8-日本語-漢字.txt"
+ok 312 - valid filename git-octal "family-1-8-日本語-漢字.txt"
+  ---
+  duration_ms: 0.739583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-8-日本語-漢字.txt"
+ok 313 - valid filename literal "family-1-8-日本語-漢字.txt"
+  ---
+  duration_ms: 0.5
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-9-日本語-漢字.txt"
+ok 314 - valid filename git-octal "family-1-9-日本語-漢字.txt"
+  ---
+  duration_ms: 0.48175
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-9-日本語-漢字.txt"
+ok 315 - valid filename literal "family-1-9-日本語-漢字.txt"
+  ---
+  duration_ms: 2.556584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-10-日本語-漢字.txt"
+ok 316 - valid filename git-octal "family-1-10-日本語-漢字.txt"
+  ---
+  duration_ms: 3.131833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-10-日本語-漢字.txt"
+ok 317 - valid filename literal "family-1-10-日本語-漢字.txt"
+  ---
+  duration_ms: 0.938458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-11-日本語-漢字.txt"
+ok 318 - valid filename git-octal "family-1-11-日本語-漢字.txt"
+  ---
+  duration_ms: 0.799459
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-11-日本語-漢字.txt"
+ok 319 - valid filename literal "family-1-11-日本語-漢字.txt"
+  ---
+  duration_ms: 0.934916
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-12-日本語-漢字.txt"
+ok 320 - valid filename git-octal "family-1-12-日本語-漢字.txt"
+  ---
+  duration_ms: 1.104292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-12-日本語-漢字.txt"
+ok 321 - valid filename literal "family-1-12-日本語-漢字.txt"
+  ---
+  duration_ms: 0.823125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-13-日本語-漢字.txt"
+ok 322 - valid filename git-octal "family-1-13-日本語-漢字.txt"
+  ---
+  duration_ms: 0.847458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-13-日本語-漢字.txt"
+ok 323 - valid filename literal "family-1-13-日本語-漢字.txt"
+  ---
+  duration_ms: 0.8515
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-14-日本語-漢字.txt"
+ok 324 - valid filename git-octal "family-1-14-日本語-漢字.txt"
+  ---
+  duration_ms: 1.793333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-14-日本語-漢字.txt"
+ok 325 - valid filename literal "family-1-14-日本語-漢字.txt"
+  ---
+  duration_ms: 1.2595
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-15-日本語-漢字.txt"
+ok 326 - valid filename git-octal "family-1-15-日本語-漢字.txt"
+  ---
+  duration_ms: 0.814666
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-15-日本語-漢字.txt"
+ok 327 - valid filename literal "family-1-15-日本語-漢字.txt"
+  ---
+  duration_ms: 0.847875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-0-🙂-🚀.txt"
+ok 328 - valid filename git-octal "family-2-0-🙂-🚀.txt"
+  ---
+  duration_ms: 0.904166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-0-🙂-🚀.txt"
+ok 329 - valid filename literal "family-2-0-🙂-🚀.txt"
+  ---
+  duration_ms: 1.272583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-1-🙂-🚀.txt"
+ok 330 - valid filename git-octal "family-2-1-🙂-🚀.txt"
+  ---
+  duration_ms: 1.046834
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-1-🙂-🚀.txt"
+ok 331 - valid filename literal "family-2-1-🙂-🚀.txt"
+  ---
+  duration_ms: 1.104833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-2-🙂-🚀.txt"
+ok 332 - valid filename git-octal "family-2-2-🙂-🚀.txt"
+  ---
+  duration_ms: 1.139792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-2-🙂-🚀.txt"
+ok 333 - valid filename literal "family-2-2-🙂-🚀.txt"
+  ---
+  duration_ms: 1.234833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-3-🙂-🚀.txt"
+ok 334 - valid filename git-octal "family-2-3-🙂-🚀.txt"
+  ---
+  duration_ms: 1.226584
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-3-🙂-🚀.txt"
+ok 335 - valid filename literal "family-2-3-🙂-🚀.txt"
+  ---
+  duration_ms: 1.594458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-4-🙂-🚀.txt"
+ok 336 - valid filename git-octal "family-2-4-🙂-🚀.txt"
+  ---
+  duration_ms: 0.780292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-4-🙂-🚀.txt"
+ok 337 - valid filename literal "family-2-4-🙂-🚀.txt"
+  ---
+  duration_ms: 0.995
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-5-🙂-🚀.txt"
+ok 338 - valid filename git-octal "family-2-5-🙂-🚀.txt"
+  ---
+  duration_ms: 4.808667
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-5-🙂-🚀.txt"
+ok 339 - valid filename literal "family-2-5-🙂-🚀.txt"
+  ---
+  duration_ms: 0.987417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-6-🙂-🚀.txt"
+ok 340 - valid filename git-octal "family-2-6-🙂-🚀.txt"
+  ---
+  duration_ms: 0.9465
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-6-🙂-🚀.txt"
+ok 341 - valid filename literal "family-2-6-🙂-🚀.txt"
+  ---
+  duration_ms: 0.832
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-7-🙂-🚀.txt"
+ok 342 - valid filename git-octal "family-2-7-🙂-🚀.txt"
+  ---
+  duration_ms: 0.869375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-7-🙂-🚀.txt"
+ok 343 - valid filename literal "family-2-7-🙂-🚀.txt"
+  ---
+  duration_ms: 0.669209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-8-🙂-🚀.txt"
+ok 344 - valid filename git-octal "family-2-8-🙂-🚀.txt"
+  ---
+  duration_ms: 0.780792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-8-🙂-🚀.txt"
+ok 345 - valid filename literal "family-2-8-🙂-🚀.txt"
+  ---
+  duration_ms: 1.098584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-9-🙂-🚀.txt"
+ok 346 - valid filename git-octal "family-2-9-🙂-🚀.txt"
+  ---
+  duration_ms: 0.869166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-9-🙂-🚀.txt"
+ok 347 - valid filename literal "family-2-9-🙂-🚀.txt"
+  ---
+  duration_ms: 0.795875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-10-🙂-🚀.txt"
+ok 348 - valid filename git-octal "family-2-10-🙂-🚀.txt"
+  ---
+  duration_ms: 0.732958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-10-🙂-🚀.txt"
+ok 349 - valid filename literal "family-2-10-🙂-🚀.txt"
+  ---
+  duration_ms: 0.49025
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-11-🙂-🚀.txt"
+ok 350 - valid filename git-octal "family-2-11-🙂-🚀.txt"
+  ---
+  duration_ms: 0.662834
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-11-🙂-🚀.txt"
+ok 351 - valid filename literal "family-2-11-🙂-🚀.txt"
+  ---
+  duration_ms: 0.916834
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-12-🙂-🚀.txt"
+ok 352 - valid filename git-octal "family-2-12-🙂-🚀.txt"
+  ---
+  duration_ms: 1.0675
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-12-🙂-🚀.txt"
+ok 353 - valid filename literal "family-2-12-🙂-🚀.txt"
+  ---
+  duration_ms: 2.595708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-13-🙂-🚀.txt"
+ok 354 - valid filename git-octal "family-2-13-🙂-🚀.txt"
+  ---
+  duration_ms: 1.450916
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-13-🙂-🚀.txt"
+ok 355 - valid filename literal "family-2-13-🙂-🚀.txt"
+  ---
+  duration_ms: 0.698666
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-14-🙂-🚀.txt"
+ok 356 - valid filename git-octal "family-2-14-🙂-🚀.txt"
+  ---
+  duration_ms: 0.484416
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-14-🙂-🚀.txt"
+ok 357 - valid filename literal "family-2-14-🙂-🚀.txt"
+  ---
+  duration_ms: 0.405042
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-15-🙂-🚀.txt"
+ok 358 - valid filename git-octal "family-2-15-🙂-🚀.txt"
+  ---
+  duration_ms: 0.375042
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-15-🙂-🚀.txt"
+ok 359 - valid filename literal "family-2-15-🙂-🚀.txt"
+  ---
+  duration_ms: 0.329416
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-0-é-ñ.txt"
+ok 360 - valid filename git-octal "family-3-0-é-ñ.txt"
+  ---
+  duration_ms: 0.357958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-0-é-ñ.txt"
+ok 361 - valid filename literal "family-3-0-é-ñ.txt"
+  ---
+  duration_ms: 0.354084
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-1-é-ñ.txt"
+ok 362 - valid filename git-octal "family-3-1-é-ñ.txt"
+  ---
+  duration_ms: 0.35325
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-1-é-ñ.txt"
+ok 363 - valid filename literal "family-3-1-é-ñ.txt"
+  ---
+  duration_ms: 0.519375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-2-é-ñ.txt"
+ok 364 - valid filename git-octal "family-3-2-é-ñ.txt"
+  ---
+  duration_ms: 0.986875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-2-é-ñ.txt"
+ok 365 - valid filename literal "family-3-2-é-ñ.txt"
+  ---
+  duration_ms: 0.822083
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-3-é-ñ.txt"
+ok 366 - valid filename git-octal "family-3-3-é-ñ.txt"
+  ---
+  duration_ms: 0.518625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-3-é-ñ.txt"
+ok 367 - valid filename literal "family-3-3-é-ñ.txt"
+  ---
+  duration_ms: 0.434875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-4-é-ñ.txt"
+ok 368 - valid filename git-octal "family-3-4-é-ñ.txt"
+  ---
+  duration_ms: 4.256458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-4-é-ñ.txt"
+ok 369 - valid filename literal "family-3-4-é-ñ.txt"
+  ---
+  duration_ms: 0.524708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-5-é-ñ.txt"
+ok 370 - valid filename git-octal "family-3-5-é-ñ.txt"
+  ---
+  duration_ms: 0.466083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-5-é-ñ.txt"
+ok 371 - valid filename literal "family-3-5-é-ñ.txt"
+  ---
+  duration_ms: 0.324625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-6-é-ñ.txt"
+ok 372 - valid filename git-octal "family-3-6-é-ñ.txt"
+  ---
+  duration_ms: 0.327875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-6-é-ñ.txt"
+ok 373 - valid filename literal "family-3-6-é-ñ.txt"
+  ---
+  duration_ms: 0.289125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-7-é-ñ.txt"
+ok 374 - valid filename git-octal "family-3-7-é-ñ.txt"
+  ---
+  duration_ms: 0.300167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-7-é-ñ.txt"
+ok 375 - valid filename literal "family-3-7-é-ñ.txt"
+  ---
+  duration_ms: 0.36075
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-8-é-ñ.txt"
+ok 376 - valid filename git-octal "family-3-8-é-ñ.txt"
+  ---
+  duration_ms: 0.296625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-8-é-ñ.txt"
+ok 377 - valid filename literal "family-3-8-é-ñ.txt"
+  ---
+  duration_ms: 0.461334
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-9-é-ñ.txt"
+ok 378 - valid filename git-octal "family-3-9-é-ñ.txt"
+  ---
+  duration_ms: 0.400125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-9-é-ñ.txt"
+ok 379 - valid filename literal "family-3-9-é-ñ.txt"
+  ---
+  duration_ms: 0.329584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-10-é-ñ.txt"
+ok 380 - valid filename git-octal "family-3-10-é-ñ.txt"
+  ---
+  duration_ms: 0.344583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-10-é-ñ.txt"
+ok 381 - valid filename literal "family-3-10-é-ñ.txt"
+  ---
+  duration_ms: 0.3285
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-11-é-ñ.txt"
+ok 382 - valid filename git-octal "family-3-11-é-ñ.txt"
+  ---
+  duration_ms: 0.600875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-11-é-ñ.txt"
+ok 383 - valid filename literal "family-3-11-é-ñ.txt"
+  ---
+  duration_ms: 1.996542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-12-é-ñ.txt"
+ok 384 - valid filename git-octal "family-3-12-é-ñ.txt"
+  ---
+  duration_ms: 1.567375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-12-é-ñ.txt"
+ok 385 - valid filename literal "family-3-12-é-ñ.txt"
+  ---
+  duration_ms: 0.536
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-13-é-ñ.txt"
+ok 386 - valid filename git-octal "family-3-13-é-ñ.txt"
+  ---
+  duration_ms: 0.425667
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-13-é-ñ.txt"
+ok 387 - valid filename literal "family-3-13-é-ñ.txt"
+  ---
+  duration_ms: 0.398166
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-14-é-ñ.txt"
+ok 388 - valid filename git-octal "family-3-14-é-ñ.txt"
+  ---
+  duration_ms: 0.359333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-14-é-ñ.txt"
+ok 389 - valid filename literal "family-3-14-é-ñ.txt"
+  ---
+  duration_ms: 0.332
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-15-é-ñ.txt"
+ok 390 - valid filename git-octal "family-3-15-é-ñ.txt"
+  ---
+  duration_ms: 0.344958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-15-é-ñ.txt"
+ok 391 - valid filename literal "family-3-15-é-ñ.txt"
+  ---
+  duration_ms: 0.311334
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-0-tab\\tinside.txt"
+ok 392 - valid filename git-octal "family-4-0-tab\\tinside.txt"
+  ---
+  duration_ms: 0.358625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-0-tab\\tinside.txt"
+ok 393 - valid filename literal "family-4-0-tab\\tinside.txt"
+  ---
+  duration_ms: 0.468042
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-1-tab\\tinside.txt"
+ok 394 - valid filename git-octal "family-4-1-tab\\tinside.txt"
+  ---
+  duration_ms: 0.540333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-1-tab\\tinside.txt"
+ok 395 - valid filename literal "family-4-1-tab\\tinside.txt"
+  ---
+  duration_ms: 0.501208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-2-tab\\tinside.txt"
+ok 396 - valid filename git-octal "family-4-2-tab\\tinside.txt"
+  ---
+  duration_ms: 0.523375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-2-tab\\tinside.txt"
+ok 397 - valid filename literal "family-4-2-tab\\tinside.txt"
+  ---
+  duration_ms: 0.559291
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-3-tab\\tinside.txt"
+ok 398 - valid filename git-octal "family-4-3-tab\\tinside.txt"
+  ---
+  duration_ms: 4.362833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-3-tab\\tinside.txt"
+ok 399 - valid filename literal "family-4-3-tab\\tinside.txt"
+  ---
+  duration_ms: 0.511958
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-4-tab\\tinside.txt"
+ok 400 - valid filename git-octal "family-4-4-tab\\tinside.txt"
+  ---
+  duration_ms: 0.408458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-4-tab\\tinside.txt"
+ok 401 - valid filename literal "family-4-4-tab\\tinside.txt"
+  ---
+  duration_ms: 0.297167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-5-tab\\tinside.txt"
+ok 402 - valid filename git-octal "family-4-5-tab\\tinside.txt"
+  ---
+  duration_ms: 0.285166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-5-tab\\tinside.txt"
+ok 403 - valid filename literal "family-4-5-tab\\tinside.txt"
+  ---
+  duration_ms: 0.284541
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-6-tab\\tinside.txt"
+ok 404 - valid filename git-octal "family-4-6-tab\\tinside.txt"
+  ---
+  duration_ms: 0.285125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-6-tab\\tinside.txt"
+ok 405 - valid filename literal "family-4-6-tab\\tinside.txt"
+  ---
+  duration_ms: 0.374208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-7-tab\\tinside.txt"
+ok 406 - valid filename git-octal "family-4-7-tab\\tinside.txt"
+  ---
+  duration_ms: 0.29425
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-7-tab\\tinside.txt"
+ok 407 - valid filename literal "family-4-7-tab\\tinside.txt"
+  ---
+  duration_ms: 0.295625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-8-tab\\tinside.txt"
+ok 408 - valid filename git-octal "family-4-8-tab\\tinside.txt"
+  ---
+  duration_ms: 0.325542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-8-tab\\tinside.txt"
+ok 409 - valid filename literal "family-4-8-tab\\tinside.txt"
+  ---
+  duration_ms: 0.314834
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-9-tab\\tinside.txt"
+ok 410 - valid filename git-octal "family-4-9-tab\\tinside.txt"
+  ---
+  duration_ms: 0.313208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-9-tab\\tinside.txt"
+ok 411 - valid filename literal "family-4-9-tab\\tinside.txt"
+  ---
+  duration_ms: 0.316666
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-10-tab\\tinside.txt"
+ok 412 - valid filename git-octal "family-4-10-tab\\tinside.txt"
+  ---
+  duration_ms: 0.32875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-10-tab\\tinside.txt"
+ok 413 - valid filename literal "family-4-10-tab\\tinside.txt"
+  ---
+  duration_ms: 1.812209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-11-tab\\tinside.txt"
+ok 414 - valid filename git-octal "family-4-11-tab\\tinside.txt"
+  ---
+  duration_ms: 0.453084
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-11-tab\\tinside.txt"
+ok 415 - valid filename literal "family-4-11-tab\\tinside.txt"
+  ---
+  duration_ms: 0.273375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-12-tab\\tinside.txt"
+ok 416 - valid filename git-octal "family-4-12-tab\\tinside.txt"
+  ---
+  duration_ms: 0.272292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-12-tab\\tinside.txt"
+ok 417 - valid filename literal "family-4-12-tab\\tinside.txt"
+  ---
+  duration_ms: 0.281083
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-13-tab\\tinside.txt"
+ok 418 - valid filename git-octal "family-4-13-tab\\tinside.txt"
+  ---
+  duration_ms: 0.269708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-13-tab\\tinside.txt"
+ok 419 - valid filename literal "family-4-13-tab\\tinside.txt"
+  ---
+  duration_ms: 0.274125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-14-tab\\tinside.txt"
+ok 420 - valid filename git-octal "family-4-14-tab\\tinside.txt"
+  ---
+  duration_ms: 0.281708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-14-tab\\tinside.txt"
+ok 421 - valid filename literal "family-4-14-tab\\tinside.txt"
+  ---
+  duration_ms: 0.275125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-15-tab\\tinside.txt"
+ok 422 - valid filename git-octal "family-4-15-tab\\tinside.txt"
+  ---
+  duration_ms: 0.2925
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-15-tab\\tinside.txt"
+ok 423 - valid filename literal "family-4-15-tab\\tinside.txt"
+  ---
+  duration_ms: 0.316167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-0-quote\\"inside.txt"
+ok 424 - valid filename git-octal "family-5-0-quote\\"inside.txt"
+  ---
+  duration_ms: 0.348875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-0-quote\\"inside.txt"
+ok 425 - valid filename literal "family-5-0-quote\\"inside.txt"
+  ---
+  duration_ms: 0.343541
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-1-quote\\"inside.txt"
+ok 426 - valid filename git-octal "family-5-1-quote\\"inside.txt"
+  ---
+  duration_ms: 0.347917
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-1-quote\\"inside.txt"
+ok 427 - valid filename literal "family-5-1-quote\\"inside.txt"
+  ---
+  duration_ms: 0.392542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-2-quote\\"inside.txt"
+ok 428 - valid filename git-octal "family-5-2-quote\\"inside.txt"
+  ---
+  duration_ms: 4.533708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-2-quote\\"inside.txt"
+ok 429 - valid filename literal "family-5-2-quote\\"inside.txt"
+  ---
+  duration_ms: 0.578833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-3-quote\\"inside.txt"
+ok 430 - valid filename git-octal "family-5-3-quote\\"inside.txt"
+  ---
+  duration_ms: 0.497625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-3-quote\\"inside.txt"
+ok 431 - valid filename literal "family-5-3-quote\\"inside.txt"
+  ---
+  duration_ms: 0.465708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-4-quote\\"inside.txt"
+ok 432 - valid filename git-octal "family-5-4-quote\\"inside.txt"
+  ---
+  duration_ms: 0.357792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-4-quote\\"inside.txt"
+ok 433 - valid filename literal "family-5-4-quote\\"inside.txt"
+  ---
+  duration_ms: 0.300208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-5-quote\\"inside.txt"
+ok 434 - valid filename git-octal "family-5-5-quote\\"inside.txt"
+  ---
+  duration_ms: 0.496417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-5-quote\\"inside.txt"
+ok 435 - valid filename literal "family-5-5-quote\\"inside.txt"
+  ---
+  duration_ms: 0.6745
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-6-quote\\"inside.txt"
+ok 436 - valid filename git-octal "family-5-6-quote\\"inside.txt"
+  ---
+  duration_ms: 0.565792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-6-quote\\"inside.txt"
+ok 437 - valid filename literal "family-5-6-quote\\"inside.txt"
+  ---
+  duration_ms: 0.559292
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-7-quote\\"inside.txt"
+ok 438 - valid filename git-octal "family-5-7-quote\\"inside.txt"
+  ---
+  duration_ms: 0.473083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-7-quote\\"inside.txt"
+ok 439 - valid filename literal "family-5-7-quote\\"inside.txt"
+  ---
+  duration_ms: 0.383584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-8-quote\\"inside.txt"
+ok 440 - valid filename git-octal "family-5-8-quote\\"inside.txt"
+  ---
+  duration_ms: 0.394458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-8-quote\\"inside.txt"
+ok 441 - valid filename literal "family-5-8-quote\\"inside.txt"
+  ---
+  duration_ms: 0.617333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-9-quote\\"inside.txt"
+ok 442 - valid filename git-octal "family-5-9-quote\\"inside.txt"
+  ---
+  duration_ms: 0.730791
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-9-quote\\"inside.txt"
+ok 443 - valid filename literal "family-5-9-quote\\"inside.txt"
+  ---
+  duration_ms: 2.443375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-10-quote\\"inside.txt"
+ok 444 - valid filename git-octal "family-5-10-quote\\"inside.txt"
+  ---
+  duration_ms: 1.220708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-10-quote\\"inside.txt"
+ok 445 - valid filename literal "family-5-10-quote\\"inside.txt"
+  ---
+  duration_ms: 0.586125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-11-quote\\"inside.txt"
+ok 446 - valid filename git-octal "family-5-11-quote\\"inside.txt"
+  ---
+  duration_ms: 0.398042
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-11-quote\\"inside.txt"
+ok 447 - valid filename literal "family-5-11-quote\\"inside.txt"
+  ---
+  duration_ms: 0.609625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-12-quote\\"inside.txt"
+ok 448 - valid filename git-octal "family-5-12-quote\\"inside.txt"
+  ---
+  duration_ms: 0.755625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-12-quote\\"inside.txt"
+ok 449 - valid filename literal "family-5-12-quote\\"inside.txt"
+  ---
+  duration_ms: 0.61525
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-13-quote\\"inside.txt"
+ok 450 - valid filename git-octal "family-5-13-quote\\"inside.txt"
+  ---
+  duration_ms: 0.621125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-13-quote\\"inside.txt"
+ok 451 - valid filename literal "family-5-13-quote\\"inside.txt"
+  ---
+  duration_ms: 0.464959
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-14-quote\\"inside.txt"
+ok 452 - valid filename git-octal "family-5-14-quote\\"inside.txt"
+  ---
+  duration_ms: 0.4345
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-14-quote\\"inside.txt"
+ok 453 - valid filename literal "family-5-14-quote\\"inside.txt"
+  ---
+  duration_ms: 0.600625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-15-quote\\"inside.txt"
+ok 454 - valid filename git-octal "family-5-15-quote\\"inside.txt"
+  ---
+  duration_ms: 0.411375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-15-quote\\"inside.txt"
+ok 455 - valid filename literal "family-5-15-quote\\"inside.txt"
+  ---
+  duration_ms: 0.33275
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-0-two spaces  here.txt"
+ok 456 - valid filename git-octal "family-6-0-two spaces  here.txt"
+  ---
+  duration_ms: 0.354041
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-0-two spaces  here.txt"
+ok 457 - valid filename literal "family-6-0-two spaces  here.txt"
+  ---
+  duration_ms: 0.476417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-1-two spaces  here.txt"
+ok 458 - valid filename git-octal "family-6-1-two spaces  here.txt"
+  ---
+  duration_ms: 6.370542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-1-two spaces  here.txt"
+ok 459 - valid filename literal "family-6-1-two spaces  here.txt"
+  ---
+  duration_ms: 0.694458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-2-two spaces  here.txt"
+ok 460 - valid filename git-octal "family-6-2-two spaces  here.txt"
+  ---
+  duration_ms: 0.835417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-2-two spaces  here.txt"
+ok 461 - valid filename literal "family-6-2-two spaces  here.txt"
+  ---
+  duration_ms: 0.552875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-3-two spaces  here.txt"
+ok 462 - valid filename git-octal "family-6-3-two spaces  here.txt"
+  ---
+  duration_ms: 0.724958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-3-two spaces  here.txt"
+ok 463 - valid filename literal "family-6-3-two spaces  here.txt"
+  ---
+  duration_ms: 0.426542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-4-two spaces  here.txt"
+ok 464 - valid filename git-octal "family-6-4-two spaces  here.txt"
+  ---
+  duration_ms: 0.407291
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-4-two spaces  here.txt"
+ok 465 - valid filename literal "family-6-4-two spaces  here.txt"
+  ---
+  duration_ms: 0.547083
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-5-two spaces  here.txt"
+ok 466 - valid filename git-octal "family-6-5-two spaces  here.txt"
+  ---
+  duration_ms: 0.8005
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-5-two spaces  here.txt"
+ok 467 - valid filename literal "family-6-5-two spaces  here.txt"
+  ---
+  duration_ms: 0.662125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-6-two spaces  here.txt"
+ok 468 - valid filename git-octal "family-6-6-two spaces  here.txt"
+  ---
+  duration_ms: 1.068375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-6-two spaces  here.txt"
+ok 469 - valid filename literal "family-6-6-two spaces  here.txt"
+  ---
+  duration_ms: 1.004667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-7-two spaces  here.txt"
+ok 470 - valid filename git-octal "family-6-7-two spaces  here.txt"
+  ---
+  duration_ms: 0.823541
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-7-two spaces  here.txt"
+ok 471 - valid filename literal "family-6-7-two spaces  here.txt"
+  ---
+  duration_ms: 0.929167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-8-two spaces  here.txt"
+ok 472 - valid filename git-octal "family-6-8-two spaces  here.txt"
+  ---
+  duration_ms: 0.920583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-8-two spaces  here.txt"
+ok 473 - valid filename literal "family-6-8-two spaces  here.txt"
+  ---
+  duration_ms: 2.666209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-9-two spaces  here.txt"
+ok 474 - valid filename git-octal "family-6-9-two spaces  here.txt"
+  ---
+  duration_ms: 1.139417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-9-two spaces  here.txt"
+ok 475 - valid filename literal "family-6-9-two spaces  here.txt"
+  ---
+  duration_ms: 0.965584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-10-two spaces  here.txt"
+ok 476 - valid filename git-octal "family-6-10-two spaces  here.txt"
+  ---
+  duration_ms: 0.907125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-10-two spaces  here.txt"
+ok 477 - valid filename literal "family-6-10-two spaces  here.txt"
+  ---
+  duration_ms: 0.643
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-11-two spaces  here.txt"
+ok 478 - valid filename git-octal "family-6-11-two spaces  here.txt"
+  ---
+  duration_ms: 0.548542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-11-two spaces  here.txt"
+ok 479 - valid filename literal "family-6-11-two spaces  here.txt"
+  ---
+  duration_ms: 0.44325
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-12-two spaces  here.txt"
+ok 480 - valid filename git-octal "family-6-12-two spaces  here.txt"
+  ---
+  duration_ms: 0.943125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-12-two spaces  here.txt"
+ok 481 - valid filename literal "family-6-12-two spaces  here.txt"
+  ---
+  duration_ms: 0.601417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-13-two spaces  here.txt"
+ok 482 - valid filename git-octal "family-6-13-two spaces  here.txt"
+  ---
+  duration_ms: 1.148833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-13-two spaces  here.txt"
+ok 483 - valid filename literal "family-6-13-two spaces  here.txt"
+  ---
+  duration_ms: 0.886209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-14-two spaces  here.txt"
+ok 484 - valid filename git-octal "family-6-14-two spaces  here.txt"
+  ---
+  duration_ms: 0.4835
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-14-two spaces  here.txt"
+ok 485 - valid filename literal "family-6-14-two spaces  here.txt"
+  ---
+  duration_ms: 0.513167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-15-two spaces  here.txt"
+ok 486 - valid filename git-octal "family-6-15-two spaces  here.txt"
+  ---
+  duration_ms: 0.512166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-15-two spaces  here.txt"
+ok 487 - valid filename literal "family-6-15-two spaces  here.txt"
+  ---
+  duration_ms: 0.408708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-0-$(echo NO);&|<>`NO`.txt"
+ok 488 - valid filename git-octal "family-7-0-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 5.250833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-0-$(echo NO);&|<>`NO`.txt"
+ok 489 - valid filename literal "family-7-0-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.848458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-1-$(echo NO);&|<>`NO`.txt"
+ok 490 - valid filename git-octal "family-7-1-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.719875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-1-$(echo NO);&|<>`NO`.txt"
+ok 491 - valid filename literal "family-7-1-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.584916
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-2-$(echo NO);&|<>`NO`.txt"
+ok 492 - valid filename git-octal "family-7-2-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.366375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-2-$(echo NO);&|<>`NO`.txt"
+ok 493 - valid filename literal "family-7-2-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.31775
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-3-$(echo NO);&|<>`NO`.txt"
+ok 494 - valid filename git-octal "family-7-3-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.375583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-3-$(echo NO);&|<>`NO`.txt"
+ok 495 - valid filename literal "family-7-3-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.347791
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-4-$(echo NO);&|<>`NO`.txt"
+ok 496 - valid filename git-octal "family-7-4-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.480166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-4-$(echo NO);&|<>`NO`.txt"
+ok 497 - valid filename literal "family-7-4-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.337541
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-5-$(echo NO);&|<>`NO`.txt"
+ok 498 - valid filename git-octal "family-7-5-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.312833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-5-$(echo NO);&|<>`NO`.txt"
+ok 499 - valid filename literal "family-7-5-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.538875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-6-$(echo NO);&|<>`NO`.txt"
+ok 500 - valid filename git-octal "family-7-6-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.730541
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-6-$(echo NO);&|<>`NO`.txt"
+ok 501 - valid filename literal "family-7-6-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.516125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-7-$(echo NO);&|<>`NO`.txt"
+ok 502 - valid filename git-octal "family-7-7-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.37625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-7-$(echo NO);&|<>`NO`.txt"
+ok 503 - valid filename literal "family-7-7-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.551042
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-8-$(echo NO);&|<>`NO`.txt"
+ok 504 - valid filename git-octal "family-7-8-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 2.682208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-8-$(echo NO);&|<>`NO`.txt"
+ok 505 - valid filename literal "family-7-8-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.461792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-9-$(echo NO);&|<>`NO`.txt"
+ok 506 - valid filename git-octal "family-7-9-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.618417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-9-$(echo NO);&|<>`NO`.txt"
+ok 507 - valid filename literal "family-7-9-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.618583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-10-$(echo NO);&|<>`NO`.txt"
+ok 508 - valid filename git-octal "family-7-10-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.510916
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-10-$(echo NO);&|<>`NO`.txt"
+ok 509 - valid filename literal "family-7-10-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.344833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-11-$(echo NO);&|<>`NO`.txt"
+ok 510 - valid filename git-octal "family-7-11-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.332542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-11-$(echo NO);&|<>`NO`.txt"
+ok 511 - valid filename literal "family-7-11-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.3075
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-12-$(echo NO);&|<>`NO`.txt"
+ok 512 - valid filename git-octal "family-7-12-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.329875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-12-$(echo NO);&|<>`NO`.txt"
+ok 513 - valid filename literal "family-7-12-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.304875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-13-$(echo NO);&|<>`NO`.txt"
+ok 514 - valid filename git-octal "family-7-13-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.308083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-13-$(echo NO);&|<>`NO`.txt"
+ok 515 - valid filename literal "family-7-13-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.29725
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-14-$(echo NO);&|<>`NO`.txt"
+ok 516 - valid filename git-octal "family-7-14-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.441292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-14-$(echo NO);&|<>`NO`.txt"
+ok 517 - valid filename literal "family-7-14-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.45475
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-15-$(echo NO);&|<>`NO`.txt"
+ok 518 - valid filename git-octal "family-7-15-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.71225
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-15-$(echo NO);&|<>`NO`.txt"
+ok 519 - valid filename literal "family-7-15-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 5.231459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-0-[glob]*?{brace}.txt"
+ok 520 - valid filename git-octal "family-8-0-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.791708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-0-[glob]*?{brace}.txt"
+ok 521 - valid filename literal "family-8-0-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.464208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-1-[glob]*?{brace}.txt"
+ok 522 - valid filename git-octal "family-8-1-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.322375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-1-[glob]*?{brace}.txt"
+ok 523 - valid filename literal "family-8-1-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.28475
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-2-[glob]*?{brace}.txt"
+ok 524 - valid filename git-octal "family-8-2-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.305791
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-2-[glob]*?{brace}.txt"
+ok 525 - valid filename literal "family-8-2-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.313375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-3-[glob]*?{brace}.txt"
+ok 526 - valid filename git-octal "family-8-3-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.4735
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-3-[glob]*?{brace}.txt"
+ok 527 - valid filename literal "family-8-3-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.52025
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-4-[glob]*?{brace}.txt"
+ok 528 - valid filename git-octal "family-8-4-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.561334
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-4-[glob]*?{brace}.txt"
+ok 529 - valid filename literal "family-8-4-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.877542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-5-[glob]*?{brace}.txt"
+ok 530 - valid filename git-octal "family-8-5-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.825791
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-5-[glob]*?{brace}.txt"
+ok 531 - valid filename literal "family-8-5-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.72725
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-6-[glob]*?{brace}.txt"
+ok 532 - valid filename git-octal "family-8-6-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.867792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-6-[glob]*?{brace}.txt"
+ok 533 - valid filename literal "family-8-6-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 1.057333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-7-[glob]*?{brace}.txt"
+ok 534 - valid filename git-octal "family-8-7-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 2.375083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-7-[glob]*?{brace}.txt"
+ok 535 - valid filename literal "family-8-7-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.533166
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-8-[glob]*?{brace}.txt"
+ok 536 - valid filename git-octal "family-8-8-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.303292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-8-[glob]*?{brace}.txt"
+ok 537 - valid filename literal "family-8-8-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.269875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-9-[glob]*?{brace}.txt"
+ok 538 - valid filename git-octal "family-8-9-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.279625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-9-[glob]*?{brace}.txt"
+ok 539 - valid filename literal "family-8-9-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.265333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-10-[glob]*?{brace}.txt"
+ok 540 - valid filename git-octal "family-8-10-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.285333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-10-[glob]*?{brace}.txt"
+ok 541 - valid filename literal "family-8-10-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.506042
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-11-[glob]*?{brace}.txt"
+ok 542 - valid filename git-octal "family-8-11-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.543417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-11-[glob]*?{brace}.txt"
+ok 543 - valid filename literal "family-8-11-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.476458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-12-[glob]*?{brace}.txt"
+ok 544 - valid filename git-octal "family-8-12-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.592417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-12-[glob]*?{brace}.txt"
+ok 545 - valid filename literal "family-8-12-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.627792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-13-[glob]*?{brace}.txt"
+ok 546 - valid filename git-octal "family-8-13-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.69275
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-13-[glob]*?{brace}.txt"
+ok 547 - valid filename literal "family-8-13-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.553875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-14-[glob]*?{brace}.txt"
+ok 548 - valid filename git-octal "family-8-14-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.468041
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-14-[glob]*?{brace}.txt"
+ok 549 - valid filename literal "family-8-14-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 4.104208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-15-[glob]*?{brace}.txt"
+ok 550 - valid filename git-octal "family-8-15-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.422291
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-15-[glob]*?{brace}.txt"
+ok 551 - valid filename literal "family-8-15-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.306208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-0---dash \#hash 'apostrophe'.txt"
+ok 552 - valid filename git-octal "family-9-0---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.342292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-0---dash \#hash 'apostrophe'.txt"
+ok 553 - valid filename literal "family-9-0---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.478917
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-1---dash \#hash 'apostrophe'.txt"
+ok 554 - valid filename git-octal "family-9-1---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.56675
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-1---dash \#hash 'apostrophe'.txt"
+ok 555 - valid filename literal "family-9-1---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.742333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-2---dash \#hash 'apostrophe'.txt"
+ok 556 - valid filename git-octal "family-9-2---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.80675
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-2---dash \#hash 'apostrophe'.txt"
+ok 557 - valid filename literal "family-9-2---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.628459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-3---dash \#hash 'apostrophe'.txt"
+ok 558 - valid filename git-octal "family-9-3---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.774291
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-3---dash \#hash 'apostrophe'.txt"
+ok 559 - valid filename literal "family-9-3---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.623792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-4---dash \#hash 'apostrophe'.txt"
+ok 560 - valid filename git-octal "family-9-4---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.564875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-4---dash \#hash 'apostrophe'.txt"
+ok 561 - valid filename literal "family-9-4---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.475709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-5---dash \#hash 'apostrophe'.txt"
+ok 562 - valid filename git-octal "family-9-5---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.438
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-5---dash \#hash 'apostrophe'.txt"
+ok 563 - valid filename literal "family-9-5---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.641459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-6---dash \#hash 'apostrophe'.txt"
+ok 564 - valid filename git-octal "family-9-6---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 2.890416
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-6---dash \#hash 'apostrophe'.txt"
+ok 565 - valid filename literal "family-9-6---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 1.161792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-7---dash \#hash 'apostrophe'.txt"
+ok 566 - valid filename git-octal "family-9-7---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.629458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-7---dash \#hash 'apostrophe'.txt"
+ok 567 - valid filename literal "family-9-7---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.760708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-8---dash \#hash 'apostrophe'.txt"
+ok 568 - valid filename git-octal "family-9-8---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 1.229583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-8---dash \#hash 'apostrophe'.txt"
+ok 569 - valid filename literal "family-9-8---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.656333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-9---dash \#hash 'apostrophe'.txt"
+ok 570 - valid filename git-octal "family-9-9---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.415083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-9---dash \#hash 'apostrophe'.txt"
+ok 571 - valid filename literal "family-9-9---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.442708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-10---dash \#hash 'apostrophe'.txt"
+ok 572 - valid filename git-octal "family-9-10---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.468916
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-10---dash \#hash 'apostrophe'.txt"
+ok 573 - valid filename literal "family-9-10---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.480625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-11---dash \#hash 'apostrophe'.txt"
+ok 574 - valid filename git-octal "family-9-11---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.817833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-11---dash \#hash 'apostrophe'.txt"
+ok 575 - valid filename literal "family-9-11---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.550958
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-12---dash \#hash 'apostrophe'.txt"
+ok 576 - valid filename git-octal "family-9-12---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.523583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-12---dash \#hash 'apostrophe'.txt"
+ok 577 - valid filename literal "family-9-12---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.413708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-13---dash \#hash 'apostrophe'.txt"
+ok 578 - valid filename git-octal "family-9-13---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.473583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-13---dash \#hash 'apostrophe'.txt"
+ok 579 - valid filename literal "family-9-13---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.46675
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-14---dash \#hash 'apostrophe'.txt"
+ok 580 - valid filename git-octal "family-9-14---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 4.282791
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-14---dash \#hash 'apostrophe'.txt"
+ok 581 - valid filename literal "family-9-14---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.534417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-15---dash \#hash 'apostrophe'.txt"
+ok 582 - valid filename git-octal "family-9-15---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.621458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-15---dash \#hash 'apostrophe'.txt"
+ok 583 - valid filename literal "family-9-15---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.463625
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name " leading"
+ok 584 - quoted boundary and normalization-sensitive name " leading"
+  ---
+  duration_ms: 0.4345
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "trailing "
+ok 585 - quoted boundary and normalization-sensitive name "trailing "
+  ---
+  duration_ms: 0.410042
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name " both "
+ok 586 - quoted boundary and normalization-sensitive name " both "
+  ---
+  duration_ms: 0.602375
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "tab\\tend\\t"
+ok 587 - quoted boundary and normalization-sensitive name "tab\\tend\\t"
+  ---
+  duration_ms: 0.474208
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "﻿BOM"
+ok 588 - quoted boundary and normalization-sensitive name "﻿BOM"
+  ---
+  duration_ms: 0.373917
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "é"
+ok 589 - quoted boundary and normalization-sensitive name "é"
+  ---
+  duration_ms: 0.321958
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "é"
+ok 590 - quoted boundary and normalization-sensitive name "é"
+  ---
+  duration_ms: 0.363791
+  type: 'test'
+  ...
+# Subtest: Unicode normalization lookalikes and BOM names remain distinct in MemoryFS
+ok 591 - Unicode normalization lookalikes and BOM names remain distinct in MemoryFS
+  ---
+  duration_ms: 0.463625
+  type: 'test'
+  ...
+# Subtest: GNU strip/dot semantics a///dir//leaf -p1
+ok 592 - GNU strip/dot semantics a///dir//leaf -p1
+  ---
+  duration_ms: 12.908167
+  type: 'test'
+  ...
+# Subtest: GNU strip/dot semantics ./leaf -p1
+not ok 593 - GNU strip/dot semantics ./leaf -p1
+  ---
+  duration_ms: 2.167708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:1:363'
+  failureType: 'testCodeFailure'
+  error: |-
+    Valid input must apply: patch: strip count removes every patch filename
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    exactUpdate (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:42:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:10:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU strip/dot semantics a/./leaf -p2
+not ok 594 - GNU strip/dot semantics a/./leaf -p2
+  ---
+  duration_ms: 0.873834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:1:363'
+  failureType: 'testCodeFailure'
+  error: |-
+    Valid input must apply: patch: strip count removes every patch filename
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    exactUpdate (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:42:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:10:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU strip/dot semantics a/dir/./leaf -p1
+ok 595 - GNU strip/dot semantics a/dir/./leaf -p1
+  ---
+  duration_ms: 2.709666
+  type: 'test'
+  ...
+# Subtest: GNU strip/dot semantics a///./dir//leaf -p2
+ok 596 - GNU strip/dot semantics a///./dir//leaf -p2
+  ---
+  duration_ms: 2.056417
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/ explicit=false
+ok 597 - directory syntax cannot become regular target a/target/ explicit=false
+  ---
+  duration_ms: 1.520167
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/ explicit=true
+ok 598 - directory syntax cannot become regular target a/target/ explicit=true
+  ---
+  duration_ms: 0.463333
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target// explicit=false
+ok 599 - directory syntax cannot become regular target a/target// explicit=false
+  ---
+  duration_ms: 0.627125
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target// explicit=true
+ok 600 - directory syntax cannot become regular target a/target// explicit=true
+  ---
+  duration_ms: 0.600875
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/. explicit=false
+ok 601 - directory syntax cannot become regular target a/target/. explicit=false
+  ---
+  duration_ms: 1.031333
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/. explicit=true
+ok 602 - directory syntax cannot become regular target a/target/. explicit=true
+  ---
+  duration_ms: 0.443709
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./ explicit=false
+ok 603 - directory syntax cannot become regular target a/target/./ explicit=false
+  ---
+  duration_ms: 1.705333
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./ explicit=true
+ok 604 - directory syntax cannot become regular target a/target/./ explicit=true
+  ---
+  duration_ms: 0.278708
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./. explicit=false
+ok 605 - directory syntax cannot become regular target a/target/./. explicit=false
+  ---
+  duration_ms: 0.430417
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./. explicit=true
+ok 606 - directory syntax cannot become regular target a/target/./. explicit=true
+  ---
+  duration_ms: 0.269625
+  type: 'test'
+  ...
+# Subtest: GNU default coherent normalized sequence a/target -> a//./target dry=false
+ok 607 - GNU default coherent normalized sequence a/target -> a//./target dry=false
+  ---
+  duration_ms: 2.172958
+  type: 'test'
+  ...
+# Subtest: atomic extension coherent normalized sequence a/target -> a//./target dry=true
+ok 608 - atomic extension coherent normalized sequence a/target -> a//./target dry=true
+  ---
+  duration_ms: 1.46125
+  type: 'test'
+  ...
+# Subtest: atomic extension conflicting normalized sequence is status 1 with zero early writes a//./target
+ok 609 - atomic extension conflicting normalized sequence is status 1 with zero early writes a//./target
+  ---
+  duration_ms: 1.8215
+  type: 'test'
+  ...
+# Subtest: GNU default coherent normalized sequence "a/target" -> "a/\\164arget" dry=false
+ok 610 - GNU default coherent normalized sequence "a/target" -> "a/\\164arget" dry=false
+  ---
+  duration_ms: 2.682458
+  type: 'test'
+  ...
+# Subtest: atomic extension coherent normalized sequence "a/target" -> "a/\\164arget" dry=true
+ok 611 - atomic extension coherent normalized sequence "a/target" -> "a/\\164arget" dry=true
+  ---
+  duration_ms: 1.371833
+  type: 'test'
+  ...
+# Subtest: atomic extension conflicting normalized sequence is status 1 with zero early writes "a/\\164arget"
+ok 612 - atomic extension conflicting normalized sequence is status 1 with zero early writes "a/\\164arget"
+  ---
+  duration_ms: 1.810834
+  type: 'test'
+  ...
+# Subtest: GNU default coherent normalized sequence a/dir/target -> a///dir/./target dry=false
+ok 613 - GNU default coherent normalized sequence a/dir/target -> a///dir/./target dry=false
+  ---
+  duration_ms: 4.530417
+  type: 'test'
+  ...
+# Subtest: atomic extension coherent normalized sequence a/dir/target -> a///dir/./target dry=true
+ok 614 - atomic extension coherent normalized sequence a/dir/target -> a///dir/./target dry=true
+  ---
+  duration_ms: 1.201875
+  type: 'test'
+  ...
+# Subtest: atomic extension conflicting normalized sequence is status 1 with zero early writes a///dir/./target
+ok 615 - atomic extension conflicting normalized sequence is status 1 with zero early writes a///dir/./target
+  ---
+  duration_ms: 1.027209
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection final-symlink
+ok 616 - decoded normalized alias rejection final-symlink
+  ---
+  duration_ms: 0.573209
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection ancestor-symlink
+ok 617 - decoded normalized alias rejection ancestor-symlink
+  ---
+  duration_ms: 0.390708
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection hardlink
+ok 618 - decoded normalized alias rejection hardlink
+  ---
+  duration_ms: 0.535
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection same-inode-two-names
+ok 619 - decoded normalized alias rejection same-inode-two-names
+  ---
+  duration_ms: 1.439167
+  type: 'test'
+  ...
+1..619
+# tests 619
+# suites 0
+# pass 605
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 507.73425

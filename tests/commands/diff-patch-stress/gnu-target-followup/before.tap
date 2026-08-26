@@ -1,0 +1,5736 @@
+TAP version 13
+# Subtest: normal-empty-insert
+ok 1 - normal-empty-insert
+  ---
+  duration_ms: 43.639542
+  type: 'test'
+  ...
+# Subtest: normal-empty-insert-incomplete
+ok 2 - normal-empty-insert-incomplete
+  ---
+  duration_ms: 22.297583
+  type: 'test'
+  ...
+# Subtest: normal-delete-to-empty
+ok 3 - normal-delete-to-empty
+  ---
+  duration_ms: 15.296125
+  type: 'test'
+  ...
+# Subtest: normal-both-incomplete
+ok 4 - normal-both-incomplete
+  ---
+  duration_ms: 14.89225
+  type: 'test'
+  ...
+# Subtest: normal-blank-data
+ok 5 - normal-blank-data
+  ---
+  duration_ms: 18.973834
+  type: 'test'
+  ...
+# Subtest: normal-tab-prefix
+ok 6 - normal-tab-prefix
+  ---
+  duration_ms: 1.037667
+  type: 'test'
+  ...
+# Subtest: normal-patch-looking-data
+ok 7 - normal-patch-looking-data
+  ---
+  duration_ms: 14.555125
+  type: 'test'
+  ...
+# Subtest: normal-crlf-data
+ok 8 - normal-crlf-data
+  ---
+  duration_ms: 13.432208
+  type: 'test'
+  ...
+# Subtest: normal-suppress-blank-empty
+ok 9 - normal-suppress-blank-empty
+  ---
+  duration_ms: 1.46225
+  type: 'test'
+  ...
+# Subtest: normal-empty-patch-noop
+ok 10 - normal-empty-patch-noop
+  ---
+  duration_ms: 11.685333
+  type: 'test'
+  ...
+# Subtest: normal-leading-empty-lines
+ok 11 - normal-leading-empty-lines
+  ---
+  duration_ms: 12.69025
+  type: 'test'
+  ...
+# Subtest: normal-two-ordered-hunks
+ok 12 - normal-two-ordered-hunks
+  ---
+  duration_ms: 12.920167
+  type: 'test'
+  ...
+# Subtest: context-empty-insert
+ok 13 - context-empty-insert
+  ---
+  duration_ms: 12.229708
+  type: 'test'
+  ...
+# Subtest: context-delete-to-empty
+ok 14 - context-delete-to-empty
+  ---
+  duration_ms: 10.893083
+  type: 'test'
+  ...
+# Subtest: context-empty-insert-incomplete
+ok 15 - context-empty-insert-incomplete
+  ---
+  duration_ms: 10.230459
+  type: 'test'
+  ...
+# Subtest: context-both-incomplete
+ok 16 - context-both-incomplete
+  ---
+  duration_ms: 10.426708
+  type: 'test'
+  ...
+# Subtest: context-omitted-old-with-context
+ok 17 - context-omitted-old-with-context
+  ---
+  duration_ms: 11.302791
+  type: 'test'
+  ...
+# Subtest: context-omitted-new-with-context
+ok 18 - context-omitted-new-with-context
+  ---
+  duration_ms: 10.292209
+  type: 'test'
+  ...
+# Subtest: context-incomplete-shared-tail
+ok 19 - context-incomplete-shared-tail
+  ---
+  duration_ms: 11.800083
+  type: 'test'
+  ...
+# Subtest: context-patch-looking-data
+ok 20 - context-patch-looking-data
+  ---
+  duration_ms: 10.107542
+  type: 'test'
+  ...
+# Subtest: context-crlf-data
+ok 21 - context-crlf-data
+  ---
+  duration_ms: 10.342792
+  type: 'test'
+  ...
+# Subtest: context-crlf-transport
+ok 22 - context-crlf-transport
+  ---
+  duration_ms: 11.32175
+  type: 'test'
+  ...
+# Subtest: context-suppress-blank-empty
+ok 23 - context-suppress-blank-empty
+  ---
+  duration_ms: 10.408959
+  type: 'test'
+  ...
+# Subtest: context-blank-context-line
+ok 24 - context-blank-context-line
+  ---
+  duration_ms: 10.765417
+  type: 'test'
+  ...
+# Subtest: mixed-normal-context
+ok 25 - mixed-normal-context
+  ---
+  duration_ms: 10.795
+  type: 'test'
+  ...
+# Subtest: mixed-context-unified
+ok 26 - mixed-context-unified
+  ---
+  duration_ms: 11.898667
+  type: 'test'
+  ...
+# Subtest: mixed-unified-normal
+ok 27 - mixed-unified-normal
+  ---
+  duration_ms: 12.694833
+  type: 'test'
+  ...
+# Subtest: mixed-context-normal-unified
+ok 28 - mixed-context-normal-unified
+  ---
+  duration_ms: 12.583416
+  type: 'test'
+  ...
+# Subtest: normal-truncated-new-body
+ok 29 - normal-truncated-new-body
+  ---
+  duration_ms: 10.933333
+  type: 'test'
+  ...
+# Subtest: normal-truncated-final-lf
+ok 30 - normal-truncated-final-lf
+  ---
+  duration_ms: 9.378167
+  type: 'test'
+  ...
+# Subtest: normal-missing-change-separator
+ok 31 - normal-missing-change-separator
+  ---
+  duration_ms: 12.4425
+  type: 'test'
+  ...
+# Subtest: normal-old-count-underflow
+ok 32 - normal-old-count-underflow
+  ---
+  duration_ms: 11.673417
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-new-count-overflow
+ok 33 - atomic-extension-normal-new-count-overflow
+  ---
+  duration_ms: 10.235584
+  type: 'test'
+  ...
+# Subtest: normal-descending-range
+ok 34 - normal-descending-range
+  ---
+  duration_ms: 9.469166
+  type: 'test'
+  ...
+# Subtest: normal-append-old-range
+ok 35 - normal-append-old-range
+  ---
+  duration_ms: 26.15
+  type: 'test'
+  ...
+# Subtest: normal-delete-new-range
+ok 36 - normal-delete-new-range
+  ---
+  duration_ms: 8.7205
+  type: 'test'
+  ...
+# Subtest: normal-overlapping-old-hunks
+not ok 37 - normal-overlapping-old-hunks
+  ---
+  duration_ms: 14.701834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:682'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"normal-overlapping-old-hunks","before":"old\nkeep\nend\n","patch":"1c1\n< old\n---\n> new\n1c1\n< old\n---\n> new\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'silent replacement/truncation: expected "old\\nkeep\\nend\\n", got "new\\nkeep\\nend\\n"',
+    +     'preflight failure attempted writes: ["writeFile:/work/target.orig","writeFile:/work/target","writeFile:/work/target.rej"]',
+    +     'preflight failure emitted stdout: "patching file /work/target\\nHunk #2 FAILED at 1.\\n1 out of 2 hunks FAILED -- saving rejects to file /work/target.rej\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: 'silent replacement/truncation: expected "old\\nkeep\\nend\\n", got "new\\nkeep\\nend\\n"'
+      1: 'preflight failure attempted writes: ["writeFile:/work/target.orig","writeFile:/work/target","writeFile:/work/target.rej"]'
+      2: 'preflight failure emitted stdout: "patching file /work/target\\nHunk #2 FAILED at 1.\\n1 out of 2 hunks FAILED -- saving rejects to file /work/target.rej\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:46:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU-normal-new-coordinates-are-advisory
+ok 38 - GNU-normal-new-coordinates-are-advisory
+  ---
+  duration_ms: 11.118208
+  type: 'test'
+  ...
+# Subtest: normal-unsafe-integer
+ok 39 - normal-unsafe-integer
+  ---
+  duration_ms: 0.419416
+  type: 'test'
+  ...
+# Subtest: normal-marker-before-body
+ok 40 - normal-marker-before-body
+  ---
+  duration_ms: 8.85625
+  type: 'test'
+  ...
+# Subtest: normal-incomplete-nonfinal-new-line
+ok 41 - normal-incomplete-nonfinal-new-line
+  ---
+  duration_ms: 8.592
+  type: 'test'
+  ...
+# Subtest: context-missing-new-range
+ok 42 - context-missing-new-range
+  ---
+  duration_ms: 10.511959
+  type: 'test'
+  ...
+# Subtest: context-old-count-mismatch
+ok 43 - context-old-count-mismatch
+  ---
+  duration_ms: 8.28625
+  type: 'test'
+  ...
+# Subtest: context-zero-nonempty-range
+ok 44 - context-zero-nonempty-range
+  ---
+  duration_ms: 7.944625
+  type: 'test'
+  ...
+# Subtest: context-overlapping-hunks
+not ok 45 - context-overlapping-hunks
+  ---
+  duration_ms: 11.001958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:682'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"context-overlapping-hunks","before":"old\nkeep\nend\n","patch":"*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n"}
+    + actual - expected
+    
+      {
+        nativeIssues: [],
+    +   productIssues: [
+    +     'silent replacement/truncation: expected "old\\nkeep\\nend\\n", got "new\\nkeep\\nend\\n"',
+    +     'preflight failure attempted writes: ["writeFile:/work/target.orig","writeFile:/work/target","writeFile:/work/target.rej"]',
+    +     'preflight failure emitted stdout: "patching file /work/target\\nHunk #2 FAILED at 1.\\n1 out of 2 hunks FAILED -- saving rejects to file /work/target.rej\\n"'
+    +   ]
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: 'silent replacement/truncation: expected "old\\nkeep\\nend\\n", got "new\\nkeep\\nend\\n"'
+      1: 'preflight failure attempted writes: ["writeFile:/work/target.orig","writeFile:/work/target","writeFile:/work/target.rej"]'
+      2: 'preflight failure emitted stdout: "patching file /work/target\\nHunk #2 FAILED at 1.\\n1 out of 2 hunks FAILED -- saving rejects to file /work/target.rej\\n"'
+    nativeIssues:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:46:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: context-unsafe-integer
+ok 46 - context-unsafe-integer
+  ---
+  duration_ms: 9.267792
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-old-half
+ok 47 - context-missing-changed-old-half
+  ---
+  duration_ms: 8.4945
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-new-half
+ok 48 - context-missing-changed-new-half
+  ---
+  duration_ms: 8.817292
+  type: 'test'
+  ...
+# Subtest: context-halves-disagree
+ok 49 - context-halves-disagree
+  ---
+  duration_ms: 8.764333
+  type: 'test'
+  ...
+# Subtest: context-duplicate-newline-marker
+ok 50 - context-duplicate-newline-marker
+  ---
+  duration_ms: 10.536375
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-valid-then-malformed-context
+ok 51 - atomic-extension-normal-valid-then-malformed-context
+  ---
+  duration_ms: 8.726708
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-valid-then-malformed-unified
+ok 52 - atomic-extension-context-valid-then-malformed-unified
+  ---
+  duration_ms: 8.757167
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-valid-then-truncated-normal
+ok 53 - atomic-extension-normal-valid-then-truncated-normal
+  ---
+  duration_ms: 8.408833
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-valid-then-truncated-context
+ok 54 - atomic-extension-context-valid-then-truncated-context
+  ---
+  duration_ms: 8.125208
+  type: 'test'
+  ...
+# Subtest: mutation-0-normal
+ok 55 - mutation-0-normal
+  ---
+  duration_ms: 7.045291
+  type: 'test'
+  ...
+# Subtest: mutation-1-context
+ok 56 - mutation-1-context
+  ---
+  duration_ms: 8.966084
+  type: 'test'
+  ...
+# Subtest: mutation-2-normal
+ok 57 - mutation-2-normal
+  ---
+  duration_ms: 8.480542
+  type: 'test'
+  ...
+# Subtest: mutation-3-context
+ok 58 - mutation-3-context
+  ---
+  duration_ms: 8.415666
+  type: 'test'
+  ...
+# Subtest: mutation-4-normal
+ok 59 - mutation-4-normal
+  ---
+  duration_ms: 7.742542
+  type: 'test'
+  ...
+# Subtest: mutation-5-context
+ok 60 - mutation-5-context
+  ---
+  duration_ms: 7.961208
+  type: 'test'
+  ...
+# Subtest: mutation-6-normal
+ok 61 - mutation-6-normal
+  ---
+  duration_ms: 7.496958
+  type: 'test'
+  ...
+# Subtest: mutation-7-context
+ok 62 - mutation-7-context
+  ---
+  duration_ms: 7.335041
+  type: 'test'
+  ...
+# Subtest: normal-maxLines-empty-flood
+ok 63 - normal-maxLines-empty-flood
+  ---
+  duration_ms: 0.269292
+  type: 'test'
+  ...
+# Subtest: normal-maxHunks-second-hunk
+ok 64 - normal-maxHunks-second-hunk
+  ---
+  duration_ms: 0.172375
+  type: 'test'
+  ...
+# Subtest: normal-maxWork-empty-flood
+ok 65 - normal-maxWork-empty-flood
+  ---
+  duration_ms: 0.120958
+  type: 'test'
+  ...
+# Subtest: normal-maxInput
+ok 66 - normal-maxInput
+  ---
+  duration_ms: 0.133708
+  type: 'test'
+  ...
+# Subtest: normal-maxOutput
+ok 67 - normal-maxOutput
+  ---
+  duration_ms: 0.238
+  type: 'test'
+  ...
+# Subtest: normal-cancel-input
+ok 68 - normal-cancel-input
+  ---
+  duration_ms: 0.16175
+  type: 'test'
+  ...
+# Subtest: normal-cancel-parse
+ok 69 - normal-cancel-parse
+  ---
+  duration_ms: 7.828
+  type: 'test'
+  ...
+# Subtest: context-maxLines-empty-flood
+ok 70 - context-maxLines-empty-flood
+  ---
+  duration_ms: 0.252875
+  type: 'test'
+  ...
+# Subtest: context-maxHunks-second-hunk
+ok 71 - context-maxHunks-second-hunk
+  ---
+  duration_ms: 0.151042
+  type: 'test'
+  ...
+# Subtest: context-maxWork-empty-flood
+ok 72 - context-maxWork-empty-flood
+  ---
+  duration_ms: 0.149333
+  type: 'test'
+  ...
+# Subtest: context-maxInput
+ok 73 - context-maxInput
+  ---
+  duration_ms: 0.080875
+  type: 'test'
+  ...
+# Subtest: context-maxOutput
+ok 74 - context-maxOutput
+  ---
+  duration_ms: 0.387542
+  type: 'test'
+  ...
+# Subtest: context-cancel-input
+ok 75 - context-cancel-input
+  ---
+  duration_ms: 0.166208
+  type: 'test'
+  ...
+# Subtest: context-cancel-parse
+ok 76 - context-cancel-parse
+  ---
+  duration_ms: 8.73525
+  type: 'test'
+  ...
+# Subtest: GNU-normal-suppress-blank-empty
+ok 77 - GNU-normal-suppress-blank-empty
+  ---
+  duration_ms: 14.734458
+  type: 'test'
+  ...
+# Subtest: GNU-context-suppress-blank-empty
+ok 78 - GNU-context-suppress-blank-empty
+  ---
+  duration_ms: 15.078583
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-middle-deletion
+ok 79 - GNU-context-zero-middle-deletion
+  ---
+  duration_ms: 14.084
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-empty-insertion
+ok 80 - GNU-context-zero-empty-insertion
+  ---
+  duration_ms: 15.769292
+  type: 'test'
+  ...
+# Subtest: bounded 4079-byte path accepts 16318-character octal quoted header
+ok 81 - bounded 4079-byte path accepts 16318-character octal quoted header
+  ---
+  duration_ms: 39.898166
+  type: 'test'
+  ...
+# Subtest: decoder limit quoted source length rejects before earlier section writes
+ok 82 - decoder limit quoted source length rejects before earlier section writes
+  ---
+  duration_ms: 1.417375
+  type: 'test'
+  ...
+# Subtest: decoder limit decoded path length rejects before earlier section writes
+ok 83 - decoder limit decoded path length rejects before earlier section writes
+  ---
+  duration_ms: 4.903875
+  type: 'test'
+  ...
+# Subtest: decoder limit decoded depth rejects before earlier section writes
+ok 84 - decoder limit decoded depth rejects before earlier section writes
+  ---
+  duration_ms: 1.70575
+  type: 'test'
+  ...
+# Subtest: encoded headers obey input budget before mutations
+ok 85 - encoded headers obey input budget before mutations
+  ---
+  duration_ms: 1.726417
+  type: 'test'
+  ...
+# Subtest: encoded headers obey work budget before mutations
+ok 86 - encoded headers obey work budget before mutations
+  ---
+  duration_ms: 0.340916
+  type: 'test'
+  ...
+# Subtest: encoded headers obey files budget before mutations
+ok 87 - encoded headers obey files budget before mutations
+  ---
+  duration_ms: 0.9425
+  type: 'test'
+  ...
+# Subtest: bounded bulk quoted decoding yields to cancellation before committing
+ok 88 - bounded bulk quoted decoding yields to cancellation before committing
+  ---
+  duration_ms: 75.133417
+  type: 'test'
+  ...
+# Subtest: Shell uses explicit diff -u headers through quoted-filename patch pipeline
+ok 89 - Shell uses explicit diff -u headers through quoted-filename patch pipeline
+  ---
+  duration_ms: 11.860417
+  type: 'test'
+  ...
+# Subtest: mail with safely quoted Unicode/tab target and signature really applies
+ok 90 - mail with safely quoted Unicode/tab target and signature really applies
+  ---
+  duration_ms: 12.279041
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 0 after-patch
+ok 91 - mail cannot conceal later section 0 after-patch
+  ---
+  duration_ms: 2.271084
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 0 after-signature
+ok 92 - mail cannot conceal later section 0 after-signature
+  ---
+  duration_ms: 1.784584
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 1 after-patch
+ok 93 - mail cannot conceal later section 1 after-patch
+  ---
+  duration_ms: 2.878625
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 1 after-signature
+ok 94 - mail cannot conceal later section 1 after-signature
+  ---
+  duration_ms: 1.089
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 2 after-patch
+ok 95 - atomic extension mail cannot conceal later section 2 after-patch
+  ---
+  duration_ms: 0.58875
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 2 after-signature
+ok 96 - atomic extension mail cannot conceal later section 2 after-signature
+  ---
+  duration_ms: 0.514125
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 3 after-patch
+ok 97 - atomic extension mail cannot conceal later section 3 after-patch
+  ---
+  duration_ms: 2.023042
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 3 after-signature
+ok 98 - atomic extension mail cannot conceal later section 3 after-signature
+  ---
+  duration_ms: 1.09275
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 4 after-patch
+ok 99 - atomic extension mail cannot conceal later section 4 after-patch
+  ---
+  duration_ms: 1.346291
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 4 after-signature
+ok 100 - atomic extension mail cannot conceal later section 4 after-signature
+  ---
+  duration_ms: 0.574125
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 5 after-patch
+ok 101 - atomic extension mail cannot conceal later section 5 after-patch
+  ---
+  duration_ms: 0.993417
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 5 after-signature
+ok 102 - atomic extension mail cannot conceal later section 5 after-signature
+  ---
+  duration_ms: 0.550916
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: rename from target
+not ok 103 - unsupported metadata cannot disappear between-sections: rename from target
+  ---
+  duration_ms: 5.522625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: rename from target
+ok 104 - unsupported metadata cannot disappear after-signature: rename from target
+  ---
+  duration_ms: 0.6495
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: rename to sentinel
+not ok 105 - unsupported metadata cannot disappear between-sections: rename to sentinel
+  ---
+  duration_ms: 5.213833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: rename to sentinel
+ok 106 - unsupported metadata cannot disappear after-signature: rename to sentinel
+  ---
+  duration_ms: 0.513459
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: copy from target
+not ok 107 - unsupported metadata cannot disappear between-sections: copy from target
+  ---
+  duration_ms: 1.43125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: copy from target
+ok 108 - unsupported metadata cannot disappear after-signature: copy from target
+  ---
+  duration_ms: 0.525458
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: copy to sentinel
+not ok 109 - unsupported metadata cannot disappear between-sections: copy to sentinel
+  ---
+  duration_ms: 4.322125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: copy to sentinel
+ok 110 - unsupported metadata cannot disappear after-signature: copy to sentinel
+  ---
+  duration_ms: 1.355292
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: new file mode 120000
+not ok 111 - unsupported metadata cannot disappear between-sections: new file mode 120000
+  ---
+  duration_ms: 5.068
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: new file mode 120000
+ok 112 - unsupported metadata cannot disappear after-signature: new file mode 120000
+  ---
+  duration_ms: 1.221792
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: deleted file mode 120000
+not ok 113 - unsupported metadata cannot disappear between-sections: deleted file mode 120000
+  ---
+  duration_ms: 2.080334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: deleted file mode 120000
+ok 114 - unsupported metadata cannot disappear after-signature: deleted file mode 120000
+  ---
+  duration_ms: 0.4715
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: old mode 120000
+not ok 115 - unsupported metadata cannot disappear between-sections: old mode 120000
+  ---
+  duration_ms: 0.979583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: old mode 120000
+ok 116 - unsupported metadata cannot disappear after-signature: old mode 120000
+  ---
+  duration_ms: 0.358416
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: new mode 120000
+not ok 117 - unsupported metadata cannot disappear between-sections: new mode 120000
+  ---
+  duration_ms: 1.124042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: new mode 120000
+ok 118 - unsupported metadata cannot disappear after-signature: new mode 120000
+  ---
+  duration_ms: 0.357708
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: similarity index 100%
+not ok 119 - unsupported metadata cannot disappear between-sections: similarity index 100%
+  ---
+  duration_ms: 1.090292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: similarity index 100%
+ok 120 - unsupported metadata cannot disappear after-signature: similarity index 100%
+  ---
+  duration_ms: 0.394542
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: dissimilarity index 100%
+not ok 121 - unsupported metadata cannot disappear between-sections: dissimilarity index 100%
+  ---
+  duration_ms: 2.381125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: dissimilarity index 100%
+ok 122 - unsupported metadata cannot disappear after-signature: dissimilarity index 100%
+  ---
+  duration_ms: 0.713625
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: GIT binary patch
+not ok 123 - unsupported metadata cannot disappear between-sections: GIT binary patch
+  ---
+  duration_ms: 2.012625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: GIT binary patch
+ok 124 - unsupported metadata cannot disappear after-signature: GIT binary patch
+  ---
+  duration_ms: 0.331625
+  type: 'test'
+  ...
+# Subtest: unsupported metadata cannot disappear between-sections: unknown extension metadata
+not ok 125 - unsupported metadata cannot disappear between-sections: unknown extension metadata
+  ---
+  duration_ms: 0.6465
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    No early mutation: patch: expected --- file header
+    
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    rejectsWithoutMutation (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:45:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mail preamble must not discard symlink metadata: new file mode 120000
+ok 126 - mail preamble must not discard symlink metadata: new file mode 120000
+  ---
+  duration_ms: 0.259334
+  type: 'test'
+  ...
+# Subtest: mail preamble must not discard symlink metadata: deleted file mode 120000
+ok 127 - mail preamble must not discard symlink metadata: deleted file mode 120000
+  ---
+  duration_ms: 0.19775
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\" garbage"
+ok 128 - unsafe/malformed old "\\"a/target\\" garbage"
+  ---
+  duration_ms: 14.042125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\" garbage"
+ok 129 - unsafe/malformed new "\\"a/target\\" garbage"
+  ---
+  duration_ms: 1.795292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\" garbage"
+ok 130 - unsafe/malformed explicit-old "\\"a/target\\" garbage"
+  ---
+  duration_ms: 4.374542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\" garbage"
+ok 131 - unsafe/malformed explicit-new "\\"a/target\\" garbage"
+  ---
+  duration_ms: 1.010917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\" "
+ok 132 - unsafe/malformed old "\\"a/target\\" "
+  ---
+  duration_ms: 0.800958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\" "
+ok 133 - unsafe/malformed new "\\"a/target\\" "
+  ---
+  duration_ms: 0.816291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\" "
+ok 134 - unsafe/malformed explicit-old "\\"a/target\\" "
+  ---
+  duration_ms: 1.008417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\" "
+ok 135 - unsafe/malformed explicit-new "\\"a/target\\" "
+  ---
+  duration_ms: 0.552583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\"/suffix"
+ok 136 - unsafe/malformed old "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 1.235959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\"/suffix"
+ok 137 - unsafe/malformed new "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 0.8465
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\"/suffix"
+ok 138 - unsafe/malformed explicit-old "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 1.94625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\"/suffix"
+ok 139 - unsafe/malformed explicit-new "\\"a/target\\"/suffix"
+  ---
+  duration_ms: 0.464083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\"\\""
+ok 140 - unsafe/malformed old "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.827958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\"\\""
+ok 141 - unsafe/malformed new "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.534458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\"\\""
+ok 142 - unsafe/malformed explicit-old "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.652209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\"\\""
+ok 143 - unsafe/malformed explicit-new "\\"a/target\\"\\""
+  ---
+  duration_ms: 0.417083
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target"
+ok 144 - unsafe/malformed old "\\"a/target"
+  ---
+  duration_ms: 0.464291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target"
+ok 145 - unsafe/malformed new "\\"a/target"
+  ---
+  duration_ms: 0.489208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target"
+ok 146 - unsafe/malformed explicit-old "\\"a/target"
+  ---
+  duration_ms: 0.694792
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target"
+ok 147 - unsafe/malformed explicit-new "\\"a/target"
+  ---
+  duration_ms: 0.41825
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\"
+ok 148 - unsafe/malformed old "\\"a/target\\\\"
+  ---
+  duration_ms: 0.754417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\"
+ok 149 - unsafe/malformed new "\\"a/target\\\\"
+  ---
+  duration_ms: 0.369291
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\"
+ok 150 - unsafe/malformed explicit-old "\\"a/target\\\\"
+  ---
+  duration_ms: 1.476958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\"
+ok 151 - unsafe/malformed explicit-new "\\"a/target\\\\"
+  ---
+  duration_ms: 0.472042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\0\\""
+ok 152 - unsafe/malformed old "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.486708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\0\\""
+ok 153 - unsafe/malformed new "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.626667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\0\\""
+ok 154 - unsafe/malformed explicit-old "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.551125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\0\\""
+ok 155 - unsafe/malformed explicit-new "\\"a/target\\\\0\\""
+  ---
+  duration_ms: 0.579416
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\00\\""
+ok 156 - unsafe/malformed old "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 1.410708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\00\\""
+ok 157 - unsafe/malformed new "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.576209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\00\\""
+ok 158 - unsafe/malformed explicit-old "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.38775
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\00\\""
+ok 159 - unsafe/malformed explicit-new "\\"a/target\\\\00\\""
+  ---
+  duration_ms: 0.585416
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\08\\""
+ok 160 - unsafe/malformed old "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.390333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\08\\""
+ok 161 - unsafe/malformed new "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.39075
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\08\\""
+ok 162 - unsafe/malformed explicit-old "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 0.542666
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\08\\""
+ok 163 - unsafe/malformed explicit-new "\\"a/target\\\\08\\""
+  ---
+  duration_ms: 1.063375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\008\\""
+ok 164 - unsafe/malformed old "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 0.357209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\008\\""
+ok 165 - unsafe/malformed new "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 1.269959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\008\\""
+ok 166 - unsafe/malformed explicit-old "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 0.269708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\008\\""
+ok 167 - unsafe/malformed explicit-new "\\"a/target\\\\008\\""
+  ---
+  duration_ms: 0.224959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\378\\""
+ok 168 - unsafe/malformed old "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.232
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\378\\""
+ok 169 - unsafe/malformed new "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.211542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\378\\""
+ok 170 - unsafe/malformed explicit-old "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.5
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\378\\""
+ok 171 - unsafe/malformed explicit-new "\\"a/target\\\\378\\""
+  ---
+  duration_ms: 0.5325
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\401\\""
+ok 172 - unsafe/malformed old "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.655875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\401\\""
+ok 173 - unsafe/malformed new "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.775917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\401\\""
+ok 174 - unsafe/malformed explicit-old "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.385542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\401\\""
+ok 175 - unsafe/malformed explicit-new "\\"a/target\\\\401\\""
+  ---
+  duration_ms: 0.411167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\x41\\""
+ok 176 - unsafe/malformed old "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.337542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\x41\\""
+ok 177 - unsafe/malformed new "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.38
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\x41\\""
+ok 178 - unsafe/malformed explicit-old "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 0.514125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\x41\\""
+ok 179 - unsafe/malformed explicit-new "\\"a/target\\\\x41\\""
+  ---
+  duration_ms: 1.295292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\u0041\\""
+ok 180 - unsafe/malformed old "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.417708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\u0041\\""
+ok 181 - unsafe/malformed new "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.640584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\u0041\\""
+ok 182 - unsafe/malformed explicit-old "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.327875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\u0041\\""
+ok 183 - unsafe/malformed explicit-new "\\"a/target\\\\u0041\\""
+  ---
+  duration_ms: 0.317625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\U00000041\\""
+ok 184 - unsafe/malformed old "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.290709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\U00000041\\""
+ok 185 - unsafe/malformed new "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.332917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\U00000041\\""
+ok 186 - unsafe/malformed explicit-old "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.541375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\U00000041\\""
+ok 187 - unsafe/malformed explicit-new "\\"a/target\\\\U00000041\\""
+  ---
+  duration_ms: 0.408
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\/\\""
+ok 188 - unsafe/malformed old "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.42475
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\/\\""
+ok 189 - unsafe/malformed new "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.379334
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\/\\""
+ok 190 - unsafe/malformed explicit-old "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.577208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\/\\""
+ok 191 - unsafe/malformed explicit-new "\\"a/target\\\\/\\""
+  ---
+  duration_ms: 0.694084
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\200\\""
+ok 192 - unsafe/malformed old "\\"a/\\\\200\\""
+  ---
+  duration_ms: 0.949292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\200\\""
+ok 193 - unsafe/malformed new "\\"a/\\\\200\\""
+  ---
+  duration_ms: 0.494375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\200\\""
+ok 194 - unsafe/malformed explicit-old "\\"a/\\\\200\\""
+  ---
+  duration_ms: 3.311542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\200\\""
+ok 195 - unsafe/malformed explicit-new "\\"a/\\\\200\\""
+  ---
+  duration_ms: 0.384584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\301\\\\251\\""
+ok 196 - unsafe/malformed old "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.316
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\301\\\\251\\""
+ok 197 - unsafe/malformed new "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.305583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\301\\\\251\\""
+ok 198 - unsafe/malformed explicit-old "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.269875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\301\\\\251\\""
+ok 199 - unsafe/malformed explicit-new "\\"a/\\\\301\\\\251\\""
+  ---
+  duration_ms: 0.289292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\302\\""
+ok 200 - unsafe/malformed old "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.303458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\302\\""
+ok 201 - unsafe/malformed new "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.347125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\302\\""
+ok 202 - unsafe/malformed explicit-old "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.32025
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\302\\""
+ok 203 - unsafe/malformed explicit-new "\\"a/\\\\302\\""
+  ---
+  duration_ms: 0.28675
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\342\\\\202\\""
+ok 204 - unsafe/malformed old "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.312375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\342\\\\202\\""
+ok 205 - unsafe/malformed new "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.324583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\342\\\\202\\""
+ok 206 - unsafe/malformed explicit-old "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.296875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\342\\\\202\\""
+ok 207 - unsafe/malformed explicit-new "\\"a/\\\\342\\\\202\\""
+  ---
+  duration_ms: 0.296792
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\355\\\\240\\\\200\\""
+ok 208 - unsafe/malformed old "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 1.529583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\355\\\\240\\\\200\\""
+ok 209 - unsafe/malformed new "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 0.715833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\355\\\\240\\\\200\\""
+ok 210 - unsafe/malformed explicit-old "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 0.462584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\355\\\\240\\\\200\\""
+ok 211 - unsafe/malformed explicit-new "\\"a/\\\\355\\\\240\\\\200\\""
+  ---
+  duration_ms: 0.281667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 212 - unsafe/malformed old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.244917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 213 - unsafe/malformed new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.235542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 214 - unsafe/malformed explicit-old "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.19525
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+ok 215 - unsafe/malformed explicit-new "\\"a/\\\\360\\\\200\\\\200\\\\257\\""
+  ---
+  duration_ms: 0.184709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 216 - unsafe/malformed old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.18975
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 217 - unsafe/malformed new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.185208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 218 - unsafe/malformed explicit-old "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.187625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+ok 219 - unsafe/malformed explicit-new "\\"a/\\\\364\\\\220\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.183666
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 220 - unsafe/malformed old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.1975
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 221 - unsafe/malformed new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.192875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 222 - unsafe/malformed explicit-old "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 0.185958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+ok 223 - unsafe/malformed explicit-new "\\"a/\\\\365\\\\200\\\\200\\\\200\\""
+  ---
+  duration_ms: 1.920709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\303x\\""
+ok 224 - unsafe/malformed old "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.432875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\303x\\""
+ok 225 - unsafe/malformed new "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.349375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\303x\\""
+ok 226 - unsafe/malformed explicit-old "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.422459
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\303x\\""
+ok 227 - unsafe/malformed explicit-new "\\"a/\\\\303x\\""
+  ---
+  duration_ms: 0.300416
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"\\\\057sandbox/work/target\\""
+ok 228 - unsafe/malformed old "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 1.180042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"\\\\057sandbox/work/target\\""
+ok 229 - unsafe/malformed new "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 3.246166
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-old "\\"\\\\057sandbox/work/target\\""
+ok 230 - explicit target overrides absolute header explicit-old "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 1.573958
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-new "\\"\\\\057sandbox/work/target\\""
+ok 231 - explicit target overrides absolute header explicit-new "\\"\\\\057sandbox/work/target\\""
+  ---
+  duration_ms: 0.965
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"\\\\057\\\\057target\\""
+ok 232 - unsafe/malformed old "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 0.655417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"\\\\057\\\\057target\\""
+ok 233 - unsafe/malformed new "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 2.167209
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-old "\\"\\\\057\\\\057target\\""
+ok 234 - explicit target overrides absolute header explicit-old "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 0.813083
+  type: 'test'
+  ...
+# Subtest: explicit target overrides absolute header explicit-new "\\"\\\\057\\\\057target\\""
+ok 235 - explicit target overrides absolute header explicit-new "\\"\\\\057\\\\057target\\""
+  ---
+  duration_ms: 2.822833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\056\\\\056/target\\""
+ok 236 - unsafe/malformed old "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.714709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\056\\\\056/target\\""
+ok 237 - unsafe/malformed new "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.6025
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\056\\\\056/target\\""
+ok 238 - unsafe/malformed explicit-old "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.371125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\056\\\\056/target\\""
+ok 239 - unsafe/malformed explicit-new "\\"a/\\\\056\\\\056/target\\""
+  ---
+  duration_ms: 0.346833
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a//\\\\056./target\\""
+ok 240 - unsafe/malformed old "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.527333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a//\\\\056./target\\""
+ok 241 - unsafe/malformed new "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.784958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a//\\\\056./target\\""
+ok 242 - unsafe/malformed explicit-old "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.692125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a//\\\\056./target\\""
+ok 243 - unsafe/malformed explicit-new "\\"a//\\\\056./target\\""
+  ---
+  duration_ms: 0.340375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/dir/.\\\\056/target\\""
+ok 244 - unsafe/malformed old "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 6.307708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/dir/.\\\\056/target\\""
+ok 245 - unsafe/malformed new "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 0.439208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/dir/.\\\\056/target\\""
+ok 246 - unsafe/malformed explicit-old "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 0.201417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/dir/.\\\\056/target\\""
+ok 247 - unsafe/malformed explicit-new "\\"a/dir/.\\\\056/target\\""
+  ---
+  duration_ms: 0.166125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\103\\\\072target\\""
+ok 248 - unsafe/malformed old "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.489958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\103\\\\072target\\""
+ok 249 - unsafe/malformed new "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.435
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\103\\\\072target\\""
+ok 250 - unsafe/malformed explicit-old "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.5645
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\103\\\\072target\\""
+ok 251 - unsafe/malformed explicit-new "\\"a/\\\\103\\\\072target\\""
+  ---
+  duration_ms: 0.219625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/dir/\\\\172:target\\""
+ok 252 - unsafe/malformed old "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.373125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/dir/\\\\172:target\\""
+ok 253 - unsafe/malformed new "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.453625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/dir/\\\\172:target\\""
+ok 254 - unsafe/malformed explicit-old "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.424125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/dir/\\\\172:target\\""
+ok 255 - unsafe/malformed explicit-new "\\"a/dir/\\\\172:target\\""
+  ---
+  duration_ms: 0.466208
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/\\\\134target\\""
+ok 256 - unsafe/malformed old "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 1.765625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/\\\\134target\\""
+ok 257 - unsafe/malformed new "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.96325
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/\\\\134target\\""
+ok 258 - unsafe/malformed explicit-old "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.495667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/\\\\134target\\""
+ok 259 - unsafe/malformed explicit-new "\\"a/\\\\134target\\""
+  ---
+  duration_ms: 0.361834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/dir\\\\134target\\""
+ok 260 - unsafe/malformed old "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.847375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/dir\\\\134target\\""
+ok 261 - unsafe/malformed new "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.622958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/dir\\\\134target\\""
+ok 262 - unsafe/malformed explicit-old "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.323375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/dir\\\\134target\\""
+ok 263 - unsafe/malformed explicit-new "\\"a/dir\\\\134target\\""
+  ---
+  duration_ms: 0.287125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\177\\""
+ok 264 - unsafe/malformed old "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.6035
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\177\\""
+ok 265 - unsafe/malformed new "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.446375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\177\\""
+ok 266 - unsafe/malformed explicit-old "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.277333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\177\\""
+ok 267 - unsafe/malformed explicit-new "\\"a/target\\\\177\\""
+  ---
+  duration_ms: 0.272375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\001\\""
+ok 268 - unsafe/malformed old "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 2.65525
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\001\\""
+ok 269 - unsafe/malformed new "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 0.692709
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\001\\""
+ok 270 - unsafe/malformed explicit-old "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 0.411583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\001\\""
+ok 271 - unsafe/malformed explicit-new "\\"a/target\\\\001\\""
+  ---
+  duration_ms: 3.607625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\a\\""
+ok 272 - unsafe/malformed old "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 1.105042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\a\\""
+ok 273 - unsafe/malformed new "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 0.599209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\a\\""
+ok 274 - unsafe/malformed explicit-old "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 0.367375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\a\\""
+ok 275 - unsafe/malformed explicit-new "\\"a/target\\\\a\\""
+  ---
+  duration_ms: 0.594542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\b\\""
+ok 276 - unsafe/malformed old "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.707375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\b\\""
+ok 277 - unsafe/malformed new "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.651583
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\b\\""
+ok 278 - unsafe/malformed explicit-old "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.420667
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\b\\""
+ok 279 - unsafe/malformed explicit-new "\\"a/target\\\\b\\""
+  ---
+  duration_ms: 0.4555
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\v\\""
+ok 280 - unsafe/malformed old "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.492375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\v\\""
+ok 281 - unsafe/malformed new "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.773125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\v\\""
+ok 282 - unsafe/malformed explicit-old "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.3385
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\v\\""
+ok 283 - unsafe/malformed explicit-new "\\"a/target\\\\v\\""
+  ---
+  duration_ms: 0.500458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\f\\""
+ok 284 - unsafe/malformed old "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 2.022209
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\f\\""
+ok 285 - unsafe/malformed new "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 0.860834
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\f\\""
+ok 286 - unsafe/malformed explicit-old "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 0.348458
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\f\\""
+ok 287 - unsafe/malformed explicit-new "\\"a/target\\\\f\\""
+  ---
+  duration_ms: 0.294959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\000tail\\""
+ok 288 - unsafe/malformed old "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.319708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\000tail\\""
+ok 289 - unsafe/malformed new "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.439042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\000tail\\""
+ok 290 - unsafe/malformed explicit-old "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.262084
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\000tail\\""
+ok 291 - unsafe/malformed explicit-new "\\"a/target\\\\000tail\\""
+  ---
+  duration_ms: 0.194959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\012tail\\""
+ok 292 - unsafe/malformed old "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.183708
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\012tail\\""
+ok 293 - unsafe/malformed new "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.240625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\012tail\\""
+ok 294 - unsafe/malformed explicit-old "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.281
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\012tail\\""
+ok 295 - unsafe/malformed explicit-new "\\"a/target\\\\012tail\\""
+  ---
+  duration_ms: 0.21975
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "\\"a/target\\\\015tail\\""
+ok 296 - unsafe/malformed old "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.230417
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "\\"a/target\\\\015tail\\""
+ok 297 - unsafe/malformed new "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.6035
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "\\"a/target\\\\015tail\\""
+ok 298 - unsafe/malformed explicit-old "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 2.771959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "\\"a/target\\\\015tail\\""
+ok 299 - unsafe/malformed explicit-new "\\"a/target\\\\015tail\\""
+  ---
+  duration_ms: 0.229875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/../target"
+ok 300 - unsafe/malformed old "a/../target"
+  ---
+  duration_ms: 0.291042
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/../target"
+ok 301 - unsafe/malformed new "a/../target"
+  ---
+  duration_ms: 0.477
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/../target"
+ok 302 - unsafe/malformed explicit-old "a/../target"
+  ---
+  duration_ms: 0.521167
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/../target"
+ok 303 - unsafe/malformed explicit-new "a/../target"
+  ---
+  duration_ms: 0.45025
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a//../target"
+ok 304 - unsafe/malformed old "a//../target"
+  ---
+  duration_ms: 0.655125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a//../target"
+ok 305 - unsafe/malformed new "a//../target"
+  ---
+  duration_ms: 0.60475
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a//../target"
+ok 306 - unsafe/malformed explicit-old "a//../target"
+  ---
+  duration_ms: 0.322333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a//../target"
+ok 307 - unsafe/malformed explicit-new "a//../target"
+  ---
+  duration_ms: 0.26575
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/dir/../../target"
+ok 308 - unsafe/malformed old "a/dir/../../target"
+  ---
+  duration_ms: 0.389459
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/dir/../../target"
+ok 309 - unsafe/malformed new "a/dir/../../target"
+  ---
+  duration_ms: 0.370958
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/dir/../../target"
+ok 310 - unsafe/malformed explicit-old "a/dir/../../target"
+  ---
+  duration_ms: 0.257292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/dir/../../target"
+ok 311 - unsafe/malformed explicit-new "a/dir/../../target"
+  ---
+  duration_ms: 1.07875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/Z:target"
+ok 312 - unsafe/malformed old "a/Z:target"
+  ---
+  duration_ms: 0.34125
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/Z:target"
+ok 313 - unsafe/malformed new "a/Z:target"
+  ---
+  duration_ms: 0.353625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/Z:target"
+ok 314 - unsafe/malformed explicit-old "a/Z:target"
+  ---
+  duration_ms: 0.226292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/Z:target"
+ok 315 - unsafe/malformed explicit-new "a/Z:target"
+  ---
+  duration_ms: 0.234959
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/dir/c:target"
+ok 316 - unsafe/malformed old "a/dir/c:target"
+  ---
+  duration_ms: 0.537375
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/dir/c:target"
+ok 317 - unsafe/malformed new "a/dir/c:target"
+  ---
+  duration_ms: 0.396917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/dir/c:target"
+ok 318 - unsafe/malformed explicit-old "a/dir/c:target"
+  ---
+  duration_ms: 0.240333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/dir/c:target"
+ok 319 - unsafe/malformed explicit-new "a/dir/c:target"
+  ---
+  duration_ms: 0.251292
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/dir\\\\target"
+ok 320 - unsafe/malformed old "a/dir\\\\target"
+  ---
+  duration_ms: 0.496584
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/dir\\\\target"
+ok 321 - unsafe/malformed new "a/dir\\\\target"
+  ---
+  duration_ms: 0.571333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/dir\\\\target"
+ok 322 - unsafe/malformed explicit-old "a/dir\\\\target"
+  ---
+  duration_ms: 0.279875
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/dir\\\\target"
+ok 323 - unsafe/malformed explicit-new "a/dir\\\\target"
+  ---
+  duration_ms: 1.593541
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/target"
+ok 324 - unsafe/malformed old "a/target"
+  ---
+  duration_ms: 0.975542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/target"
+ok 325 - unsafe/malformed new "a/target"
+  ---
+  duration_ms: 0.826333
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/target"
+ok 326 - unsafe/malformed explicit-old "a/target"
+  ---
+  duration_ms: 0.341542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/target"
+ok 327 - unsafe/malformed explicit-new "a/target"
+  ---
+  duration_ms: 0.199917
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed old "a/target\\u0001"
+ok 328 - unsafe/malformed old "a/target\\u0001"
+  ---
+  duration_ms: 0.314542
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed new "a/target\\u0001"
+ok 329 - unsafe/malformed new "a/target\\u0001"
+  ---
+  duration_ms: 0.3005
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-old "a/target\\u0001"
+ok 330 - unsafe/malformed explicit-old "a/target\\u0001"
+  ---
+  duration_ms: 0.181625
+  type: 'test'
+  ...
+# Subtest: unsafe/malformed explicit-new "a/target\\u0001"
+ok 331 - unsafe/malformed explicit-new "a/target\\u0001"
+  ---
+  duration_ms: 0.174
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes 80
+ok 332 - raw invalid header bytes 80
+  ---
+  duration_ms: 0.197584
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes c0af
+ok 333 - raw invalid header bytes c0af
+  ---
+  duration_ms: 0.142334
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes e282
+ok 334 - raw invalid header bytes e282
+  ---
+  duration_ms: 0.154792
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes eda080
+ok 335 - raw invalid header bytes eda080
+  ---
+  duration_ms: 0.160459
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes f4908080
+ok 336 - raw invalid header bytes f4908080
+  ---
+  duration_ms: 0.165583
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes ff
+ok 337 - raw invalid header bytes ff
+  ---
+  duration_ms: 1.609834
+  type: 'test'
+  ...
+# Subtest: raw invalid header bytes 00
+ok 338 - raw invalid header bytes 00
+  ---
+  duration_ms: 0.205167
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n"
+ok 339 - atomic extension later section truncation "--- \\"target\\"\\n"
+  ---
+  duration_ms: 0.416
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target"
+ok 340 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target"
+  ---
+  duration_ms: 0.175292
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n"
+ok 341 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n"
+  ---
+  duration_ms: 0.177458
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n"
+ok 342 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n"
+  ---
+  duration_ms: 0.360417
+  type: 'test'
+  ...
+# Subtest: atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n+new"
+ok 343 - atomic extension later section truncation "--- \\"target\\"\\n+++ \\"target\\"\\n@@ -1 +1 @@\\n-old\\n+new"
+  ---
+  duration_ms: 0.346375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-0-café-Ångström.txt"
+ok 344 - valid filename git-octal "family-0-0-café-Ångström.txt"
+  ---
+  duration_ms: 16.932625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-0-café-Ångström.txt"
+ok 345 - valid filename literal "family-0-0-café-Ångström.txt"
+  ---
+  duration_ms: 4.88425
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-1-café-Ångström.txt"
+ok 346 - valid filename git-octal "family-0-1-café-Ångström.txt"
+  ---
+  duration_ms: 8.815666
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-1-café-Ångström.txt"
+ok 347 - valid filename literal "family-0-1-café-Ångström.txt"
+  ---
+  duration_ms: 11.596166
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-2-café-Ångström.txt"
+ok 348 - valid filename git-octal "family-0-2-café-Ångström.txt"
+  ---
+  duration_ms: 2.786417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-2-café-Ångström.txt"
+ok 349 - valid filename literal "family-0-2-café-Ångström.txt"
+  ---
+  duration_ms: 1.160584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-3-café-Ångström.txt"
+ok 350 - valid filename git-octal "family-0-3-café-Ångström.txt"
+  ---
+  duration_ms: 1.1715
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-3-café-Ångström.txt"
+ok 351 - valid filename literal "family-0-3-café-Ångström.txt"
+  ---
+  duration_ms: 1.113459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-4-café-Ångström.txt"
+ok 352 - valid filename git-octal "family-0-4-café-Ångström.txt"
+  ---
+  duration_ms: 9.772625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-4-café-Ångström.txt"
+ok 353 - valid filename literal "family-0-4-café-Ångström.txt"
+  ---
+  duration_ms: 1.863209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-5-café-Ångström.txt"
+ok 354 - valid filename git-octal "family-0-5-café-Ångström.txt"
+  ---
+  duration_ms: 1.18675
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-5-café-Ångström.txt"
+ok 355 - valid filename literal "family-0-5-café-Ångström.txt"
+  ---
+  duration_ms: 0.849959
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-6-café-Ångström.txt"
+ok 356 - valid filename git-octal "family-0-6-café-Ångström.txt"
+  ---
+  duration_ms: 0.886625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-6-café-Ångström.txt"
+ok 357 - valid filename literal "family-0-6-café-Ångström.txt"
+  ---
+  duration_ms: 0.867625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-7-café-Ångström.txt"
+ok 358 - valid filename git-octal "family-0-7-café-Ångström.txt"
+  ---
+  duration_ms: 0.916667
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-7-café-Ångström.txt"
+ok 359 - valid filename literal "family-0-7-café-Ångström.txt"
+  ---
+  duration_ms: 6.470292
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-8-café-Ångström.txt"
+ok 360 - valid filename git-octal "family-0-8-café-Ångström.txt"
+  ---
+  duration_ms: 10.351291
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-8-café-Ångström.txt"
+ok 361 - valid filename literal "family-0-8-café-Ångström.txt"
+  ---
+  duration_ms: 1.512875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-9-café-Ångström.txt"
+ok 362 - valid filename git-octal "family-0-9-café-Ångström.txt"
+  ---
+  duration_ms: 1.004334
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-9-café-Ångström.txt"
+ok 363 - valid filename literal "family-0-9-café-Ångström.txt"
+  ---
+  duration_ms: 1.024209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-10-café-Ångström.txt"
+ok 364 - valid filename git-octal "family-0-10-café-Ångström.txt"
+  ---
+  duration_ms: 3.952042
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-10-café-Ångström.txt"
+ok 365 - valid filename literal "family-0-10-café-Ångström.txt"
+  ---
+  duration_ms: 1.415
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-11-café-Ångström.txt"
+ok 366 - valid filename git-octal "family-0-11-café-Ångström.txt"
+  ---
+  duration_ms: 5.091334
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-11-café-Ångström.txt"
+ok 367 - valid filename literal "family-0-11-café-Ångström.txt"
+  ---
+  duration_ms: 0.904
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-12-café-Ångström.txt"
+ok 368 - valid filename git-octal "family-0-12-café-Ångström.txt"
+  ---
+  duration_ms: 0.922583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-12-café-Ångström.txt"
+ok 369 - valid filename literal "family-0-12-café-Ångström.txt"
+  ---
+  duration_ms: 0.834459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-13-café-Ångström.txt"
+ok 370 - valid filename git-octal "family-0-13-café-Ångström.txt"
+  ---
+  duration_ms: 0.940584
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-13-café-Ångström.txt"
+ok 371 - valid filename literal "family-0-13-café-Ångström.txt"
+  ---
+  duration_ms: 0.706334
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-14-café-Ångström.txt"
+ok 372 - valid filename git-octal "family-0-14-café-Ångström.txt"
+  ---
+  duration_ms: 0.7455
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-14-café-Ångström.txt"
+ok 373 - valid filename literal "family-0-14-café-Ångström.txt"
+  ---
+  duration_ms: 1.72175
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-0-15-café-Ångström.txt"
+ok 374 - valid filename git-octal "family-0-15-café-Ångström.txt"
+  ---
+  duration_ms: 1.186958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-0-15-café-Ångström.txt"
+ok 375 - valid filename literal "family-0-15-café-Ångström.txt"
+  ---
+  duration_ms: 0.929459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-0-日本語-漢字.txt"
+ok 376 - valid filename git-octal "family-1-0-日本語-漢字.txt"
+  ---
+  duration_ms: 0.860708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-0-日本語-漢字.txt"
+ok 377 - valid filename literal "family-1-0-日本語-漢字.txt"
+  ---
+  duration_ms: 1.072541
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-1-日本語-漢字.txt"
+ok 378 - valid filename git-octal "family-1-1-日本語-漢字.txt"
+  ---
+  duration_ms: 0.930542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-1-日本語-漢字.txt"
+ok 379 - valid filename literal "family-1-1-日本語-漢字.txt"
+  ---
+  duration_ms: 0.889583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-2-日本語-漢字.txt"
+ok 380 - valid filename git-octal "family-1-2-日本語-漢字.txt"
+  ---
+  duration_ms: 1.898542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-2-日本語-漢字.txt"
+ok 381 - valid filename literal "family-1-2-日本語-漢字.txt"
+  ---
+  duration_ms: 0.744
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-3-日本語-漢字.txt"
+ok 382 - valid filename git-octal "family-1-3-日本語-漢字.txt"
+  ---
+  duration_ms: 0.761584
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-3-日本語-漢字.txt"
+ok 383 - valid filename literal "family-1-3-日本語-漢字.txt"
+  ---
+  duration_ms: 0.906708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-4-日本語-漢字.txt"
+ok 384 - valid filename git-octal "family-1-4-日本語-漢字.txt"
+  ---
+  duration_ms: 0.697875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-4-日本語-漢字.txt"
+ok 385 - valid filename literal "family-1-4-日本語-漢字.txt"
+  ---
+  duration_ms: 0.731375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-5-日本語-漢字.txt"
+ok 386 - valid filename git-octal "family-1-5-日本語-漢字.txt"
+  ---
+  duration_ms: 0.770416
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-5-日本語-漢字.txt"
+ok 387 - valid filename literal "family-1-5-日本語-漢字.txt"
+  ---
+  duration_ms: 0.71675
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-6-日本語-漢字.txt"
+ok 388 - valid filename git-octal "family-1-6-日本語-漢字.txt"
+  ---
+  duration_ms: 4.270875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-6-日本語-漢字.txt"
+ok 389 - valid filename literal "family-1-6-日本語-漢字.txt"
+  ---
+  duration_ms: 0.823208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-7-日本語-漢字.txt"
+ok 390 - valid filename git-octal "family-1-7-日本語-漢字.txt"
+  ---
+  duration_ms: 0.754791
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-7-日本語-漢字.txt"
+ok 391 - valid filename literal "family-1-7-日本語-漢字.txt"
+  ---
+  duration_ms: 0.836334
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-8-日本語-漢字.txt"
+ok 392 - valid filename git-octal "family-1-8-日本語-漢字.txt"
+  ---
+  duration_ms: 1.185334
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-8-日本語-漢字.txt"
+ok 393 - valid filename literal "family-1-8-日本語-漢字.txt"
+  ---
+  duration_ms: 1.465125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-9-日本語-漢字.txt"
+ok 394 - valid filename git-octal "family-1-9-日本語-漢字.txt"
+  ---
+  duration_ms: 0.902208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-9-日本語-漢字.txt"
+ok 395 - valid filename literal "family-1-9-日本語-漢字.txt"
+  ---
+  duration_ms: 2.970959
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-10-日本語-漢字.txt"
+ok 396 - valid filename git-octal "family-1-10-日本語-漢字.txt"
+  ---
+  duration_ms: 1.001292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-10-日本語-漢字.txt"
+ok 397 - valid filename literal "family-1-10-日本語-漢字.txt"
+  ---
+  duration_ms: 0.699792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-11-日本語-漢字.txt"
+ok 398 - valid filename git-octal "family-1-11-日本語-漢字.txt"
+  ---
+  duration_ms: 0.758833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-11-日本語-漢字.txt"
+ok 399 - valid filename literal "family-1-11-日本語-漢字.txt"
+  ---
+  duration_ms: 0.664791
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-12-日本語-漢字.txt"
+ok 400 - valid filename git-octal "family-1-12-日本語-漢字.txt"
+  ---
+  duration_ms: 0.741667
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-12-日本語-漢字.txt"
+ok 401 - valid filename literal "family-1-12-日本語-漢字.txt"
+  ---
+  duration_ms: 0.950792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-13-日本語-漢字.txt"
+ok 402 - valid filename git-octal "family-1-13-日本語-漢字.txt"
+  ---
+  duration_ms: 2.707625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-13-日本語-漢字.txt"
+ok 403 - valid filename literal "family-1-13-日本語-漢字.txt"
+  ---
+  duration_ms: 3.434125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-14-日本語-漢字.txt"
+ok 404 - valid filename git-octal "family-1-14-日本語-漢字.txt"
+  ---
+  duration_ms: 0.699541
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-14-日本語-漢字.txt"
+ok 405 - valid filename literal "family-1-14-日本語-漢字.txt"
+  ---
+  duration_ms: 0.635625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-1-15-日本語-漢字.txt"
+ok 406 - valid filename git-octal "family-1-15-日本語-漢字.txt"
+  ---
+  duration_ms: 0.78425
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-1-15-日本語-漢字.txt"
+ok 407 - valid filename literal "family-1-15-日本語-漢字.txt"
+  ---
+  duration_ms: 0.994917
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-0-🙂-🚀.txt"
+ok 408 - valid filename git-octal "family-2-0-🙂-🚀.txt"
+  ---
+  duration_ms: 0.778292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-0-🙂-🚀.txt"
+ok 409 - valid filename literal "family-2-0-🙂-🚀.txt"
+  ---
+  duration_ms: 0.772125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-1-🙂-🚀.txt"
+ok 410 - valid filename git-octal "family-2-1-🙂-🚀.txt"
+  ---
+  duration_ms: 5.043292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-1-🙂-🚀.txt"
+ok 411 - valid filename literal "family-2-1-🙂-🚀.txt"
+  ---
+  duration_ms: 0.929459
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-2-🙂-🚀.txt"
+ok 412 - valid filename git-octal "family-2-2-🙂-🚀.txt"
+  ---
+  duration_ms: 0.743458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-2-🙂-🚀.txt"
+ok 413 - valid filename literal "family-2-2-🙂-🚀.txt"
+  ---
+  duration_ms: 0.637208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-3-🙂-🚀.txt"
+ok 414 - valid filename git-octal "family-2-3-🙂-🚀.txt"
+  ---
+  duration_ms: 0.85375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-3-🙂-🚀.txt"
+ok 415 - valid filename literal "family-2-3-🙂-🚀.txt"
+  ---
+  duration_ms: 0.6465
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-4-🙂-🚀.txt"
+ok 416 - valid filename git-octal "family-2-4-🙂-🚀.txt"
+  ---
+  duration_ms: 0.857666
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-4-🙂-🚀.txt"
+ok 417 - valid filename literal "family-2-4-🙂-🚀.txt"
+  ---
+  duration_ms: 0.650792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-5-🙂-🚀.txt"
+ok 418 - valid filename git-octal "family-2-5-🙂-🚀.txt"
+  ---
+  duration_ms: 2.143167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-5-🙂-🚀.txt"
+ok 419 - valid filename literal "family-2-5-🙂-🚀.txt"
+  ---
+  duration_ms: 1.233292
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-6-🙂-🚀.txt"
+ok 420 - valid filename git-octal "family-2-6-🙂-🚀.txt"
+  ---
+  duration_ms: 0.568959
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-6-🙂-🚀.txt"
+ok 421 - valid filename literal "family-2-6-🙂-🚀.txt"
+  ---
+  duration_ms: 0.4215
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-7-🙂-🚀.txt"
+ok 422 - valid filename git-octal "family-2-7-🙂-🚀.txt"
+  ---
+  duration_ms: 0.792417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-7-🙂-🚀.txt"
+ok 423 - valid filename literal "family-2-7-🙂-🚀.txt"
+  ---
+  duration_ms: 0.585709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-8-🙂-🚀.txt"
+ok 424 - valid filename git-octal "family-2-8-🙂-🚀.txt"
+  ---
+  duration_ms: 0.673959
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-8-🙂-🚀.txt"
+ok 425 - valid filename literal "family-2-8-🙂-🚀.txt"
+  ---
+  duration_ms: 2.213875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-9-🙂-🚀.txt"
+ok 426 - valid filename git-octal "family-2-9-🙂-🚀.txt"
+  ---
+  duration_ms: 0.742625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-9-🙂-🚀.txt"
+ok 427 - valid filename literal "family-2-9-🙂-🚀.txt"
+  ---
+  duration_ms: 0.9305
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-10-🙂-🚀.txt"
+ok 428 - valid filename git-octal "family-2-10-🙂-🚀.txt"
+  ---
+  duration_ms: 0.873084
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-10-🙂-🚀.txt"
+ok 429 - valid filename literal "family-2-10-🙂-🚀.txt"
+  ---
+  duration_ms: 0.944209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-11-🙂-🚀.txt"
+ok 430 - valid filename git-octal "family-2-11-🙂-🚀.txt"
+  ---
+  duration_ms: 0.694042
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-11-🙂-🚀.txt"
+ok 431 - valid filename literal "family-2-11-🙂-🚀.txt"
+  ---
+  duration_ms: 0.588667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-12-🙂-🚀.txt"
+ok 432 - valid filename git-octal "family-2-12-🙂-🚀.txt"
+  ---
+  duration_ms: 1.013583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-12-🙂-🚀.txt"
+ok 433 - valid filename literal "family-2-12-🙂-🚀.txt"
+  ---
+  duration_ms: 0.706708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-13-🙂-🚀.txt"
+ok 434 - valid filename git-octal "family-2-13-🙂-🚀.txt"
+  ---
+  duration_ms: 1.420834
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-13-🙂-🚀.txt"
+ok 435 - valid filename literal "family-2-13-🙂-🚀.txt"
+  ---
+  duration_ms: 0.934292
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-14-🙂-🚀.txt"
+ok 436 - valid filename git-octal "family-2-14-🙂-🚀.txt"
+  ---
+  duration_ms: 0.776459
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-14-🙂-🚀.txt"
+ok 437 - valid filename literal "family-2-14-🙂-🚀.txt"
+  ---
+  duration_ms: 1.007708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-2-15-🙂-🚀.txt"
+ok 438 - valid filename git-octal "family-2-15-🙂-🚀.txt"
+  ---
+  duration_ms: 1.143583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-2-15-🙂-🚀.txt"
+ok 439 - valid filename literal "family-2-15-🙂-🚀.txt"
+  ---
+  duration_ms: 0.739542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-0-é-ñ.txt"
+ok 440 - valid filename git-octal "family-3-0-é-ñ.txt"
+  ---
+  duration_ms: 4.7475
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-0-é-ñ.txt"
+ok 441 - valid filename literal "family-3-0-é-ñ.txt"
+  ---
+  duration_ms: 0.927542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-1-é-ñ.txt"
+ok 442 - valid filename git-octal "family-3-1-é-ñ.txt"
+  ---
+  duration_ms: 0.518583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-1-é-ñ.txt"
+ok 443 - valid filename literal "family-3-1-é-ñ.txt"
+  ---
+  duration_ms: 0.738708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-2-é-ñ.txt"
+ok 444 - valid filename git-octal "family-3-2-é-ñ.txt"
+  ---
+  duration_ms: 0.661917
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-2-é-ñ.txt"
+ok 445 - valid filename literal "family-3-2-é-ñ.txt"
+  ---
+  duration_ms: 0.394667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-3-é-ñ.txt"
+ok 446 - valid filename git-octal "family-3-3-é-ñ.txt"
+  ---
+  duration_ms: 0.524125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-3-é-ñ.txt"
+ok 447 - valid filename literal "family-3-3-é-ñ.txt"
+  ---
+  duration_ms: 1.005291
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-4-é-ñ.txt"
+ok 448 - valid filename git-octal "family-3-4-é-ñ.txt"
+  ---
+  duration_ms: 1.585041
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-4-é-ñ.txt"
+ok 449 - valid filename literal "family-3-4-é-ñ.txt"
+  ---
+  duration_ms: 0.915791
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-5-é-ñ.txt"
+ok 450 - valid filename git-octal "family-3-5-é-ñ.txt"
+  ---
+  duration_ms: 0.741375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-5-é-ñ.txt"
+ok 451 - valid filename literal "family-3-5-é-ñ.txt"
+  ---
+  duration_ms: 0.601125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-6-é-ñ.txt"
+ok 452 - valid filename git-octal "family-3-6-é-ñ.txt"
+  ---
+  duration_ms: 0.647791
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-6-é-ñ.txt"
+ok 453 - valid filename literal "family-3-6-é-ñ.txt"
+  ---
+  duration_ms: 0.746291
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-7-é-ñ.txt"
+ok 454 - valid filename git-octal "family-3-7-é-ñ.txt"
+  ---
+  duration_ms: 0.750375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-7-é-ñ.txt"
+ok 455 - valid filename literal "family-3-7-é-ñ.txt"
+  ---
+  duration_ms: 2.101792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-8-é-ñ.txt"
+ok 456 - valid filename git-octal "family-3-8-é-ñ.txt"
+  ---
+  duration_ms: 0.906125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-8-é-ñ.txt"
+ok 457 - valid filename literal "family-3-8-é-ñ.txt"
+  ---
+  duration_ms: 0.502708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-9-é-ñ.txt"
+ok 458 - valid filename git-octal "family-3-9-é-ñ.txt"
+  ---
+  duration_ms: 0.516375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-9-é-ñ.txt"
+ok 459 - valid filename literal "family-3-9-é-ñ.txt"
+  ---
+  duration_ms: 0.724833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-10-é-ñ.txt"
+ok 460 - valid filename git-octal "family-3-10-é-ñ.txt"
+  ---
+  duration_ms: 0.878708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-10-é-ñ.txt"
+ok 461 - valid filename literal "family-3-10-é-ñ.txt"
+  ---
+  duration_ms: 0.765834
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-11-é-ñ.txt"
+ok 462 - valid filename git-octal "family-3-11-é-ñ.txt"
+  ---
+  duration_ms: 0.670583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-11-é-ñ.txt"
+ok 463 - valid filename literal "family-3-11-é-ñ.txt"
+  ---
+  duration_ms: 0.459833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-12-é-ñ.txt"
+ok 464 - valid filename git-octal "family-3-12-é-ñ.txt"
+  ---
+  duration_ms: 0.434917
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-12-é-ñ.txt"
+ok 465 - valid filename literal "family-3-12-é-ñ.txt"
+  ---
+  duration_ms: 0.761791
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-13-é-ñ.txt"
+ok 466 - valid filename git-octal "family-3-13-é-ñ.txt"
+  ---
+  duration_ms: 0.58325
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-13-é-ñ.txt"
+ok 467 - valid filename literal "family-3-13-é-ñ.txt"
+  ---
+  duration_ms: 0.777666
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-14-é-ñ.txt"
+ok 468 - valid filename git-octal "family-3-14-é-ñ.txt"
+  ---
+  duration_ms: 0.694708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-14-é-ñ.txt"
+ok 469 - valid filename literal "family-3-14-é-ñ.txt"
+  ---
+  duration_ms: 0.607209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-3-15-é-ñ.txt"
+ok 470 - valid filename git-octal "family-3-15-é-ñ.txt"
+  ---
+  duration_ms: 5.130625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-3-15-é-ñ.txt"
+ok 471 - valid filename literal "family-3-15-é-ñ.txt"
+  ---
+  duration_ms: 0.593583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-0-tab\\tinside.txt"
+ok 472 - valid filename git-octal "family-4-0-tab\\tinside.txt"
+  ---
+  duration_ms: 0.395166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-0-tab\\tinside.txt"
+ok 473 - valid filename literal "family-4-0-tab\\tinside.txt"
+  ---
+  duration_ms: 0.421416
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-1-tab\\tinside.txt"
+ok 474 - valid filename git-octal "family-4-1-tab\\tinside.txt"
+  ---
+  duration_ms: 0.721416
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-1-tab\\tinside.txt"
+ok 475 - valid filename literal "family-4-1-tab\\tinside.txt"
+  ---
+  duration_ms: 0.433125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-2-tab\\tinside.txt"
+ok 476 - valid filename git-octal "family-4-2-tab\\tinside.txt"
+  ---
+  duration_ms: 0.551333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-2-tab\\tinside.txt"
+ok 477 - valid filename literal "family-4-2-tab\\tinside.txt"
+  ---
+  duration_ms: 0.479709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-3-tab\\tinside.txt"
+ok 478 - valid filename git-octal "family-4-3-tab\\tinside.txt"
+  ---
+  duration_ms: 0.583834
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-3-tab\\tinside.txt"
+ok 479 - valid filename literal "family-4-3-tab\\tinside.txt"
+  ---
+  duration_ms: 0.515458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-4-tab\\tinside.txt"
+ok 480 - valid filename git-octal "family-4-4-tab\\tinside.txt"
+  ---
+  duration_ms: 0.634458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-4-tab\\tinside.txt"
+ok 481 - valid filename literal "family-4-4-tab\\tinside.txt"
+  ---
+  duration_ms: 0.57975
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-5-tab\\tinside.txt"
+ok 482 - valid filename git-octal "family-4-5-tab\\tinside.txt"
+  ---
+  duration_ms: 0.879
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-5-tab\\tinside.txt"
+ok 483 - valid filename literal "family-4-5-tab\\tinside.txt"
+  ---
+  duration_ms: 0.739208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-6-tab\\tinside.txt"
+ok 484 - valid filename git-octal "family-4-6-tab\\tinside.txt"
+  ---
+  duration_ms: 1.035166
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-6-tab\\tinside.txt"
+ok 485 - valid filename literal "family-4-6-tab\\tinside.txt"
+  ---
+  duration_ms: 2.64025
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-7-tab\\tinside.txt"
+ok 486 - valid filename git-octal "family-4-7-tab\\tinside.txt"
+  ---
+  duration_ms: 0.599458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-7-tab\\tinside.txt"
+ok 487 - valid filename literal "family-4-7-tab\\tinside.txt"
+  ---
+  duration_ms: 0.705292
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-8-tab\\tinside.txt"
+ok 488 - valid filename git-octal "family-4-8-tab\\tinside.txt"
+  ---
+  duration_ms: 0.71325
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-8-tab\\tinside.txt"
+ok 489 - valid filename literal "family-4-8-tab\\tinside.txt"
+  ---
+  duration_ms: 0.676375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-9-tab\\tinside.txt"
+ok 490 - valid filename git-octal "family-4-9-tab\\tinside.txt"
+  ---
+  duration_ms: 0.666208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-9-tab\\tinside.txt"
+ok 491 - valid filename literal "family-4-9-tab\\tinside.txt"
+  ---
+  duration_ms: 0.859208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-10-tab\\tinside.txt"
+ok 492 - valid filename git-octal "family-4-10-tab\\tinside.txt"
+  ---
+  duration_ms: 0.842084
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-10-tab\\tinside.txt"
+ok 493 - valid filename literal "family-4-10-tab\\tinside.txt"
+  ---
+  duration_ms: 1.012125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-11-tab\\tinside.txt"
+ok 494 - valid filename git-octal "family-4-11-tab\\tinside.txt"
+  ---
+  duration_ms: 0.743
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-11-tab\\tinside.txt"
+ok 495 - valid filename literal "family-4-11-tab\\tinside.txt"
+  ---
+  duration_ms: 0.745416
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-12-tab\\tinside.txt"
+ok 496 - valid filename git-octal "family-4-12-tab\\tinside.txt"
+  ---
+  duration_ms: 0.625833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-12-tab\\tinside.txt"
+ok 497 - valid filename literal "family-4-12-tab\\tinside.txt"
+  ---
+  duration_ms: 0.896916
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-13-tab\\tinside.txt"
+ok 498 - valid filename git-octal "family-4-13-tab\\tinside.txt"
+  ---
+  duration_ms: 0.859958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-13-tab\\tinside.txt"
+ok 499 - valid filename literal "family-4-13-tab\\tinside.txt"
+  ---
+  duration_ms: 0.557666
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-14-tab\\tinside.txt"
+ok 500 - valid filename git-octal "family-4-14-tab\\tinside.txt"
+  ---
+  duration_ms: 4.229167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-14-tab\\tinside.txt"
+ok 501 - valid filename literal "family-4-14-tab\\tinside.txt"
+  ---
+  duration_ms: 0.853375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-4-15-tab\\tinside.txt"
+ok 502 - valid filename git-octal "family-4-15-tab\\tinside.txt"
+  ---
+  duration_ms: 0.962958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-4-15-tab\\tinside.txt"
+ok 503 - valid filename literal "family-4-15-tab\\tinside.txt"
+  ---
+  duration_ms: 0.925958
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-0-quote\\"inside.txt"
+ok 504 - valid filename git-octal "family-5-0-quote\\"inside.txt"
+  ---
+  duration_ms: 0.619083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-0-quote\\"inside.txt"
+ok 505 - valid filename literal "family-5-0-quote\\"inside.txt"
+  ---
+  duration_ms: 0.6095
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-1-quote\\"inside.txt"
+ok 506 - valid filename git-octal "family-5-1-quote\\"inside.txt"
+  ---
+  duration_ms: 0.5515
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-1-quote\\"inside.txt"
+ok 507 - valid filename literal "family-5-1-quote\\"inside.txt"
+  ---
+  duration_ms: 0.51175
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-2-quote\\"inside.txt"
+ok 508 - valid filename git-octal "family-5-2-quote\\"inside.txt"
+  ---
+  duration_ms: 0.48775
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-2-quote\\"inside.txt"
+ok 509 - valid filename literal "family-5-2-quote\\"inside.txt"
+  ---
+  duration_ms: 0.668584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-3-quote\\"inside.txt"
+ok 510 - valid filename git-octal "family-5-3-quote\\"inside.txt"
+  ---
+  duration_ms: 0.562959
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-3-quote\\"inside.txt"
+ok 511 - valid filename literal "family-5-3-quote\\"inside.txt"
+  ---
+  duration_ms: 0.390417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-4-quote\\"inside.txt"
+ok 512 - valid filename git-octal "family-5-4-quote\\"inside.txt"
+  ---
+  duration_ms: 0.464083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-4-quote\\"inside.txt"
+ok 513 - valid filename literal "family-5-4-quote\\"inside.txt"
+  ---
+  duration_ms: 0.421166
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-5-quote\\"inside.txt"
+ok 514 - valid filename git-octal "family-5-5-quote\\"inside.txt"
+  ---
+  duration_ms: 0.424292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-5-quote\\"inside.txt"
+ok 515 - valid filename literal "family-5-5-quote\\"inside.txt"
+  ---
+  duration_ms: 3.022417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-6-quote\\"inside.txt"
+ok 516 - valid filename git-octal "family-5-6-quote\\"inside.txt"
+  ---
+  duration_ms: 1.010792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-6-quote\\"inside.txt"
+ok 517 - valid filename literal "family-5-6-quote\\"inside.txt"
+  ---
+  duration_ms: 0.405334
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-7-quote\\"inside.txt"
+ok 518 - valid filename git-octal "family-5-7-quote\\"inside.txt"
+  ---
+  duration_ms: 0.376375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-7-quote\\"inside.txt"
+ok 519 - valid filename literal "family-5-7-quote\\"inside.txt"
+  ---
+  duration_ms: 0.361584
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-8-quote\\"inside.txt"
+ok 520 - valid filename git-octal "family-5-8-quote\\"inside.txt"
+  ---
+  duration_ms: 0.511542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-8-quote\\"inside.txt"
+ok 521 - valid filename literal "family-5-8-quote\\"inside.txt"
+  ---
+  duration_ms: 0.456042
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-9-quote\\"inside.txt"
+ok 522 - valid filename git-octal "family-5-9-quote\\"inside.txt"
+  ---
+  duration_ms: 0.491208
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-9-quote\\"inside.txt"
+ok 523 - valid filename literal "family-5-9-quote\\"inside.txt"
+  ---
+  duration_ms: 0.467542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-10-quote\\"inside.txt"
+ok 524 - valid filename git-octal "family-5-10-quote\\"inside.txt"
+  ---
+  duration_ms: 0.5745
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-10-quote\\"inside.txt"
+ok 525 - valid filename literal "family-5-10-quote\\"inside.txt"
+  ---
+  duration_ms: 0.405583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-11-quote\\"inside.txt"
+ok 526 - valid filename git-octal "family-5-11-quote\\"inside.txt"
+  ---
+  duration_ms: 0.422417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-11-quote\\"inside.txt"
+ok 527 - valid filename literal "family-5-11-quote\\"inside.txt"
+  ---
+  duration_ms: 0.633
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-12-quote\\"inside.txt"
+ok 528 - valid filename git-octal "family-5-12-quote\\"inside.txt"
+  ---
+  duration_ms: 0.855833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-12-quote\\"inside.txt"
+ok 529 - valid filename literal "family-5-12-quote\\"inside.txt"
+  ---
+  duration_ms: 0.485125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-13-quote\\"inside.txt"
+ok 530 - valid filename git-octal "family-5-13-quote\\"inside.txt"
+  ---
+  duration_ms: 6.028875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-13-quote\\"inside.txt"
+ok 531 - valid filename literal "family-5-13-quote\\"inside.txt"
+  ---
+  duration_ms: 0.805
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-14-quote\\"inside.txt"
+ok 532 - valid filename git-octal "family-5-14-quote\\"inside.txt"
+  ---
+  duration_ms: 0.624625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-14-quote\\"inside.txt"
+ok 533 - valid filename literal "family-5-14-quote\\"inside.txt"
+  ---
+  duration_ms: 0.891417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-5-15-quote\\"inside.txt"
+ok 534 - valid filename git-octal "family-5-15-quote\\"inside.txt"
+  ---
+  duration_ms: 0.455666
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-5-15-quote\\"inside.txt"
+ok 535 - valid filename literal "family-5-15-quote\\"inside.txt"
+  ---
+  duration_ms: 0.415209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-0-two spaces  here.txt"
+ok 536 - valid filename git-octal "family-6-0-two spaces  here.txt"
+  ---
+  duration_ms: 0.396084
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-0-two spaces  here.txt"
+ok 537 - valid filename literal "family-6-0-two spaces  here.txt"
+  ---
+  duration_ms: 0.466375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-1-two spaces  here.txt"
+ok 538 - valid filename git-octal "family-6-1-two spaces  here.txt"
+  ---
+  duration_ms: 0.628875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-1-two spaces  here.txt"
+ok 539 - valid filename literal "family-6-1-two spaces  here.txt"
+  ---
+  duration_ms: 0.482333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-2-two spaces  here.txt"
+ok 540 - valid filename git-octal "family-6-2-two spaces  here.txt"
+  ---
+  duration_ms: 0.6425
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-2-two spaces  here.txt"
+ok 541 - valid filename literal "family-6-2-two spaces  here.txt"
+  ---
+  duration_ms: 0.515125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-3-two spaces  here.txt"
+ok 542 - valid filename git-octal "family-6-3-two spaces  here.txt"
+  ---
+  duration_ms: 0.853875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-3-two spaces  here.txt"
+ok 543 - valid filename literal "family-6-3-two spaces  here.txt"
+  ---
+  duration_ms: 0.539834
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-4-two spaces  here.txt"
+ok 544 - valid filename git-octal "family-6-4-two spaces  here.txt"
+  ---
+  duration_ms: 0.431792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-4-two spaces  here.txt"
+ok 545 - valid filename literal "family-6-4-two spaces  here.txt"
+  ---
+  duration_ms: 2.036875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-5-two spaces  here.txt"
+ok 546 - valid filename git-octal "family-6-5-two spaces  here.txt"
+  ---
+  duration_ms: 0.726292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-5-two spaces  here.txt"
+ok 547 - valid filename literal "family-6-5-two spaces  here.txt"
+  ---
+  duration_ms: 0.379709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-6-two spaces  here.txt"
+ok 548 - valid filename git-octal "family-6-6-two spaces  here.txt"
+  ---
+  duration_ms: 0.396333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-6-two spaces  here.txt"
+ok 549 - valid filename literal "family-6-6-two spaces  here.txt"
+  ---
+  duration_ms: 0.356458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-7-two spaces  here.txt"
+ok 550 - valid filename git-octal "family-6-7-two spaces  here.txt"
+  ---
+  duration_ms: 0.789958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-7-two spaces  here.txt"
+ok 551 - valid filename literal "family-6-7-two spaces  here.txt"
+  ---
+  duration_ms: 0.487458
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-8-two spaces  here.txt"
+ok 552 - valid filename git-octal "family-6-8-two spaces  here.txt"
+  ---
+  duration_ms: 0.759334
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-8-two spaces  here.txt"
+ok 553 - valid filename literal "family-6-8-two spaces  here.txt"
+  ---
+  duration_ms: 1.001625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-9-two spaces  here.txt"
+ok 554 - valid filename git-octal "family-6-9-two spaces  here.txt"
+  ---
+  duration_ms: 0.803875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-9-two spaces  here.txt"
+ok 555 - valid filename literal "family-6-9-two spaces  here.txt"
+  ---
+  duration_ms: 0.510333
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-10-two spaces  here.txt"
+ok 556 - valid filename git-octal "family-6-10-two spaces  here.txt"
+  ---
+  duration_ms: 0.52875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-10-two spaces  here.txt"
+ok 557 - valid filename literal "family-6-10-two spaces  here.txt"
+  ---
+  duration_ms: 0.449792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-11-two spaces  here.txt"
+ok 558 - valid filename git-octal "family-6-11-two spaces  here.txt"
+  ---
+  duration_ms: 0.592417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-11-two spaces  here.txt"
+ok 559 - valid filename literal "family-6-11-two spaces  here.txt"
+  ---
+  duration_ms: 0.450709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-12-two spaces  here.txt"
+ok 560 - valid filename git-octal "family-6-12-two spaces  here.txt"
+  ---
+  duration_ms: 4.208459
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-12-two spaces  here.txt"
+ok 561 - valid filename literal "family-6-12-two spaces  here.txt"
+  ---
+  duration_ms: 0.532208
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-13-two spaces  here.txt"
+ok 562 - valid filename git-octal "family-6-13-two spaces  here.txt"
+  ---
+  duration_ms: 0.387333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-13-two spaces  here.txt"
+ok 563 - valid filename literal "family-6-13-two spaces  here.txt"
+  ---
+  duration_ms: 0.284667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-14-two spaces  here.txt"
+ok 564 - valid filename git-octal "family-6-14-two spaces  here.txt"
+  ---
+  duration_ms: 0.648125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-14-two spaces  here.txt"
+ok 565 - valid filename literal "family-6-14-two spaces  here.txt"
+  ---
+  duration_ms: 0.447583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-6-15-two spaces  here.txt"
+ok 566 - valid filename git-octal "family-6-15-two spaces  here.txt"
+  ---
+  duration_ms: 0.499416
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-6-15-two spaces  here.txt"
+ok 567 - valid filename literal "family-6-15-two spaces  here.txt"
+  ---
+  duration_ms: 0.489834
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-0-$(echo NO);&|<>`NO`.txt"
+ok 568 - valid filename git-octal "family-7-0-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.502709
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-0-$(echo NO);&|<>`NO`.txt"
+ok 569 - valid filename literal "family-7-0-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.400416
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-1-$(echo NO);&|<>`NO`.txt"
+ok 570 - valid filename git-octal "family-7-1-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.387833
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-1-$(echo NO);&|<>`NO`.txt"
+ok 571 - valid filename literal "family-7-1-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.468958
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-2-$(echo NO);&|<>`NO`.txt"
+ok 572 - valid filename git-octal "family-7-2-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.838417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-2-$(echo NO);&|<>`NO`.txt"
+ok 573 - valid filename literal "family-7-2-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.850791
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-3-$(echo NO);&|<>`NO`.txt"
+ok 574 - valid filename git-octal "family-7-3-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.487041
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-3-$(echo NO);&|<>`NO`.txt"
+ok 575 - valid filename literal "family-7-3-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.689709
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-4-$(echo NO);&|<>`NO`.txt"
+ok 576 - valid filename git-octal "family-7-4-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 3.017083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-4-$(echo NO);&|<>`NO`.txt"
+ok 577 - valid filename literal "family-7-4-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.964209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-5-$(echo NO);&|<>`NO`.txt"
+ok 578 - valid filename git-octal "family-7-5-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.751375
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-5-$(echo NO);&|<>`NO`.txt"
+ok 579 - valid filename literal "family-7-5-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 1.019375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-6-$(echo NO);&|<>`NO`.txt"
+ok 580 - valid filename git-octal "family-7-6-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.525
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-6-$(echo NO);&|<>`NO`.txt"
+ok 581 - valid filename literal "family-7-6-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.406375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-7-$(echo NO);&|<>`NO`.txt"
+ok 582 - valid filename git-octal "family-7-7-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.374292
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-7-$(echo NO);&|<>`NO`.txt"
+ok 583 - valid filename literal "family-7-7-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.445833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-8-$(echo NO);&|<>`NO`.txt"
+ok 584 - valid filename git-octal "family-7-8-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.832417
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-8-$(echo NO);&|<>`NO`.txt"
+ok 585 - valid filename literal "family-7-8-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.684417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-9-$(echo NO);&|<>`NO`.txt"
+ok 586 - valid filename git-octal "family-7-9-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.737209
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-9-$(echo NO);&|<>`NO`.txt"
+ok 587 - valid filename literal "family-7-9-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.774291
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-10-$(echo NO);&|<>`NO`.txt"
+ok 588 - valid filename git-octal "family-7-10-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.535875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-10-$(echo NO);&|<>`NO`.txt"
+ok 589 - valid filename literal "family-7-10-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.4825
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-11-$(echo NO);&|<>`NO`.txt"
+ok 590 - valid filename git-octal "family-7-11-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.8965
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-11-$(echo NO);&|<>`NO`.txt"
+ok 591 - valid filename literal "family-7-11-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 4.37725
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-12-$(echo NO);&|<>`NO`.txt"
+ok 592 - valid filename git-octal "family-7-12-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.428042
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-12-$(echo NO);&|<>`NO`.txt"
+ok 593 - valid filename literal "family-7-12-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.377417
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-13-$(echo NO);&|<>`NO`.txt"
+ok 594 - valid filename git-octal "family-7-13-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.4535
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-13-$(echo NO);&|<>`NO`.txt"
+ok 595 - valid filename literal "family-7-13-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.580875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-14-$(echo NO);&|<>`NO`.txt"
+ok 596 - valid filename git-octal "family-7-14-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.577583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-14-$(echo NO);&|<>`NO`.txt"
+ok 597 - valid filename literal "family-7-14-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.665083
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-7-15-$(echo NO);&|<>`NO`.txt"
+ok 598 - valid filename git-octal "family-7-15-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.582875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-7-15-$(echo NO);&|<>`NO`.txt"
+ok 599 - valid filename literal "family-7-15-$(echo NO);&|<>`NO`.txt"
+  ---
+  duration_ms: 0.428875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-0-[glob]*?{brace}.txt"
+ok 600 - valid filename git-octal "family-8-0-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.361708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-0-[glob]*?{brace}.txt"
+ok 601 - valid filename literal "family-8-0-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.615708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-1-[glob]*?{brace}.txt"
+ok 602 - valid filename git-octal "family-8-1-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.447291
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-1-[glob]*?{brace}.txt"
+ok 603 - valid filename literal "family-8-1-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.434667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-2-[glob]*?{brace}.txt"
+ok 604 - valid filename git-octal "family-8-2-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.783958
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-2-[glob]*?{brace}.txt"
+ok 605 - valid filename literal "family-8-2-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.449125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-3-[glob]*?{brace}.txt"
+ok 606 - valid filename git-octal "family-8-3-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 2.136875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-3-[glob]*?{brace}.txt"
+ok 607 - valid filename literal "family-8-3-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.548167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-4-[glob]*?{brace}.txt"
+ok 608 - valid filename git-octal "family-8-4-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.65225
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-4-[glob]*?{brace}.txt"
+ok 609 - valid filename literal "family-8-4-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.611708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-5-[glob]*?{brace}.txt"
+ok 610 - valid filename git-octal "family-8-5-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.513916
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-5-[glob]*?{brace}.txt"
+ok 611 - valid filename literal "family-8-5-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.438667
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-6-[glob]*?{brace}.txt"
+ok 612 - valid filename git-octal "family-8-6-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.411625
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-6-[glob]*?{brace}.txt"
+ok 613 - valid filename literal "family-8-6-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.700708
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-7-[glob]*?{brace}.txt"
+ok 614 - valid filename git-octal "family-8-7-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.832542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-7-[glob]*?{brace}.txt"
+ok 615 - valid filename literal "family-8-7-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.74475
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-8-[glob]*?{brace}.txt"
+ok 616 - valid filename git-octal "family-8-8-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.876167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-8-[glob]*?{brace}.txt"
+ok 617 - valid filename literal "family-8-8-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.85025
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-9-[glob]*?{brace}.txt"
+ok 618 - valid filename git-octal "family-8-9-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 1.033458
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-9-[glob]*?{brace}.txt"
+ok 619 - valid filename literal "family-8-9-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 1.308875
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-10-[glob]*?{brace}.txt"
+ok 620 - valid filename git-octal "family-8-10-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.856084
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-10-[glob]*?{brace}.txt"
+ok 621 - valid filename literal "family-8-10-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 5.416083
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-11-[glob]*?{brace}.txt"
+ok 622 - valid filename git-octal "family-8-11-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.674083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-11-[glob]*?{brace}.txt"
+ok 623 - valid filename literal "family-8-11-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.833583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-12-[glob]*?{brace}.txt"
+ok 624 - valid filename git-octal "family-8-12-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 1.026916
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-12-[glob]*?{brace}.txt"
+ok 625 - valid filename literal "family-8-12-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.70525
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-13-[glob]*?{brace}.txt"
+ok 626 - valid filename git-octal "family-8-13-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.786167
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-13-[glob]*?{brace}.txt"
+ok 627 - valid filename literal "family-8-13-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.684666
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-14-[glob]*?{brace}.txt"
+ok 628 - valid filename git-octal "family-8-14-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.63825
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-14-[glob]*?{brace}.txt"
+ok 629 - valid filename literal "family-8-14-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.747583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-8-15-[glob]*?{brace}.txt"
+ok 630 - valid filename git-octal "family-8-15-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.595583
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-8-15-[glob]*?{brace}.txt"
+ok 631 - valid filename literal "family-8-15-[glob]*?{brace}.txt"
+  ---
+  duration_ms: 0.744625
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-0---dash \#hash 'apostrophe'.txt"
+ok 632 - valid filename git-octal "family-9-0---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.560125
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-0---dash \#hash 'apostrophe'.txt"
+ok 633 - valid filename literal "family-9-0---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.424083
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-1---dash \#hash 'apostrophe'.txt"
+ok 634 - valid filename git-octal "family-9-1---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.477875
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-1---dash \#hash 'apostrophe'.txt"
+ok 635 - valid filename literal "family-9-1---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.483167
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-2---dash \#hash 'apostrophe'.txt"
+ok 636 - valid filename git-octal "family-9-2---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 2.77975
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-2---dash \#hash 'apostrophe'.txt"
+ok 637 - valid filename literal "family-9-2---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 1.08425
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-3---dash \#hash 'apostrophe'.txt"
+ok 638 - valid filename git-octal "family-9-3---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.714916
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-3---dash \#hash 'apostrophe'.txt"
+ok 639 - valid filename literal "family-9-3---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.381166
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-4---dash \#hash 'apostrophe'.txt"
+ok 640 - valid filename git-octal "family-9-4---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.340291
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-4---dash \#hash 'apostrophe'.txt"
+ok 641 - valid filename literal "family-9-4---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.306542
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-5---dash \#hash 'apostrophe'.txt"
+ok 642 - valid filename git-octal "family-9-5---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.72775
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-5---dash \#hash 'apostrophe'.txt"
+ok 643 - valid filename literal "family-9-5---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.59575
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-6---dash \#hash 'apostrophe'.txt"
+ok 644 - valid filename git-octal "family-9-6---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.669
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-6---dash \#hash 'apostrophe'.txt"
+ok 645 - valid filename literal "family-9-6---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.543792
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-7---dash \#hash 'apostrophe'.txt"
+ok 646 - valid filename git-octal "family-9-7---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.535083
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-7---dash \#hash 'apostrophe'.txt"
+ok 647 - valid filename literal "family-9-7---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.558125
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-8---dash \#hash 'apostrophe'.txt"
+ok 648 - valid filename git-octal "family-9-8---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.531708
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-8---dash \#hash 'apostrophe'.txt"
+ok 649 - valid filename literal "family-9-8---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.387833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-9---dash \#hash 'apostrophe'.txt"
+ok 650 - valid filename git-octal "family-9-9---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.774542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-9---dash \#hash 'apostrophe'.txt"
+ok 651 - valid filename literal "family-9-9---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 5.081583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-10---dash \#hash 'apostrophe'.txt"
+ok 652 - valid filename git-octal "family-9-10---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.648333
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-10---dash \#hash 'apostrophe'.txt"
+ok 653 - valid filename literal "family-9-10---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.461292
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-11---dash \#hash 'apostrophe'.txt"
+ok 654 - valid filename git-octal "family-9-11---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.535917
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-11---dash \#hash 'apostrophe'.txt"
+ok 655 - valid filename literal "family-9-11---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.443583
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-12---dash \#hash 'apostrophe'.txt"
+ok 656 - valid filename git-octal "family-9-12---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.378542
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-12---dash \#hash 'apostrophe'.txt"
+ok 657 - valid filename literal "family-9-12---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.410209
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-13---dash \#hash 'apostrophe'.txt"
+ok 658 - valid filename git-octal "family-9-13---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.347792
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-13---dash \#hash 'apostrophe'.txt"
+ok 659 - valid filename literal "family-9-13---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.526375
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-14---dash \#hash 'apostrophe'.txt"
+ok 660 - valid filename git-octal "family-9-14---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.408584
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-14---dash \#hash 'apostrophe'.txt"
+ok 661 - valid filename literal "family-9-14---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.499833
+  type: 'test'
+  ...
+# Subtest: valid filename git-octal "family-9-15---dash \#hash 'apostrophe'.txt"
+ok 662 - valid filename git-octal "family-9-15---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.697666
+  type: 'test'
+  ...
+# Subtest: valid filename literal "family-9-15---dash \#hash 'apostrophe'.txt"
+ok 663 - valid filename literal "family-9-15---dash \#hash 'apostrophe'.txt"
+  ---
+  duration_ms: 0.589917
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name " leading"
+ok 664 - quoted boundary and normalization-sensitive name " leading"
+  ---
+  duration_ms: 0.9715
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "trailing "
+ok 665 - quoted boundary and normalization-sensitive name "trailing "
+  ---
+  duration_ms: 0.5035
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name " both "
+ok 666 - quoted boundary and normalization-sensitive name " both "
+  ---
+  duration_ms: 0.427833
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "tab\\tend\\t"
+ok 667 - quoted boundary and normalization-sensitive name "tab\\tend\\t"
+  ---
+  duration_ms: 2.082458
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "﻿BOM"
+ok 668 - quoted boundary and normalization-sensitive name "﻿BOM"
+  ---
+  duration_ms: 0.828584
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "é"
+ok 669 - quoted boundary and normalization-sensitive name "é"
+  ---
+  duration_ms: 0.615166
+  type: 'test'
+  ...
+# Subtest: quoted boundary and normalization-sensitive name "é"
+ok 670 - quoted boundary and normalization-sensitive name "é"
+  ---
+  duration_ms: 0.455625
+  type: 'test'
+  ...
+# Subtest: Unicode normalization lookalikes and BOM names remain distinct in MemoryFS
+ok 671 - Unicode normalization lookalikes and BOM names remain distinct in MemoryFS
+  ---
+  duration_ms: 0.972416
+  type: 'test'
+  ...
+# Subtest: GNU strip/dot semantics a///dir//leaf -p1
+ok 672 - GNU strip/dot semantics a///dir//leaf -p1
+  ---
+  duration_ms: 17.942584
+  type: 'test'
+  ...
+# Subtest: GNU strip/dot semantics ./leaf -p1
+not ok 673 - GNU strip/dot semantics ./leaf -p1
+  ---
+  duration_ms: 6.734417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:1:363'
+  failureType: 'testCodeFailure'
+  error: |-
+    Valid input must apply: patch: strip count removes every patch filename
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    exactUpdate (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:42:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:10:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU strip/dot semantics a/./leaf -p2
+not ok 674 - GNU strip/dot semantics a/./leaf -p2
+  ---
+  duration_ms: 1.257209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:1:363'
+  failureType: 'testCodeFailure'
+  error: |-
+    Valid input must apply: patch: strip count removes every patch filename
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    exactUpdate (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/helpers.ts:42:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts:10:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU strip/dot semantics a/dir/./leaf -p1
+ok 675 - GNU strip/dot semantics a/dir/./leaf -p1
+  ---
+  duration_ms: 14.072125
+  type: 'test'
+  ...
+# Subtest: GNU strip/dot semantics a///./dir//leaf -p2
+ok 676 - GNU strip/dot semantics a///./dir//leaf -p2
+  ---
+  duration_ms: 2.246417
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/ explicit=false
+ok 677 - directory syntax cannot become regular target a/target/ explicit=false
+  ---
+  duration_ms: 8.367167
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/ explicit=true
+ok 678 - directory syntax cannot become regular target a/target/ explicit=true
+  ---
+  duration_ms: 2.047125
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target// explicit=false
+ok 679 - directory syntax cannot become regular target a/target// explicit=false
+  ---
+  duration_ms: 0.683667
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target// explicit=true
+ok 680 - directory syntax cannot become regular target a/target// explicit=true
+  ---
+  duration_ms: 0.832375
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/. explicit=false
+ok 681 - directory syntax cannot become regular target a/target/. explicit=false
+  ---
+  duration_ms: 2.278042
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/. explicit=true
+ok 682 - directory syntax cannot become regular target a/target/. explicit=true
+  ---
+  duration_ms: 0.498875
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./ explicit=false
+ok 683 - directory syntax cannot become regular target a/target/./ explicit=false
+  ---
+  duration_ms: 0.907291
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./ explicit=true
+ok 684 - directory syntax cannot become regular target a/target/./ explicit=true
+  ---
+  duration_ms: 2.804208
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./. explicit=false
+ok 685 - directory syntax cannot become regular target a/target/./. explicit=false
+  ---
+  duration_ms: 1.276792
+  type: 'test'
+  ...
+# Subtest: directory syntax cannot become regular target a/target/./. explicit=true
+ok 686 - directory syntax cannot become regular target a/target/./. explicit=true
+  ---
+  duration_ms: 2.22175
+  type: 'test'
+  ...
+# Subtest: GNU default coherent normalized sequence a/target -> a//./target dry=false
+ok 687 - GNU default coherent normalized sequence a/target -> a//./target dry=false
+  ---
+  duration_ms: 2.451666
+  type: 'test'
+  ...
+# Subtest: atomic extension coherent normalized sequence a/target -> a//./target dry=true
+ok 688 - atomic extension coherent normalized sequence a/target -> a//./target dry=true
+  ---
+  duration_ms: 1.414792
+  type: 'test'
+  ...
+# Subtest: atomic extension conflicting normalized sequence is status 1 with zero early writes a//./target
+ok 689 - atomic extension conflicting normalized sequence is status 1 with zero early writes a//./target
+  ---
+  duration_ms: 2.20525
+  type: 'test'
+  ...
+# Subtest: GNU default coherent normalized sequence "a/target" -> "a/\\164arget" dry=false
+ok 690 - GNU default coherent normalized sequence "a/target" -> "a/\\164arget" dry=false
+  ---
+  duration_ms: 3.305833
+  type: 'test'
+  ...
+# Subtest: atomic extension coherent normalized sequence "a/target" -> "a/\\164arget" dry=true
+ok 691 - atomic extension coherent normalized sequence "a/target" -> "a/\\164arget" dry=true
+  ---
+  duration_ms: 2.046792
+  type: 'test'
+  ...
+# Subtest: atomic extension conflicting normalized sequence is status 1 with zero early writes "a/\\164arget"
+ok 692 - atomic extension conflicting normalized sequence is status 1 with zero early writes "a/\\164arget"
+  ---
+  duration_ms: 1.44175
+  type: 'test'
+  ...
+# Subtest: GNU default coherent normalized sequence a/dir/target -> a///dir/./target dry=false
+ok 693 - GNU default coherent normalized sequence a/dir/target -> a///dir/./target dry=false
+  ---
+  duration_ms: 6.289417
+  type: 'test'
+  ...
+# Subtest: atomic extension coherent normalized sequence a/dir/target -> a///dir/./target dry=true
+ok 694 - atomic extension coherent normalized sequence a/dir/target -> a///dir/./target dry=true
+  ---
+  duration_ms: 1.925916
+  type: 'test'
+  ...
+# Subtest: atomic extension conflicting normalized sequence is status 1 with zero early writes a///dir/./target
+ok 695 - atomic extension conflicting normalized sequence is status 1 with zero early writes a///dir/./target
+  ---
+  duration_ms: 1.237667
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection final-symlink
+ok 696 - decoded normalized alias rejection final-symlink
+  ---
+  duration_ms: 0.890542
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection ancestor-symlink
+ok 697 - decoded normalized alias rejection ancestor-symlink
+  ---
+  duration_ms: 0.789167
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection hardlink
+ok 698 - decoded normalized alias rejection hardlink
+  ---
+  duration_ms: 0.721083
+  type: 'test'
+  ...
+# Subtest: decoded normalized alias rejection same-inode-two-names
+ok 699 - decoded normalized alias rejection same-inode-two-names
+  ---
+  duration_ms: 2.026
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section unsafe integer cannot partially commit
+ok 700 - atomic extension malformed later section unsafe integer cannot partially commit
+  ---
+  duration_ms: 8.516666
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section overflow count cannot partially commit
+ok 701 - atomic extension malformed later section overflow count cannot partially commit
+  ---
+  duration_ms: 0.959667
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section negative count cannot partially commit
+ok 702 - atomic extension malformed later section negative count cannot partially commit
+  ---
+  duration_ms: 0.627333
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section zero count changes cannot partially commit
+ok 703 - atomic extension malformed later section zero count changes cannot partially commit
+  ---
+  duration_ms: 0.975125
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section repeated old header cannot partially commit
+ok 704 - atomic extension malformed later section repeated old header cannot partially commit
+  ---
+  duration_ms: 1.013375
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section new header without body cannot partially commit
+ok 705 - atomic extension malformed later section new header without body cannot partially commit
+  ---
+  duration_ms: 0.6565
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section truncated hunk cannot partially commit
+ok 706 - atomic extension malformed later section truncated hunk cannot partially commit
+  ---
+  duration_ms: 0.351083
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section extra deletion cannot partially commit
+ok 707 - atomic extension malformed later section extra deletion cannot partially commit
+  ---
+  duration_ms: 0.331333
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section huge coordinate cannot partially commit
+ok 708 - atomic extension malformed later section huge coordinate cannot partially commit
+  ---
+  duration_ms: 0.831292
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section repeated newline marker cannot partially commit
+ok 709 - atomic extension malformed later section repeated newline marker cannot partially commit
+  ---
+  duration_ms: 0.631083
+  type: 'test'
+  ...
+# Subtest: atomic extension aggregate input budget failure during preparation leaves targets unchanged
+ok 710 - atomic extension aggregate input budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 1.944709
+  type: 'test'
+  ...
+# Subtest: atomic extension aggregate output budget failure during preparation leaves targets unchanged
+ok 711 - atomic extension aggregate output budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 2.683917
+  type: 'test'
+  ...
+# Subtest: atomic extension aggregate lines budget failure during preparation leaves targets unchanged
+ok 712 - atomic extension aggregate lines budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.686333
+  type: 'test'
+  ...
+# Subtest: atomic extension file count budget failure during preparation leaves targets unchanged
+ok 713 - atomic extension file count budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 1.274917
+  type: 'test'
+  ...
+# Subtest: atomic extension hunk count budget failure during preparation leaves targets unchanged
+ok 714 - atomic extension hunk count budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.579875
+  type: 'test'
+  ...
+# Subtest: atomic extension work budget failure during preparation leaves targets unchanged
+ok 715 - atomic extension work budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.392917
+  type: 'test'
+  ...
+# Subtest: atomic extension recheck input bytes are charged before any commit
+ok 716 - atomic extension recheck input bytes are charged before any commit
+  ---
+  duration_ms: 1.720667
+  type: 'test'
+  ...
+# Subtest: repeated headers hit the section budget before any target read
+ok 717 - repeated headers hit the section budget before any target read
+  ---
+  duration_ms: 0.844375
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 0 has no filesystem effects
+ok 718 - invalid configured limit 0 has no filesystem effects
+  ---
+  duration_ms: 6.686917
+  type: 'test'
+  ...
+# Subtest: invalid configured limit -1 has no filesystem effects
+ok 719 - invalid configured limit -1 has no filesystem effects
+  ---
+  duration_ms: 0.36025
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 1.5 has no filesystem effects
+ok 720 - invalid configured limit 1.5 has no filesystem effects
+  ---
+  duration_ms: 1.982375
+  type: 'test'
+  ...
+# Subtest: invalid configured limit Infinity has no filesystem effects
+ok 721 - invalid configured limit Infinity has no filesystem effects
+  ---
+  duration_ms: 2.9295
+  type: 'test'
+  ...
+# Subtest: invalid configured limit NaN has no filesystem effects
+ok 722 - invalid configured limit NaN has no filesystem effects
+  ---
+  duration_ms: 7.833292
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 9007199254740992 has no filesystem effects
+ok 723 - invalid configured limit 9007199254740992 has no filesystem effects
+  ---
+  duration_ms: 0.283666
+  type: 'test'
+  ...
+# Subtest: atomic extension bounded work-limit sweep covers preflight, partial-commit and success states
+ok 724 - atomic extension bounded work-limit sweep covers preflight, partial-commit and success states
+  ---
+  duration_ms: 690.264833
+  type: 'test'
+  ...
+# Subtest: atomic extension binary later target 62616400746578740a cannot cause an earlier write
+ok 725 - atomic extension binary later target 62616400746578740a cannot cause an earlier write
+  ---
+  duration_ms: 0.87675
+  type: 'test'
+  ...
+# Subtest: atomic extension binary later target fffe0a cannot cause an earlier write
+ok 726 - atomic extension binary later target fffe0a cannot cause an earlier write
+  ---
+  duration_ms: 0.576959
+  type: 'test'
+  ...
+# Subtest: overlong paths fail before any stat, read or write of their target
+ok 727 - overlong paths fail before any stat, read or write of their target
+  ---
+  duration_ms: 4.000417
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason Error: preflight abort without any FS access
+ok 728 - diff preserves exact pre-abort reason Error: preflight abort without any FS access
+  ---
+  duration_ms: 8.361541
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason [object Object] without any FS access
+ok 729 - diff preserves exact pre-abort reason [object Object] without any FS access
+  ---
+  duration_ms: 1.126542
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason abort-string without any FS access
+ok 730 - diff preserves exact pre-abort reason abort-string without any FS access
+  ---
+  duration_ms: 0.392084
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason null without any FS access
+ok 731 - diff preserves exact pre-abort reason null without any FS access
+  ---
+  duration_ms: 0.311125
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason 0 without any FS access
+ok 732 - diff preserves exact pre-abort reason 0 without any FS access
+  ---
+  duration_ms: 0.35025
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason false without any FS access
+ok 733 - diff preserves exact pre-abort reason false without any FS access
+  ---
+  duration_ms: 1.260125
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason Error: preflight abort without any FS access
+ok 734 - patch preserves exact pre-abort reason Error: preflight abort without any FS access
+  ---
+  duration_ms: 0.249458
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason [object Object] without any FS access
+ok 735 - patch preserves exact pre-abort reason [object Object] without any FS access
+  ---
+  duration_ms: 0.200291
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason abort-string without any FS access
+ok 736 - patch preserves exact pre-abort reason abort-string without any FS access
+  ---
+  duration_ms: 0.48325
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason null without any FS access
+ok 737 - patch preserves exact pre-abort reason null without any FS access
+  ---
+  duration_ms: 2.54775
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason 0 without any FS access
+ok 738 - patch preserves exact pre-abort reason 0 without any FS access
+  ---
+  duration_ms: 0.377125
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason false without any FS access
+ok 739 - patch preserves exact pre-abort reason false without any FS access
+  ---
+  duration_ms: 0.253291
+  type: 'test'
+  ...
+# Subtest: atomic extension blocked lstat aborts without effects and observes late host rejection
+ok 740 - atomic extension blocked lstat aborts without effects and observes late host rejection
+  ---
+  duration_ms: 9.754375
+  type: 'test'
+  ...
+# Subtest: atomic extension blocked readFile aborts without effects and observes late host rejection
+ok 741 - atomic extension blocked readFile aborts without effects and observes late host rejection
+  ---
+  duration_ms: 3.782125
+  type: 'test'
+  ...
+# Subtest: atomic extension blocked readStream aborts without effects and observes late host rejection
+ok 742 - atomic extension blocked readStream aborts without effects and observes late host rejection
+  ---
+  duration_ms: 2.490709
+  type: 'test'
+  ...
+# Subtest: blocked stdin next and cleanup return cannot replace the abort reason
+ok 743 - blocked stdin next and cleanup return cannot replace the abort reason
+  ---
+  duration_ms: 3.644667
+  type: 'test'
+  ...
+# Subtest: abort blocked writeFile leaves only successful prefix and no cleanup writes
+ok 744 - abort blocked writeFile leaves only successful prefix and no cleanup writes
+  ---
+  duration_ms: 12.77825
+  type: 'test'
+  ...
+# Subtest: abort blocked rm leaves only successful prefix and no cleanup writes
+ok 745 - abort blocked rm leaves only successful prefix and no cleanup writes
+  ---
+  duration_ms: 6.385292
+  type: 'test'
+  ...
+# Subtest: uncooperative in-flight write can finish after cancellation, but later files never start
+ok 746 - uncooperative in-flight write can finish after cancellation, but later files never start
+  ---
+  duration_ms: 6.824416
+  type: 'test'
+  ...
+# Subtest: abort immediately after first publication preserves that side effect and exact reason
+ok 747 - abort immediately after first publication preserves that side effect and exact reason
+  ---
+  duration_ms: 3.664333
+  type: 'test'
+  ...
+# Subtest: atomic extension abort blocked dry-run sink preserves the corresponding target state
+ok 748 - atomic extension abort blocked dry-run sink preserves the corresponding target state
+  ---
+  duration_ms: 0.883833
+  type: 'test'
+  ...
+# Subtest: atomic extension abort blocked status sink preserves the corresponding target state
+ok 749 - atomic extension abort blocked status sink preserves the corresponding target state
+  ---
+  duration_ms: 32.995667
+  type: 'test'
+  ...
+# Subtest: atomic extension abort blocked diagnostic sink preserves the corresponding target state
+ok 750 - atomic extension abort blocked diagnostic sink preserves the corresponding target state
+  ---
+  duration_ms: 1.032083
+  type: 'test'
+  ...
+# Subtest: COMMON-FLOW GAP: safely decoded Git-quoted filename "café.txt" updates exactly that inode
+ok 751 - COMMON-FLOW GAP: safely decoded Git-quoted filename "café.txt" updates exactly that inode
+  ---
+  duration_ms: 15.173375
+  type: 'test'
+  ...
+# Subtest: COMMON-FLOW GAP: safely decoded Git-quoted filename "quote\\"name.txt" updates exactly that inode
+ok 752 - COMMON-FLOW GAP: safely decoded Git-quoted filename "quote\\"name.txt" updates exactly that inode
+  ---
+  duration_ms: 2.217917
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/\\056\\056/target
+ok 753 - quoted unsafe/invalid encoding remains non-mutating: a/\\056\\056/target
+  ---
+  duration_ms: 0.802083
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: \\057sandbox/work/target
+ok 754 - quoted unsafe/invalid encoding remains non-mutating: \\057sandbox/work/target
+  ---
+  duration_ms: 0.573542
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/target\\000suffix
+ok 755 - quoted unsafe/invalid encoding remains non-mutating: a/target\\000suffix
+  ---
+  duration_ms: 0.592417
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/target\\q
+ok 756 - quoted unsafe/invalid encoding remains non-mutating: a/target\\q
+  ---
+  duration_ms: 2.669959
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/target\\777
+ok 757 - quoted unsafe/invalid encoding remains non-mutating: a/target\\777
+  ---
+  duration_ms: 0.566208
+  type: 'test'
+  ...
+# Subtest: COMMON-FLOW GAP: adjacent slash strip handles a safe relative target
+ok 758 - COMMON-FLOW GAP: adjacent slash strip handles a safe relative target
+  ---
+  duration_ms: 5.606708
+  type: 'test'
+  ...
+# Subtest: atomic extension lstat EACCES on later target stops prevalidation without writes
+ok 759 - atomic extension lstat EACCES on later target stops prevalidation without writes
+  ---
+  duration_ms: 12.5125
+  type: 'test'
+  ...
+# Subtest: atomic extension lstat EIO on later target stops prevalidation without writes
+ok 760 - atomic extension lstat EIO on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.511042
+  type: 'test'
+  ...
+# Subtest: atomic extension lstat EPERM on later target stops prevalidation without writes
+ok 761 - atomic extension lstat EPERM on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.137583
+  type: 'test'
+  ...
+# Subtest: atomic extension readFile EACCES on later target stops prevalidation without writes
+ok 762 - atomic extension readFile EACCES on later target stops prevalidation without writes
+  ---
+  duration_ms: 3.732208
+  type: 'test'
+  ...
+# Subtest: atomic extension readFile EIO on later target stops prevalidation without writes
+ok 763 - atomic extension readFile EIO on later target stops prevalidation without writes
+  ---
+  duration_ms: 2.205959
+  type: 'test'
+  ...
+# Subtest: atomic extension readFile EPERM on later target stops prevalidation without writes
+ok 764 - atomic extension readFile EPERM on later target stops prevalidation without writes
+  ---
+  duration_ms: 2.7615
+  type: 'test'
+  ...
+# Subtest: atomic extension readStream EACCES on later target stops prevalidation without writes
+ok 765 - atomic extension readStream EACCES on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.596708
+  type: 'test'
+  ...
+# Subtest: atomic extension readStream EIO on later target stops prevalidation without writes
+ok 766 - atomic extension readStream EIO on later target stops prevalidation without writes
+  ---
+  duration_ms: 2.532917
+  type: 'test'
+  ...
+# Subtest: atomic extension readStream EPERM on later target stops prevalidation without writes
+ok 767 - atomic extension readStream EPERM on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.430125
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure at commit 1 preserves precisely the completed prefix
+ok 768 - atomic extension writeFile failure at commit 1 preserves precisely the completed prefix
+  ---
+  duration_ms: 2.504834
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure at commit 1 preserves precisely the completed prefix
+ok 769 - atomic extension rm failure at commit 1 preserves precisely the completed prefix
+  ---
+  duration_ms: 1.723709
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure at commit 2 preserves precisely the completed prefix
+ok 770 - atomic extension writeFile failure at commit 2 preserves precisely the completed prefix
+  ---
+  duration_ms: 11.181083
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure at commit 2 preserves precisely the completed prefix
+ok 771 - atomic extension rm failure at commit 2 preserves precisely the completed prefix
+  ---
+  duration_ms: 4.052542
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure at commit 3 preserves precisely the completed prefix
+ok 772 - atomic extension writeFile failure at commit 3 preserves precisely the completed prefix
+  ---
+  duration_ms: 30.167458
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure at commit 3 preserves precisely the completed prefix
+ok 773 - atomic extension rm failure at commit 3 preserves precisely the completed prefix
+  ---
+  duration_ms: 20.68825
+  type: 'test'
+  ...
+# Subtest: atomic extension: a writeFile that mutates then throws is not falsely rolled back or counted successful
+ok 774 - atomic extension: a writeFile that mutates then throws is not falsely rolled back or counted successful
+  ---
+  duration_ms: 1.80575
+  type: 'test'
+  ...
+# Subtest: atomic extension: a rm that mutates then throws is not falsely rolled back or counted successful
+ok 775 - atomic extension: a rm that mutates then throws is not falsely rolled back or counted successful
+  ---
+  duration_ms: 1.41075
+  type: 'test'
+  ...
+# Subtest: exclusive creation refuses a competing new file without cleanup unlink
+ok 776 - exclusive creation refuses a competing new file without cleanup unlink
+  ---
+  duration_ms: 1.478791
+  type: 'test'
+  ...
+# Subtest: atomic extension observable content change after preparation prevents every command write
+ok 777 - atomic extension observable content change after preparation prevents every command write
+  ---
+  duration_ms: 1.335
+  type: 'test'
+  ...
+# Subtest: atomic extension observable symlink change after preparation prevents every command write
+ok 778 - atomic extension observable symlink change after preparation prevents every command write
+  ---
+  duration_ms: 2.382
+  type: 'test'
+  ...
+# Subtest: atomic extension observable hardlink change after preparation prevents every command write
+ok 779 - atomic extension observable hardlink change after preparation prevents every command write
+  ---
+  duration_ms: 0.977958
+  type: 'test'
+  ...
+# Subtest: atomic extension observable removed change after preparation prevents every command write
+ok 780 - atomic extension observable removed change after preparation prevents every command write
+  ---
+  duration_ms: 1.739458
+  type: 'test'
+  ...
+# Subtest: atomic extension observable parent change after preparation prevents every command write
+ok 781 - atomic extension observable parent change after preparation prevents every command write
+  ---
+  duration_ms: 1.515958
+  type: 'test'
+  ...
+# Subtest: rename capability and rename failures are not used as an atomicity fallback
+ok 782 - rename capability and rename failures are not used as an atomicity fallback
+  ---
+  duration_ms: 0.836
+  type: 'test'
+  ...
+# Subtest: atomic extension status sink failure after publication preserves all committed files
+ok 783 - atomic extension status sink failure after publication preserves all committed files
+  ---
+  duration_ms: 3.631167
+  type: 'test'
+  ...
+# Subtest: failed diagnostic sink rejects rather than reporting successful handling
+ok 784 - failed diagnostic sink rejects rather than reporting successful handling
+  ---
+  duration_ms: 0.602542
+  type: 'test'
+  ...
+# Subtest: documented race limit: same-byte inode replacement is not an identity check
+ok 785 - documented race limit: same-byte inode replacement is not an identity check
+  ---
+  duration_ms: 3.671416
+  type: 'test'
+  ...
+# Subtest: recursive diff later lstat failure emits no buffered partial patch
+ok 786 - recursive diff later lstat failure emits no buffered partial patch
+  ---
+  duration_ms: 1.97675
+  type: 'test'
+  ...
+# Subtest: recursive diff later readFile failure emits no buffered partial patch
+ok 787 - recursive diff later readFile failure emits no buffered partial patch
+  ---
+  duration_ms: 1.335166
+  type: 'test'
+  ...
+# Subtest: recursive diff later readStream failure emits no buffered partial patch
+ok 788 - recursive diff later readStream failure emits no buffered partial patch
+  ---
+  duration_ms: 1.368833
+  type: 'test'
+  ...
+# Subtest: recursive diff later readdir failure emits no buffered partial patch
+ok 789 - recursive diff later readdir failure emits no buffered partial patch
+  ---
+  duration_ms: 0.871459
+  type: 'test'
+  ...
+# Subtest: commit-stage lstat failure reports the existing prefix without attempting second write
+not ok 790 - commit-stage lstat failure reports the existing prefix without attempting second write
+  ---
+  duration_ms: 5.961584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/failures.test.ts:1:9429'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /1\/3 files committed/u. Input:
+    
+    'patch: EIO: input/output error\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    patch: EIO: input/output error
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/failures.test.ts:221:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally
+ok 791 - Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally
+  ---
+  duration_ms: 20.280625
+  type: 'test'
+  ...
+# Subtest: Shell heredoc unsafe later target cannot alter earlier files
+ok 792 - Shell heredoc unsafe later target cannot alter earlier files
+  ---
+  duration_ms: 9.949625
+  type: 'test'
+  ...
+# Subtest: Shell dry-run reads explicit input outside cwd without any writes
+ok 793 - Shell dry-run reads explicit input outside cwd without any writes
+  ---
+  duration_ms: 2.35975
+  type: 'test'
+  ...
+# Subtest: Shell preserves partial commit diagnostics and third-file bytes on injected EIO
+ok 794 - Shell preserves partial commit diagnostics and third-file bytes on injected EIO
+  ---
+  duration_ms: 3.72725
+  type: 'test'
+  ...
+# Subtest: Shell cancellation propagates exact reason during a blocked patch write
+ok 795 - Shell cancellation propagates exact reason during a blocked patch write
+  ---
+  duration_ms: 8.748834
+  type: 'test'
+  ...
+# Subtest: Shell hardlink alias rejection does not truncate the alias or input
+ok 796 - Shell hardlink alias rejection does not truncate the alias or input
+  ---
+  duration_ms: 2.091417
+  type: 'test'
+  ...
+# Subtest: absolute headers reject automatic selection but explicit target wins without changing decoys
+ok 797 - absolute headers reject automatic selection but explicit target wins without changing decoys
+  ---
+  duration_ms: 16.450875
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: traversal
+ok 798 - unsafe second header leaves all identities and bytes intact: traversal
+  ---
+  duration_ms: 5.054084
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: traversal before strip
+ok 799 - unsafe second header leaves all identities and bytes intact: traversal before strip
+  ---
+  duration_ms: 2.772917
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: drive
+ok 800 - unsafe second header leaves all identities and bytes intact: drive
+  ---
+  duration_ms: 2.653958
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: backslash
+ok 801 - unsafe second header leaves all identities and bytes intact: backslash
+  ---
+  duration_ms: 1.66675
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: nul
+ok 802 - unsafe second header leaves all identities and bytes intact: nul
+  ---
+  duration_ms: 1.590875
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: escape
+ok 803 - unsafe second header leaves all identities and bytes intact: escape
+  ---
+  duration_ms: 1.987
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: del
+ok 804 - unsafe second header leaves all identities and bytes intact: del
+  ---
+  duration_ms: 2.714625
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: carriage return
+ok 805 - unsafe second header leaves all identities and bytes intact: carriage return
+  ---
+  duration_ms: 1.39175
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "café.txt"
+ok 806 - safe filename is literal, not decoded or evaluated: "café.txt"
+  ---
+  duration_ms: 1.648541
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "café.txt"
+ok 807 - safe filename is literal, not decoded or evaluated: "café.txt"
+  ---
+  duration_ms: 1.712209
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "file with spaces"
+ok 808 - safe filename is literal, not decoded or evaluated: "file with spaces"
+  ---
+  duration_ms: 1.229875
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "leading space "
+ok 809 - safe filename is literal, not decoded or evaluated: "leading space "
+  ---
+  duration_ms: 1.229541
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "-flag"
+ok 810 - safe filename is literal, not decoded or evaluated: "-flag"
+  ---
+  duration_ms: 1.28725
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "%2e%2e%2ftarget"
+ok 811 - safe filename is literal, not decoded or evaluated: "%2e%2e%2ftarget"
+  ---
+  duration_ms: 1.345833
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "$(touch sentinel)"
+ok 812 - safe filename is literal, not decoded or evaluated: "$(touch sentinel)"
+  ---
+  duration_ms: 4.62075
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "semi;colon"
+ok 813 - safe filename is literal, not decoded or evaluated: "semi;colon"
+  ---
+  duration_ms: 1.005417
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "name\#comment"
+ok 814 - safe filename is literal, not decoded or evaluated: "name\#comment"
+  ---
+  duration_ms: 0.774917
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "name'quote"
+ok 815 - safe filename is literal, not decoded or evaluated: "name'quote"
+  ---
+  duration_ms: 0.926416
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=false
+ok 816 - atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.305167
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=true
+ok 817 - atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=true
+  ---
+  duration_ms: 0.861333
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=false
+ok 818 - atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=false
+  ---
+  duration_ms: 1.047458
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=true
+ok 819 - atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=true
+  ---
+  duration_ms: 2.150125
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=false
+ok 820 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.657833
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=true
+ok 821 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=true
+  ---
+  duration_ms: 1.163333
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=false
+ok 822 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=false
+  ---
+  duration_ms: 1.275625
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=true
+ok 823 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=true
+  ---
+  duration_ms: 1.085834
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=false
+ok 824 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=false
+  ---
+  duration_ms: 2.658167
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=true
+ok 825 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=true
+  ---
+  duration_ms: 1.143333
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=false
+ok 826 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=false
+  ---
+  duration_ms: 1.161708
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=true
+ok 827 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=true
+  ---
+  duration_ms: 1.520625
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=false
+ok 828 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.266625
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=true
+ok 829 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=true
+  ---
+  duration_ms: 1.014917
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=false
+ok 830 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=false
+  ---
+  duration_ms: 31.9785
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=true
+ok 831 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=true
+  ---
+  duration_ms: 1.394667
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: target + ./target
+ok 832 - atomic extension --force contradictory normalized sequence prevalidation: target + ./target
+  ---
+  duration_ms: 0.922916
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: dir/target + dir/./target
+ok 833 - atomic extension --force contradictory normalized sequence prevalidation: dir/target + dir/./target
+  ---
+  duration_ms: 1.003709
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: a/target + b/target
+ok 834 - atomic extension --force contradictory normalized sequence prevalidation: a/target + b/target
+  ---
+  duration_ms: 5.553708
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: a/./target + b/target
+ok 835 - atomic extension --force contradictory normalized sequence prevalidation: a/./target + b/target
+  ---
+  duration_ms: 2.866042
+  type: 'test'
+  ...
+# Subtest: timestamp fields cannot introduce a second target or escape cwd
+ok 836 - timestamp fields cannot introduce a second target or escape cwd
+  ---
+  duration_ms: 1.126834
+  type: 'test'
+  ...
+# Subtest: pre-existing final alias/parent rejection leaves full namespace unchanged
+ok 837 - pre-existing final alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 4.42275
+  type: 'test'
+  ...
+# Subtest: pre-existing ancestor alias/parent rejection leaves full namespace unchanged
+ok 838 - pre-existing ancestor alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 2.323833
+  type: 'test'
+  ...
+# Subtest: pre-existing dangling alias/parent rejection leaves full namespace unchanged
+ok 839 - pre-existing dangling alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.656917
+  type: 'test'
+  ...
+# Subtest: pre-existing cwd alias/parent rejection leaves full namespace unchanged
+ok 840 - pre-existing cwd alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.575667
+  type: 'test'
+  ...
+# Subtest: pre-existing input alias/parent rejection leaves full namespace unchanged
+ok 841 - pre-existing input alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.345541
+  type: 'test'
+  ...
+# Subtest: pre-existing hardlink alias/parent rejection leaves full namespace unchanged
+ok 842 - pre-existing hardlink alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.654333
+  type: 'test'
+  ...
+# Subtest: pre-existing directory alias/parent rejection leaves full namespace unchanged
+ok 843 - pre-existing directory alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.553333
+  type: 'test'
+  ...
+# Subtest: pre-existing file-parent alias/parent rejection leaves full namespace unchanged
+ok 844 - pre-existing file-parent alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.500708
+  type: 'test'
+  ...
+# Subtest: pre-existing missing-parent alias/parent rejection leaves full namespace unchanged
+not ok 845 - pre-existing missing-parent alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 4.773958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/paths.test.ts:1:5469'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 2
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 2
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/paths.test.ts:121:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: dry-run mixed create/update/delete validates every result without mutation
+ok 846 - dry-run mixed create/update/delete validates every result without mutation
+  ---
+  duration_ms: 6.842
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\n+++ sentinel" without output
+ok 847 - diff rejects header-injecting label "target\\n+++ sentinel" without output
+  ---
+  duration_ms: 1.5145
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\ttimestamp" without output
+ok 848 - diff rejects header-injecting label "target\\ttimestamp" without output
+  ---
+  duration_ms: 0.371875
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\r" without output
+ok 849 - diff rejects header-injecting label "target\\r" without output
+  ---
+  duration_ms: 0.210542
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\u0000" without output
+ok 850 - diff rejects header-injecting label "target\\u0000" without output
+  ---
+  duration_ms: 0.158292
+  type: 'test'
+  ...
+1..850
+# tests 850
+# suites 0
+# pass 832
+# fail 18
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1050.904

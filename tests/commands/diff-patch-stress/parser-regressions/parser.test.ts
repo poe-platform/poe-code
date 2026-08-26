@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
 import { after, test } from "node:test";
 import { calibration } from "../gnu-target/calibration.js";
+import { captured as followupCapture } from "../gnu-target-followup/evidence.js";
+import { overlapProbes } from "../gnu-target-followup/fixtures.js";
 import { cases } from "./fixtures.js";
 import { diffBinary, executeNative, nativeDiff, nativePatch, owned, patchBinary, product, productIssues, sha256 } from "./helpers.js";
 
@@ -34,6 +36,16 @@ for (const fixture of cases) {
           if (nativeGenerated.exitCode !== 1 || nativeGenerated.stdout !== fixture.patch) nativeIssues.push("GNU diff 3.12 did not reproduce the tab-prefix golden");
         }
         native = await nativePatch(fixture.before, fixture.patch);
+        if (fixture.expectedConflict) {
+          const probe = overlapProbes.find(item => `atomic-extension-${item.id}` === fixture.id);
+          assert(probe);
+          assert.equal(fixture.patch, probe.input);
+          const expected = followupCapture(probe);
+          assert.equal(native.exitCode, expected.exitCode);
+          assert.equal(native.stdout, expected.stdout);
+          assert.equal(native.stderr, expected.stderr);
+          assert.equal(native.target, "new\nkeep\nend\n");
+        }
         if (fixture.after !== undefined && (native.exitCode !== 0 || native.target !== fixture.after)) {
           nativeIssues.push(`GNU 2.8 valid control: exit=${native.exitCode}, expected=${JSON.stringify(fixture.after)}, actual=${JSON.stringify(native.target)}`);
         }

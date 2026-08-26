@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { assertDefaultParity } from "../gnu-target-followup/evidence.js";
+import { missingParentProbes } from "../gnu-target-followup/fixtures.js";
 import { assertBytes, bytes, creation, cwd, deletion, instrument, invoke, memory, replacement, snapshot } from "./helpers.js";
 
 for (const [name, path] of [
@@ -100,7 +102,7 @@ test("timestamp fields cannot introduce a second target or escape cwd", async ()
   assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/target`]);
 });
 
-for (const kind of ["final", "ancestor", "dangling", "cwd", "input", "hardlink", "directory", "file-parent", "missing-parent"] as const) {
+for (const kind of ["final", "ancestor", "dangling", "cwd", "input", "hardlink", "directory", "file-parent"] as const) {
   test(`pre-existing ${kind} alias/parent rejection leaves full namespace unchanged`, async () => {
     const backing = await memory({ first: "old\n", target: "old\n", "dir/target": "old\n", patch: replacement(), blocker: "old\n" });
     let input = replacement("first");
@@ -114,7 +116,6 @@ for (const kind of ["final", "ancestor", "dangling", "cwd", "input", "hardlink",
     if (kind === "hardlink") { await backing.link(`${cwd}/target`, `${cwd}/alias`); input += deletion("alias"); }
     if (kind === "directory") input += replacement("dir");
     if (kind === "file-parent") input += creation("blocker/child");
-    if (kind === "missing-parent") input += creation("missing/child");
     const before = await snapshot(backing);
     const observed = instrument(backing);
     const result = await invoke(observed.fs, "patch", { input, args, cwd: working });
@@ -123,6 +124,10 @@ for (const kind of ["final", "ancestor", "dangling", "cwd", "input", "hardlink",
     assert.deepEqual(await snapshot(backing), before);
   });
 }
+
+for (const probe of missingParentProbes) test(`GNU default creation and complete namespace: ${probe.id}`, async () => {
+  await assertDefaultParity(probe);
+});
 
 test("dry-run mixed create/update/delete validates every result without mutation", async () => {
   const backing = await memory({ target: "old\n", remove: "old\n", sentinel: bytes("\ufeffcafé\r\n") });

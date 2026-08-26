@@ -1,0 +1,3 @@
+tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts(37,53): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/diff-patch-stress/parser-regressions/parser.test.ts(43,28): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/diff-patch-stress/parser-regressions/parser.test.ts(43,28): error TS18048: 'captured' is possibly 'undefined'.

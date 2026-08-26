@@ -10,6 +10,7 @@ export interface ParserCase {
   readonly cancel?: "before" | "input" | "parse";
   readonly native?: boolean;
   readonly args?: readonly string[];
+  readonly expectedConflict?: boolean;
 }
 
 export const marker = "\\ No newline at end of file\n";
@@ -58,7 +59,7 @@ export const grammarCases: readonly ParserCase[] = [
   invalid("normal-descending-range", "2,1c1\n< old\n---\n> new\n", "range/order"),
   invalid("normal-append-old-range", "0,1a1\n> new\n", "range/order"),
   invalid("normal-delete-new-range", "1d0,1\n< old\n", "range/order"),
-  invalid("normal-overlapping-old-hunks", normalChange + normalChange, "overlap"),
+  { ...invalid("atomic-extension-normal-overlapping-old-hunks", normalChange + normalChange, "GNU hunk conflict, not invalid syntax"), args: ["--atomic", "--batch", "--fuzz=0", "--no-backup-if-mismatch", "--reject-file=reject"], expectedConflict: true },
   valid("GNU-normal-new-coordinates-are-advisory", "old\nkeep\nend\n", "1c2\n< old\n---\n> new\n", "new\nkeep\nend\n", "GNU coordinate target"),
   invalid("normal-unsafe-integer", "9007199254740993a1\n> new\n", "coordinate overflow"),
   invalid("normal-marker-before-body", `1c1\n${marker}< old\n---\n> new\n`, "newline marker"),
@@ -66,7 +67,7 @@ export const grammarCases: readonly ParserCase[] = [
   invalid("context-missing-new-range", context("*** 1 ****\n! old\n! new\n"), "truncation"),
   invalid("context-old-count-mismatch", context("*** 1,2 ****\n! old\n--- 1 ----\n! new\n"), "count mismatch"),
   invalid("context-zero-nonempty-range", context("*** 0 ****\n! old\n--- 1 ----\n! new\n"), "range/order"),
-  invalid("context-overlapping-hunks", contextChange + contextChange.slice(contextHeader.length), "overlap"),
+  { ...invalid("atomic-extension-context-overlapping-hunks", contextChange + contextChange.slice(contextHeader.length), "GNU hunk conflict, not invalid syntax"), args: ["--atomic", "--batch", "--fuzz=0", "--no-backup-if-mismatch", "--reject-file=reject"], expectedConflict: true },
   invalid("context-unsafe-integer", context("*** 9007199254740993 ****\n! old\n--- 1 ----\n! new\n"), "coordinate overflow"),
   invalid("context-missing-changed-old-half", context("*** 1 ****\n--- 1 ----\n! new\n"), "omitted changed half"),
   invalid("context-missing-changed-new-half", context("*** 1 ****\n! old\n--- 1 ----\n"), "omitted changed half"),

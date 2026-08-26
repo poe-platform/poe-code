@@ -86,6 +86,10 @@ export function productIssues(fixture: ParserCase, result: Awaited<ReturnType<ty
     if (result.exitCode !== 0) issues.push(`valid input rejected: exit=${result.exitCode}; ${result.stderr || result.thrown}`);
     if (result.target !== fixture.after) issues.push(`wrong target bytes: expected ${JSON.stringify(fixture.after)}, got ${JSON.stringify(result.target)}`);
   } else {
+    if (fixture.expectedConflict) {
+      if (result.exitCode !== 1) issues.push(`GNU hunk conflict must return status 1, got ${result.exitCode}`);
+      if (!/hunk 2 does not match/u.test(result.stderr)) issues.push(`missing second-hunk conflict diagnostic: ${result.stderr}`);
+    }
     if (fixture.cancel) {
       if (!result.cancellationFired || !result.sameAbortReason) issues.push("cancellation was not propagated with its original reason");
     } else if (result.exitCode === 0 || result.exitCode === undefined) {

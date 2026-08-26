@@ -14,7 +14,7 @@ describe("AS_ASYNC_NOT_NEEDED", () => {
       {
         code: "AS-ASYNC-NOT-NEEDED",
         severity: "info",
-        message: "Async arrow functions without await should remove the async keyword.",
+        message: "Async functions without await should remove the async keyword.",
         filename: "rule.js",
         line: 1,
         column: 11,
@@ -45,7 +45,7 @@ describe("AS_ASYNC_NOT_NEEDED", () => {
       {
         code: "AS-ASYNC-NOT-NEEDED",
         severity: "info",
-        message: "Async arrow functions without await should remove the async keyword.",
+        message: "Async functions without await should remove the async keyword.",
         filename: "rule.js",
         line: 1,
         column: 35,

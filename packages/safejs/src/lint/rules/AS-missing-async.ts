@@ -4,6 +4,7 @@ import {
   type ArrayPattern,
   type ArrowFunctionExpression,
   type FunctionExpression,
+  type FunctionDeclaration,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -54,7 +55,7 @@ export type Diagnostic = {
   };
 };
 
-export const AS_MISSING_ASYNC_MESSAGE = "Arrow functions that contain await must be marked async.";
+export const AS_MISSING_ASYNC_MESSAGE = "Functions that contain await must be marked async.";
 
 export function AS_MISSING_ASYNC(
   source: string,
@@ -90,6 +91,9 @@ class ASMissingAsyncScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitFunctionExpression(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -224,6 +228,11 @@ class ASMissingAsyncScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -293,7 +302,7 @@ class ASMissingAsyncScanner {
     this.visitExpression(node.body);
   }
 
-  private visitFunctionExpression(node: FunctionExpression): void {
+  private visitFunctionExpression(node: FunctionExpression | FunctionDeclaration): void {
     if (!node.async && bodyContainsAwait(node.body)) {
       this.report(node.span);
     }

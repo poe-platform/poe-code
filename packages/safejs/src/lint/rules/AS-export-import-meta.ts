@@ -126,6 +126,12 @@ class Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        for (const param of node.params) {
+          this.visitAssignmentTarget(param);
+        }
+        this.visitStatement(node.body);
+        return;
       case "ExportNamedDeclaration":
         this.visitExportNamedDeclaration(node.declaration);
         return;
@@ -293,7 +299,15 @@ class Scanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
       case "ArrowFunctionExpression":
+        for (const param of node.params) {
+          this.visitAssignmentTarget(param);
+        }
         if (node.body.type === "BlockStatement") {
           this.visitStatement(node.body);
         } else {
@@ -301,6 +315,9 @@ class Scanner {
         }
         return;
       case "FunctionExpression":
+        for (const param of node.params) {
+          this.visitAssignmentTarget(param);
+        }
         this.visitStatement(node.body);
         return;
       case "AwaitExpression":

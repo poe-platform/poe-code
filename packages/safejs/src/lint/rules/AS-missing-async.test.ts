@@ -14,7 +14,7 @@ describe("AS_MISSING_ASYNC", () => {
       {
         code: "AS-MISSING-ASYNC",
         severity: "error",
-        message: "Arrow functions that contain await must be marked async.",
+        message: "Functions that contain await must be marked async.",
         filename: "rule.js",
         line: 1,
         column: 11,
@@ -49,7 +49,7 @@ describe("AS_MISSING_ASYNC", () => {
       {
         code: "AS-MISSING-ASYNC",
         severity: "error",
-        message: "Arrow functions that contain await must be marked async.",
+        message: "Functions that contain await must be marked async.",
         filename: "rule.js",
         line: 1,
         column: 11,

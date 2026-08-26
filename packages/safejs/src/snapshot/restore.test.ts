@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import { Budget } from "../interp/budget.js";
 import {
   createSandboxClosure,
+  createSandboxArguments,
+  isSandboxArguments,
   createSandboxGenerator,
   isSandboxGenerator,
   createSandboxMap,
@@ -49,6 +51,115 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it.each([
+    "extensibility",
+    "length order",
+    "callee replacement",
+    "missing value",
+    "iterator flags",
+    "accessor"
+  ])("rejects corrupt arguments metadata: %s", (corruption) => {
+    const source = "await task()";
+    const args = createSandboxArguments([5]);
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { args } }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+    const entry = Object.values(snapshot.heap ?? {})[0];
+    if (entry?.kind !== "arguments") throw new Error("Missing arguments snapshot");
+    if (corruption === "extensibility") Reflect.set(entry, "extensible", "yes");
+    if (corruption === "length order") delete entry.properties.length;
+    if (corruption === "callee replacement") entry.properties.callee = entry.properties["0"];
+    if (corruption === "missing value") Reflect.deleteProperty(entry.properties["0"], "value");
+    if (corruption === "iterator flags") Reflect.set(entry.iterator!, "writable", "yes");
+    if (corruption === "accessor") Reflect.set(entry.properties["0"], "get", null);
+    expect(() => restore(snapshot, { source })).toThrow(SnapshotValidationError);
+  });
+
+  it.each(["deleted length", "readded length", "frozen", "hidden property"])(
+    "roundtrips arguments with %s",
+    (mode) => {
+      const source = "await task()";
+      const args = createSandboxArguments([5, 6]);
+      if (mode === "deleted length") delete args.length;
+      if (mode === "readded length") {
+        delete args.length;
+        args.extra = 7;
+        args.length = 2;
+      }
+      if (mode === "frozen") Object.freeze(args);
+      if (mode === "hidden property") Object.defineProperty(args, "hidden", { value: 9 });
+      const snapshot = serialize({
+        source,
+        currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+        scopeChain: [{ id: "module", bindings: { args } }],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      });
+      const binding = restore(JSON.parse(JSON.stringify(snapshot)), { source }).currentScope.lookup(
+        "args"
+      );
+      expect(binding.found).toBe(true);
+      if (!binding.found) return;
+      expect(Object.getOwnPropertyNames(binding.value)).toEqual(Object.getOwnPropertyNames(args));
+      for (const key of Reflect.ownKeys(args)) {
+        expect(Object.getOwnPropertyDescriptor(binding.value, key)).toEqual(
+          Object.getOwnPropertyDescriptor(args, key)
+        );
+      }
+      expect(Object.isExtensible(binding.value)).toBe(Object.isExtensible(args));
+    }
+  );
+
+  it("bounds deeply nested data retained through arguments length", () => {
+    const args = createSandboxArguments([]);
+    let value = {};
+    for (let depth = 0; depth < MAX_DATA_DEPTH + 1; depth += 1) value = { next: value };
+    args.length = value;
+    expect(() =>
+      serialize({
+        source: "await task()",
+        currentAstNodeId: 1,
+        scopeChain: [{ id: "module", bindings: { args } }],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      })
+    ).toThrowError(expect.objectContaining({ name: "SnapshotBudgetError", budget: "dataDepth" }));
+  });
+
+  it("roundtrips arguments identity, properties, iteration, and strict callee access", () => {
+    const source = "await task()";
+    const currentAstNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");
+    const args = createSandboxArguments([5, 6]);
+    args.length = 1;
+    args.self = args;
+    const snapshot = serialize({
+      source,
+      currentAstNodeId,
+      scopeChain: [{ id: "module", bindings: { args, alias: args } }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+    const restored = restore(JSON.parse(JSON.stringify(snapshot)), { source });
+    const binding = restored.currentScope.lookup("args");
+    expect(binding.found).toBe(true);
+    if (!binding.found) return;
+    expect(isSandboxArguments(binding.value)).toBe(true);
+    expect(binding.value).toMatchObject({ length: 1, 0: 5, 1: 6 });
+    expect(Object.keys(binding.value)).toEqual(["0", "1", "self"]);
+    expect(Array.from(binding.value as Iterable<unknown>)).toEqual([5]);
+    expect(() => binding.value.callee).toThrow(TypeError);
+    expect(binding.value.self).toBe(binding.value);
+    expect(restored.currentScope.lookup("alias")).toMatchObject({ value: binding.value });
+  });
+
   it("restores thousands of parent scopes without using the host call stack", () => {
     const source = "await task()";
     const module = parseModule(source);
@@ -653,8 +764,13 @@ describe("snapshot restore", () => {
     await expect(result.promise).resolves.toBe(true);
   });
 
-  it("round-trips function declaration closures through serialization", async () => {
-    const source = ["function add(value) { return value + base; }", "await task();"].join("\n");
+  it.each([
+    "function add(value) { return value + base; }",
+    "function add(value) { return arguments[0] + base; }",
+    "function add(value, fallback = arguments[0]) { return fallback + base; }",
+    "function add(value) { const read = () => arguments[0]; return read() + base; }"
+  ])("round-trips function declaration closures: %s", async (declaration) => {
+    const source = [declaration, "await task();"].join("\n");
     const module = parseModule(source);
     const closureNodeId = getNodeIdByType(module, "FunctionDeclaration");
     const awaitNodeId = getNodeIdByType(module, "AwaitExpression");

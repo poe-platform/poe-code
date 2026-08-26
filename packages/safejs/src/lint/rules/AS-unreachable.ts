@@ -1,7 +1,7 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type BinaryExpression,
   type BlockStatement,
@@ -81,6 +81,9 @@ class ASUnreachableScanner {
 
   private visitStatement(node: Statement): boolean {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return false;
       case "BlockStatement":
         return this.visitBlock(node);
       case "ExpressionStatement":
@@ -125,7 +128,6 @@ class ASUnreachableScanner {
         this.visitExpression(node.declaration);
         return false;
       case "ImportDeclaration":
-      case "FunctionDeclaration":
       case "EmptyStatement":
         return false;
     }
@@ -227,6 +229,12 @@ class ASUnreachableScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -276,7 +284,7 @@ class ASUnreachableScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     if (node.body.type === "BlockStatement") {
       this.visitBlock(node.body);
       return;

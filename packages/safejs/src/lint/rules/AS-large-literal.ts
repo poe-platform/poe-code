@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -80,6 +80,9 @@ class ASLargeLiteralScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -209,6 +212,12 @@ class ASLargeLiteralScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -258,7 +267,7 @@ class ASLargeLiteralScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     for (const parameter of node.params) {
       this.visitBindingElement(parameter);
     }

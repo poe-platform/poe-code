@@ -57,7 +57,7 @@ Its surface is `node:fs/promises`, not a poe-shaped subset of it: `access`, `app
 
 A `.safejs` body reads like a small JS program. No DSL, no decorators, no custom syntax — capabilities are imports, options are object literals, control flow is plain `if`/`for`/`try`. Anything that would need a non-JS shape — version pins, runtime config, metadata, schedules — belongs in the markdown frontmatter or the caller's options, not in the script body.
 
-The default linter intentionally keeps harness code conservative. It accepts the common orchestration subset and rejects some runtime-supported JavaScript forms, such as `function`, `var`, `switch`, `this`, and most `new` expressions. Embedders that call `run()` directly can execute the broader parser/runtime subset, but `poe-code harness run` and `poe-safejs` lint first.
+The default linter intentionally keeps harness code conservative. It accepts the common orchestration subset and rejects some runtime-supported JavaScript forms, such as `var`, `switch`, `this`, and most `new` expressions. Embedders that call `run()` directly can execute the broader parser/runtime subset, but `poe-code harness run` and `poe-safejs` lint first.
 
 ## At a glance
 
@@ -133,9 +133,9 @@ Embed SafeJS in your own product when you want to let users (or models) write sm
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Source unit**                | one module body; `import` from registered modules only                                                                                                                                                                                                                                                                                                                                                                                                          |
 | **Linter-approved syntax**     | `const`, `let`, arrays, objects, destructuring, rest/spread, object spread, arrows including `async` arrows, top-level `await`, `if`/`else`, `for`, `for...of`, `for...in`, `while`, `do...while`, labels, `break`, `continue`, `try`/`catch`/`finally`, `throw`, `return`, binary/logical/conditional expressions, assignments and updates, member assignment, template literals, optional chaining, nullish coalescing, regex literals, and `new RegExp(...)` |
-| **Runtime-only syntax**        | the parser/runtime also handle `function` declarations and expressions, generator functions, `var`, `switch`, `this`, and constructor calls for sandbox constructors. The default linter reports these forms for harnesses unless suppressed.                                                                                                                                                                                                                   |
+| **Runtime-only syntax**        | the parser/runtime also handle `var`, `switch`, `this`, and constructor calls for sandbox constructors. The default linter reports these forms for harnesses unless suppressed.                                                                                                                                                                                                                                                                                 |
 | **Disallowed syntax**          | `class`, async generators, `with`, `eval`, `Function`, dynamic import, `import.meta` assignment, BigInt literals, legacy octal forms, and HTML-style comments                                                                                                                                                                                                                                                                                                   |
-| **Lint extras**                | `await` only at top level or inside `async` arrows; arrows cannot close over outer `let`; host calls should be awaited or intentionally returned; `Array#sort` comparators must be arrows returning numbers; large literals and unreachable code are reported                                                                                                                                                                                                   |
+| **Lint extras**                | host calls should be awaited or intentionally returned; large literals and unreachable code are reported                                                                                                                                                                                                                                                                                                                                                        |
 | **Built-in globals**           | `console`, `JSON`, `Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`, `Math`, `Object`, `Array`, `String`, `Number`, `Boolean`, `Map`, `Set`, `RegExp`, `Promise` helpers, `structuredClone`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `Infinity`, `NaN`                                                                                                                                                              |
 | **Determinism**                | Pass `randomSeed` for deterministic `Math.random()`; snapshots include seeded RNG state. Harness runs also provide replayable `time.now()` / `time.uuid()` through the `time` module.                                                                                                                                                                                                                                                                           |
 | **Snapshots**                  | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches                                                                                                                                                                                                                                                                                                                                    |
@@ -245,7 +245,7 @@ Returns diagnostics for the SafeJS subset and registered modules.
 - `filename?` — used in diagnostics, defaults to `<input>`
 - `modules?` — registered module metadata used to validate `import` statements
 
-Diagnostics cover parse errors, unknown modules and exports, import cycles, unknown identifiers, closure and async-safety violations, subset-specific method restrictions, and warnings for unused bindings.
+Diagnostics cover parse errors, unknown modules and exports, import cycles, unknown identifiers, async-safety violations, subset-specific method restrictions, and warnings for unused bindings.
 
 ### Lint vs. runtime
 
@@ -322,7 +322,6 @@ no module bodies to inspect.
 
 ## Gotchas
 
-- **Harness lint rejects `function`.** The runtime can execute function declarations and expressions, but linted harnesses should use arrows. This commonly appears when porting existing JS.
 - **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
 - **Seed `Math.random()` when replay matters.** Pass `randomSeed` to make random values deterministic. Snapshots persist the seeded RNG state so resumes stay deterministic.
@@ -334,7 +333,7 @@ no module bodies to inspect.
 
 ## What's intentionally limited
 
-- Harness lint rejects `function`, `var`, `switch`, `this`, and most `new` expressions even though the parser/runtime can execute many of them. Prefer arrows, `const`/`let`, `if`/loops, callable error factories, and `RegExp(...)` / regex literals in harness code.
+- Harness lint rejects `var`, `switch`, `this`, and most `new` expressions even though the parser/runtime can execute many of them. Prefer arrows, `const`/`let`, `if`/loops, callable error factories, and `RegExp(...)` / regex literals in harness code.
 - No user-defined classes or prototype chains.
 - No async generators. Synchronous generators work, but a generator suspended mid-iteration cannot be snapshotted.
 - Regex support covers common literals, `RegExp`, and string methods, but not backreferences, lookaround, named groups, or Unicode property escapes.

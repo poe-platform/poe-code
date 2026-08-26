@@ -1,5 +1,6 @@
 import { replaceErrorStack } from "./error/shape.js";
 import { SandboxError } from "./interp/budget.js";
+import { getSandboxArgumentEntries, isSandboxArguments } from "./interp/arguments.js";
 
 export const MAX_DATA_DEPTH = 1_024;
 
@@ -73,6 +74,9 @@ function walkGraphDepth(
 }
 
 function graphEntries(value: object): Array<[string, unknown]> {
+  if (isSandboxArguments(value)) {
+    return getSandboxArgumentEntries(value).map(([key, entry]) => [`.${key}`, entry]);
+  }
   if (Array.isArray(value)) return value.map((entry, index) => [`[${index}]`, entry]);
   if (value instanceof Map) {
     return [...value.entries()].flatMap(([key, entry], index) => [

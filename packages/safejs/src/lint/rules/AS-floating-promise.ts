@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -113,6 +113,9 @@ class ASFloatingPromiseScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -263,6 +266,12 @@ class ASFloatingPromiseScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -312,7 +321,7 @@ class ASFloatingPromiseScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     this.withScope(this.collectArrowFunctionBindings(node), () => {
       if (node.body.type === "BlockStatement") {
         this.visitBlockStatement(node.body);
@@ -506,6 +515,7 @@ class ASFloatingPromiseScanner {
         this.reportUnhandledLikelyPromiseStatementExpression(node.alternate);
         return;
       case "CallExpression":
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
       case "AwaitExpression":
       case "ArrayExpression":
@@ -650,6 +660,11 @@ class ASFloatingPromiseScanner {
 
   private collectBlockBindings(statements: readonly Statement[]): Binding[] {
     return statements.flatMap((statement) => {
+      if (statement.type === "FunctionDeclaration") {
+        return [
+          { async: statement.async && !statement.generator, kind: "local", name: statement.id.name }
+        ];
+      }
       if (statement.type === "VariableDeclaration") {
         return this.collectDeclarationBindings(statement);
       }
@@ -665,7 +680,10 @@ class ASFloatingPromiseScanner {
   private collectDeclarationBindings(node: VariableDeclaration): Binding[] {
     return node.declarations.flatMap((declarator) =>
       this.collectDeclaratorBindings(declarator).map((name) => ({
-        async: declarator.init?.type === "ArrowFunctionExpression" && declarator.init.async,
+        async:
+          (declarator.init?.type === "ArrowFunctionExpression" ||
+            (declarator.init?.type === "FunctionExpression" && !declarator.init.generator)) &&
+          declarator.init.async,
         kind: "local" as const,
         name
       }))
@@ -676,14 +694,18 @@ class ASFloatingPromiseScanner {
     return this.collectPatternBindingNames(node.id);
   }
 
-  private collectArrowFunctionBindings(node: ArrowFunctionExpression): Binding[] {
-    return node.params.flatMap((param) =>
+  private collectArrowFunctionBindings(node: FunctionNode): Binding[] {
+    const bindings: Binding[] = node.params.flatMap((param) =>
       this.collectParameterBindingNames(param).map((name) => ({
         async: false,
         kind: "local" as const,
         name
       }))
     );
+    if (node.type === "FunctionExpression" && node.id !== undefined) {
+      bindings.unshift({ async: node.async && !node.generator, kind: "local", name: node.id.name });
+    }
+    return bindings;
   }
 
   private collectPatternBindings(node: ArrayPattern | Identifier | ObjectPattern): Binding[] {

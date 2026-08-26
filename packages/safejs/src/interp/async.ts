@@ -26,6 +26,7 @@ import { resolveSandboxValue } from "./promise.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import {
+  createSandboxArguments,
   createSandboxClosure,
   createSandboxGenerator,
   createSandboxPromise,
@@ -310,6 +311,8 @@ async function createClosureScope(
   const scope = context.scope.child({}, { functionBoundary: true });
   if (node.type !== "ArrowFunctionExpression") {
     scope.declare("this", "const", thisValue);
+    context.budget.allocateArrayLength(args.length);
+    scope.declare("arguments", "let", createSandboxArguments(args));
   }
   await bindParameters(node.params, args, scope, context, evaluateNode);
   hoistVarDeclarations(node.body, scope);

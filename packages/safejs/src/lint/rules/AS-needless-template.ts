@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -120,6 +120,9 @@ class ASNeedlessTemplateScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -256,6 +259,12 @@ class ASNeedlessTemplateScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -305,7 +314,7 @@ class ASNeedlessTemplateScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     for (const param of node.params) {
       this.visitBindingElement(param);
     }

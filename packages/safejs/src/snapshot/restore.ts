@@ -3,6 +3,7 @@ import { SnapshotMismatchError } from "../restore.js";
 import { Scope } from "../interp/interpreter.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import {
+  createSandboxArguments,
   createSandboxClosure,
   createSandboxGenerator,
   createSandboxMap,
@@ -511,6 +512,28 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     return array;
   }
 
+  if (serialized.kind === "arguments") {
+    const args = createSandboxArguments([]);
+    if (!serialized.lengthBeforeCallee) delete args.length;
+    state.heapValueById.set(id, args as RuntimeSnapshotValue);
+    for (const [key, descriptor] of Object.entries(serialized.properties)) {
+      Object.defineProperty(args, key, {
+        ...descriptor,
+        value: deserializeValue(descriptor.value, state)
+      });
+    }
+    if (serialized.iterator === null) {
+      Reflect.deleteProperty(args, Symbol.iterator);
+    } else {
+      Object.defineProperty(args, Symbol.iterator, {
+        ...serialized.iterator,
+        value: Array.prototype.values
+      });
+    }
+    if (!serialized.extensible) Object.preventExtensions(args);
+    return args as RuntimeSnapshotValue;
+  }
+
   if (serialized.kind === "map") {
     const map = createSandboxMap();
     state.heapValueById.set(id, map);
@@ -636,6 +659,8 @@ async function executeRestoredClosure(
   }
   if (node.type !== "ArrowFunctionExpression") {
     scope.declare("this", "const", thisValue);
+    state.budget.allocateArrayLength(args.length);
+    scope.declare("arguments", "let", createSandboxArguments(args));
   }
 
   for (let index = 0; index < node.params.length; index += 1) {

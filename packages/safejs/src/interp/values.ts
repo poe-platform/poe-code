@@ -5,6 +5,14 @@ import { SandboxError } from "./budget.js";
 import { trackSandboxPromise } from "./promise-tracker.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import {
+  copySandboxArgumentProperties,
+  createSandboxArguments,
+  getSandboxArgumentEntries,
+  isSandboxArguments
+} from "./arguments.js";
+
+export { createSandboxArguments, isSandboxArguments } from "./arguments.js";
 
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxGeneratorBrand = Symbol("SandboxGenerator");
@@ -365,7 +373,9 @@ export function measureSandboxData(values: Iterable<unknown>): number {
       return;
     }
 
-    const entries = Object.entries(value);
+    const entries = isSandboxArguments(value)
+      ? getSandboxArgumentEntries(value)
+      : Object.entries(value);
     usage += entries.length;
     for (const [key, entry] of entries) {
       usage += key.length;
@@ -517,6 +527,17 @@ function copyToSandbox(
     return copy;
   }
 
+  if (isSandboxArguments(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxArguments([]);
+    state.seen.set(value, copy);
+    copySandboxArgumentProperties(value, copy, (entry, key) =>
+      copyToSandbox(entry, state, joinPath(path, key), cloneSandboxCollections, depth + 1)
+    );
+    return copy;
+  }
+
   if (isPlainObject(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) {
@@ -648,6 +669,17 @@ function copyFromSandbox(
     return copy;
   }
 
+  if (isSandboxArguments(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxArguments([]);
+    state.seen.set(value, copy);
+    copySandboxArgumentProperties(value, copy, (entry, key) =>
+      copyFromSandbox(entry, state, joinPath(path, key), options, depth + 1)
+    );
+    return copy;
+  }
+
   if (isPlainObject(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) {
@@ -751,7 +783,10 @@ function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet
   }
 
   seen.add(value);
-  for (const entry of Object.values(value)) {
+  const entries = isSandboxArguments(value)
+    ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
+    : Object.values(value);
+  for (const entry of entries) {
     allocateSandboxValue(entry, budget, seen);
   }
 }

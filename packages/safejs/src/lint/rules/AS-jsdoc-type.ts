@@ -1,7 +1,7 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type BinaryExpression,
   type BlockStatement,
@@ -139,6 +139,9 @@ class ASJsdocTypeScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -288,7 +291,7 @@ class ASJsdocTypeScanner {
     }
   }
 
-  private validateArrowParams(node: ArrowFunctionExpression, jsdoc: ParsedJsdoc): void {
+  private validateArrowParams(node: FunctionNode, jsdoc: ParsedJsdoc): void {
     const typedParams = new Map(
       jsdoc.params.filter((param) => param.type !== undefined).map((param) => [param.name, param])
     );
@@ -307,6 +310,12 @@ class ASJsdocTypeScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -356,7 +365,7 @@ class ASJsdocTypeScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     for (const param of node.params) {
       if (param.type === "AssignmentPattern") {
         this.visitExpression(param.right);
@@ -884,6 +893,7 @@ function inferExpressionKind(
         return "boolean";
       }
       return undefined;
+    case "FunctionExpression":
     case "ArrowFunctionExpression":
     case "AssignmentExpression":
     case "AwaitExpression":

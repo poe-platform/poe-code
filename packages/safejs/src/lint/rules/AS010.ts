@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -107,6 +107,9 @@ class AS010Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlock(node);
         return;
@@ -259,9 +262,15 @@ class AS010Scanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
       case "Identifier":
         this.markRead(node);
         return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -307,7 +316,7 @@ class AS010Scanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     const scope = this.collectParameterBindings(node);
 
     if (node.body.type === "BlockStatement") {
@@ -616,7 +625,7 @@ class AS010Scanner {
     return scope;
   }
 
-  private collectParameterBindings(node: ArrowFunctionExpression): Scope {
+  private collectParameterBindings(node: FunctionNode): Scope {
     const scope: Scope = new Map();
 
     for (const parameter of node.params) {

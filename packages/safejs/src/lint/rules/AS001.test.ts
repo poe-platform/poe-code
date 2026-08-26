@@ -6,47 +6,8 @@ describe("AS001", () => {
   const messages = (source: string) => AS001(source).map((diagnostic) => diagnostic.message);
 
   it("reports each disallowed construct with its source span", () => {
-    expect(AS001("function example() {}", { filename: "rule.js" })).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: function.",
-        filename: "rule.js",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 9, offset: 8 }
-        }
-      }
-    ]);
-
-    expect(AS001("function* example() {}")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: function.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 9, offset: 8 }
-        }
-      },
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: generator.",
-        filename: "<input>",
-        line: 1,
-        column: 9,
-        span: {
-          start: { line: 1, column: 9, offset: 8 },
-          end: { line: 1, column: 10, offset: 9 }
-        }
-      }
-    ]);
+    expect(AS001("function example() {}", { filename: "rule.js" })).toEqual([]);
+    expect(AS001("function* example() {}")).toEqual([]);
 
     expect(AS001("class Example {}")).toEqual([
       {

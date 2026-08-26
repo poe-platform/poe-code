@@ -223,12 +223,6 @@ class AS001Scanner {
             pendingClassBody = true;
           }
         }
-
-        if (token.value === "function" && nextSignificantChar === "*") {
-          const generatorStart = this.positionWithinSource(this.skipTriviaFrom(this.index));
-          const generatorEnd = this.positionWithinSource(this.skipTriviaFrom(this.index) + 1);
-          this.report("generator", generatorStart, generatorEnd);
-        }
       }
 
       const isStatementBrace =
@@ -295,7 +289,6 @@ class AS001Scanner {
     switch (token.value) {
       case "class":
       case "eval":
-      case "function":
       case "Function":
       case "switch":
       case "this":

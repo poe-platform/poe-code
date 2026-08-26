@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -92,6 +92,9 @@ class ASMutatingFrozenScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -257,6 +260,12 @@ class ASMutatingFrozenScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -306,7 +315,7 @@ class ASMutatingFrozenScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     this.withScope(this.collectArrowFunctionBindings(node), () => {
       if (node.body.type === "BlockStatement") {
         this.visitBlockStatement(node.body);
@@ -521,9 +530,7 @@ class ASMutatingFrozenScanner {
     );
   }
 
-  private collectArrowFunctionBindings(
-    node: ArrowFunctionExpression
-  ): Array<[string, FrozenState]> {
+  private collectArrowFunctionBindings(node: FunctionNode): Array<[string, FrozenState]> {
     return node.params.flatMap((param) =>
       this.createUnknownBindings(this.collectBindingElementNames(param))
     );

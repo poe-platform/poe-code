@@ -4,18 +4,18 @@ import { lint } from "./index.js";
 
 describe("lint", () => {
   it("returns AS001 diagnostics for disallowed syntax instead of throwing", () => {
-    expect(() => lint("function example() {}", { filename: "rule.js" })).not.toThrow();
-    expect(lint("function example() {}", { filename: "rule.js" })).toEqual([
+    expect(() => lint("class Example {}", { filename: "rule.js" })).not.toThrow();
+    expect(lint("class Example {}", { filename: "rule.js" })).toEqual([
       {
         code: "AS001",
         severity: "error",
-        message: "Disallowed syntax: function.",
+        message: "Disallowed syntax: class.",
         filename: "rule.js",
         line: 1,
         column: 1,
         span: {
           start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 9, offset: 8 }
+          end: { line: 1, column: 6, offset: 5 }
         }
       }
     ]);

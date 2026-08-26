@@ -256,31 +256,19 @@ describe("@poe-code/safejs public exports", () => {
     ]);
   });
 
-  it("includes unsupported method argument diagnostics in lint results", () => {
+  it("accepts ordinary function method callbacks through the public API", async () => {
     const source = [
       "const value = 'abba';",
       "const values = [2, 1];",
-      "const compare = 0;",
+      "function compare(left, right) { return left - right; }",
       "value.replace('a', () => 'b');",
-      "values.sort(compare);"
+      "return values.sort(compare);"
     ].join("\n");
 
     expect(
-      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS012")
-    ).toMatchObject([
-      {
-        code: "AS012",
-        severity: "error",
-        message: "Array#sort only supports comparators that are arrows returning a number.",
-        filename: "rule.js",
-        line: 5,
-        column: 13,
-        span: {
-          start: { line: 5, column: 13, offset: source.lastIndexOf("compare") },
-          end: { line: 5, column: 20, offset: source.lastIndexOf("compare") + "compare".length }
-        }
-      }
-    ]);
+      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.severity === "error")
+    ).toEqual([]);
+    await expect(api.run(source)).resolves.toMatchObject({ ok: true, returnValue: [1, 2] });
   });
 
   it("includes top-level module shadowing diagnostics in lint results", () => {
@@ -622,7 +610,7 @@ describe("@poe-code/safejs public exports", () => {
       {
         code: "AS-ASYNC-NOT-NEEDED",
         severity: "info",
-        message: "Async arrow functions without await should remove the async keyword.",
+        message: "Async functions without await should remove the async keyword.",
         filename: "rule.js",
         line: 2,
         column: 13,

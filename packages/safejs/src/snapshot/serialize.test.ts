@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { createGeneratorChannel } from "../interp/generator.js";
-import { createSandboxGenerator } from "../interp/values.js";
+import { createSandboxArguments, createSandboxGenerator } from "../interp/values.js";
 import { hashSource } from "../parse/hash.js";
 import { serialize, UnsnapshotableValueError } from "./serialize.js";
 import { MAX_DATA_DEPTH, SnapshotBudgetError } from "../graph-depth.js";
 import { serializeSafeJSSnapshot } from "./dump-format.js";
+import { validateDumpEnvelope } from "./validation.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -35,6 +36,27 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("serialize", () => {
+  it("preserves arguments metadata in public dump files", () => {
+    const args = createSandboxArguments([5, 6]);
+    Object.freeze(args);
+    const dumped = JSON.parse(
+      serializeSafeJSSnapshot({ sourceHash: hashSource("await task()"), bindings: { args } })
+    );
+    expect(dumped.bindings.args).toMatchObject({ kind: "ref" });
+    expect(dumped.heap[String(dumped.bindings.args.id)]).toMatchObject({
+      kind: "arguments",
+      extensible: false,
+      lengthBeforeCallee: true,
+      iterator: { configurable: false, enumerable: false, writable: false },
+      properties: {
+        length: { value: 2, enumerable: false, writable: false },
+        0: { value: 5 },
+        1: { value: 6 }
+      }
+    });
+    expect(() => validateDumpEnvelope(dumped)).not.toThrow();
+  });
+
   it("serializes the boundary byte-identically and rejects deeply nested arrays and objects", () => {
     const allowed = nestedObjectArrayGraph(MAX_DATA_DEPTH - 4);
     const input = {

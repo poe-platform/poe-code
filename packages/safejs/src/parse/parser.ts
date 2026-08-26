@@ -496,6 +496,8 @@ export type ArrowFunctionExpression = BaseNode & {
   params: Array<AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement>;
 };
 
+export type FunctionNode = ArrowFunctionExpression | FunctionDeclaration | FunctionExpression;
+
 export type Expression =
   | ArrowFunctionExpression
   | AssignmentExpression

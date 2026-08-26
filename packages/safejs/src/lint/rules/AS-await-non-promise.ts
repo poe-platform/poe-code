@@ -1,7 +1,7 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AwaitExpression,
   type BinaryExpression,
@@ -68,6 +68,9 @@ class ASAwaitNonPromiseScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -198,6 +201,12 @@ class ASAwaitNonPromiseScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -247,7 +256,7 @@ class ASAwaitNonPromiseScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     if (node.body.type === "BlockStatement") {
       this.visitBlockStatement(node.body);
       return;
@@ -357,6 +366,7 @@ class ASAwaitNonPromiseScanner {
 
 function isKnownNonPromiseExpression(node: Expression): boolean {
   switch (node.type) {
+    case "FunctionExpression":
     case "ArrowFunctionExpression":
     case "ArrayExpression":
     case "BinaryExpression":

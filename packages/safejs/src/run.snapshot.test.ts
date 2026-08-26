@@ -445,6 +445,17 @@ describe("run snapshot checkpointing", () => {
       expected: [7, 11]
     },
     {
+      name: "escaped arguments objects",
+      source: `
+        function capture() { return arguments; }
+        const args = capture(5, 6);
+        args[1] = 9;
+        await wait();
+        return [args.length, [...args], Object.keys(args)];
+      `,
+      expected: [2, [5, 9], ["0", "1"]]
+    },
+    {
       name: "recursive reassigned closures",
       source: `
         let recurse;

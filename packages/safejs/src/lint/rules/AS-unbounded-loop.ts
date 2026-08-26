@@ -1,7 +1,7 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type BinaryExpression,
   type BlockStatement,
@@ -78,6 +78,9 @@ class ASUnboundedLoopScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -226,6 +229,12 @@ class ASUnboundedLoopScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -275,7 +284,7 @@ class ASUnboundedLoopScanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     const labels = this.labelStack.splice(0);
     try {
       if (node.body.type === "BlockStatement") {

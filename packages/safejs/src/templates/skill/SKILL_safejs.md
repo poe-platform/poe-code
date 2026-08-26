@@ -48,8 +48,8 @@ capped at five.
 
 ## Supported JavaScript
 
-For linted harness files, prefer the conservative authoring subset: arrows
-(including async arrows), closures over `const`, `let`, parameters, and imports,
+Linted harness files support arrows, ordinary functions (including async
+functions), synchronous generators, closures over `const`, `let`, parameters, and imports,
 `async`/`await`, regex literals, `new RegExp(...)`, `const`/`let`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
@@ -57,9 +57,9 @@ literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
 and `return`.
 
 The parser/runtime can execute additional JavaScript forms including
-`function`, generators, `var`, `switch`, `this`, and constructor calls for
+`var`, `switch`, `this`, and constructor calls for
 sandbox constructors, but default harness lint reports several of those forms
-(`function`, `var`, `switch`, `this`, and most `new` expressions). Avoid them
+(`var`, `switch`, `this`, and most `new` expressions). Avoid them
 in harnesses unless you are deliberately suppressing a lint rule.
 
 Not supported: class syntax, async generators, `eval`, `Function`, dynamic

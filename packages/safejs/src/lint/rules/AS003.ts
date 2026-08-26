@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -95,6 +95,9 @@ class AS003Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         this.visitBlock(node);
         return;
@@ -240,9 +243,15 @@ class AS003Scanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
       case "Identifier":
         this.visitIdentifier(node);
         return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -288,7 +297,7 @@ class AS003Scanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     this.withScope(this.collectParameterBindings(node), () => {
       for (const parameter of node.params) {
         this.visitBindingElement(parameter);
@@ -562,6 +571,10 @@ class AS003Scanner {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
+      if (statement.type === "FunctionDeclaration") {
+        bindings.push({ kind: "let", name: statement.id.name });
+        continue;
+      }
       if (statement.type === "VariableDeclaration") {
         bindings.push(...this.collectDeclarationBindings(statement));
         continue;
@@ -576,6 +589,9 @@ class AS003Scanner {
   private collectBlockBindings(body: Statement[]): Binding[] {
     const bindings: Binding[] = [];
     for (const statement of body) {
+      if (statement.type === "FunctionDeclaration") {
+        bindings.push({ kind: "let", name: statement.id.name });
+      }
       if (statement.type === "VariableDeclaration") {
         bindings.push(...this.collectDeclarationBindings(statement));
       }
@@ -583,8 +599,14 @@ class AS003Scanner {
     return bindings;
   }
 
-  private collectParameterBindings(node: ArrowFunctionExpression): Binding[] {
+  private collectParameterBindings(node: FunctionNode): Binding[] {
     const bindings: Binding[] = [];
+    if (node.type !== "ArrowFunctionExpression") {
+      bindings.push({ kind: "let", name: "arguments" });
+      if (node.type === "FunctionExpression" && node.id !== undefined) {
+        bindings.push({ kind: "const", name: node.id.name });
+      }
+    }
     for (const parameter of node.params) {
       this.collectBindingNamesFromElement(parameter, "param", bindings);
     }

@@ -2,7 +2,7 @@ import {
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -100,6 +100,9 @@ class AS006007Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "ExportNamedDeclaration":
         this.visitVariableDeclaration(node.declaration);
         return;
@@ -246,9 +249,15 @@ class AS006007Scanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
       case "Identifier":
         this.markRead(node);
         return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -294,7 +303,7 @@ class AS006007Scanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     this.withDeferredReads(() => {
       this.withScope(this.collectParameterBindings(node), () => {
         for (const parameter of node.params) {
@@ -563,6 +572,10 @@ class AS006007Scanner {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
+      if (statement.type === "FunctionDeclaration") {
+        bindings.push(this.createBinding(statement.id, "let"));
+        continue;
+      }
       if (statement.type === "VariableDeclaration") {
         bindings.push(...this.collectDeclarationBindings(statement));
         continue;
@@ -579,6 +592,9 @@ class AS006007Scanner {
     const bindings: Binding[] = [];
 
     for (const statement of body) {
+      if (statement.type === "FunctionDeclaration") {
+        bindings.push(this.createBinding(statement.id, "let"));
+      }
       if (statement.type === "VariableDeclaration") {
         bindings.push(...this.collectDeclarationBindings(statement));
       }
@@ -587,8 +603,12 @@ class AS006007Scanner {
     return bindings;
   }
 
-  private collectParameterBindings(node: ArrowFunctionExpression): Binding[] {
+  private collectParameterBindings(node: FunctionNode): Binding[] {
     const bindings: Binding[] = [];
+
+    if (node.type === "FunctionExpression" && node.id !== undefined) {
+      bindings.push(this.createBinding(node.id, "param"));
+    }
 
     for (const parameter of node.params) {
       this.collectBindingNamesFromElement(parameter, "param", bindings);

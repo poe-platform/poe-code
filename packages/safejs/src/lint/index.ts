@@ -7,7 +7,6 @@ import { AS008 } from "./rules/AS008.js";
 import { AS009 } from "./rules/AS009.js";
 import { AS010 } from "./rules/AS010.js";
 import { AS011 } from "./rules/AS011.js";
-import { AS012 } from "./rules/AS012.js";
 import { AS013 } from "./rules/AS013.js";
 import { AS015 } from "./rules/AS015.js";
 import { AS_ASYNC_NOT_NEEDED } from "./rules/AS-async-not-needed.js";
@@ -78,7 +77,6 @@ const RULES: readonly LintRule[] = [
   AS009,
   AS010,
   AS011,
-  AS012,
   AS013,
   AS015,
   AS_IMPORT_CYCLE,

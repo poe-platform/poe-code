@@ -3,7 +3,7 @@ import {
   type ArrayExpression,
   type ArrayPattern,
   type AssignmentPattern,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type CatchClause,
   type CallExpression,
@@ -66,6 +66,9 @@ class AS015Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         for (const statement of node.body) {
           this.visitStatement(statement);
@@ -198,6 +201,12 @@ class AS015Scanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -242,7 +251,7 @@ class AS015Scanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     for (const parameter of node.params) {
       this.visitPattern(parameter);
     }

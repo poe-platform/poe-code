@@ -4,6 +4,7 @@ import {
   type ArrayPattern,
   type ArrowFunctionExpression,
   type FunctionExpression,
+  type FunctionDeclaration,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -55,7 +56,7 @@ export type Diagnostic = {
 };
 
 export const AS_ASYNC_NOT_NEEDED_MESSAGE =
-  "Async arrow functions without await should remove the async keyword.";
+  "Async functions without await should remove the async keyword.";
 
 export function AS_ASYNC_NOT_NEEDED(
   source: string,
@@ -98,6 +99,9 @@ class ASAsyncNotNeededScanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitFunctionExpression(node);
+        return;
       case "BlockStatement":
         this.visitBlockStatement(node);
         return;
@@ -136,6 +140,10 @@ class ASAsyncNotNeededScanner {
       case "ExportDefaultDeclaration":
         if (node.declaration.type === "ArrowFunctionExpression") {
           this.visitArrowFunction(node.declaration, true);
+          return;
+        }
+        if (node.declaration.type === "FunctionExpression") {
+          this.visitFunctionExpression(node.declaration, true);
           return;
         }
         this.visitExpression(node.declaration);
@@ -238,6 +246,11 @@ class ASAsyncNotNeededScanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node, false);
         return;
@@ -307,8 +320,11 @@ class ASAsyncNotNeededScanner {
     this.visitExpression(node.body);
   }
 
-  private visitFunctionExpression(node: FunctionExpression): void {
-    if (node.async && !bodyContainsAwait(node.body)) {
+  private visitFunctionExpression(
+    node: FunctionExpression | FunctionDeclaration,
+    isDefaultExport = false
+  ): void {
+    if (node.async && !isDefaultExport && !bodyContainsAwait(node.body)) {
       this.report(createAsyncKeywordSpan(node.span));
     }
 

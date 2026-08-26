@@ -1,6 +1,8 @@
 import { hashSource } from "../parse/hash.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import {
+  isSandboxArguments,
   isSandboxGenerator,
   isSandboxMap,
   isSandboxRegex,
@@ -59,6 +61,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | SerializedArguments<SerializedSnapshotValue>
   | {
       kind: "array";
       items: SerializedSnapshotValue[];
@@ -417,7 +420,11 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxMap(value)) {
+    if (isSandboxArguments(value)) {
+      state.heap[String(id)] = serializeArguments(value, (entry, key) =>
+        serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state)
+      );
+    } else if (isSandboxMap(value)) {
       state.heap[String(id)] = {
         kind: "map",
         entries: [...value.entries].map(([key, entry], index) => [
@@ -541,7 +548,13 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
   const heapIds = new WeakMap<object, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
-    if (stat.count > 1 || stat.cyclic || isSandboxMap(value) || isSandboxSet(value)) {
+    if (
+      stat.count > 1 ||
+      stat.cyclic ||
+      isSandboxArguments(value) ||
+      isSandboxMap(value) ||
+      isSandboxSet(value)
+    ) {
       heapIds.set(value, nextId);
       nextId += 1;
     }
@@ -598,13 +611,17 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxMap(value)
-    ? [...value.entries].flatMap(([key, entry]) => [key, entry])
-    : isSandboxSet(value)
-      ? [...value.values]
-      : Array.isArray(value)
-        ? value
-        : Object.values(value);
+  const entries = isSandboxArguments(value)
+    ? Object.values(Object.getOwnPropertyDescriptors(value)).flatMap((descriptor) =>
+        "value" in descriptor ? [descriptor.value] : []
+      )
+    : isSandboxMap(value)
+      ? [...value.entries].flatMap(([key, entry]) => [key, entry])
+      : isSandboxSet(value)
+        ? [...value.values]
+        : Array.isArray(value)
+          ? value
+          : Object.values(value);
   for (const entry of entries) {
     collectContainerStats(entry as RuntimeSnapshotValue, stats, ancestors);
   }

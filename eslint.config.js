@@ -54,6 +54,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ['packages/safejs/src/interp/arguments.ts'],
+    rules: {
+      'prefer-rest-params': 'off',
+    },
+  },
+  {
     files: ['packages/agent-spawn/**/*.ts'],
     rules: {
       'no-restricted-imports': [

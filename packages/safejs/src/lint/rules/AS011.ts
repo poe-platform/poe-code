@@ -1,7 +1,7 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrowFunctionExpression,
+  type FunctionNode,
   type AssignmentExpression,
   type CatchClause,
   type CallExpression,
@@ -62,6 +62,9 @@ class AS011Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
       case "BlockStatement":
         for (const statement of node.body) {
           this.visitStatement(statement);
@@ -187,6 +190,12 @@ class AS011Scanner {
 
   private visitExpression(node: Expression): void {
     switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
@@ -231,7 +240,7 @@ class AS011Scanner {
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
+  private visitArrowFunction(node: FunctionNode): void {
     for (const parameter of node.params) {
       this.visitBindingTarget(parameter);
     }

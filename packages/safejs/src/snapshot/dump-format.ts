@@ -1,5 +1,7 @@
 export const DUMP_FORMAT_VERSION = 1;
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
+import { serializeArguments, type SerializedArguments } from "./arguments.js";
 
 const SKIP_VALUE = Symbol("SafeJS.skip-dump-value");
 
@@ -13,6 +15,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | SerializedArguments<DumpValue>
   | {
       kind: "array";
       items: DumpValue[];
@@ -144,7 +147,12 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (Array.isArray(value)) {
+    if (isSandboxArguments(value)) {
+      state.heap[String(id)] = serializeArguments(value, (entry, key) => {
+        const serialized = serializeDumpValue(entry, `${path}.${key}`, state);
+        return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
+      });
+    } else if (Array.isArray(value)) {
       state.heap[String(id)] = {
         kind: "array",
         items: serializeArrayItems(value, path, state)
@@ -195,7 +203,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
   const heapIds = new WeakMap<object, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
-    if (stat.count > 1 || stat.cyclic) {
+    if (stat.count > 1 || stat.cyclic || isSandboxArguments(value)) {
       heapIds.set(value, nextId);
       nextId += 1;
     }
@@ -241,7 +249,11 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = Array.isArray(value) ? getArrayDataItems(value) : getEnumerableDataValues(value);
+  const entries = isSandboxArguments(value)
+    ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
+    : Array.isArray(value)
+      ? getArrayDataItems(value)
+      : getEnumerableDataValues(value);
   for (const entry of entries) {
     collectContainerStats(entry, stats, ancestors);
   }

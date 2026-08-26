@@ -9,6 +9,7 @@ const DEFAULT_MAX_ENTRIES = 100_000;
 const DEFAULT_MAX_STRING_LENGTH = 1_000_000;
 const DEFAULT_MAX_DATA_SIZE = 16_000_000;
 const TAGGED_VALUE_KINDS = new Set([
+  "arguments",
   "array",
   "fn",
   "generator",
@@ -96,6 +97,10 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     const id = parseHeapId(key, path);
     addUnique(heapIds, id, path);
     const entry = requireRecord(value, path);
+    if (entry.kind === "arguments") {
+      validateArgumentsProperties(entry, path);
+      continue;
+    }
     if (entry.kind === "array") {
       requireArray(entry.items, `${path}.items`, state);
       continue;
@@ -418,6 +423,7 @@ function validateTaggedValue(
       requireSafeInteger(record.lastIndex, `${path}.lastIndex`, 0);
       return;
     case "array":
+    case "arguments":
     case "object":
     case "map":
     case "set":
@@ -473,9 +479,10 @@ function validateGeneratorShape(
 
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
-  if (!["array", "object", "map", "set"].includes(String(record.kind)))
+  if (!["arguments", "array", "object", "map", "set"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
+  if (record.kind === "arguments") validateArgumentsProperties(record, path);
   if (record.kind === "array") requireArray(record.items, `${path}.items`, state);
   if (record.kind === "object") requireRecord(record.entries, `${path}.entries`);
   if (record.kind === "map") {
@@ -486,6 +493,56 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     });
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
+}
+
+function validateArgumentsProperties(record: Record<string, unknown>, path: string): void {
+  if (typeof record.extensible !== "boolean") {
+    fail("invalidType", `${path}.extensible`, "expected boolean");
+  }
+  if (typeof record.lengthBeforeCallee !== "boolean") {
+    fail("invalidType", `${path}.lengthBeforeCallee`, "expected boolean");
+  }
+  const properties = requireRecord(record.properties, `${path}.properties`);
+  if (record.iterator !== null) {
+    const iterator = requireRecord(record.iterator, `${path}.iterator`);
+    for (const key of Object.keys(iterator)) {
+      if (!["configurable", "enumerable", "writable"].includes(key)) {
+        fail(
+          "invalidValue",
+          `${path}.iterator${formatKey(key)}`,
+          "unknown iterator descriptor field"
+        );
+      }
+    }
+    for (const flag of ["configurable", "enumerable", "writable"]) {
+      if (typeof iterator[flag] !== "boolean")
+        fail("invalidType", `${path}.iterator.${flag}`, "expected boolean");
+    }
+  }
+  if (record.lengthBeforeCallee && !Object.hasOwn(properties, "length")) {
+    fail("invalidValue", `${path}.properties`, "initial length property is required");
+  }
+  for (const [key, value] of Object.entries(properties)) {
+    const propertyPath = `${path}.properties${formatKey(key)}`;
+    if (key === "callee")
+      fail("invalidValue", propertyPath, "strict callee accessor cannot be replaced");
+    const descriptor = requireRecord(value, propertyPath);
+    for (const field of Object.keys(descriptor)) {
+      if (!["value", "configurable", "enumerable", "writable"].includes(field)) {
+        fail(
+          "invalidValue",
+          `${propertyPath}${formatKey(field)}`,
+          "unknown property descriptor field"
+        );
+      }
+    }
+    if (!Object.hasOwn(descriptor, "value"))
+      fail("invalidValue", propertyPath, "property value is required");
+    for (const flag of ["configurable", "enumerable", "writable"]) {
+      if (typeof descriptor[flag] !== "boolean")
+        fail("invalidType", `${propertyPath}.${flag}`, "expected boolean");
+    }
+  }
 }
 
 function validateGenerator(

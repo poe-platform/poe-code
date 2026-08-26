@@ -36,6 +36,7 @@ available; never substitute elapsed calendar time for demonstrated work.
 | R16 | Maintain `AGENTS.md` codebase rules. | Documentation added in this change; ongoing maintenance required as conventions become verified. |
 | R17 | Supply at least 40 verified Bash fixtures tagged by feature as `core` or `advanced`. | Separate oracle worker assignment; fixture count, tags, Bash results, and delivery not yet verified by this worker. |
 | R18 | "IT MUST BE BETTER than just-bash, much better" | Exact user requirement; not demonstrated. Broad head-to-head benchmark evidence is required. A tiny selected passing subset cannot redefine or satisfy this requirement. |
+| R19 | "one more note - zero dependency if posisble" | Exact user preference. Preserve zero shipped runtime dependencies where possible, prefer Node builtins, and keep development tooling minimal. This is not an absolute ban on TypeScript tooling. Comparator dependencies belong in the isolated optional benchmark package. |
 
 Foundation commit `5468d14` establishes a TypeScript 5.9 ESM package requiring
 Node.js `>=22`, with npm, strict NodeNext compilation, development-only tooling,
@@ -126,6 +127,43 @@ that any implementation, command, fixture, or test currently exists.
 | 2026-08-26 | User added the exact requirement "IT MUST BE BETTER than just-bash, much better" and requested head-to-head evidence without narrowing superiority to a tiny selected subset. | Recorded as R18; not achieved or benchmarked. User also assigned the foundation worker to independently verify tool work when ready; that verification has not started. |
 
 ## Pending work
+
+### Independent comparison checkpoint: 2026-08-26
+
+- `497bec1` adds the complete 88-fixture comparison, 18 deterministic byte/pipeline
+  cases, and three concurrency/cancellation/backpressure probes: 109 outcomes per
+  engine, without filters. `benchmarks/reports/baseline.json` records exact source,
+  corpus, harness, and lock hashes plus Node/tooling versions. Source stayed stable
+  during this run; the working tree was not assumed identical to its Git revision.
+- Pinned comparator: `just-bash` 3.4.2, isolated in `benchmarks/package.json` and
+  its lockfile. The shipped library still has zero runtime dependencies. Install
+  with `npm --prefix benchmarks ci --ignore-scripts`; run `npm run benchmark`.
+- Baseline: virtual-bash 98 pass, eight fail, three error; just-bash 103 pass,
+  five fail, one unsupported. All 109 outcomes remain in each denominator.
+  Overall result is failure and superiority is not demonstrated. The earlier
+  `initial-comparison.json` records 98 pass/11 fail for virtual-bash before a
+  concurrent shell lifecycle change; neither snapshot is concealed.
+- The three current virtual errors report `Pipeline consumer exited` in fixtures
+  involving absent sed/awk commands; four other failures also require those tools.
+  Four syntax failures cover case/heredocs/here-strings. These are routed to the
+  shell and text-program owners, not fixed by changing comparator expectations.
+- Just-bash failures cover ordinary-variable export, shared stdin consumption,
+  and binary printf/file fidelity. Its buffered public custom-command interface
+  cannot implement this harness's streaming extension probe; that outcome is
+  unsupported, not a claim about every internal pipeline implementation.
+- Twelve harness tests and 67 foundation tests pass under strict unhandled
+  rejection handling. Global build/typecheck passed at the export checkpoint;
+  concurrent adapter conformance failures reported by their verifier remain
+  outside this scoped validation. Full compatibility, performance, security,
+  backend conformance, and the 72-hour objective remain unproven.
+- `ca6211b` fixes Node errno normalization (including EOPNOTSUPP); `40cb827`
+  exports actual shell/commands, memory/real/remote adapters, and SafeJS APIs,
+  including package subpaths `virtual-bash/fs/s3` and `virtual-bash/fs/webdav`.
+- Independent command ownership transferred after first-family commits
+  `08c737c`, `01c9a0f`, `f06a827`, `e5d18bc`, `ae53a51`; stress/fix work now
+  excludes the separate `text-programs` implementation and tests.
+
+### Remaining validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent
   workers deliver code; keep foundation checkpoint evidence separate from

@@ -23,6 +23,10 @@
   do not redefine it as passing a tiny selected subset. Record comparison
   criteria, versions, workloads, results, losses, and remaining gaps.
 - Build tools sequentially, then run independent stress-test/fix cycles.
+- Preserve the user's exact preference: **"one more note - zero dependency if posisble"**.
+  Keep the shipped library at zero runtime dependencies where possible and use
+  Node builtins. Minimal development tooling is permitted; isolate comparator
+  dependencies in the optional `benchmarks/` package rather than the library.
 - The user explicitly requested **WORK 72 hours**. Record actual work and
   remaining scope; do not claim this duration or completion without evidence.
 - Initialize Git and make atomic commits. Git is already initialized as of the
@@ -48,6 +52,11 @@
 - Commands: `npm test` runs `tests/**/*.test.ts`; `npm run test:contracts` runs
   contract tests; `npm run typecheck` checks source and test types;
   `npm run build` emits ESM and declarations to `dist/`.
+- Optional comparison: `npm --prefix benchmarks ci --ignore-scripts`, then
+  `npm run benchmark`. It runs every oracle fixture and deterministic probes,
+  writes machine-readable results, and exits nonzero for any non-pass outcome.
+  Comparator versions are pinned in its isolated lockfile; do not exclude
+  unsupported or pending outcomes from the denominator.
 - At foundation delivery, all four commands and built-package import checks
   passed. After the contract stress fixes, 65 contract tests and owned-scope
   typechecking passed, including 20 strict-rejection repetitions. A subsequent
@@ -74,3 +83,7 @@
 - All edits for this documentation assignment must use `apply_patch`.
 - Coordinate API details with foundation contracts worker Curie
   (`01a03f3d-492a-7e30-af3e-1e0e0e56f7e7`) before publishing API examples.
+- The foundation worker owns contracts, root exports/configuration, benchmarks,
+  and independent command verification. Exclude `src/commands/text-programs/**`
+  and its tests (Plato), all adapters, `tests/stress/adapters/**`, and
+  `tests/fs/conformance/**` (Faraday); coordinate later ownership transfers.

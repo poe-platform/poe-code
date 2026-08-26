@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { readFile, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 import { buildDockerEnvArgs, buildDockerRunArgs } from "./args.js";
 import { readDockerBuildContextFiles, type DockerBuildContextFile } from "./build-context.js";
 import { buildContextArgs, detectContext } from "./context.js";
@@ -466,19 +467,26 @@ async function runAndRead(runner: Runner, spec: RunSpec): Promise<string> {
   return output;
 }
 
-async function runAndReadBytes(runner: Runner, spec: RunSpec): Promise<Buffer> {
-  const handle = runner.exec(spec);
-  const stdout = readStreamBytes(handle.stdout);
-  const stderr = readStream(handle.stderr);
-  const result = await handle.result;
-  const output = await stdout;
-  if (result.exitCode !== 0) {
-    const errorOutput = await stderr;
-    throw new Error(
-      `Command failed with exit code ${result.exitCode}: ${spec.command} ${(spec.args ?? []).join(" ")}${errorOutput ? `\n${errorOutput}` : ""}`
-    );
+async function runJobRead(
+  runner: Runner,
+  spec: RunSpec
+): Promise<{ exitCode: number; stdout: Buffer; stderr: string }> {
+  spec.signal?.throwIfAborted();
+  const controller = new AbortController();
+  const signal = spec.signal
+    ? AbortSignal.any([spec.signal, controller.signal])
+    : controller.signal;
+  const handle = runner.exec({ ...spec, signal });
+  const reads = [handle.result, readStreamBytes(handle.stdout), readStream(handle.stderr)] as const;
+  try {
+    const [result, stdout, stderr] = await Promise.all(reads);
+    signal.throwIfAborted();
+    return { exitCode: result.exitCode, stdout, stderr };
+  } catch (error) {
+    controller.abort();
+    await Promise.allSettled(reads);
+    throw error;
   }
-  return output;
 }
 
 async function runOrThrow(runner: Runner, spec: RunSpec): Promise<void> {
@@ -677,16 +685,16 @@ function createContainerJob(
     envId: containerId,
     tool: detachedJobContext?.tool ?? "docker",
     argv: detachedJobContext?.argv ?? ["attach", containerId],
-    async status() {
+    async status(opts?: { signal?: AbortSignal }) {
       if (detachedJobContext !== null) {
-        const detached = await readDetachedState(containerId, jobId, runner, engine, context);
+        const detached = await readDetachedState(containerId, jobId, runner, engine, context, opts?.signal);
         if (detached.kind === "unreachable") {
           return "lost" as const;
         }
         return detached.kind === "exited" ? ("exited" as const) : ("running" as const);
       }
 
-      const handle = runner.exec({
+      const result = await runJobRead(runner, {
         command: engine,
         args: [
           ...buildContextArgs(engine, context),
@@ -696,16 +704,15 @@ function createContainerJob(
           containerId
         ],
         stdout: "pipe",
-        stderr: "pipe"
+        stderr: "pipe",
+        signal: opts?.signal
       });
-      const stdout = await readStream(handle.stdout);
-      const result = await handle.result;
       if (result.exitCode !== 0) {
         return "lost" as const;
       }
-      return stdout.trim() === "exited" ? ("exited" as const) : ("running" as const);
+      return result.stdout.toString("utf8").trim() === "exited" ? ("exited" as const) : ("running" as const);
     },
-    async *stream(opts?: { sinceByte?: number; since?: Date; follow?: boolean }) {
+    async *stream(opts?: { sinceByte?: number; since?: Date; follow?: boolean; signal?: AbortSignal }) {
       const logFile = shellQuote(`/tmp/poe-jobs/${jobId}.log`);
       const sinceCondition =
         opts?.since === undefined
@@ -718,7 +725,7 @@ function createContainerJob(
       let pendingByteOffset = byteOffset;
       let finalRead = false;
       while (true) {
-        const stdout = await runAndReadBytes(runner, {
+        const spec: RunSpec = {
           command: engine,
           args: [
             ...buildContextArgs(engine, context),
@@ -729,8 +736,15 @@ function createContainerJob(
             `test -f ${logFile}${sinceCondition} && tail -c +${byteOffset + 1} ${logFile} || true`
           ],
           stdout: "pipe",
-          stderr: "pipe"
-        });
+          stderr: "pipe",
+          signal: opts?.signal
+        };
+        const { stdout, stderr, exitCode } = await runJobRead(runner, spec);
+        if (exitCode !== 0) {
+          throw new Error(
+            `Command failed with exit code ${exitCode}: ${spec.command} ${(spec.args ?? []).join(" ")}${stderr ? `\n${stderr}` : ""}`
+          );
+        }
         if (stdout.byteLength > 0) {
           const combined = pendingBytes.byteLength === 0
             ? stdout
@@ -747,7 +761,7 @@ function createContainerJob(
         if (opts?.follow !== true || finalRead) {
           return;
         }
-        const status = await this.status();
+        const status = await this.status({ signal: opts?.signal });
         if (status === "exited" && detachedJobContext !== null) {
           finalRead = true;
           continue;
@@ -755,7 +769,7 @@ function createContainerJob(
         if (status !== "running") {
           return;
         }
-        await new Promise<void>((resolve) => setTimeout(resolve, 250));
+        await sleep(250, undefined, { signal: opts?.signal });
       }
     },
     async wait() {
@@ -871,10 +885,11 @@ async function readDetachedState(
   jobId: string,
   runner: Runner,
   engine: Engine,
-  context: string | null
+  context: string | null,
+  signal?: AbortSignal
 ): Promise<DetachedState> {
   const exitFile = shellQuote(`/tmp/poe-jobs/${jobId}.exit`);
-  const handle = runner.exec({
+  const result = await runJobRead(runner, {
     command: engine,
     args: [
       ...buildContextArgs(engine, context),
@@ -885,14 +900,13 @@ async function readDetachedState(
       `test -f ${exitFile} && cat ${exitFile} || true`
     ],
     stdout: "pipe",
-    stderr: "pipe"
+    stderr: "pipe",
+    signal
   });
-  const stdout = await readStream(handle.stdout);
-  const result = await handle.result;
   if (result.exitCode !== 0) {
     return { kind: "unreachable" };
   }
-  const text = stdout.trim();
+  const text = result.stdout.toString("utf8").trim();
   if (text.length === 0) {
     return { kind: "running" };
   }

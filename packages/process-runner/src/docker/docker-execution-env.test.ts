@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { readdir, readFile, realpath } from "node:fs/promises";
-import { Readable } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
@@ -1010,6 +1010,242 @@ describe("dockerExecutionEnvFactory", () => {
     expect(runner.specs[0]?.args?.at(-1)).toContain("stat -c %Y");
     expect(runner.specs[0]?.args?.at(-1)).toContain("4070908800");
   });
+
+  it.each(["read", "stream status", "detached status", "container status"])(
+    "cancels a blocked local %s and waits for its process to close",
+    async (phase) => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      const aborted = vi.fn();
+      const closed = vi.fn();
+      const settled = vi.fn();
+      const specs: RunSpec[] = [];
+      let release = () => {};
+      const runner: Runner = {
+        name: "abort-aware",
+        exec(spec) {
+          specs.push(spec);
+          if (phase === "stream status" && specs.length === 1) {
+            return createHandle({ exitCode: 0 });
+          }
+          const stdout = new PassThrough();
+          const stderr = new PassThrough();
+          let finish!: (result: { exitCode: number }) => void;
+          let timer: ReturnType<typeof setTimeout> | undefined;
+          let done = false;
+          const result = new Promise<{ exitCode: number }>((resolve) => {
+            finish = resolve;
+          });
+          const onAbort = () => {
+            aborted();
+            timer = setTimeout(release, 10);
+          };
+          release = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            spec.signal?.removeEventListener("abort", onAbort);
+            stdout.end();
+            stderr.end();
+            finish({ exitCode: 1 });
+            closed();
+          };
+          spec.signal?.addEventListener("abort", onAbort, { once: true });
+          return { pid: 123, stdin: null, stdout, stderr, result, kill: vi.fn() };
+        }
+      };
+      vi.mocked(createHostRunner).mockReturnValue(runner);
+      const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+      const env = await dockerExecutionEnvFactory.attach(
+        "container-id",
+        phase === "container status"
+          ? undefined
+          : {
+              jobId: "job-logs",
+              tool: "node",
+              argv: ["node"],
+              cwd: "/workspace"
+            }
+      );
+      const job = env.job ?? (await env.detach());
+      const kill = vi.spyOn(job, "kill");
+      const close = vi.spyOn(env, "close");
+      const operation =
+        phase === "read" || phase === "stream status"
+          ? job.stream({ follow: true, signal: controller.signal })[Symbol.asyncIterator]().next()
+          : job.status({ signal: controller.signal });
+      const reading = operation.then(
+        (value) => settled(value),
+        (error: unknown) => settled(error)
+      );
+      try {
+        await vi.advanceTimersByTimeAsync(0);
+        controller.abort();
+        await vi.advanceTimersByTimeAsync(0);
+        expect(aborted).toHaveBeenCalledTimes(1);
+        expect(settled).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(10);
+
+        expect(settled).toHaveBeenCalledExactlyOnceWith(controller.signal.reason);
+        expect(closed).toHaveBeenCalledTimes(1);
+        expect(kill).not.toHaveBeenCalled();
+        expect(close).not.toHaveBeenCalled();
+        expect(specs.at(-1)?.signal?.aborted).toBe(true);
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        release();
+        await vi.advanceTimersByTimeAsync(0);
+        await reading;
+        vi.restoreAllMocks();
+        vi.useRealTimers();
+      }
+    }
+  );
+
+  it.each(["stdout", "stderr", "result"])(
+    "preserves a local %s failure after closing all read resources",
+    async (phase) => {
+      vi.useFakeTimers();
+      const failure = new Error(`${phase} failed`);
+      const controller = new AbortController();
+      const stdout = new PassThrough();
+      const stderr = new PassThrough();
+      const aborted = vi.fn();
+      const closed = vi.fn();
+      const settled = vi.fn();
+      let failResult!: (error: Error) => void;
+      let finish!: (value: { exitCode: number }) => void;
+      let release = () => {};
+      const result = new Promise<{ exitCode: number }>((resolve, reject) => {
+        finish = resolve;
+        failResult = reject;
+      });
+      const runner: Runner = {
+        name: "failing-reader",
+        exec(spec) {
+          let timer: ReturnType<typeof setTimeout> | undefined;
+          let done = false;
+          const onAbort = () => {
+            aborted();
+            timer = setTimeout(release, 10);
+          };
+          release = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            spec.signal?.removeEventListener("abort", onAbort);
+            stdout.end();
+            stderr.end();
+            finish({ exitCode: 1 });
+            closed();
+          };
+          spec.signal?.addEventListener("abort", onAbort, { once: true });
+          return { pid: 123, stdin: null, stdout, stderr, result, kill: vi.fn() };
+        }
+      };
+      vi.mocked(createHostRunner).mockReturnValue(runner);
+      const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+      const env = await dockerExecutionEnvFactory.attach("container-id", {
+        jobId: "job-logs",
+        tool: "node",
+        argv: ["node"],
+        cwd: "/workspace"
+      });
+      const reading = env
+        .job!.stream({ signal: controller.signal })
+        [Symbol.asyncIterator]()
+        .next()
+        .then(
+          (value) => settled(value),
+          (error: unknown) => settled(error)
+        );
+      try {
+        await vi.advanceTimersByTimeAsync(0);
+        if (phase === "result") failResult(failure);
+        else if (phase === "stdout") stdout.destroy(failure);
+        else stderr.destroy(failure);
+        await vi.advanceTimersByTimeAsync(0);
+        expect(aborted).toHaveBeenCalledTimes(1);
+        expect(settled).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(10);
+
+        expect(settled).toHaveBeenCalledExactlyOnceWith(failure);
+        expect(closed).toHaveBeenCalledTimes(1);
+        expect(controller.signal.aborted).toBe(false);
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        release();
+        await vi.advanceTimersByTimeAsync(0);
+        await reading;
+        vi.useRealTimers();
+      }
+    }
+  );
+
+  it("cancels the log polling sleep without another Docker command", async () => {
+    vi.useFakeTimers();
+    const runner = createCapturingRunner([
+      { exitCode: 0 },
+      { exitCode: 0 },
+      { exitCode: 0 },
+      { exitCode: 0, stdout: ["0\n"] },
+      { exitCode: 0 }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const controller = new AbortController();
+    const settled = vi.fn();
+    const reading = env
+      .job!.stream({ follow: true, signal: controller.signal })
+      [Symbol.asyncIterator]()
+      .next()
+      .then(
+        (value) => settled(value),
+        (error: unknown) => settled(error)
+      );
+    try {
+      await vi.advanceTimersByTimeAsync(0);
+      expect(runner.specs).toHaveLength(2);
+      controller.abort();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(settled).toHaveBeenCalledWith(expect.objectContaining({ name: "AbortError" }));
+      expect(runner.specs).toHaveLength(2);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      await vi.advanceTimersByTimeAsync(1000);
+      await reading;
+      vi.useRealTimers();
+    }
+  });
+
+  it.each(["read", "status"])(
+    "does not start a local %s with an already aborted signal",
+    async (phase) => {
+      const runner = createCapturingRunner([{ exitCode: 0 }]);
+      vi.mocked(createHostRunner).mockReturnValue(runner);
+      const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+      const env = await dockerExecutionEnvFactory.attach("container-id", {
+        jobId: "job-logs",
+        tool: "node",
+        argv: ["node"],
+        cwd: "/workspace"
+      });
+      const controller = new AbortController();
+      controller.abort();
+      const operation =
+        phase === "read"
+          ? env.job!.stream({ signal: controller.signal })[Symbol.asyncIterator]().next()
+          : env.job!.status({ signal: controller.signal });
+      await expect(operation).rejects.toBe(controller.signal.reason);
+      expect(runner.specs).toEqual([]);
+    }
+  );
 
   it("follows appended detached log output until the command exits", async () => {
     vi.useFakeTimers();

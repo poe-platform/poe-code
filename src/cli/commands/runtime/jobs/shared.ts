@@ -123,15 +123,21 @@ export async function streamJobLog(
   }
 ): Promise<void> {
   let detaching = false;
+  const controller = new AbortController();
+  const { signal } = controller;
+  let pendingNext: Promise<IteratorResult<{ byteOffset: number; data: string }>> | undefined;
+  let pollTimer: ReturnType<typeof setTimeout> | undefined;
+  let failure: { error: unknown } | undefined;
   const iterator = handle.stream({
     ...(opts.since === undefined ? { sinceByte: 0 } : { since: opts.since }),
-    follow: opts.follow
+    follow: opts.follow,
+    signal
   })[Symbol.asyncIterator]();
   const onSigint = opts.onDetach
     ? () => {
         detaching = true;
+        controller.abort();
         opts.onDetach?.();
-        void iterator.return?.();
       }
     : undefined;
 
@@ -140,30 +146,25 @@ export async function streamJobLog(
   }
 
   try {
-    if (!opts.follow) {
-      while (true) {
-        const result = await iterator.next();
-        if (result.done === true) {
-          break;
-        }
-        opts.write(result.value.data);
-      }
-      return;
-    }
-
-    let pendingNext: Promise<IteratorResult<{ byteOffset: number; data: string }>> | undefined;
-    let draining = false;
+    let draining = !opts.follow;
     while (!detaching) {
       pendingNext ??= iterator.next();
       const result = draining
         ? await pendingNext
         : await Promise.race([
             pendingNext,
-            sleep(250).then(() => ({ timedOut: true as const }))
+            new Promise<{ timedOut: true }>((resolve) => {
+              pollTimer = setTimeout(() => resolve({ timedOut: true }), 250);
+            })
           ]);
+      clearTimeout(pollTimer);
+      pollTimer = undefined;
+      if (detaching) {
+        break;
+      }
 
       if ("timedOut" in result) {
-        draining = (await handle.status()) !== "running";
+        draining = (await handle.status({ signal })) !== "running";
         continue;
       }
 
@@ -173,12 +174,37 @@ export async function streamJobLog(
       }
       opts.write(result.value.data);
     }
+  } catch (error) {
+    if (!detaching || !isStreamAbort(error, signal)) {
+      failure = { error };
+    }
   } finally {
+    clearTimeout(pollTimer);
     if (onSigint) {
       process.off("SIGINT", onSigint);
     }
-    await iterator.return?.();
+    controller.abort();
+    const cleanup = await Promise.allSettled([
+      pendingNext,
+      Promise.resolve().then(() => iterator.return?.())
+    ]);
+    const rejected = cleanup.find(
+      (result) => result.status === "rejected" && !isStreamAbort(result.reason, signal)
+    );
+    if (rejected?.status === "rejected") {
+      failure ??= { error: rejected.reason };
+    }
   }
+  if (failure) {
+    throw failure.error;
+  }
+}
+
+function isStreamAbort(error: unknown, signal: AbortSignal): boolean {
+  return signal.aborted && (
+    error === signal.reason ||
+    (error instanceof Error && error.name === "AbortError" && error.cause === signal.reason)
+  );
 }
 
 export function createLineBufferedLogWriter(writeLine: (line: string) => void): {

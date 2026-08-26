@@ -86,8 +86,8 @@ export interface JobHandle {
   readonly envId: string;
   readonly tool: string;
   readonly argv: string[];
-  status(): Promise<JobStatus>;
-  stream(opts?: { sinceByte?: number; since?: Date; follow?: boolean }): AsyncIterable<LogChunk>;
+  status(opts?: { signal?: AbortSignal }): Promise<JobStatus>;
+  stream(opts?: { sinceByte?: number; since?: Date; follow?: boolean; signal?: AbortSignal }): AsyncIterable<LogChunk>;
   wait(): Promise<{ exitCode: number }>;
   kill(signal?: NodeJS.Signals): Promise<void>;
 }

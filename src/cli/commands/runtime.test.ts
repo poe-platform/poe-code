@@ -835,7 +835,7 @@ describe("runtime command", () => {
 
     await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
 
-    expect(streamOptions).toEqual([{ sinceByte: 0, follow: false }]);
+    expect(streamOptions).toEqual([{ sinceByte: 0, follow: false, signal: expect.any(AbortSignal) }]);
     expect(stripAnsi(logs.join("\n"))).toContain("full replay");
   });
 
@@ -919,6 +919,101 @@ describe("runtime command", () => {
     expect(streamOptions[0]).toMatchObject({ follow: true, since: expect.any(Date) });
     expect(streamOptions[0]).not.toHaveProperty("sinceByte");
     expect(stripAnsi(logs.join("\n"))).toContain("recent attach");
+  });
+
+  it.each([false, true])(
+    "detaches a blocked attach without stopping or syncing the job (syncOnExit: %s)",
+    async (syncOnExit) => {
+      vi.useFakeTimers();
+      const fs = createMemFs({
+        [path.join(jobsDir, "job-attach.json")]: JSON.stringify(
+          createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" })
+        )
+      });
+      const logs: string[] = [];
+      const closed = vi.fn();
+      const settled = vi.fn();
+      const status = vi.fn<JobHandle["status"]>().mockResolvedValue("exited");
+      const kill = vi.fn();
+      let release = () => {};
+      jobHandles.set("env-attach", {
+        ...createJobHandle({ status: "running", kill }),
+        status,
+        async *stream(options) {
+          try {
+            yield { byteOffset: 0, data: "partial" };
+            await new Promise<void>((resolve, reject) => {
+              release = resolve;
+              options?.signal?.addEventListener("abort", () => reject(options.signal?.reason), {
+                once: true
+              });
+            });
+          } finally {
+            closed();
+          }
+        }
+      });
+      const program = createBaseProgram();
+      registerRuntimeCommand(program, createContainer(fs, logs));
+      const listeners = process.listenerCount("SIGINT");
+      const parsing = program
+        .parseAsync([
+          "node",
+          "cli",
+          "runtime",
+          "jobs",
+          "attach",
+          "job-attach",
+          ...(syncOnExit ? ["--sync-on-exit"] : [])
+        ])
+        .then(
+          () => settled("done"),
+          (error: unknown) => settled(error)
+        );
+      try {
+        await vi.advanceTimersByTimeAsync(0);
+        expect(process.listenerCount("SIGINT")).toBe(listeners + 1);
+        process.emit("SIGINT");
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(settled).toHaveBeenCalledExactlyOnceWith("done");
+        expect(closed).toHaveBeenCalledTimes(1);
+        expect(logs).toEqual(["partial", "detaching (job continues running)"]);
+        expect(status).not.toHaveBeenCalled();
+        expect(kill).not.toHaveBeenCalled();
+        expect(runtimeEvents.downloads).toEqual([]);
+        expect(runtimeEvents.closed).toEqual([]);
+        expect(process.listenerCount("SIGINT")).toBe(listeners);
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        release();
+        await vi.advanceTimersByTimeAsync(1000);
+        await parsing;
+        vi.useRealTimers();
+      }
+    }
+  );
+
+  it("still syncs on natural attach completion", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" })
+      )
+    });
+    jobHandles.set("env-attach", createJobHandle({ status: "exited", chunks: ["done\n"] }));
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, createContainer(fs));
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "attach",
+      "job-attach",
+      "--sync-on-exit"
+    ]);
+    expect(runtimeEvents.downloads).toEqual([{ envId: "env-attach", conflictPolicy: "refuse" }]);
+    expect(runtimeEvents.closed).toEqual([]);
   });
 
   it("preserves split lines and blank lines when attaching to runtime job logs", async () => {

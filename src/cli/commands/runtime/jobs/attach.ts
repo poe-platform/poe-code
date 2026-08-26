@@ -53,6 +53,7 @@ async function executeRuntimeJobsAttach(
   const logWriter = createLineBufferedLogWriter((line) => {
     resources.logger.info(line);
   });
+  let detached = false;
 
   await streamJobLog(handle, {
     since,
@@ -61,13 +62,14 @@ async function executeRuntimeJobsAttach(
       logWriter.write(chunk);
     },
     onDetach() {
+      detached = true;
       logWriter.flush();
       resources.logger.info("detaching (job continues running)");
     }
   });
   logWriter.flush();
 
-  if (options.syncOnExit === true && (await handle.status()) !== "running") {
+  if (!detached && options.syncOnExit === true && (await handle.status()) !== "running") {
     await syncJob(entry, { forceSync: options.forceSync === true, close: false });
   }
 }

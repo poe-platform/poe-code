@@ -33,7 +33,7 @@ describe("streamJobLog", () => {
   const next = vi.fn<() => Promise<IteratorResult<LogChunk>>>();
   const finish = vi.fn<() => Promise<IteratorResult<LogChunk>>>();
   const status = vi.fn<JobHandle["status"]>();
-  const stream = vi.fn(() => ({
+  const stream = vi.fn<JobHandle["stream"]>(() => ({
     [Symbol.asyncIterator]: () => ({ next, return: finish })
   }));
   const handle: JobHandle = {
@@ -52,7 +52,9 @@ describe("streamJobLog", () => {
     next.mockReset().mockResolvedValue({ done: true, value: undefined });
     finish.mockReset().mockResolvedValue({ done: true, value: undefined });
     status.mockReset().mockResolvedValue("running");
-    stream.mockClear();
+    stream.mockReset().mockImplementation(() => ({
+      [Symbol.asyncIterator]: () => ({ next, return: finish })
+    }));
   });
 
   afterEach(() => {
@@ -71,7 +73,7 @@ describe("streamJobLog", () => {
     await reading;
 
     expect(write.mock.calls).toEqual([["first\n"], ["last\n"]]);
-    expect(stream).toHaveBeenCalledExactlyOnceWith({ sinceByte: 0, follow: true });
+    expect(stream).toHaveBeenCalledExactlyOnceWith({ sinceByte: 0, follow: true, signal: expect.any(AbortSignal) });
     expect(next).toHaveBeenCalledTimes(3);
     expect(status).toHaveBeenCalledTimes(1);
     expect(finish).toHaveBeenCalledTimes(1);
@@ -121,11 +123,163 @@ describe("streamJobLog", () => {
     await streamJobLog(handle, { follow: false, since, write });
 
     expect(write.mock.calls).toEqual([["first\n"], ["last\n"]]);
-    expect(stream).toHaveBeenCalledExactlyOnceWith({ since, follow: false });
+    expect(stream).toHaveBeenCalledExactlyOnceWith({ since, follow: false, signal: expect.any(AbortSignal) });
     expect(next).toHaveBeenCalledTimes(3);
     expect(status).not.toHaveBeenCalled();
     expect(finish).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each(["read", "status", "drain"])(
+    "detaches during a blocked %s and awaits reader cleanup",
+    async (phase) => {
+      const closed = vi.fn();
+      const detached = vi.fn();
+      const settled = vi.fn();
+      let releaseRead = () => {};
+      let releaseStatus = () => {};
+      let iterator!: AsyncGenerator<LogChunk>;
+      const cancellable: JobHandle = {
+        ...handle,
+        stream(options) {
+          iterator = (async function* () {
+            try {
+              await new Promise<void>((resolve, reject) => {
+                releaseRead = resolve;
+                options?.signal?.addEventListener(
+                  "abort",
+                  () => {
+                    setTimeout(() => reject(options.signal?.reason), 10);
+                  },
+                  { once: true }
+                );
+              });
+              yield { byteOffset: 0, data: "late output\n" };
+            } finally {
+              closed();
+            }
+          })();
+          vi.spyOn(iterator, "return");
+          return iterator;
+        }
+      };
+      if (phase === "status") {
+        status.mockImplementation(
+          (options) =>
+            new Promise((resolve, reject) => {
+              releaseStatus = () => resolve("running");
+              options?.signal?.addEventListener("abort", () => reject(options.signal?.reason), {
+                once: true
+              });
+            })
+        );
+      } else if (phase === "drain") {
+        status.mockResolvedValue("exited");
+      }
+      const write = vi.fn();
+      const listeners = process.listenerCount("SIGINT");
+      const reading = streamJobLog(cancellable, { follow: true, write, onDetach: detached }).then(
+        () => settled("done"),
+        (error: unknown) => settled(error)
+      );
+      try {
+        await vi.advanceTimersByTimeAsync(phase === "read" ? 0 : 250);
+        process.emit("SIGINT");
+        await vi.advanceTimersByTimeAsync(0);
+        expect(detached).toHaveBeenCalledTimes(1);
+        expect(settled).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(10);
+
+        expect(settled).toHaveBeenCalledExactlyOnceWith("done");
+        expect(closed).toHaveBeenCalledTimes(1);
+        expect(iterator.return).toHaveBeenCalledTimes(1);
+        expect(write).not.toHaveBeenCalled();
+        expect(handle.kill).not.toHaveBeenCalled();
+        expect(process.listenerCount("SIGINT")).toBe(listeners);
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        releaseRead();
+        releaseStatus();
+        await vi.advanceTimersByTimeAsync(1000);
+        await reading;
+        vi.restoreAllMocks();
+      }
+    }
+  );
+
+  it("clears polling timers when an immediate stream completes", async () => {
+    await streamJobLog(handle, { follow: true, write: vi.fn() });
+    expect(vi.getTimerCount()).toBe(0);
+    expect(finish).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts a pending reader when status fails and preserves the failure", async () => {
+    const failure = new Error("Status failed");
+    const settled = vi.fn();
+    let releaseRead = () => {};
+    const cancellable: JobHandle = {
+      ...handle,
+      async *stream(options) {
+        await new Promise<void>((resolve, reject) => {
+          releaseRead = resolve;
+          options?.signal?.addEventListener("abort", () => reject(options.signal?.reason), {
+            once: true
+          });
+        });
+        yield { byteOffset: 0, data: "late output\n" };
+      }
+    };
+    status.mockRejectedValue(failure);
+    const reading = streamJobLog(cancellable, { follow: true, write: vi.fn() }).then(
+      () => settled("done"),
+      (error: unknown) => settled(error)
+    );
+    try {
+      await vi.advanceTimersByTimeAsync(250);
+      expect(settled).toHaveBeenCalledExactlyOnceWith(failure);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      releaseRead();
+      await vi.advanceTimersByTimeAsync(1000);
+      await reading;
+    }
+  });
+
+  it("propagates iterator cleanup failures after manual detach", async () => {
+    const failure = new Error("Iterator cleanup failed");
+    const settled = vi.fn();
+    let releaseRead = () => {};
+    let signal: AbortSignal | undefined;
+    stream.mockImplementation((options) => {
+      signal = options?.signal;
+      return { [Symbol.asyncIterator]: () => ({ next, return: finish }) };
+    });
+    next.mockImplementation(
+      () =>
+        new Promise((resolve, reject) => {
+          releaseRead = () => resolve({ done: true, value: undefined });
+          signal?.addEventListener("abort", () => reject(signal?.reason), { once: true });
+        })
+    );
+    finish.mockImplementation(() => {
+      const failed = Promise.reject<IteratorResult<LogChunk>>(failure);
+      void failed.catch(() => undefined);
+      return failed;
+    });
+    const reading = streamJobLog(handle, { follow: true, write: vi.fn(), onDetach: vi.fn() }).then(
+      () => settled("done"),
+      (error: unknown) => settled(error)
+    );
+    try {
+      process.emit("SIGINT");
+      await vi.advanceTimersByTimeAsync(0);
+      expect(settled).toHaveBeenCalledExactlyOnceWith(failure);
+      expect(finish).toHaveBeenCalledTimes(1);
+    } finally {
+      releaseRead();
+      await vi.advanceTimersByTimeAsync(1000);
+      await reading;
+    }
   });
 });
 

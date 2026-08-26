@@ -417,6 +417,24 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     const logger = container.loggerFactory.create();
 
     intro("gaslight");
+    if (flags.dryRun) {
+      logger.dryRun(
+        [
+          "Dry run: would run Gaslight.",
+          "Plans:",
+          ...planPaths.map((planPath) => `- ${planPath}`),
+          `Agent: ${agent}`,
+          model ? `Model: ${model}` : undefined,
+          gaslightConfig.path ? `Config: ${gaslightConfig.path}` : undefined,
+          options.mode ? `Mode: ${options.mode}` : undefined,
+          `Worktree: ${options.worktree === true ? "enabled" : "disabled"}`,
+          `Archive on success: ${options.archive ?? commandConfig.archive ?? gaslightConfig.archive ?? false}`
+        ]
+          .filter((line): line is string => line !== undefined)
+          .join("\n")
+      );
+      return;
+    }
     const result = await runGaslight({
       planPaths,
       agent,
@@ -476,6 +494,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
   if (!daemon) throw new Error("Gaslight daemon command registration failed.");
   daemon.configureHelp({ showGlobalOptions: false });
   addSkillOptions(addActivityTimeoutOption(addWorktreeOptions(daemon))).action(async () => {
+    const flags = resolveCommandFlags(program);
     const options = {
       ...gaslight.opts<GaslightDaemonCommandOptions>(),
       ...daemon.opts<GaslightDaemonCommandOptions>()
@@ -496,6 +515,25 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     );
     const skills = resolveSkillOptions(options);
     const logger = container.loggerFactory.create();
+    const pollIntervalMs = parsePositiveInteger(options.pollIntervalMs, "--poll-interval-ms");
+    if (flags.dryRun) {
+      intro("gaslight daemon");
+      logger.dryRun(
+        [
+          `Dry run: would watch ${planDirectory} for ready regular plans.`,
+          `Poll interval: ${pollIntervalMs} ms`,
+          `Agent: ${agent}`,
+          model ? `Model: ${model}` : undefined,
+          gaslightConfig.path ? `Config: ${gaslightConfig.path}` : undefined,
+          options.mode ? `Mode: ${options.mode}` : undefined,
+          `Worktree: ${options.worktree === true ? "enabled" : "disabled"}`,
+          "Archive on success: true"
+        ]
+          .filter((line): line is string => line !== undefined)
+          .join("\n")
+      );
+      return;
+    }
     const controller = new AbortController();
     const stop = (): void => controller.abort();
     process.once("SIGINT", stop);
@@ -504,7 +542,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     try {
       const result = await runGaslightDaemon({
         planDirectory,
-        pollIntervalMs: parsePositiveInteger(options.pollIntervalMs, "--poll-interval-ms"),
+        pollIntervalMs,
         agent,
         ...(model ? { model } : {}),
         ...(options.config ? { configPath: options.config } : {}),

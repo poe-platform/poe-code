@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
 import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
@@ -116,6 +116,287 @@ describe("gaslight command", () => {
     multiselectMock.mockReset();
     selectMock.mockReset();
     spawnPrettyMock.mockReset();
+  });
+
+  describe("dry-run previews", () => {
+    let volume: Volume;
+    let initialFiles: ReturnType<Volume["toJSON"]>;
+    let container: ReturnType<typeof createCliContainer>;
+    let program: Command;
+    let logger: ReturnType<typeof vi.fn>;
+    let prompts: ReturnType<typeof vi.fn>;
+    let signalRegistration: ReturnType<typeof vi.spyOn<typeof process, "once">>;
+    const executionMocks = [
+      runGaslightMock,
+      runGaslightDaemonMock,
+      ingestGaslightMock,
+      spawnPrettyMock
+    ];
+
+    beforeEach(() => {
+      for (const mock of executionMocks) {
+        mock.mockImplementation(() => {
+          throw new Error("Unexpected Gaslight execution during preview");
+        });
+      }
+      volume = Volume.fromJSON({
+        "/repo/docs/plans/a.md": "# A",
+        "/repo/docs/plans/b.md": "# B"
+      });
+      initialFiles = volume.toJSON();
+      logger = vi.fn();
+      prompts = vi.fn(() => {
+        throw new Error("Unexpected Gaslight prompt");
+      });
+      container = createCliContainer({
+        fs: createFsFromVolume(volume).promises as unknown as FileSystem,
+        prompts,
+        logger,
+        env: { cwd: "/repo", homeDir: "/home/test" }
+      });
+      program = createProgram();
+      registerGaslightCommand(program, container);
+      signalRegistration = vi.spyOn(process, "once");
+    });
+
+    afterEach(() => {
+      try {
+        expect(volume.toJSON()).toEqual(initialFiles);
+        for (const mock of executionMocks) {
+          expect(mock).not.toHaveBeenCalled();
+        }
+        expect(prompts).not.toHaveBeenCalled();
+        expect(multiselectMock).not.toHaveBeenCalled();
+        expect(selectMock).not.toHaveBeenCalled();
+        expect(outroMock).not.toHaveBeenCalled();
+        expect(
+          signalRegistration.mock.calls.filter(
+            ([event]) => event === "SIGINT" || event === "SIGTERM"
+          )
+        ).toEqual([]);
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+
+    describe.each(["run", "daemon"])("%s", (command) => {
+      it.each(["before", "between", "after"])(
+        "previews with --dry-run %s command arguments",
+        async (position) => {
+          loadGaslightConfigMock.mockResolvedValue({
+            prompt: "Implement",
+            followups: ["Check it"],
+            agent: "codex:yaml-model",
+            archive: false,
+            path: "/repo/custom.yaml"
+          });
+          volume.mkdirSync("/repo/.poe-code");
+          volume.writeFileSync(
+            "/repo/.poe-code/config.json",
+            JSON.stringify({ plan: { plan_directory: "project/plans" } })
+          );
+          initialFiles = volume.toJSON();
+          const readFile = vi.spyOn(container.fs, "readFile");
+          const args = [
+            "gaslight",
+            ...(command === "daemon" ? ["daemon"] : ["docs/plans/b.md", "docs/plans/a.md"]),
+            "--config",
+            "custom.yaml",
+            "--mode",
+            "read",
+            "--worktree",
+            "--no-archive",
+            ...(position === "between" ? [] : ["--agent", "codex", "--model", "gpt-5"]),
+            ...(command === "daemon" && position !== "between" ? ["--poll-interval-ms", "250"] : [])
+          ];
+          args.splice(
+            position === "before" ? 0 : position === "between" ? 1 : args.length,
+            0,
+            "--dry-run"
+          );
+
+          await program.parseAsync(["node", "cli", "--yes", ...args]);
+
+          const preview = logger.mock.calls.map(([message]) => message).join("\n");
+          expect(preview).toContain(
+            command === "daemon"
+              ? "Dry run: would watch project/plans for ready regular plans."
+              : "Dry run: would run Gaslight.\nPlans:\n- docs/plans/b.md\n- docs/plans/a.md"
+          );
+          expect(preview).toContain("Agent: codex");
+          expect(preview).toContain(`Model: ${position === "between" ? "yaml-model" : "gpt-5"}`);
+          expect(preview).toContain("Config: /repo/custom.yaml");
+          expect(preview).toContain("Mode: read");
+          expect(preview).toContain("Worktree: enabled");
+          expect(preview).toContain(`Archive on success: ${command === "daemon"}`);
+          if (command === "daemon") {
+            expect(preview).toContain(`Poll interval: ${position === "between" ? 5000 : 250} ms`);
+          }
+          expect(loadGaslightConfigMock).toHaveBeenCalledWith(
+            "/repo",
+            "/home/test",
+            container.fs,
+            "custom.yaml"
+          );
+          expect(readFile.mock.calls.map(([filePath]) => filePath)).not.toContain(
+            "/repo/docs/plans/a.md"
+          );
+          expect(readFile.mock.calls.map(([filePath]) => filePath)).not.toContain(
+            "/repo/docs/plans/b.md"
+          );
+        }
+      );
+
+      it("preserves configuration errors without previewing", async () => {
+        const error = new Error("Invalid Gaslight configuration");
+        loadGaslightConfigMock.mockRejectedValue(error);
+
+        await expect(
+          program.parseAsync([
+            "node",
+            "cli",
+            "--yes",
+            "--dry-run",
+            "gaslight",
+            command === "daemon" ? "daemon" : "docs/plans/a.md",
+            "--agent",
+            "codex"
+          ])
+        ).rejects.toBe(error);
+
+        expect(logger).not.toHaveBeenCalled();
+      });
+    });
+
+    it.each([
+      {
+        label: "CLI archive and model override command and YAML configuration",
+        args: ["--no-archive", "--agent", "claude-code", "--model", "cli-model"],
+        commandArchive: true,
+        yamlArchive: true,
+        yamlAgent: "codex:yaml-model",
+        coreAgent: "codex:core-model",
+        agent: "claude-code",
+        model: "cli-model",
+        archive: false
+      },
+      {
+        label: "CLI archive overrides command false and retains matching core model",
+        args: ["--archive", "--agent", "codex"],
+        commandArchive: false,
+        yamlArchive: false,
+        yamlAgent: "claude-code:yaml-model",
+        coreAgent: "codex:core-model",
+        agent: "codex",
+        model: "core-model",
+        archive: true
+      },
+      {
+        label: "command archive overrides YAML and YAML agent/model overrides core",
+        args: [],
+        commandArchive: false,
+        yamlArchive: true,
+        yamlAgent: "codex:yaml-model",
+        coreAgent: "claude-code:core-model",
+        agent: "codex",
+        model: "yaml-model",
+        archive: false
+      },
+      {
+        label: "YAML archive and configured core agent/model are retained",
+        args: [],
+        commandArchive: undefined,
+        yamlArchive: true,
+        yamlAgent: undefined,
+        coreAgent: "codex:core-model",
+        agent: "codex",
+        model: "core-model",
+        archive: true
+      },
+      {
+        label: "archive defaults false and unrelated model and unknown config path are omitted",
+        args: ["--agent", "codex"],
+        commandArchive: undefined,
+        yamlArchive: undefined,
+        yamlAgent: undefined,
+        coreAgent: "claude-code:core-model",
+        agent: "codex",
+        model: undefined,
+        archive: false
+      }
+    ])(
+      "$label",
+      async ({
+        args,
+        commandArchive,
+        yamlArchive,
+        yamlAgent,
+        coreAgent,
+        agent,
+        model,
+        archive
+      }) => {
+        volume.mkdirSync("/repo/.poe-code");
+        volume.writeFileSync(
+          "/repo/.poe-code/config.json",
+          JSON.stringify({
+            core: { defaultAgent: coreAgent },
+            gaslight: { "auto-archive": commandArchive }
+          })
+        );
+        initialFiles = volume.toJSON();
+        loadGaslightConfigMock.mockResolvedValue({
+          prompt: "Implement",
+          followups: ["Check it"],
+          archive: yamlArchive,
+          agent: yamlAgent
+        });
+
+        await program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "--dry-run",
+          "gaslight",
+          "docs/plans/a.md",
+          ...args
+        ]);
+
+        const preview = logger.mock.calls.map(([message]) => message).join("\n");
+        expect(preview).toContain(`Agent: ${agent}`);
+        expect(preview).toContain(`Archive on success: ${archive}`);
+        expect(preview).toContain("Worktree: disabled");
+        expect(preview).not.toContain("Mode:");
+        expect(preview).not.toContain("Config:");
+        if (model) {
+          expect(preview).toContain(`Model: ${model}`);
+        } else {
+          expect(preview).not.toContain("Model:");
+        }
+      }
+    );
+
+    it.each([false, true])(
+      "rejects invalid daemon polling before signal registration (dryRun: %s)",
+      async (dryRun) => {
+        await expect(
+          program.parseAsync([
+            "node",
+            "cli",
+            "--yes",
+            ...(dryRun ? ["--dry-run"] : []),
+            "gaslight",
+            "daemon",
+            "--agent",
+            "codex",
+            "--poll-interval-ms",
+            "0"
+          ])
+        ).rejects.toThrow("--poll-interval-ms must be a positive integer.");
+
+        expect(logger).not.toHaveBeenCalled();
+      }
+    );
   });
 
   it("runs the daemon for ready regular plans with the configured poll interval", async () => {

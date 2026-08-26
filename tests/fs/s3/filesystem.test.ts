@@ -495,15 +495,19 @@ test("abort signals are checked before IO and passed through the transport", asy
   await assert.rejects(aborting.stat("/", { signal: controller.signal }), errno("ECANCELED"));
 });
 
-test("read limits, invalid flags, and mode requests fail explicitly", async () => {
+test("read limits and invalid flags fail; valid creation modes persist as metadata", async () => {
   const { fs } = fixture({ maxReadBytes: 4 });
   await fs.writeFile("/file", bytes("1234"));
   assert.equal(text(await fs.readFile("/file", { maxBytes: 4 })), "1234");
   await assert.rejects(fs.readFile("/file", { maxBytes: 3 }), errno("EFBIG"));
   await assert.rejects(fs.readFile("/file", { maxBytes: -1 }), errno("EINVAL"));
   await assert.rejects(fs.appendFile("/file", bytes("5")), errno("EFBIG"));
-  await assert.rejects(fs.writeFile("/file", bytes("value"), { mode: 0o600 }), errno("ENOTSUP"));
-  await assert.rejects(fs.mkdir("/dir", { mode: 0o700 }), errno("ENOTSUP"));
+  await fs.writeFile("/created", bytes("value"), { mode: 0o600 });
+  await fs.mkdir("/dir", { mode: 0o700 });
+  assert.equal((await fs.stat("/created")).mode & 0o7777, 0o600);
+  assert.equal((await fs.stat("/dir")).mode & 0o7777, 0o700);
+  assert.equal(fs.capabilities.permissions, false);
+  await assert.rejects(fs.writeFile("/invalid", bytes("value"), { mode: -1 }), errno("EINVAL"));
   await assert.rejects(fs.writeFile("/file", bytes("value"), { flag: "invalid" as "w" }), errno("EINVAL"));
 });
 

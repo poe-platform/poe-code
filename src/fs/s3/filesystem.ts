@@ -10,6 +10,7 @@ import type { ByteSource } from "../../contracts/io.js";
 import { encodeCopySource } from "./transport.js";
 import type {
   S3GetOutput, S3HeadOutput, S3ListOutput, S3ObjectSummary, S3RequestOptions, S3Transport,
+  S3StreamGetOutput,
 } from "./transport.js";
 
 export interface S3FileSystemOptions {
@@ -123,7 +124,7 @@ export class S3FileSystem implements FileSystem {
     this.capabilities = Object.freeze({
       readOnly: options.readOnly ?? false,
       symlinks: false, hardlinks: false, permissions: false,
-      timestamps: options.transport.capabilities?.conditionalCopy === true,
+      timestamps: options.transport.capabilities?.conditionalCopy === true || options.transport.capabilities?.conditionalPut === true,
       atomicRename: false,
       streamingRead: options.transport.capabilities?.streamingRead === true && typeof options.transport.getObjectStream === "function",
       streamingWrite: options.transport.capabilities?.streamingWrite === true && typeof options.transport.putObjectStream === "function",
@@ -167,19 +168,32 @@ export class S3FileSystem implements FileSystem {
 
   private async call<Result>(syscall: string, path: string, options: FsOptions, action: () => Promise<Result>, precondition?: ErrnoCode): Promise<Result> {
     this.checkAbort(options, syscall, path);
+    let onAbort: (() => void) | undefined;
     try {
-      const result = await action();
+      const pending = action();
+      const result = options.signal ? await new Promise<Result>((resolve, reject) => {
+        const signal = options.signal!;
+        onAbort = () => reject(new FsError("ECANCELED", { syscall, path, cause: signal.reason }));
+        signal.addEventListener("abort", onAbort, { once: true });
+        if (signal.aborted) onAbort();
+        pending.then(value => {
+          if (signal.aborted && typeof value === "object" && value !== null && "Body" in value) this.dispose(value.Body);
+          resolve(value);
+        }, reject);
+      }) : await pending;
       this.checkAbort(options, syscall, path);
       return result;
     } catch (error) {
       if (options.signal?.aborted) fail("ECANCELED", syscall, path);
       throw translate(error, syscall, path, precondition);
+    } finally {
+      if (onAbort) options.signal?.removeEventListener("abort", onAbort);
     }
   }
 
   private writable(path: string, mode?: number): void {
     if (this.capabilities.readOnly) fail("EROFS", "write", path);
-    if (mode !== undefined) this.unsupported("mode", path);
+    if (mode !== undefined) validateLimit(mode, "mode", 0, 0o7777);
   }
 
   private unsupported(operation: string, path: string): never {
@@ -207,7 +221,10 @@ export class S3FileSystem implements FileSystem {
       if (!value || !Number.isFinite(parsed)) fail("EIO", "stat", "", "invalid virtual timestamp metadata");
       return parsed;
     };
-    return { type, size, mode: type === "directory" ? 0o40755 : 0o100644,
+    const storedMode = metadata?.Metadata?.["virtual-bash-mode"];
+    const mode = storedMode === undefined ? (type === "directory" ? 0o755 : 0o644) : Number(storedMode);
+    if (!Number.isSafeInteger(mode) || mode < 0 || mode > 0o7777 || storedMode === "") fail("EIO", "stat", "", "invalid virtual mode metadata");
+    return { type, size, mode: (type === "directory" ? 0o40000 : 0o100000) | mode,
       mtimeMs: timestamp("virtual-bash-mtime", modified), atimeMs: timestamp("virtual-bash-atime", 0), ctimeMs: modified };
   }
 
@@ -264,8 +281,11 @@ export class S3FileSystem implements FileSystem {
 
   private async inspect(path: string, options: FsOptions): Promise<NodeInfo | undefined> {
     if (path === "/") {
-      await this.page(this.prefix, path, options, undefined, undefined, 1);
-      return { stat: this.makeStat("directory") };
+      const listing = await this.page(this.prefix, path, options, undefined, undefined, 1);
+      const marker = this.prefix && listing.Contents?.some(object => object.Key === this.prefix)
+        ? await this.head(this.prefix, path, options) : undefined;
+      if (marker && marker.ContentLength !== 0) this.unsupported("nonempty directory markers", path);
+      return { stat: this.makeStat("directory", marker), ...(marker ? { metadata: marker } : {}) };
     }
     const file = await this.head(this.key(path), path, options);
     if (Buffer.byteLength(this.key(path)) === 1024) {
@@ -340,12 +360,8 @@ export class S3FileSystem implements FileSystem {
       this.checkAbort(options, "readFile", path);
       if (output.ContentLength !== undefined && output.ContentLength !== bytes.byteLength) fail("EIO", "readFile", path, "response body length does not match ContentLength");
       return bytes;
-    }).catch(async (error: unknown) => {
-      const disposable = output.Body as { destroy?: () => void; cancel?: () => Promise<void> } | undefined;
-      try {
-        if (typeof disposable?.destroy === "function") disposable.destroy();
-        else if (typeof disposable?.cancel === "function") await disposable.cancel();
-      } catch {}
+    }).catch((error: unknown) => {
+      this.dispose(output.Body);
       throw error;
     });
   }
@@ -385,7 +401,7 @@ export class S3FileSystem implements FileSystem {
     if (exclusive && info) fail("EEXIST", "writeFile", path);
     let body = bytes;
     let match: string | undefined;
-    let metadata: Record<string, string> | undefined;
+    let metadata: Record<string, string> | undefined = this.writeMetadata(info?.metadata, options.mode);
     if (flag === "a" && info) {
       const current = await this.get(path, options);
       const previous = await this.body(current, path, options);
@@ -405,6 +421,13 @@ export class S3FileSystem implements FileSystem {
     }, this.requestOptions(options)), exclusive ? "EEXIST" : "EAGAIN");
   }
 
+  private writeMetadata(previous: S3HeadOutput | undefined, mode?: number): Record<string, string> | undefined {
+    const metadata = { ...previous?.Metadata };
+    delete metadata["virtual-bash-mtime"];
+    if (previous === undefined && mode !== undefined) metadata["virtual-bash-mode"] = String(mode);
+    return Object.keys(metadata).length === 0 ? undefined : metadata;
+  }
+
   async appendFile(path: string, data: Uint8Array, options: AppendFileOptions = {}): Promise<void> {
     return this.writeFile(path, data, { ...options, flag: "a" });
   }
@@ -422,6 +445,7 @@ export class S3FileSystem implements FileSystem {
     }
     await this.call("putObject", path, options, () => this.transport.putObject({
       Bucket: this.bucket, Key: this.directoryKey(path), Body: new Uint8Array(),
+      ...(options.mode === undefined ? {} : { Metadata: { "virtual-bash-mode": String(options.mode) } }),
       ...(this.transport.capabilities?.conditionalPut ? { IfNoneMatch: "*" as const } : {}),
     }, this.requestOptions(options)), "EEXIST");
   }
@@ -487,13 +511,14 @@ export class S3FileSystem implements FileSystem {
     }
   }
 
-  private async copy(sourceKey: string, destinationKey: string, source: string, metadata: S3HeadOutput, options: CopyFileOptions): Promise<void> {
+  private async copy(sourceKey: string, destinationKey: string, source: string, metadata: S3HeadOutput, options: CopyFileOptions, destination?: S3HeadOutput | null): Promise<void> {
     if (metadata.ContentLength === undefined || metadata.ContentLength > 5_000_000_000) this.unsupported("multipart copy", source);
     const etag = this.etag(metadata, source);
     const result = await this.call("copyObject", source, options, () => this.transport.copyObject({
       Bucket: this.bucket, Key: destinationKey, CopySource: encodeCopySource(this.bucket, sourceKey),
       CopySourceIfMatch: etag, MetadataDirective: "COPY",
       ...(options.exclusive ? { IfNoneMatch: "*" as const } : {}),
+      ...(destination === undefined ? {} : destination === null ? { IfNoneMatch: "*" as const } : { IfMatch: this.etag(destination, source) }),
     }, this.requestOptions(options)));
     if (!result.CopyObjectResult?.ETag) fail("EIO", "copyObject", source, "transport did not confirm a completed CopyObject result");
   }
@@ -568,7 +593,9 @@ export class S3FileSystem implements FileSystem {
     try {
       for (const object of objects) {
         const destinationKey = this.key(destination) + object.Key!.slice(this.key(source).length);
-        await this.copy(object.Key!, destinationKey, source, { ContentLength: object.Size, ETag: object.ETag }, options);
+        const destinationMetadata = origin.stat.type === "file" || object.Key === this.directoryKey(source) ? target?.metadata ?? null : null;
+        await this.copy(object.Key!, destinationKey, source, { ContentLength: object.Size, ETag: object.ETag }, options,
+          this.transport.capabilities?.conditionalCopy ? destinationMetadata : undefined);
         copied.push(destinationKey);
       }
       phase = "delete";
@@ -607,7 +634,7 @@ export class S3FileSystem implements FileSystem {
     const info = await this.lookup(path, options);
     this.requireDirectorySuffix(input, info);
     if (!info) fail("ENOENT", "utimes", path);
-    if (!this.transport.capabilities?.conditionalCopy) this.unsupported("conditional metadata copy", path);
+    if (!this.capabilities.timestamps) this.unsupported("conditional metadata mutation", path);
     const key = info.stat.type === "directory" ? this.directoryKey(path) : this.key(path);
     if (!key) this.unsupported("timestamps on an unprefixed bucket root", path);
     const metadata = { ...info.metadata?.Metadata,
@@ -616,6 +643,17 @@ export class S3FileSystem implements FileSystem {
       if (!this.transport.capabilities?.conditionalPut) this.unsupported("conditional directory marker creation", path);
       await this.call("utimes", path, options, () => this.transport.putObject({
         Bucket: this.bucket, Key: key, Body: new Uint8Array(), Metadata: metadata, IfNoneMatch: "*",
+      }, this.requestOptions(options)));
+      return;
+    }
+    if (!this.transport.capabilities?.conditionalCopy) {
+      const current = await this.call("getObject", path, options, () => this.transport.getObject({
+        Bucket: this.bucket, Key: key,
+      }, this.requestOptions(options)));
+      const body = await this.body(current, path, options);
+      await this.call("utimes", path, options, () => this.transport.putObject({
+        Bucket: this.bucket, Key: key, Body: body, IfMatch: this.etag(current, path),
+        Metadata: { ...current.Metadata, "virtual-bash-atime": String(atimeMs), "virtual-bash-mtime": String(mtimeMs) },
       }, this.requestOptions(options)));
       return;
     }
@@ -632,14 +670,25 @@ export class S3FileSystem implements FileSystem {
     const path = this.path(input);
     this.writable(path);
     validateLimit(length, "length", 0);
-    const info = await this.stat(input, options);
-    if (info.type === "directory") fail("EISDIR", "truncate", path);
+    const info = await this.lookup(path, options);
+    this.requireDirectorySuffix(input, info);
+    if (!info) fail("ENOENT", "truncate", path);
+    if (info.stat.type === "directory") fail("EISDIR", "truncate", path);
     if (!this.transport.capabilities?.conditionalPut) this.unsupported("conditional truncate", path);
     if (length > this.maxReadBytes) fail("EFBIG", "truncate", path);
-    const current = await this.get(path, options);
-    const previous = await this.body(current, path, options);
+    let current = info.metadata!;
     const body = new Uint8Array(length);
-    body.set(previous.subarray(0, length));
+    if (length !== 0 && info.stat.size !== 0) {
+      if (this.readStream) {
+        const previous = await this.call("truncate", path, options, () => collectBytes(this.readStream!(input, { ...options, endExclusive: Math.min(length, info.stat.size) }), { ...options, maxBytes: length }));
+        body.set(previous);
+      } else {
+        const output = await this.get(path, options);
+        const previous = await this.body(output, path, options);
+        current = output;
+        body.set(previous.subarray(0, length));
+      }
+    }
     const metadata = { ...current.Metadata };
     delete metadata["virtual-bash-mtime"];
     await this.call("truncate", path, options, () => this.transport.putObject({
@@ -659,16 +708,25 @@ export class S3FileSystem implements FileSystem {
     const stop = Math.min(end ?? info.stat.size, info.stat.size);
     const expected = Math.max(0, stop - start);
     if (expected > this.maxStreamBytes) fail("EFBIG", "readStream", path);
-    if (expected === 0) return;
-    const output = await this.call("getObject", path, options, () => this.transport.getObjectStream!({
-      Bucket: this.bucket, Key: this.key(path), IfMatch: this.etag(info.metadata, path),
-      ...(start === 0 && stop === info.stat.size ? {} : { Range: `bytes=${start}-${stop - 1}` }),
-    }, this.requestOptions(options)));
+    if (expected === 0 && info.stat.size !== 0) return;
     let count = 0;
     let finished = false;
+    const controller = new AbortController();
+    const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+    let output: S3StreamGetOutput | undefined;
+    let iterator: AsyncIterator<Uint8Array> | undefined;
     try {
+      output = await this.call("getObject", path, options, () => this.transport.getObjectStream!({
+        Bucket: this.bucket, Key: this.key(path), IfMatch: this.etag(info.metadata, path),
+        ...(expected === 0 || (start === 0 && stop === info.stat.size) ? {} : { Range: `bytes=${start}-${stop - 1}` }),
+      }, { abortSignal: signal }));
+      if (output.ETag !== undefined && output.ETag !== info.metadata?.ETag) fail("EIO", "readStream", path, "response ETag differs from requested snapshot");
       if (output.ContentLength !== undefined && output.ContentLength !== expected) fail("EIO", "readStream", path, "response length differs from requested snapshot");
-      for await (const chunk of readBytes(output.Body, options.signal)) {
+      iterator = readBytes(output.Body, signal)[Symbol.asyncIterator]();
+      while (true) {
+        const result = await iterator.next();
+        if (result.done) break;
+        const chunk = result.value;
         if (chunk.length > expected - count) fail("EIO", "readStream", path, "response exceeds requested length");
         count += chunk.length;
         for (let offset = 0; offset < chunk.length; offset += chunkSize) {
@@ -682,15 +740,19 @@ export class S3FileSystem implements FileSystem {
       this.checkAbort(options, "readStream", path);
       throw translate(error, "readStream", path);
     } finally {
-      if (!finished) this.dispose(output.Body);
+      controller.abort();
+      if (!finished && output) {
+        this.dispose(iterator);
+        this.dispose(output.Body, iterator === undefined);
+      }
     }
   }
 
-  private dispose(body: unknown): void {
+  private dispose(body: unknown, returnIterator = true): void {
     const disposable = body as { destroy?: () => void; cancel?: () => unknown; return?: () => unknown } | undefined;
     try {
       const result = typeof disposable?.destroy === "function" ? disposable.destroy()
-        : typeof disposable?.cancel === "function" ? disposable.cancel() : disposable?.return?.();
+        : typeof disposable?.cancel === "function" ? disposable.cancel() : returnIterator ? disposable?.return?.() : undefined;
       void Promise.resolve(result).catch(() => {});
     } catch {}
   }
@@ -707,26 +769,47 @@ export class S3FileSystem implements FileSystem {
     const exclusive = flag === "wx" || flag === "ax";
     if (exclusive && info) fail("EEXIST", "writeStream", path);
     if (flag === "a") {
-      const bytes = await this.call("writeStream", path, options, () => collectBytes(source, { maxBytes: this.maxReadBytes, ...options }));
-      return this.writeFile(input, bytes, options);
+      const current = info ? await this.get(path, options) : undefined;
+      const previous = current ? await this.body(current, path, options) : new Uint8Array();
+      const limit = Math.min(this.maxReadBytes, this.maxStreamBytes);
+      if (previous.length > limit) fail("EFBIG", "writeStream", path);
+      const bytes = await this.call("writeStream", path, options, () => collectBytes(source, { maxBytes: limit - previous.length, ...options }));
+      const body = new Uint8Array(previous.length + bytes.length);
+      body.set(previous);
+      body.set(bytes, previous.length);
+      const metadata = this.writeMetadata(current, options.mode);
+      await this.call("putObject", path, options, () => this.transport.putObject({
+        Bucket: this.bucket, Key: this.key(path), Body: body,
+        ...(current ? { IfMatch: this.etag(current, path) } : { IfNoneMatch: "*" as const }),
+        ...(metadata ? { Metadata: metadata } : {}),
+      }, this.requestOptions(options)));
+      return;
     }
     const adapter = this;
+    const controller = new AbortController();
+    const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+    let finished = false;
     const body = (async function* () {
       let total = 0;
-      for await (const chunk of readBytes(source, options.signal)) {
+      for await (const chunk of readBytes(source, signal)) {
         if (chunk.length > adapter.maxStreamBytes - total) fail("EFBIG", "writeStream", path);
         total += chunk.length;
         for (let offset = 0; offset < chunk.length; offset += 64 * 1024) {
-          adapter.checkAbort(options, "writeStream", path);
+          adapter.checkAbort({ signal }, "writeStream", path);
           yield new Uint8Array(chunk.subarray(offset, offset + 64 * 1024));
         }
       }
+      finished = true;
     })();
     try {
+      const metadata = this.writeMetadata(info?.metadata, options.mode);
       await this.call("putObject", path, options, () => this.transport.putObjectStream!({
         Bucket: this.bucket, Key: this.key(path), Body: body, ...(exclusive ? { IfNoneMatch: "*" as const } : {}),
-      }, this.requestOptions(options)), exclusive ? "EEXIST" : "EAGAIN");
+        ...(metadata === undefined ? {} : { Metadata: metadata }),
+      }, { abortSignal: signal }), exclusive ? "EEXIST" : "EAGAIN");
+      if (!finished) fail("EIO", "writeStream", path, "transport completed without consuming the request body");
     } finally {
+      controller.abort();
       this.dispose(body);
     }
   }

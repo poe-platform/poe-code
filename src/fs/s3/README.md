@@ -14,22 +14,11 @@ ambient credential-provider chain if ambient access is prohibited.
 
 ## Local use
 
-Import from this directory's `index.ts` in source, or the corresponding compiled
-`index.js`. Package-root/subpath export wiring is the coordinator's responsibility.
-The required manifest entry, to be added by the manifest owner, is:
-
-```json
-"./fs/s3": {
-  "types": "./dist/fs/s3/index.d.ts",
-  "import": "./dist/fs/s3/index.js"
-}
-```
-
-That subpath exposes all exports from `src/fs/s3/index.ts`. If package-root imports
-are also intended, the root barrel owner must additionally add
-`export * from "./fs/s3/index.js";` to `src/index.ts`. No dependency addition is
-needed for either integration. This backend does not edit those owned files or
-claim the package import works before integration and a build are verified.
+Import from this directory's `index.ts` or the source root `src/index.ts`.
+The root exports and the manifest's `virtual-bash/fs/s3` subpath are already wired.
+Source-root imports are exercised by the backend production-flow tests and the
+shared tool matrix. This source-owner revision does not edit package/export files
+or claim a new built-package validation; building `dist/` remains a root task.
 
 ```ts
 import { MockS3Client, S3FileSystem } from "./src/fs/s3/index.js";
@@ -68,12 +57,14 @@ compatible. No live cloud or installed AWS SDK compatibility test has been run.
 
 | Method | Inputs used | Outputs consumed |
 | --- | --- | --- |
-| `headObject` | `Bucket`, `Key` | `ContentLength`, `LastModified`, `ETag` |
+| `headObject` | `Bucket`, `Key` | `ContentLength`, `LastModified`, `ETag`, `Metadata` |
 | `getObject` | `Bucket`, `Key` | binary `Body`, `ContentLength`, `ETag`, `Metadata` |
 | `putObject` | `Bucket`, `Key`, `Body`, optional `Metadata`, `IfMatch`, `IfNoneMatch` | fulfilled promise |
 | `listObjectsV2` | `Bucket`, `Prefix`, `MaxKeys`, optional `/` `Delimiter`, `ContinuationToken` | `Contents`, `CommonPrefixes`, `IsTruncated`, `NextContinuationToken` |
-| `copyObject` | `Bucket`, `Key`, URL-encoded `CopySource`, `CopySourceIfMatch`, `MetadataDirective: "COPY"`, optional `IfNoneMatch` | `CopyObjectResult.ETag` |
+| `copyObject` | `Bucket`, `Key`, URL-encoded `CopySource`, `CopySourceIfMatch`, `MetadataDirective: "COPY"` or `"REPLACE"`, optional `Metadata`, destination `IfMatch`/`IfNoneMatch` | `CopyObjectResult.ETag` |
 | `deleteObject` | `Bucket`, `Key`, optional `IfMatch` | fulfilled promise |
+| optional `getObjectStream` | `Bucket`, `Key`, `IfMatch`, optional `Range` | async binary `Body`, `ContentLength`, `ETag` |
+| optional `putObjectStream` | `Bucket`, `Key`, async binary `Body`, optional `Metadata`, `IfMatch`, `IfNoneMatch` | fulfilled promise after consuming and publishing the body |
 
 Each method accepts an optional second argument `{ abortSignal }`. Reject service
 failures using AWS-style `name`/`code`/`Code` and/or
@@ -95,7 +86,9 @@ resources on failure and obey cancellation. No local filesystem access is used.
 Only declare `conditionalPut`, `conditionalCopy`, or `conditionalDelete` when the
 selected service and client actually support and enforce the corresponding
 preconditions. `createS3Transport` defaults all three to absent. The mock declares
-all three. A service that silently ignores preconditions is not compatible with
+all three. `conditionalCopy` now covers destination `IfMatch` as well as
+`IfNoneMatch`; source `CopySourceIfMatch` is required for every copy. A service
+that silently ignores preconditions is not compatible with
 these enabled features.
 
 Production-flow update, August 26, 2026: streaming is separately negotiated by
@@ -109,6 +102,14 @@ that first materializes an entire remote object/request. The mock streams chunks
 from its in-memory object store and stages uploads in memory before publication;
 it is not a model of bounded-memory cloud storage.
 
+`getObjectStream` and `putObjectStream` are adapter transport hooks, not literal
+AWS SDK method names. Wrap an authorized client's streaming GetObject response
+without collecting it, and map the streaming upload to an implementation that
+supports an unknown input length. Ordinary single-PUT SDK compatibility cannot be
+inferred from accepting a Node stream: signing and length/checksum requirements
+must be met by that integration. `createS3Transport` forwards these optional
+hooks with their client binding intact. Its capability defaults stay disabled.
+
 Without these negotiated methods, filesystem stream methods are absent, not
 throwing stubs. `readFile` remains an explicitly bounded buffered fallback for
 consumers that permit one; named gzip requires genuine streams and still rejects
@@ -119,6 +120,15 @@ bound. Stream reads use an ETag-pinned snapshot/range and validate lengths.
 Streaming replacement/exclusive writes use the streaming transport. Append is a
 bounded read/modify/write fallback, constrained by `maxReadBytes`, not streaming
 append. Neither interface promises a hard whole-process memory bound.
+
+Early read closure cancels the operation signal and closes the response iterator;
+stalled reads, writes and transport calls stop waiting on caller cancellation.
+Late promise rejections are observed and late response bodies are released.
+Upload failures close the producer, including a pending pull. A transport that
+claims success without consuming the whole input is rejected with `EIO`, but
+there is no rollback for a dishonest transport's already-performed side effects.
+Cancellation cannot undo remote publication or forcibly stop an uncooperative
+transport; the transport must honor its supplied signal and body cleanup hooks.
 
 ## Filesystem behavior and limits
 
@@ -161,13 +171,31 @@ append. Neither interface promises a hard whole-process memory bound.
   precondition failed; further races or same-ETag changes remain ambiguous.
   Concurrent deletion of an ETag-guarded object may instead report `ENOENT`.
 - `stat`/`lstat` return real file sizes and service modification times where
-  supplied. Modes are synthetic `0100644`/`040755`, not authorization checks.
-  `atimeMs`, `ctimeMs`, and unknown directory `mtimeMs` are zero. No inode, birth
-  time, ownership, or link-count guarantee is made.
-- POSIX permissions, explicit creation modes, links and `chmod` remain unsupported.
+  supplied. Modes default to synthetic `0100644`/`040755`. Explicit creation modes
+  are retained as advisory `virtual-bash-mode` user metadata, including private
+  gzip staging modes; replacements retain an existing mode. They are **not IAM,
+  ACLs, or cross-client security enforcement**. `permissions` remains false and
+  `chmod` remains unsupported. Do not use a mode-0700 prefix as a security boundary
+  against other authorized S3 writers. Deploy with appropriate prefix/IAM access.
+  `atimeMs` defaults to zero; `ctimeMs` reflects service LastModified where known.
+  Unknown directory times are zero. No inode, birth time, ownership, or link-count
+  guarantee is made.
+- Links and POSIX permission emulation remain unsupported.
   `utimes` stores virtual millisecond timestamps in user metadata using guarded
   metadata-replacement copy; it does not change S3's system `LastModified`.
-  `truncate` uses bounded conditional read/modify/write and zero-padding.
+  Conditional-PUT-only transports use a bounded read/modify/write fallback.
+  Implicit directories gain a conditional marker; prefixed-root times use its
+  marker, while an unprefixed bucket root has no representable object for utimes.
+  Reads do not automatically update atime. The `virtual-bash-atime`,
+  `virtual-bash-mtime` and `virtual-bash-mode` metadata keys are reserved; invalid
+  externally supplied values fail stat with `EIO`. Content changes clear the
+  virtual mtime override, retain atime/mode and preserve other user metadata.
+  Metadata-only races can retain the same ETag and remain last-writer-wins.
+  Added metadata must fit the provider's user-metadata budget (2 KiB on AWS).
+  `truncate` uses bounded conditional writes and zero-padding. Streaming providers
+  fetch only the retained prefix; truncating to zero does not download the old
+  object. Buffered providers still need a bounded whole read for nonzero lengths.
+  Growing beyond `maxReadBytes` is rejected before mutation.
   `realpath` is existence-checked lexical normalization. `access` checks existence,
   readonly policy, and synthetic directory traversal/file execution policy;
   successful write checks are not predictions of IAM authorization. Actual
@@ -209,6 +237,10 @@ limits, and source ETags. It copies every listed object with a source ETag
 precondition, waits for each completed copy response, then deletes sources using
 their original ETags. It never starts deleting sources after an unconfirmed or
 failed copy. A changed source is retained if conditional deletion fails.
+When the transport declares conditional copy, destination writes also use the
+preflight target ETag or `IfNoneMatch: "*"`; a concurrent destination content
+change fails instead of being overwritten. Providers without destination copy
+conditions retain weaker overwrite semantics, explicitly without atomicity.
 
 This is **not atomic**, not crash-safe, and not an atomic directory snapshot:
 other clients can see both names, race with directory checks, overwrite targets,
@@ -228,7 +260,7 @@ Recursive `rm` may likewise leave a partially deleted tree after failure.
 Its `recursive: true` flag explicitly requests multiple deletions, not an atomic
 delete or rollback guarantee. Concurrent additions can remain after enumeration;
 ordinary deletion can remove a key overwritten since enumeration. Callers needing
-tree-wide isolation must not rely on recursive removal or opt-in rename without
+tree-wide isolation must not rely on recursive removal or non-atomic rename without
 external coordination.
 Recursive `mkdir` also creates markers sequentially; if a later request fails,
 already-created ancestor markers remain. None of these multi-key operations has
@@ -253,6 +285,11 @@ assumes ETags are MD5. `requests` returns an independent request-history snapsho
 `authorize(request)` is an explicit test hook before access/mutation, not an IAM
 engine. It can reject selected operations or inject failures. For copy policy,
 inspect both the destination and the encoded `CopySource`.
+Streaming calls are recorded as underlying `getObject`/`putObject` operations;
+streaming PUT history uses an empty placeholder Body, not captured upload bytes.
+Upload conditions are evaluated after consuming the staged body so deterministic
+concurrent-winner tests exercise commit-time failure. The mock enforces the 2-KiB
+user-metadata budget and supports metadata-replacement/destination-guarded copies.
 
 Run the focused conformance, race, byte, authorization, and pagination tests:
 
@@ -270,12 +307,11 @@ model comparisons. `npm run typecheck` and an isolated strict NodeNext S3
 typecheck also passed. The 13-test race suite passed ten additional repetitions
 with `--unhandled-rejections=strict` (130 test executions). These are backend
 correctness results, not a product-completion, 72-hour-work, or superiority claim.
-Files remain pending independent final review and the coordinator's separately
-authorized atomic backend commit; no commit is made by this follow-up.
+That paragraph records the earlier 83-test revision, not the current test count.
 
-## Primary protocol references
+## Production verification
 
-Production-flow checkpoint (August 26, 2026): the unchanged required S3 matrix
+Source-owner checkpoint `1c846a1` (August 26, 2026): the unchanged required S3 matrix
 improves from 1/11 to 11/11; unchanged shared S3 conformance passes 50/50.
 Focused backend tests pass 87/87 with the historical default-rename assertion
 retained as explicit opt-out policy and obsolete stream-stub assertions replaced
@@ -285,6 +321,53 @@ a whole-repository pass. Named gzip stdout works; staged named-file gzip still
 requires creation-mode support and remains follow-up work at this checkpoint.
 The independent foreign stress assertion that default rename rejects is not
 edited; the default-policy change intentionally supersedes that assertion.
+
+Final follow-up on Node v22.22.2: 126/126 owned backend tests, 50/50 unchanged
+shared S3 conformance cases, and 11/11 required S3 matrix cases pass, with no skips
+or TODOs. The 38 streaming/mutation regressions pass five extra strict-rejection
+repetitions (190 test executions). Staged named-file gzip, decompression, existing
+file touch and conditional destination races are now covered. Owned strict
+NodeNext typechecking (including root-import tests) and `npm run typecheck` pass.
+The unchanged independent adapter stress suite is 18/19: its sole failure is the
+historical assertion at `tests/stress/adapters/s3.test.ts:106` that default rename
+must reject. No other stress failure is treated as an exception, and this is not
+a whole-suite pass or a real-cloud integration claim.
+
+No shared contract change or export edit was required. Wrapper consumers should
+discover optional stream methods and their declared flags; do not assume that
+every S3-shaped transport provides streams. The extra streaming input/output
+types live in `transport.ts`; consumers can infer them through `S3Transport`'s
+methods without an additional barrel export.
+
+The root separately committed diagnostic-only matrix updates in `d0fed8f` during
+this follow-up, then added direct FsError/namespace-preservation assertions in
+its working tree. The S3 owner did not edit the matrix or its fixtures. Its
+required flows/denominators are unchanged and error coverage is stronger, but
+final matrix bytes differ from the original checkpoint. SHA-256 validation inputs:
+
+```text
+matrix.test.ts: a4f79a93aae64a91fe764da7b9a2c096c8dd93a76fcdcc522828aea670a241f2
+fixtures.ts: 59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab
+shared.test.ts: 25faf6e3d42794be5bc7a76fef7ef7f651e7bcb5bab23c98bb6ca80031ec525b
+stress/adapters/s3.test.ts: e75c711b9e4f71a0a144b86cf53c09a95d3d105880dc21956fa16066d340828b
+```
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/fs/s3/*.test.ts
+node --unhandled-rejections=strict --import tsx --test --test-name-pattern='^s3:' tests/fs/conformance/shared.test.ts
+node --unhandled-rejections=strict --import tsx --test --test-name-pattern='^s3:' tests/integration/adapter-tools/matrix.test.ts
+node --unhandled-rejections=strict --import tsx --test tests/stress/adapters/s3.test.ts
+```
+
+Remaining provider limits: single-request upload/copy ceilings; transport-owned
+signing, streaming encoding and credentials; no distributed namespace/metadata
+lock, directory transaction or crash rollback; no historical-version interface,
+IAM/ACL emulation, multipart implementation, or preservation promise for service
+metadata/encryption/retention policies. Forced gzip replacement still correctly
+requires atomic rename and is unavailable; use a new destination or explicit
+application reconciliation rather than misadvertising `atomicRename`.
+
+## Primary protocol references
 
 Read during implementation on August 26, 2026:
 
@@ -302,3 +385,15 @@ Read during implementation on August 26, 2026:
   — ETag/existence checks and missing-object/concurrent-delete failures.
 - `https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html`
   — missing-object failures for ETag-guarded writes.
+- `https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html`
+  — IfMatch-pinned reads, single HTTP ranges, permission-sensitive 403/404 errors.
+- `https://docs.aws.amazon.com/AmazonS3/latest/userguide/add-object-metadata.html`
+  — user metadata replacement versus service-controlled LastModified.
+- `https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html`
+  — 2-KiB user-metadata budget and ETags independent of metadata-only changes.
+- `https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-s3-conditional-write-functionality-copy-operations/`
+  — destination conditional copy announced October 29, 2025. Current API and
+  conditional-writes references document destination IfMatch/IfNoneMatch. An
+  older conditional-writes-enforce guide still says these return 501; that stale
+  note conflicts with the dated announcement/current API. Generic S3-compatible
+  providers must explicitly negotiate actual support, never inherit an AWS claim.

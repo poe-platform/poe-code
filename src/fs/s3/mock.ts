@@ -97,6 +97,8 @@ export class MockS3Client implements S3Transport {
   }
 
   private store(body: Uint8Array, metadata: Record<string, string> = {}): StoredObject {
+    const metadataBytes = Object.entries(metadata).reduce((total, [key, value]) => total + Buffer.byteLength(key) + Buffer.byteLength(value), 0);
+    if (metadataBytes > 2048) throw new S3ServiceError("MetadataTooLarge", 400);
     return {
       body: new Uint8Array(body),
       etag: `"${createHash("md5").update(body).digest("hex")}"`,
@@ -117,6 +119,8 @@ export class MockS3Client implements S3Transport {
   }
 
   async putObject(input: S3PutInput, options?: S3RequestOptions): Promise<{ ETag: string }> {
+    if (!(input.Body instanceof Uint8Array)) throw new S3ServiceError("InvalidArgument", 400);
+    input = { ...input, Body: new Uint8Array(input.Body), ...(input.Metadata ? { Metadata: { ...input.Metadata } } : {}) };
     await this.begin("putObject", input, options);
     const bucket = this.bucket(input.Bucket);
     const previous = bucket.get(input.Key);
@@ -125,7 +129,6 @@ export class MockS3Client implements S3Transport {
       || (input.IfMatch !== undefined && previous?.etag !== input.IfMatch)) {
       throw new S3ServiceError("PreconditionFailed", 412);
     }
-    if (!(input.Body instanceof Uint8Array)) throw new S3ServiceError("InvalidArgument", 400);
     const object = this.store(input.Body, input.Metadata);
     bucket.set(input.Key, object);
     return { ETag: object.etag };
@@ -156,7 +159,7 @@ export class MockS3Client implements S3Transport {
   }
 
   async putObjectStream(input: S3StreamPutInput, options?: S3RequestOptions): Promise<{ ETag: string }> {
-    const snapshot = { ...input, Body: new Uint8Array() };
+    const snapshot = { ...input, Body: new Uint8Array(), ...(input.Metadata ? { Metadata: { ...input.Metadata } } : {}) };
     await this.begin("putObject", snapshot, options);
     const body = await collectBytes(input.Body, { maxBytes: 5_000_000_000, ...(options?.abortSignal ? { signal: options.abortSignal } : {}) });
     const bucket = this.bucket(input.Bucket);
@@ -165,7 +168,7 @@ export class MockS3Client implements S3Transport {
     if ((input.IfNoneMatch === "*" && previous) || (input.IfMatch !== undefined && previous?.etag !== input.IfMatch)) {
       throw new S3ServiceError("PreconditionFailed", 412);
     }
-    const object = this.store(body, input.Metadata);
+    const object = this.store(body, snapshot.Metadata);
     bucket.set(input.Key, object);
     return { ETag: object.etag };
   }

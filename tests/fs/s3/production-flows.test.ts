@@ -62,3 +62,20 @@ test("timestamps persist in object metadata and truncate preserves bytes and pad
   assert.deepEqual(await reopened.readFile("/input"), new Uint8Array([97, 98, 99, 0, 0]));
   assert.notEqual((await reopened.stat("/input")).mtimeMs, 5678);
 });
+
+test("root named-file gzip stages, publishes, preserves input with -k and removes input without -k", async () => {
+  const transport = new MockS3Client({ buckets: ["tools"] });
+  const fs = new S3FileSystem({ transport, bucket: "tools" });
+  const shell = new Shell({ fs });
+  shell.use(agentCommands());
+  await fs.writeFile("/input", bytes("hello\n"));
+  const compressed = await shell.exec("gzip -k /input && gzip -dc /input.gz");
+  assert.equal(compressed.exitCode, 0, compressed.stderr);
+  assert.equal(compressed.stdout, "hello\n");
+  assert.deepEqual(await fs.readFile("/input"), bytes("hello\n"));
+  await fs.rm("/input");
+  const decompressed = await shell.exec("gzip -d /input.gz");
+  assert.equal(decompressed.exitCode, 0, decompressed.stderr);
+  assert.deepEqual(await fs.readFile("/input"), bytes("hello\n"));
+  assert.deepEqual(await fs.readdir("/"), [{ name: "input", type: "file" }]);
+});

@@ -725,7 +725,7 @@ export class Runtime {
       child.depth++;
       child.loopDepth = 0;
       state.substitutionStatus = await this.run(part.script, child, { ...io, stdout: this.budget.sink(capture, this.signal) });
-      return new TextDecoder().decode(capture.bytes()).replace(/\n+$/u, "");
+      return new TextDecoder().decode(capture.bytes()).replace(/\0/gu, "").replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)
       : part.name === "#" ? String(state.positional.length)

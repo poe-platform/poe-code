@@ -735,7 +735,7 @@ export class Runtime {
       : state.variables[part.name];
     if (part.operator) {
       if (["#", "##", "%", "%%"].includes(part.operator)) {
-        const pattern = (await this.word(part.alternate!, state, io, false)).join("");
+        const pattern = (await this.word(part.alternate!, state, io, false, true)).join("");
         const expression = globExpression(pattern);
         const text = value ?? "";
         const lengths = Array.from({ length: text.length + 1 }, (_, index) => index);
@@ -763,7 +763,7 @@ export class Runtime {
     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
   }
 
-  async word(word: Word, state: State, io: IO, split = true): Promise<string[]> {
+  async word(word: Word, state: State, io: IO, split = true, pattern = false): Promise<string[]> {
     const fields: { value: string; pattern: string; present: boolean }[] = [{ value: "", pattern: "", present: false }];
     let expansionBytes = 0;
     const append = (value: string, glob: boolean, present: boolean) => {
@@ -825,7 +825,7 @@ export class Runtime {
     let resultBytes = 0;
     for (const field of fields) {
       if (!field.present && split) continue;
-      for (const value of split ? await this.glob(field.value, field.pattern, state) : [field.value]) {
+      for (const value of split ? await this.glob(field.value, field.pattern, state) : [pattern ? field.pattern : field.value]) {
         const size = Buffer.byteLength(value);
         if (size > this.budget.limits.maxExpansionBytes - resultBytes) this.budget.fail("maxExpansionBytes");
         resultBytes += size;

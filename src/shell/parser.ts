@@ -188,7 +188,7 @@ class Lexer {
       if (operator) {
         if (length) this.error("Invalid length expansion");
         this.position += operator.length;
-        alternate = this.word("}", quoted);
+        alternate = this.word("}", quoted && !["#", "##", "%", "%%"].includes(operator));
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;

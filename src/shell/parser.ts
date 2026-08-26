@@ -28,11 +28,18 @@ export interface Redirect {
   readonly target: Word;
 }
 
+export interface CaseClause {
+  readonly patterns: Word[];
+  readonly body: Script;
+  readonly terminator: ";;" | ";&" | ";;&" | "esac";
+}
+
 export type Command = (
   | { kind: "simple"; words: Word[] }
   | { kind: "subshell"; body: Script }
   | { kind: "group"; body: Script }
   | { kind: "if"; branches: { condition: Script; body: Script }[]; otherwise?: Script }
+  | { kind: "case"; subject: Word; clauses: CaseClause[] }
   | { kind: "while"; condition: Script; body: Script }
   | { kind: "until"; condition: Script; body: Script }
   | { kind: "for"; name: string; words?: Word[]; body: Script }
@@ -86,9 +93,9 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = /^(?:&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = /^(?:;;&|;&|&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (["<<", ";;", "&", "&>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
+      if (["<<", "&", "&>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
       return { kind: "operator", value: operator, offset, end: this.position };
     }
@@ -256,7 +263,7 @@ class Parser {
       if (this.is(";") || this.is("\n")) {
         this.advance();
         this.newlines();
-      } else if (!this.isEnd() && !this.is(")")) this.error("Expected command separator");
+      } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
     return { lists };
   }
@@ -312,6 +319,34 @@ class Parser {
       }
       this.expect("fi");
       command = { kind: "if", branches, ...(otherwise ? { otherwise } : {}), redirects: [] };
+    } else if (this.is("case")) {
+      this.advance();
+      if (!this.current.word) this.error("Expected case subject");
+      const subject = this.advance().word!;
+      this.newlines();
+      this.expect("in");
+      this.newlines();
+      const clauses: CaseClause[] = [];
+      while (!this.is("esac")) {
+        if (this.is("(")) this.advance();
+        const patterns: Word[] = [];
+        while (true) {
+          if (!this.current.word) this.error("Expected case pattern");
+          patterns.push(this.advance().word!);
+          if (!this.is("|")) break;
+          this.advance();
+        }
+        this.expect(")");
+        const body = this.script(new Set([";;", ";&", ";;&", "esac"]));
+        if (![";;", ";&", ";;&", "esac"].includes(this.current.value)) this.error("Expected case terminator");
+        const terminator = this.current.value as CaseClause["terminator"];
+        clauses.push({ patterns, body, terminator });
+        if (terminator === "esac") break;
+        this.advance();
+        this.newlines();
+      }
+      this.expect("esac");
+      command = { kind: "case", subject, clauses, redirects: [] };
     } else if (this.is("while") || this.is("until")) {
       const kind = this.advance().value as "while" | "until";
       const condition = this.nonemptyScript(new Set(["do"]));
@@ -343,7 +378,7 @@ class Parser {
       this.expect("(");
       this.expect(")");
       this.newlines();
-      if (!["{", "(", "if", "while", "until", "for"].includes(this.current.value)) this.error("Expected function body");
+      if (!["{", "(", "if", "case", "while", "until", "for"].includes(this.current.value)) this.error("Expected function body");
       command = { kind: "function", name, body: this.command(), redirects: [] };
     } else {
       if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);

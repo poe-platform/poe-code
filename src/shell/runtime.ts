@@ -9,6 +9,7 @@ import { ShellLimitError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { ShellInput } from "./input.js";
 import { evaluateArithmetic } from "./arithmetic.js";
+import { matchesPattern } from "./pattern.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -293,6 +294,26 @@ export class Runtime {
           if (await this.script(branch.condition, state, io) === 0) return await this.script(branch.body, state, io);
         }
         return command.otherwise ? await this.script(command.otherwise, state, io) : 0;
+      }
+      if (command.kind === "case") {
+        const subject = (await this.word(command.subject, state, io, false)).join("");
+        const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+        let status = 0;
+        let fallthrough = false;
+        let patterns = 0;
+        for (const clause of command.clauses) {
+          let matched = fallthrough;
+          if (!matched) for (const word of clause.patterns) {
+            if (++patterns % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+            const pattern = (await this.word(word, state, io, false, true)).join("");
+            if (await matchesPattern(pattern, subject, work)) { matched = true; break; }
+          }
+          if (!matched) continue;
+          if (clause.body.lists.length) status = await this.script(clause.body, state, io);
+          if (clause.terminator === ";;" || clause.terminator === "esac") break;
+          fallthrough = clause.terminator === ";&";
+        }
+        return status;
       }
       let status = 0;
       state.loopDepth++;
@@ -777,7 +798,7 @@ export class Runtime {
       expansionBytes += size;
       const field = fields.at(-1)!;
       field.value += value;
-      field.pattern += glob ? value : value.replace(/[\\*?[\]]/gu, "\\$&");
+      field.pattern += glob ? value : value.replace(pattern ? /[\\*?[\]\-^]/gu : /[\\*?[\]]/gu, "\\$&");
       field.present ||= present;
     };
     const parts = word.parts.map((part) => ({ part, splitText: false }));

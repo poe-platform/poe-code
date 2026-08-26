@@ -48,7 +48,7 @@ test("parse whole script including substitutions before any command or redirect"
   for (const script of [
     "say ran; say 'unterminated", "say ran > touched; true &&", "say ran; say $(true &&)",
     "say ran; if true; then say no", "say ran; (true", "say ran; say ${bad", "say ran; true & false",
-    "say ran; say $(say 'bad)", "say ran; say >", "say ran; case a in a) true;; esac",
+    "say ran; say $(say 'bad)", "say ran; say >", "say ran; case a in a) true;;",
     "say ran; say $((1 + ))", "say ran; say <<EOF\nhello\nEOF",
   ]) {
     const { shell, fs } = setup();

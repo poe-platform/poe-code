@@ -95,6 +95,9 @@ export function basicCommands(): CommandDefinition[] {
           else if (specifier === "c") text = supplied ? String.fromCodePoint(supplied.codePointAt(0)!) : "\0";
           else {
             let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? supplied.codePointAt(1) ?? 0 : Number(supplied);
+            if (/^[+-]0[xX][0-9a-fA-F]+$/u.test(supplied.trim())) {
+              number = Number(supplied.trim().slice(1)) * (supplied.trim().startsWith("-") ? -1 : 1);
+            }
             if (/^[+-]?0[0-9]+$/u.test(supplied) && !/[fFeEgG]/u.test(specifier)) {
               if (/[89]/u.test(supplied)) number = NaN;
               else number = parseInt(supplied.replace(/^[+-]?0/u, ""), 8) * (supplied.startsWith("-") ? -1 : 1);
@@ -124,14 +127,19 @@ export function basicCommands(): CommandDefinition[] {
                 exitCode = 1;
               }
               text = (unsigned ? BigInt.asUintN(64, integral) : integral).toString(radix);
+              if (precision === 0 && integral === 0n) text = "";
               if (precision !== undefined) text = text.startsWith("-") ? `-${text.slice(1).padStart(precision, "0")}` : text.padStart(precision, "0");
-              if (flags.includes("#") && number !== 0) text = (radix === 16 ? "0x" : radix === 8 ? "0" : "") + text;
+              if (flags.includes("#")) {
+                if (radix === 16 && integral !== 0n) text = "0x" + text;
+                else if (radix === 8 && !text.startsWith("0")) text = "0" + text;
+              }
             }
             if (/[XFEG]/u.test(specifier)) text = text.toUpperCase();
             if (number >= 0 && /[difFeEgG]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
           }
           if (flags.includes("-")) text = text.padEnd(width, " ");
-          else if (flags.includes("0") && /[diouxXfFeEgG]/u.test(specifier)) {
+          else if (flags.includes("0") && /[diouxXfFeEgG]/u.test(specifier)
+            && (precision === undefined || /[fFeEgG]/u.test(specifier))) {
             const prefix = /^[+ -]|^0[xX]/u.exec(text)?.[0] ?? "";
             text = prefix + text.slice(prefix.length).padStart(Math.max(0, width - prefix.length), "0");
           } else text = text.padStart(width, " ");

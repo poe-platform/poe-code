@@ -20,6 +20,7 @@ export function predicateCommands(): CommandDefinition[] {
     }
     if (!args.length) return { exitCode: 1 };
     if (args.length === 1) return { exitCode: args[0] ? 0 : 1 };
+    if (args.length === 2 && args[0] === "!") return { exitCode: args[1] ? 1 : 0 };
     const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-L", "-h", "-s", "-r", "-w", "-x"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
     let offset = 0;
@@ -30,8 +31,8 @@ export function predicateCommands(): CommandDefinition[] {
     const primary = (): Predicate => {
       const token = args[offset++];
       if (token === undefined) throw new UsageError("argument expected");
-      if (token === "!") { const inner = primary(); return async () => !await inner(); }
-      if (token === "(") {
+      if (token === "!" && !binary.has(args[offset] ?? "")) { const inner = primary(); return async () => !await inner(); }
+      if (token === "(" && !binary.has(args[offset] ?? "")) {
         const inner = disjunction();
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
         return inner;

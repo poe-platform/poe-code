@@ -31,11 +31,12 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
         if (character === delimiter) { yield current; current = ""; active = false; }
         else { current += character; active = true; }
       } else if (escaped) { current += character; active = true; escaped = false; }
-      else if (character === "\\" && quote !== "'") { escaped = true; active = true; }
       else if (quote) {
+        if (character === "\n") throw new UsageError("unmatched quote in input");
         if (character === quote) quote = "";
         else current += character;
-      } else if (character === "'" || character === '"') { quote = character; active = true; }
+      } else if (character === "\\") { escaped = true; active = true; }
+      else if (character === "'" || character === '"') { quote = character; active = true; }
       else if (character === "\n" || !replacement && /[ \t\r\v\f]/u.test(character)) {
         if (active) { yield current; current = ""; active = false; }
       } else if (replacement && !active && /[ \t]/u.test(character)) continue;

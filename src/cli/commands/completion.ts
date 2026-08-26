@@ -23,6 +23,7 @@ interface CompletionNode {
   children: CompletionChild[];
   options: CompletionOption[];
   requiredValueFlags: string[];
+  isPositionalLeaf: boolean;
 }
 
 function isVisible(command: Command): boolean {
@@ -54,13 +55,14 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
   const requiredValueFlags = [...optionsByFlag]
     .filter(([, option]) => option.required && !option.variadic)
     .map(([flag]) => flag);
+  const isPositionalLeaf = command.commands.length === 0 && command.registeredArguments.length > 0;
 
-  if (children.length === 0 && options.length === 0 && requiredValueFlags.length === 0) {
+  if (children.length === 0 && options.length === 0 && requiredValueFlags.length === 0 && !isPositionalLeaf) {
     return [];
   }
 
   return [
-    { path, children, options, requiredValueFlags },
+    { path, children, options, requiredValueFlags, isPositionalLeaf },
     ...command.commands
       .filter(isVisible)
       .flatMap((child) =>
@@ -84,6 +86,12 @@ function renderValueFlagCases(nodes: CompletionNode[]): string[] {
     .map((node) =>
       `        ${node.requiredValueFlags.map((flag) => `"${node.path.join(" ")}:${flag}"`).join("|")}) expecting_value=1; continue;;`
     );
+}
+
+function renderPositionalLeafCases(nodes: CompletionNode[]): string[] {
+  return nodes
+    .filter((node) => node.isPositionalLeaf)
+    .map((node) => `      "${node.path.join(" ")}") continue;;`);
 }
 
 function renderBash(nodes: CompletionNode[]): string {
@@ -116,6 +124,9 @@ function renderBash(nodes: CompletionNode[]): string {
     "      esac",
     '      [[ "$word" == -* ]] && continue',
     "    fi",
+    '    case "$key" in',
+    ...renderPositionalLeafCases(nodes),
+    "    esac",
     '    key="${key:+$key }$word"',
     "  done",
     "  (( expecting_value )) && return",
@@ -160,6 +171,9 @@ function renderZsh(nodes: CompletionNode[]): string {
     "      esac",
     '      [[ "$word" == -* ]] && continue',
     "    fi",
+    '    case "$key" in',
+    ...renderPositionalLeafCases(nodes),
+    "    esac",
     '    key="${key:+$key }$word"',
     "  done",
     "  (( expecting_value )) && return",

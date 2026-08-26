@@ -398,13 +398,131 @@ describe("completion command", () => {
         "      esac",
         '      [[ "$word" == -* ]] && continue',
         "    fi",
-        '    key="${key:+$key }$word"'
+        '    case "$key" in'
       ].join("\n"));
     });
   });
 
   it("does not add terminator state to fish output", async () => {
     expect(await emitCompletion("fish")).not.toContain("options_ended");
+  });
+
+  describe.each(["bash", "zsh"])("%s leaf positional operands", (shell) => {
+    it.each([
+      { input: "plan view docs/plans/example.md --out", path: "plan view", prefix: "--out", ended: false, expected: ["--output"] },
+      { input: "plans view docs/plans/example.md --ar", path: "plans view", prefix: "--ar", ended: false, expected: ["--archived"] },
+      { input: "harness run one.md two.md --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "spawn codex --mo", path: "spawn", prefix: "--mo", ended: false, expected: ["--model", "--mode"] },
+      { input: "s codex hello --mo", path: "s", prefix: "--mo", ended: false, expected: ["--model", "--mode"] },
+      { input: 'plan view "docs/plans/with spaces.md" --out', path: "plan view", prefix: "--out", ended: false, expected: ["--output"] },
+      { input: 'plan view "" --out', path: "plan view", prefix: "--out", ended: false, expected: ["--output"] },
+      { input: "harness run models plan --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "harness run --dir tmp one.md --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "harness run one.md --dir tmp --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "spawn codex hello --model example --mo", path: "spawn", prefix: "--mo", ended: false, expected: ["--model", "--mode"] },
+      { input: "harness run one.md --dir -- --re", path: "harness run", prefix: "--re", ended: false, expected: ["--resume"] },
+      { input: "harness run one.md --dir -- -- --re", path: "harness run", prefix: "--re", ended: true, expected: [] },
+      { input: "plan view example.md -- --out", path: "plan view", prefix: "--out", ended: true, expected: [] },
+      { input: "plans view example.md -- --ar", path: "plans view", prefix: "--ar", ended: true, expected: [] },
+      { input: "spawn codex -- --model forwarded --mo", path: "spawn", prefix: "--mo", ended: true, expected: [] },
+      { input: "s codex hello -- --model -- --mo", path: "s", prefix: "--mo", ended: true, expected: [] }
+    ])("emits leaf retention and candidates for $input", async ({ path, prefix, ended, expected }) => {
+      const program = createProgram({
+        fs: createMemFs(),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+        logger: () => {},
+        exitOverride: true
+      });
+      const script = await emitCompletion(shell, program);
+
+      expect(script).toContain(`      "${path}") continue;;`);
+      expect(readCompletionWords(script, path, ended).filter((word) => word.startsWith(prefix)))
+        .toEqual(expected);
+    });
+
+    it("derives retention for all aliases but excludes nonleaves and hidden-child parents", async () => {
+      const program = createFixtureProgram();
+      const plan = program.commands.find((command) => command.name() === "plan")!;
+      plan.argument("[workflow]");
+      plan.commands.find((command) => command.name() === "open")!.argument("[path]");
+      program.command("hidden-parent").argument("[value]")
+        .command("internal", { hidden: true });
+      const script = await emitCompletion(shell, program);
+
+      for (const parent of ["plan", "plans", "p"]) {
+        expect(script).not.toContain(`      "${parent}") continue;;`);
+        for (const child of ["open", "view", "show"]) {
+          expect(script).toContain(`      "${parent} ${child}") continue;;`);
+        }
+      }
+      for (const path of ["", "configure", "hidden-parent", "hidden-parent internal"]) {
+        expect(script).not.toContain(`      "${path}") continue;;`);
+      }
+      const retentionCases = script.split('    case "$key" in\n')[1]?.split("    esac")[0];
+      expect(retentionCases).toBeDefined();
+      expect(retentionCases).not.toContain("*");
+    });
+
+    it("keeps positional-only leaves in metadata even without candidate options", async () => {
+      const program = new Command().name("poe-code");
+      program.command("leaf").argument("[value]");
+      registerCompletionCommand(program);
+      const script = await emitCompletion(shell, program);
+
+      expect(script).toContain('      "leaf") continue;;');
+      expect(readCompletionWords(script, "leaf")).toEqual([]);
+    });
+
+    it("does not retain unknown paths, no-positional leaves, or positional nonleaves", async () => {
+      const program = createProgram({
+        fs: createMemFs(),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+        logger: () => {},
+        exitOverride: true
+      });
+      const script = await emitCompletion(shell, program);
+
+      for (const path of ["", "models", "maestro", "plan", "plans", "harness"]) {
+        expect(script).not.toContain(`      "${path}") continue;;`);
+      }
+      for (const path of ["unknown", "plan unknown", "models unexpected", "maestro WORKFLOW.md"]) {
+        expect(script).not.toContain(`      "${path}") continue;;`);
+        expect(readCompletionWords(script, path)).toEqual([]);
+      }
+    });
+
+    it("handles flags, pending values, and terminators before retaining an operand", async () => {
+      const program = createFixtureProgram();
+      program.commands.find((command) => command.name() === "plan")!
+        .commands.find((command) => command.name() === "open")!.argument("[path]");
+      const script = await emitCompletion(shell, program);
+
+      expect(script).toContain('"plan open:--editor"');
+      expect(script).toContain([
+        "      esac",
+        '      [[ "$word" == -* ]] && continue',
+        "    fi",
+        '    case "$key" in'
+      ].join("\n"));
+      expect(script).toContain([
+        "    esac",
+        '    key="${key:+$key }$word"',
+        "  done",
+        "  (( expecting_value )) && return"
+      ].join("\n"));
+      expect(readCompletionWords(script, "plan open", true)).toEqual([]);
+    });
+  });
+
+  it("does not change fish output when a leaf gains positional arguments", async () => {
+    const program = createFixtureProgram();
+    const before = await emitCompletion("fish", program);
+    program.commands.find((command) => command.name() === "plan")!
+      .commands.find((command) => command.name() === "open")!.argument("[path]");
+
+    expect(await emitCompletion("fish", program)).toBe(before);
   });
 
   describe.each(["bash", "zsh"])("%s required single-value options", (shell) => {
@@ -518,7 +636,7 @@ describe("completion command", () => {
         "      esac",
         '      [[ "$word" == -* ]] && continue',
         "    fi",
-        '    key="${key:+$key }$word"'
+        '    case "$key" in'
       ].join("\n"));
     });
 

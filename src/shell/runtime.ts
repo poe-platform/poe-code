@@ -265,6 +265,9 @@ export class Runtime {
         highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
       }));
       const controllers = pipeline.commands.map(() => new AbortController());
+      const written = new Set<number>();
+      const completed = new Set<number>();
+      const closing = new Set<ReturnType<typeof setImmediate>>();
       const tasks = pipeline.commands.map(async (command, index) => {
         const incoming = pipes[index - 1];
         const outgoing = pipes[index];
@@ -272,7 +275,10 @@ export class Runtime {
         const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles);
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
         const pipeOutput: ByteSink | undefined = outgoing && { write: async (chunk) => {
-          try { await outgoing.writable.write(chunk); }
+          try {
+            await outgoing.writable.write(chunk);
+            if (chunk.byteLength) written.add(index);
+          }
           catch (error) {
             if (errorCode(error) === "EPIPE") {
               const closed = new PipelineClosed();
@@ -294,7 +300,16 @@ export class Runtime {
           if (error instanceof PipelineClosed) return 141;
           throw error;
         } finally {
-          if (incoming) await incoming.abort();
+          completed.add(index);
+          if (incoming) {
+            const upstream = index - 1;
+            const close = setImmediate(() => {
+              closing.delete(close);
+              if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
+            });
+            closing.add(close);
+            await incoming.abort();
+          }
           await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
           if (outgoing) await outgoing.close().catch(() => undefined);
         }
@@ -303,6 +318,7 @@ export class Runtime {
         const statuses = await interruptible(Promise.all(tasks), this.signal);
         status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
       } finally {
+        for (const close of closing) clearImmediate(close);
         for (const controller of controllers) controller.abort(new PipelineClosed());
         await Promise.all(pipes.map((pipe) => pipe.abort()));
       }

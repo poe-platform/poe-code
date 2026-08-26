@@ -88,7 +88,8 @@ test("stat metadata exposes host identity, mode, size, and millisecond times", a
   const { filesystem, root } = await fixture(context);
   await filesystem.writeFile("file", bytes("data"), { mode: 0o600 });
   await filesystem.chmod("file", 0o640);
-  await filesystem.utimes("file", 1_600_000_000_125, 1_650_000_000_250);
+  const atimeMs = (Math.floor(Date.now() / 1000) + 86400) * 1000 + 125;
+  await filesystem.utimes("file", atimeMs, 1_650_000_000_250);
   const stats = await filesystem.stat("file");
   const host = await native.stat(join(root, "file"));
   assert.equal(stats.type, "file");
@@ -99,7 +100,7 @@ test("stat metadata exposes host identity, mode, size, and millisecond times", a
   assert.equal(stats.dev, host.dev);
   assert.equal(stats.uid, host.uid);
   assert.equal(stats.gid, host.gid);
-  assert.ok(Math.abs(stats.atimeMs - 1_600_000_000_125) < 2);
+  assert.ok(Math.abs(stats.atimeMs - atimeMs) < 2);
   assert.ok(Math.abs(stats.mtimeMs - 1_650_000_000_250) < 2);
   assert.ok(Number.isFinite(stats.ctimeMs));
   assert.ok(Number.isFinite(stats.birthtimeMs));

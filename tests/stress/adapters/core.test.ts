@@ -39,9 +39,10 @@ for (const adapter of adapters) {
     }
     if (fs.capabilities.timestamps) {
       assert.ok(fs.utimes);
-      await fs.utimes("/file", 10000, 20000);
+      const atimeMs = adapter.name === "real" ? (Math.floor(Date.now() / 1000) + 86400) * 1000 : 10000;
+      await fs.utimes("/file", atimeMs, 20000);
       const stat = await fs.stat("/file");
-      assert.equal(stat.atimeMs, 10000);
+      assert.equal(stat.atimeMs, atimeMs);
       assert.equal(stat.mtimeMs, 20000);
     } else {
       assert.equal(fs.capabilities.timestamps, false);

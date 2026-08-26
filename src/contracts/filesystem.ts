@@ -81,6 +81,7 @@ export interface FileSystem {
   readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
   rm(path: string, options?: RemoveOptions): Promise<void>;
+  rmdir?(path: string, options?: FsOptions): Promise<void>;
   rename(source: string, destination: string, options?: FsOptions): Promise<void>;
   copyFile(source: string, destination: string, options?: CopyFileOptions): Promise<void>;
   realpath(path: string, options?: FsOptions): Promise<string>;

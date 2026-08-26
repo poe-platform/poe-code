@@ -7,6 +7,8 @@ product status. Authentic handoff is now recorded in `handoff.json`.
 `BASELINE.md` and `baseline.json` retain the first unmodified 60-case result:
 57 passed, 3 failed (51/54 native-parity; 6/6 separate contracts).
 See `SUPPLEMENT.md` for the separately frozen additive 18-case corpus.
+`REPORT.md` records the completed 18/18 supplementary result, exact source
+identity and a product-free reproduction of the frozen lab cleanup race.
 
 ## Historical preparation record
 

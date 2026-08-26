@@ -31,6 +31,11 @@ No expectations, frozen fixture code, or product source were edited.
   the failed result; independent default-transport coverage and a separate
   verifier-lifecycle diagnostic are needed before attribution.
 
+Later evidence (original result unchanged): `harness-diagnostic.json` reproduces
+that exact cleanup assertion 1/20 times without importing or executing product
+code; deferred socket close events then settle. `supplement-product.json` also
+passes the default-transport missing-upload row. See `REPORT.md` for attribution.
+
 ## Reproduce without overwriting evidence
 
 ```sh

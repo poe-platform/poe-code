@@ -1,5 +1,9 @@
 # Additive independent fixture freeze
 
+Completed comparison: `supplement-product.json` records **18/18 passed**:
+8 native-parity, 5 separately defined security, 5 lifecycle. Network and shared
+source hashes were stable during the run. See `REPORT.md` for evidence and limits.
+
 This is a separate 18-case corpus, not a modification or replacement of the
 original 60-case denominator. The 13 native observations in
 `supplement-native.json` were captured before any supplementary product run;

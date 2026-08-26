@@ -1,5 +1,5 @@
 import {
-  composeMiddleware, createBytePipe, resolvePath, toByteSource, validateExitCode, writeText,
+  composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
 } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandRegistry, FileSystem, Middleware,
@@ -271,15 +271,15 @@ export class Runtime {
     return pipeline.negate ? Number(status === 0) : status;
   }
 
-  async runCommandIsolated(command: Command, state: State, io: IO): Promise<number> {
-    try { return await this.command(command, state, io); }
+  async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+    try { return await this.command(command, state, io, fileShortcut); }
     catch (error) {
       if (error instanceof Flow && (error.kind === "exit" || error.kind === "return")) return error.status;
       throw error;
     }
   }
 
-  async command(command: Command, state: State, originalIO: IO): Promise<number> {
+  async command(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
     this.signal.throwIfAborted();
@@ -291,7 +291,7 @@ export class Runtime {
         state.functions.set(command.name, command.body);
         return 0;
       }
-      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs);
+      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell");
       if (command.kind === "arithmetic") return Number(evaluateArithmetic(command.expression, state.variables) === 0n);
       if (command.kind === "subshell") {
@@ -502,7 +502,7 @@ export class Runtime {
     return { name: match[1]!, value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<() => void>): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, fileShortcut = false): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: { name: string; value: Word }[] = [];
     let wordIndex = 0;
@@ -547,6 +547,12 @@ export class Runtime {
         }
       } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput);
       if (!inlineInput) await assign();
+      if (fileShortcut) {
+        const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
+        if (!input) throw new Error("Bad file descriptor");
+        await pipeBytes(input, io.stdout, this.signal);
+        return 0;
+      }
       return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof ExecutionFailure || error instanceof Flow) throw error;
@@ -840,7 +846,12 @@ export class Runtime {
       delete child.redirectAssignments;
       child.depth++;
       child.loopDepth = 0;
-      state.substitutionStatus = await this.run(part.script, child, { ...io, stdout: this.budget.sink(capture, this.signal) });
+      const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
+      const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
+      const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
+      const captureIO = { ...io, stdout: this.budget.sink(capture, this.signal) };
+      state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
+      state.status = state.substitutionStatus;
       return new TextDecoder().decode(capture.bytes()).replace(/\0/gu, "").replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)

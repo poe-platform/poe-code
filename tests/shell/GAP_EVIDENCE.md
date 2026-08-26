@@ -53,3 +53,15 @@ zero-character behavior: succeeds without consuming input, assigns empty text.
 The zero-count test asserts that the underlying iterator is not pulled.
 Primary reference: GNU Bash manual, Bash Builtins / read,
 https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html .
+
+## File-only command substitution
+
+`file-shortcut.test.ts` captures a single input redirect with no command,
+including a trailing semicolon and nonzero input descriptor. Multiple redirects
+do not select the shortcut. Reads use the filesystem stream directly, without
+requiring a registered `cat`, and retain the shared capture/output limits and
+cancellation. Target expansion variables remain isolated; opened files do not
+advance an enclosing descriptor's offset. NUL removal precedes newline trimming.
+Substitution status is visible to subsequent expansions in the same command,
+as observed with `false; printf '<%s>:%s' "$(<input)" "$?"` (status field 0).
+Target errors terminate the substitution environment, not the outer shell.

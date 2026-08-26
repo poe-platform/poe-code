@@ -52,8 +52,8 @@ periodically to observe cancellation.
 ## Supported patch subset
 
 - Strict unified patches from stdin, `-i FILE` / `--input=FILE`, or
-  `--input FILE`; `-i -` means stdin. An optional positional target is accepted
-  only for a single file patch. `-u` asserts the only supported format.
+  `--input FILE`; `-i -` means stdin. An optional positional target overrides
+  each section's target without bypassing header path validation.
 - `-p N`, `-pN`, and `--strip=N` strip path components; the default is zero,
   not a basename-selection heuristic. `-R` / `--reverse` swaps both headers,
   hunk coordinates, and added/deleted lines. `--dry-run` performs preparation
@@ -83,7 +83,10 @@ periodically to observe cancellation.
   patch (at most 1024 lines/64 KiB), and a `-- ` signature (128 lines/8 KiB).
   Patch syntax in signatures and unsupported mode/rename metadata are rejected.
 - Counts, coordinate continuity, hunk ordering, newline markers, and all file
-  sections are validated before writes. Duplicate target sections are rejected.
+  sections are validated before writes. Repeated normalized targets are staged
+  sequentially against the preceding result. `-R` reverses section order as well
+  as hunks, making it the inverse of the complete edit sequence, not native
+  forward-order reversal. Git rename/copy semantics are not supported.
   Empty input is a successful no-op. Malformed/truncated input is not silently
   skipped, and no interactive questions, automatic reversal, reject files, or
   backup files are produced.
@@ -106,7 +109,7 @@ Absolute paths other than the `/dev/null` header sentinel, `..` components,
 backslashes, drive-prefix components, and control characters other than tabs are
 rejected **before stripping**, even when an explicit target overrides headers.
 Adjacent relative slashes collapse before stripping; traversal never collapses.
-Dot components are allowed, and duplicate normalized targets are rejected.
+Dot components are allowed; repeated normalized targets share staged state.
 Input patch files may be read from another virtual directory with `-i`.
 Diff operands may use absolute virtual paths. Resolved paths are limited to
 4096 UTF-16 code units and 256 components; raw patch paths have the same bound.
@@ -129,7 +132,10 @@ limit errors leave all target bytes unchanged. Before committing, existing
 target contents and types are rechecked to detect observable concurrent changes.
 This is not a transaction or lock; another actor can still race those checks.
 
-Commit operations run sequentially in patch order. A commit-stage filesystem
+Final results collapse to one operation per target, in first-seen target order
+(after reversal when requested); create-then-delete absent targets do not publish.
+Commit counts refer to these final target operations, not input sections.
+Commit operations run sequentially. A commit-stage filesystem
 or work-budget failure stops immediately, reports the committed-prefix count
 and failing path, and does not roll back or attempt later targets. The failing
 operation itself may already have side effects. Cancellation during commit
@@ -169,8 +175,7 @@ This is not full GNU/BSD diff or patch compatibility. Context/ed/normal patch
 formats, binary patches, renames/copies, permission
 changes, automatic parent-directory creation, empty-directory changes, and
 symlink patches are unsupported. `-N` treats absent content as empty and cannot
-express creation/deletion of a zero-byte file. Repeated file sections are not
-applied sequentially. Diagnostics, timestamps, default fuzz, default path
+express creation/deletion of a zero-byte file. Diagnostics, timestamps, default fuzz, default path
 selection, placement heuristics, and malformed-patch policy intentionally
 differ from native tools. No result here demonstrates superiority to just-bash
 or completion of the wider full-shell/72-hour objective.

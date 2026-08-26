@@ -139,9 +139,15 @@ const malformed = [
   ["git rename metadata", "rename from target\nrename to other\n" + replacement],
   ["metadata without patch", "diff --git a/target b/target\n"],
   ["unterminated quoted filename", replacement.replace("--- target", '--- "target')],
-  ["duplicate target", replacement + replacement],
   ["both null", replacement.replaceAll("target", "/dev/null")],
 ];
+
+test("conflicting repeated target returns applicability conflict without early writes", async () => {
+  const result = await run("patch", [], { files: { target: "old\n" }, input: replacement + replacement });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(await contents(result.fs, "target"), "old\n");
+});
 
 for (const [name, input] of malformed) test(`malformed patch rejected before modification: ${name}`, async () => {
   const result = await run("patch", [], { files: { target: "old\n" }, input: input! });

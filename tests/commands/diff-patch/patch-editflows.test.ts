@@ -2,6 +2,49 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contents, replacement, run } from "./helpers.js";
 
+test("normalized repeated sections stage sequentially, dry-run, and reverse in inverse order", async () => {
+  const input = replacement.replace("+new", "+middle") + replacement.replaceAll("target", "./target").replace("-old", "-middle");
+  const dry = await run("patch", ["--dry-run"], { files: { target: "old\n" }, input });
+  assert.equal(dry.exitCode, 0, dry.stderr);
+  assert.equal(await contents(dry.fs, "target"), "old\n");
+  const applied = await run("patch", [], { fs: dry.fs, input });
+  assert.equal(applied.exitCode, 0, applied.stderr);
+  assert.equal(applied.stdout, "patching file /work/target\n");
+  assert.equal(await contents(dry.fs, "target"), "new\n");
+  const reversed = await run("patch", ["-R"], { fs: dry.fs, input });
+  assert.equal(reversed.exitCode, 0, reversed.stderr);
+  assert.equal(await contents(dry.fs, "target"), "old\n");
+});
+
+const create = "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+old\n";
+const remove = "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-new\n";
+test("same-file creation edit deletion collapses to absence and reverses", async () => {
+  const input = create + replacement + remove;
+  const result = await run("patch", [], { input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  await assert.rejects(result.fs.stat("/work/target"));
+  const reversed = await run("patch", ["-R"], { fs: result.fs, input });
+  assert.equal(reversed.exitCode, 0, reversed.stderr);
+  await assert.rejects(result.fs.stat("/work/target"));
+});
+
+test("same-file deletion then creation publishes final replacement", async () => {
+  const input = remove + create;
+  const result = await run("patch", [], { files: { target: "new\n" }, input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+  assert.equal((await run("patch", ["-R"], { fs: result.fs, input })).exitCode, 0);
+  assert.equal(await contents(result.fs, "target"), "new\n");
+});
+
+test("later same-file conflict prevents earlier distinct and repeated writes", async () => {
+  const input = replacement.replaceAll("target", "other") + replacement + replacement;
+  const result = await run("patch", [], { files: { target: "old\n", other: "old\n" }, input });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+  assert.equal(await contents(result.fs, "other"), "old\n");
+});
+
 const mail = "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\n"
   + "From: Example <example@example.invalid>\nSubject: [PATCH] change\n\nDescription.\n---\n target | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\n"
   + "diff --git a/target b/target\nindex 1234567..abcdef0 100644\n"

@@ -71,10 +71,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   }
   const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
   const parsed = await parseUnified(await unwrapPatch(input, budget), budget);
-  if (explicit && parsed.length !== 1) throw new ToolError("explicit target requires exactly one file patch");
-  const prepared: Prepared[] = [];
-  const paths = new Set<string>();
-  for (const sourcePatch of parsed) {
+  const staged = new Map<string, Prepared>();
+  for (const sourcePatch of options.reverse ? parsed.slice().reverse() : parsed) {
     const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
     const oldName = safeTarget(patch.oldPath, options.strip);
     const newName = safeTarget(patch.newPath, options.strip);
@@ -83,23 +81,27 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const newPath = newName === undefined ? undefined : resolvePath(context.cwd, newName);
     const oldStat = oldPath === undefined ? undefined : await inspect(budget, oldPath);
     const newStat = newPath === undefined || newPath === oldPath ? oldStat : await inspect(budget, newPath);
-    const path = explicit ? resolvePath(context.cwd, explicit) : oldStat ? oldPath! : newStat ? newPath! : oldPath ?? newPath!;
-    if (paths.has(path)) throw new ToolError(`duplicate target in patch: ${path}`);
-    paths.add(path);
+    const oldExists = oldPath !== undefined && (staged.has(oldPath) ? !staged.get(oldPath)!.remove : oldStat !== undefined);
+    const newExists = newPath !== undefined && (staged.has(newPath) ? !staged.get(newPath)!.remove : newStat !== undefined);
+    const path = explicit ? resolvePath(context.cwd, explicit) : oldExists ? oldPath! : newExists ? newPath! : oldPath ?? newPath!;
+    const prior = staged.get(path);
     const stat = await inspect(budget, path);
     regular(stat, path);
     const parent = await inspect(budget, dirname(path));
     if (parent?.type !== "directory") throw new ToolError(`target parent directory must already exist: ${dirname(path)}`);
     const creation = oldName === undefined;
     const remove = newName === undefined;
-    if (creation && stat) throw new ToolError(`creation target already exists: ${path}`, 1);
-    if (!creation && !stat) throw new ToolError(`patch target does not exist: ${path}`, 1);
+    const exists = prior ? !prior.remove : stat !== undefined;
+    if (creation && exists) throw new ToolError(`creation target already exists: ${path}`, 1);
+    if (!creation && !exists) throw new ToolError(`patch target does not exist: ${path}`, 1);
     if (creation && patch.hunks.some(hunk => hunk.oldCount !== 0 || hunk.oldStart !== 0)) throw new ToolError("creation patch contains old content");
-    const original = stat ? await budget.read(path) : undefined;
-    const result = await applyHunks(original ?? "", patch, options.fuzz, budget, options.ignoreWhitespace);
+    const original = prior ? prior.original : stat ? await budget.read(path) : undefined;
+    const current = prior ? prior.remove ? "" : prior.result : original ?? "";
+    const result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace);
     if (remove && result !== "") throw new ToolError(`deletion patch leaves content: ${path}`, 1);
-    prepared.push({ path, original, result, remove });
+    staged.set(path, { path, original, result, remove });
   }
+  const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
   const status = prepared.map(item => `${options.dryRun ? "checking" : "patching"} file ${item.path}\n`).join("");
   budget.output(status);
   if (options.dryRun) {

@@ -79,6 +79,7 @@ export class Shell implements PluginHost {
     let stdin: ShellInput | undefined;
     const io = {
       stdin: toByteSource(""),
+      stdinIsDefault: options.stdin === undefined,
       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
     };
     let exitCode: number;

@@ -129,6 +129,7 @@ export interface State {
 
 interface IO {
   readonly stdin: ByteSource;
+  readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
   readonly stderr: ByteSink;
   readonly descriptors?: ReadonlyMap<number, Descriptor>;
@@ -136,6 +137,7 @@ interface IO {
 
 interface Descriptor {
   readonly input?: ByteSource;
+  readonly stdinIsDefault?: boolean;
   readonly output?: ByteSink;
 }
 
@@ -245,6 +247,7 @@ export class Runtime {
           return await interruptible(runtime.runCommandIsolated(command, cloneState(state), {
             ...io,
             stdin: input,
+            ...(incoming ? { stdinIsDefault: false } : {}),
             stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
             stderr: signalSink(io.stderr, signal),
           }), signal);
@@ -374,17 +377,23 @@ export class Runtime {
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false): Promise<IO> {
     const descriptors = new Map<number, Descriptor>([
       ...io.descriptors ?? [],
-      [0, { input: io.stdin }], [1, { output: io.stdout }], [2, { output: io.stderr }],
+      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
+      [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
     if (io.stdin === closedSource) descriptors.delete(0);
     if (io.stdout === closedSink) descriptors.delete(1);
     if (io.stderr === closedSink) descriptors.delete(2);
-    const currentIO = (): IO => ({
-      stdin: descriptors.get(0)?.input ?? closedSource,
-      stdout: descriptors.get(1)?.output ?? closedSink,
-      stderr: descriptors.get(2)?.output ?? closedSink,
-      descriptors,
-    });
+    const currentIO = (): IO => {
+      const descriptor = descriptors.get(0);
+      const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
+      return {
+        stdin: descriptor?.input ?? closedSource,
+        ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
+        stdout: descriptors.get(1)?.output ?? closedSink,
+        stderr: descriptors.get(2)?.output ?? closedSink,
+        descriptors,
+      };
+    };
     try { for (const redirect of redirects) {
       if (redirect.document || redirect.operator === "<<<") {
         const hereString = redirect.operator === "<<<";
@@ -401,7 +410,7 @@ export class Runtime {
         }
         const input = new ShellInput(toByteSource(value), this.budget, this.signal);
         inputs.add(input);
-        descriptors.set(redirect.descriptor, { input });
+        descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
         continue;
       }
       const targets = await this.word(redirect.target, state, currentIO());
@@ -427,7 +436,7 @@ export class Runtime {
             : toByteSource(await interruptible(this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes }), this.signal));
           const input = new ShellInput(source, this.budget, this.signal);
           inputs.add(input);
-          descriptors.set(redirect.descriptor, { input });
+          descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
         } else {
           const append = redirect.operator === ">>";
           let file!: OutputFile;
@@ -638,10 +647,12 @@ export class Runtime {
     child.loopDepth = 0;
     child.functionDepth = 0;
     child.locals = [];
-    const input = options.stdin ? new ShellInput(options.stdin, this.budget, this.signal) : undefined;
+    const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);
+    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
     const io = {
       ...context,
       stdin: input ?? context.stdin,
+      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
       stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
       stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,
     };

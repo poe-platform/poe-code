@@ -2,6 +2,7 @@ import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResu
 
 export interface ShellInvokeOptions {
   readonly stdin?: ByteSource;
+  readonly stdinIsDefault?: boolean;
   readonly stdout?: ByteSink;
   readonly stderr?: ByteSink;
   readonly cwd?: string;

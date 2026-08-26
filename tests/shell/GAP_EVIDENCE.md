@@ -192,3 +192,60 @@ stops at the actual top-level newline token after its queued heredocs; it does
 not split raw source strings on newlines. Future units are neither parsed nor
 executed after exit/fatal completion. The public parse-only API still validates
 the complete source, and the global source-size limit remains checked first.
+
+## Final targeted checkpoint, 2026-08-26
+
+The source checkpoint is `b4033fb96b353bf82025a28aafff6619066967dc`.
+Its preceding semantic commits are `7ecd677` (moves), `e8abc84` (read),
+`7a869af` (shortcut), `50cefdd` (patterns), `0aeaaf4` (ANSI-C), `1c66038`
+(move scope), `19149d3` (diagnostics), `7367ce4` (input units), `3fe893b`
+(read locale/closed input), and `f1c1167` (ANSI-C locale). No dependencies,
+contract changes, independent expectation edits, or native-reference switches
+were introduced by this work.
+
+All test commands use `node --unhandled-rejections=strict --import tsx --test
+--test-concurrency=1` followed by the paths listed below. Counts retain failures;
+there were no skips, TODOs, or cancellations in these completed runs.
+
+| Test paths | Result | Raw log under `/tmp/` |
+| --- | --- | --- |
+| `tests/shell/*.test.ts` | 614/616 pass; two external source-guard invalidations | `safe-bash-shell-final-owned.txt` |
+| `tests/shell/inline-input-fatal-scope.test.ts` separate rerun | 30/30 pass | `safe-bash-shell-final-guard-rerun.txt` |
+| `tests/shell-stress/{differential,lifecycle,process}.test.ts` | 100/105 pass; five failures | `safe-bash-shell-final-original-stress.txt` |
+| `tests/shell-stress/targeted-holdout/*.test.ts` | 57/57 pass: 49 frozen GNU 5.3 cases and eight lifecycle tests | `safe-bash-shell-final-heldout.txt` |
+| `tests/shell-stress/current-gaps/*.test.ts` | 9/13 pass; four failures, both cancellation probes pass | `safe-bash-shell-final-current-gaps.txt` |
+| `npm run typecheck` | Exit 0 | `safe-bash-shell-final-typecheck.txt` |
+
+The two owned-suite invalidations were the here-string subshell required-parameter
+case and heredoc external arithmetic case. Whole-source fingerprints changed in
+unowned diff-patch source and S3/SafeJS documentation while the suite ran; no
+`src/shell` file changed. Before/after records are
+`/tmp/safe-bash-shell-final-before.json` and
+`/tmp/safe-bash-shell-final-after.json`. The affected file's separate clean rerun
+does not turn the invalidated aggregate into a claimed 616/616 full-suite pass.
+No source guards were weakened or rewritten.
+
+The original five active failures remain precisely identified:
+
+- `nested-substitution-syntax-error-does-not-prevent-earlier-effects`: incompatible
+  Bash 3.2 same-unit effects/status versus pinned GNU 5.3 upfront rejection.
+- `fatal-parameter-expansion-prevents-following-file-effect`,
+  `fatal-arithmetic-expansion-prevents-following-file-effect`, and
+  `fatal-expansion-in-substitution-stops-substitution-only`: diagnostic basename
+  and source-line differences; stdout, status, and effects match.
+- `command-substitution-removes-nul-bytes`: GNU 5.3 warning versus Bash 3.2's
+  empty stderr; output bytes, status, and effects match.
+
+The current-gaps failures are `move-output-really-closes-source`,
+`move-input-really-closes-source`, and
+`fatal-parameter-preserves-only-earlier-effects` (diagnostic basename/source line),
+plus `prevalidation-prior-output-and-file` (the incompatible same-unit legacy
+behavior). Independent fixtures remain unchanged and active; these outcomes are
+not hidden, waived, or silently normalized into passes. The modern holdout uses
+its independent symmetric extrinsic-prefix calibration, retaining meaningful
+line numbers, diagnostic payloads, statuses, and effects.
+
+This is a bounded targeted checkpoint for independent final review, not evidence
+of full Bash compatibility, universal locale/binary-text support, superiority,
+or completion of the requested work duration. The explicit text-model limits
+documented above remain applicable.

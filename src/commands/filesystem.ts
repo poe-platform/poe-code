@@ -39,9 +39,13 @@ async function copy(
   const link = await context.fs.lstat(source, { signal: context.signal });
   const preserveLink = link.type === "symlink" && !flags.has("L") && (flags.has("P") || !top);
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
-  const targetStat = await maybeStat(context, target);
-  const physicalSource = preserveLink ? source : await context.fs.realpath(source, { signal: context.signal });
-  const physicalTarget = await canonicalMissing(context, target);
+  const targetStat = await maybeStat(context, target, !preserveLink);
+  const physicalSource = preserveLink
+    ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
+    : await context.fs.realpath(source, { signal: context.signal });
+  const physicalTarget = preserveLink
+    ? joinPath(await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
+    : await canonicalMissing(context, target);
   if (physicalSource === physicalTarget || (targetStat?.ino !== undefined && sourceStat.ino !== undefined
     && targetStat.dev === sourceStat.dev && targetStat.ino === sourceStat.ino)) {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
@@ -193,7 +197,12 @@ export function filesystemCommands(): CommandDefinition[] {
         const existing = await maybeStat(context, destination, false);
         if (existing && parsed.flags.has("f")) {
           if (existing.type === "directory") throw new FsError("EISDIR", { path: destination });
-          if (!symbolic) await context.fs.stat(source, { signal: context.signal });
+          if (!symbolic) {
+            await context.fs.stat(source, { signal: context.signal });
+            const sourceEntry = joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source));
+            const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
+            if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
+          }
           await context.fs.rm(destination, { signal: context.signal });
         }
         if (symbolic) await context.fs.symlink!(operand, destination, { signal: context.signal });

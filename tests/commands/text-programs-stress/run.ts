@@ -1,0 +1,60 @@
+import { createHash } from "node:crypto";
+import { readFile, readdir, writeFile } from "node:fs/promises";
+import { release } from "node:os";
+import { cases } from "./cases.js";
+import { compare, totals, type Comparison } from "./model.js";
+import { native } from "./native.js";
+import { VirtualSession } from "./session.js";
+
+async function fingerprint(directory: URL): Promise<string> {
+  const hash = createHash("sha256");
+  const visit = async (root: URL): Promise<void> => {
+    const entries = await readdir(root, { withFileTypes: true });
+    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+      const child = new URL(entry.name + (entry.isDirectory() ? "/" : ""), root);
+      if (entry.isDirectory()) await visit(child);
+      else { hash.update(child.href.slice(directory.href.length)); hash.update(await readFile(child)); }
+    }
+  };
+  await visit(directory);
+  return hash.digest("hex");
+}
+
+const startedAt = new Date().toISOString();
+const sourceBefore = await fingerprint(new URL("../../../src/", import.meta.url));
+const session = new VirtualSession();
+const results: Comparison[] = [];
+try {
+  for (const fixture of cases) {
+    const [oracle, actual] = await Promise.all([native(fixture), session.run({ fixture })]);
+    const result = compare(fixture, oracle, actual);
+    results.push(result);
+    if (result.status !== "pass") console.log(`${result.status}: ${fixture.name}: ${result.differences.join(", ")}`);
+  }
+} finally { await session.dispose(); }
+const sourceAfter = await fingerprint(new URL("../../../src/", import.meta.url));
+const binaries: Record<string, string> = {};
+for (const path of ["/usr/bin/sed", "/usr/bin/awk", "/bin/bash"]) {
+  try { binaries[path] = createHash("sha256").update(await readFile(path)).digest("hex"); }
+  catch (error) { binaries[path] = `unavailable: ${String(error)}`; }
+}
+const summary = totals(results);
+const report = {
+  schemaVersion: 1, startedAt, completedAt: new Date().toISOString(),
+  provenance: { node: process.version, platform: process.platform, architecture: process.arch, osRelease: release(), nativeExecutableSha256: binaries,
+    sourceBefore, sourceAfter, sourceChanged: sourceBefore !== sourceAfter,
+    casesSha256: createHash("sha256").update(JSON.stringify(cases)).digest("hex") },
+  methodology: { nativeScope: "trusted repository fixtures only; fresh owned temporary directories; fixed native executable argv; curated pipelines only",
+    locale: "C", nativeUmask: "000 (matches virtual filesystem creation defaults)", seededFileMode: "0644",
+    virtualWorkerDeadlineMs: 3000, nativeDeadlineMs: 3000, outputLimitBytes: 1024 * 1024,
+    assertions: ["stdout bytes", "stderr bytes", "exit status", "complete descendant file/directory map, bytes and mode"],
+    pendingIsSuccess: false, unsupportedIsSuccess: false, superiorityDemonstrated: false,
+    performanceClaim: "None: one cold-to-warm correctness run, not a controlled throughput benchmark" },
+  summary, byTool: Object.fromEntries(["sed", "awk", "pipeline"].map(tool => [tool, totals(results.filter(result => result.tool === tool))])),
+  byFeature: Object.fromEntries([...new Set(cases.map(fixture => fixture.feature))].map(feature => [feature, totals(results.filter(result => result.feature === feature))])),
+  backgroundErrors: session.backgroundErrors, cases, results,
+};
+const path = new URL("./latest-report.json", import.meta.url);
+await writeFile(path, JSON.stringify(report, null, 2) + "\n");
+console.log(JSON.stringify({ report: path.pathname, summary, sourceChanged: report.provenance.sourceChanged, backgroundErrors: report.backgroundErrors }));
+if (summary.pass !== summary.total || report.provenance.sourceChanged || report.backgroundErrors.length) process.exitCode = 1;

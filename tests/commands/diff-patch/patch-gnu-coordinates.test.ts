@@ -19,8 +19,9 @@ const cases = [
 for (const [name, before, hunk] of cases) for (const fuzz of [0, 1, 2]) {
   test(`pinned GNU coordinates/fuzz: ${name} -F${fuzz}`, async () => {
     const input = headers + hunk;
-    const expected = await nativeGNU(["-f", "--no-backup-if-mismatch", "-p0", `-F${fuzz}`], { target: before }, input);
-    const actual = await run("patch", [`-F${fuzz}`], { files: { target: before }, input });
+    const args = ["--batch", "-p0", `-F${fuzz}`];
+    const expected = await nativeGNU(args, { target: before }, input);
+    const actual = await run("patch", args, { files: { target: before }, input });
     assert.equal(actual.exitCode, expected.exitCode, actual.stderr);
     assert.equal(await contents(actual.fs, "target"), expected.files.target);
   });

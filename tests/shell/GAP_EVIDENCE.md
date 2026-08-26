@@ -3,7 +3,8 @@
 Reference capture on 2026-08-26 uses `/bin/bash` version
 `3.2.57(1)-release (arm64-apple-darwin25)`, sanitized `LC_ALL=C`, isolated
 temporary directories, literal argv, a two-second deadline and bounded output.
-`bash-bugfix-helpers.ts` owns this capture. No modern Bash is installed.
+`bash-bugfix-helpers.ts` owns this capture. A separate isolated GNU 5.3 reference
+became available during the corrections; its provenance is recorded below.
 The independent unchanged stress baseline is 95/105 passing, ten failing;
 raw records are `/tmp/safe-bash-shell-gap-baseline.json`.
 
@@ -16,16 +17,26 @@ operators copy the open descriptor before closing the original; they do not
 change the descriptor's access mode. Cancellation and nondefault stdin origin
 have separate contract tests.
 
-Two additional observed Bash 3.2 differences are explicit and remain outside
-the exact-native assertions. With
+Initial descriptor implementation incorrectly treated two observed differences
+as possibly historical. Independent paired GNU 5.3 calibration confirmed both
+are bugs in that implementation; the descriptor follow-up corrects them. With
 `{ say outer >&3; { say inner >&4; } 4>&3-; say restored >&3; } 3>out`, Bash
 leaves descriptor 3 closed (status 1, `bash-probe: 3: Bad file descriptor`,
-file `outer\ninner\n`). The virtual shell retains existing temporary-redirection
-scope restoration (status 0, file also contains `restored\n`). With
+file `outer\ninner\n`). Both native versions leave the moved source closed in
+builtin/function/group environments, and virtual-bash now does too. With
 `target=3-; { say moved >&4; } 3>out 4>&$target`, Bash returns 1,
-`bash-probe: 3-: ambiguous redirect`, empty file; virtual-bash accepts the
-expanded move and writes `moved\n`. No modern-native parity is claimed for
-either form. These are recorded gaps, not excluded independent stress outcomes.
+`bash-probe: 3-: ambiguous redirect`, empty file; virtual-bash now rejects the
+expanded numeric-dash target before running the body. A literal final dash
+selects move syntax, including `$fd-`, `'3'-` and `3\-`; a quoted final dash
+or a dash produced entirely by expansion does not. The new regression replaces
+the original incorrect scope/expanded-target policy assertion transparently.
+
+Descriptor slots are distinct from shared streams: closing a moved source does
+not close copied aliases or lose offsets. Earlier redirects of that source are
+restored normally; moving a descriptor onto itself is a no-op. Subshell,
+pipeline and substitution environments isolate slot closure; builtin/function
+and redirect-only commands persist it. Failed later redirects retain earlier
+move effects. Standard-input slot closure preserves nondefault origin metadata.
 
 Primary reference: GNU Bash manual, Redirections / Moving File Descriptors,
 https://www.gnu.org/software/bash/manual/html_node/Redirections.html .
@@ -38,7 +49,10 @@ UTF-8 character counting is additionally captured with `en_US.UTF-8`: installed
 Bash 3.2 counts bytes, so `read -rn2` on `é😀z` assigns only `é`, leaves `😀z`,
 status 0, empty stderr. The virtual text model counts Unicode characters
 independently of host locale, assigns `é😀` and leaves `z`. This is an explicit
-native difference, not an exact-Unicode-parity claim.
+native difference, not an exact-Unicode-parity claim across versions/locales.
+Paired GNU 5.3 calibration confirms Unicode character counting in UTF-8 locales
+and zero-count no-consumption. GNU 5.3 counts bytes under `LC_ALL=C`; virtual
+text reads currently use UTF-8 characters irrespective of environment locale.
 Delimiter matching uses the first encoded byte; an empty argument selects NUL.
 Skipped NUL bytes follow the modern manual for these option forms, not a claim
 of Bash 3.2 binary-text compatibility. Non-option reads retain prior behavior.

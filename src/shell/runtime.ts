@@ -132,13 +132,31 @@ interface IO {
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
   readonly stderr: ByteSink;
-  readonly descriptors?: ReadonlyMap<number, Descriptor>;
+  descriptors?: ReadonlyMap<number, Descriptor>;
 }
 
 interface Descriptor {
+  closed?: boolean;
   readonly input?: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly output?: ByteSink;
+}
+
+function isolateIO(io: IO): IO {
+  return { ...io, ...(io.descriptors ? { descriptors: new Map([...io.descriptors].map(([number, descriptor]) => [number, { ...descriptor }])) } : {}) };
+}
+
+function activeIO(io: IO): IO {
+  const input = io.descriptors?.get(0);
+  const output = io.descriptors?.get(1);
+  const error = io.descriptors?.get(2);
+  if (!(input?.closed && input.input === io.stdin) && !(output?.closed && output.output === io.stdout) && !(error?.closed && error.output === io.stderr)) return io;
+  return {
+    ...io,
+    ...(input?.closed && input.input === io.stdin ? { stdin: closedSource, stdinIsDefault: false } : {}),
+    ...(output?.closed && output.output === io.stdout ? { stdout: closedSink } : {}),
+    ...(error?.closed && error.output === io.stderr ? { stderr: closedSink } : {}),
+  };
 }
 
 interface OutputFile {
@@ -245,7 +263,7 @@ export class Runtime {
         } };
         try {
           return await interruptible(runtime.runCommandIsolated(command, cloneState(state), {
-            ...io,
+            ...isolateIO(io),
             stdin: input,
             ...(incoming ? { stdinIsDefault: false } : {}),
             stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
@@ -280,6 +298,8 @@ export class Runtime {
   }
 
   async command(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+    originalIO = activeIO(originalIO);
+    if (command.kind === "subshell") originalIO = isolateIO(originalIO);
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
     this.signal.throwIfAborted();
@@ -292,7 +312,7 @@ export class Runtime {
         return 0;
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
-      io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell");
+      io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
       if (command.kind === "arithmetic") return Number(evaluateArithmetic(command.expression, state.variables) === 0n);
       if (command.kind === "subshell") {
         const child = cloneState(state);
@@ -374,27 +394,37 @@ export class Runtime {
     }
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false): Promise<IO> {
-    const descriptors = new Map<number, Descriptor>([
-      ...io.descriptors ?? [],
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false): Promise<IO> {
+    io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
       [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
+    const inputDescriptor = io.descriptors.get(0);
+    const outputDescriptor = io.descriptors.get(1);
+    const errorDescriptor = io.descriptors.get(2);
+    const descriptors = new Map<number, Descriptor>([
+      ...io.descriptors ?? [],
+      [0, inputDescriptor?.input === io.stdin ? inputDescriptor : { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
+      [1, outputDescriptor?.output === io.stdout ? outputDescriptor : { output: io.stdout }],
+      [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }],
+    ]);
+    const replaced = new Set<number>();
     if (io.stdin === closedSource) descriptors.delete(0);
     if (io.stdout === closedSink) descriptors.delete(1);
     if (io.stderr === closedSink) descriptors.delete(2);
     const currentIO = (): IO => {
-      const descriptor = descriptors.get(0);
+      const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
         stdin: descriptor?.input ?? closedSource,
         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
-        stdout: descriptors.get(1)?.output ?? closedSink,
-        stderr: descriptors.get(2)?.output ?? closedSink,
+        stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
+        stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink,
         descriptors,
       };
     };
     try { for (const redirect of redirects) {
+      replaced.add(redirect.descriptor);
       if (redirect.document || redirect.operator === "<<<") {
         const hereString = redirect.operator === "<<<";
         let value: string;
@@ -421,11 +451,15 @@ export class Runtime {
         else {
           if (!/^\d+-?$/u.test(target)) throw new Error(`${target}: Bad file descriptor`);
           const move = target.endsWith("-");
+          if (move && !redirect.move) throw new Error(`${target}: ambiguous redirect`);
           const sourceDescriptor = Number(move ? target.slice(0, -1) : target);
           const descriptor = descriptors.get(sourceDescriptor);
-          if (!descriptor || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new Error(`${target}: Bad file descriptor`);
-          descriptors.set(redirect.descriptor, descriptor);
-          if (move) descriptors.delete(sourceDescriptor);
+          if (!descriptor || descriptor.closed || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new Error(`${move ? sourceDescriptor : target}: Bad file descriptor`);
+          descriptors.set(redirect.descriptor, { ...descriptor });
+          if (move && sourceDescriptor !== redirect.descriptor) {
+            descriptors.delete(sourceDescriptor);
+            if (persistMoves && !replaced.has(sourceDescriptor)) descriptor.closed = true;
+          }
         }
       } else {
         const path = resolvePath(state.cwd, target);
@@ -537,7 +571,7 @@ export class Runtime {
           else variables[name] = saved.value;
         }
         const redirectState = { ...state, variables, redirectAssignments };
-        try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs); }
+        try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true); }
         finally {
           state.substitutionStatus = redirectState.substitutionStatus;
           for (const [name, value] of Object.entries(variables)) {
@@ -545,7 +579,7 @@ export class Runtime {
           }
           for (const [name, saved] of previous) saved.value = variables[name];
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand);
       if (!inlineInput) await assign();
       if (fileShortcut) {
         const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
@@ -849,7 +883,7 @@ export class Runtime {
       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
       const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
-      const captureIO = { ...io, stdout: this.budget.sink(capture, this.signal) };
+      const captureIO = { ...isolateIO(io), stdout: this.budget.sink(capture, this.signal) };
       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
       state.status = state.substitutionStatus;
       return new TextDecoder().decode(capture.bytes()).replace(/\0/gu, "").replace(/\n+$/u, "");

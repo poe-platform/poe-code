@@ -35,6 +35,7 @@ export interface Redirect {
   readonly descriptor: number;
   readonly operator: string;
   readonly target: Word;
+  readonly move?: boolean;
   readonly document?: HereDocument;
 }
 
@@ -577,7 +578,7 @@ class Parser {
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
     const target = this.advance();
-    return { descriptor, operator, target: target.word!, ...(target.document ? { document: target.document } : {}) };
+    return { descriptor, operator, target: target.word!, ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
   }
 }
 

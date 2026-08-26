@@ -1,5 +1,39 @@
 # Requirements and Progress Ledger
 
+## Safe empty-directory contract and core consumers — August 26, 2026
+
+Contract commit `1dc0652` adds optional `FileSystem.rmdir(path, FsOptions)` without
+changing required `rm` or requiring existing adapters to add a method. It has no
+recursive/force option. Unsupported methods/backends report `ENOTSUP`; supported
+operations preserve children, reject nondirectories and enforce emptiness at
+removal, not by listing then recursively deleting. The full contract is in
+`src/contracts/filesystem.md`. Poincare owns all backend implementations and
+Faraday owns the diff/patch consumer; their separate 34-failure pruning cohort
+is not closed by Curie's core tests.
+
+Curie's deterministic core tests reproduce both `rmdir` and `rm -d` deleting a
+child inserted after an empty observation and returning zero. The initial
+44-test run has 8 passes/36 failures; direct primitive dispatch makes the same
+44 pass. An expanded 53-test cohort catches and fixes one additional consumer
+issue: `rm -df` swallowing an `ENOENT`-shaped cancellation reason. Final scoped
+verification is 226/226 contract/core tests, plus five strict-rejection repeats
+of 53/53, with zero skips/TODOs. Tests use an explicit test-only native `rmdir`
+adapter, real temporary directories and an actual shell quoted-path case; no
+native tool or host filesystem fallback is added to product commands.
+
+Build and scoped TypeScript pass. The first whole-repo typecheck at this
+moving-worktree checkpoint reports eight errors in Poincare's in-progress
+readonly/real tests; those files are not modified here. Evidence, source hashes,
+the historical failure counts and exact locations are in
+`tests/commands/empty-directory.evidence.json`. A later typecheck retains those
+eight errors and adds an in-progress network `ByteSource` error at
+`src/commands/network/curl.ts:246` (Archimedes-owned); it is not fixed here.
+The earlier successful build is not a claim that this later source state builds.
+This is scoped author evidence,
+not a frozen clean-repository or remote-backend certification. Curl remains
+Archimedes-owned; metadata remains deferred. The broader goal, superiority and
+72-hour requirement are not demonstrated by this increment.
+
 ## Curl author assignment — August 26, 2026
 
 The user explicitly requires **"i also need curl"**. This supersedes the just

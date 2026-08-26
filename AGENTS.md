@@ -55,6 +55,12 @@
   `src/contracts/index.ts` and `src/index.ts`. Use `.js` import specifiers in
   TypeScript. Command and filesystem payloads are explicitly `Uint8Array`;
   await byte-sink writes and set an explicit `maxBytes` when collecting output.
+- `FileSystem.rmdir?(path, options?: FsOptions)` is the optional safe
+  empty-directory primitive; see `src/contracts/filesystem.md`. Keep existing
+  `rm` semantics. Core `rmdir` and directory-only `rm -d` must use this method,
+  report absent support as `ENOTSUP`, and never approximate it with an empty
+  listing followed by recursive deletion. Preserve cancellation even when its
+  reason has an errno such as `ENOENT`; `-f` must not swallow caller aborts.
 - Middleware must await or return `next()`. Filesystem adapters and command
   implementations must propagate the supplied signal into host work; helper
   cancellation does not forcibly terminate an uncooperative host operation.

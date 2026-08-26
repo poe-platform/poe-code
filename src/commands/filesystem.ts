@@ -23,6 +23,12 @@ function needCapability(context: CommandContext, capability: "symlink" | "link" 
   if (!context.fs[capability]) throw new FsError("ENOTSUP", { syscall: capability });
 }
 
+async function removeEmptyDirectory(context: CommandContext, path: string): Promise<void> {
+  context.signal.throwIfAborted();
+  if (!context.fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path });
+  await context.fs.rmdir(path, { signal: context.signal });
+}
+
 async function destinations(context: CommandContext, operands: readonly string[]) {
   requireOperands(operands, 2);
   const target = pathOf(context, operands.at(-1)!);
@@ -161,8 +167,15 @@ export function filesystemCommands(): CommandDefinition[] {
         }
         const recursive = parsed.flags.has("r") || parsed.flags.has("R");
         if (stat.type === "directory" && !recursive && !parsed.flags.has("d")) throw new FsError("EISDIR", { path });
-        if (stat.type === "directory" && !recursive && (await context.fs.readdir(path, { signal: context.signal })).length) throw new FsError("ENOTEMPTY", { path });
-        await context.fs.rm(path, { recursive: recursive || stat.type === "directory", force: parsed.flags.has("f"), signal: context.signal });
+        if (stat.type === "directory" && !recursive) {
+          try { await removeEmptyDirectory(context, path); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (!parsed.flags.has("f") || codeOf(error) !== "ENOENT") throw error;
+          }
+        } else {
+          await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
+        }
         if (parsed.flags.has("v")) await output(context, `removed '${operand}'\n`);
       });
     }),
@@ -174,9 +187,7 @@ export function filesystemCommands(): CommandDefinition[] {
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
           if (path === "/") throw new FsError("EBUSY", { path });
-          if ((await context.fs.lstat(path, { signal: context.signal })).type !== "directory") throw new FsError("ENOTDIR", { path });
-          if ((await context.fs.readdir(path, { signal: context.signal })).length) throw new FsError("ENOTEMPTY", { path });
-          await context.fs.rm(path, { recursive: true, signal: context.signal });
+          await removeEmptyDirectory(context, path);
           if (parsed.flags.has("v")) await output(context, `rmdir: removing directory '${path}'\n`);
           path = dirname(path);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);

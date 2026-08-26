@@ -40,6 +40,118 @@ function deferred<T>() {
 }
 
 describe("spawn.parallel()", () => {
+  const falsyReasons = [
+    { label: "undefined", reason: undefined },
+    { label: "null", reason: null },
+    { label: "false", reason: false },
+    { label: "zero", reason: 0 },
+    { label: "empty string", reason: "" },
+    { label: "NaN", reason: NaN },
+    { label: "bigint zero", reason: 0n },
+    { label: "negative zero", reason: -0 }
+  ];
+
+  describe.each([
+    {
+      source: "result rejection",
+      createHandle: (reason: unknown): TestHandle => ({
+        events: emptyEvents(),
+        result: Promise.reject(reason)
+      })
+    },
+    {
+      source: "synchronous throw",
+      createHandle: (reason: unknown): TestHandle => {
+        throw reason;
+      }
+    },
+    {
+      source: "event stream rejection",
+      createHandle: (reason: unknown): TestHandle => ({
+        events: (async function* (): AsyncIterable<AcpEvent> {
+          yield await Promise.reject<AcpEvent>(reason);
+        })(),
+        result: Promise.resolve(result(0))
+      })
+    }
+  ])("falsy $source", ({ createHandle }) => {
+    it.each(falsyReasons)("rejects with $label from a thunk", async ({ reason }) => {
+      const queued = vi.fn((): TestHandle => ({
+        events: emptyEvents(),
+        result: Promise.resolve(result(1))
+      }));
+
+      await expect(
+        spawn.parallel([() => createHandle(reason), queued], { maxConcurrent: 1 })
+      ).rejects.toBe(reason);
+
+      expect(queued).not.toHaveBeenCalled();
+    });
+
+    it.each(falsyReasons)("rejects with $label from a tuple", async ({ reason }) => {
+      const spawnOnce = vi.fn(() => createHandle(reason));
+      const parallel = createSpawnParallel<string, TupleOptions, SpawnResult>(spawnOnce);
+
+      await expect(
+        parallel(
+          [
+            ["codex", { prompt: "failing" }],
+            ["codex", { prompt: "queued" }]
+          ],
+          { maxConcurrent: 1 }
+        )
+      ).rejects.toBe(reason);
+
+      expect(spawnOnce).toHaveBeenCalledTimes(1);
+    });
+
+    it("aggregates every falsy reason and continues when failFast is false", async () => {
+      const successful = vi.fn((): TestHandle => ({
+        events: emptyEvents(),
+        result: Promise.resolve(result(8))
+      }));
+      const promise = spawn.parallel(
+        [...falsyReasons.map(({ reason }) => () => createHandle(reason)), successful],
+        { maxConcurrent: 1, failFast: false }
+      );
+
+      await expect(promise).rejects.toBeInstanceOf(AggregateError);
+      await expect(promise).rejects.toHaveProperty(
+        "errors",
+        falsyReasons.map(({ reason }) => reason)
+      );
+      expect(successful).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it.each(falsyReasons)("preserves $label after a peer rejects on abort", async ({ reason }) => {
+    const pending = deferred<SpawnResult>();
+    const abortError = new Error("peer aborted");
+    abortError.name = "AbortError";
+    const onAbort = vi.fn(() => pending.reject(abortError));
+    const queued = vi.fn((): TestHandle => ({
+      events: emptyEvents(),
+      result: Promise.resolve(result(2))
+    }));
+
+    await expect(
+      spawn.parallel(
+        [
+          (): TestHandle => ({ events: emptyEvents(), result: Promise.reject(reason) }),
+          (signal?: AbortSignal): TestHandle => {
+            signal?.addEventListener("abort", onAbort, { once: true });
+            return { events: emptyEvents(), result: pending.promise };
+          },
+          queued
+        ],
+        { maxConcurrent: 2 }
+      )
+    ).rejects.toBe(reason);
+
+    expect(onAbort).toHaveBeenCalledTimes(1);
+    expect(queued).not.toHaveBeenCalled();
+  });
+
   it("runs at most maxConcurrent spawns at a time", async () => {
     let active = 0;
     let maxActive = 0;

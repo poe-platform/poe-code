@@ -57,14 +57,14 @@ export function createSpawnParallel<
     const results: Array<TResult | undefined> = new Array(calls.length);
     const errors: unknown[] = [];
     let nextIndex = 0;
-    let primaryFailure: unknown;
+    let primaryFailure: { reason: unknown } | undefined;
 
     const removeParentAbort = linkParentAbort(options.signal, group, (error) => {
-      primaryFailure ??= error;
+      primaryFailure ??= { reason: error };
     });
 
     const worker = async () => {
-      while (!primaryFailure) {
+      while (primaryFailure === undefined) {
         const index = nextIndex;
         nextIndex += 1;
 
@@ -78,13 +78,13 @@ export function createSpawnParallel<
 
           if (failFast && result.exitCode !== 0) {
             const error = new SpawnParallelError(index, result, results);
-            primaryFailure ??= error;
+            primaryFailure ??= { reason: error };
             group.abort(error);
             return;
           }
         } catch (error) {
           if (failFast || group.signal.aborted) {
-            primaryFailure ??= error;
+            primaryFailure ??= { reason: error };
             group.abort(error);
             return;
           }
@@ -102,8 +102,8 @@ export function createSpawnParallel<
       removeParentAbort();
     }
 
-    if (primaryFailure) {
-      throw primaryFailure;
+    if (primaryFailure !== undefined) {
+      throw primaryFailure.reason;
     }
 
     if (errors.length > 0) {

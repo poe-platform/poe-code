@@ -4,7 +4,7 @@
 
 The user explicitly requires **"i also need curl"**. This supersedes the just
 assigned chmod/stat/mktemp author batch; only read-only metadata investigation
-occurred, with no metadata source or tests created. Curie owns
+occurred, with no metadata source or tests created. Curie initially owned
 `src/commands/network/**`, `tests/commands/network/**`, root exports and root
 documentation for an explicitly enabled HTTP(S) curl plugin. The aggregate must
 not silently acquire network access. Require manual per-hop authorization,
@@ -39,6 +39,34 @@ root/subpath smoke with exact binary output and an unchanged aggregate registry.
 A manual moving-worktree `curl STREAM | head -c 5` check returns five bytes/status
 zero in about 51 ms and closes the server stream. This is not frozen-revision
 proof of the independently owned shell fix or a clean whole-repository test run.
+
+### Accepted handoff and package-only verification
+
+The user accepted the author handoff. **Archimedes now solely owns network
+production and author/independent tests**; Curie must not edit those scopes
+without coordination. Curie retains root exports/docs and non-overlapping
+package/inventory verification. Metadata is deferred until the independent curl
+checkpoint. No independent curl pass/fail outcome is inferred yet.
+
+Frozen package audit **b98e239374ccdb53860c88f41b06a4bc977ecc1d** builds and
+typechecks. All **15 expanded export entries** import and have their JavaScript
+and declaration files in the dry-run package. Static inspection finds zero
+third-party or computed imports across **106 emitted JS files / 288 import sites**;
+runtime/optional/peer dependency maps are empty, while the three dev dependencies
+match the lock root. The dry-run package contains **426 entries**, no tests,
+benchmarks or node_modules. No install, network request, full-suite/comparator
+rerun, source edit or package API change was performed for this audit. Evidence:
+`benchmarks/reports/PACKAGE_AUDIT.json`.
+
+The default registry still contains **49 plugin names**; the optional curl and
+SafeJS factories add one name each only when explicitly installed. The inspected
+15 kernel names have three default-plugin overlaps: **61 default unique names**,
+or **63 with both optional plugins**. This is not a claim that all options or all
+names are fully implemented. `COMMAND_COVERAGE.*` records a separate additive
+snapshot and preserves the original comparison/coverage observations unchanged.
+Root import usage is `README.md`'s Optional Curl Network Command section; the
+exact user curl requirement remains in `AGENTS.md`. All broader goals remain
+unproven, including S3 same-ETag identity limits and independent SafeJS outcomes.
 
 ## Source and status discipline
 

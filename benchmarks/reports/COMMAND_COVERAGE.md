@@ -1,5 +1,37 @@
 # Command inventory and comparative recipe coverage
 
+## Optional curl addendum — August 26, 2026
+
+A separate frozen package/registry audit at
+`b98e239374ccdb53860c88f41b06a4bc977ecc1d` includes the accepted curl author
+commits `6854a6b` and `deab14d`. **Default plugin names remain the same 49**.
+`curl` is a separately registered, authorization-required optional command;
+`safejs` remains a separately injected optional command. Enabling both gives
+51 registered plugin names, not 51 default tools. With the inspected 15 kernel
+builtins and three overlaps, the default union remains **61**, or **63 only
+with both opt-ins**. Alias factories do not add extra command names.
+
+`networkCommands`/`curlCommands` and definition factories are available from
+`virtual-bash` and `virtual-bash/commands/network`. The root aggregate never
+auto-registers network access. Archimedes now owns network production and its
+author/independent tests; independent curl acceptance is pending, not established
+by export-map checks. Metadata authoring stays deferred until that checkpoint.
+
+`PACKAGE_AUDIT.json` records the exact archive and source hashes, successful
+frozen build/typecheck, all **15 expanded package exports** importing with packaged
+declarations, **zero runtime dependencies**, and **zero external/computed imports**
+across 106 emitted JavaScript files and 288 import sites. The dry-run package has
+426 entries, with no tests, benchmarks or node_modules; no tarball was written.
+Dedicated memory/real/shell and other command-family subpaths are not currently
+declared (root exports provide their APIs); the audit adds none.
+
+This is an additive inventory update, **not a comparator rerun**. The original
+snapshot, recipes, observations and recommendation history below and in JSON
+remain unchanged. In particular, historical 19-unshadowed-plugin coverage does
+not grow just because optional curl now exists. Curl's former recommendation
+has an author implementation awaiting independent review, not full curl parity
+or evidence that the broader superiority/72-hour goal is complete.
+
 ## Scope and provenance
 
 Captured August 26, 2026 from committed source

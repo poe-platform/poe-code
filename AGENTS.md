@@ -30,6 +30,11 @@
   explicitly enabled network plugin, not ambient networking in `agentCommands()`.
   Use injected authorization/transport, VFS-only file access, zero runtime
   dependencies and no native curl or subprocess in product code.
+- After the accepted curl author handoff, Archimedes is the sole owner of
+  `src/commands/network/**` and its author/independent tests. Curie retains root
+  exports, package/inventory audits and documentation only; do not edit network
+  source/tests without coordination. Defer metadata until curl's independent
+  checkpoint. Count optional curl separately from the default command bundle.
 - Preserve the user's exact preference: **"one more note - zero dependency if posisble"**.
   Keep the shipped library at zero runtime dependencies where possible and use
   Node builtins. Minimal development tooling is permitted; isolate comparator

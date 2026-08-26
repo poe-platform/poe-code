@@ -126,8 +126,13 @@ native curl. Unknown options and unsupported protocols are rejected.
 
 The first author source commit `6854a6b` passes 80 scoped HTTP(S), native-curl,
 VFS, shell, cancellation and safety checks with zero skips/TODOs. A different
-verifier owns `tests/commands/network-stress/**`; this is not independent
-certification or complete curl parity. See `src/commands/network/README.md` for
+verifier, Archimedes, now owns network production and its author/independent
+tests; this is not independent certification or complete curl parity.
+The default aggregate remains 49 plugin names; optional `curl` and `safejs` add
+one each only when explicitly installed. The frozen package audit at `b98e239`
+verifies all 15 expanded exports and zero runtime dependencies, without rerunning
+the comparator or certifying either optional engine. See
+`benchmarks/reports/PACKAGE_AUDIT.json` and `src/commands/network/README.md` for
 exact flags, replay/output bounds, retry limitations and unsupported features.
 
 ## Optional SafeJS Command

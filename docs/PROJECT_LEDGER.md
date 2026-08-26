@@ -73,7 +73,7 @@ replace real-filesystem symlink checks.
 
 ## Ownership and coordination
 
-- Documentation worker: `/Users/kjopek/Workspace/virtual-bash/AGENTS.md`,
+- Documentation worker: `/Users/kjopek/Workspace/safe-bash/AGENTS.md`,
   `README.md`, and `docs/**`, excluding `docs/testing-shell-oracle.md`.
   Read parent rules, edit only owned files via `apply_patch`, commit coherent
   documentation atomically, and return changed paths plus the commit hash.
@@ -223,7 +223,114 @@ that any implementation, command, fixture, or test currently exists.
   preserved. `7b95909` is the valid owned-only invocation commit; the abandoned
   mixed commit is not part of current history. Subsequent commits use `--only`.
 
-### Remaining product work
+### Independent text-program and protocol checkpoint: 2026-08-26
+
+- `69d2490` adds 141 independent native sed/awk/pipeline fixtures with raw byte,
+  status, complete file/directory, and mode assertions. Direct native programs
+  are trusted static fixtures only, executed in fresh temporary directories
+  with fixed C locale, explicit matched umask 000, output limits, and deadlines.
+  This is not a sandbox for user input. The two native-rejected cases remain
+  in the denominator; no skipped case is counted as success.
+- A source-stable initial differential result is 129/141 pass: six divergences,
+  four unsupported, two oracle-rejected. `312c6fe` adds 20 independent safety
+  probes. Initial safety was 15/20; after source-owner cancellation fixes it was
+  19/20. The remaining failing probe showed eager sed lookahead blocking `1q`.
+- Text source ownership transferred after author commits `3376e35` and
+  `c8e60b4`; the author reports 98 passing tests including 84 native comparisons.
+  The independent fixes are `e842095` numeric-range expiry after skipped input,
+  `8699b5c` lazy lookahead, and `a8a6c70` named-file newline boundaries. Original
+  native expected outputs are preserved. No syntax/capture/unsupported gap is
+  silently dropped, and in-place BSD behavior that truncates subsequent files
+  is not copied merely to improve a local score.
+- Faraday's user-reported, separately pinned checkpoint: 778/778 adapter/
+  conformance/stress and 28/28 actual SafeJS tests pass, zero skips; scoped TS
+  and build pass. Evidence is `tests/stress/adapters/CHECKPOINT.md`, including
+  `4a6f7d6`, `3a71b0e`, `617b881`. The reported 600 metadata checks in 200
+  processes retained exact assertions; the checkpoint distinguishes these
+  prior controls from its own rerun. WebDAV append/replacement/XML/body/errno/
+  LOCK cleanup fixes are attributed to their owner, not rerun by this worker.
+- Current disjoint exclusions include structured commands (Poincare), search
+  commands (Plato), and encoding/hash/compression byte commands (Faraday), plus
+  shell and filesystem owners. Root exports remain this worker's scope.
+- Benchmark-claim audit is in `benchmarks/COVERAGE_AUDIT.md`: native text counts
+  are not added to just-bash totals; protocol mock conformance is not a live
+  backend benchmark; a 109-case result does not define overall superiority.
+  A separate twelve-workload performance pilot retains every warmup, sample,
+  failure and pending result, with no winner claim. R18 remains unproven.
+
+### Relocated verification checkpoint: 2026-08-26
+
+- The authoritative working directory is `/Users/kjopek/Workspace/safe-bash`.
+  The user reports relocation integrity verified across 6063 entries, with HEAD
+  `441124d` and logical index/working changes preserved. This worker inspected
+  the corrected Git root before resuming; no package/API rename was requested
+  or performed. Historical evidence retains its original recorded paths.
+- Text verification is committed in `d6fb088`: 131/141 native passes, four raw
+  divergences, four unsupported, and two oracle-rejected. Safety passes 20/20;
+  combined 151/161, zero skips. After relocation, the full owned text scope
+  plus root-export/performance tests runs 276 tests: 266 pass, ten fail, zero
+  skips. The ten active failures are exactly the native non-pass cases, not
+  hidden skips or newly failing safety assertions.
+- Remaining text divergences: ambiguous nested captures, global zero-length
+  `^|$` matches, BSD in-place quit across files, and awk file `getline`.
+  Unsupported sed features are `r`, `w`, `l`, and pattern backreferences.
+  Numeric/global substitution flags and a label-comment fixture are rejected
+  by the selected native oracle; these are not declared virtual regressions.
+- `8c6ac2e` wires readonly/mount/overlay wrappers and the delivered structured
+  command plugin through the root. Package exports are `.`, `./contracts`,
+  `./contracts/*`, `./fs/s3`, `./fs/webdav`, `./fs/readonly`, `./fs/mount`, and
+  `./fs/overlay`. Root wrapper smoke tests pass, including lower-layer isolation.
+  Runtime dependency metadata remains empty; optional just-bash stays pinned
+  to 3.4.2 in the separate benchmark package. The exact user preference remains
+  **"one more note - zero dependency if posisble"**.
+- Delivered wrapper APIs: `createReadOnlyFileSystem(fs)`,
+  `createMountFileSystem({ root, mounts? })`, and
+  `createOverlayFileSystem({ upper, lower, maxBufferBytes? })`; corresponding
+  exported classes are `ReadOnlyFileSystem`, `MountFileSystem`, and
+  `OverlayFileSystem`. Mount/overlay options types are exported; overlay exposes
+  `cleanup(options?)`. The source owner reports 335 passing wrapper tests and
+  build/typecheck at its checkpoint (`4da3880`, `81ba2fe`, `0d7a384`). This is
+  attributed evidence, not proof of complete namespace or filesystem parity.
+- Mount conservatively rejects missing/dangling symlink tails. Overlay has
+  instance-local metadata, no hardlinks, 64-MiB default buffered streams, and
+  requires an atomic-rename upper backend. A namespace-aware resolver carrying
+  resolved targets and traversal boundaries, including missing targets, remains
+  a separately designed/tested contract proposal; it has not been added blindly.
+- `aa5e4a1` records the performance pilot and coverage audit. The valid pilot is
+  source-stable with 264 passing samples and 24 pending out of 288, retaining
+  all warmups and outliers: virtual-bash 144 pass, just-bash 120 pass/24 pending.
+  Measured-only counts are 120 pass versus 100 pass/20 pending. Binary stdout
+  through the comparator's public text API remains unverified, not classified
+  as proven corruption when file-byte checks pass. Isolated text/file-write
+  results favor virtual-bash, but measured multi-tool pipelines are slower;
+  there is no broad performance or superiority conclusion.
+- Refreshed unfiltered comparison: `benchmarks/reports/after-relocation.json`
+  records virtual-bash 106 pass/three fail and just-bash 3.4.2 103 pass/five
+  fail/one unsupported, each out of 109. Source fingerprints remain stable and
+  there are no worker background errors. Core oracle is 64/64; advanced is
+  21/24 after the shell owner's case implementation. Quoted/unquoted heredocs
+  and here-strings remain the three virtual comparison failures. Overall result
+  is fail; these counts do not redefine the exact requirement
+  **"IT MUST BE BETTER than just-bash, much better"**, which remains unproven.
+- Fresh post-relocation `npm run build` and benchmark-scoped TypeScript checks
+  pass. `npm run typecheck` exits 2 with four unfinished-owner test errors:
+  byte compression native `reference` inference (TS7022), and search safety
+  attempts to assign readonly stdin/stdout/stderr (TS2540). Those excluded
+  files are not modified by this worker; their owners are resumed.
+- Fresh `npm test` snapshot: 2371 total, 2330 pass, 30 fail, 11 skip, zero
+  cancelled. Failures comprise ten independent text gaps, thirteen independent
+  shell differentials, five unfinished byte tests and two unfinished search
+  pipelines. Skips are five unavailable GNU byte-tool oracles plus six actual
+  SafeJS tests without `SAFEJS_LOCAL_ROOT`. Faraday's separately configured
+  actual-SafeJS checkpoint remains attributed evidence, not a successful run
+  of those skipped cases. Raw local log:
+  `/tmp/safe-bash-relocated-global-tests.log`. This live shared-worktree snapshot
+  is not a fixed-revision product acceptance result.
+- New disjoint owner: Archimedes authors `src/commands/diff-patch/**` and
+  `tests/commands/diff-patch/**`. Existing byte/search/structured/shell/adapter
+  exclusions remain; no excluded implementation was changed in this checkpoint.
+
+### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent
   workers deliver code; keep foundation checkpoint evidence separate from
@@ -236,8 +343,8 @@ that any implementation, command, fixture, or test currently exists.
   integration details, and full-shell coverage tracking without reducing scope.
 - Deliver and validate every requested backend, the S3-compatible mock,
   plugin behavior, tools, stdin, piping, and full shell functionality.
-- Receive the independent Bash oracle artifacts and verify their recorded
-  coverage, count, tagging, and results; track uncovered behavior separately.
+- Expand the delivered 88-fixture independent Bash oracle and maintain its
+  recorded coverage, tagging, and results; track uncovered behavior separately.
 - Record sequential tool delivery, then independent stress-test/fix cycles
   with reproducible evidence and regression retests.
 - Establish and maintain an honest work/activity record for the explicit

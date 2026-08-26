@@ -2,6 +2,9 @@
 
 ## Authority and coordination
 
+- The intended project directory is `/Users/kjopek/Workspace/safe-bash`.
+- Work exclusively in that directory. The location correction does not request
+  a package or API rename; the package remains named `virtual-bash`.
 - Follow the parent `../AGENTS.md`: the root agent coordinates and synthesizes;
   subagents perform substantive implementation, investigation, and verification.
 - User statements are authoritative. Preserve explicit instructions and facts;
@@ -58,6 +61,14 @@
 - Commands: `npm test` runs `tests/**/*.test.ts`; `npm run test:contracts` runs
   contract tests; `npm run typecheck` checks source and test types;
   `npm run build` emits ESM and declarations to `dist/`.
+- Root exports include delivered shell, standard/text/structured command
+  plugins, filesystem adapters/wrappers, and SafeJS bridges. Wrapper package
+  subpaths are `./fs/readonly`, `./fs/mount`, and `./fs/overlay`.
+- Wrapper parity is incomplete: mount rejects missing/dangling symlink tails;
+  overlay metadata is instance-local, hardlinks are unsupported, stream buffers
+  default to 64 MiB, and the upper backend must support atomic rename. A shared
+  namespace-aware resolver needs separate design and tests, not an assumed cast
+  or a lexical-containment workaround.
 - Optional comparison: `npm --prefix benchmarks ci --ignore-scripts`, then
   `npm run benchmark`. It runs every oracle fixture and deterministic probes,
   writes machine-readable results, and exits nonzero for any non-pass outcome.
@@ -90,10 +101,15 @@
 - Coordinate API details with foundation contracts worker Curie
   (`01a03f3d-492a-7e30-af3e-1e0e0e56f7e7`) before publishing API examples.
 - The foundation worker owns contracts, root exports/configuration, benchmarks,
-  and independent command verification. Exclude `src/commands/text-programs/**`
-  and its tests (Plato), all adapters, `tests/stress/adapters/**`, and
-  `tests/fs/conformance/**` (Faraday); coordinate later ownership transfers.
-- Also exclude `src/commands/structured/**` and its tests (Poincare), and
-  `benchmarks/shell-stress/**` (shell verifier). Use explicit-path `git commit
-  --only` after staging owned paths so a concurrent worker's index entries do
+  core commands, and independent command verification. After the author handoff,
+  it also owns `src/commands/text-programs/**`, its author tests, and independent
+  `tests/commands/text-programs-stress/**` for stress-driven fixes.
+- Exclude all adapters, `tests/stress/adapters/**`, `tests/fs/conformance/**`,
+  `src/commands/bytes/**` and its tests (Faraday); `src/commands/structured/**`
+  and its tests (Poincare); `src/commands/search/**` and its tests (Plato); shell
+  source/tests and `benchmarks/shell-stress/**` (shell verifier). Other filesystem
+  wrappers retain their assigned owners. Coordinate later transfers explicitly.
+- Also exclude `src/commands/diff-patch/**` and `tests/commands/diff-patch/**`
+  (Archimedes); no source ownership transfer has been granted.
+- Use explicit-path `git commit --only` after staging owned paths so a concurrent worker's index entries do
   not enter another worker's commit.

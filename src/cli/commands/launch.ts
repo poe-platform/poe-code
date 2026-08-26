@@ -257,7 +257,7 @@ async function resolveStartSpec(options: {
   if (commandParts === null) {
     return null;
   }
-  if (commandParts.length === 0) {
+  if (commandParts.length === 0 || commandParts[0] === "") {
     throw new ValidationError("Command to run is required.");
   }
 
@@ -591,6 +591,7 @@ function parsePort(value: string): DockerPortMapping {
 function splitCommandLine(value: string): string[] {
   const parts: string[] = [];
   let current = "";
+  let tokenStarted = false;
   let quote: "'" | '"' | null = null;
 
   for (const char of value) {
@@ -605,24 +606,27 @@ function splitCommandLine(value: string): string[] {
 
     if (char === "'" || char === '"') {
       quote = char;
+      tokenStarted = true;
       continue;
     }
 
     if (char === " " || char === "\t") {
-      if (current.length > 0) {
+      if (tokenStarted) {
         parts.push(current);
         current = "";
+        tokenStarted = false;
       }
       continue;
     }
 
+    tokenStarted = true;
     current += char;
   }
 
   if (quote !== null) {
     throw new ValidationError("Command contains an unterminated quote.");
   }
-  if (current.length > 0) {
+  if (tokenStarted) {
     parts.push(current);
   }
   return parts;

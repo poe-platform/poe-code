@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
+import { ValidationError } from "../errors.js";
 import { registerLaunchCommand } from "./launch.js";
 
 const {
@@ -265,6 +266,86 @@ describe("launch command", () => {
       })
     );
   });
+
+  describe.each(["interactive", "explicit argv"])("%s command arguments", (source) => {
+    it.each([
+      { line: "printf '%s' '' tail", command: "printf", args: ["%s", "", "tail"] },
+      { line: 'printf "%s" "" tail', command: "printf", args: ["%s", "", "tail"] },
+      { line: "echo ''", command: "echo", args: [""] },
+      { line: 'echo ""', command: "echo", args: [""] },
+      { line: 'echo "" "" tail', command: "echo", args: ["", "", "tail"] },
+      { line: "echo tail '' \"\"", command: "echo", args: ["tail", "", ""] },
+      { line: "echo ''\"\" tail", command: "echo", args: ["", "tail"] },
+      { line: "echo ''\"\"", command: "echo", args: [""] },
+      { line: "echo a''b", command: "echo", args: ["ab"] },
+      { line: "echo ''a\"\"", command: "echo", args: ["a"] },
+      { line: "echo 'a b' \"c d\"", command: "echo", args: ["a b", "c d"] },
+      { line: "echo ' ' \"  \"", command: "echo", args: [" ", "  "] },
+      { line: "echo\t''\t\"\"\ttail", command: "echo", args: ["", "", "tail"] },
+      { line: "echo\t\talpha  beta", command: "echo", args: ["alpha", "beta"] }
+    ])("preserves arguments for $line", async ({ line, command, args }) => {
+      const program = createBaseProgram();
+      registerLaunchCommand(program, createContainer());
+      const argv = ["node", "cli", "launch", "start", "api"];
+      if (source === "interactive") {
+        promptTextMock.mockResolvedValueOnce(line);
+      } else {
+        argv.push("--", command, ...args);
+      }
+
+      await program.parseAsync(argv);
+
+      expect(startLaunchMock).toHaveBeenCalledTimes(1);
+      expect(startLaunchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          spec: expect.objectContaining({ command, args })
+        })
+      );
+      expect(promptTextMock).toHaveBeenCalledTimes(source === "interactive" ? 1 : 0);
+      expect(selectMock).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      { line: "'' echo", args: ["echo"] },
+      { line: '"" echo', args: ["echo"] },
+      { line: "''", args: [] },
+      { line: '""', args: [] },
+      { line: "''\"\" echo", args: ["echo"] }
+    ])("rejects an empty executable for $line before calling the SDK", async ({ line, args }) => {
+      const program = createBaseProgram();
+      registerLaunchCommand(program, createContainer());
+      const argv = ["node", "cli", "launch", "start", "api"];
+      if (source === "interactive") {
+        promptTextMock.mockResolvedValueOnce(line);
+      } else {
+        argv.push("--", "", ...args);
+      }
+
+      const result = program.parseAsync(argv);
+
+      await expect(result).rejects.toBeInstanceOf(ValidationError);
+      await expect(result).rejects.toThrow("Command to run is required.");
+      expect(startLaunchMock).not.toHaveBeenCalled();
+      expect(withSpinnerMock).not.toHaveBeenCalled();
+      expect(selectMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it.each(["echo 'unfinished", 'echo "unfinished'])(
+    "rejects an unterminated quote in %s before calling the SDK",
+    async (line) => {
+      const program = createBaseProgram();
+      registerLaunchCommand(program, createContainer());
+      promptTextMock.mockResolvedValueOnce(line);
+
+      const result = program.parseAsync(["node", "cli", "launch", "start", "api"]);
+
+      await expect(result).rejects.toBeInstanceOf(ValidationError);
+      await expect(result).rejects.toThrow("Command contains an unterminated quote.");
+      expect(startLaunchMock).not.toHaveBeenCalled();
+      expect(withSpinnerMock).not.toHaveBeenCalled();
+    }
+  );
 
   it("rejects missing launch start values under --yes without prompting", async () => {
     const missingIdProgram = createBaseProgram();

@@ -249,3 +249,64 @@ This is a bounded targeted checkpoint for independent final review, not evidence
 of full Bash compatibility, universal locale/binary-text support, superiority,
 or completion of the requested work duration. The explicit text-model limits
 documented above remain applicable.
+
+## Deferred heredoc body correction
+
+Independent final verification found one additional defect after the preceding
+checkpoint: `printf before >before; false && cat <<EOF\n$(true |)\nEOF\nprintf
+after >after` incorrectly failed during body collection. The raw independent
+finding is `/tmp/safe-bash-shell-gaps-final-findings.txt`; complete observations
+are `/tmp/safe-bash-shell-gaps-final-validation.json`. GNU 5.3 exits 0 with empty
+outputs and both files, whereas the prior shell exited 127 without either file.
+
+`deferred-heredoc-reference.json` contains 28 bounded, isolated native captures
+from the same pinned GNU 5.3 executable, with exact scripts, raw output/status,
+file bytes represented as text for these ASCII cases, environment, version and
+binary hash. `capture-deferred-heredoc-reference.ts` regenerates that evidence
+only with an explicitly supplied executable; no existing native helper changes.
+The cases cover executed external/builtin/function/group redirections, skipped
+branches and unused functions, malformed parameters and substitutions, quoted
+literal controls, ordinary skipped substitutions, and skipped here-strings.
+
+The implementation now stores collected bodies as raw data. Runtime expansion
+parses/evaluates unquoted fragments incrementally in order, so earlier body
+substitution effects survive a later bad parameter. A malformed `$()` body
+substitution fails the redirection with status 1 and its native command-
+substitution diagnostic; outer execution continues. A malformed but closed
+backtick substitution fails only that child, producing empty substitution text;
+remaining body expansion and the redirected command continue. Unterminated
+backtick/arithmetic forms fail the redirection without becoming outer grammar
+errors. Diagnostics retain captured line numbers and the actual failing source,
+including the distinct compound-redirection location. No fixture names or
+literal script-specific branches are used.
+
+Complete-unit ordinary substitution validation, including unselected here-string
+arguments, remains upfront with status 127 and no current-unit effects. Quoted
+heredocs remain literal. The two obsolete owned eager-body syntax assertions now
+retain the earlier marker and assert status 1: one is the executed redirection
+failure, the other the unexecuted command's preceding `false`. No case is removed.
+The depth assertion still rejects nesting above 64 with status 2 before executing
+the redirected command; only its heredoc timing changes to retain the preceding
+marker. Its here-string counterpart still rejects before any marker. Additional
+controls retain source/expansion/substitution/command bounds, cumulative fragment
+byte accounting, host and timer cancellation, and deferred nested EOF warnings.
+
+Before source changes, the initial 26 native cases plus three safety controls
+passed 5/29 and failed 24/29, recorded in
+`/tmp/safe-bash-deferred-heredoc-before.txt`. The final two native delimiter-error
+cases and nested-warning control subsequently failed before their corresponding
+correction, while the timer-cancellation control passed; that intermediate run
+was 30/33 in `/tmp/safe-bash-deferred-heredoc-boundaries-before.txt`. The corrected
+33-case regression file plus the four existing inline-input limit controls passed
+37/37 in `/tmp/safe-bash-deferred-heredoc-after.txt`. Broader post-fix validation
+is recorded separately; preceding checkpoint counts are historical.
+
+The post-fix focused heredoc/here-string/inline-input/fatal/unit/streaming run was
+271/272 passing, with one external whole-source-guard invalidation in the
+`read -r INPUT` prefix-assignment heredoc case and no observed semantic assertion
+failure (`/tmp/safe-bash-deferred-heredoc-controls-final.txt`). The unchanged frozen
+modern holdout passed 57/57 (`/tmp/safe-bash-deferred-heredoc-heldout.txt`). A fresh
+global typecheck encountered an unowned error, TS2722 at
+`tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts:37`; the error is
+recorded, not rewritten by the shell owner. A final full owned-suite run and
+unchanged original stress rerun follow this source commit.

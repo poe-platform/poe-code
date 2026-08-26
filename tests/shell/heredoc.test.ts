@@ -72,19 +72,20 @@ test("nested heredoc punctuation is literal, not Bash 3.2 parser syntax", async 
 
 for (const [source, status, stdout = "", files = []] of [
   ["say ran >marker; pass <<\n", 2],
-  ["say ran >marker; pass <<EOF\n$(true |)\nEOF\n", 127],
-  ["say ran >marker; false && pass <<EOF\n${bad\nEOF\n", 2],
+  ["say ran >marker; pass <<EOF\n$(true |)\nEOF\n", 1, "", ["marker"]],
+  ["say ran >marker; false && pass <<EOF\n${bad\nEOF\n", 1, "", ["marker"]],
   ["say ran >marker; pass <<EOF\nbody\nEOF\nif true; then", 2, "body\n", ["marker"]],
   ["say ran >marker; say \"$(pass <<EOF)\"", 2],
   ["say ran >marker; pass <<$'EOF'\ntext\n$EOF\n", 2],
   ['say ran >marker; pass <<$"EOF"\ntext\n$EOF\n', 2],
 ] as const) {
-  test(`heredoc syntax errors precede their current unit's effects: ${JSON.stringify(source)}`, async () => {
+  test(`heredoc collection versus deferred body error timing: ${JSON.stringify(source)}`, async () => {
     const { shell, fs } = setup();
     const result = await shell.exec(source, { signal: AbortSignal.timeout(2000) });
     assert.equal(result.exitCode, status);
     assert.equal(result.stdout, stdout);
     assert.deepEqual((await fs.readdir("/")).map((entry) => entry.name), files);
+    if (files.some((file) => file === "marker")) assert.equal(new TextDecoder().decode(await fs.readFile("/marker")), "ran\n");
   });
 }
 

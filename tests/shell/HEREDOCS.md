@@ -6,16 +6,18 @@ semicolon or a newline inside quotes. Delimiters undergo quote removal only;
 quoted, mixed-quoted, escaped, and backtick-quoted delimiters disable body
 expansion. Expansion-shaped delimiters are literal rather than executable.
 ANSI-C `$'...'` and localized `$"..."` quoting remain unsupported and fail
-closed in delimiters as well as ordinary words; they are not misread as
+closed in delimiters; ANSI-C ordinary words are supported separately. They are not misread as
 literal dollar-prefixed delimiters. Quoted raw bodies may contain them as text.
 
-Unquoted bodies are parsed as scalar parameter/arithmetic/command expansions,
+Executed unquoted bodies are parsed as scalar parameter/arithmetic/command expansions,
 with no field splitting, globbing, or tilde expansion. Quotes in body text are
 literal; backslashes quote dollar, backtick, and backslash. Backslash-newline
 joining precedes delimiter comparison and `<<-` tab stripping. Quoted bodies
-are literal. Syntax, including unquoted body substitutions, is validated before
-any command or filesystem effects; skipped branches consume bodies without
-expanding them. Each executed redirection creates a fresh `ShellInput`; copies
+are literal. The lexer collects raw body data without parsing its expansions.
+Only executed redirections parse/evaluate those expansions, in order; skipped
+branches and unused functions never reject malformed expansion data. Ordinary
+command substitutions and here-string arguments still undergo complete-unit
+validation before that unit's effects. Each executed redirection creates a fresh `ShellInput`; copies
 of its descriptor share its cursor through existing descriptor machinery.
 
 EOF ends an otherwise syntactically complete document. An incomplete physical
@@ -40,7 +42,8 @@ an existing, explicit string-model boundary, not byte-preserving Bash parity.
 The existing limits apply without new public API: `maxSourceBytes` bounds the
 whole source, `maxExpansionBytes` and `maxExpansionFields` bound individual
 scalar expansions, and command/substitution/loop/output limits share the
-execution budget. The default syntax nesting bound is 64. Document inputs are
+execution budget. The syntax nesting bound remains 64, checked when an unquoted
+document is expanded rather than while raw data is collected. Document inputs are
 bounded in-memory values, not temporary files. Cancellation observes the
 shared signal; it cannot undo effects or forcibly terminate an uncooperative
 host operation or interrupt synchronous parsing.

@@ -16,6 +16,11 @@ when a later unit is malformed. Exit and fatal expansion stop before parsing
 future units. `parseShell` remains a whole-source parse-only validator. Malformed
 ordinary substitutions in the current unit follow pinned GNU Bash 5.3 status
 127/no-current-unit-effects, not Bash 3.2's same-line earlier-effects behavior.
+Heredoc bodies are raw data during collection, not ordinary command arguments.
+Only an executed unquoted redirection parses/evaluates its body expansions;
+skipped bodies and unused functions do not reject malformed expansion data.
+Here-string arguments retain ordinary upfront validation. The raw source-size
+bound and runtime expansion, syntax-depth, command and cancellation bounds remain.
 Shell text uses JavaScript strings; byte stdin/stdout support does not imply
 byte-preserving textual expansions for arbitrary non-UTF-8 data.
 

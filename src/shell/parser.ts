@@ -6,6 +6,7 @@ export type WordPart =
   | { kind: "text"; value: string; quoted: boolean }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
   | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word }
+  | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "substitution"; script: Script; line: number; quoted: boolean };
 
 export interface Word {
@@ -23,12 +24,18 @@ interface Token {
   document?: HereDocument;
 }
 
-interface HereDocument {
+export interface HereDocument {
   readonly delimiter: string;
   readonly quoted: boolean;
   readonly stripTabs: boolean;
   readonly offset: number;
-  body: Word;
+  readonly depth: number;
+  body: string;
+  endLine: number;
+}
+
+export class HereDocumentSyntaxError extends Error {
+  constructor(readonly diagnostic: string) { super(diagnostic); }
 }
 
 export interface Redirect {
@@ -78,7 +85,7 @@ class Lexer {
   delimiterOperator: string | undefined;
   readonly documents: HereDocument[] = [];
 
-  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false) {
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
 
@@ -129,7 +136,7 @@ class Lexer {
       document = {
         delimiter: word.parts.map((part) => part.kind === "text" ? part.value : "").join(""),
         quoted: word.parts.some((part) => part.quoted), stripTabs: delimiterOperator === "<<-", offset,
-        body: { offset, parts: [] },
+        body: "", endLine: this.lineAt(offset), depth: this.depth,
       };
       this.documents.push(document);
     }
@@ -157,24 +164,28 @@ class Lexer {
         body += (document.stripTabs ? line.replace(/^\t+/u, "") : line) + "\n";
       }
       if (!terminated) this.warnings.push(`here-document at offset ${document.offset} delimited by end-of-file (wanted ${JSON.stringify(document.delimiter)})`);
-      document.body = document.quoted
-        ? { offset: document.offset, parts: [{ kind: "text", value: body, quoted: true }] }
-        : new Lexer(body, this.depth, this.warnings, 0, this.byteLocale).documentWord();
+      document.body = body;
+      document.endLine = this.lineAt(Math.max(0, this.position - 1));
     }
   }
 
-  documentWord(): Word {
-    const parts: WordPart[] = [];
+  *documentWords(): Generator<Word> {
     let text = "";
-    const flush = () => {
-      if (text) parts.push({ kind: "text", value: text, quoted: true });
-      text = "";
-    };
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
       if (current === "$" || current === "`") {
-        flush();
-        this.expansion(parts, true);
+        if (text) { yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+        const offset = this.position;
+        const parts: WordPart[] = [];
+        try { this.expansion(parts, true); }
+        catch (error) {
+          if (!(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
+          if (this.source.startsWith("${", offset)) throw new HereDocumentSyntaxError(`shell: line ${this.documentLine}: ${this.source}: bad substitution\n`);
+          if (current === "`") throw new HereDocumentSyntaxError(`shell: line ${this.documentLine}: bad substitution: no closing "\`" in ${this.source.slice(offset)}\n`);
+          if (this.source.startsWith("$((", offset) && error.reason === "Unterminated arithmetic expression") throw new HereDocumentSyntaxError(`shell: line ${this.documentLine}: bad substitution: no closing \`)' in ${this.source}\n`);
+          throw new HereDocumentSyntaxError(`shell: line ${this.documentLine}: ${error.message}\n`);
+        }
+        yield { offset, parts };
       } else if (current === "\\" && /[$`\\]/u.test(this.source[this.position + 1] ?? "")) {
         text += this.source[this.position + 1]!;
         this.position += 2;
@@ -182,9 +193,21 @@ class Lexer {
         text += current;
         this.position++;
       }
+      if (text.length >= 1024) { yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
     }
-    flush();
-    return { offset: 0, parts };
+    if (text) yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] };
+  }
+
+  documentSubstitutionError(source: string, error: ShellSyntaxError, backtick = false): HereDocumentSyntaxError {
+    const line = this.documentLine! + source.slice(0, error.offset).split("\n").length;
+    if (error.offset >= source.length) {
+      return new HereDocumentSyntaxError(backtick
+        ? `shell: command substitution: line ${line}: syntax error: unexpected end of file\n`
+        : `shell: command substitution: line ${line}: unexpected EOF while looking for matching \`)'\n`);
+    }
+    const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+    const sourceLine = source.split("\n")[source.slice(0, error.offset).split("\n").length - 1] ?? "";
+    return new HereDocumentSyntaxError(`shell: command substitution: line ${line}: syntax error near unexpected token \`${token}'\nshell: command substitution: line ${line}: \`${sourceLine}'\n`);
   }
 
   literalExpansion(): string {
@@ -323,7 +346,7 @@ class Lexer {
   }
 
   expansion(parts: WordPart[], quoted: boolean): void {
-    const line = this.lineAt(this.position);
+    const line = this.documentLine ?? this.lineAt(this.position);
     if (this.source[this.position] === "`") {
       this.position++;
       let source = "";
@@ -333,7 +356,11 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale), line, quoted });
+      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale), line, quoted }); }
+      catch (error) {
+        if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
+        parts.push({ kind: "failed-substitution", diagnostic: this.documentSubstitutionError(source, error, true).diagnostic, quoted });
+      }
       return;
     }
     this.position++;
@@ -346,14 +373,21 @@ class Lexer {
       this.position = end + 2;
     } else if (this.source[this.position] === "(") {
       const start = this.position + 1;
-      const nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
+      let nested: Parser;
       let script: Script;
-      try { script = nested.script(new Set([")"])); }
+      try {
+        nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
+        script = nested.script(new Set([")"]));
+      }
       catch (error) {
+        if (this.documentLine !== undefined && error instanceof ShellSyntaxError && !/nesting|exceeds/u.test(error.reason)) throw this.documentSubstitutionError(this.source.slice(start), error);
         if (error instanceof ShellSyntaxError && !/Unterminated|nesting|exceeds/u.test(error.reason)) throw new ShellSyntaxError(error.reason, start + error.offset, 127);
         throw error;
       }
-      if (nested.current.value !== ")") this.error("Unterminated command substitution");
+      if (nested.current.value !== ")") {
+        if (this.documentLine !== undefined) throw this.documentSubstitutionError(this.source.slice(start), new ShellSyntaxError("Unterminated command substitution", nested.current.offset));
+        this.error("Unterminated command substitution");
+      }
       if (nested.lexer.documents.length) this.error("Here-document requires a newline before closing command substitution");
       this.position += nested.current.end + 1;
       parts.push({ kind: "substitution", script, line, quoted });
@@ -606,6 +640,11 @@ export function parseShell(source: string, depth = 0): Script {
   const warnings: string[] = [];
   const script = parseSource(source, depth, warnings);
   return { ...script, ...(warnings.length ? { warnings } : {}) };
+}
+
+export function* hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[]): Generator<Word> {
+  if (document.quoted) yield { offset: document.offset, parts: [{ kind: "text", value: document.body, quoted: true }] };
+  else yield* new Lexer(document.body, document.depth, warnings, line - 1, byteLocale, line).documentWords();
 }
 
 export function parseShellUnit(source: string, position = 0, byteLocale = false): { script: Script; next: number } {

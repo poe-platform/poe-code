@@ -4,8 +4,9 @@ import {
 import type {
   ByteSink, ByteSource, CommandContext, CommandRegistry, FileSystem, Middleware,
 } from "../contracts/index.js";
-import type { Command, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
-import { ShellLimitError } from "./types.js";
+import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
+import { HereDocumentSyntaxError, hereDocumentWords } from "./parser.js";
+import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { ShellInput } from "./input.js";
 import { evaluateArithmetic } from "./arithmetic.js";
@@ -389,7 +390,11 @@ export class Runtime {
     } catch (error) {
       if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }
       this.signal.throwIfAborted();
-      if (error instanceof Flow || error instanceof ShellLimitError) throw error;
+      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+      if (error instanceof HereDocumentSyntaxError) {
+        await writeText(io.stderr, error.diagnostic);
+        return 1;
+      }
       if (errorCode(error) === "EPIPE") return 141;
       const line = error instanceof ExpansionFailure ? error.line ?? command.line ?? 1 : command.line ?? 1;
       try { await writeText(io.stderr, `shell: line ${line}: ${message(error)}\n`); }
@@ -412,7 +417,29 @@ export class Runtime {
     }
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false): Promise<IO> {
+  async document(document: HereDocument, state: State, io: IO, line = document.endLine): Promise<string> {
+    this.signal.throwIfAborted();
+    let value = "";
+    let size = 0;
+    let words = 0;
+    const warnings: string[] = [];
+    try {
+      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings)) {
+        this.signal.throwIfAborted();
+        for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+        if (++words % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+        const part = (await this.word(word, state, io, false)).join("");
+        size += Buffer.byteLength(part);
+        if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        value += part;
+      }
+    } finally {
+      for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+    }
+    return value;
+  }
+
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
       [1, { output: io.stdout }], [2, { output: io.stderr }],
@@ -447,7 +474,7 @@ export class Runtime {
       if (redirect.document || redirect.operator === "<<<") {
         const hereString = redirect.operator === "<<<";
         let value: string;
-        try { value = (await this.word(redirect.document?.body ?? redirect.target, state, currentIO(), false, false, hereString)).join(""); }
+        try { value = redirect.document ? await this.document(redirect.document, state, currentIO(), line) : (await this.word(redirect.target, state, currentIO(), false, false, hereString)).join(""); }
         catch (error) {
           if (error instanceof ParameterExpansionFailure && !isolatedInlineInput) throw error;
           if (error instanceof ParameterExpansionFailure) throw new CommandFailure(error.message, state.isolated ? 1 : 127);
@@ -596,7 +623,7 @@ export class Runtime {
           else variables[name] = saved.value;
         }
         const redirectState = { ...state, variables, redirectAssignments };
-        try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true); }
+        try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true, false, command.line ?? 1); }
         finally {
           state.substitutionStatus = redirectState.substitutionStatus;
           for (const [name, value] of Object.entries(variables)) {
@@ -604,7 +631,7 @@ export class Runtime {
           }
           for (const [name, saved] of previous) saved.value = variables[name];
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (!inlineInput) await assign();
       if (fileShortcut) {
         const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
@@ -891,6 +918,12 @@ export class Runtime {
   }
 
   async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
+    if (part.kind === "failed-substitution") {
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      await writeText(io.stderr, part.diagnostic);
+      state.status = state.substitutionStatus = 2;
+      return "";
+    }
     if (part.kind === "arithmetic") {
       try { return String(evaluateArithmetic(part.expression, state.variables)); }
       catch (error) { throw new ExpansionFailure(message(error), part.line); }

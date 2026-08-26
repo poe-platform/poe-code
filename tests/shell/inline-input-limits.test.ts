@@ -23,14 +23,16 @@ test("large literal bodies remain source-bounded even when skipped", async () =>
     (error) => error instanceof ShellLimitError && error.limit === "maxSourceBytes");
 });
 
-test("inline-input nested parsing is depth bounded before filesystem effects", async () => {
+test("inline-input nested parsing retains its bound at the expansion boundary", async () => {
   const nested = "$(say ".repeat(65) + "x" + ")".repeat(65);
   for (const input of [`<<EOF\n${nested}\nEOF\n`, `<<<${nested}`]) {
     const { shell, fs } = setup();
     const result = await shell.exec(`say ran >marker; pass ${input}`);
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /nesting exceeds 64/u);
-    assert.deepEqual(await fs.readdir("/"), []);
+    assert.equal(result.stdout, "");
+    assert.deepEqual((await fs.readdir("/")).map((entry) => entry.name), input.startsWith("<<<") ? [] : ["marker"]);
+    if (!input.startsWith("<<<")) assert.equal(new TextDecoder().decode(await fs.readFile("/marker")), "ran\n");
   }
 });
 

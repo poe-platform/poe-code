@@ -47,6 +47,23 @@ describe("emitResumeBreakpoint", () => {
 });
 
 describe("async/await scheduling", () => {
+  it.each([
+    "return load();",
+    "return (() => pending)();",
+    "function loadSource() { return pending; } return loadSource();",
+    "return new Load();"
+  ])("preserves a promise returned synchronously: %s", async (source) => {
+    const pending = createSandboxPromise(Promise.resolve("ready"));
+    const result = await run(source, {
+      pending,
+      load: createSandboxClosure({ call: () => pending }),
+      Load: createSandboxClosure({ call: () => undefined, construct: () => pending })
+    });
+
+    expect(result).toBe(pending);
+    await expect(pending.promise).resolves.toBe("ready");
+  });
+
   it("awaits non-promise values", async () => {
     await expect(run("return await 1")).resolves.toBe(1);
   });

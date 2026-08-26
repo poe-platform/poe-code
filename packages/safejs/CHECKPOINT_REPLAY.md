@@ -6,6 +6,12 @@ script state from the source and replays that history. Completed host operations
 are not invoked again. A still-pending operation follows its declared recovery
 policy: re-issue or external reconciliation.
 
+Cancellation preserves the most recently captured checkpoint instead of replacing
+its replay history with an unwind-time snapshot. Adding or removing an
+`AbortSignal` on resume does not add promise-settlement events to that history.
+Synchronous functions returning promises preserve those promises; only an
+explicit `await` consumes them and creates an await checkpoint.
+
 The language-completeness plan in `docs/plans/safejs-language-completeness.md`
 tracks outstanding release gates. This document describes the implemented
 callback-recovery interface, not a claim that every checkpoint case is complete.
@@ -40,6 +46,25 @@ callback to finish.
 Nested native methods and function-valued properties use the same journaled
 bridge as top-level bindings. Opaque native functions created by host operations
 and live generators are not serialized by this codec.
+
+## Local state during host replay
+
+`declareHostOperation(operation, policy, { onReplay })` optionally registers a
+synchronous local-state restoration hook. It receives the original invocation
+arguments and the recorded outcome (`{ status: "fulfilled", value }` or
+`{ status: "rejected", reason }`) when recorded replay delivers a completed
+operation. It does not run for the original invocation or for a pending
+operation that must be re-issued or externally reconciled. The hook must not
+repeat external side effects or start asynchronous work. Throwing or returning a
+promise aborts replay with `HostCallResumabilityError` requiring reset, rather
+than leaving the interpreter waiting for an impossible settlement trace.
+
+The paired harness uses this hook to reconstruct its built-in clock and shared
+random generator while delivering saved host outcomes. Current checkpoints do
+not require the legacy host-call sidecar to restore completed operations or
+built-in time state. Custom `time` modules are not treated as the built-in clock
+or generator. Cached asynchronous results in the sidecar remain promises rather
+than becoming synchronous values.
 
 ## Callback history
 

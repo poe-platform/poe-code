@@ -327,13 +327,82 @@ more native-reference scripts at widths 1, 32, and 256 combine nested reads with
 returned source functions; they pass with exactly one read and echo per item
 (16–555 ms per case). This brings the additional script matrices to 24 cases.
 
+### Durable-checkpoint followup
+
+Commit `0b7d3d23` passed the full pre-push suite (18,975 passed, 41 skipped), but
+an additional paired-harness crash probe hung. Release workflow `33016194714`
+was cancelled before publication; a successful push is not a completed release.
+While this followup was being validated, later main commit `c4ab196b` included
+the earlier replay commit in `poe-code@4.0.67` (workflow `33017312712`, npm
+`gitHead` verified). The randomness item remains unchecked until this corrective
+followup is published and verified.
+
+The followup addresses these reproduced issues with regression coverage:
+
+- Cancellation wrappers added replay events when the original and resumed runs
+  differed in signal presence. Cancellation aliases now keep the underlying
+  promise's replay identity.
+- Synchronous source/native functions and constructors returning promises
+  implicitly awaited them. Calls now preserve returned promises, allowing the
+  actual source `await` to capture the pending operation.
+- Failure handling replaced durable replay history with an unwind-time fallback.
+  It now preserves the latest captured checkpoint.
+- The paired harness's legacy sidecar and SafeJS's host journal disagreed about
+  consumed calls and stateful time bindings. A local-state replay hook rebuilds
+  built-in time/RNG state from recorded execution, including when the sidecar is
+  absent. Rejected calls do not consume a successful sidecar entry. User-supplied
+  time modules do not advance the built-in RNG.
+- Cached asynchronous sidecar outcomes became synchronous, changing promise
+  scheduling. The sidecar now retains asynchronous result identity.
+- Throwing or asynchronous local-state hooks now fail replay explicitly rather
+  than being swallowed by source exception handling or ignored.
+
+#### Hard-crash manual matrix
+
+Use separate Node processes for original and resumed paired-harness runs. For
+each script family, run widths 1, 32, and 256 both with and without the legacy
+sidecar (18 cases total):
+
+1. Mix `Math.random`, `time.random`, UUIDs, monotonic timestamps, and asynchronous
+   host results returned from ordinary synchronous functions.
+2. Catch deterministic host failures every third iteration and retain their
+   original messages through replay.
+3. Pass source closures through native promise-returning identity functions and
+   draw more randomness when invoking the returned closures.
+
+Pause in the middle iteration. Wait for a durable checkpoint whose journal
+records all preceding reads as completed and the middle pause as pending, then
+kill the original process with `SIGKILL`. Resume in a new process with a different
+wall clock and a newly supplied signal. Compare every output against an
+independent native LCG/UUID reference and verify the external read log contains
+each index exactly once. Do not mistake an earlier pause checkpoint for the
+middle checkpoint merely because an external read has started.
+
+All 18 cases passed with exact native-reference arrays and external read counts.
+The final matrix took 1.9–12.8 seconds per case, including process startup. Its
+scheduler clock is controlled so each original run writes the intended crash
+checkpoint, rather than serializing every intermediate await; the real snapshot
+and sidecar still use filesystem I/O. An initial all-yield variant exposed
+quadratic checkpoint-writing overhead and exceeded the script's bounded runtime
+at width 256, so checkpoint cadence was corrected rather than increasing the
+timeout. Unit regressions continue to capture every yield in memory.
+
+Followup validation: expanded suites 3,608 passed / 39 skipped; opt-in
+adversarial/parser fuzz 9 passed / 5 skipped; 67 workspace build tasks and root
+bundle succeeded; root/SafeJS typechecks and focused ESLint passed. The
+interaction suite now has 65 cases; paired-loader coverage has 57 cases,
+including the 16-case seed/checkpoint/sidecar/custom-time matrix.
+Re-ran and inspected the real CLI screenshot: 8,192 random draws and 32 UUIDs
+checked, harness passed, zero spawns.
+
 ### Remaining release gates
 
-The identified replay regressions and the current validation gates pass. Review
-authoring guidance, commit this item, run the full pre-push suite, and verify
-actual GitHub/npm publication. No randomness release has been made yet. The full
-language-completeness goal remains active; the remaining checklist items are not
-claimed complete by this release.
+The followup's expanded tests, hard-crash matrix, build/type/lint gates, and real
+CLI screenshot pass. Commit the fixes separately from the already-pushed
+commit, integrate newer main changes without discarding them, then verify actual
+GitHub/npm publication of the corrective followup. The full language-completeness
+goal remains active; the remaining checklist items are not claimed complete by
+this release.
 
 ## Stale artifact cleanup
 

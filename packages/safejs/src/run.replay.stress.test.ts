@@ -12,7 +12,7 @@ async function captureRun(
   stopAt: number | string,
   snapshot?: SafeJSSnapshot,
   bindings: RunOptions["bindings"] = {},
-  options: Pick<RunOptions, "sink" | "modules" | "entryPointArgs" | "importMeta"> = {}
+  options: Pick<RunOptions, "sink" | "modules" | "entryPointArgs" | "importMeta" | "signal"> = {}
 ) {
   const clock = vi.spyOn(Date, "now").mockReturnValue(0);
   let release!: () => void;
@@ -77,6 +77,126 @@ async function finishReplay(execution: Promise<RunResult>): Promise<RunResult> {
 }
 
 describe("checkpoint interaction stress", () => {
+  it.each(["throw", "promise"] as const)(
+    "rejects a replay state hook that returns %s without stalling",
+    async (behavior) => {
+      const read = declareHostOperation(async () => 1, "re-issue", {
+        onReplay: () => {
+          if (behavior === "promise") return Promise.resolve();
+          throw new Error("invalid local state");
+        }
+      });
+      const source =
+        "try { await read(); } catch (error) { return 'caught'; } await wait('after'); return 'done';";
+      const original = await captureRun(source, "after", undefined, { read });
+      await expect(
+        finishReplay(
+          run(source, {
+            snapshot: original.saved,
+            bindings: { read, wait: async () => undefined }
+          })
+        )
+      ).rejects.toMatchObject({ name: "HostCallResumabilityError", action: "reset" });
+    }
+  );
+
+  it.each(["fulfilled", "rejected"] as const)(
+    "notifies local state hooks only for replayed %s outcomes",
+    async (status) => {
+      const onReplay = vi.fn();
+      const operation = vi.fn(async (value: number) => {
+        if (status === "rejected") throw new Error(`failure:${value}`);
+        return value * 2;
+      });
+      const read = declareHostOperation(operation, "re-issue", { onReplay });
+      const source =
+        "let value; try { value = await read(4); } catch (error) { value = error.message; } await wait('after'); return value;";
+      const original = await captureRun(source, "after", undefined, { read });
+      expect(onReplay).not.toHaveBeenCalled();
+      const resumed = await finishReplay(
+        run(source, {
+          snapshot: original.saved,
+          bindings: { read, wait: async () => undefined }
+        })
+      );
+      expect(resumed).toMatchObject({
+        ok: true,
+        returnValue: status === "fulfilled" ? 8 : "failure:4"
+      });
+      expect(operation).toHaveBeenCalledOnce();
+      expect(onReplay).toHaveBeenCalledExactlyOnceWith(
+        [4],
+        status === "fulfilled"
+          ? { status, value: 8 }
+          : { status, reason: expect.objectContaining({ message: "failure:4" }) }
+      );
+    }
+  );
+
+  it("keeps the last durable replay checkpoint when cancellation unwinds the run", async () => {
+    const source = "const value = Math.random(); await wait(); return [value, Math.random()];";
+    const controller = new AbortController();
+    let saved: SafeJSSnapshot | undefined;
+    let written!: () => void;
+    const checkpoint = new Promise<void>((resolve) => {
+      written = resolve;
+    });
+    const execution = run(source, {
+      randomSeed: 123,
+      signal: controller.signal,
+      bindings: { wait: async () => await new Promise(() => undefined) },
+      snapshotIntervalMs: -1,
+      snapshotBackend: {
+        async read() {
+          return saved;
+        },
+        async remove() {},
+        async write(value) {
+          saved = JSON.parse(serializeSafeJSSnapshot(value));
+          written();
+        }
+      }
+    });
+    await checkpoint;
+    const durable = structuredClone(saved);
+    controller.abort();
+    await expect(finishReplay(execution)).rejects.toMatchObject({ name: "AbortError" });
+    expect(saved).toEqual(durable);
+    const random = createSeededRandom(123);
+    const resumed = await finishReplay(
+      run(source, { snapshot: saved, bindings: { wait: async () => undefined } })
+    );
+    expect(resumed).toMatchObject({ ok: true, returnValue: [random.next(), random.next()] });
+  });
+  it.each(
+    [false, true].flatMap((originalSignal) =>
+      [false, true].map((resumedSignal) => ({ originalSignal, resumedSignal }))
+    )
+  )(
+    "replays with changed signal presence ($originalSignal -> $resumedSignal)",
+    async ({ originalSignal, resumedSignal }) => {
+      const source =
+        "const value = Math.random(); await wait('after'); return [value, Math.random()];";
+      const first = await captureRun(
+        source,
+        "after",
+        undefined,
+        {},
+        { signal: originalSignal ? new AbortController().signal : undefined }
+      );
+      const resumed = await finishReplay(
+        run(source, {
+          snapshot: first.saved,
+          bindings: { wait: async () => undefined },
+          signal: resumedSignal ? new AbortController().signal : undefined
+        })
+      );
+      expect(resumed).toMatchObject({
+        ok: true,
+        returnValue: first.finished.ok ? first.finished.returnValue : undefined
+      });
+    }
+  );
   it("does not repeat completed nested host methods", async () => {
     let invocations = 0;
     const service = { read: async () => ++invocations };

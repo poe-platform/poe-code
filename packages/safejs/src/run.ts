@@ -170,6 +170,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       let leaveHostReplay: (() => void) | undefined;
       let leaveInputReplay: (() => void) | undefined;
       let createFailureSnapshot: (() => RunSnapshot) | undefined;
+      let lastCheckpoint: RunSnapshot | undefined;
       let snapshotScheduler: SnapshotScheduler<RunSnapshot> | undefined;
       try {
         const restoredSnapshot =
@@ -353,6 +354,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   typeof yieldPoint.replayState === "number" ? yieldPoint.replayState : undefined,
                 sourceHash
               });
+              lastCheckpoint = snapshot;
               return snapshot;
             };
 
@@ -400,6 +402,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                           : undefined,
                       sourceHash
                     });
+                    lastCheckpoint = snapshot;
                     return snapshot;
                   };
 
@@ -431,7 +434,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         materializeWrappedErrorCause(error);
         if (createFailureSnapshot !== undefined && snapshotScheduler !== undefined) {
           try {
-            const snapshot = createFailureSnapshot();
+            const snapshot = lastCheckpoint ?? createFailureSnapshot();
             await snapshotScheduler.write(snapshot);
             dumpController.finalize(snapshot);
           } catch (snapshotError) {

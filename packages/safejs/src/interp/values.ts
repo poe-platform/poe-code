@@ -172,6 +172,7 @@ export function createSandboxClosure(input: {
 export function createSandboxPromise(
   promise: Promise<SandboxValue>,
   metadata: {
+    trackReplay?: boolean;
     hostCall?: import("./host-call.js").HostCallRecord;
     hostCallJournal?: import("./host-call.js").HostCallJournal;
     span?: SandboxCallContext["span"];
@@ -179,7 +180,10 @@ export function createSandboxPromise(
 ): SandboxPromise {
   const sandboxPromise = {
     kind: "promise" as const,
-    promise: promiseReplayContext.getStore()?.track(promise) ?? promise
+    promise:
+      metadata.trackReplay === false
+        ? promise
+        : (promiseReplayContext.getStore()?.track(promise) ?? promise)
   } as SandboxPromise;
 
   Object.defineProperty(sandboxPromise, sandboxPromiseBrand, {

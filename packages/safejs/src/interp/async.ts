@@ -417,9 +417,3 @@ export function normalizeClosureResult(
 
   return createSandboxPromise(resolveSandboxValue(result, { budget }));
 }
-
-export async function resolveClosureResult(
-  result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>
-): Promise<SandboxValue> {
-  return resolveSandboxValue(result);
-}

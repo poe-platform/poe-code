@@ -337,7 +337,7 @@ describe("runHarnessPair", () => {
     expect(vol.readFileSync("/outside/host-calls.tmp", "utf8")).toBe("outside-state\n");
     expect(vol.lstatSync(storePath).isSymbolicLink()).toBe(false);
     expect(JSON.parse(vol.readFileSync(storePath, "utf8") as string)).toEqual([
-      { key: "host.step", args: ["new"], result: "new" }
+      { key: "host.step", args: ["new"], result: "new", asynchronous: true }
     ]);
   });
 
@@ -1076,7 +1076,7 @@ describe("runHarnessPair", () => {
     expect(firstCalls).toEqual(["first", "second"]);
     expect(JSON.parse(vol.readFileSync(snapshotPath, "utf8") as string)).toMatchObject({
       clock: {
-        next: 1_001
+        next: 31_001
       }
     });
 
@@ -1210,20 +1210,29 @@ describe("runHarnessPair", () => {
     });
   });
 
-  it.each([undefined, 123])(
-    "keeps time.uuid and time.now stable across snapshot replay with seed %s",
-    async (randomSeed) => {
+  it.each(
+    [undefined, 123].flatMap((randomSeed) =>
+      [false, true].flatMap((durable) =>
+        [false, true].flatMap((missingSidecar) =>
+          [false, true].map((customTime) => ({ randomSeed, durable, missingSidecar, customTime }))
+        )
+      )
+    )
+  )(
+    "keeps time.uuid and time.now stable across snapshot replay with seed $randomSeed (durable: $durable, missing sidecar: $missingSidecar, custom time: $customTime)",
+    async ({ randomSeed, durable, missingSidecar, customTime }) => {
+      const injectedTime = customTime ? { time: { now: () => 7000, uuid: () => "custom" } } : {};
       const mdPath = "/repo/harness/stable-id.md";
       const snapshotPath = "/snapshots/stable-id.json";
       const script = [
         'import * as time from "time";',
         'import { wait } from "host";',
         "export default async (frontmatter) => {",
-      "  const first = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
+        "  const first = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
         "  await wait('first');",
-      "  const second = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
+        "  const second = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
         "  await wait('second');",
-      "  const third = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
+        "  const third = time.uuid().concat('@').concat(String(time.now())).concat('#').concat(String(Math.random()));",
         "  return first.concat('|').concat(second).concat('|').concat(third);",
         "};"
       ].join("\n");
@@ -1240,6 +1249,7 @@ describe("runHarnessPair", () => {
           now: () => 5_000
         },
         modulesFor: () => ({
+          ...injectedTime,
           host: {
             async wait(name: string) {
               return name === "first" ? first.promise : second.promise;
@@ -1256,11 +1266,16 @@ describe("runHarnessPair", () => {
       first.resolve("alpha");
       await flushMicrotasks();
 
+      const checkpoint = vol.readFileSync(snapshotPath, "utf8") as string;
+
       controller.abort();
       second.reject(new Error("aborted"));
       await expect(firstRun).rejects.toMatchObject({
         name: "AbortError"
       });
+
+      if (durable) vol.writeFileSync(snapshotPath, checkpoint);
+      if (missingSidecar) vol.unlinkSync(`${snapshotPath}.host-calls.json`);
 
       const saved = JSON.parse(vol.readFileSync(snapshotPath, "utf8") as string);
       expect(saved.random?.seed).toEqual(expect.any(Number));
@@ -1270,6 +1285,7 @@ describe("runHarnessPair", () => {
           now: () => 99_999
         },
         modulesFor: () => ({
+          ...injectedTime,
           host: {
             async wait() {
               return "beta";
@@ -1285,6 +1301,7 @@ describe("runHarnessPair", () => {
           now: () => 5_000
         },
         modulesFor: () => ({
+          ...injectedTime,
           host: {
             async wait() {
               return "done";
@@ -1301,6 +1318,65 @@ describe("runHarnessPair", () => {
       });
     }
   );
+
+  it("replays caught host failures without consuming a successful sidecar entry", async () => {
+    const mdPath = "/repo/harness/caught.md";
+    const snapshotPath = "/snapshots/caught.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: caught\nversion: 1\n---\n",
+      "/repo/harness/caught.ajs":
+        "import { read, wait } from 'host'; export default async (frontmatter) => { let message; try { await read(); } catch (error) { message = error.message; } await wait(message); return message; };"
+    });
+    vol.mkdirSync("/snapshots", { recursive: true });
+    let reads = 0;
+    const read = async () => {
+      reads += 1;
+      throw new Error("original failure");
+    };
+    const gate = createDeferred<string>();
+    const waiting = createDeferred<boolean>();
+    let caughtMessage: unknown;
+    const controller = new AbortController();
+    const original = runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        host: {
+          read,
+          wait: (message: unknown) => {
+            caughtMessage = message;
+            waiting.resolve(true);
+            return gate.promise;
+          }
+        }
+      }),
+      signal: controller.signal,
+      snapshotIntervalMs: -1,
+      snapshotPath
+    });
+    await waiting.promise;
+    await flushMicrotasks();
+    expect(reads).toBe(1);
+    expect(caughtMessage).toBe("original failure");
+    controller.abort();
+    gate.reject(new Error("aborted"));
+    await expect(original).rejects.toMatchObject({ name: "AbortError" });
+    expect(JSON.parse(vol.readFileSync(snapshotPath, "utf8") as string)).toMatchObject({
+      replay: {
+        calls: [
+          expect.objectContaining({
+            operation: "read",
+            outcome: { status: "rejected", data: expect.any(Object) }
+          }),
+          expect.any(Object)
+        ]
+      }
+    });
+    const resumed = await runHarnessPair(mdPath, {
+      modulesFor: () => ({ host: { read, wait: async () => "done" } }),
+      snapshotPath
+    });
+    expect(resumed).toMatchObject({ ok: true, returnValue: "original failure" });
+    expect(reads).toBe(1);
+  });
 
   it("does not replay stale host calls after a successful run with the same snapshotPath", async () => {
     const mdPath = "/repo/harness/fresh.md";
@@ -1386,7 +1462,7 @@ describe("runHarnessPair", () => {
     await flushMicrotasks();
 
     expect(firstCalls).toEqual(["first", "second"]);
-    expect(snapshotBackend.writes).toHaveLength(2);
+    expect(snapshotBackend.writes).toHaveLength(3);
     expect(snapshotBackend.snapshot).toMatchObject({
       sourceHash: expect.any(String)
     });

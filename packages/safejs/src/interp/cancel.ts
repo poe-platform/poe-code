@@ -60,6 +60,7 @@ function wrapCancelableValue(
     // the sandbox never awaits the original and it would otherwise read as unhandled.
     observeSandboxPromise(value);
     const wrapped = createSandboxPromise(wrapCancelablePromise(value.promise, signal, seen), {
+      trackReplay: false,
       ...(value.hostCall === undefined ? {} : { hostCall: value.hostCall }),
       ...(value.hostCallJournal === undefined ? {} : { hostCallJournal: value.hostCallJournal }),
       ...(value.span === undefined ? {} : { span: value.span })

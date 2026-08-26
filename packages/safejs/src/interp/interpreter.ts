@@ -69,7 +69,6 @@ import {
   emitResumeBreakpoint,
   createInterpretedClosure,
   normalizeClosureResult,
-  resolveClosureResult,
   type AsyncEvaluationContext,
   type AsyncEvaluationResult,
   type InterpreterYieldPoint
@@ -2466,15 +2465,13 @@ async function evaluateNewExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: await resolveClosureResult(
-        wrapHostResult(
-          callee.value.construct(args.value, {
-            stack,
-            thisValue: undefined,
-            span: node.span
-          }),
-          stack
-        )
+      value: await wrapHostResult(
+        callee.value.construct(args.value, {
+          stack,
+          thisValue: undefined,
+          span: node.span
+        }),
+        stack
       )
     };
   } catch (error) {
@@ -3508,7 +3505,7 @@ async function invokeSandboxClosure(
 
     return callee.async === true
       ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)
-      : await resolveClosureResult(wrapHostResult(result, stack));
+      : await wrapHostResult(result, stack);
   } catch (error) {
     if (isFatalSandboxError(error)) {
       throw error;

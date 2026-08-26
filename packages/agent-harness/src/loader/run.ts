@@ -9,6 +9,7 @@ import {
   FileSnapshotBackend,
   createSpawnUsageAccumulator,
   createReplayableRandom,
+  declareHostOperation,
   makeTimeModule,
   run,
   splitFrontmatter,
@@ -125,33 +126,39 @@ export async function runHarnessPair(
       seed: options.randomSeed,
       snapshot
     });
+    const time = makeTimeModule({ now: runtimeClock.now, random: runtimeRandom.next });
+    const suppliedModules = options.modulesFor(validated, meta);
+    const hasCustomTime =
+      suppliedModules instanceof Map
+        ? suppliedModules.has("time")
+        : Object.hasOwn(suppliedModules, "time");
     const hostCallReplay = await createHostCallReplay(
       snapshotPath,
-      {
-        "time.now": {
-          restore: restoreClockState(runtimeClock),
-          snapshot: runtimeClock.snapshot
-        },
-        "time.random": {
-          restore: restoreRandomState(runtimeRandom),
-          snapshot: runtimeRandom.snapshot
-        },
-        "time.uuid": {
-          restore: restoreRandomState(runtimeRandom),
-          snapshot: runtimeRandom.snapshot
-        }
-      },
+      hasCustomTime
+        ? {}
+        : {
+            "time.now": {
+              replay: (value) => {
+                if (typeof value !== "number") throw new TypeError("Invalid replayed clock value.");
+                runtimeClock.restore({ next: value + 1 });
+              },
+              restore: restoreClockState(runtimeClock),
+              snapshot: runtimeClock.snapshot
+            },
+            "time.random": {
+              replay: time.random,
+              restore: restoreRandomState(runtimeRandom),
+              snapshot: runtimeRandom.snapshot
+            },
+            "time.uuid": {
+              replay: time.uuid,
+              restore: restoreRandomState(runtimeRandom),
+              snapshot: runtimeRandom.snapshot
+            }
+          },
       { guardDefaultSnapshotPath }
     );
-    const modules = hostCallReplay.wrapModules(
-      withBuiltinModules(
-        options.modulesFor(validated, meta),
-        makeTimeModule({
-          now: runtimeClock.now,
-          random: runtimeRandom.next
-        })
-      )
-    );
+    const modules = hostCallReplay.wrapModules(withBuiltinModules(suppliedModules, time));
 
     let executableSource = ajsSource;
     const lintOptions = {
@@ -329,6 +336,7 @@ type HostCallRecord = {
   key: string;
   args: readonly unknown[];
   result: unknown;
+  asynchronous?: boolean;
   state?: unknown;
 };
 
@@ -338,6 +346,7 @@ type HostCallReplay = {
 };
 
 type StatefulHostBinding = {
+  replay: (value: unknown) => void;
   restore: (state: unknown) => void;
   snapshot: () => unknown;
 };
@@ -355,6 +364,7 @@ async function createHostCallReplay(
   const pendingWrites = new Set<Promise<void>>();
   let writeQueue = Promise.resolve();
   let cursor = 0;
+  const consumed = new Set<number>();
 
   return {
     async flush() {
@@ -404,21 +414,22 @@ async function createHostCallReplay(
       return value;
     }
 
-    return (...args: readonly unknown[]) => {
+    const wrapped = (...args: readonly unknown[]) => {
       const replay = records[cursor];
       if (replay !== undefined && replay.key === key && sameJsonValue(replay.args, args)) {
         const stateful = statefulBindings[key];
         if (stateful !== undefined && replay.state !== undefined) {
           stateful.restore(replay.state);
         }
-        cursor += 1;
-        return replay.result;
+        consumed.add(cursor);
+        while (consumed.has(cursor)) cursor += 1;
+        return replay.asynchronous ? Promise.resolve(replay.result) : replay.result;
       }
 
       const result = Reflect.apply(value, undefined, args) as unknown;
       if (isPromiseLike(result)) {
         return Promise.resolve(result).then(async (resolved) => {
-          await recordHostCall(key, args, resolved);
+          await recordHostCall(key, args, resolved, true);
           return resolved;
         });
       }
@@ -426,17 +437,32 @@ async function createHostCallReplay(
       void recordHostCall(key, args, result);
       return result;
     };
+    return declareHostOperation(wrapped, "re-issue", {
+      onReplay: (args, outcome) => {
+        if (outcome.status === "rejected") return;
+        statefulBindings[key]?.replay(outcome.value);
+        const index = records.findIndex(
+          (record, index) =>
+            !consumed.has(index) && record.key === key && sameJsonValue(record.args, args)
+        );
+        if (index < 0) return;
+        consumed.add(index);
+        while (consumed.has(cursor)) cursor += 1;
+      }
+    });
   }
 
   async function recordHostCall(
     key: string,
     args: readonly unknown[],
-    result: unknown
+    result: unknown,
+    asynchronous = false
   ): Promise<void> {
     records.push({
       key,
       args,
       result,
+      asynchronous,
       state: statefulBindings[key]?.snapshot()
     });
     cursor = records.length;

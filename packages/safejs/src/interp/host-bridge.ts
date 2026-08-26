@@ -46,6 +46,10 @@ type CallerInjectedFunction = {
 }["bivarianceHack"];
 
 const hostOperationPolicies = new WeakMap<CallerInjectedFunction, PendingHostCallPolicyMode>();
+const hostOperationReplayHandlers = new WeakMap<
+  CallerInjectedFunction,
+  (args: readonly unknown[], outcome: HostCallOutcome) => void
+>();
 
 type HostBridgeOptions = {
   budget: Budget;
@@ -78,9 +82,11 @@ export type CallerInjectedBinding =
 
 export function declareHostOperation<TFunction extends CallerInjectedFunction>(
   operation: TFunction,
-  policy: PendingHostCallPolicyMode
+  policy: PendingHostCallPolicyMode,
+  options: { onReplay?: (args: readonly unknown[], outcome: HostCallOutcome) => void } = {}
 ): TFunction {
   hostOperationPolicies.set(operation, policy);
+  if (options.onReplay !== undefined) hostOperationReplayHandlers.set(operation, options.onReplay);
   return operation;
 }
 
@@ -217,7 +223,8 @@ function wrapCallerInjectedFunction(
           stackFrames,
           options,
           context?.span,
-          callbacks
+          callbacks,
+          hostOperationReplayHandlers.get(value)?.bind(undefined, hostArgs)
         );
       } catch (error) {
         if (isFatalBridgeError(error)) {
@@ -266,7 +273,8 @@ function executeHostCall(
   stackFrames: readonly string[],
   options: HostBridgeOptions,
   span?: ErrorSourceSpan,
-  callbacks?: HostCallbacks
+  callbacks?: HostCallbacks,
+  onReplay?: (outcome: HostCallOutcome) => void
 ): SandboxValue {
   const hostCalls = options.hostCalls as HostCallJournal;
   let replayed: HostCallOutcome | undefined;
@@ -281,6 +289,7 @@ function executeHostCall(
         try {
           const outcome = hostCalls.replayOutcome(record);
           if (outcome === undefined) throw new TypeError("Missing restored host outcome.");
+          restoreReplayedHostState(record, outcome, onReplay);
           if (outcome.status === "rejected") throw outcome.reason;
           return outcome.value;
         } catch (error) {
@@ -293,6 +302,7 @@ function executeHostCall(
     return createSandboxPromise(promise);
   }
   if (replayed !== undefined) {
+    restoreReplayedHostState(record, replayed, onReplay);
     if (record.asynchronous) return createReplayedHostCallResult(replayed);
     if (replayed.status === "rejected") throw replayed.reason;
     return replayed.value;
@@ -387,6 +397,28 @@ function executeHostCall(
     }
   );
   return createHostCallPromise(record, outcome, hostCalls);
+}
+
+function restoreReplayedHostState(
+  record: HostCallRecord,
+  outcome: HostCallOutcome,
+  onReplay: ((outcome: HostCallOutcome) => void) | undefined
+): void {
+  try {
+    const result = onReplay?.(outcome);
+    if (isPromiseLike(result)) {
+      void Promise.resolve(result).catch(() => undefined);
+      throw new TypeError("Host replay state hooks must complete synchronously.");
+    }
+  } catch (reason) {
+    const error = new HostCallResumabilityError(
+      record,
+      "reset",
+      `Cannot restore host-local state for ${record.id}: ${reason instanceof Error ? reason.message : String(reason)}`
+    );
+    promiseReplayContext.getStore()?.fail(error);
+    throw error;
+  }
 }
 
 function createReplayedHostCallResult(outcome: HostCallOutcome): SandboxValue {

@@ -658,15 +658,25 @@ export class Runtime {
       if (!names.length) state.variables.REPLY = line.value;
       else {
         const separators = state.variables.IFS ?? " \t\n";
-        const whitespace = [...separators].filter((character) => /[ \t\n]/u.test(character)).join("");
-        let value = line.value;
-        while (value && whitespace.includes(value[0]!)) value = value.slice(1);
-        while (value && whitespace.includes(value.at(-1)!)) value = value.slice(0, -1);
+        const characters = Array.from(line.value);
+        const separator = (index: number): boolean => index < characters.length && !line.escaped.has(index) && separators.includes(characters[index]!);
+        const whitespace = (index: number): boolean => separator(index) && /[ \t\n]/u.test(characters[index]!);
+        let end = characters.length;
+        while (end > 0 && whitespace(end - 1)) end--;
+        let position = 0;
+        while (position < end && whitespace(position)) position++;
+        const fields: { start: number; end: number }[] = [];
+        while (position < end) {
+          const start = position;
+          while (position < end && !separator(position)) position++;
+          fields.push({ start, end: position });
+          while (position < end && whitespace(position)) position++;
+          if (position < end && separator(position)) position++;
+          while (position < end && whitespace(position)) position++;
+        }
         for (let index = 0; index < names.length; index++) {
-          const end = index === names.length - 1 || !separators ? -1 : [...value].findIndex((character) => separators.includes(character));
-          state.variables[names[index]!] = end < 0 ? value : value.slice(0, end);
-          value = end < 0 ? "" : value.slice(end + 1);
-          while (value && whitespace.includes(value[0]!)) value = value.slice(1);
+          const field = fields[index];
+          state.variables[names[index]!] = field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "";
         }
       }
       return line.terminated ? 0 : 1;

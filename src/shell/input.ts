@@ -91,11 +91,11 @@ export class ShellInput implements ByteSource {
     return { next: () => this.next(), [Symbol.asyncIterator]() { return this; } };
   }
 
-  line(raw: boolean): Promise<{ value: string; terminated: boolean }> {
+  line(raw: boolean): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     return this.#cursor.consume(this.signal, () => this.readLine(raw));
   }
 
-  private async readLine(raw: boolean): Promise<{ value: string; terminated: boolean }> {
+  private async readLine(raw: boolean): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     const chunks: Uint8Array[] = [];
     let length = 0;
     let terminated = false;
@@ -129,7 +129,18 @@ export class ShellInput implements ByteSource {
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
     const value = new TextDecoder().decode(bytes).replace(/\0/gu, "");
-    return { value: raw ? value : value.replace(/\\(.)/gsu, "$1"), terminated };
+    const escaped = new Set<number>();
+    if (raw) return { value, escaped, terminated };
+    const characters = Array.from(value);
+    const unescaped: string[] = [];
+    for (let index = 0; index < characters.length; index++) {
+      if (characters[index] === "\\") {
+        if (++index === characters.length) break;
+        escaped.add(unescaped.length);
+      }
+      unescaped.push(characters[index]!);
+    }
+    return { value: unescaped.join(""), escaped, terminated };
   }
 
   close(): Promise<void> {

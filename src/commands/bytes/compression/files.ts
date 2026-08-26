@@ -66,6 +66,9 @@ export async function planOperands(context: CommandContext, options: Compression
     if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
     const realSource = await context.fs.realpath(source, { signal: context.signal });
     if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }
+    if (context.fs.capabilities.readOnly === true) {
+      throw new FsError("EROFS", { syscall: context.command, path: realSource });
+    }
     if (!context.fs.writeStream || context.fs.capabilities.streamingWrite === false) {
       throw new FsError("ENOTSUP", { message: "file output requires VFS streaming writes (use -c for stdout)" });
     }

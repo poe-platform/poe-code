@@ -83,6 +83,10 @@ the original input path before publication/removal.
 Input/output are `Uint8Array` streams. Named inputs require `readStream` and
 `streamingRead !== false`; there is deliberately no `readFile` fallback.
 File output additionally requires `writeStream` and `streamingWrite !== false`.
+An explicit `readOnly: true` capability rejects named-file output with `EROFS`
+before the streaming-write capability check or staging. Missing streaming writes
+on a writable/unspecified backend still report `ENOTSUP`. Readonly policy does
+not prohibit stdout compression, stdout decompression, or validation-only mode.
 Those capability flags may be absent if the methods are present. Inputs must
 be regular, non-symlink entries, including for stdout/test modes.
 

@@ -20,7 +20,7 @@ primary-5.3 argv0=shell: exact fixtures 86/88 pass; 2/88 active fail; original 7
 
 Global invocation change alone alters13 historical and14 modern fixture stderr observations; no stdout/status/file effects change. It does not make historical match modern.
 
-Resource probes24/24 passed. Original live historical tests unchanged: combined108/118 pass,10 fail,0 skipped/cancelled/todo. Nine are previously reported compatibility failures (original5,current4); one extra infrastructure failure: process harness kills descendants holding inherited pipes after parent exit hit its2000ms deadline during baseline. This remains active; targeted rerun pending, not waived.
+Resource probes24/24 passed. Original live historical tests unchanged: combined108/118 pass,10 fail,0 skipped/cancelled/todo. Nine are previously reported compatibility failures (original5,current4); one extra infrastructure failure: process harness kills descendants holding inherited pipes after parent exit reported kill EPERM during close-group cleanup after121ms. Earlier narrative incorrectly called it a deadline overrun; raw captured transcript is unchanged. Targeted unchanged process-only rerun subsequently passed5/5; initial failure remains recorded, not waived.
 
 Modern strict full118 accounting at baseline:86/88 fixture passes +24/24 resources +5/6 identity/harness =115/118 pass,3 active failures (2 diagnostics +1 infrastructure). Historical strict:74/88 +24/24 +5/6 =103/118,15 active failures. Native calibration stability is NOT virtual pass status.
 

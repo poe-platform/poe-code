@@ -67,8 +67,9 @@ The strict modern baseline still fails unterminated-double-quote diagnostic
 format and missing-group EOF command context. These must stay active until
 source correction. The old tests only checked nonempty syntax diagnostics,
 which is why these were not among the prior nine failures. Baseline also
-records an independent process-harness deadline failure, not a dialect waiver:
-the descendant inherited-pipe cleanup test exceeded 2000ms. Repetitions and
+records an independent process-harness cleanup failure, not a dialect waiver:
+the descendant inherited-pipe cleanup test reported `kill EPERM` after about
+121ms, not a deadline overrun. Repetitions and
 final validation must report this separately, without deleting the initial
 failure. All resource/identity/harness assertions together were 29/30 at
 baseline, giving strict modern 115/118 and historical 103/118. The full original
@@ -76,7 +77,7 @@ historical assertions remain 108/118, not a universal pass.
 
 A targeted unchanged `process.test.ts` repetition immediately after baseline
 passed all five assertions (zero skips). This does not erase the initial
-deadline failure; full-cohort post-source repetitions remain required.
+cleanup failure; full-cohort post-source repetitions remain required.
 
 ## Reproduce without altering historical tests
 

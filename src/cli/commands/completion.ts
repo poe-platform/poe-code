@@ -49,7 +49,11 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
     { path, children, options },
     ...command.commands
       .filter(isVisible)
-      .flatMap((child) => collectNodes(child, [...path, child.name()]))
+      .flatMap((child) =>
+        [child.name(), ...child.aliases()].flatMap((name) =>
+          collectNodes(child, [...path, name])
+        )
+      )
   ];
 }
 

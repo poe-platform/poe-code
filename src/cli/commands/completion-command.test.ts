@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Command, CommanderError } from "commander";
+import { Command, CommanderError, Option } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import { registerCompletionCommand } from "./completion.js";
@@ -23,6 +23,20 @@ function createFixtureProgram(): Command {
   const agent = program.command("agent").description("Manage agents.");
   agent.command("list").description("List agents.");
   agent.command("add").alias("new").description("Add an agent.");
+  const plan = program
+    .command("plan")
+    .aliases(["plans", "p"])
+    .option("--directory <path>", "Plan directory.")
+    .addOption(new Option("--hidden-option").hideHelp());
+  plan
+    .command("open")
+    .aliases(["view", "show"])
+    .description("Open a plan.")
+    .option("--editor <name>", "Editor to use.");
+  plan
+    .command("internal", { hidden: true })
+    .alias("private")
+    .option("--secret-option", "Hidden option.");
   program.command("secret", { hidden: true }).description("Hidden command.");
   registerCompletionCommand(program);
   return program;
@@ -59,7 +73,7 @@ describe("completion command", () => {
 
     expect(script).toContain("complete -F _poe_code_complete poe-code");
     expect(script).toContain("complete -F _poe_code_complete poe");
-    expect(script).toContain('"") completions="agent completion configure --yes"');
+    expect(script).toContain('"") completions="agent completion configure plan plans p --yes"');
   });
 
   it("emits bash completions for nested commands, aliases, and their options", async () => {
@@ -69,11 +83,74 @@ describe("completion command", () => {
     expect(script).toContain('"agent") completions="add new list"');
   });
 
-  it("omits commands hidden from help", async () => {
-    const script = await emitCompletion("bash");
+  it.each(["bash", "zsh", "fish"])(
+    "omits hidden commands, aliases, and options from %s",
+    async (shell) => {
+      const script = await emitCompletion(shell);
 
-    expect(script).not.toContain("secret");
+      expect(script).not.toContain("secret");
+      expect(script).not.toContain("internal");
+      expect(script).not.toContain("private");
+      expect(script).not.toContain("hidden-option");
+    }
+  );
+
+  it.each(
+    ["bash", "zsh"].flatMap((shell) =>
+      ["plan", "plans", "p"].map((parent) => ({ shell, parent }))
+    )
+  )("emits $shell completions for parent path $parent", async ({ shell, parent }) => {
+    const script = await emitCompletion(shell);
+
+    expect(script).toContain(
+      shell === "bash"
+        ? `"${parent}") completions="open view show --directory";;`
+        : `"${parent}") completions=(open view show --directory);;`
+    );
   });
+
+  it.each(
+    ["bash", "zsh"].flatMap((shell) =>
+      ["plan", "plans", "p"].flatMap((parent) =>
+        ["open", "view", "show"].map((child) => ({ shell, path: `${parent} ${child}` }))
+      )
+    )
+  )("emits $shell completions for nested path $path", async ({ shell, path }) => {
+    const script = await emitCompletion(shell);
+
+    expect(script).toContain(
+      shell === "bash"
+        ? `"${path}") completions="--editor";;`
+        : `"${path}") completions=(--editor);;`
+    );
+  });
+
+  it.each(["plan", "plans", "p"])(
+    "emits fish conditions for parent name %s",
+    async (parent) => {
+      const script = await emitCompletion("fish");
+
+      for (const child of ["open", "view", "show"]) {
+        expect(script).toContain(
+          `complete -c poe-code -n "__fish_seen_subcommand_from ${parent}" -a '${child}' -d 'Open a plan.'`
+        );
+      }
+      expect(script).toContain(
+        `complete -c poe-code -n "__fish_seen_subcommand_from ${parent}" -l directory -d 'Plan directory.'`
+      );
+    }
+  );
+
+  it.each(["open", "view", "show"])(
+    "emits fish conditions for nested name %s",
+    async (child) => {
+      const script = await emitCompletion("fish");
+
+      expect(script).toContain(
+        `complete -c poe-code -n "__fish_seen_subcommand_from ${child}" -l editor -d 'Editor to use.'`
+      );
+    }
+  );
 
   it("emits a zsh script registered with compdef", async () => {
     const script = await emitCompletion("zsh");

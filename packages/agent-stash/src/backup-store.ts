@@ -1,5 +1,6 @@
 import path from "node:path";
 import { backupRoot } from "./locations.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { assertNoSymlinkAncestors, assertNotSymlink, isDirectory, pathExists, readFileIfExists, removePath, writeTextFile } from "./fs-utils.js";
 import type {
   AgentStashContext,
@@ -24,6 +25,7 @@ export async function createBackup(ctx: AgentStashContext, options: CreateBackup
   const id = await allocateBackupId(ctx, timestamp);
   const root = path.join(backupRoot(ctx.homeDir), id);
   const temporaryRoot = `${root}.tmp-${id}`;
+  let ownsTemporaryRoot = true;
   const files: BackupRecord["files"] = [];
   const directories: string[] = [];
 
@@ -62,13 +64,12 @@ export async function createBackup(ctx: AgentStashContext, options: CreateBackup
       throw new Error("Backup creation requires filesystem rename support.");
     }
     await ctx.fs.rename(temporaryRoot, root);
+    ownsTemporaryRoot = false;
     await pruneOldBackups(ctx);
     return record;
   } catch (error) {
-    try {
-      await removePath(ctx.fs, temporaryRoot);
-    } catch {
-      // Preserve the backup failure that explains why the operation could not complete.
+    if (ownsTemporaryRoot) {
+      await removePath(ctx.fs, temporaryRoot).catch(() => undefined);
     }
     throw error;
   }
@@ -87,13 +88,32 @@ function validateBackupPaths(ctx: AgentStashContext, paths: readonly string[]): 
 
 async function allocateBackupId(ctx: AgentStashContext, timestamp: string): Promise<string> {
   const baseId = `backup-${timestamp.replaceAll(":", "-").replaceAll(".", "-")}`;
+  await ctx.fs.mkdir(backupRoot(ctx.homeDir), { recursive: true });
   for (let attempt = 0; attempt < 1000; attempt += 1) {
     const id = attempt === 0 ? baseId : `${baseId}-${attempt}`;
     const root = path.join(backupRoot(ctx.homeDir), id);
     const temporaryRoot = `${root}.tmp-${id}`;
-    if (!(await pathExists(ctx.fs, root)) && !(await pathExists(ctx.fs, temporaryRoot))) {
-      return id;
+    if (await pathExists(ctx.fs, root)) {
+      continue;
     }
+    try {
+      await ctx.fs.mkdir(temporaryRoot, { recursive: false });
+    } catch (error) {
+      if (hasOwnErrorCode(error, "EEXIST")) {
+        continue;
+      }
+      throw error;
+    }
+    try {
+      await assertNotSymlink(ctx.fs, root);
+      if (!(await pathExists(ctx.fs, root))) {
+        return id;
+      }
+    } catch (error) {
+      await removePath(ctx.fs, temporaryRoot).catch(() => undefined);
+      throw error;
+    }
+    await removePath(ctx.fs, temporaryRoot);
   }
   throw new Error(`Unable to allocate backup id for ${timestamp}`);
 }
@@ -152,40 +172,68 @@ async function readBackupEntries(
 ): Promise<BackupEntry[]> {
   const root = backupRoot(ctx.homeDir);
   await assertBackupStoragePath(ctx, path.join(root, "__probe__"));
-  if (!(await pathExists(ctx.fs, root))) {
-    return [];
+  let directoryNames: string[];
+  try {
+    directoryNames = await ctx.fs.readdir(root);
+  } catch (error) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
+      return [];
+    }
+    throw error;
   }
-  const directoryNames = await ctx.fs.readdir(root);
   const backups: BackupEntry[] = [];
   for (const directoryName of directoryNames) {
     const entryPath = path.join(root, directoryName);
-    await assertBackupEntryPath(ctx, entryPath);
-    const entryStat = await ctx.fs.stat(entryPath);
-    if (!isDirectory(entryStat)) {
-      continue;
-    }
     try {
+      await assertBackupEntryPath(ctx, entryPath);
+      if (isBackupStagingName(directoryName)) {
+        continue;
+      }
+      const entryStat = await ctx.fs.stat(entryPath);
+      if (!isDirectory(entryStat)) {
+        continue;
+      }
       const metadataPath = path.join(entryPath, BACKUP_METADATA);
-      await assertNotSymlink(ctx.fs, metadataPath);
+      const metadataStat = await ctx.fs.lstat(metadataPath);
+      if (metadataStat.isSymbolicLink()) {
+        if (!options.removeInvalidEntries) {
+          throw new Error(`Refusing to write through symbolic link: ${metadataPath}`);
+        }
+        await removePath(ctx.fs, entryPath);
+        continue;
+      }
       const metadata = await readFileIfExists(ctx.fs, metadataPath);
       if (metadata !== null) {
-        const record = parseBackupRecord(metadata, directoryName);
-        validateBackupRecordShape(record, directoryName);
-        validateBackupEntry(directoryName, record);
+        let record: unknown;
+        try {
+          record = parseBackupRecord(metadata, directoryName);
+          validateBackupRecordShape(record, directoryName);
+          validateBackupEntry(directoryName, record);
+        } catch (error) {
+          if (!options.removeInvalidEntries) {
+            throw error;
+          }
+          await removePath(ctx.fs, entryPath);
+          continue;
+        }
         backups.push({ directoryName, record });
       }
     } catch (error) {
-      if (!options.removeInvalidEntries) {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
-      await removePath(ctx.fs, entryPath);
-      continue;
     }
   }
   return backups.sort(
     (left, right) =>
       right.record.createdAt.localeCompare(left.record.createdAt) || right.record.id.localeCompare(left.record.id)
   );
+}
+
+function isBackupStagingName(directoryName: string): boolean {
+  const separator = directoryName.indexOf(".tmp-");
+  const id = directoryName.slice(0, separator);
+  return separator > 0 && id.startsWith("backup-") && directoryName === `${id}.tmp-${id}`;
 }
 
 function validateBackupEntry(directoryName: string, record: BackupRecord): void {
@@ -492,6 +540,12 @@ function assertValidBackupId(backupId: string): void {
 async function pruneOldBackups(ctx: AgentStashContext): Promise<void> {
   const backups = await readBackupEntries(ctx, { removeInvalidEntries: true });
   for (const backup of backups.slice(MAX_BACKUPS)) {
-    await removePath(ctx.fs, path.join(backupRoot(ctx.homeDir), backup.directoryName));
+    try {
+      await removePath(ctx.fs, path.join(backupRoot(ctx.homeDir), backup.directoryName));
+    } catch (error) {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
+        throw error;
+      }
+    }
   }
 }

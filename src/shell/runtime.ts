@@ -897,6 +897,6 @@ function globExpression(pattern: string): RegExp {
       } else expression += "\\[";
     } else expression += character.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   }
-  try { return new RegExp(`${expression}$`, "u"); }
-  catch { return new RegExp(`^${pattern.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}$`, "u"); }
+  try { return new RegExp(`${expression}(?![\\s\\S])`, "su"); }
+  catch { return new RegExp(`^${pattern.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}(?![\\s\\S])`, "su"); }
 }

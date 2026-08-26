@@ -36,14 +36,12 @@ export class Interpreter {
         catch (error) { if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error; }
         return;
       case "index":
-        for await (const base of this.run(ast.base, input)) for await (const index of this.run(ast.index, input)) yield indexValue(base, index);
+        for await (const index of this.run(ast.index, input)) for await (const base of this.run(ast.base, input)) yield indexValue(base, index);
         return;
       case "slice":
-        for await (const base of this.run(ast.base, input)) {
-          const starts = ast.start ? await this.collect(ast.start, input) : [null];
-          const ends = ast.end ? await this.collect(ast.end, input) : [null];
-          for (const start of starts) for (const end of ends) { await this.budget.tick(); yield sliceValue(base, start, end); }
-        }
+        for await (const start of ast.start ? this.run(ast.start, input) : [null])
+          for await (const end of ast.end ? this.run(ast.end, input) : [null])
+            for await (const base of this.run(ast.base, input)) { await this.budget.tick(); yield sliceValue(base, start, end); }
         return;
       case "iterate":
         for await (const base of this.run(ast.base, input)) for (const [, value] of entries(base, this.budget)) { await this.budget.tick(); yield value; }
@@ -109,17 +107,21 @@ export class Interpreter {
     if (ast.kind === "identity") { yield []; return; }
     if (ast.kind === "binary" && ast.operator === ",") { yield* this.paths(ast.left, input); yield* this.paths(ast.right, input); return; }
     if (ast.kind !== "index" && ast.kind !== "iterate") throw new JqError("unsupported assignment path");
-    for await (const path of this.paths(ast.base, input)) {
-      let base = input;
-      for (const component of path) base = indexValue(base, component);
-      if (ast.kind === "iterate") {
-        for (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
-      } else for await (const key of this.run(ast.index, input)) {
+    if (ast.kind === "index") {
+      for await (const key of this.run(ast.index, input)) for await (const path of this.paths(ast.base, input)) {
+        let base = input;
+        for (const component of path) base = indexValue(base, component);
         if (typeof key !== "string" && (typeof key !== "number" || !Number.isFinite(key))) throw new JqError("assignment index must be a string or finite number");
         indexValue(base, key);
         const integer = typeof key === "number" ? Math.trunc(key) : key;
         yield [...path, typeof integer === "number" && integer < 0 && Array.isArray(base) ? base.length + integer : integer];
       }
+      return;
+    }
+    for await (const path of this.paths(ast.base, input)) {
+      let base = input;
+      for (const component of path) base = indexValue(base, component);
+      for (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
     }
   }
   set(input: Json, path: Path, value: Json | typeof deleted, depth = 0): Json {
@@ -127,6 +129,9 @@ export class Interpreter {
     if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
     if (depth === path.length) return value === deleted ? null : value;
     const key = path[depth]!;
+    if (value === deleted && (input === null
+      || (typeof key === "string" && isObject(input) && !Object.hasOwn(input, key))
+      || (typeof key === "number" && Array.isArray(input) && (key < 0 || key >= input.length)))) return input;
     const previous = indexValue(input, key);
     const remove = value === deleted && depth === path.length - 1;
     if (typeof key === "string") {
@@ -176,7 +181,6 @@ export class Interpreter {
     deletions.sort((first, second) => -compare(first, second, this.budget));
     let lastDeletion: Path | undefined;
     for (const path of deletions) {
-      if (!path.length) return;
       if (!lastDeletion || compare(lastDeletion, path, this.budget) !== 0) result = this.set(result, path, deleted);
       lastDeletion = path;
     }
@@ -240,7 +244,7 @@ export class Interpreter {
       }
       let last: Json | undefined;
       for await (const value of this.run(args[0]!, input)) { if (name === "first") { yield value; return; } last = value; }
-      if (last !== undefined) yield last; return;
+      if (name === "last") yield last ?? null; return;
     }
     if (name === "limit") {
       for await (const count of this.run(args[0]!, input)) {
@@ -252,17 +256,16 @@ export class Interpreter {
       return;
     }
     if (name === "range") {
-      const starts = args.length === 1 ? [0] : await this.collect(args[0]!, input);
-      const ends = await this.collect(args[args.length === 1 ? 0 : 1]!, input);
-      const increments = args[2] ? await this.collect(args[2], input) : [1];
-      for (const start of starts) for (const end of ends) for (const increment of increments) {
-        if (typeof start !== "number" || typeof end !== "number" || typeof increment !== "number") throw new JqError("range requires numbers");
-        if (increment === 0) continue;
-        for (let value = start; increment > 0 ? value < end : value > end;) {
-          await budget.tick(); yield value;
-          const next = finite(value + increment); if (next === value) throw new JqError("range increment makes no progress"); value = next;
-        }
-      }
+      for await (const start of args.length === 1 ? [0] : this.run(args[0]!, input))
+        for await (const end of this.run(args[args.length === 1 ? 0 : 1]!, input))
+          for await (const increment of args[2] ? this.run(args[2], input) : [1]) {
+            if (typeof start !== "number" || typeof end !== "number" || typeof increment !== "number") throw new JqError("range requires numbers");
+            if (increment === 0) continue;
+            for (let value = start; increment > 0 ? value < end : value > end;) {
+              await budget.tick(); yield value;
+              const next = finite(value + increment); if (next === value) throw new JqError("range increment makes no progress"); value = next;
+            }
+          }
       return;
     }
     if (name === "tostring" || name === "tojson") { const result = typeof input === "string" && name === "tostring" ? input : stringify(input, budget); budget.text(result); yield result; return; }
@@ -290,7 +293,7 @@ export class Interpreter {
       for (const entry of values) {
         await budget.tick();
         if (!isObject(entry)) throw new JqError("from_entries requires objects");
-        const key = ["key", "Key", "name", "Name"].find(candidate => Object.hasOwn(entry, candidate));
+        const key = ["key", "Key", "name", "Name"].find(candidate => Object.hasOwn(entry, candidate) && truth(entry[candidate]!));
         const value = ["value", "Value"].find(candidate => Object.hasOwn(entry, candidate));
         if (key === undefined || typeof entry[key] !== "string") throw new JqError("from_entries requires string keys");
         put(result, entry[key] as string, value === undefined ? null : entry[value]!);

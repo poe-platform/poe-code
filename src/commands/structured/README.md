@@ -67,7 +67,9 @@ take separate operands, not `--option=value`. Unsupported flags fail rather
 than being ignored. Repeated argument names retain their first binding, matching
 the tested native build. `$ARGS.named` exposes named bindings and
 `$ARGS.positional` is an empty array; positional-argument flags are not supported.
-An explicit `--arg ARGS ...` overrides the automatic `$ARGS` value.
+An explicit `--arg ARGS ...` is retained in `$ARGS.named.ARGS`; it does not
+replace the automatic `$ARGS` object. Its insertion order is `positional`, then
+`named`, matching the captured native build.
 
 Every output value ends in LF. Embedded newlines in raw strings are preserved.
 Ordinary successful execution returns 0. With `-e`, no emitted result returns 4,
@@ -93,10 +95,12 @@ necessarily earlier. Shell redirection effects are outside this command's scope.
   dot: `if . then ...` does not become a property named `then`.
 - Array indexes, including negatives and fractional numbers truncated toward
   zero. Missing properties/indexes return null; invalid container/key types
-  raise an error. Object membership checks own properties only.
+  raise an error. Object membership checks own properties only. Index generators
+  run before base generators, including assignment paths.
 - Array/string slices `.[START:END]`, omitted/null endpoints, and negative
   endpoints. Slice bounds currently require safe integers. Strings slice by
-  Unicode codepoint, not UTF-16 code unit.
+  Unicode codepoint, not UTF-16 code unit. Start, end, and base generators are
+  consumed lazily in that order; early consumers do not evaluate unused bounds.
 - Iteration `.[]` over arrays or object values, preserving object insertion
   order, including numeric-looking and prototype-looking keys.
 - Parentheses, comma result generators, pipes, array construction `[FILTER]`,
@@ -126,6 +130,8 @@ Discarded RHS branches are not evaluated. Repeated ordinary paths update
 repeatedly; repeated deletion paths delete only once. Deletions use original
 array positions. Values are copied on modification; assignments cannot mutate
 another result or create object cycles.
+Deleting an absent path leaves its ancestors unchanged, including null and
+out-of-range array indexes. Deleting the root with `. |= empty` emits null.
 
 Arithmetic-update RHS evaluation/cardinality follows the observed local
 `jq-1.7.1-apple` behavior: RHS evaluated on the root, one updated root per RHS
@@ -144,10 +150,10 @@ cross-version parity beyond its recorded tests.
 | `sort`, `sort_by(f)`, `unique`, `unique_by(f)`, `group_by(f)` | Stable sorting/grouping with recursive jq-style type ordering; key filters may produce multiple values. |
 | `add`, `reverse`, `min`, `max`, `min_by(f)`, `max_by(f)` | Array operations; empty `add`, min, and max return null. |
 | `any`, `any(f)`, `all`, `all(f)` | Array predicates with short-circuiting and empty-array identities. |
-| `first`, `first(f)`, `last`, `last(f)`, `limit(n; f)` | Lazy first/limited consumption; `limit` requires a nonnegative safe integer. |
-| `range(end)`, `range(start; end)`, `range(start; end; step)` | Finite numeric progression, exclusive end; zero step emits nothing, nonprogress/overflow errors. |
+| `first`, `first(f)`, `last`, `last(f)`, `limit(n; f)` | Lazy first/limited consumption; `first(empty)` emits nothing, `last(empty)` emits null; `limit` requires a nonnegative safe integer. |
+| `range(end)`, `range(start; end)`, `range(start; end; step)` | Lazily consume argument generators in start/end/step order; finite numeric progression, exclusive end; zero step emits nothing, nonprogress/overflow errors. |
 | `tostring`, `tonumber`, `tojson`, `fromjson` | Strict finite JSON conversion; `tonumber` requires a JSON number string. |
-| `to_entries`, `from_entries`, `with_entries(f)` | Entry conversion and transformation; entry keys must be strings. |
+| `to_entries`, `from_entries`, `with_entries(f)` | Entry conversion and transformation; entry keys must be strings. Key aliases `key`, `Key`, `name`, `Name` select the first value other than false/null; values use the first present `value`/`Value` field, retaining false/null. |
 
 JSON object storage and serializers preserve insertion order and own keys
 `__proto__`, `constructor`, and `prototype`, without modifying host prototypes.
@@ -221,7 +227,7 @@ should supply a deadline signal when they require a wall-clock deadline.
 - No raw-input, streaming path-event mode, colors, sorted-output flag, join-output,
   file-variable flags, jq environment builtins, or host process/file access.
 
-## Verification evidence
+## Source-author verification evidence
 
 Verified August 26, 2026 against the local native oracle `jq-1.7.1-apple` and
 the primary [jq 1.8 manual](https://jqlang.org/manual/v1.8/). The manual is a
@@ -258,5 +264,32 @@ jq -nc 'range(1000000000)' | head -n 1
 
 These produce `3\n` and `0\n` respectively, status 0. Relative virtual `-f`
 pipelines, signal propagation, stalled host operations, and early pipe closure
-are exercised. Independent final verification remains a separate acceptance
-step; these functional checks are not a broad performance comparison.
+are exercised. These source-author functional checks are not a broad performance
+comparison. Independent stress evidence is recorded separately below.
+
+## Independent stress verification
+
+The independent stress/fix worker captured native expectations without consulting
+virtual outputs, then recorded failing regressions before changing source. The
+initial gate failed all 18 targeted cases; the 203-case broader corpus exposed
+two more failures. A separate read-only reviewer supplied 19 additional failing
+cases, independently rechecked against native jq before fixes.
+
+The fixes cover read/index and assignment traversal order, lazy slice/range
+arguments, absent-path and root deletion, `from_entries` key fallback,
+`last(empty)`, and `$ARGS` ordering/binding. Public signatures and dependencies
+are unchanged. The earlier explicit-ARGS override statement was incorrect and
+is corrected above; it is not a native jq compatibility guarantee across builds.
+
+The new suite is native-independent: 240 frozen native stdout/status fixtures
+(18 initial + 203 corpus + 19 reviewer), with separate preflight, invalid JSON,
+UTF-8, resource, cancellation, seeded chunking, and real MemoryFS pipeline tests.
+Native jq is only required by the optional `verify-native.ts` command. Runtime
+error wording is project-specific and is not native-byte-matched. See
+`tests/commands/structured-stress/README.md` for reproduction and gate results.
+
+Raw input (`-R`/`--raw-input`), `join`, object overloads of `any`/`all`, fractional
+slice endpoints, decimal lexeme/exponent rendering, and other listed grammar
+gaps remain deferred. Strict malformed JSON/UTF-8 rejection is intentional even
+where this native build accepts nonstandard input. These tests establish neither
+full jq parity nor superiority to jq or just-bash.

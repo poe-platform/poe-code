@@ -62,7 +62,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     if (options.source === undefined && options.programFile === undefined) options.source = argument;
     else options.files.push(argument);
   }
-  if (!options.variables.has("ARGS")) options.variables.set("ARGS", copyObject({ named, positional: [] }));
+  options.variables.set("ARGS", copyObject({ positional: [], named }));
   options.source ??= options.programFile === undefined ? "." : undefined;
   return options;
 }

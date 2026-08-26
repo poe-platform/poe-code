@@ -5,7 +5,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
-import { collectBytes } from "../../contracts/io.js";
+import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { encodeCopySource } from "./transport.js";
 import type {
@@ -20,6 +20,7 @@ export interface S3FileSystemOptions {
   readonly allowNonAtomicRename?: boolean;
   readonly pageSize?: number;
   readonly maxReadBytes?: number;
+  readonly maxStreamBytes?: number;
   readonly maxListEntries?: number;
 }
 
@@ -86,12 +87,15 @@ function isWellFormed(value: string): boolean {
 
 export class S3FileSystem implements FileSystem {
   readonly capabilities;
+  readonly readStream?: (path: string, options?: ReadStreamOptions) => ByteSource;
+  readonly writeStream?: (path: string, source: ByteSource, options?: WriteFileOptions) => Promise<void>;
   private readonly transport: S3Transport;
   private readonly bucket: string;
   private readonly prefix: string;
   private readonly allowRename: boolean;
   private readonly pageSize: number;
   private readonly maxReadBytes: number;
+  private readonly maxStreamBytes: number;
   private readonly maxListEntries: number;
 
   constructor(options: S3FileSystemOptions) {
@@ -111,15 +115,21 @@ export class S3FileSystem implements FileSystem {
     if (Buffer.byteLength(this.prefix) > 1024) throw new FsError("ENAMETOOLONG", { message: "S3 prefix exceeds 1024 UTF-8 bytes" });
     this.transport = options.transport;
     this.bucket = options.bucket;
-    this.allowRename = options.allowNonAtomicRename ?? false;
+    this.allowRename = options.allowNonAtomicRename ?? true;
     this.pageSize = validateLimit(options.pageSize ?? 1000, "pageSize", 1, 1000);
     this.maxReadBytes = validateLimit(options.maxReadBytes ?? 64 * 1024 * 1024, "maxReadBytes", 0);
+    this.maxStreamBytes = validateLimit(options.maxStreamBytes ?? 5_000_000_000, "maxStreamBytes", 0, 5_000_000_000);
     this.maxListEntries = validateLimit(options.maxListEntries ?? 100_000, "maxListEntries", 1);
     this.capabilities = Object.freeze({
       readOnly: options.readOnly ?? false,
-      symlinks: false, hardlinks: false, permissions: false, timestamps: false,
-      atomicRename: false, streamingRead: false, streamingWrite: false,
+      symlinks: false, hardlinks: false, permissions: false,
+      timestamps: options.transport.capabilities?.conditionalCopy === true,
+      atomicRename: false,
+      streamingRead: options.transport.capabilities?.streamingRead === true && typeof options.transport.getObjectStream === "function",
+      streamingWrite: options.transport.capabilities?.streamingWrite === true && typeof options.transport.putObjectStream === "function",
     });
+    if (this.capabilities.streamingRead) this.readStream = this.streamRead.bind(this);
+    if (this.capabilities.streamingWrite) this.writeStream = this.streamWrite.bind(this);
   }
 
   private path(input: string): string {
@@ -158,7 +168,9 @@ export class S3FileSystem implements FileSystem {
   private async call<Result>(syscall: string, path: string, options: FsOptions, action: () => Promise<Result>, precondition?: ErrnoCode): Promise<Result> {
     this.checkAbort(options, syscall, path);
     try {
-      return await action();
+      const result = await action();
+      this.checkAbort(options, syscall, path);
+      return result;
     } catch (error) {
       if (options.signal?.aborted) fail("ECANCELED", syscall, path);
       throw translate(error, syscall, path, precondition);
@@ -188,7 +200,15 @@ export class S3FileSystem implements FileSystem {
     if (size === undefined || !Number.isSafeInteger(size) || size < 0) fail("EIO", "stat", "", "transport omitted a valid object ContentLength");
     const modified = metadata?.LastModified?.getTime() ?? 0;
     if (!Number.isFinite(modified)) fail("EIO", "stat", "", "transport returned an invalid LastModified");
-    return { type, size, mode: type === "directory" ? 0o40755 : 0o100644, mtimeMs: modified, atimeMs: 0, ctimeMs: 0 };
+    const timestamp = (key: string, fallback: number): number => {
+      const value = metadata?.Metadata?.[key];
+      if (value === undefined) return fallback;
+      const parsed = Number(value);
+      if (!value || !Number.isFinite(parsed)) fail("EIO", "stat", "", "invalid virtual timestamp metadata");
+      return parsed;
+    };
+    return { type, size, mode: type === "directory" ? 0o40755 : 0o100644,
+      mtimeMs: timestamp("virtual-bash-mtime", modified), atimeMs: timestamp("virtual-bash-atime", 0), ctimeMs: modified };
   }
 
   private async page(prefix: string, path: string, options: FsOptions, delimiter?: string, token?: string, maxKeys = this.pageSize): Promise<S3ListOutput> {
@@ -370,7 +390,8 @@ export class S3FileSystem implements FileSystem {
       const current = await this.get(path, options);
       const previous = await this.body(current, path, options);
       match = this.etag(current, path);
-      metadata = current.Metadata;
+      metadata = { ...current.Metadata };
+      delete metadata["virtual-bash-mtime"];
       if (previous.length + bytes.length > this.maxReadBytes) fail("EFBIG", "appendFile", path);
       body = new Uint8Array(previous.length + bytes.length);
       body.set(previous);
@@ -569,16 +590,144 @@ export class S3FileSystem implements FileSystem {
 
   async access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) fail("EINVAL", "access", path);
-    if (mode !== 0 && mode !== 4) this.unsupported("POSIX access permission checks", path);
-    await this.stat(path, options);
+    const info = await this.stat(path, options);
+    if ((mode & 2) !== 0 && this.capabilities.readOnly) fail("EROFS", "access", path);
+    if ((mode & 1) !== 0 && info.type !== "directory") fail("EACCES", "access", path);
   }
 
   async readlink(path: string): Promise<string> { return this.unsupported("readlink", path); }
   async symlink(_target: string, path: string): Promise<void> { this.unsupported("symlink", path); }
   async link(_existingPath: string, path: string): Promise<void> { this.unsupported("link", path); }
   async chmod(path: string, _mode: number): Promise<void> { this.unsupported("chmod", path); }
-  async utimes(path: string, _atimeMs: number, _mtimeMs: number): Promise<void> { this.unsupported("utimes", path); }
-  async truncate(path: string, _length?: number): Promise<void> { this.unsupported("truncate", path); }
-  async *readStream(path: string, _options?: ReadStreamOptions): ByteSource { this.unsupported("streaming read", path); }
-  async writeStream(path: string, _source: ByteSource, _options?: WriteFileOptions): Promise<void> { this.unsupported("streaming write", path); }
+
+  async utimes(input: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
+    const path = this.path(input);
+    this.writable(path);
+    if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)) fail("EINVAL", "utimes", path);
+    const info = await this.lookup(path, options);
+    this.requireDirectorySuffix(input, info);
+    if (!info) fail("ENOENT", "utimes", path);
+    if (!this.transport.capabilities?.conditionalCopy) this.unsupported("conditional metadata copy", path);
+    const key = info.stat.type === "directory" ? this.directoryKey(path) : this.key(path);
+    if (!key) this.unsupported("timestamps on an unprefixed bucket root", path);
+    const metadata = { ...info.metadata?.Metadata,
+      "virtual-bash-atime": String(atimeMs), "virtual-bash-mtime": String(mtimeMs) };
+    if (!info.metadata) {
+      if (!this.transport.capabilities?.conditionalPut) this.unsupported("conditional directory marker creation", path);
+      await this.call("utimes", path, options, () => this.transport.putObject({
+        Bucket: this.bucket, Key: key, Body: new Uint8Array(), Metadata: metadata, IfNoneMatch: "*",
+      }, this.requestOptions(options)));
+      return;
+    }
+    if (info.stat.size > 5_000_000_000) this.unsupported("multipart metadata copy", path);
+    const etag = this.etag(info.metadata, path);
+    const result = await this.call("utimes", path, options, () => this.transport.copyObject({
+      Bucket: this.bucket, Key: key, CopySource: encodeCopySource(this.bucket, key),
+      CopySourceIfMatch: etag, IfMatch: etag, MetadataDirective: "REPLACE", Metadata: metadata,
+    }, this.requestOptions(options)));
+    if (!result.CopyObjectResult?.ETag) fail("EIO", "utimes", path, "transport did not confirm a completed metadata copy");
+  }
+
+  async truncate(input: string, length = 0, options: FsOptions = {}): Promise<void> {
+    const path = this.path(input);
+    this.writable(path);
+    validateLimit(length, "length", 0);
+    const info = await this.stat(input, options);
+    if (info.type === "directory") fail("EISDIR", "truncate", path);
+    if (!this.transport.capabilities?.conditionalPut) this.unsupported("conditional truncate", path);
+    if (length > this.maxReadBytes) fail("EFBIG", "truncate", path);
+    const current = await this.get(path, options);
+    const previous = await this.body(current, path, options);
+    const body = new Uint8Array(length);
+    body.set(previous.subarray(0, length));
+    const metadata = { ...current.Metadata };
+    delete metadata["virtual-bash-mtime"];
+    await this.call("truncate", path, options, () => this.transport.putObject({
+      Bucket: this.bucket, Key: this.key(path), Body: body, IfMatch: this.etag(current, path), Metadata: metadata,
+    }, this.requestOptions(options)));
+  }
+
+  private async *streamRead(input: string, options: ReadStreamOptions = {}): ByteSource {
+    const path = this.path(input);
+    const start = validateLimit(options.start ?? 0, "start", 0);
+    const end = options.endExclusive === undefined ? undefined : validateLimit(options.endExclusive, "endExclusive", start);
+    const chunkSize = validateLimit(options.chunkSize ?? 64 * 1024, "chunkSize", 1);
+    const info = await this.lookup(path, options);
+    this.requireDirectorySuffix(input, info);
+    if (!info) fail("ENOENT", "readStream", path);
+    if (info.stat.type === "directory") fail("EISDIR", "readStream", path);
+    const stop = Math.min(end ?? info.stat.size, info.stat.size);
+    const expected = Math.max(0, stop - start);
+    if (expected > this.maxStreamBytes) fail("EFBIG", "readStream", path);
+    if (expected === 0) return;
+    const output = await this.call("getObject", path, options, () => this.transport.getObjectStream!({
+      Bucket: this.bucket, Key: this.key(path), IfMatch: this.etag(info.metadata, path),
+      ...(start === 0 && stop === info.stat.size ? {} : { Range: `bytes=${start}-${stop - 1}` }),
+    }, this.requestOptions(options)));
+    let count = 0;
+    let finished = false;
+    try {
+      if (output.ContentLength !== undefined && output.ContentLength !== expected) fail("EIO", "readStream", path, "response length differs from requested snapshot");
+      for await (const chunk of readBytes(output.Body, options.signal)) {
+        if (chunk.length > expected - count) fail("EIO", "readStream", path, "response exceeds requested length");
+        count += chunk.length;
+        for (let offset = 0; offset < chunk.length; offset += chunkSize) {
+          this.checkAbort(options, "readStream", path);
+          yield new Uint8Array(chunk.subarray(offset, offset + chunkSize));
+        }
+      }
+      if (count !== expected) fail("EIO", "readStream", path, "incomplete response body");
+      finished = true;
+    } catch (error) {
+      this.checkAbort(options, "readStream", path);
+      throw translate(error, "readStream", path);
+    } finally {
+      if (!finished) this.dispose(output.Body);
+    }
+  }
+
+  private dispose(body: unknown): void {
+    const disposable = body as { destroy?: () => void; cancel?: () => unknown; return?: () => unknown } | undefined;
+    try {
+      const result = typeof disposable?.destroy === "function" ? disposable.destroy()
+        : typeof disposable?.cancel === "function" ? disposable.cancel() : disposable?.return?.();
+      void Promise.resolve(result).catch(() => {});
+    } catch {}
+  }
+
+  private async streamWrite(input: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {
+    const path = this.path(input);
+    this.writable(path, options.mode);
+    const flag = options.flag ?? "w";
+    if (!["w", "wx", "a", "ax"].includes(flag)) fail("EINVAL", "writeStream", path);
+    if (flag !== "w" && !this.transport.capabilities?.conditionalPut) this.unsupported("conditional writes", path);
+    const info = await this.lookup(path, options);
+    this.requireDirectorySuffix(input, info);
+    if (info?.stat.type === "directory" || input.endsWith("/")) fail("EISDIR", "writeStream", path);
+    const exclusive = flag === "wx" || flag === "ax";
+    if (exclusive && info) fail("EEXIST", "writeStream", path);
+    if (flag === "a") {
+      const bytes = await this.call("writeStream", path, options, () => collectBytes(source, { maxBytes: this.maxReadBytes, ...options }));
+      return this.writeFile(input, bytes, options);
+    }
+    const adapter = this;
+    const body = (async function* () {
+      let total = 0;
+      for await (const chunk of readBytes(source, options.signal)) {
+        if (chunk.length > adapter.maxStreamBytes - total) fail("EFBIG", "writeStream", path);
+        total += chunk.length;
+        for (let offset = 0; offset < chunk.length; offset += 64 * 1024) {
+          adapter.checkAbort(options, "writeStream", path);
+          yield new Uint8Array(chunk.subarray(offset, offset + 64 * 1024));
+        }
+      }
+    })();
+    try {
+      await this.call("putObject", path, options, () => this.transport.putObjectStream!({
+        Bucket: this.bucket, Key: this.key(path), Body: body, ...(exclusive ? { IfNoneMatch: "*" as const } : {}),
+      }, this.requestOptions(options)), exclusive ? "EEXIST" : "EAGAIN");
+    } finally {
+      this.dispose(body);
+    }
+  }
 }

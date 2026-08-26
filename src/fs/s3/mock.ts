@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { collectBytes } from "../../contracts/io.js";
+import type { S3StreamGetInput, S3StreamGetOutput, S3StreamPutInput } from "./transport.js";
 import { S3ServiceError } from "./transport.js";
 import type {
   S3CopyInput, S3CopyOutput, S3DeleteInput, S3GetOutput, S3HeadOutput,
@@ -38,7 +40,7 @@ function compareKeys(left: string, right: string): number {
 }
 
 export class MockS3Client implements S3Transport {
-  readonly capabilities = Object.freeze({ conditionalPut: true, conditionalCopy: true, conditionalDelete: true });
+  readonly capabilities = Object.freeze({ conditionalPut: true, conditionalCopy: true, conditionalDelete: true, streamingRead: true, streamingWrite: true });
   private readonly buckets = new Map<string, Map<string, StoredObject>>();
   private readonly cursors = new Map<string, Cursor>();
   private readonly history: MockS3Request[] = [];
@@ -129,6 +131,45 @@ export class MockS3Client implements S3Transport {
     return { ETag: object.etag };
   }
 
+  async getObjectStream(input: S3StreamGetInput, options?: S3RequestOptions): Promise<S3StreamGetOutput> {
+    await this.begin("getObject", input, options);
+    const object = this.object(input);
+    if (input.IfMatch !== undefined && input.IfMatch !== object.etag) throw new S3ServiceError("PreconditionFailed", 412);
+    let start = 0;
+    let end = object.body.length;
+    if (input.Range !== undefined) {
+      const range = /^bytes=(\d+)-(\d+)$/.exec(input.Range);
+      if (!range) throw new S3ServiceError("InvalidArgument", 400);
+      start = Number(range[1]);
+      end = Math.min(Number(range[2]) + 1, end);
+      if (start >= end) throw new S3ServiceError("InvalidRange", 416);
+    }
+    return {
+      ...this.head(object), ContentLength: end - start,
+      Body: (async function* () {
+        for (let offset = start; offset < end; offset += 64 * 1024) {
+          if (options?.abortSignal?.aborted) throw new S3ServiceError("AbortError", 499);
+          yield object.body.slice(offset, Math.min(offset + 64 * 1024, end));
+        }
+      })(),
+    };
+  }
+
+  async putObjectStream(input: S3StreamPutInput, options?: S3RequestOptions): Promise<{ ETag: string }> {
+    const snapshot = { ...input, Body: new Uint8Array() };
+    await this.begin("putObject", snapshot, options);
+    const body = await collectBytes(input.Body, { maxBytes: 5_000_000_000, ...(options?.abortSignal ? { signal: options.abortSignal } : {}) });
+    const bucket = this.bucket(input.Bucket);
+    const previous = bucket.get(input.Key);
+    if (input.IfMatch !== undefined && !previous) throw new S3ServiceError("NoSuchKey", 404);
+    if ((input.IfNoneMatch === "*" && previous) || (input.IfMatch !== undefined && previous?.etag !== input.IfMatch)) {
+      throw new S3ServiceError("PreconditionFailed", 412);
+    }
+    const object = this.store(body, input.Metadata);
+    bucket.set(input.Key, object);
+    return { ETag: object.etag };
+  }
+
   async deleteObject(input: S3DeleteInput, options?: S3RequestOptions): Promise<Record<string, never>> {
     await this.begin("deleteObject", input, options);
     const bucket = this.bucket(input.Bucket);
@@ -157,7 +198,8 @@ export class MockS3Client implements S3Transport {
     }
     const bucket = this.bucket(input.Bucket);
     if (input.IfNoneMatch === "*" && bucket.has(input.Key)) throw new S3ServiceError("PreconditionFailed", 412);
-    const copy = this.store(source.body, source.metadata);
+    if (input.IfMatch !== undefined && bucket.get(input.Key)?.etag !== input.IfMatch) throw new S3ServiceError("PreconditionFailed", 412);
+    const copy = this.store(source.body, input.MetadataDirective === "REPLACE" ? input.Metadata : source.metadata);
     bucket.set(input.Key, copy);
     return { CopyObjectResult: { ETag: copy.etag, LastModified: new Date(copy.modified) } };
   }

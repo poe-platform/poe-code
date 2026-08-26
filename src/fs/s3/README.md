@@ -98,6 +98,28 @@ preconditions. `createS3Transport` defaults all three to absent. The mock declar
 all three. A service that silently ignores preconditions is not compatible with
 these enabled features.
 
+Production-flow update, August 26, 2026: streaming is separately negotiated by
+`streamingRead`/`streamingWrite` and optional `getObjectStream`/`putObjectStream`
+transport methods. The read method returns an async binary body and enforces
+`IfMatch` and optional inclusive HTTP `Range`; the write method consumes an async
+binary body with backpressure and resolves only after completed publication.
+Unknown-length request encoding, signing, provider buffering and any multipart
+lifecycle belong to the transport. Do not enable these capabilities on a wrapper
+that first materializes an entire remote object/request. The mock streams chunks
+from its in-memory object store and stages uploads in memory before publication;
+it is not a model of bounded-memory cloud storage.
+
+Without these negotiated methods, filesystem stream methods are absent, not
+throwing stubs. `readFile` remains an explicitly bounded buffered fallback for
+consumers that permit one; named gzip requires genuine streams and still rejects
+buffer-only transports. `maxStreamBytes` defaults to 5,000,000,000 and limits total
+transfer bytes, not heap allocation. Output chunks are copied and split to
+`chunkSize` (64 KiB default); provider input chunk allocations are outside that
+bound. Stream reads use an ETag-pinned snapshot/range and validate lengths.
+Streaming replacement/exclusive writes use the streaming transport. Append is a
+bounded read/modify/write fallback, constrained by `maxReadBytes`, not streaming
+append. Neither interface promises a hard whole-process memory bound.
+
 ## Filesystem behavior and limits
 
 - Empty directories use zero-byte keys ending in `/`. Prefixes with descendants
@@ -142,12 +164,14 @@ these enabled features.
   supplied. Modes are synthetic `0100644`/`040755`, not authorization checks.
   `atimeMs`, `ctimeMs`, and unknown directory `mtimeMs` are zero. No inode, birth
   time, ownership, or link-count guarantee is made.
-- POSIX permissions, explicit creation modes, links, `chmod`, `utimes`, `truncate`,
-  and filesystem streaming methods fail with `ENOTSUP`. Capability flags report
-  these restrictions. `realpath` is existence-checked lexical normalization.
-  `access` supports existence/read checks through metadata/list requests, but
-  rejects POSIX write/execute permission prediction. Actual operation permissions
-  remain service-enforced; root metadata also requires a listing request.
+- POSIX permissions, explicit creation modes, links and `chmod` remain unsupported.
+  `utimes` stores virtual millisecond timestamps in user metadata using guarded
+  metadata-replacement copy; it does not change S3's system `LastModified`.
+  `truncate` uses bounded conditional read/modify/write and zero-padding.
+  `realpath` is existence-checked lexical normalization. `access` checks existence,
+  readonly policy, and synthetic directory traversal/file execution policy;
+  successful write checks are not predictions of IAM authorization. Actual
+  operation permissions remain service-enforced; root metadata requires listing.
 - `readOnly` blocks mutations before IO. Abort signals are forwarded; service
   authorization failures are `EACCES`, never absence. `force` removal suppresses
   missing paths, not authorization failures or missing buckets. The mounted root
@@ -175,9 +199,10 @@ filesystem-shaped API.
 
 ## Rename and concurrency
 
-`atomicRename` is always false. `rename` rejects by default. To opt into the
-explicitly weaker behavior, set `allowNonAtomicRename: true` and supply a transport
-with `conditionalDelete: true`.
+`atomicRename` is always false. `rename` now defaults to useful copy/delete
+semantics with a transport declaring `conditionalDelete: true`. Explicit
+`allowNonAtomicRename: false` retains fail-before-I/O policy for callers requiring
+atomic moves. This is a deliberate default-policy change, not atomic rename.
 
 Rename preflights type conflicts, empty-directory replacement, key lengths, size
 limits, and source ETags. It copies every listed object with a source ETag
@@ -249,6 +274,17 @@ Files remain pending independent final review and the coordinator's separately
 authorized atomic backend commit; no commit is made by this follow-up.
 
 ## Primary protocol references
+
+Production-flow checkpoint (August 26, 2026): the unchanged required S3 matrix
+improves from 1/11 to 11/11; unchanged shared S3 conformance passes 50/50.
+Focused backend tests pass 87/87 with the historical default-rename assertion
+retained as explicit opt-out policy and obsolete stream-stub assertions replaced
+by actual stream/missing-file behavior. Source-only strict typecheck passes.
+Root-import test typechecking encountered concurrent wrapper errors; this is not
+a whole-repository pass. Named gzip stdout works; staged named-file gzip still
+requires creation-mode support and remains follow-up work at this checkpoint.
+The independent foreign stress assertion that default rename rejects is not
+edited; the default-policy change intentionally supersedes that assertion.
 
 Read during implementation on August 26, 2026:
 

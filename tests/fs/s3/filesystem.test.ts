@@ -323,8 +323,8 @@ test("copy uses server-side CopyObject with source ETag and encoded keys, includ
   await assert.rejects(fs.copyFile("/", "/copy"), errno("EISDIR"));
 });
 
-test("rename requires explicit non-atomic consent before accessing the transport", async () => {
-  const { fs, client } = fixture();
+test("explicitly disabling non-atomic rename rejects before accessing the transport", async () => {
+  const { fs, client } = fixture({ allowNonAtomicRename: false });
   await assert.rejects(fs.rename("/old", "/new"), errno("ENOTSUP"));
   assert.equal(client.requests.length, 0);
 });
@@ -558,15 +558,16 @@ test("oversized GET response closes the SDK-style body when HEAD became stale", 
 test("unsupported POSIX capabilities never report successful emulation", async () => {
   const { fs } = fixture();
   for (const action of [
-    () => fs.chmod("/file", 0o600), () => fs.utimes("/file", 0, 0), () => fs.symlink("/file", "/link"),
-    () => fs.link("/file", "/link"), () => fs.readlink("/link"), () => fs.truncate("/file", 0),
-    () => fs.access("/file", 2), () => fs.access("/file", 1),
-    () => fs.writeStream("/file", (async function* () { yield bytes("data"); })()),
+    () => fs.chmod("/file", 0o600), () => fs.symlink("/file", "/link"),
+    () => fs.link("/file", "/link"), () => fs.readlink("/link"),
   ]) await assert.rejects(action(), errno("ENOTSUP"));
-  await assert.rejects(fs.readStream("/file")[Symbol.asyncIterator]().next(), errno("ENOTSUP"));
+  assert.ok(fs.readStream);
+  await assert.rejects(fs.readStream("/file")[Symbol.asyncIterator]().next(), errno("ENOENT"));
   await fs.writeFile("/file", bytes("data"));
   await fs.access("/file");
   await fs.access("/file", 4);
+  await fs.access("/file", 2);
+  await assert.rejects(fs.access("/file", 1), errno("EACCES"));
   await assert.rejects(fs.access("/file", 8), errno("EINVAL"));
 });
 

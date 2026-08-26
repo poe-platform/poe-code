@@ -22,6 +22,19 @@ export interface S3GetOutput extends S3HeadOutput {
   readonly Body?: S3Body | undefined;
 }
 
+export interface S3StreamGetInput extends S3ObjectInput {
+  readonly Range?: string;
+  readonly IfMatch?: string;
+}
+
+export interface S3StreamGetOutput extends S3HeadOutput {
+  readonly Body: AsyncIterable<Uint8Array>;
+}
+
+export interface S3StreamPutInput extends Omit<S3PutInput, "Body"> {
+  readonly Body: AsyncIterable<Uint8Array>;
+}
+
 export interface S3PutInput extends S3ObjectInput {
   readonly Body: Uint8Array;
   readonly IfMatch?: string;
@@ -37,7 +50,9 @@ export interface S3CopyInput extends S3ObjectInput {
   readonly CopySource: string;
   readonly CopySourceIfMatch?: string;
   readonly IfNoneMatch?: "*";
-  readonly MetadataDirective?: "COPY";
+  readonly IfMatch?: string;
+  readonly MetadataDirective?: "COPY" | "REPLACE";
+  readonly Metadata?: Record<string, string>;
 }
 
 export interface S3CopyOutput {
@@ -71,6 +86,8 @@ export interface S3ListOutput {
 }
 
 export interface S3Client {
+  getObjectStream?(input: S3StreamGetInput, options?: S3RequestOptions): Promise<S3StreamGetOutput>;
+  putObjectStream?(input: S3StreamPutInput, options?: S3RequestOptions): Promise<unknown>;
   headObject(input: S3ObjectInput, options?: S3RequestOptions): Promise<S3HeadOutput>;
   getObject(input: S3ObjectInput, options?: S3RequestOptions): Promise<S3GetOutput>;
   putObject(input: S3PutInput, options?: S3RequestOptions): Promise<unknown>;
@@ -80,6 +97,8 @@ export interface S3Client {
 }
 
 export interface S3TransportCapabilities {
+  readonly streamingRead?: boolean;
+  readonly streamingWrite?: boolean;
   readonly conditionalPut?: boolean;
   readonly conditionalCopy?: boolean;
   readonly conditionalDelete?: boolean;
@@ -95,6 +114,8 @@ export function createS3Transport(
 ): S3Transport {
   return {
     capabilities: Object.freeze({ ...capabilities }),
+    ...(client.getObjectStream ? { getObjectStream: (input: S3StreamGetInput, options?: S3RequestOptions) => client.getObjectStream!(input, options) } : {}),
+    ...(client.putObjectStream ? { putObjectStream: (input: S3StreamPutInput, options?: S3RequestOptions) => client.putObjectStream!(input, options) } : {}),
     headObject: (input, options) => client.headObject(input, options),
     getObject: (input, options) => client.getObject(input, options),
     putObject: (input, options) => client.putObject(input, options),

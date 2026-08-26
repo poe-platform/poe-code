@@ -1,0 +1,5179 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-26T22:27:55.090Z",
+  "handoffObserved": false,
+  "productRuns": 0,
+  "docs": {
+    "retrieved": "2026-08-26",
+    "observedManpageVersion": "8.22.0 (rolling documentation, not the executable oracle)",
+    "urls": [
+      "https://curl.se/docs/manpage.html",
+      "https://curl.se/docs/manpage.html#data",
+      "https://curl.se/docs/manpage.html#data-binary",
+      "https://curl.se/docs/manpage.html#location",
+      "https://curl.se/docs/manpage.html#retry",
+      "https://curl.se/docs/manpage.html#max-time",
+      "https://curl.se/libcurl/c/libcurl-errors.html"
+    ]
+  },
+  "nativeProfile": {
+    "executable": "/usr/bin/curl",
+    "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+    "version": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+    "headSha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1",
+    "config": [
+      "-q",
+      "--silent",
+      "--show-error",
+      "--globoff",
+      "--http1.1",
+      "--noproxy",
+      "*",
+      "--proxy",
+      "",
+      "--proto",
+      "=http",
+      "--proto-redir",
+      "=http",
+      "--connect-timeout",
+      "1",
+      "--max-time",
+      "3",
+      "--max-redirs",
+      "5"
+    ],
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "{ROOT}",
+      "CURL_HOME": "{ROOT}",
+      "XDG_CONFIG_HOME": "{ROOT}",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "NO_PROXY": "*",
+      "no_proxy": "*"
+    }
+  },
+  "sourceHashes": {
+    "rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+    "lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+    "native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129"
+  },
+  "counts": {
+    "nativeRows": 58,
+    "nativeCurlTransfers": 58,
+    "nativeCurlVersionCalls": 1,
+    "nativeHeadCalls": 2,
+    "httpRequests": 68,
+    "virtualOnlyRows": 2,
+    "totalVirtualPending": 60
+  },
+  "contractRows": [
+    "network-not-ambient",
+    "authorization-denied"
+  ],
+  "observations": [
+    {
+      "id": "get",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 20,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "head-method",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-I",
+        "{A}/bytes"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0K",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "HEAD",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "HEAD",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 17,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "include-headers",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-i",
+        "{A}/bytes"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0KAP/+QQ0KgABC",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 18,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "dump-headers",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-D",
+        "headers.out",
+        "{A}/bytes"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "AP/+QQ0KgABC",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "headers.out": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0K",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 17,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "method-before-body",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-X",
+        "PATCH",
+        "-d",
+        "a=1",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PATCH",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0x"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "PATCH",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "3"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0x"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "body-before-method",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-d",
+        "a=1",
+        "-X",
+        "PUT",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0x"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "3"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0x"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "repeated-body",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-d",
+        "a=1",
+        "-d",
+        "b=2",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0xJmI9Mg=="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0xJmI9Mg=="
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 14,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "raw-at-literal",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--data-raw",
+        "@missing",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "QG1pc3Npbmc="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "8"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "QG1pc3Npbmc="
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "data-file-strips",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-d",
+        "@text.in",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "Zmlyc3RzZWNvbmR0YWls"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "15"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "Zmlyc3RzZWNvbmR0YWls"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "binary-file",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--data-binary",
+        "@binary.in",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "9"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 16,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "binary-stdin",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--data-binary",
+        "@-",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "9"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "data-stdin",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-d",
+        "@-",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "Zmlyc3RzZWNvbmR0YWls"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "15"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "Zmlyc3RzZWNvbmR0YWls"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 23,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "upload-file-put",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-T",
+        "binary.in",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "9"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 16,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "upload-stdin-put",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-T",
+        "-",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ],
+            [
+              "Expect",
+              "100-continue"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 16,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "repeated-header-case",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-H",
+        "X-Probe: first",
+        "-H",
+        "x-probe: second",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-probe",
+              "first"
+            ],
+            [
+              "x-probe",
+              "second"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "X-Probe",
+              "first"
+            ],
+            [
+              "x-probe",
+              "second"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "suppress-default-header",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-H",
+        "Accept:",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "empty-header",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-H",
+        "X-Empty;",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-empty",
+              ""
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "X-Empty",
+              ""
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 13,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "basic-auth",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-u",
+        "alice:secret",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 13,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "empty-credentials",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-u",
+        ":",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "authorization",
+              "Basic Og=="
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Basic Og=="
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "bearer-auth",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--oauth2-bearer",
+        "fixture-token",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "authorization",
+              "Bearer fixture-token"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Bearer fixture-token"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "binary-download",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "{A}/bytes"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "AP/+QQ0KgABC",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 14,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "binary-output-overwrite",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-o",
+        "result.bin",
+        "{A}/bytes"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "AP/+QQ0KgABC",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 13,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "http404-default",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "{A}/status/404"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "ZXJyb3ItYm9keQo=",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 25,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "http404-fail",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--fail",
+        "{A}/status/404"
+      ],
+      "code": 22,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (22) The requested URL returned error: 404\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "http404-fail-body",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--fail-with-body",
+        "{A}/status/404"
+      ],
+      "code": 22,
+      "signal": null,
+      "stdout": "ZXJyb3ItYm9keQo=",
+      "stderr": "curl: (22) The requested URL returned error: 404\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 14,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "post-redirect-301",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-d",
+        "payload",
+        "{A}/redirect/301"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/301",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/301",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "post-redirect-302",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-d",
+        "payload",
+        "{A}/redirect/302"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 13,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "post-redirect-303",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-d",
+        "payload",
+        "{A}/redirect/303"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/303",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/303",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 12,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "post-redirect-307",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-d",
+        "payload",
+        "{A}/redirect/307"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/307",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/307",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 14,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "post-redirect-308",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-d",
+        "payload",
+        "{A}/redirect/308"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/308",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/308",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 16,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "relative-location",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "{A}/relative/start"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/relative/start",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/relative/start",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 15,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "redirect-cycle",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "--max-redirs",
+        "2",
+        "{A}/cycle"
+      ],
+      "code": 47,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (47) Maximum (2) redirects followed\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 25,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "cross-port-basic",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-u",
+        "alice:secret",
+        "{A}/cross-port"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{B_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 17,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "cross-host-basic",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-u",
+        "alice:secret",
+        "{A}/cross-host"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-host",
+          "headers": [
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-host",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{H_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 16,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "cross-port-bearer",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "--oauth2-bearer",
+        "fixture-token",
+        "{A}/cross-port"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "authorization",
+              "Bearer fixture-token"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Bearer fixture-token"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{B_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 13,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "cross-port-custom-auth",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-H",
+        "Authorization: Bearer custom",
+        "{A}/cross-port"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Bearer custom"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Authorization",
+              "Bearer custom"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{B_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 12,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "same-origin-auth",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-u",
+        "alice:secret",
+        "{A}/redirect/302"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "Authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 13,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "explicit-post-redirect",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-L",
+        "-X",
+        "POST",
+        "-d",
+        "payload",
+        "{A}/redirect/302"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "7"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 12,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "timeout-no-headers",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--max-time",
+        "0.35",
+        "{A}/hang"
+      ],
+      "code": 28,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (28) Operation timed out after 361 milliseconds with 0 bytes received\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/hang",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/hang",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 372,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "timeout-partial",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-N",
+        "--max-time",
+        "0.35",
+        "{A}/stall"
+      ],
+      "code": 28,
+      "signal": null,
+      "stdout": "cHJlZml4Cg==",
+      "stderr": "curl: (28) Operation timed out after 358 milliseconds with 7 out of 100 bytes received\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 373,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "disconnect-stdout",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "{A}/partial"
+      ],
+      "code": 18,
+      "signal": null,
+      "stdout": "cHJlZml4Cg==",
+      "stderr": "curl: (18) transfer closed with 93 bytes remaining to read\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/partial",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/partial",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 67,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "disconnect-output",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-o",
+        "result.bin",
+        "{A}/partial"
+      ],
+      "code": 18,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (18) transfer closed with 93 bytes remaining to read\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/partial",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/partial",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "cHJlZml4Cg==",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 68,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "retry-get",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--retry",
+        "1",
+        "{A}/retry"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "cmV0cnktYm9keQpvawo=",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 1021,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "retry-post-effect",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--retry",
+        "1",
+        "-d",
+        "effect",
+        "{A}/retry"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "cmV0cnktYm9keQpvawo=",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "ZWZmZWN0"
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "ZWZmZWN0"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "6"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "ZWZmZWN0"
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "Content-Length",
+              "6"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "ZWZmZWN0"
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 1019,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "retry-output-reset",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--retry",
+        "1",
+        "-o",
+        "result.bin",
+        "{A}/retry"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2sK",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 1026,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "retry-does-not-retry404",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--retry",
+        "1",
+        "{A}/status/404"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "ZXJyb3ItYm9keQo=",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 11,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "unknown-option",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--not-a-real-curl-option"
+      ],
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: option --not-a-real-curl-option: is unknown\ncurl: try 'curl --help' or 'curl --manual' for more information\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "missing-option-value",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--header"
+      ],
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: option --header: requires parameter\ncurl: try 'curl --help' or 'curl --manual' for more information\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "missing-url",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1"
+      ],
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (2) no URL specified\ncurl: try 'curl --help' or 'curl --manual' for more information\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "malformed-port",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "http://127.0.0.1:bad/"
+      ],
+      "code": 3,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (3) URL rejected: Port number was not a decimal number between 0 and 65535\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "forbidden-file-protocol",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "file://{ROOT}/binary.in"
+      ],
+      "code": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (1) Protocol \"file\" disabled\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "malformed-url-space",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "{A}/bad path"
+      ],
+      "code": 3,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (3) URL rejected: Malformed input to a URL function\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 11,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "header-crlf-injection",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-H",
+        "X-Probe: good\r\nX-Injected: yes",
+        "{A}/echo"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-probe",
+              "good"
+            ],
+            [
+              "x-injected",
+              "yes"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "X-Probe",
+              "good"
+            ],
+            [
+              "X-Injected",
+              "yes"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "missing-input-file",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--data-binary",
+        "@missing.in",
+        "{A}/echo"
+      ],
+      "code": 26,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: option --data-binary: error encountered when reading a file\ncurl: try 'curl --help' or 'curl --manual' for more information\n",
+      "traces": [],
+      "wireTraces": [],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 10,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "missing-output-parent",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-o",
+        "absent/result.bin",
+        "{A}/bytes"
+      ],
+      "code": 23,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (23) Failure writing output to destination, passed 9 returned 4294967295\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 18,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "active-sigint",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "{A}/hang"
+      ],
+      "code": null,
+      "signal": "SIGINT",
+      "stdout": "",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/hang",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/hang",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 26,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "early-head-stream",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-N",
+        "{A}/stream"
+      ],
+      "code": 23,
+      "signal": null,
+      "stdout": "cA==",
+      "stderr": "curl: (23) Failure writing output to destination, passed 4096 returned 4294967295\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stream",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stream",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": 0,
+      "elapsedMs": 38,
+      "consumerElapsedMs": 16
+    },
+    {
+      "id": "early-head-stalled",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "-N",
+        "--max-time",
+        "0.35",
+        "{A}/stall"
+      ],
+      "code": 28,
+      "signal": null,
+      "stdout": "cA==",
+      "stderr": "curl: (28) Operation timed out after 353 milliseconds with 7 out of 100 bytes received\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": 0,
+      "elapsedMs": 363,
+      "consumerElapsedMs": 11
+    }
+  ]
+}

@@ -1,0 +1,242 @@
+{
+  "capturedAt": "2026-08-26T23:14:29.330Z",
+  "head": "64b55e4e313a221dc9a460f4d4b8dd6654d6f2cc",
+  "node": "v22.22.2",
+  "sourceBefore": {
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+    "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+    "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+    "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+    "src/fs/overlay/README.md": "1797d6e8e510eb5fa8d383f33485cda45f0259fa52831ac72e0cc983709f68da",
+    "src/fs/overlay/index.ts": "e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28",
+    "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+    "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+    "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+    "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+    "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+    "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+  },
+  "sourceAfter": {
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+    "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+    "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+    "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+    "src/fs/overlay/README.md": "1797d6e8e510eb5fa8d383f33485cda45f0259fa52831ac72e0cc983709f68da",
+    "src/fs/overlay/index.ts": "e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28",
+    "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+    "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+    "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+    "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+    "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+    "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+  },
+  "sourceStable": true,
+  "testHashes": {
+    "tests/fs/overlay/adversarial.test.ts": "7916653325d5e417600435ce4ee73075e3f09c24588723e354962d8db9337378",
+    "tests/fs/overlay/conformance.test.ts": "31bb6df8b2651f7edc23777e2f4ca0e8ea2146e2a895e3fa3c0305c776a06152",
+    "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e",
+    "tests/fs/overlay/review-regressions.test.ts": "0f2e15b36b127ffa22fc1fcad8d774bf0e46e1ab09de8702be90c274bad24c60",
+    "tests/fs/overlay/rmdir-static-lower.test.ts": "0575ae9099b407fdf5a27806081ad7eab6ac5b43fe1b41fcba16b3da862c8d73",
+    "tests/fs/overlay/rmdir.test.ts": "1492ced30d56c966c0599d6e819c020415fd7d952e1fe94f0c09bcbbdd5a0ee5",
+    "tests/fs/overlay/scoped-links.test.ts": "630601b100b528066f0cdef87747d40d49c7c3c4bb50b3b7dbd9485197746066",
+    "tests/fs/overlay/streaming.test.ts": "5118d862971051cfe439022aa7743852260c5507ccd1b3f49cb326edeeb1a428"
+  },
+  "results": [
+    {
+      "name": "rmdir-focused",
+      "executable": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/rmdir-static-lower.test.ts"
+      ],
+      "startedAt": "2026-08-26T23:14:27.248Z",
+      "exit": 0,
+      "signal": null,
+      "counts": {
+        "tests": 23,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "a7404f3e834801d67c79962cc2843ed01896dba79af7761f9ecfddde70f7c969",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "overlay-complete",
+      "executable": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/conformance.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/overlay/rmdir-static-lower.test.ts",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/streaming.test.ts"
+      ],
+      "startedAt": "2026-08-26T23:14:27.421Z",
+      "exit": 1,
+      "signal": null,
+      "counts": {
+        "tests": 184,
+        "pass": 182,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "a89c3b03a7de8eb27c8fffe9f3ab8375fdd193b8fc9ef01b31ee66c3422e57b5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "overlay-alias-required-red",
+      "executable": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/overlay/copy-identity.test.ts"
+      ],
+      "startedAt": "2026-08-26T23:14:27.809Z",
+      "exit": 1,
+      "signal": null,
+      "counts": {
+        "tests": 7,
+        "pass": 5,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "70a8771faa7761807bda28ed47a874fc0bf1cf6d052dae664ad985b28df031d3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "shared-conformance",
+      "executable": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/conformance/shared.test.ts"
+      ],
+      "startedAt": "2026-08-26T23:14:27.953Z",
+      "exit": 0,
+      "signal": null,
+      "counts": {
+        "tests": 202,
+        "pass": 202,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "82288c1e51651570939454253aca872d0f8883051477cb31d0744df2edc53d3f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped-types",
+      "executable": "node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "src/fs/overlay/index.ts",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/conformance.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts",
+        "tests/fs/overlay/helpers.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/overlay/rmdir-static-lower.test.ts",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/streaming.test.ts"
+      ],
+      "startedAt": "2026-08-26T23:14:28.726Z",
+      "exit": 0,
+      "signal": null,
+      "counts": {},
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "new/rmdir-focused.stdout",
+      "sha256": "a7404f3e834801d67c79962cc2843ed01896dba79af7761f9ecfddde70f7c969"
+    },
+    {
+      "path": "new/overlay-complete.stdout",
+      "sha256": "a89c3b03a7de8eb27c8fffe9f3ab8375fdd193b8fc9ef01b31ee66c3422e57b5"
+    },
+    {
+      "path": "new/overlay-alias-required-red.stdout",
+      "sha256": "70a8771faa7761807bda28ed47a874fc0bf1cf6d052dae664ad985b28df031d3"
+    },
+    {
+      "path": "new/shared-conformance.stdout",
+      "sha256": "82288c1e51651570939454253aca872d0f8883051477cb31d0744df2edc53d3f"
+    },
+    {
+      "path": "original/reviewer-final.base64",
+      "sha256": "10311b63de7503d8a60b91250c6ca388ce824e2fdbb9287baf5cb323898c2084",
+      "origin": "/tmp/safe-bash-overlay-rmdir-review-final.txt",
+      "sourceSha256": "bb53555294ea1131b83e12bcce2bbfb4ad4ad67c81d4aa21ea66178e965979c6",
+      "encoding": "base64"
+    }
+  ]
+}

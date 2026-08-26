@@ -565,11 +565,11 @@ export class OverlayFileSystem implements FileSystem {
         const parent = await this.required(dirname(entry.path), options);
         this.permission(parent, 3);
         if ((await this.listing(entry, options)).length) fail("ENOTEMPTY", path);
+        if (entry.backend !== this.#upper || !this.#upper.rmdir) fail("ENOTSUP", path);
+        const isolated = [...this.whiteouts, ...this.opaque].some((root) => isPathWithin(root, entry.path));
+        if (!isolated) fail("ENOTSUP", path, "live lower-layer emptiness cannot be guarded atomically");
         options.signal?.throwIfAborted();
-        if (entry.backend === this.#upper) {
-          if (!this.#upper.rmdir) fail("ENOTSUP", path);
-          await this.#upper.rmdir(entry.path, options);
-        }
+        await this.#upper.rmdir(entry.path, options);
         this.whiteouts.add(entry.path);
         for (const key of this.linkMetadata.keys()) if (isPathWithin(entry.path, key)) this.linkMetadata.delete(key);
         for (const key of this.linkOrigins.keys()) if (isPathWithin(entry.path, key)) this.linkOrigins.delete(key);

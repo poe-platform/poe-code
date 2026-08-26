@@ -151,25 +151,19 @@ No mutation method is ever called on lower. A backend's own read-side effects
 `rmdir(path, options?: FsOptions)` rejects non-directories with `ENOTDIR`,
 missing entries with `ENOENT`, and a nonempty merged view with `ENOTEMPTY`.
 It never uses staged rename, recursive backing removal, or pending garbage
-cleanup. Removing an upper entry invokes only the upper backend's optional
-directory-only `rmdir` and then records the whiteout. Removing a lower-only
-entry records an instance whiteout without any backing mutation. Backing errors
-are not swallowed, and a raced upper child remains visible when the backend rejects.
+cleanup. A successful removal invokes only the upper backend's optional
+directory-only `rmdir` and then records the whiteout; backing errors are not
+swallowed, and a raced upper child remains visible when the backend rejects.
 Errors retain the original operand and the `rmdir` syscall. Lower entries
 are never deleted. Existing `rm` semantics are unchanged.
 
-Under the existing unchanged-lower/exclusively-owned-upper prerequisites,
-lower-only, preexisting upper-only, and merged empty directories are supported.
-The merged emptiness decision and whiteout publication run within the instance's
-namespace queue. A same-instance child committed first causes `ENOTEMPTY`; a
-child queued after successful removal sees `ENOENT` unless its parent is first
-recreated. Recreation remains opaque, so removed lower descendants do not return.
-All physical lower bytes and entries are preserved, including whiteouted children.
-
-If an upper entry must be removed but upper lacks `rmdir`, removal returns
-`ENOTSUP` without mutation. A physically nonempty upper directory is left intact
-when the backing `rmdir` rejects, even if the merged listing hides its children;
-there is no recursive fallback or whiteout on that failure. A lower-only whiteout
-does not require an upper deletion primitive. External lower mutation violates
-the documented prerequisite: readonly capability is not a snapshot guarantee,
-and the overlay does not promise atomic cross-provider state or undo such writes.
+Safe support requires an upper directory whose lower contribution is already
+isolated by this overlay's opaque/whiteout state (for example a directory
+created through this overlay). An empty lower-only or unisolated merged
+directory returns `ENOTSUP`: its observed emptiness cannot be coupled atomically
+to a whiteout using the current contract. Even an upper-only directory observed
+above an absent lower entry is not proof that a concurrent lower writer cannot
+add children. A lower `readOnly` capability restricts that handle, not every
+other reference to the storage, so it is not an immutable-snapshot guarantee.
+Absent upper `rmdir` support also returns `ENOTSUP` without mutation. These
+refusals avoid hiding concurrent descendants or inventing provider guarantees.

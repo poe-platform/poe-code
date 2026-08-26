@@ -9,10 +9,12 @@ for (const scenario of [
   "late-read-rejection", "iterator-return", "caller-abort", "budget-abort",
   "completed-success", "completed-failure", "completed-rejection", "delayed-no-write",
   "closed-before-write", "zero-byte-no-write",
+  "first-read-head-zero", "first-read-local", "first-read-s3", "first-read-webdav",
+  "first-read-curl-body", "first-read-curl-headers",
 ]) {
   test(`hard-deadline pipeline close: ${scenario}`, async context => {
     const child = spawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx",
-      fileURLToPath(new URL("./remote-close-probe.ts", import.meta.url)), scenario], {
+      fileURLToPath(new URL(scenario.startsWith("first-read-") ? "./first-read-probe.ts" : "./remote-close-probe.ts", import.meta.url)), scenario], {
       stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32",
     });
     const stop = () => {
@@ -44,7 +46,9 @@ for (const scenario of [
       try { process.kill(-child.pid, 0); residual = true; stop(); }
       catch (error) { assert.ok(error instanceof Error && "code" in error && error.code === "ESRCH"); }
     }
-    context.diagnostic(JSON.stringify({ scenario, pid: child.pid, ...result, timedOut, oversized, residual }));
+    context.diagnostic(JSON.stringify({ scenario, pid: child.pid, ...result, timedOut, oversized, residual,
+      ...(scenario.startsWith("first-read-") ? { stdout, stderr } : {}),
+    }));
     assert.equal(residual, false, `${scenario}: residual child process group was stopped`);
     assert.equal(timedOut, false, `${scenario}: hard 3000ms deadline; ${stderr}`);
     assert.equal(oversized, false, `${scenario}: output exceeded 1 MiB`);

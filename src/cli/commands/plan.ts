@@ -44,7 +44,7 @@ import {
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { setHelpGuidance } from "./help-guidance.js";
-import { ValidationError } from "../errors.js";
+import { OperationCancelledError, ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
 import {
   announceAssumedScope,
@@ -352,7 +352,7 @@ async function resolveSelectedPlan(options: {
   });
 
   if (isCancel(selected)) {
-    throw new ValidationError("Plan selection cancelled.");
+    throw new OperationCancelledError("Plan selection cancelled.");
   }
 
   const matched = options.plans.find((plan) => plan.absolutePath === selected);

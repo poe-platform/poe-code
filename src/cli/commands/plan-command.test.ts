@@ -3,18 +3,18 @@ import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { stripVTControlCharacters } from "node:util";
 import { UserError } from "toolcraft";
+import { loadPlanPreviewMarkdown } from "@poe-code/plan-browser";
 import { createCliContainer } from "../container.js";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../../utils/file-system.js";
-import { isUserFacingError } from "../errors.js";
+import { isUserFacingError, OperationCancelledError, ValidationError } from "../errors.js";
 import { registerPlanCommand } from "./plan.js";
 
-const { introMock, outroMock, selectMock, confirmOrCancelMock, isCancelMock } = vi.hoisted(() => ({
+const { introMock, outroMock, selectMock, confirmOrCancelMock } = vi.hoisted(() => ({
   introMock: vi.fn(),
   outroMock: vi.fn(),
   selectMock: vi.fn(),
-  confirmOrCancelMock: vi.fn().mockResolvedValue(true),
-  isCancelMock: vi.fn(() => false)
+  confirmOrCancelMock: vi.fn().mockResolvedValue(true)
 }));
 
 const { readMarkdownMock, readSectionMock, runMarkdownReaderMcpMock } = vi.hoisted(() => ({
@@ -34,8 +34,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
     intro: introMock,
     outro: outroMock,
     select: selectMock,
-    confirmOrCancel: confirmOrCancelMock,
-    isCancel: isCancelMock
+    confirmOrCancel: confirmOrCancelMock
   };
 });
 
@@ -49,7 +48,8 @@ vi.mock("@poe-code/plan-browser", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/plan-browser")>();
   return {
     ...actual,
-    editPlan: editPlanMock
+    editPlan: editPlanMock,
+    loadPlanPreviewMarkdown: vi.fn(actual.loadPlanPreviewMarkdown)
   };
 });
 
@@ -518,6 +518,92 @@ describe("plan command", () => {
         path: "docs/plans/plan-a.md"
       })
     );
+  });
+
+  describe.each(["plan", "plans"])("%s missing-path selection", (alias) => {
+    describe.each(["view", "edit", "archive", "unarchive", "delete"])("%s", (command) => {
+      let program: Command;
+      let volume: Volume;
+      let initialFiles: ReturnType<Volume["toJSON"]>;
+      let outputChunks: string[];
+
+      beforeEach(() => {
+        outputChunks = [];
+        for (const stream of [process.stdout, process.stderr]) {
+          vi.spyOn(stream, "write").mockImplementation((chunk) => {
+            outputChunks.push(String(chunk));
+            return true;
+          });
+        }
+        volume = Volume.fromJSON({
+          "/repo/docs/plans/active.md": "# Active plan\n",
+          "/repo/docs/plans/archive/archived.md": "# Archived plan\n"
+        });
+        volume.mkdirSync(homeDir, { recursive: true });
+        program = createProgram({
+          fs: createFsFromVolume(volume).promises as unknown as FileSystem,
+          prompts: vi.fn().mockResolvedValue({}),
+          env: { cwd, homeDir },
+          logger: () => {},
+          exitOverride: true
+        });
+        initialFiles = volume.toJSON();
+      });
+
+      afterEach(() => {
+        expect(volume.toJSON()).toEqual(initialFiles);
+        expect(confirmOrCancelMock).not.toHaveBeenCalled();
+        expect(editPlanMock).not.toHaveBeenCalled();
+        expect(loadPlanPreviewMarkdown).not.toHaveBeenCalled();
+        expect(outroMock).not.toHaveBeenCalled();
+        expect(outputChunks).toEqual([]);
+      });
+
+      it("treats a cancelled selection as operation cancellation", async () => {
+        selectMock.mockResolvedValueOnce(Symbol.for("poe.cancel"));
+
+        await expect(
+          withMockedStdin(() => program.parseAsync(["node", "cli", alias, command]), true)
+        ).rejects.toBeInstanceOf(OperationCancelledError);
+
+        expect(selectMock).toHaveBeenCalledExactlyOnceWith(
+          expect.objectContaining({
+            options: [
+              expect.objectContaining({
+                value:
+                  command === "unarchive"
+                    ? "/repo/docs/plans/archive/archived.md"
+                    : "/repo/docs/plans/active.md"
+              })
+            ]
+          })
+        );
+      });
+
+      it("keeps an unmatched selection as a validation error", async () => {
+        selectMock.mockResolvedValueOnce("/repo/docs/plans/missing.md");
+
+        await expect(
+          withMockedStdin(() => program.parseAsync(["node", "cli", alias, command]), true)
+        ).rejects.toBeInstanceOf(ValidationError);
+
+        expect(selectMock).toHaveBeenCalledOnce();
+      });
+
+      it.each([
+        { mode: "non-TTY", isTTY: false, flags: [] },
+        { mode: "--yes", isTTY: true, flags: ["--yes"] }
+      ])("requires a path in $mode mode without prompting", async ({ isTTY, flags }) => {
+        await expect(
+          withMockedStdin(
+            () => program.parseAsync(["node", "cli", ...flags, alias, command]),
+            isTTY
+          )
+        ).rejects.toBeInstanceOf(ValidationError);
+
+        expect(selectMock).not.toHaveBeenCalled();
+      });
+    });
   });
 
   it("rejects plan selection in non-interactive mode and lists candidates", async () => {

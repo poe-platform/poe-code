@@ -5,6 +5,8 @@ import { cases } from "./cases.js";
 import { compare, totals, type Comparison } from "./model.js";
 import { native } from "./native.js";
 import { VirtualSession } from "./session.js";
+import { safetyProbes } from "./safety.js";
+import type { Execution } from "./model.js";
 
 async function fingerprint(directory: URL): Promise<string> {
   const hash = createHash("sha256");
@@ -24,12 +26,19 @@ const startedAt = new Date().toISOString();
 const sourceBefore = await fingerprint(new URL("../../../src/", import.meta.url));
 const session = new VirtualSession();
 const results: Comparison[] = [];
+const safety: { name: string; status: Comparison["status"]; result: Execution }[] = [];
 try {
   for (const fixture of cases) {
     const [oracle, actual] = await Promise.all([native(fixture), session.run({ fixture })]);
     const result = compare(fixture, oracle, actual);
     results.push(result);
     if (result.status !== "pass") console.log(`${result.status}: ${fixture.name}: ${result.differences.join(", ")}`);
+  }
+  for (const probe of safetyProbes) {
+    const result = await session.run({ fixture: { name: probe.name, tool: probe.tool, feature: "safety", args: probe.args }, probe });
+    const status = result.status === "completed" ? result.observation.exitCode === 0 ? "pass" : "fail" : result.status;
+    safety.push({ name: probe.name, status, result });
+    if (status !== "pass") console.log(`${status}: ${probe.name}`);
   }
 } finally { await session.dispose(); }
 const sourceAfter = await fingerprint(new URL("../../../src/", import.meta.url));
@@ -52,9 +61,10 @@ const report = {
     performanceClaim: "None: one cold-to-warm correctness run, not a controlled throughput benchmark" },
   summary, byTool: Object.fromEntries(["sed", "awk", "pipeline"].map(tool => [tool, totals(results.filter(result => result.tool === tool))])),
   byFeature: Object.fromEntries([...new Set(cases.map(fixture => fixture.feature))].map(feature => [feature, totals(results.filter(result => result.feature === feature))])),
-  backgroundErrors: session.backgroundErrors, cases, results,
+  safety: { summary: totals(safety), probes: safetyProbes, results: safety },
+  combinedSummary: totals([...results, ...safety]), backgroundErrors: session.backgroundErrors, cases, results,
 };
 const path = new URL("./latest-report.json", import.meta.url);
 await writeFile(path, JSON.stringify(report, null, 2) + "\n");
-console.log(JSON.stringify({ report: path.pathname, summary, sourceChanged: report.provenance.sourceChanged, backgroundErrors: report.backgroundErrors }));
-if (summary.pass !== summary.total || report.provenance.sourceChanged || report.backgroundErrors.length) process.exitCode = 1;
+console.log(JSON.stringify({ report: path.pathname, summary, safety: report.safety.summary, combinedSummary: report.combinedSummary, sourceChanged: report.provenance.sourceChanged, backgroundErrors: report.backgroundErrors }));
+if (report.combinedSummary.pass !== report.combinedSummary.total || report.provenance.sourceChanged || report.backgroundErrors.length) process.exitCode = 1;

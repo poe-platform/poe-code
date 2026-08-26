@@ -66,3 +66,23 @@ The matrix extends flag/address/action combinations, regexes, arrays, control
 flow, byte/Unicode inputs, file effects, and pipelines beyond the original shell
 corpus. It is not a just-bash head-to-head report or a performance benchmark, and
 does not establish the user's superiority requirement.
+
+## Safety checkpoint
+
+Twenty additional virtual-only safety probes measure cancellation, unused input,
+syntax preflight, per-file in-place preservation, instruction/buffer limits,
+recursion/array limits, and stdout quotas. The initial result is 15 pass/five fail:
+sed and awk both fail prompt cancellation of blocked stdin and stdout, and sed
+`1q` waits for an unused next record. Late read/write rejections are released and
+observed after the test; a passing cleanup after release does not conceal the
+failed cancellation deadline. These failures are reported to the source owner;
+the verifier does not edit interpreter source during this ownership phase.
+
+The machine report records native differential and safety totals separately and
+combined. No source fix is bundled with these regression tests.
+
+After source-owner cancellation changes, a stable rerun records 19/20 safety
+passes: only sed's unused lookahead remains failing. Combined with the unchanged
+141-case differential result, that is 148 pass, seven fail, four unsupported,
+and two oracle-rejected out of 161. The earlier five-failure safety observation
+is retained here as regression history, not presented as the current result.

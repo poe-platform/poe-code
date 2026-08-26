@@ -6,8 +6,9 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import type { TextCase } from "./cases.js";
 import type { Execution, Observation } from "./model.js";
+import { runSafety, type SafetyProbe } from "./safety.js";
 
-export interface Request { fixture: TextCase; options?: TextProgramOptions }
+export interface Request { fixture: TextCase; options?: TextProgramOptions; probe?: SafetyProbe }
 
 async function execute({ fixture, options }: Request): Promise<Execution> {
   const started = performance.now();
@@ -60,5 +61,5 @@ async function execute({ fixture, options }: Request): Promise<Execution> {
 }
 
 parentPort!.on("message", async ({ id, request }: { id: number; request: Request }) => {
-  parentPort!.postMessage({ id, result: await execute(request) });
+  parentPort!.postMessage({ id, result: request.probe ? await runSafety(request.probe) : await execute(request) });
 });

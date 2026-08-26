@@ -80,6 +80,25 @@ test("memory scopes are store-specific; hardlinks and wrapper views preserve the
   assert.equal((await mount.lstat("/alias")).identityScope, stat.identityScope);
 });
 
+test("unknown same-mount destination cannot rely on arbitrary backend copyFile presence", async () => {
+  const backing = createMemoryFileSystem();
+  await backing.writeFile("/file", bytes);
+  await backing.link("/file", "/alias");
+  const calls: string[] = [];
+  const backend = wrapped(backing, {
+    async lstat(path, options) {
+      const { identityScope: _scope, ...stat } = await backing.lstat(path, options);
+      return stat;
+    },
+    async copyFile() { calls.push("copyFile"); throw new FsError("ENOSPC"); },
+  });
+  const mount = createMountFileSystem({ root: backend });
+  await assert.rejects(mount.copyFile("/file", "/alias"), { code: "ENOTSUP", syscall: "copyFile", path: "/file", dest: "/alias" });
+  assert.deepEqual(calls, []);
+  assert.deepEqual(await backing.readFile("/file"), bytes);
+  assert.deepEqual(await backing.readFile("/alias"), bytes);
+});
+
 test("native roots and instances publish the agreed host identity scope", async (context) => {
   const { root, filesystem } = await fixture(context);
   const other = await createRealFileSystem({ root });

@@ -81,7 +81,9 @@ consumption. New-file modes are requested only from permission-capable writers.
 Complete `identityScope`/`dev`/`ino` tuples reject observed aliases before source
 acquisition or target writes (`EINVAL`, or `EEXIST` for exclusive copies).
 Different complete scopes must denote genuinely disjoint storage; missing or
-invalid identity cannot justify an existing cross-mount overwrite (`ENOTSUP`).
+invalid identity cannot justify an existing overwrite through this wrapper
+(`ENOTSUP`), even on one mount: arbitrary `copyFile` method presence is not a
+negotiated native guard. Direct backend-native copies retain their own guards.
 Observed missing targets use exclusive creation, preserving raced entries.
 These are point-in-time checks, not leases or pathname/ABA race protection.
 Copy is not a transaction: a failed destination write can leave partial bytes,

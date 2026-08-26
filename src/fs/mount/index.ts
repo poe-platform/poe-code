@@ -417,12 +417,12 @@ export class MountFileSystem implements FileSystem {
       if (origin.mount.backend === target.mount.backend && origin.local === target.local) fail("EINVAL");
       const identity = compareIdentity(origin.stat, target.stat);
       if (identity === "same") fail("EINVAL");
+      if (target.stat?.type === "directory") fail("EISDIR");
+      if (target.stat && identity === "unknown") fail("ENOTSUP");
       if (origin.mount === target.mount) {
         await origin.mount.backend.copyFile(origin.local, target.local, { ...options, exclusive: options.exclusive || !target.stat });
         return;
       }
-      if (target.stat?.type === "directory") fail("EISDIR");
-      if (target.stat && identity === "unknown") fail("ENOTSUP");
       const reader = origin.mount.backend;
       const writer = target.mount.backend;
       const writeOptions: WriteFileOptions = {

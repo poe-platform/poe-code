@@ -15,7 +15,7 @@ const results: { name: string; exit: number | null; killed: boolean; stdout: str
 try {
   for (const path of ["src/contracts", "package.json", ...sources.map(dirname), "tests/fs/real/helpers.ts",
     "tests/fs/real/copy-identity.test.ts", "tests/fs/mount/copy-identity.test.ts", "tests/fs/mount/copy-identity-guards.test.ts",
-    "tests/fs/overlay/helpers.ts", "tests/fs/overlay/copy-identity.test.ts"]) {
+    "tests/fs/overlay/helpers.ts", "tests/fs/overlay/copy-identity.test.ts", "tests/fs/mount/identity-scope.test.ts"]) {
     await mkdir(dirname(join(temporary, path)), { recursive: true });
     await cp(join(root, path), join(temporary, path), { recursive: true });
   }
@@ -47,7 +47,7 @@ try {
       path: "src/fs/mount/identity.ts",
       before: 'left.identityScope === right.identityScope && left.dev === right.dev && left.ino === right.ino',
       after: 'left.dev === right.dev && left.ino === right.ino',
-      tests: ["tests/fs/mount/copy-identity.test.ts", "tests/fs/overlay/copy-identity.test.ts"],
+      tests: ["tests/fs/mount/copy-identity.test.ts", "tests/fs/overlay/copy-identity.test.ts", "tests/fs/mount/identity-scope.test.ts"],
     },
     {
       name: "native same-file guard removed",

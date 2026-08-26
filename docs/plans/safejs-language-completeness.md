@@ -115,6 +115,9 @@ Record commit, workflow conclusion, and published version for each item here.
   14-case function stress suite including two additional budget regressions.
 - Opt-in adversarial/parser fuzz: 9 passed, 5 skipped. Root typecheck passed.
 - Updated the skill template and ran `npm run sync-skills`.
+- Pre-push consumer coverage exposed a stale code-mode test that still expected
+  functions to be rejected. Replaced its negative fixture with forbidden `eval`
+  and added an ordinary-function/arguments integration regression.
 
 #### Manual CLI stress verification
 
@@ -138,3 +141,5 @@ Executed these together using `npm run screenshot-poe-code -- harness run` with
 the three `/tmp/safejs-functions-{factories,async,generators}.md` paths and `--yes`.
 Inspected the screenshot: all three harnesses passed with results 131040, 128,
 and 2000 respectively. No LLM calls or external services were needed.
+The same three large scripts also matched native strict JavaScript through the
+public SDK at widths 64, 128, and 1,000.

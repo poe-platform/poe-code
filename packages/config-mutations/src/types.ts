@@ -10,7 +10,9 @@ export interface ConfigObject {
 export type ConfigArray = ConfigValue[];
 
 export function isConfigObject(value: unknown): value is ConfigObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return (
+    typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date)
+  );
 }
 
 // ============================================================================

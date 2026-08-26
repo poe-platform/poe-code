@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import type { FileSystem } from "./types.js";
+import type { ConfigObject, FileSystem } from "./types.js";
 import {
   getConfigFormat,
   detectFormat,
@@ -1955,6 +1955,140 @@ describe("createMockFs", () => {
 });
 
 // --- types.test.ts ---
+
+describe("temporal config scalars", () => {
+  const timestamp = "2026-08-26T12:34:56.789Z";
+  const nativeDate = new Date(timestamp);
+  const tomlSource = "[nested]\nkeep = true\nupdated = 2000-01-01T00:00:00.000Z\n";
+  const yamlSource =
+    "nested:\n  keep: true\n  updated: !!timestamp 2000-01-01T00:00:00.000Z\n";
+  const cases = [
+    ...[
+      ["offset Z", timestamp],
+      ["numeric offset", "2026-08-26T12:34:56.789+05:30"],
+      ["local datetime", "2026-08-26T12:34:56.789"],
+      ["local date", "2026-08-26"],
+      ["local time", "12:34:56.789"]
+    ].map(([name, literal]) => ({
+      name: `TOML ${name}`,
+      extension: "toml",
+      format: tomlFormat,
+      source: tomlSource,
+      value: tomlFormat.parse(`updated = ${literal}`).updated,
+      literal
+    })),
+    {
+      name: "TOML native Date",
+      extension: "toml",
+      format: tomlFormat,
+      source: tomlSource,
+      value: nativeDate,
+      literal: timestamp
+    },
+    {
+      name: "YAML explicit timestamp",
+      extension: "yaml",
+      format: yamlFormat,
+      source: yamlSource,
+      value: yamlFormat.parse(`updated: !!timestamp ${timestamp}`).updated,
+      literal: timestamp
+    },
+    {
+      name: "YAML native Date",
+      extension: "yaml",
+      format: yamlFormat,
+      source: yamlSource,
+      value: nativeDate,
+      literal: timestamp
+    },
+    {
+      name: "JSON native Date",
+      extension: "json",
+      format: jsonFormat,
+      source: '{"nested":{"keep":true,"updated":"2000-01-01T00:00:00.000Z"}}',
+      value: nativeDate,
+      literal: timestamp
+    }
+  ];
+
+  describe.each(cases)("$name", ({ extension, format, source, value, literal }) => {
+    it("classifies dates as scalars and preserves replacement instances", () => {
+      expect(value).toBeInstanceOf(Date);
+      expect(isConfigObject(value)).toBe(false);
+      expect(format.merge({ updated: nativeDate }, { updated: value }).updated).toBe(value);
+      expect(format.merge({ updated: { old: true } }, { updated: value }).updated).toBe(value);
+      expect(format.merge({ updated: value }, { updated: { fresh: true } })).toEqual({
+        updated: { fresh: true }
+      });
+    });
+
+    describe.each([false, true])("prefix pruning: %s", (pruneByPrefix) => {
+      it.each(["timestamp to timestamp", "table to timestamp", "timestamp to table"])(
+        "merges %s through runMutations",
+        async (transition) => {
+          const { fs } = createVolFs();
+          const homeDir = "/home/test";
+          const target = `${homeDir}/config.${extension}`;
+          const initial =
+            transition === "table to timestamp"
+              ? format.serialize({ nested: { keep: true, updated: { old: true } } })
+              : source;
+          const replacement = transition === "timestamp to table" ? { fresh: true } : value;
+          await fs.mkdir(homeDir, { recursive: true });
+          await fs.writeFile(target, initial);
+
+          await runMutations(
+            [
+              configMutation.merge({
+                target: `~/config.${extension}`,
+                value: { nested: { updated: replacement } },
+                pruneByPrefix: pruneByPrefix ? { updated: "old" } : undefined
+              })
+            ],
+            { fs, homeDir }
+          );
+
+          const content = await fs.readFile(target, "utf8");
+          expect(format.parse(content)).toEqual(
+            format.parse(format.serialize({ nested: { keep: true, updated: replacement } }))
+          );
+          if (transition !== "timestamp to table") {
+            expect(content).toContain(literal);
+          }
+        }
+      );
+    });
+
+    it("preserves nested dates under table-shaped pruning while removing siblings", async () => {
+      const { fs } = createVolFs();
+      const homeDir = "/home/test";
+      const target = `${homeDir}/config.${extension}`;
+      const current = { nested: { updated: value, remove: true } };
+      const shape = { nested: { updated: { absent: true }, remove: true } };
+      const pruned = format.prune(current, shape);
+      expect(pruned.changed).toBe(true);
+      expect((pruned.result.nested as ConfigObject)?.updated).toBe(value);
+      await fs.mkdir(homeDir, { recursive: true });
+      await fs.writeFile(
+        target,
+        extension === "yaml"
+          ? `nested:\n  updated: !!timestamp ${literal}\n  remove: true\n`
+          : format.serialize(current)
+      );
+
+      await runMutations(
+        [configMutation.prune({ target: `~/config.${extension}`, shape })],
+        { fs, homeDir }
+      );
+
+      const content = await fs.readFile(target, "utf8");
+      expect(format.parse(content)).toEqual(
+        format.parse(format.serialize({ nested: { updated: value } }))
+      );
+      expect(content).toContain(literal);
+    });
+  });
+});
 
 describe("isConfigObject", () => {
   it("returns true for plain objects", () => {

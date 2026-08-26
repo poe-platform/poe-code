@@ -11,6 +11,7 @@ import type {
   ValueResolver,
   FileSystem
 } from "../types.js";
+import { isConfigObject } from "../types.js";
 import { getConfigFormat, detectFormat } from "../formats/index.js";
 import { cloneConfigObject, setConfigEntry } from "../formats/object.js";
 import { resolvePath } from "./path-utils.js";
@@ -235,10 +236,6 @@ function pruneKeysByPrefix(
     }
   }
   return result;
-}
-
-function isConfigObject(value: unknown): value is ConfigObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function mergeWithPruneByPrefix(

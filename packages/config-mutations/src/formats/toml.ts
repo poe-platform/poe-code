@@ -1,10 +1,7 @@
 import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 import type { ConfigFormat, ConfigObject, ConfigValue } from "../types.js";
+import { isConfigObject } from "../types.js";
 import { cloneConfigObject, hasConfigEntry, setConfigEntry } from "./object.js";
-
-function isConfigObject(value: unknown): value is ConfigObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function parse(content: string): ConfigObject {
   if (!content || content.trim() === "") {

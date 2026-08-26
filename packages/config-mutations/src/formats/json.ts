@@ -1,10 +1,7 @@
 import * as jsonc from "jsonc-parser";
 import type { ConfigFormat, ConfigObject, ConfigValue } from "../types.js";
+import { isConfigObject } from "../types.js";
 import { cloneConfigObject, hasConfigEntry, setConfigEntry } from "./object.js";
-
-function isConfigObject(value: unknown): value is ConfigObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function detectIndent(content: string): string {
   const match = content.match(/^[\t ]+/m);

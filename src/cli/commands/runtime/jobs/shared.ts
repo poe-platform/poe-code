@@ -152,21 +152,18 @@ export async function streamJobLog(
     }
 
     let pendingNext: Promise<IteratorResult<{ byteOffset: number; data: string }>> | undefined;
+    let draining = false;
     while (!detaching) {
       pendingNext ??= iterator.next();
-      const result = await Promise.race([
-        pendingNext,
-        sleep(250).then(() => ({ timedOut: true as const }))
-      ]);
+      const result = draining
+        ? await pendingNext
+        : await Promise.race([
+            pendingNext,
+            sleep(250).then(() => ({ timedOut: true as const }))
+          ]);
 
       if ("timedOut" in result) {
-        if ((await handle.status()) !== "running") {
-          const finalResult = await pendingNext;
-          if (finalResult.done !== true) {
-            opts.write(finalResult.value.data);
-          }
-          break;
-        }
+        draining = (await handle.status()) !== "running";
         continue;
       }
 

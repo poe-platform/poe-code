@@ -716,6 +716,7 @@ function createContainerJob(
       let byteOffset = opts?.sinceByte ?? 0;
       let pendingBytes: Buffer<ArrayBufferLike> = Buffer.alloc(0);
       let pendingByteOffset = byteOffset;
+      let finalRead = false;
       while (true) {
         const stdout = await runAndReadBytes(runner, {
           command: engine,
@@ -743,7 +744,15 @@ function createContainerJob(
             pendingByteOffset += completeLength;
           }
         }
-        if (opts?.follow !== true || (await this.status()) !== "running") {
+        if (opts?.follow !== true || finalRead) {
+          return;
+        }
+        const status = await this.status();
+        if (status === "exited" && detachedJobContext !== null) {
+          finalRead = true;
+          continue;
+        }
+        if (status !== "running") {
           return;
         }
         await new Promise<void>((resolve) => setTimeout(resolve, 250));

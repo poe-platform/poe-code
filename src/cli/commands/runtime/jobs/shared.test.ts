@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { JobEntry, StateManager } from "@poe-code/poe-code-config";
-import { resolveJob } from "./shared.js";
+import type { JobHandle, LogChunk } from "@poe-code/process-runner";
+import { resolveJob, streamJobLog } from "./shared.js";
 import { ValidationError } from "../../../errors.js";
 
 function job(overrides: Partial<JobEntry> & Pick<JobEntry, "id" | "started_at">): JobEntry {
@@ -27,6 +28,106 @@ function createState(entries: JobEntry[]): StateManager {
     }
   } as unknown as StateManager;
 }
+
+describe("streamJobLog", () => {
+  const next = vi.fn<() => Promise<IteratorResult<LogChunk>>>();
+  const finish = vi.fn<() => Promise<IteratorResult<LogChunk>>>();
+  const status = vi.fn<JobHandle["status"]>();
+  const stream = vi.fn(() => ({
+    [Symbol.asyncIterator]: () => ({ next, return: finish })
+  }));
+  const handle: JobHandle = {
+    id: "job-logs",
+    envId: "container-id",
+    tool: "node",
+    argv: ["node"],
+    status,
+    stream,
+    wait: vi.fn(),
+    kill: vi.fn()
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    next.mockReset().mockResolvedValue({ done: true, value: undefined });
+    finish.mockReset().mockResolvedValue({ done: true, value: undefined });
+    status.mockReset().mockResolvedValue("running");
+    stream.mockClear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(["exited", "killed", "lost"] as const)("drains all delayed chunks after terminal status %s", async (terminalStatus) => {
+    status.mockResolvedValue(terminalStatus);
+    next.mockImplementationOnce(() => new Promise((resolve) => {
+      setTimeout(() => resolve({ done: false, value: { byteOffset: 0, data: "first\n" } }), 300);
+    })).mockResolvedValueOnce({ done: false, value: { byteOffset: 6, data: "last\n" } });
+    const write = vi.fn();
+    const reading = streamJobLog(handle, { follow: true, write });
+
+    await vi.advanceTimersByTimeAsync(300);
+    await reading;
+
+    expect(write.mock.calls).toEqual([["first\n"], ["last\n"]]);
+    expect(stream).toHaveBeenCalledExactlyOnceWith({ sinceByte: 0, follow: true });
+    expect(next).toHaveBeenCalledTimes(3);
+    expect(status).toHaveBeenCalledTimes(1);
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("propagates a final chunk error after terminal status and closes the iterator", async () => {
+    const failure = new Error("Final stream read failed");
+    status.mockResolvedValue("exited");
+    next.mockImplementationOnce(() => new Promise((resolve) => {
+      setTimeout(() => resolve({ done: false, value: { byteOffset: 0, data: "first\n" } }), 300);
+    })).mockRejectedValueOnce(failure);
+    const write = vi.fn();
+    const completion = streamJobLog(handle, { follow: true, write }).catch((error: unknown) => error);
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(await completion).toBe(failure);
+
+    expect(write.mock.calls).toEqual([["first\n"]]);
+    expect(next).toHaveBeenCalledTimes(2);
+    expect(status).toHaveBeenCalledTimes(1);
+    expect(finish).toHaveBeenCalledTimes(1);
+  });
+
+  it("continues polling running jobs until their iterator completes", async () => {
+    next.mockImplementationOnce(() => new Promise((resolve) => {
+      setTimeout(() => resolve({ done: false, value: { byteOffset: 0, data: "output\n" } }), 600);
+    }));
+    const write = vi.fn();
+    const reading = streamJobLog(handle, { follow: true, write });
+
+    await vi.advanceTimersByTimeAsync(600);
+    await reading;
+
+    expect(write.mock.calls).toEqual([["output\n"]]);
+    expect(next).toHaveBeenCalledTimes(2);
+    expect(status).toHaveBeenCalledTimes(2);
+    expect(finish).toHaveBeenCalledTimes(1);
+  });
+
+  it("consumes a non-follow snapshot without polling status", async () => {
+    const since = new Date("2026-08-26T00:00:00.000Z");
+    next.mockResolvedValueOnce({ done: false, value: { byteOffset: 0, data: "first\n" } })
+      .mockResolvedValueOnce({ done: false, value: { byteOffset: 6, data: "last\n" } });
+    const write = vi.fn();
+
+    await streamJobLog(handle, { follow: false, since, write });
+
+    expect(write.mock.calls).toEqual([["first\n"], ["last\n"]]);
+    expect(stream).toHaveBeenCalledExactlyOnceWith({ since, follow: false });
+    expect(next).toHaveBeenCalledTimes(3);
+    expect(status).not.toHaveBeenCalled();
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
 
 describe("resolveJob", () => {
   it("defaults to the unambiguously most recent candidate instead of erroring", async () => {

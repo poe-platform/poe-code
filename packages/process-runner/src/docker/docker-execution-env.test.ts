@@ -1017,7 +1017,8 @@ describe("dockerExecutionEnvFactory", () => {
       { exitCode: 0, stdout: ["first\n"] },
       { exitCode: 0, stdout: [] },
       { exitCode: 0, stdout: ["second\n"] },
-      { exitCode: 0, stdout: ["0\n"] }
+      { exitCode: 0, stdout: ["0\n"] },
+      { exitCode: 0, stdout: [] }
     ]);
     vi.mocked(createHostRunner).mockReturnValue(runner);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
@@ -1049,6 +1050,146 @@ describe("dockerExecutionEnvFactory", () => {
     }
   });
 
+  it.each<{
+    name: string;
+    first: string | Uint8Array;
+    last: string | Uint8Array;
+    expected: Array<{ byteOffset: number; data: string }>;
+    sinceByte?: number;
+    exitCode?: number;
+  }>([
+    { name: "final output", first: "first\n", last: "last\n", expected: [{ byteOffset: 0, data: "first\n" }, { byteOffset: 6, data: "last\n" }] },
+    { name: "empty first read", first: "", last: "last\n", expected: [{ byteOffset: 0, data: "last\n" }] },
+    { name: "split UTF-8", first: Buffer.from("🧪\n").subarray(0, 2), last: Buffer.from("🧪\n").subarray(2), expected: [{ byteOffset: 0, data: "🧪\n" }] },
+    { name: "nonzero exit", first: "first\n", last: "last\n", exitCode: 9, expected: [{ byteOffset: 0, data: "first\n" }, { byteOffset: 6, data: "last\n" }] },
+    { name: "empty final read", first: "first\n", last: "", expected: [{ byteOffset: 0, data: "first\n" }] },
+    { name: "resumed byte offset", first: "first\n", last: "last\n", sinceByte: 11, expected: [{ byteOffset: 11, data: "first\n" }, { byteOffset: 17, data: "last\n" }] }
+  ])("drains exactly one post-exit read for $name", async ({ first, last, expected, sinceByte = 0, exitCode = 0 }) => {
+    vi.useFakeTimers();
+    try {
+      const runner = createCapturingRunner([
+        { exitCode: 0, stdout: [first] },
+        { exitCode: 0, stdout: [`${exitCode}\n`] },
+        { exitCode: 0, stdout: [last] }
+      ]);
+      vi.mocked(createHostRunner).mockReturnValue(runner);
+      const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+      const env = await dockerExecutionEnvFactory.attach("container-id", {
+        jobId: "job-logs", tool: "node", argv: ["node"], cwd: "/workspace"
+      });
+      const job = env.job;
+      if (job === null) {
+        throw new Error("Expected attached Docker job.");
+      }
+      const reading = (async () => {
+        const chunks = [];
+        for await (const chunk of job.stream({ follow: true, sinceByte })) {
+          chunks.push(chunk);
+        }
+        return chunks;
+      })();
+      const [chunks] = await Promise.all([reading, vi.runAllTimersAsync()]);
+      expect(chunks).toEqual(expected);
+
+      expect(runner.specs).toHaveLength(3);
+      expect(runner.specs[0]?.args?.at(-1)).toContain(`tail -c +${sinceByte + 1}`);
+      expect(runner.specs[1]?.args?.at(-1)).toContain("/tmp/poe-jobs/job-logs.exit");
+      expect(runner.specs[2]?.args?.at(-1)).toContain(`tail -c +${sinceByte + Buffer.byteLength(first) + 1}`);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each([false, undefined])("reads one detached snapshot without polling (follow: %s)", async (follow) => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["snapshot\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs", tool: "node", argv: ["node"], cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+    const chunks = [];
+    for await (const chunk of job.stream({ follow, sinceByte: 4 })) {
+      chunks.push(chunk);
+    }
+
+    expect(chunks).toEqual([{ byteOffset: 4, data: "snapshot\n" }]);
+    expect(runner.specs).toHaveLength(1);
+    expect(runner.specs[0]?.args?.at(-1)).toContain("tail -c +5");
+  });
+
+  it("does not read again when the detached job is lost", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["first\n"] },
+      { exitCode: 1, stderr: ["No such container\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs", tool: "node", argv: ["node"], cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+    const chunks = [];
+    for await (const chunk of job.stream({ follow: true })) {
+      chunks.push(chunk.data);
+    }
+
+    expect(chunks).toEqual(["first\n"]);
+    expect(runner.specs).toHaveLength(2);
+  });
+
+  it("preserves container-level follow termination without a detached job", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["first\n"] },
+      { exitCode: 0, stdout: ["exited\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner }));
+    const job = await env.detach();
+    const chunks = [];
+    for await (const chunk of job.stream({ follow: true })) {
+      chunks.push(chunk.data);
+    }
+
+    expect(chunks).toEqual(["first\n"]);
+    expect(runner.specs).toHaveLength(3);
+    expect(runner.specs[2]?.args?.[0]).toBe("inspect");
+  });
+
+  it("propagates a failed final detached log read without retrying", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["first\n"] },
+      { exitCode: 0, stdout: ["0\n"] },
+      { exitCode: 75, stderr: ["final log unavailable\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs", tool: "node", argv: ["node"], cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+    const chunks: string[] = [];
+    await expect(async () => {
+      for await (const chunk of job.stream({ follow: true })) {
+        chunks.push(chunk.data);
+      }
+    }).rejects.toThrow("final log unavailable");
+
+    expect(chunks).toEqual(["first\n"]);
+    expect(runner.specs).toHaveLength(3);
+  });
+
   it("preserves UTF-8 characters split across detached log polling reads", async () => {
     vi.useFakeTimers();
     const bytes = Buffer.from("🧪\n", "utf8");
@@ -1056,7 +1197,8 @@ describe("dockerExecutionEnvFactory", () => {
       { exitCode: 0, stdout: [bytes.subarray(0, 2)] },
       { exitCode: 0, stdout: [] },
       { exitCode: 0, stdout: [bytes.subarray(2)] },
-      { exitCode: 0, stdout: ["0\n"] }
+      { exitCode: 0, stdout: ["0\n"] },
+      { exitCode: 0, stdout: [] }
     ]);
     vi.mocked(createHostRunner).mockReturnValue(runner);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");

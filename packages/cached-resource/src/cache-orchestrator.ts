@@ -24,12 +24,15 @@ export async function resolveData<T>(
   if (!Number.isFinite(config.freshTtl) || config.freshTtl < 0) {
     throw new Error("freshTtl must be a finite non-negative number");
   }
+  if (!Number.isFinite(config.staleTtl) || config.staleTtl < 0) {
+    throw new Error("staleTtl must be a finite non-negative number");
+  }
 
   const { forceRefresh, offline, preferOffline } = options ?? {};
 
   if (!forceRefresh) {
     const memoryCached = deps.memoryCache.get(config.cacheName);
-    if (memoryCached) {
+    if (memoryCached && Date.now() - memoryCached.timestamp <= config.staleTtl) {
       const isStale = Date.now() - memoryCached.timestamp > config.freshTtl;
       if (isStale && deps.revalidator && !offline && !preferOffline) {
         deps.revalidator.trigger(config.cacheName, async () => {

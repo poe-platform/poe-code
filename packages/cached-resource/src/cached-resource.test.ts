@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { fetchFromApi } from "./api-fetch.js";
 import { createRevalidator } from "./background-revalidator.js";
@@ -343,6 +343,26 @@ describe("resolveData", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
+
+  it.each([-1, Number.NaN, Infinity, -Infinity])(
+    "rejects invalid staleTtl %s before returning memory data or refreshing",
+    async (staleTtl) => {
+      const memoryCache = createMockMemoryCache<string[]>();
+      memoryCache.set("test", { data: ["memory"], timestamp: Date.now() });
+      const mockFetch = createMockFetch(["network"]);
+      const fs = createMemFs();
+
+      for (const forceRefresh of [false, true]) {
+        await expect(resolveData(bundledData, { ...defaultConfig, staleTtl }, {
+          memoryCache,
+          fs,
+          fetch: mockFetch,
+        }, { forceRefresh })).rejects.toThrow("staleTtl must be a finite non-negative number");
+      }
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    },
+  );
 
   it("returns memory-cached data if available", async () => {
     const memoryCache = createMockMemoryCache<string[]>();
@@ -783,6 +803,97 @@ describe("resolveData", () => {
 describe("createCachedResource", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe("absolute record expiry", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+      vi.setSystemTime(1_700_000_000_000);
+      vi.spyOn(performance, "now").mockImplementation(() => Date.now());
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.useRealTimers();
+    });
+
+    describe.each([
+      { staleTtl: 1000, initialAge: 990 },
+      { staleTtl: 0, initialAge: 0 },
+    ])("staleTtl=$staleTtl", ({ staleTtl, initialAge }) => {
+      it.each(["offline", "preferOffline"] as const)(
+        "%s accepts the exact boundary but rejects expired promoted records",
+        async (mode) => {
+          const config = { ...defaultConfig, freshTtl: 0, staleTtl };
+          const cached = { data: ["disk"], timestamp: Date.now() - initialAge };
+          const fs = createMemFs({ "/cache/test.json": JSON.stringify(cached) });
+          const readFile = vi.spyOn(fs, "readFile");
+          const mockFetch = createMockFetch(["network"]);
+          const deps = { fs, fetch: mockFetch };
+          const resource = createCachedResource(bundledData, config, deps);
+          const options = { [mode]: true };
+
+          await expect(resource.get(options)).resolves.toEqual(cached);
+          expect(resource.stats().memoryCacheSize).toBe(1);
+          vi.advanceTimersByTime(staleTtl - initialAge);
+          await expect(resource.get(options)).resolves.toEqual(cached);
+          expect(readFile).toHaveBeenCalledTimes(1);
+          await expect(createCachedResource(bundledData, config, deps).get(options))
+            .resolves.toEqual(cached);
+
+          vi.advanceTimersByTime(10);
+          const fallback = { data: bundledData, timestamp: 0 };
+          await expect(createCachedResource(bundledData, config, deps).get(options))
+            .resolves.toEqual(fallback);
+          await expect(resource.get(options)).resolves.toEqual(fallback);
+          await expect(resource.get(options)).resolves.toEqual(fallback);
+          expect(mockFetch).not.toHaveBeenCalled();
+        },
+      );
+
+      it.each(["offline", "preferOffline"] as const)(
+        "%s falls through expired memory to a newer disk record",
+        async (mode) => {
+          const config = { ...defaultConfig, freshTtl: 0, staleTtl };
+          const cached = { data: ["old"], timestamp: Date.now() - initialAge };
+          const fs = createMemFs({ "/cache/test.json": JSON.stringify(cached) });
+          const mockFetch = createMockFetch(["network"]);
+          const resource = createCachedResource(bundledData, config, { fs, fetch: mockFetch });
+          const options = { [mode]: true };
+
+          await expect(resource.get(options)).resolves.toEqual(cached);
+          vi.advanceTimersByTime(staleTtl - initialAge + 10);
+          const newer = { data: ["newer"], timestamp: Date.now() };
+          await fs.writeFile("/cache/test.json", JSON.stringify(newer));
+
+          await expect(resource.get(options)).resolves.toEqual(newer);
+          await expect(resource.get(options)).resolves.toEqual(newer);
+          expect(mockFetch).not.toHaveBeenCalled();
+        },
+      );
+
+      it.each(["success", "failure"] as const)(
+        "online expiry waits for fetch %s instead of returning expired memory",
+        async (outcome) => {
+          const config = { ...defaultConfig, freshTtl: 0, staleTtl };
+          const cached = { data: ["old"], timestamp: Date.now() - initialAge };
+          const fs = createMemFs({ "/cache/test.json": JSON.stringify(cached) });
+          const mockFetch = outcome === "success"
+            ? createMockFetch(["network"])
+            : createFailingFetch();
+          const resource = createCachedResource(bundledData, config, { fs, fetch: mockFetch });
+
+          await expect(resource.get({ offline: true })).resolves.toEqual(cached);
+          expect(mockFetch).not.toHaveBeenCalled();
+          vi.advanceTimersByTime(staleTtl - initialAge + 10);
+
+          await expect(resource.get()).resolves.toEqual(outcome === "success"
+            ? { data: ["network"], timestamp: Date.now() }
+            : { data: bundledData, timestamp: 0 });
+          expect(mockFetch).toHaveBeenCalledOnce();
+        },
+      );
+    });
   });
 
   it("returns an object with get, refresh, clear, and stats", () => {

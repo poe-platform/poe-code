@@ -1,7 +1,23 @@
 import { Budget, ToolError } from "./shared.js";
 
+async function normalizeTransport(text: string, budget: Budget): Promise<string> {
+  const lines: string[] = [];
+  let position = 0;
+  while (position < text.length) {
+    const end = text.indexOf("\n", position);
+    budget.step(1 + end - position);
+    await budget.checkpoint();
+    if (end <= position || text[end - 1] !== "\r") return text;
+    lines.push(text.slice(position, end - 1), "\n");
+    if (lines.length / 2 > budget.limits.maxLines) throw new ToolError("transport line limit exceeded");
+    position = end + 1;
+  }
+  return lines.join("");
+}
+
 export async function unwrapPatch(text: string, budget: Budget): Promise<string> {
   if (text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
+  text = await normalizeTransport(text, budget);
   let position = 0;
   let lines = 0;
   const mail = /^(?:From [0-9a-f]{40,64} |(?:From|Date|Subject|To|Cc|MIME-Version|Content-Type):)/u.test(text);

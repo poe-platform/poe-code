@@ -102,8 +102,7 @@ async function runRetryingSpawn<
 
     const handle = input.spawnOnce(input.service, input.options);
     const events = forwardAttemptEvents(handle.events, attempt, input.emit);
-    const result = await handle.result;
-    await events;
+    const [result] = await Promise.all([handle.result, events]);
 
     const isLastAttempt = attempt >= input.retryOptions.maxAttempts;
     if (result.exitCode === 0 || isLastAttempt || !input.retryOptions.isRetryable(result)) {

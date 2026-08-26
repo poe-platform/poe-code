@@ -565,6 +565,11 @@ export class S3FileSystem implements FileSystem {
     this.writable(destination);
     if (!this.allowRename) this.unsupported("atomic rename; explicitly enable allowNonAtomicRename for copy/delete semantics", source);
     if (!this.transport.capabilities?.conditionalDelete) this.unsupported("rename without conditional delete", source);
+    const conditionalCopy = this.transport.capabilities?.conditionalCopy === true;
+    if (!conditionalCopy && this.transport.capabilities?.conditionalPut !== true) {
+      this.unsupported("rename requires conditional destination copy or conditional PUT, plus conditional delete", source);
+    }
+    const streamFallback = this.capabilities.streamingRead && this.capabilities.streamingWrite;
     if (source === "/" || destination === "/") fail("EBUSY", "rename", source);
     const origin = await this.lookup(source, options);
     this.requireDirectorySuffix(sourceInput, origin);
@@ -579,12 +584,16 @@ export class S3FileSystem implements FileSystem {
     if (destinationInput.endsWith("/") && origin.stat.type !== "directory") fail("ENOTDIR", "rename", destination);
     if (target && target.stat.type !== origin.stat.type) fail(target.stat.type === "directory" ? "EISDIR" : "ENOTDIR", "rename", destination);
     if (target?.stat.type === "directory" && (await this.readdir(destination, options)).length > 0) fail("ENOTEMPTY", "rename", destination);
+    if (target?.metadata) this.etag(target.metadata, destination);
     const objects = origin.stat.type === "directory" ? await this.tree(source, options) : [{
       Key: this.key(source), Size: origin.stat.size, ETag: origin.metadata?.ETag,
     }];
     for (const object of objects) {
       this.etag({ ETag: object.ETag }, source);
       if (object.Size === undefined || object.Size > 5_000_000_000) this.unsupported("multipart copy", source);
+      if (!conditionalCopy && object.Size > (streamFallback ? this.maxStreamBytes : this.maxReadBytes)) {
+        fail("EFBIG", "rename", source, "conditional PUT fallback exceeds its configured transfer or buffered read limit");
+      }
       if (Buffer.byteLength(this.key(destination) + object.Key!.slice(this.key(source).length)) > 1024) fail("ENAMETOOLONG", "rename", destination);
     }
     const copied: string[] = [];
@@ -594,8 +603,9 @@ export class S3FileSystem implements FileSystem {
       for (const object of objects) {
         const destinationKey = this.key(destination) + object.Key!.slice(this.key(source).length);
         const destinationMetadata = origin.stat.type === "file" || object.Key === this.directoryKey(source) ? target?.metadata ?? null : null;
-        await this.copy(object.Key!, destinationKey, source, { ContentLength: object.Size, ETag: object.ETag }, options,
-          this.transport.capabilities?.conditionalCopy ? destinationMetadata : undefined);
+        const metadata = { ContentLength: object.Size, ETag: object.ETag };
+        if (conditionalCopy) await this.copy(object.Key!, destinationKey, source, metadata, options, destinationMetadata);
+        else await this.copyWithPut(object.Key!, destinationKey, source, metadata, destinationMetadata, options, streamFallback);
         copied.push(destinationKey);
       }
       phase = "delete";
@@ -607,6 +617,58 @@ export class S3FileSystem implements FileSystem {
       }
     } catch (error) {
       throw new S3RenameError(source, destination, phase, copied, deleted, translate(error, "rename", source));
+    }
+  }
+
+  private async copyWithPut(sourceKey: string, destinationKey: string, source: string, expected: S3HeadOutput,
+    destination: S3HeadOutput | null, options: FsOptions, streaming: boolean): Promise<void> {
+    const etag = this.etag(expected, source);
+    const condition = destination === null ? { IfNoneMatch: "*" as const } : { IfMatch: this.etag(destination, destinationKey) };
+    const controller = new AbortController();
+    const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+    const operationOptions = { signal };
+    let output: S3GetOutput | undefined;
+    let upload: AsyncGenerator<Uint8Array> | undefined;
+    let reading = false;
+    try {
+      output = await this.call("getObject", source, operationOptions, () => streaming
+        ? this.transport.getObjectStream!({ Bucket: this.bucket, Key: sourceKey, IfMatch: etag }, { abortSignal: signal })
+        : this.transport.getObject({ Bucket: this.bucket, Key: sourceKey }, { abortSignal: signal }));
+      if (this.etag(output, source) !== etag) fail("EAGAIN", "rename", source, "source changed before conditional PUT copy");
+      if (output.ContentLength !== undefined && output.ContentLength !== expected.ContentLength) {
+        fail("EIO", "rename", source, "source response length differs from the enumerated object");
+      }
+      const input = { Bucket: this.bucket, Key: destinationKey, ...condition,
+        ...(output.Metadata === undefined ? {} : { Metadata: { ...output.Metadata } }) };
+      if (!streaming) {
+        const body = await this.body(output, source, operationOptions);
+        if (body.length !== expected.ContentLength) fail("EIO", "rename", source, "source body length differs from the enumerated object");
+        await this.call("putObject", source, operationOptions, () => this.transport.putObject({ ...input, Body: body }, { abortSignal: signal }));
+        return;
+      }
+      const body = output.Body;
+      if (!body || !(Symbol.asyncIterator in body)) fail("EIO", "rename", source, "streaming transport did not return an async binary body");
+      let finished = false;
+      upload = (async function* () {
+        let count = 0;
+        reading = true;
+        for await (const chunk of readBytes(body, signal)) {
+          if (chunk.length > expected.ContentLength! - count) fail("EIO", "rename", source, "source body exceeds its enumerated length");
+          count += chunk.length;
+          for (let offset = 0; offset < chunk.length; offset += 64 * 1024) {
+            signal.throwIfAborted();
+            yield new Uint8Array(chunk.subarray(offset, offset + 64 * 1024));
+          }
+        }
+        if (count !== expected.ContentLength) fail("EIO", "rename", source, "incomplete source body");
+        finished = true;
+      })();
+      await this.call("putObject", source, operationOptions, () => this.transport.putObjectStream!({ ...input, Body: upload! }, { abortSignal: signal }));
+      if (!finished) fail("EIO", "rename", source, "transport completed without consuming the conditional copy body");
+    } finally {
+      controller.abort();
+      this.dispose(upload);
+      this.dispose(output?.Body, !reading);
     }
   }
 

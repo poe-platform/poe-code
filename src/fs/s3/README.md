@@ -227,20 +227,49 @@ filesystem-shaped API.
 
 ## Rename and concurrency
 
-`atomicRename` is always false. `rename` now defaults to useful copy/delete
-semantics with a transport declaring `conditionalDelete: true`. Explicit
+`atomicRename` is always false. `rename` defaults to guarded publication/delete
+semantics. Before any host calls it requires `conditionalDelete: true` and at
+least one of `conditionalCopy: true` or `conditionalPut: true`. An absent/false
+destination guard never permits an unconditional copy. Missing minimum guards
+produce typed `ENOTSUP` without reading, copying, uploading or deleting objects.
+`conditionalDelete` must mean ETag-conditional deletion of the current object,
+not HEAD followed by unconditional DELETE or deletion of a selected old version.
+Explicit
 `allowNonAtomicRename: false` retains fail-before-I/O policy for callers requiring
 atomic moves. This is a deliberate default-policy change, not atomic rename.
 
 Rename preflights type conflicts, empty-directory replacement, key lengths, size
-limits, and source ETags. It copies every listed object with a source ETag
-precondition, waits for each completed copy response, then deletes sources using
-their original ETags. It never starts deleting sources after an unconfirmed or
-failed copy. A changed source is retained if conditional deletion fails.
-When the transport declares conditional copy, destination writes also use the
-preflight target ETag or `IfNoneMatch: "*"`; a concurrent destination content
-change fails instead of being overwritten. Providers without destination copy
-conditions retain weaker overwrite semantics, explicitly without atomicity.
+limits, and source/destination ETags. It publishes every listed object with the
+preflight target ETag (`IfMatch`) or `IfNoneMatch: "*"`. Only after every completed
+publication does it delete sources using their original ETags. A detected
+destination race is `EAGAIN`, not silent overwrite/success; a failed source
+condition prevents that source deletion. There is no unconditional downgrade.
+
+When `conditionalCopy` is available, server-side CopyObject uses both
+`CopySourceIfMatch` and the destination condition and requires a confirmed copy
+result. Otherwise `conditionalPut` enables a real GET/conditional-PUT fallback:
+
+- If both negotiated streaming hooks are available, GET uses the source ETag
+  precondition and its async body passes into conditional streaming PUT with
+  backpressure, copied chunks and exact length/ETag validation. `conditionalPut`
+  must also be enforced by the declared streaming PUT hook. The adapter does not
+  collect the object before uploading. `maxStreamBytes` is a total-transfer
+  limit, not a process-memory guarantee or a bound on provider-allocated chunks.
+- Other transports use `getObject` and a bounded byte collection followed by
+  `putObject`. The returned response ETag must match the enumeration before PUT,
+  and the actual body length must match. This path is bounded by `maxReadBytes`;
+  it is not advertised as streaming. A byte-array transform or provider response
+  can allocate before the adapter checks it, as documented for `readFile`.
+- All source object sizes are preflighted against the selected fallback limit
+  before the first destination effect, including later directory children.
+  User metadata is copied from the GET response. Service metadata, encryption,
+  tags, retention and versions remain transport-owned limitations.
+- Cancellation is forwarded into GET/PUT and interrupts stalled source reads.
+  Failure or cancellation releases the response and upload iterator, observes
+  late rejections and never starts source deletion. An acknowledged PUT must
+  consume its complete body; premature success is `EIO`. The existing `copy`
+  error phase and `copiedKeys` mean acknowledged destination publications for
+  both server-side copies and conditional PUTs; they do not imply CopyObject ran.
 
 This is **not atomic**, not crash-safe, and not an atomic directory snapshot:
 other clients can see both names, race with directory checks, overwrite targets,
@@ -249,6 +278,31 @@ not version IDs; same-content/metadata-only races can escape ETag checks. Extern
 writers can also create file/prefix collisions between checks and writes. Ordinary
 write and removal operations retain their normal overwrite/delete semantics.
 Using `mkdir` without conditional put adds a check-then-write marker race.
+
+Success has deliberately limited semantics: all enumerated source keys were
+published and their ETag-guarded deletions acknowledged. It is **not** a statement
+that an object incarnation was locked, all metadata changes were preserved, or
+the source directory no longer exists. The following limitations are reproduced
+independently for guarded CopyObject, buffered PUT and streaming PUT:
+
+1. **Same-content ABA:** delete/recreate the source with identical bytes and new
+   metadata immediately before guarded deletion. Its ETag can remain identical,
+   so deletion succeeds, the recreated source disappears, and the target retains
+   the earlier metadata. This generation/metadata-loss race remains unresolved;
+   it is not counted as a stronger safety acceptance claim.
+2. **New source child:** create a new child after enumeration. Rename resolves
+   after moving the enumerated keys, but the new child survives under the source
+   directory and is not copied or deleted. Success is not a directory snapshot.
+
+Adding a final HEAD/list check cannot close the race after that check. Stronger
+generation or directory guarantees require suitable provider primitives or
+coordination covering every writer; this adapter implements neither. AWS
+version-specific DELETE permanently removes the selected `VersionId`; it is not
+an atomic condition that the current version must still be that version. Deleting
+an older version can leave another version visible. Without `VersionId`, a
+versioned bucket normally gains a current delete marker. The adapter does not
+substitute version-specific deletion for current-object ETag-conditional delete
+and does not pretend that adding a VersionId field creates a generation lock.
 
 `S3RenameError` exposes `phase` (`copy` or `delete`), `copiedKeys`, `deletedKeys`,
 and the original error as `cause`. Lists contain only acknowledged completed
@@ -368,6 +422,50 @@ requires atomic rename and is unavailable; use a new destination or explicit
 application reconciliation rather than misadvertising `atomicRename`.
 
 ## Primary protocol references
+
+### Rename guard remediation, August 26, 2026
+
+Independent Curie review `dda1782` recorded 39/42 passes and three failures on
+archive `677e03c` (three runs). The defect was a successful unconditional copy
+followed by source deletion when only conditional deletion was declared. That
+unsafe branch is removed; conditional-PUT-capable transports now use the real
+fallback above rather than being disabled or assigned fictional copy support.
+
+Verification on Node v22.22.2, without credentials or cloud requests:
+
+- Existing 126 backend cases plus 34 new rename cases: **160/160 pass**.
+  The new cases include the three exact archived vectors, guarded buffered and
+  streaming publication/replacement, destination/source races, deletion and
+  lost-acknowledgement failures, preflight budgets, cancellation and cleanup.
+  Six cases explicitly reproduce the two residual limitations across three
+  publication paths; their passes establish the observations, not stronger
+  generation/snapshot safety.
+- Unchanged `tests/stress/s3-policy/rename.test.ts`: **42/42 pass**, including
+  three additional strict-rejection runs (126 passing test executions).
+- Unchanged shared S3 conformance: **50/50 pass**.
+- Selective aggregate S3 matrix: **11/11 pass**.
+- Strict owned NodeNext typecheck and `npm run typecheck`: **pass**.
+- Unchanged `tests/stress/s3-policy/observe.ts` still reports successful ABA with
+  `keys: ["target"]`, matching original/replacement ETags and target metadata
+  `{ "generation": "old" }`; the directory probe still reports successful
+  rename with `keys: ["source/new", "target/old"]`.
+
+No independent policy tests, archive evidence, other adapters, commands, shared
+contracts or matrix fixtures were edited. No shared-contract change is needed
+for the guard fix; the existing injected transport hooks carry the real
+conditional operations. Stronger generation guarantees remain separate work.
+Independent policy test SHA-256:
+`0ddf732f04c3e5bb78b7569ec80d442cf9f4b4158a4360a88e774f639de81fd7`.
+
+Current AWS protocol documentation was rechecked for this remediation. The
+October 29, 2025 conditional-copy announcement and current CopyObject API
+document destination `If-Match`/`If-None-Match`, distinct from the source
+`x-amz-copy-source-if-match`. The older enforcement-guide note claiming 501 for
+destination conditional copy conflicts with those sources; it does not justify
+an unconditional fallback. PutObject documents real destination ETag/existence
+preconditions. Conditional-delete guidance specifies current-object evaluation;
+DeleteObject documents version-specific permanent deletion separately. Actual
+support must still be explicitly negotiated for each S3-compatible provider.
 
 Read during implementation on August 26, 2026:
 

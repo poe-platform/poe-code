@@ -65,6 +65,10 @@ periodically to observe cancellation.
   never removal lines; actual target context is retained. When nothing remains
   to match, only the expected position is considered. This is a deterministic
   subset, not every native patch placement heuristic.
+- `-l`, `--ignore-whitespace`, and GNU's `--ignore-white-space` compare each
+  nonempty horizontal space/tab run loosely. Missing runs, other characters,
+  and final newline presence must still match; actual context and literal
+  additions are preserved, including their original whitespace.
 - `/dev/null` headers create/delete files. Creation requires absence and an
   existing parent directory. Deletion requires an empty resulting file.
   Multiple distinct targets are supported. Normal patches prefer an existing
@@ -162,7 +166,7 @@ directory listings must also be bounded by their owners.
 ## Known gaps
 
 This is not full GNU/BSD diff or patch compatibility. Context/ed/normal patch
-formats, whitespace-ignore modes, binary patches, renames/copies, permission
+formats, binary patches, renames/copies, permission
 changes, automatic parent-directory creation, empty-directory changes, and
 symlink patches are unsupported. `-N` treats absent content as empty and cannot
 express creation/deletion of a zero-byte file. Repeated file sections are not

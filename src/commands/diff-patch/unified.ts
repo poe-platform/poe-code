@@ -114,7 +114,7 @@ export function reversePatch(patch: FilePatch): FilePatch {
   };
 }
 
-export async function applyHunks(original: string, patch: FilePatch, fuzz: number, budget: Budget): Promise<string> {
+export async function applyHunks(original: string, patch: FilePatch, fuzz: number, budget: Budget, ignoreWhitespace = false): Promise<string> {
   const source = budget.split(original);
   const result: string[] = [];
   let resultBytes = 0;
@@ -141,7 +141,11 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       if (position < cursor || position > maximum) return false;
       for (let lineIndex = 0; lineIndex < oldLines.length; lineIndex++) {
         if (lineIndex < Math.min(tolerance, leading) || lineIndex >= oldLines.length - Math.min(tolerance, trailing)) continue;
-        if (!budget.equal(source[position + lineIndex], oldLines[lineIndex]!.text)) return false;
+        const actual = source[position + lineIndex]!;
+        const expectedLine = oldLines[lineIndex]!.text;
+        if (ignoreWhitespace) budget.step(actual.length + expectedLine.length);
+        if (!budget.equal(ignoreWhitespace ? actual.replace(/[ \t]+/gu, " ") : actual,
+          ignoreWhitespace ? expectedLine.replace(/[ \t]+/gu, " ") : expectedLine)) return false;
         await budget.checkpoint();
       }
       return true;

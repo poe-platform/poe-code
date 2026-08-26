@@ -4,10 +4,10 @@ import { applyHunks, parseUnified, reversePatch } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
 
-interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; target?: string }
+interface PatchFlags { strip: number; input: string; reverse: boolean; dryRun: boolean; fuzz: number; ignoreWhitespace: boolean; target?: string }
 
 function flags(args: readonly string[]): PatchFlags {
-  const result: PatchFlags = { strip: 0, input: "-", reverse: false, dryRun: false, fuzz: 0 };
+  const result: PatchFlags = { strip: 0, input: "-", reverse: false, dryRun: false, fuzz: 0, ignoreWhitespace: false };
   const operands: string[] = [];
   let literal = false;
   for (let index = 0; index < args.length; index++) {
@@ -21,6 +21,7 @@ function flags(args: readonly string[]): PatchFlags {
     else if (arg === "--") literal = true;
     else if (arg === "--dry-run") result.dryRun = true;
     else if (arg === "--reverse") result.reverse = true;
+    else if (arg === "--ignore-whitespace" || arg === "--ignore-white-space") result.ignoreWhitespace = true;
     else if (/^--(?:strip|input|fuzz)(?:=|$)/u.test(arg)) {
       const [name] = arg.split("=");
       const parameter = value(arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : undefined, name!);
@@ -31,6 +32,7 @@ function flags(args: readonly string[]): PatchFlags {
     else for (let offset = 1; offset < arg.length; offset++) {
       const flag = arg[offset]!;
       if (flag === "R") result.reverse = true;
+      else if (flag === "l") result.ignoreWhitespace = true;
       else if (flag === "u") continue;
       else if (flag === "p" || flag === "i" || flag === "F") {
         const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
@@ -94,7 +96,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (!creation && !stat) throw new ToolError(`patch target does not exist: ${path}`, 1);
     if (creation && patch.hunks.some(hunk => hunk.oldCount !== 0 || hunk.oldStart !== 0)) throw new ToolError("creation patch contains old content");
     const original = stat ? await budget.read(path) : undefined;
-    const result = await applyHunks(original ?? "", patch, options.fuzz, budget);
+    const result = await applyHunks(original ?? "", patch, options.fuzz, budget, options.ignoreWhitespace);
     if (remove && result !== "") throw new ToolError(`deletion patch leaves content: ${path}`, 1);
     prepared.push({ path, original, result, remove });
   }

@@ -7,6 +7,19 @@ const mail = "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 
   + "diff --git a/target b/target\nindex 1234567..abcdef0 100644\n"
   + replacement.replace("--- target", "--- a/target").replace("+++ target", "+++ b/target") + "-- \n2.50.1\n";
 
+for (const option of ["-l", "--ignore-whitespace", "--ignore-white-space"]) test(`loose blanks preserve actual context and literal additions ${option}`, async () => {
+  const input = "--- target\n+++ target\n@@ -1,3 +1,3 @@\n head space\n-old value\n+new   value\n tail\tspace\n\\ No newline at end of file\n";
+  const result = await run("patch", [option], { files: { target: "head\tspace\nold\t  value\ntail space" }, input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "head\tspace\nnew   value\ntail space");
+});
+
+for (const before of ["oldvalue\n", "old\rvalue\n", "old\vvalue\n", "old value", " old value\n"]) test(`loose blanks retain nonblank and EOF distinctions ${JSON.stringify(before)}`, async () => {
+  const result = await run("patch", ["-l"], { files: { target: before }, input: replacement.replace("-old", "-old value") });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(await contents(result.fs, "target"), before);
+});
+
 test("bounded mail preamble, diffstat and signature apply and reverse", async () => {
   const result = await run("patch", ["-p1"], { files: { target: "old\n" }, input: mail });
   assert.equal(result.exitCode, 0, result.stderr);

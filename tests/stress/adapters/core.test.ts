@@ -60,7 +60,7 @@ for (const adapter of adapters) {
       assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
       return;
     }
-    if (adapter.name === "s3" || adapter.name === "webdav") {
+    if (adapter.name === "webdav") {
       await assert.rejects(fs.truncate("/file", 8), errno("ENOTSUP"));
       assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
       context.diagnostic("CAPABILITY GAP: optional truncate exists but rejects ENOTSUP; no dedicated capability flag");
@@ -71,6 +71,8 @@ for (const adapter of adapters) {
     await fs.truncate("/file", 12);
     assert.deepEqual(await fs.readFile("/file"), new Uint8Array([...binary.slice(0, 8), 0, 0, 0, 0]));
     await assert.rejects(fs.truncate("/file", -1), errno("EINVAL"));
+    assert.equal((await fs.stat("/file")).size, 12);
+    assert.deepEqual(await fs.readFile("/file"), new Uint8Array([...binary.slice(0, 8), 0, 0, 0, 0]));
   });
 }
 

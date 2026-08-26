@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: rename guards a destination creation after preflight
+ok 1 - rename guards a destination creation after preflight
+  ---
+  duration_ms: 2.829291
+  type: 'test'
+  ...
+# Subtest: rename guards a destination replacement after preflight
+ok 2 - rename guards a destination replacement after preflight
+  ---
+  duration_ms: 0.738041
+  type: 'test'
+  ...
+# Subtest: metadata replacement rejects a concurrent content update and never rewrites new bytes
+ok 3 - metadata replacement rejects a concurrent content update and never rewrites new bytes
+  ---
+  duration_ms: 0.445083
+  type: 'test'
+  ...
+# Subtest: truncate guards the exact bytes read against a concurrent replacement
+ok 4 - truncate guards the exact bytes read against a concurrent replacement
+  ---
+  duration_ms: 0.821208
+  type: 'test'
+  ...
+# Subtest: truncate shrinks a large object using only a bounded range and truncates to zero without GET
+ok 5 - truncate shrinks a large object using only a bounded range and truncates to zero without GET
+  ---
+  duration_ms: 0.999709
+  type: 'test'
+  ...
+# Subtest: file, directory, implicit directory and prefixed-root timestamps survive adapter reconstruction
+ok 6 - file, directory, implicit directory and prefixed-root timestamps survive adapter reconstruction
+  ---
+  duration_ms: 1.130833
+  type: 'test'
+  ...
+# Subtest: conditional-PUT-only transports provide bounded timestamp updates without pretending server-side copy
+ok 7 - conditional-PUT-only transports provide bounded timestamp updates without pretending server-side copy
+  ---
+  duration_ms: 0.964917
+  type: 'test'
+  ...
+# Subtest: append, truncate and stream replacement preserve mode and custom metadata, not stale mtime
+ok 8 - append, truncate and stream replacement preserve mode and custom metadata, not stale mtime
+  ---
+  duration_ms: 1.512667
+  type: 'test'
+  ...
+# Subtest: access distinguishes missing paths, virtual traversal, readonly policy and actual service denial
+ok 9 - access distinguishes missing paths, virtual traversal, readonly policy and actual service denial
+  ---
+  duration_ms: 0.600042
+  type: 'test'
+  ...
+# Subtest: metadata and truncate failures preserve filesystem error fidelity
+ok 10 - metadata and truncate failures preserve filesystem error fidelity
+  ---
+  duration_ms: 0.804875
+  type: 'test'
+  ...
+# Subtest: readonly and pre-aborted timestamp/truncate mutations dispatch no requests
+ok 11 - readonly and pre-aborted timestamp/truncate mutations dispatch no requests
+  ---
+  duration_ms: 0.128208
+  type: 'test'
+  ...
+# Subtest: buffered mock snapshots input bytes and metadata before asynchronous authorization
+ok 12 - buffered mock snapshots input bytes and metadata before asynchronous authorization
+  ---
+  duration_ms: 0.069125
+  type: 'test'
+  ...
+# Subtest: mock enforces the provider metadata budget without altering the object
+ok 13 - mock enforces the provider metadata budget without altering the object
+  ---
+  duration_ms: 0.155209
+  type: 'test'
+  ...
+# Subtest: metadata-only changes can share an ETag: copy conditions do not claim a distributed metadata lock
+ok 14 - metadata-only changes can share an ETag: copy conditions do not claim a distributed metadata lock
+  ---
+  duration_ms: 0.0605
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 130.415667

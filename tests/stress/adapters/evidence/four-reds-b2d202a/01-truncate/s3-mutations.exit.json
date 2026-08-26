@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/s3/mutation-regressions.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/01-truncate/archive",
+  "start": "2026-08-26T23:31:37.036Z",
+  "end": "2026-08-26T23:31:37.104Z",
+  "status": 1,
+  "signal": null
+}

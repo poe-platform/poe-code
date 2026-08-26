@@ -1,4 +1,5 @@
-import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { setImmediate } from "node:timers/promises";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 
 export interface TextProgramOptions {
   readonly replace?: boolean;
@@ -11,6 +12,7 @@ export class ProgramError extends Error {}
 export class Budget {
   readonly maxBufferBytes: number;
   private remaining: number;
+  private checkpoints = 0;
   constructor(readonly context: CommandContext, options: TextProgramOptions) {
     this.remaining = options.maxSteps ?? 5_000_000;
     this.maxBufferBytes = options.maxBufferBytes ?? 32 * 1024 * 1024;
@@ -27,6 +29,10 @@ export class Budget {
     if (text.length > this.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     return text;
   }
+  async checkpoint(): Promise<void> {
+    if (++this.checkpoints % 256 === 0) await setImmediate(undefined, { signal: this.context.signal });
+    this.context.signal.throwIfAborted();
+  }
 }
 
 export function byteString(text: string): string { return Buffer.from(text, "utf8").toString("latin1"); }
@@ -40,15 +46,15 @@ export function virtualPath(context: CommandContext, path: string): string {
 
 export async function write(context: CommandContext, text: string): Promise<void> {
   context.signal.throwIfAborted();
-  await context.stdout.write(bytes(text));
+  await writeBytes(context.stdout, bytes(text), context.signal);
 }
 
 export async function* input(context: CommandContext, file = "-"): ByteSource {
   context.signal.throwIfAborted();
-  if (file === "-") yield* context.stdin;
+  if (file === "-") yield* readBytes(context.stdin, context.signal);
   else {
     const path = virtualPath(context, file);
-    if (context.fs.readStream) yield* context.fs.readStream(path, { signal: context.signal });
+    if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal);
     else yield await context.fs.readFile(path, { signal: context.signal, maxBytes: 32 * 1024 * 1024 });
   }
 }
@@ -86,7 +92,7 @@ export function command(name: string, run: (context: CommandContext) => Promise<
       try { return { exitCode: await run(context) }; }
       catch (error) {
         context.signal.throwIfAborted();
-        await context.stderr.write(new TextEncoder().encode(`${name}: ${error instanceof Error ? error.message : String(error)}\n`));
+        await writeBytes(context.stderr, new TextEncoder().encode(`${name}: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
         return { exitCode: error instanceof ProgramError ? 2 : 1 };
       }
     },

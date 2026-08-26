@@ -11,6 +11,7 @@ export interface OracleCase {
   readonly args: readonly string[];
   readonly stdin?: string;
   readonly files?: Readonly<Record<string, string>>;
+  readonly expectedExitCode?: number;
 }
 
 export async function makeFileSystem(files: Readonly<Record<string, string>> = {}): Promise<MemoryFileSystem> {
@@ -103,7 +104,7 @@ export async function runNative(tool: "sed" | "awk", fixture: OracleCase) {
 
 export async function compareNative(tool: "sed" | "awk", fixture: OracleCase): Promise<void> {
   const expected = await runNative(tool, fixture);
-  assert.equal(expected.exitCode, 0, `native fixture must be valid: ${expected.stderr.toString()}`);
+  assert.equal(expected.exitCode, fixture.expectedExitCode ?? 0, `native fixture must have its expected status: ${expected.stderr.toString()}`);
   const actual = await runVirtual(tool, fixture);
   assert.equal(actual.exitCode, expected.exitCode, actual.stderr.toString());
   assert.deepEqual(actual.stdout, expected.stdout, `stdout mismatch: ${JSON.stringify(fixture)}`);

@@ -1,11 +1,12 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { sedCommand } from "./sed.js";
+import { awkCommand } from "./awk.js";
 import type { TextProgramOptions } from "./shared.js";
 
 export type { TextProgramOptions } from "./shared.js";
 
 export function createTextProgramCommands(options: TextProgramOptions = {}): readonly CommandDefinition[] {
-  return [sedCommand(options)];
+  return [sedCommand(options), awkCommand(options)];
 }
 
 export function textProgramCommands(options: TextProgramOptions = {}): VirtualShellPlugin {

@@ -8,14 +8,20 @@ syntax is an error, never a successful command-name stub.
 ## Integration API
 
 `index.ts` exports `textProgramCommands(options?)` (a `VirtualShellPlugin`) and
-`createTextProgramCommands(options?)` (command definitions). The current
-increment installs `sed`; the `awk` interpreter is the next increment.
+`createTextProgramCommands(options?)` (command definitions). Both factories
+install `sed` and `awk`. Use `shell.use(textProgramCommands())` alongside the
+standard command plugin, or add the definitions to a `CommandRegistry`.
 The parent command plugin is not edited by this family.
 
 `TextProgramOptions` has `replace?: boolean`, `maxSteps?: number` (default
 5,000,000), and `maxBufferBytes?: number` (default 32 MiB). Limits must be positive
 safe integers. Plugin setup checks all collisions before registering commands.
 The filesystem, streams, and cancellation signal come from `CommandContext`.
+Input/output waits use the contracts' cancellation-aware byte helpers. Interpreter
+loops yield to the event loop every 256 statement checkpoints; regex execution
+is synchronous but step-bounded. Cancellation stops waiting for uncooperative
+streams without claiming to undo their side effects. Limits are per invocation
+and per buffer, not an aggregate process-memory quota.
 
 ## Shared regex execution
 
@@ -87,6 +93,71 @@ and full in-place metadata/link semantics. Line/hold/file buffers and loops are
 subject to the configured limits. Runtime errors can occur after earlier stdout
 records; preflight syntax rejection is not a rollback guarantee for execution.
 
+## Awk grammar and behavior
+
+Options: `-F SEPARATOR`, `-v NAME=VALUE`, repeated `-f FILE`, attached versions of
+those options, and `--`. Otherwise the first operand is the program. Remaining
+operands are input paths, `-` for stdin, or variable assignments. `-v` assignments
+precede `BEGIN`; operand assignments take effect as the input argument list is
+traversed. Program and data files are exclusively virtual. A BEGIN-only program
+does not consume stdin. Other options, including implementation-specific `-W`
+options, are rejected.
+
+Programs contain `BEGIN { ... }`, `END { ... }`, ordinary optional-pattern rules,
+inclusive `start,end` pattern ranges, and named function definitions. A missing
+action prints the current record. A range can start and end on the same record.
+Comments, newlines, semicolons, and backslash-newline continuations are supported.
+Identifiers use ASCII letters/digits/underscore. String literals support standard
+control escapes and up to three octal digits. Numbers are finite decimal values
+with optional exponents; arithmetic uses IEEE-754 doubles.
+
+| Area | Implemented behavior |
+| --- | --- |
+| Records and fields | `$0`, `$expression`, `NF`, `NR`, `FNR`, `FILENAME`; assignment to a field or `NF` rebuilds `$0` using `OFS`, assignment to `$0` resplits it. |
+| Separators | `FS=" "` whitespace fields, single-byte literal FS, empty FS byte fields, or ERE FS; single-byte `RS` and empty-RS paragraph mode; `OFS`, `ORS`. |
+| Expressions | Arithmetic `+ - * / % ^`, unary signs, prefix/postfix increment/decrement, assignments and compound assignments, concatenation, comparisons, `~`/`!~`, short-circuit `&&`/`||`, `!`, ternary expressions, parentheses. |
+| Control flow | Blocks, `if`/`else`, `while`, `do`/`while`, classic `for`, `for (key in array)`, `break`, `continue`, `next`, `nextfile`, `exit [status]`; `END` still runs after exit. |
+| Arrays | Associative indexing, comma-separated multidimensional keys via `SUBSEP`, `in` and `(a,b) in array`, element/whole-array `delete`; iteration uses insertion order and does not promise a host awk's unspecified traversal order. |
+| Functions | Named functions, recursion, scalar arguments by value, arrays by reference, `return`, and omitted parameters as locals; array parameter roles are inferred before execution. |
+| Output | `print`, `printf`, `sprintf`, `OFMT`, `CONVFMT`; virtual-file `>`/`>>` and `close(path)`. The first open chooses truncate/append; subsequent writes append until close. |
+| Arguments/environment | Mutable `ARGC`, `ARGV`, and `ENVIRON` initialized only from the command context. Clearing/deleting ARGV entries skips files. ENVIRON changes do not mutate the parent context. |
+| String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `tolower`, `toupper`. Substitution supports `&` and escaped literals, not sed-style capture backreferences. |
+| Math functions | `int`, `sqrt`, `exp`, `log`, `sin`, `cos`, `atan2`; invalid/nonfinite results and division by zero are errors. |
+
+Numeric strings from fields, input assignments, and array keys retain their
+original text while participating in numeric comparisons and truth tests. A
+literal string `"0"` remains true. Byte-oriented C-locale behavior applies to
+field lengths, substrings, comparisons, and ASCII case conversion.
+
+Formatting supports `%c`, `%s`, `%d`/`%i`, `%u`, `%o`, `%x`/`%X`, `%f`/`%F`,
+`%e`/`%E`, `%g`/`%G`, `%%`, flags `-+ #0`, numeric or `*` width/precision.
+Unsigned/octal/hex conversions use 32-bit unsigned values; arbitrary native
+integer-overflow behavior is not promised. Width/integer precision are limited
+to 1,000,000, floating precision to 100. Unsupported constant formats are rejected
+at parse time; dynamically computed formats are checked when executed.
+
+The parser validates the whole source, literal regexes, function existence and
+arity, call targets, and structural control-flow restrictions before processing
+input or producing output. Dynamic regexes/values, filesystem failures, resource
+limits, and context-dependent errors can fail after earlier output; this is not
+transactional execution. Program files must be read before they can be parsed.
+
+Known awk gaps: `getline`, command pipes/coprocesses, `system`, `fflush`, random
+and time functions, regex/multibyte `RS`, locale/Unicode character semantics,
+hexadecimal literals, arbitrary-precision arithmetic, and GNU extensions such
+as `gensub`, `patsplit`, `asort`, nested arrays, and special variable behavior
+for `FPAT`, `FIELDWIDTHS`, `IGNORECASE`, or `PROCINFO`. Unknown special-variable
+names are ordinary user variables; they do not activate unsupported behavior.
+Unknown functions/operators are errors, never passed to a host interpreter.
+
+Source is limited to 1 MiB, syntax nesting to 128 levels, function recursion to
+64 frames, fields and counted array entries to 100,000 each, and the dynamic
+regex cache to 256 entries. The entry count is conservative across discarded
+function-local arrays. Records stream from `ByteSource`; a record, input chunk
+buffer, expression result, or formatted output must fit the configured buffer
+limit. File output writes are awaited, but there are no native file descriptors
+or subprocess handles.
+
 ## Verification
 
 Run `node --import tsx --test tests/commands/text-programs/*.test.ts` and
@@ -96,7 +167,15 @@ temporary directories, with clean C-locale environments, three-second deadlines,
 process-group cleanup, 1 MiB output limits, and complete resulting file snapshots.
 No downloaded, generated, or unsupported program is executed by the native oracle.
 
-The sed increment has 33 native differential cases and three additional
-preflight/budget/chunk/pipeline tests. Verification is against macOS `/usr/bin/sed`
-on 2026-08-26; portability is not a claim that untested platforms were run.
-Existing shell oracle fixtures and their expected values remain untouched.
+The suite has 98 passing tests: 33 native sed cases, 51 native awk cases, three
+additional preflight/budget/chunk/pipeline tests for each tool, and eight blocked
+I/O/busy-loop cancellation tests. Native verification uses macOS `/usr/bin/sed`
+and `/usr/bin/awk` (awk version 20200816) on 2026-08-26; this does not claim that
+untested platforms were run. Whole-repository typechecking passes at delivery.
+
+The unchanged shell oracle, run with both standard and text-program definitions,
+passes 64/64 core and 20/24 advanced-pending fixtures at this checkpoint. The four
+remaining failures are shell `case`, two heredocs, and a here-string, not marked
+as passing or removed. The corpus and its expected values remain untouched.
+Independent verifier tests and comparative benchmark results are separate from
+these author checks; no overall superiority claim follows from these counts.

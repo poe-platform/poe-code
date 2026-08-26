@@ -195,7 +195,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       const flush = async () => { if (!quiet && !deleted) await print(); if (appended) { await write(context, appended); appended = ""; } };
       const matches = (address: Address): boolean => address.kind === "number" ? number === address.number : address.kind === "last" ? following.done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;
       for (let pc = 0; pc < program.length;) {
-        budget.step();
+        budget.step(); await budget.checkpoint();
         const instruction = program[pc]!;
         let selected = true;
         let ending = false;

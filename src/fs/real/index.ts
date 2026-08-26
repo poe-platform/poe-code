@@ -334,8 +334,14 @@ export class RealFileSystem implements FileSystem {
     return this.operation("copyFile", source, options, async () => {
       const from = await this.path(source, options);
       const to = await this.path(destination, { ...options, missing: "final", followFinal: !options.exclusive });
+      const origin = await native.stat(from, { bigint: true });
+      let target;
+      try { target = await native.lstat(to, { bigint: true }); }
+      catch (error) { if (nativeError(error).code !== "ENOENT") throw error; }
+      if (target && options.exclusive) throw new FsError("EEXIST");
+      if (target && origin.isFile() && origin.dev === target.dev && origin.ino === target.ino) throw new FsError("EINVAL");
       options.signal?.throwIfAborted();
-      await native.copyFile(from, to, options.exclusive ? constants.COPYFILE_EXCL : 0);
+      await native.copyFile(from, to, options.exclusive || !target ? constants.COPYFILE_EXCL : 0);
     }, destination);
   }
 

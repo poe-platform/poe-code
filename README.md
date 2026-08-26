@@ -120,3 +120,8 @@ passes 68/79, including eight diagnostic-assertion disagreements and three
 remaining functional gaps. Exact cases, revisions, policy changes and reproduction
 are in [adapter matrix triage](benchmarks/reports/ADAPTER_MATRIX_TRIAGE.md).
 These local S3/mock and WebDAV/HTTP checks do not prove deployed-provider parity.
+
+Filesystem callers receive typed `FsError` values with a stable `code` field.
+Shell stderr instead follows human-readable Bash/utility diagnostics; do not
+treat it as an errno serialization format. Integration checks must preserve
+exit status, error meaning/path and filesystem effects when reconciling wording.

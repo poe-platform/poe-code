@@ -588,6 +588,56 @@ that any implementation, command, fixture, or test currently exists.
   825/829 default Apple cases is another scoped checkpoint; Faraday retains
   classification/fixes for context, ranges, fuzz, parent pruning and rejects.
 
+### Independent S3 default-rename policy review
+
+- New owned verification scope is Curie's `tests/stress/s3-policy/**`; all FS
+  source fixes remain Poincare's. Commit 63f1842 adds 42 ordinary tests, two
+  separately labelled limitation observations, a committed-source archive
+  runner and raw evidence. No adapter or existing matrix expectation is edited.
+- Exact archived b4033fb96b353bf82025a28aafff6619066967dc is **34 pass / 8 fail**;
+  exact archived acef1118fe4e5e0342114ee7d28de5ea02df2327 is **39 pass / 3 fail**.
+  Each result repeats in three fresh Node processes, with zero skip/TODO/cancel.
+  Both archives use the identical hashed independent test overlay. Intermediate
+  worktree evidence includes explicitly identified uncommitted source; it is
+  not substituted for either committed archive. Scoped strict types pass.
+- Current remaining root cause: rename requires conditional delete but proceeds
+  without destination guards when `conditionalCopy` is false/absent. A hook
+  creates a concurrent destination immediately before copy; rename overwrites
+  that writer, deletes the source and resolves successfully. Two missing/false
+  capability preflights and this concurrent-create case remain red. Poincare
+  must check adequate publication/deletion capabilities before effects rather
+  than silently downgrade. Legitimate default moves and replacement remain
+  enabled and tested on capable clients; lack of global atomicity is not itself
+  grounds for rejecting all basic rename operations.
+- Five earlier failures pass after Poincare's acef111 destination guards: request
+  conditions for new/existing destinations, concurrent destination create and
+  replace, and a colliding destination child. Source-change guards, paginated
+  copy-before-delete ordering, per-position failures, typed partial-state errors,
+  lost acknowledgements, cancellation and namespace containment are verified.
+  Lists report acknowledged operations only; unknown remote completion cannot
+  be inferred from them. This 42-case cohort is separate from earlier matrix
+  and full-suite cohorts and is not a new global-clean claim.
+- Limitations are measured separately, not added as acceptance passes: a newly
+  recreated source with identical bytes/different metadata retains its content
+  ETag and can be deleted; a new source child after enumeration remains while
+  rename resolves. Thus changed-ETag protection is not incarnation identity,
+  and success is not an atomic tree snapshot or proof that source disappeared.
+  Preserve these limits and consider stronger provider/coordination designs
+  separately, rather than pretending the basic ETag contract promises them.
+- Current primary AWS CopyObject, conditional-write and conditional-delete docs
+  were read August 26, 2026. Source and destination preconditions differ;
+  CopyObject destination conditions are supported in current AWS docs, while
+  compatible providers must explicitly negotiate/enforce them. Full-response
+  validation is necessary for embedded copy failures. References and complete
+  reproduction are in `tests/stress/s3-policy/README.md`; no credentials,
+  deployed provider, versioned-bucket or multipart guarantees were tested.
+- Root fixture policy: native Bash stderr uses human errors, while typed
+  `FsError.code` belongs at the FS API boundary. Poincare is authorized to
+  reconcile the eight overstrict matrix code-string assertions with stronger
+  boundary checks plus status/error-path/namespace/byte assertions and recorded
+  evidence. This is not permission for broad expectation relaxation. Existing
+  historical raw matrix failures stay unchanged. Zero runtime deps persist.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

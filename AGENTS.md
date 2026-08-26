@@ -108,6 +108,12 @@
   the unchanged aggregate adapter matrix, its failures, and remote-provider
   limitations visible; do not waive required behavior with capability skips.
   This priority does not narrow the full product goal.
+- Shell stderr is human-readable native-Bash/utility-dialect output, not a
+  serialized errno protocol. Assert typed `FsError.code` at the filesystem API
+  boundary. For shell integration, preserve nonzero status, correct error
+  meaning/path and exact byte/namespace effects. Poincare may reconcile only the
+  eight identified matrix errno-string assertions with stronger boundary checks
+  and recorded evidence; no sweeping relaxation or unrelated expected changes.
 
 ## Utility dialect policy
 
@@ -149,6 +155,10 @@
 - Poincare now owns all filesystem source, backend/wrapper tests, adapter
   conformance/stress, and `tests/integration/adapter-tools/**`. Core commands
   and shared contracts remain Curie's; route cross-layer changes explicitly.
+- Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
+  read adapter source but send source fixes to Poincare. Keep capable-client
+  ordinary rename useful while testing preconditions and honest partial errors;
+  never infer global atomicity, incarnation identity or snapshot isolation.
 - Also exclude `src/commands/diff-patch/**` and `tests/commands/diff-patch/**`
   (Faraday, independent verifier after author handoff); no source ownership
   transfer to the foundation worker has been granted.

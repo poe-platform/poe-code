@@ -41,13 +41,36 @@ still needs caller cancellation if it never completes or writes. Arbitrary
 uncooperative host work cannot be forcibly stopped by JavaScript cancellation.
 No physical-stop, rollback or cleanup guarantee is inferred for such work.
 
-## Frozen red-to-green reproduction
+## Frozen assertions and reporting limitation
 
 The frozen audit is commit `4e26ce0d386b9f3fcd25c3d540b5d43361b056d3`.
 No oracle, test timeout, fixture, mock, transport or adapter was changed here.
 
+**Correction:** the original version of this evidence incorrectly presented
+the literal requested nonverbose command as the command behind the author's
+passing captures. Those captures used `AUDIT_VERBOSE=1`. The literal command
+is **not green**:
+
 ```sh
 AUDIT_CASE="S08|D08" node tests/stress/remote-cancellation/run.mjs
+```
+
+The independent exact-command capture at 22:45:41–22:45:42 UTC records runner
+exit **1** after test-child exit **0**, with no timeout or source/fixture drift.
+Its recorded environment is `AUDIT_CASE=S08|D08` and
+`NODE_OPTIONS=--unhandled-rejections=strict`, without `AUDIT_VERBOSE`.
+Stdout prints `REPLAY 1: exit=0` and the passing S08 row, then the nonverbose
+renderer crashes at `JSON.parse(line.slice(2))`: successful settlement events
+contain TAP-escaped quotes/backslashes that are not directly parseable as the
+original JSON. D08's completed child result is not rendered before the crash.
+This is a runner reporting failure, not renewed active-GET or shell assertion
+failure. The verbose branch bypasses this parser; it does not change the
+underlying frozen test assertions. Archimedes owns the renderer correction.
+
+The author's actual before, initial-after and postcommit command was:
+
+```sh
+AUDIT_CASE="S08|D08" AUDIT_VERBOSE=1 node tests/stress/remote-cancellation/run.mjs
 ```
 
 Before source edits: **0/2 pass**, exit 1. Both original 1200ms deadlines
@@ -59,8 +82,15 @@ transport abort and exactly one source return; HTTP GET aborted and the
 response/socket closed, with final sockets=0, tasks=0, errors=0. No rescue was
 needed. Two additional batches of three fresh strict replays also passed all
 six case executions each, with unchanged source/fixture hash manifests.
+Both validation JSON files explicitly record overrides
+`AUDIT_CASE=S08|D08`, `AUDIT_REPEATS=3`, `AUDIT_VERBOSE=1` for these batches.
+The runner supplies `--unhandled-rejections=strict` to its test child. Original
+before/after/postcommit logs retain the full TAP output from the verbose branch;
+none of these successful author captures proves a nonverbose runner exit 0.
 
-The unchanged full remote audit passes **24/24** in this working tree. Its
+The unchanged full remote audit assertions pass **24/24** under
+`AUDIT_VERBOSE=1 node tests/stress/remote-cancellation/run.mjs`; the validation
+JSON records the `AUDIT_VERBOSE=1` override for that run. Its
 original **20/24** result remains valid historical evidence. D02/D05 improvements
 belong to Poincare's WebDAV commit
 `3731587fa287333ca59c7a81569b367cec66f61d`, not this shell change. S3/WebDAV
@@ -69,6 +99,16 @@ runtime bytes changed in that comparison. These seams exercise the real S3
 adapter with its injected public mock transport and real WebDAV/native Fetch
 against an ephemeral loopback HTTP server, not production provider credentials,
 AWS wire/signing, TLS, proxy, auth or deployed-provider certification.
+
+Independent verification also supports 726/726 shell tests and verbose frozen
+2/2 plus 72/72 executions. These remain distinct from the literal nonverbose
+reporting failure. Its raw evidence is preserved unchanged in
+`/tmp/safe-bash-remote-close-additional-ready-exact-plain.stdout`, `.stderr` and
+`.json`; the finding is in
+`/tmp/safe-bash-shell-remote-close-review-findings.txt`. That capture records
+PIDs 73612, 73613 and 73614 stopped, with no forced stop, timeout or residual
+processes. This documentation-only correction starts no test children and
+does not resume source, renderer, diagnostic or first-read work.
 
 ## Author controls and validation
 

@@ -1,12 +1,13 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createChmodCommand } from "./chmod.js";
 import { createStatCommand } from "./stat.js";
+import { createMktempCommand } from "./mktemp.js";
 import { settings, type MetadataCommandsOptions } from "./internal.js";
 export type { MetadataCommandsOptions, MetadataLimits } from "./internal.js";
 
 export function createMetadataCommands(options: MetadataCommandsOptions = {}): readonly CommandDefinition[] {
   settings(options);
-  return [createChmodCommand(options), createStatCommand(options)];
+  return [createChmodCommand(options), createStatCommand(options), createMktempCommand(options)];
 }
 
 export function metadataCommands(options: MetadataCommandsOptions = {}): VirtualShellPlugin {

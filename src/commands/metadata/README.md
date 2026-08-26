@@ -54,6 +54,31 @@ point or filesystem-capacity data is fabricated. Unsupported directives and
 `-f`/cache policies are rejected. Quoting supports literal, shell-always and
 UTF-8 shell-escape-always, not every GNU locale/quoting style.
 
+## mktemp
+
+Supports a template with a final run of at least three `X` characters, inferred
+or `--suffix` suffixes, `-d`/`--directory`, `-p DIR`/`--tmpdir[=DIR]`,
+`-u`/`--dry-run`, `-q`/`--quiet`, and `--`. With no template, use
+`tmp.XXXXXXXXXX` under virtual `TMPDIR` or `/tmp`; the directory must exist in
+the VFS. There is never a fallback to host temporary directories. Deprecated
+`-t` and unimplemented flags are rejected. Components longer than 255 UTF-8
+bytes are rejected before creation.
+
+Names use unbiased `node:crypto` randomness, with exclusive `writeFile` flag
+`wx` or nonrecursive `mkdir`, bounded retries on creation `EEXIST` only, and
+0600/0700 creation modes masked by the configured virtual umask. Creation requires
+declared `permissions: true`; otherwise fail before effects rather than promise
+private access on a backend that cannot enforce it. Existing competing entries
+are never deleted or overwritten. A dry-run only checks a generated name and
+does not reserve it: using that name later is inherently racy.
+
+Known output-size failure is checked before creation. A later sink failure or
+cancellation after successful creation may leave the new entry; the command
+does not attempt unsafe cleanup of a path another actor may now own. No global
+namespace or parent-symlink race guarantee beyond the filesystem adapter is
+claimed. Directory mode support/exclusive creation must be real backend behavior,
+not merely a capability label.
+
 Limits: 100,000 visited entries, depth 128, 1 MiB stdout, 64 KiB argument bytes,
 128 temporary-name attempts; each can be configured under `{ limits }`.
 Forward cancellation to every filesystem operation and await output writes.

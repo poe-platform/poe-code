@@ -288,7 +288,8 @@ function formatHelpText(input: {
     `${text.muted("Run")} ${text.usageCommand(input.helpCommand)} ${text.muted("for command options.")}`,
     "",
     `${text.muted("Learn more about Poe:")}            ${text.link("https://poe.com/api")}`,
-    `${text.muted("GitHub:")}                          ${text.link("https://github.com/poe-platform/poe-code")}`
+    `${text.muted("GitHub:")}                          ${text.link("https://github.com/poe-platform/poe-code")}`,
+    ""
   ].join("\n");
 }
 

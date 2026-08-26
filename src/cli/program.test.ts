@@ -71,6 +71,45 @@ describe("createProgram", () => {
     expect(output).toContain("configure");
   });
 
+  it.each([
+    ["--help", ["--help"]],
+    ["help", ["help"]],
+    ["no arguments", []],
+    ["configure --help", ["configure", "--help"]],
+    ["help configure", ["help", "configure"]]
+  ])("ends %s output with exactly one terminal newline", async (_name, args) => {
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      writes.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write);
+    process.argv = ["node", "/usr/local/bin/poe-code", ...args];
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts,
+      env: { cwd: "/repo", homeDir, variables: {} },
+      logger: () => {},
+      exitOverride: true
+    });
+
+    const result = program.parseAsync(process.argv);
+    if (args.includes("--help")) {
+      await expect(result).rejects.toMatchObject({
+        code: "commander.helpDisplayed",
+        exitCode: 0
+      });
+    } else {
+      await expect(result).resolves.toBe(program);
+    }
+
+    const output = writes.join("");
+    expect(output.endsWith("\n")).toBe(true);
+    expect(output.endsWith("\n\n")).toBe(false);
+    expect(`${output}$ `.split("\n").at(-1)).toBe("$ ");
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
   it("prints command help for `help <command>`", async () => {
     const writes: string[] = [];
     vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {

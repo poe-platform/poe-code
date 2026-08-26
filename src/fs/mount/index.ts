@@ -400,16 +400,17 @@ export class MountFileSystem implements FileSystem {
       const target = await this.resolve(destination, options, { allowMissing: true, followFinal: !options.exclusive });
       if (this.protected(target.path)) fail("EBUSY");
       this.mutable(target);
+      if (options.exclusive && target.stat) fail("EEXIST");
+      if (origin.mount.backend === target.mount.backend && origin.local === target.local) fail("EINVAL");
       if (origin.mount === target.mount) {
         await origin.mount.backend.copyFile(origin.local, target.local, options);
         return;
       }
-      if (options.exclusive && target.stat) fail("EEXIST");
       if (target.stat?.type === "directory") fail("EISDIR");
       const reader = origin.mount.backend;
       const writer = target.mount.backend;
       const writeOptions: WriteFileOptions = {
-        ...options, flag: options.exclusive ? "wx" : "w",
+        ...options, flag: options.exclusive || !target.stat ? "wx" : "w",
         ...(writer.capabilities.permissions === true ? { mode: origin.stat!.mode & 0o7777 } : {}),
       };
       if (reader.readStream && reader.capabilities.streamingRead !== false

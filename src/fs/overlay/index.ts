@@ -639,7 +639,7 @@ export class OverlayFileSystem implements FileSystem {
       this.writable(destination);
       const original = await this.required(source, options);
       const target = await this.writeLocation(destination, { ...options, flag: options.exclusive ? "wx" : "w" });
-      if (original.path === target.path) return;
+      if (original.path === target.path) fail("EINVAL", destination, "source and destination are the same file");
       const bytes = await this.bytes(original, options);
       await this.replace(target, options, async (temporary) => {
         await this.#upper.writeFile(temporary, bytes, { ...options, mode: original.stat.mode & 0o7777, flag: "w" });

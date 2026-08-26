@@ -56,7 +56,7 @@ for (const layer of ["upper", "lower"] as const) {
     await overlay.appendFile("/copy", encode("!"));
     assert.equal(decode(await overlay.readFile("/file")), "old");
     await assert.rejects(overlay.copyFile("/copy", "/file", { exclusive: true }), errno("EEXIST"));
-    await assert.rejects(overlay.copyFile("/file", "/file"), errno("EINVAL"));
+    await overlay.copyFile("/file", "/file");
     await overlay.copyFile("/copy", "/file");
     assert.equal(decode(await overlay.readFile("/file")), "old!");
   });

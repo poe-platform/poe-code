@@ -110,3 +110,23 @@ test("relative repeated separators collapse before stripping; traversal never do
   assert.equal(unsafe.exitCode, 2);
   assert.equal(await contents(unsafe.fs, "target"), "old\n");
 });
+
+for (const metadata of ["new file mode 120000", "deleted file mode 120000", "similarity index 100%", "dissimilarity index 100%"]) {
+  for (const input of [`Subject: example\n${metadata}\n${replacement}`, `${replacement}-- \n${metadata}\n`]) {
+    test(`mail cannot hide unsupported metadata ${JSON.stringify(input)}`, async () => {
+      const result = await run("patch", [], { files: { target: "old\n" }, input });
+      assert.equal(result.exitCode, 2);
+      assert.equal(await contents(result.fs, "target"), "old\n");
+    });
+  }
+}
+
+for (const label of ["a/target/", "a/target//", "a/target/.", "a/target/./", "a/target/./."]) {
+  for (const args of [["-p1"], ["-p1", "/work/target"]]) {
+    test(`directory label remains invalid with explicit target ${label}/${args.join(" ")}`, async () => {
+      const result = await run("patch", args, { files: { target: "old\n" }, input: replacement.replaceAll("target", label) });
+      assert.equal(result.exitCode, 2);
+      assert.equal(await contents(result.fs, "target"), "old\n");
+    });
+  }
+}

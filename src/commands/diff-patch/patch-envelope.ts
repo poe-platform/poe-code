@@ -12,7 +12,7 @@ export async function unwrapPatch(text: string, budget: Budget): Promise<string>
       const end = text.indexOf("\n", position);
       const line = text.slice(position, end);
       if (/^(?:--- |\*\*\* |diff |\d+(?:,\d+)?[acd]\d)/u.test(line)) break;
-      if (/^(?:old mode |new mode |rename |copy |similarity index |dissimilarity index |GIT binary patch|Binary files |index |@@|[+\\])/u.test(line)) throw new ToolError("unsupported or malformed mail patch metadata");
+      if (/^(?:old mode |new mode |new file mode |deleted file mode |rename |copy |similarity index |dissimilarity index |GIT binary patch|Binary files |index |@@|[+\\])/u.test(line)) throw new ToolError("unsupported or malformed mail patch metadata");
       position = end + 1;
       if (++lines > 1024 || position > 65_536) throw new ToolError("mail preamble limit exceeded");
     }
@@ -25,7 +25,7 @@ export async function unwrapPatch(text: string, budget: Budget): Promise<string>
   if (trailer.length > 8192 || trailer.split("\n").length > 128) throw new ToolError("mail signature limit exceeded");
   for (const line of trailer.split("\n")) {
     budget.step();
-    if (/^(?:diff |---|\+\+\+|\*\*\*|@@|index |old mode |new mode |rename |copy |GIT binary patch|Binary files |[+\\]|\d+(?:,\d+)?[acd]\d)/u.test(line)) throw new ToolError("patch data after mail signature");
+    if (/^(?:diff |---|\+\+\+|\*\*\*|@@|index |old mode |new mode |new file mode |deleted file mode |rename |copy |similarity index |dissimilarity index |GIT binary patch|Binary files |[+\\]|\d+(?:,\d+)?[acd]\d)/u.test(line)) throw new ToolError("patch data after mail signature");
   }
   return body.slice(0, signature + 1);
 }

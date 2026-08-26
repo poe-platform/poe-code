@@ -41,6 +41,7 @@ export function safeTarget(path: string, strip: number, allowAbsolute = false): 
   if (!path || (!allowAbsolute && path.startsWith("/")) || /[\\\0-\x08\x0a-\x1f\x7f]/u.test(path)) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
   const parts = path.split(/\/+/u);
   if (parts.some(part => part === ".." || /^[A-Za-z]:/u.test(part))) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
+  if (path.endsWith("/") || parts.at(-1) === ".") throw new ToolError(`patch path names a directory: ${JSON.stringify(path)}`);
   const stripped = parts.filter(Boolean).slice(strip).filter(part => part !== ".").join("/");
   if (!stripped) throw new ToolError(`strip count removes entire patch path: ${path}`);
   return allowAbsolute && path.startsWith("/") && strip === 0 ? `/${stripped}` : stripped;

@@ -88,8 +88,8 @@ async function emitCompletion(
   return chunks.join("");
 }
 
-function readCompletionWords(script: string, path: string, optionsEnded = false): string[] {
-  const prefix = `    "${Number(optionsEnded)}:${path}") completions=`;
+function readCompletionWords(script: string, path: string, optionsEnded = false, parentOperands = false): string[] {
+  const prefix = `    "${Number(optionsEnded)}:${Number(parentOperands)}:${path}") completions=`;
   const lines = script.split("\n");
   const line = lines.find((line) => line.startsWith(prefix))
     ?? lines.find((line) => line.startsWith("    *) completions="));
@@ -107,14 +107,14 @@ describe("completion command", () => {
 
     expect(script).toContain("complete -F _poe_code_complete poe-code");
     expect(script).toContain("complete -F _poe_code_complete poe");
-    expect(script).toContain('"0:") completions="agent completion configure plan plans p --yes"');
+    expect(script).toContain('"0:0:") completions="agent completion configure plan plans p --yes"');
   });
 
   it("emits bash completions for nested commands, aliases, and their options", async () => {
     const script = await emitCompletion("bash");
 
-    expect(script).toContain('"0:configure") completions="--agent --yes"');
-    expect(script).toContain('"0:agent") completions="add new list --yes"');
+    expect(script).toContain('"0:0:configure") completions="--agent --yes"');
+    expect(script).toContain('"0:0:agent") completions="add new list --yes"');
   });
 
   it.each(["bash", "zsh", "fish"])(
@@ -138,8 +138,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"0:${parent}") completions="open view show --directory --yes";;`
-        : `"0:${parent}") completions=(open view show --directory --yes);;`
+        ? `"0:0:${parent}") completions="open view show --directory --yes";;`
+        : `"0:0:${parent}") completions=(open view show --directory --yes);;`
     );
   });
 
@@ -154,8 +154,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"0:${path}") completions="--editor --directory --yes";;`
-        : `"0:${path}") completions=(--editor --directory --yes);;`
+        ? `"0:0:${path}") completions="--editor --directory --yes";;`
+        : `"0:0:${path}") completions=(--editor --directory --yes);;`
     );
   });
 
@@ -191,7 +191,7 @@ describe("completion command", () => {
 
     expect(script).toContain("#compdef poe-code poe");
     expect(script).toContain("compdef _poe_code poe-code poe");
-    expect(script).toContain('"0:agent") completions=(add new list --yes)');
+    expect(script).toContain('"0:0:agent") completions=(add new list --yes)');
   });
 
   it("emits fish completions carrying command descriptions", async () => {
@@ -370,7 +370,7 @@ describe("completion command", () => {
           expect(readCompletionWords(script, `${parent} ${child}`, true)).toEqual([]);
         }
       }
-      expect(script).toContain('  case "$options_ended:$key" in');
+      expect(script).toContain('  case "$options_ended:$parent_operands:$key" in');
     });
 
     it("changes state only for completed standalone terminators after consuming pending values", async () => {
@@ -398,6 +398,7 @@ describe("completion command", () => {
         "      esac",
         '      [[ "$word" == -* ]] && continue',
         "    fi",
+        "    (( parent_operands )) && continue",
         '    case "$key" in'
       ].join("\n"));
     });
@@ -474,7 +475,7 @@ describe("completion command", () => {
       expect(readCompletionWords(script, "leaf")).toEqual([]);
     });
 
-    it("does not retain unknown paths, no-positional leaves, or positional nonleaves", async () => {
+    it("does not treat unknown paths, no-positional leaves, or parents as positional leaves", async () => {
       const program = createProgram({
         fs: createMemFs(),
         prompts: async () => ({}),
@@ -504,6 +505,7 @@ describe("completion command", () => {
         "      esac",
         '      [[ "$word" == -* ]] && continue',
         "    fi",
+        "    (( parent_operands )) && continue",
         '    case "$key" in'
       ].join("\n"));
       expect(script).toContain([
@@ -521,6 +523,124 @@ describe("completion command", () => {
     const before = await emitCompletion("fish", program);
     program.commands.find((command) => command.name() === "plan")!
       .commands.find((command) => command.name() === "open")!.argument("[path]");
+
+    expect(await emitCompletion("fish", program)).toBe(before);
+  });
+
+  describe.each(["bash", "zsh"])("%s parent positional operands", (shell) => {
+    it.each([
+      { input: "maestro WORKFLOW.md --co", path: "maestro", prefix: "--co", parent: true, ended: false, expected: ["--config"] },
+      { input: "gaslight one.md --ag", path: "gaslight", prefix: "--ag", parent: true, ended: false, expected: ["--agent"] },
+      { input: "gaslight one.md daemon --ag", path: "gaslight", prefix: "--ag", parent: true, ended: false, expected: ["--agent"] },
+      { input: "gaslight one.md install", path: "gaslight", prefix: "install", parent: true, ended: false, expected: [] },
+      { input: "experiment journal experiment.md --verb", path: "experiment journal", prefix: "--verb", parent: true, ended: false, expected: ["--verbose"] },
+      { input: "experiment journal experiment.md log", path: "experiment journal", prefix: "log", parent: true, ended: false, expected: [] },
+      { input: "experiment journal log experiment.md --verb", path: "experiment journal log", prefix: "--verb", parent: false, ended: false, expected: ["--verbose"] },
+      { input: "maestro r", path: "maestro", prefix: "r", parent: false, ended: false, expected: ["run"] },
+      { input: "maestro --config run r", path: "maestro", prefix: "r", parent: false, ended: false, expected: ["run"] },
+      { input: "maestro --config other.md run --co", path: "maestro run", prefix: "--co", parent: false, ended: false, expected: ["--config"] },
+      { input: "maestro --config other.md WORKFLOW.md --co", path: "maestro", prefix: "--co", parent: true, ended: false, expected: ["--config"] },
+      { input: "maestro WORKFLOW.md --config other.md --co", path: "maestro", prefix: "--co", parent: true, ended: false, expected: ["--config"] },
+      { input: "maestro WORKFLOW.md --config run --co", path: "maestro", prefix: "--co", parent: true, ended: false, expected: ["--config"] },
+      { input: "maestro --config -- r", path: "maestro", prefix: "r", parent: false, ended: false, expected: ["run"] },
+      { input: "maestro WORKFLOW.md --config -- --co", path: "maestro", prefix: "--co", parent: true, ended: false, expected: ["--config"] },
+      { input: "maestro WORKFLOW.md --config -- -- --co", path: "maestro", prefix: "--co", parent: true, ended: true, expected: [] },
+      { input: "maestro -- r", path: "maestro", prefix: "r", parent: false, ended: true, expected: ["run"] },
+      { input: "maestro -- WORKFLOW.md --co", path: "maestro", prefix: "--co", parent: true, ended: true, expected: [] },
+      { input: "maestro WORKFLOW.md -- --co", path: "maestro", prefix: "--co", parent: true, ended: true, expected: [] },
+      { input: "gaslight one.md -- daemon --ag", path: "gaslight", prefix: "--ag", parent: true, ended: true, expected: [] },
+      { input: "maestro -- --config run r", path: "maestro", prefix: "r", parent: true, ended: true, expected: [] },
+      { input: "plan unexpected --y", path: "plan unexpected", prefix: "--y", parent: false, ended: false, expected: [] },
+      { input: "unknown WORKFLOW.md --co", path: "unknown WORKFLOW.md", prefix: "--co", parent: false, ended: false, expected: [] }
+    ])("generates the real-tree branch for $input", async ({ path, prefix, parent, ended, expected }) => {
+      const program = createProgram({
+        fs: createMemFs(),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+        logger: () => {},
+        exitOverride: true
+      });
+      const script = await emitCompletion(shell, program);
+
+      if (parent) {
+        expect(script).toContain(`      "${path}:"*) parent_operands=1; continue;;`);
+      }
+      expect(readCompletionWords(script, path, ended, parent).filter((word) => word.startsWith(prefix)))
+        .toEqual(expected);
+    });
+
+    it("checks every registered child and alias before starting parent operands", async () => {
+      const program = createFixtureProgram();
+      program.commands.find((command) => command.name() === "plan")!.argument("[paths...]");
+      const script = await emitCompletion(shell, program);
+
+      for (const parent of ["plan", "plans", "p"]) {
+        const childCase = `      "${parent}:open"|"${parent}:view"|"${parent}:show"|"${parent}:internal"|"${parent}:private") ;;`;
+        const operandCase = `      "${parent}:"*) parent_operands=1; continue;;`;
+        expect(script).toContain(childCase);
+        expect(script).toContain(operandCase);
+        expect(script.indexOf(childCase)).toBeLessThan(script.indexOf(operandCase));
+        expect(readCompletionWords(script, parent)).toEqual(["open", "view", "show", "--directory", "--yes"]);
+        expect(readCompletionWords(script, parent, false, true)).toEqual(["--directory", "--yes"]);
+        expect(readCompletionWords(script, parent, true)).toEqual(["open", "view", "show"]);
+        expect(readCompletionWords(script, parent, true, true)).toEqual([]);
+        for (const child of ["internal", "private"]) {
+          expect(readCompletionWords(script, `${parent} ${child}`)).toEqual([]);
+          expect(readCompletionWords(script, `${parent} ${child}`, false, true)).toEqual([]);
+        }
+      }
+    });
+
+    it("keeps metadata for positional parents with only hidden children and no options", async () => {
+      const program = new Command().name("poe-code");
+      program.command("parent").argument("[value]")
+        .command("internal", { hidden: true }).alias("private");
+      registerCompletionCommand(program);
+      const script = await emitCompletion(shell, program);
+
+      expect(script).toContain('      "parent:internal"|"parent:private") ;;');
+      expect(script).toContain('      "parent:"*) parent_operands=1; continue;;');
+      expect(script).not.toContain('      "parent") continue;;');
+      expect(readCompletionWords(script, "parent", false, true)).toEqual([]);
+    });
+
+    it("keeps pending values and terminators ahead of parent retention and later child-looking operands", async () => {
+      const program = createFixtureProgram();
+      program.commands.find((command) => command.name() === "plan")!.argument("[paths...]");
+      const script = await emitCompletion(shell, program);
+
+      expect(script).toContain("  options_ended=0\n  parent_operands=0\n");
+      expect(script).toContain('"plan:--directory"');
+      expect(script).toContain([
+        "      esac",
+        '      [[ "$word" == -* ]] && continue',
+        "    fi",
+        "    (( parent_operands )) && continue",
+        '    case "$key" in'
+      ].join("\n"));
+      expect(script).toContain('    esac\n    case "$key:$word" in\n');
+      expect(script).toContain([
+        "    esac",
+        '    key="${key:+$key }$word"',
+        "  done",
+        "  (( expecting_value )) && return"
+      ].join("\n"));
+    });
+
+    it("does not enable parent operands for leaves, unknown paths, or no-argument groups", async () => {
+      const script = await emitCompletion(shell);
+
+      for (const path of ["", "plan", "plans", "plan open", "configure", "unknown", "plan unknown"]) {
+        expect(script).not.toContain(`      "${path}:"*) parent_operands=1; continue;;`);
+        expect(readCompletionWords(script, path, false, true)).toEqual([]);
+      }
+    });
+  });
+
+  it("leaves fish output unchanged when a parent gains positional operands", async () => {
+    const program = createFixtureProgram();
+    const before = await emitCompletion("fish", program);
+    program.commands.find((command) => command.name() === "plan")!.argument("[paths...]");
 
     expect(await emitCompletion("fish", program)).toBe(before);
   });
@@ -636,6 +756,7 @@ describe("completion command", () => {
         "      esac",
         '      [[ "$word" == -* ]] && continue',
         "    fi",
+        "    (( parent_operands )) && continue",
         '    case "$key" in'
       ].join("\n"));
     });
@@ -670,8 +791,8 @@ describe("completion command", () => {
 
       expect(script).toContain(
         shell === "bash"
-          ? '"0:plan") completions="browse open view show --kind --optional --many --profile --boolean";;'
-          : '"0:plan") completions=(browse open view show --kind --optional --many --profile --boolean);;'
+          ? '"0:0:plan") completions="browse open view show --kind --optional --many --profile --boolean";;'
+          : '"0:0:plan") completions=(browse open view show --kind --optional --many --profile --boolean);;'
       );
     });
   });

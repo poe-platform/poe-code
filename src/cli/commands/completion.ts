@@ -24,6 +24,7 @@ interface CompletionNode {
   options: CompletionOption[];
   requiredValueFlags: string[];
   isPositionalLeaf: boolean;
+  positionalChildren: string[];
 }
 
 function isVisible(command: Command): boolean {
@@ -56,13 +57,16 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
     .filter(([, option]) => option.required && !option.variadic)
     .map(([flag]) => flag);
   const isPositionalLeaf = command.commands.length === 0 && command.registeredArguments.length > 0;
+  const positionalChildren = command.registeredArguments.length > 0
+    ? command.commands.flatMap((child) => [child.name(), ...child.aliases()])
+    : [];
 
-  if (children.length === 0 && options.length === 0 && requiredValueFlags.length === 0 && !isPositionalLeaf) {
+  if (children.length === 0 && options.length === 0 && requiredValueFlags.length === 0 && !isPositionalLeaf && positionalChildren.length === 0) {
     return [];
   }
 
   return [
-    { path, children, options, requiredValueFlags, isPositionalLeaf },
+    { path, children, options, requiredValueFlags, isPositionalLeaf, positionalChildren },
     ...command.commands
       .filter(isVisible)
       .flatMap((child) =>
@@ -94,20 +98,33 @@ function renderPositionalLeafCases(nodes: CompletionNode[]): string[] {
     .map((node) => `      "${node.path.join(" ")}") continue;;`);
 }
 
+function renderPositionalParentCases(nodes: CompletionNode[]): string[] {
+  return nodes
+    .filter((node) => node.positionalChildren.length > 0)
+    .flatMap((node) => [
+      `      ${node.positionalChildren.map((child) => `"${node.path.join(" ")}:${child}"`).join("|")}) ;;`,
+      `      "${node.path.join(" ")}:"*) parent_operands=1; continue;;`
+    ]);
+}
+
 function renderBash(nodes: CompletionNode[]): string {
   const cases = nodes.flatMap((node) => [
-    `    "0:${node.path.join(" ")}") completions="${completionWords(node).join(" ")}";;`,
-    `    "1:${node.path.join(" ")}") completions="${completionWords(node, false).join(" ")}";;`
+    `    "0:0:${node.path.join(" ")}") completions="${completionWords(node).join(" ")}";;`,
+    `    "1:0:${node.path.join(" ")}") completions="${completionWords(node, false).join(" ")}";;`,
+    ...(node.positionalChildren.length > 0
+      ? [`    "0:1:${node.path.join(" ")}") completions="${node.options.map((option) => option.flag).join(" ")}";;`]
+      : [])
   ]);
   return [
     "# poe-code bash completion. Install with: eval \"$(poe-code completion bash)\"",
     "_poe_code_complete() {",
-    "  local current key word index expecting_value options_ended",
+    "  local current key word index expecting_value options_ended parent_operands",
     "  COMPREPLY=()",
     '  current="${COMP_WORDS[COMP_CWORD]}"',
     '  key=""',
     "  expecting_value=0",
     "  options_ended=0",
+    "  parent_operands=0",
     "  for (( index=1; index < COMP_CWORD; index++ )); do",
     '    word="${COMP_WORDS[index]}"',
     "    if (( expecting_value )); then",
@@ -124,14 +141,18 @@ function renderBash(nodes: CompletionNode[]): string {
     "      esac",
     '      [[ "$word" == -* ]] && continue',
     "    fi",
+    "    (( parent_operands )) && continue",
     '    case "$key" in',
     ...renderPositionalLeafCases(nodes),
+    "    esac",
+    '    case "$key:$word" in',
+    ...renderPositionalParentCases(nodes),
     "    esac",
     '    key="${key:+$key }$word"',
     "  done",
     "  (( expecting_value )) && return",
     "  local completions",
-    '  case "$options_ended:$key" in',
+    '  case "$options_ended:$parent_operands:$key" in',
     ...cases,
     '    *) completions="";;',
     "  esac",
@@ -144,17 +165,21 @@ function renderBash(nodes: CompletionNode[]): string {
 
 function renderZsh(nodes: CompletionNode[]): string {
   const cases = nodes.flatMap((node) => [
-    `    "0:${node.path.join(" ")}") completions=(${completionWords(node).join(" ")});;`,
-    `    "1:${node.path.join(" ")}") completions=(${completionWords(node, false).join(" ")});;`
+    `    "0:0:${node.path.join(" ")}") completions=(${completionWords(node).join(" ")});;`,
+    `    "1:0:${node.path.join(" ")}") completions=(${completionWords(node, false).join(" ")});;`,
+    ...(node.positionalChildren.length > 0
+      ? [`    "0:1:${node.path.join(" ")}") completions=(${node.options.map((option) => option.flag).join(" ")});;`]
+      : [])
   ]);
   return [
     "#compdef poe-code poe",
     '# poe-code zsh completion. Install with: eval "$(poe-code completion zsh)"',
     "_poe_code() {",
-    "  local key word index expecting_value options_ended",
+    "  local key word index expecting_value options_ended parent_operands",
     '  key=""',
     "  expecting_value=0",
     "  options_ended=0",
+    "  parent_operands=0",
     "  for (( index=2; index < CURRENT; index++ )); do",
     '    word="${words[index]}"',
     "    if (( expecting_value )); then",
@@ -171,14 +196,18 @@ function renderZsh(nodes: CompletionNode[]): string {
     "      esac",
     '      [[ "$word" == -* ]] && continue',
     "    fi",
+    "    (( parent_operands )) && continue",
     '    case "$key" in',
     ...renderPositionalLeafCases(nodes),
+    "    esac",
+    '    case "$key:$word" in',
+    ...renderPositionalParentCases(nodes),
     "    esac",
     '    key="${key:+$key }$word"',
     "  done",
     "  (( expecting_value )) && return",
     "  local -a completions",
-    '  case "$options_ended:$key" in',
+    '  case "$options_ended:$parent_operands:$key" in',
     ...cases,
     "    *) completions=();;",
     "  esac",

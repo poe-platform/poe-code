@@ -1,0 +1,48 @@
+FAIL {"backend":"overlay-static","action":"patch","scenario":"lower-race"}
+AssertionError [ERR_ASSERTION]: binary child survives even error or cancellation
++ actual - expected
+
++ undefined
+- '00ff800a0d01fe410000'
+
+    at runCase (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/pruning-adversarial/pruning.acceptance.ts:185:23)
+    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/pruning-adversarial/run.ts:45:20)
+FAIL {"backend":"overlay-static","action":"rmdir","scenario":"lower-race"}
+AssertionError [ERR_ASSERTION]: binary child survives even error or cancellation
++ actual - expected
+
++ undefined
+- '00ff800a0d01fe410000'
+
+    at runCase (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/pruning-adversarial/pruning.acceptance.ts:185:23)
+    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/pruning-adversarial/run.ts:45:20)
+FAIL {"backend":"overlay-static","action":"rm-d","scenario":"lower-race"}
+AssertionError [ERR_ASSERTION]: binary child survives even error or cancellation
++ actual - expected
+
++ undefined
+- '00ff800a0d01fe410000'
+
+    at runCase (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/pruning-adversarial/pruning.acceptance.ts:185:23)
+    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/pruning-adversarial/run.ts:45:20)
+{
+  "passed": 0,
+  "failed": 3,
+  "sourceStable": true,
+  "originalsStable": true,
+  "fixturesStable": true,
+  "summary": {
+    "overlay-static/patch": {
+      "passed": 0,
+      "failed": 1
+    },
+    "overlay-static/rmdir": {
+      "passed": 0,
+      "failed": 1
+    },
+    "overlay-static/rm-d": {
+      "passed": 0,
+      "failed": 1
+    }
+  }
+}

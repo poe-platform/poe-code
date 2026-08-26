@@ -1,0 +1,153 @@
+{
+  "passed": 200,
+  "failed": 0,
+  "sourceStable": true,
+  "originalsStable": true,
+  "fixturesStable": true,
+  "summary": {
+    "memory/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "real/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "mount-memory/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "overlay-isolated/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "overlay-static/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "s3/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "webdav/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "missing/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "readonly/capability": {
+      "passed": 1,
+      "failed": 0
+    },
+    "memory/patch": {
+      "passed": 16,
+      "failed": 0
+    },
+    "memory/rmdir": {
+      "passed": 15,
+      "failed": 0
+    },
+    "memory/rm-d": {
+      "passed": 18,
+      "failed": 0
+    },
+    "real/patch": {
+      "passed": 16,
+      "failed": 0
+    },
+    "real/rmdir": {
+      "passed": 15,
+      "failed": 0
+    },
+    "real/rm-d": {
+      "passed": 18,
+      "failed": 0
+    },
+    "mount-memory/patch": {
+      "passed": 9,
+      "failed": 0
+    },
+    "mount-memory/rmdir": {
+      "passed": 9,
+      "failed": 0
+    },
+    "mount-memory/rm-d": {
+      "passed": 9,
+      "failed": 0
+    },
+    "overlay-isolated/patch": {
+      "passed": 8,
+      "failed": 0
+    },
+    "overlay-isolated/rmdir": {
+      "passed": 8,
+      "failed": 0
+    },
+    "overlay-isolated/rm-d": {
+      "passed": 8,
+      "failed": 0
+    },
+    "overlay-static/patch": {
+      "passed": 2,
+      "failed": 0
+    },
+    "overlay-static/rmdir": {
+      "passed": 2,
+      "failed": 0
+    },
+    "overlay-static/rm-d": {
+      "passed": 2,
+      "failed": 0
+    },
+    "s3/patch": {
+      "passed": 4,
+      "failed": 0
+    },
+    "s3/rmdir": {
+      "passed": 4,
+      "failed": 0
+    },
+    "s3/rm-d": {
+      "passed": 4,
+      "failed": 0
+    },
+    "webdav/patch": {
+      "passed": 4,
+      "failed": 0
+    },
+    "webdav/rmdir": {
+      "passed": 4,
+      "failed": 0
+    },
+    "webdav/rm-d": {
+      "passed": 4,
+      "failed": 0
+    },
+    "missing/patch": {
+      "passed": 2,
+      "failed": 0
+    },
+    "missing/rmdir": {
+      "passed": 2,
+      "failed": 0
+    },
+    "missing/rm-d": {
+      "passed": 2,
+      "failed": 0
+    },
+    "readonly/patch": {
+      "passed": 2,
+      "failed": 0
+    },
+    "readonly/rmdir": {
+      "passed": 2,
+      "failed": 0
+    },
+    "readonly/rm-d": {
+      "passed": 2,
+      "failed": 0
+    }
+  }
+}

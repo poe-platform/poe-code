@@ -21,6 +21,14 @@
     "./contracts/*": {
       "types": "./dist/contracts/*.d.ts",
       "import": "./dist/contracts/*.js"
+    },
+    "./fs/s3": {
+      "types": "./dist/fs/s3/index.d.ts",
+      "import": "./dist/fs/s3/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/fs/webdav/index.d.ts",
+      "import": "./dist/fs/webdav/index.js"
     }
   },
   "files": [

@@ -4,7 +4,7 @@ import { applyHunks, reversePatch, type HunkOutcome } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
 import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-formats.js";
-import { authorizeOutputs, authorizePaths, backupName, candidateStat, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type PathOptions } from "./patch-gnu-paths.js";
+import { authorizeOutputs, authorizePaths, backupName, candidateStat, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type AuthorizedPatch, type PathOptions } from "./patch-gnu-paths.js";
 import { rejectText } from "./patch-gnu-reject.js";
 
 interface PatchFlags { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; force: boolean; backup: boolean; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
@@ -148,24 +148,27 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   const messages: string[] = [];
   let exitCode = 0;
   let committed = 0;
+  let publishing = false;
+  let activePath: string | undefined;
   const status = async (text: string) => {
     budget.output(text);
     if (options.atomic) messages.push(text);
     else await writeBytes(context.stdout, Buffer.from(text), context.signal);
   };
-  for (const authorizedPatch of options.atomic && options.reverse ? authorized.slice().reverse() : authorized) {
+  const applySection = async (authorizedPatch: AuthorizedPatch) => {
     const sourcePatch = authorizedPatch.patch;
     if (sourcePatch.unlocated) {
       if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);
       await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
       exitCode = 1;
-      continue;
+      return;
     }
     let reversed = options.reverse;
     let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
     const name = await selectTarget(authorizedPatch, async path => options.atomic && staged.has(path)
       ? !staged.get(path)!.remove : await candidateStat(path, budget) !== undefined, budget);
     const path = resolvePath(context.cwd, name);
+    activePath = path;
     if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
     targets.add(path);
     const prior = options.atomic ? staged.get(path) : undefined;
@@ -189,7 +192,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       if (options.atomic) throw new ToolError(`patch target does not exist: ${path}`, 1);
       await status(`No file to patch.  Skipping patch ${name}.\n${patch.hunks.length} out of ${patch.hunks.length} hunks ignored\n`);
       exitCode = 1;
-      continue;
+      return;
     }
     let outcomes: HunkOutcome[] = [];
     let result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
@@ -246,12 +249,20 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     touched.add(path);
     if (options.atomic) staged.set(path, item);
     else if (!options.dryRun) {
-      try { await publish(item, budget, rejects); committed++; }
-      catch (error) {
-        context.signal.throwIfAborted();
-        throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${path}: ${error instanceof Error ? error.message : String(error)}`);
-      }
+      publishing = true;
+      await publish(item, budget, rejects);
+      committed++;
+      publishing = false;
       for (const parent of item.parents) parents.add(parent);
+    }
+  };
+  for (const authorizedPatch of options.atomic && options.reverse ? authorized.slice().reverse() : authorized) {
+    activePath = authorizedPatch.selected === undefined ? undefined : resolvePath(context.cwd, authorizedPatch.selected);
+    try { await applySection(authorizedPatch); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (committed === 0 && !publishing) throw error;
+      throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${activePath}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   if (options.atomic && !options.dryRun) {

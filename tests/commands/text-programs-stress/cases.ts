@@ -47,7 +47,7 @@ for (const [pattern, replacement, flags, stdin] of [
   ["(a*)(a*)", "[\\1][\\2]", "", "aaa\n"],
   ["((a|aa)*)", "[\\1][\\2]", "", "aaaa\n"],
   ["a*", "X", "g", "baaacaa\n"],
-  ["x*", "X", "2g", "abc\n"],
+  ["x*", "X", "2", "abc\n"],
   ["^|$", "X", "g", "abc\n\n"],
   ["[^[:digit:]]+", "&-&", "g", "ab12cd\n"],
   ["[]a]+", "X", "g", "]aa]\n"],
@@ -57,7 +57,7 @@ for (const [pattern, replacement, flags, stdin] of [
   ["a", "\\&", "g", "banana\n"],
 ] as const) add("sed", `regex-${cases.length}`, "sed.regex", ["-E", `s/${pattern}/${replacement}/${flags}`], stdin);
 
-add("sed", "script-comment-after-label", "sed.parser", [":again # comment\ns/aa/a/\nt again"], "aaaa\n");
+add("sed", "script-comment-after-label", "sed.parser", [":again\n# comment\ns/aa/a/\nt again"], "aaaa\n");
 add("sed", "script-first-line-quiet", "sed.parser", ["#n\n2p"], "a\nb\n");
 add("sed", "script-file-order", "sed.script-files", ["-f", "first", "-e", "s/b/c/", "input"], "", { first: "s/a/b/\n", input: "a\n" });
 add("sed", "program-named-like-option", "sed.options", ["-n", "-e", "p", "--", "-input"], "", { "-input": "preserve\n" });

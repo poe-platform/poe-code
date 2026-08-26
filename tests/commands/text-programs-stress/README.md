@@ -108,3 +108,12 @@ matches, BSD in-place quit across files, and awk file `getline`. Sed `r`, `w`,
 substitution flags and the label-comment fixture remain native-rejected. Do not
 copy BSD in-place data truncation merely to improve agreement with that oracle.
 Dialect differences need explicit policy and additional native reference runs.
+
+## Oracle validity corrections
+
+The numeric/global flag case previously used `2g`, rejected by the local BSD
+oracle; it now tests portable numbered substitution `2`. The extension still has
+an explicit virtual expected-output regression. The label/comment case now puts
+the comment on its own line instead of incorporating it into the label. These
+are fixture-validity corrections, not product fixes. Historical reports and Git
+history retain both original rejected inputs and their diagnostics.

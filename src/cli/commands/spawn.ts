@@ -297,7 +297,7 @@ export function registerSpawnCommand(
             model,
             { readOnly: flags.dryRun }
           );
-          const result = await spawnInteractive(canonicalService, {
+          const interactiveOptions = {
             prompt,
             args: forwardedArgs,
             model: interactiveModel,
@@ -309,7 +309,13 @@ export function registerSpawnCommand(
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
             cwd: cwdOverride
-          });
+          };
+          if (flags.dryRun) {
+            const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
+            resources.logger.dryRun(formatSpawnDryRunMessage(target.label, interactiveOptions));
+            return;
+          }
+          const result = await spawnInteractive(canonicalService, interactiveOptions);
           process.exitCode = result.exitCode;
           return;
         }

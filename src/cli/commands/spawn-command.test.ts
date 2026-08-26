@@ -79,6 +79,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 });
 
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import * as spawnCore from "../../sdk/spawn-core.js";
 import {
   DEFAULT_SPAWN_MODE,
   getSpawnConfig,
@@ -3203,6 +3204,123 @@ describe("spawn command", () => {
   });
 
   describe("--interactive flag", () => {
+    describe("interactive dry run", () => {
+      it.each([
+        { before: true, agent: "claude-code", prompt: "sensitive-prompt" },
+        { before: false, agent: "claude", prompt: "sensitive-prompt" },
+        { before: false, agent: "claude-code", prompt: "" },
+        { before: true, agent: "claude", prompt: "" }
+      ])("previews without execution (before: $before, agent: $agent, prompt: $prompt)", async ({ before, agent, prompt }) => {
+        const volume = Volume.fromJSON({ "/repo/keep.txt": "unchanged" });
+        const memoryFs = createFsFromVolume(volume).promises as unknown as FileSystem;
+        const initialFiles = volume.toJSON();
+        const { container, logs, commandCalls } = createContainerWithDependencies({ fs: memoryFs });
+        const program = new Command().option("--yes").option("--dry-run");
+        registerSpawnCommand(program, container);
+        vi.mocked(spawnInteractive).mockResolvedValue({ stdout: "", stderr: "", exitCode: 7 });
+        const savedExitCode = process.exitCode;
+        process.exitCode = 130;
+
+        try {
+          await program.parseAsync([
+            "node", "cli", "--yes", ...(before ? ["--dry-run"] : []),
+            "spawn", "--interactive", agent, ...(prompt ? [prompt] : []), "--mode", "auto",
+            ...(before ? [] : ["--dry-run"])
+          ]);
+
+          expect(spawnInteractive).not.toHaveBeenCalled();
+          expect(sdkSpawn).not.toHaveBeenCalled();
+          expect(commandCalls).toEqual([]);
+          expect(volume.toJSON()).toEqual(initialFiles);
+          expect(process.exitCode).toBe(130);
+          const preview = stripAnsi(logs.join("\n"));
+          expect(preview).toContain("Dry run: would spawn Claude Code.");
+          expect(preview).toContain(`[prompt redacted] (${prompt.length} chars)`);
+          expect(preview).not.toContain("sensitive-prompt");
+        } finally {
+          process.exitCode = savedExitCode;
+        }
+      });
+
+      it.each([true, false])("shares resolved options and runs cleanup (dryRun: %s)", async (dryRun) => {
+        const shutdown = vi.fn().mockResolvedValue(undefined);
+        const cleanup = vi.fn().mockResolvedValue(undefined);
+        braintrustLoadIntegrationsMock.mockResolvedValueOnce({ shutdown });
+        vi.mocked(resolveWorkspace).mockResolvedValueOnce({
+          cwd: "/repo/app",
+          locator: { scheme: "local", path: "/repo/app" },
+          cleanup
+        });
+        vi.mocked(spawnInteractive).mockResolvedValue({ stdout: "", stderr: "", exitCode: 7 });
+        const previewSpy = vi.spyOn(spawnCore, "formatSpawnDryRunMessage");
+        const { container, logs, commandCalls } = createContainerWithDependencies({ fs });
+        const program = new Command().option("--yes").option("--dry-run");
+        registerSpawnCommand(program, container);
+        const expectedOptions = {
+          prompt: "sensitive-prompt",
+          args: ["--label", "visible argument"],
+          model: "explicit-model",
+          mode: "read",
+          cwd: "/repo/app",
+          resumeThreadId: "thread_123",
+          runtimeConfigCwd: cwd
+        };
+        const savedExitCode = process.exitCode;
+        process.exitCode = 130;
+
+        try {
+          await program.parseAsync([
+            "node", "cli", "--yes", ...(dryRun ? ["--dry-run"] : []),
+            "spawn", "--interactive", "claude", "sensitive-prompt",
+            "--model", "explicit-model", "--mode", "read", "--cwd", "/repo/app",
+            "--resume-thread-id", "thread_123", "--", "--label", "visible argument"
+          ]);
+
+          if (dryRun) {
+            expect(spawnInteractive).not.toHaveBeenCalled();
+            expect(previewSpy).toHaveBeenCalledExactlyOnceWith("Claude Code", expectedOptions);
+            const preview = stripAnsi(logs.join("\n"));
+            expect(preview).toContain('[prompt redacted] (16 chars)');
+            expect(preview).toContain('Args: --label "visible argument"');
+            expect(preview).toContain("Cwd: /repo/app");
+            expect(preview).not.toContain("sensitive-prompt");
+          } else {
+            expect(spawnInteractive).toHaveBeenCalledExactlyOnceWith("claude-code", expectedOptions);
+            expect(previewSpy).not.toHaveBeenCalled();
+          }
+          expect(process.exitCode).toBe(dryRun ? 130 : 7);
+          expect(shutdown).toHaveBeenCalledTimes(1);
+          expect(cleanup).toHaveBeenCalledTimes(1);
+          expect(sdkSpawn).not.toHaveBeenCalled();
+          expect(commandCalls).toEqual([]);
+        } finally {
+          process.exitCode = savedExitCode;
+          previewSpy.mockRestore();
+        }
+      });
+
+      it.each([
+        { agent: "cursor", args: ["--worktree"], message: 'Agent "cursor" does not support --mode auto.' },
+        { agent: "claude-code", args: ["--worktree"], message: "spawn --worktree cannot be combined with --interactive." },
+        { agent: "claude-code", args: [], message: "spawn --interactive requires an interactive TTY." }
+      ])("preserves validation before preview: $message", async ({ agent, args, message }) => {
+        setProcessStdinIsTTY(false);
+        const { container, logs, commandCalls } = createContainerWithDependencies({ fs });
+        const program = new Command().option("--yes").option("--dry-run");
+        registerSpawnCommand(program, container);
+
+        await expect(program.parseAsync([
+          "node", "cli", "--yes", "--dry-run", "spawn", "--interactive", agent, "hello",
+          "--mode", "auto", ...args
+        ])).rejects.toThrow(message);
+
+        expect(spawnInteractive).not.toHaveBeenCalled();
+        expect(sdkSpawn).not.toHaveBeenCalled();
+        expect(commandCalls).toEqual([]);
+        expect(logs.join("\n")).not.toContain("Dry run: would spawn");
+      });
+    });
+
     it("refuses --interactive without a TTY instead of launching the agent", async () => {
       setProcessStdinIsTTY(false);
       const { runner } = createCommandRunnerStub();

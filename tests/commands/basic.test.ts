@@ -34,6 +34,9 @@ test("printf formats common numbers, padding, precision, and byte escapes", asyn
   assert.deepEqual((await run("printf", ["%b", "\\0377\\0\\n"])).stdoutBytes, Buffer.from([255, 0, 10]));
   assert.equal((await run("printf", ["%bafter", "before\\cignored"])).stdout, "before");
   assert.equal((await run("printf", ["%d", "010"])).stdout, "8");
+  assert.equal((await run("printf", ["%d", "9007199254740993"])).stdout, "9007199254740993");
+  assert.deepEqual((await run("printf", ["%.1s", "é"])).stdoutBytes, Buffer.from([195]));
+  assert.equal((await run("printf", ["%4b", "x"])).stdout, "   x");
   const invalid = await run("printf", ["%d", "oops"]);
   assert.equal(invalid.exitCode, 1);
   assert.match(invalid.stderr, /invalid number/u);

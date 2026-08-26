@@ -1,5 +1,5 @@
 import { basename, dirname, type CommandDefinition } from "../contracts/index.js";
-import { define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
+import { define, encoder, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -81,14 +81,17 @@ export function basicCommands(): CommandDefinition[] {
           if (/[fFeEgG]/u.test(specifier) && (precision ?? 0) > 100) throw new UsageError("floating-point precision is too large");
           const supplied = args[argument++] ?? "";
           let text: string;
-          if (specifier === "b") {
-            const escaped = escapeBytes(supplied, true);
-            await output(context, escaped.bytes);
+          if (specifier === "b" || specifier === "s") {
+            const escaped = specifier === "b" ? escapeBytes(supplied, true) : { bytes: encoder.encode(supplied), stop: false };
+            const bytes = escaped.bytes.subarray(0, precision);
+            const padding = " ".repeat(Math.max(0, width - bytes.length));
+            if (!flags.includes("-")) await output(context, padding);
+            await output(context, bytes);
+            if (flags.includes("-")) await output(context, padding);
             stopped = escaped.stop;
             continue;
           }
-          if (specifier === "s") text = precision === undefined ? supplied : supplied.slice(0, precision);
-          else if (specifier === "q") text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => character === "\n" ? "$'\\n'" : `\\${character}`);
+          if (specifier === "q") text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => character === "\n" ? "$'\\n'" : `\\${character}`);
           else if (specifier === "c") text = supplied ? String.fromCodePoint(supplied.codePointAt(0)!) : "\0";
           else {
             let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? supplied.codePointAt(1) ?? 0 : Number(supplied);
@@ -106,7 +109,20 @@ export function basicCommands(): CommandDefinition[] {
             else {
               const radix = /[xX]/u.test(specifier) ? 16 : specifier === "o" ? 8 : 10;
               const unsigned = /[uoxX]/u.test(specifier);
-              const integral = BigInt(Math.trunc(number));
+              let integral: bigint;
+              try {
+                const token = supplied.trim();
+                if (!token || /^["']/u.test(token)) integral = BigInt(Math.trunc(number));
+                else {
+                  const magnitude = token.replace(/^[+-]/u, "");
+                  if (!/^(?:0[xX][0-9a-fA-F]+|0[0-7]*|[1-9][0-9]*)$/u.test(magnitude)) throw new Error("invalid integer");
+                  integral = BigInt(/^0[0-7]+$/u.test(magnitude) ? `0o${magnitude.slice(1)}` : magnitude) * (token.startsWith("-") ? -1n : 1n);
+                }
+              } catch {
+                integral = 0n;
+                if (exitCode === 0) await context.stderr.write(encoder.encode(`printf: '${supplied}': invalid integer\n`));
+                exitCode = 1;
+              }
               text = (unsigned ? BigInt.asUintN(64, integral) : integral).toString(radix);
               if (precision !== undefined) text = text.startsWith("-") ? `-${text.slice(1).padStart(precision, "0")}` : text.padStart(precision, "0");
               if (flags.includes("#") && number !== 0) text = (radix === 16 ? "0x" : radix === 8 ? "0" : "") + text;

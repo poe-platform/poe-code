@@ -205,20 +205,33 @@ export function textCommands(): CommandDefinition[] {
                 if (parsed.flags.has("s")) continue;
                 bytes = line.bytes;
               } else bytes = encoder.encode(text.split(delimiter).filter((_, index) => selected(index + 1)).join(outputDelimiter ?? delimiter));
-            } else {
-              const units = mode === "b" ? [...line.bytes].map(byte => Uint8Array.of(byte)) : [...new TextDecoder().decode(line.bytes)].map(character => encoder.encode(character));
+            } else if (mode === "b") {
               const chunks: Uint8Array[] = [];
-              let previous = false;
+              let start = -1;
               let emitted = false;
-              units.forEach((unit, index) => {
-                const included = selected(index + 1);
-                if (included) {
-                  if (!previous && emitted && outputDelimiter !== undefined) chunks.push(encoder.encode(outputDelimiter));
-                  chunks.push(unit); emitted = true;
+              for (let index = 0; index <= line.bytes.length; index++) {
+                const included = index < line.bytes.length && selected(index + 1);
+                if (included && start < 0) start = index;
+                if (!included && start >= 0) {
+                  if (emitted && outputDelimiter !== undefined) chunks.push(encoder.encode(outputDelimiter));
+                  chunks.push(line.bytes.subarray(start, index)); emitted = true; start = -1;
                 }
-                previous = included;
-              });
+              }
               bytes = concatenate(chunks);
+            } else {
+              const text = new TextDecoder().decode(line.bytes);
+              const pieces: string[] = [];
+              let index = 0;
+              let offset = 0;
+              let start = -1;
+              for (const character of text) {
+                const included = selected(++index);
+                if (included && start < 0) start = offset;
+                if (!included && start >= 0) { pieces.push(text.slice(start, offset)); start = -1; }
+                offset += character.length;
+              }
+              if (start >= 0) pieces.push(text.slice(start));
+              bytes = encoder.encode(pieces.join(outputDelimiter ?? ""));
             }
             await output(context, bytes);
             await output(context, Uint8Array.of(recordDelimiter));

@@ -227,3 +227,25 @@ decoder differences, unsupported formats/options, VFS race limitations, and
 bounded staging remain limitations after a green author run. No independent
 audit, complete GNU compatibility, benchmark win, or product superiority is
 claimed.
+
+## Independent verification checkpoint
+
+The subsequent independent verifier owns `tests/commands/bytes-stress/`.
+See its README for reproduction commands, native identities, comparison scope,
+and explicit non-passes. It found and fixed two compression bugs: unsafe lexical
+normalization through parent symlinks (`21b43cd`), and empty-only input starving
+timer cancellation (`06e0d27`). The public plugin/factory API is unchanged.
+
+On August 26, 2026, the combined author/independent byte run contains **322
+tests: 313 passed, five GNU-oracle skips, four native-parity TODOs**, with no
+ordinary failures/cancellations. The independent portion is **90 passes and
+four TODOs**; 130 additional cancellation repetitions pass. Scoped strict types
+and the product build pass, as does the final fresh whole-repository
+`npm run typecheck` after unrelated concurrent structured-stress errors resolved.
+
+Available Python/BSD/Perl/Darwin alternatives and fixed RFC/digest vectors add
+coverage without relabeling the five GNU skips. Apple gzip differs on forced
+empty/one-byte input, trailing zero padding, and reserved header flags; the
+explicit TODOs are not compatibility passes. Existing strict-decoder policy,
+Node gzip warning/trailing-data differences, VFS races, cooperative writer
+cleanup, and external-provider verification limitations remain.

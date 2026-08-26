@@ -165,6 +165,18 @@ No global remote atomicity, general symlink-race immunity, universal GNU/BSD or
 shell support, full-product completion, just-bash superiority, or 72-hour claim.
 No acceptance/native/build process owned by this verifier remains active.
 
+### Later-evidence addendum (documentation reconciliation)
+
+The same overlay SHA-256 `e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28` is now committed in `50f517d`.
+The companion `../pruning-adversarial/README.md` at `bf60e8f` records a later
+independent **200/200** matrix, including static overlay under **preexisting
+immutable-lower/exclusive-upper prerequisites**. The initial in-contract bug
+classification was **retracted**. Actual raw lower-child visibility loss remains:
+**0/3 child-preservation outcomes**, outside contract and **not successful child preservation**.
+That matrix is separate from original3758 and is **not remote-support proof**.
+The user separately reports adapter **77/79** due to S3/WebDAV `ENOTSUP`; it is not rerun here or combined with either matrix.
+Frozen snapshot/raw results and all checkpoint counts remain unchanged; no all-green checkpoint is claimed.
+
 ## Reproduction and ownership
 
 From `/Users/kjopek/Workspace/safe-bash`, preparation only:

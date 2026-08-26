@@ -1,0 +1,70 @@
+{
+  "capturedAt": "2026-08-26T23:29:35.346Z",
+  "head": "cbde2fea6a645dbd6395e6b82f1526769e51c1fc",
+  "status": "proposal only; no approved identity seam in inspected contract",
+  "sourceHashes": {
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+    "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+    "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+    "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+    "src/fs/overlay/README.md": "1797d6e8e510eb5fa8d383f33485cda45f0259fa52831ac72e0cc983709f68da",
+    "src/fs/overlay/index.ts": "e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28",
+    "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+    "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+    "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+    "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+    "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+    "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+  },
+  "files": [
+    {
+      "path": "original/exact-contract-request.txt",
+      "origin": "/tmp/safe-bash-mount-identity-contract-needed.txt",
+      "sha256": "fcb19b5676b112738c13086be39c8839ae86e32d88196c56bf61037d2de27a18"
+    },
+    {
+      "path": "original/source-and-reproduction-manifest.json",
+      "origin": "tests/fs/mount/evidence/identity-20260826/original/manifest.json",
+      "sha256": "3b144051f0dbcc1721fe1909e49b4638e21bf745c66bedf76430730b7059966a"
+    },
+    {
+      "path": "original/committed-copy-identity.test.ts.txt",
+      "origin": "tests/fs/mount/evidence/identity-20260826/original/copy-identity.test.ts.txt",
+      "sha256": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115"
+    },
+    {
+      "path": "original/reproduction.stdout",
+      "origin": "tests/fs/mount/evidence/identity-20260826/original/reproduction.stdout",
+      "sha256": "47efb183bf84bb1448c86df1cfeb84d63ac3ea33056578fea9ac5a11ad4d13c1"
+    },
+    {
+      "path": "original/pending-contract-manifest.json",
+      "origin": "tests/fs/mount/evidence/identity-20260826/pending-contract/manifest.json",
+      "sha256": "9bd23688d3e1affae19fcf437833aaefbea938f2550e267ae52ba5d0a8c1e4bf"
+    },
+    {
+      "path": "original/required49.stdout",
+      "origin": "tests/fs/mount/evidence/rmdir-20260826/identity-new-required-red.stdout",
+      "sha256": "6191d51705d4a1f18898498012a5aef338b1a5be3562dc76242f07811bf7d6f9"
+    },
+    {
+      "path": "original/required49-source-manifest.json",
+      "origin": "tests/fs/mount/evidence/rmdir-20260826/manifest.json",
+      "sha256": "7d43be8922353b95c1f9aeba9735454436e6aa76a847e29cae3820f8222aab17"
+    }
+  ]
+}

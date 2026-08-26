@@ -143,6 +143,34 @@ export async function* jsonValues(source: ByteSource, budget: Budget): AsyncGene
   if (buffer) yield parseJson(buffer, budget);
 }
 
+export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Budget, slurp: boolean): AsyncGenerator<string> {
+  let buffer = "";
+  let bytes = 2;
+  const append = (text: string): void => {
+    bytes += Buffer.byteLength(JSON.stringify(text)) - 2;
+    if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    buffer += text;
+  };
+  async function* texts(): AsyncGenerator<string> {
+    for await (const source of sources) yield* utf8Text(source, budget);
+  }
+  for await (const text of texts()) {
+    if (slurp) { append(text); continue; }
+    let start = 0;
+    let end: number;
+    while ((end = text.indexOf("\n", start)) !== -1) {
+      await budget.tick();
+      append(text.slice(start, end));
+      budget.value(buffer);
+      yield buffer;
+      buffer = ""; bytes = 2;
+      start = end + 1;
+    }
+    append(text.slice(start));
+  }
+  if (slurp || buffer) { budget.value(buffer); yield buffer; }
+}
+
 export function stringify(value: Json, budget: Budget, pretty = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes"): string {
   const parts: string[] = [];
   let bytes = 0;

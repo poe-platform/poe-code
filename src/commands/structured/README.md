@@ -52,8 +52,10 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | Option | Meaning |
 | --- | --- |
 | `-r`, `--raw-output` | Emit strings without JSON quotes; other values remain JSON. |
+| `-j`, `--join-output` | Imply raw output and omit the trailing LF for every output value, including nonstrings. |
+| `-R`, `--raw-input` | Read LF-delimited strings instead of JSON; preserve CR, BOM, and final partial records. |
 | `-c`, `--compact-output` | Compact JSON instead of two-space pretty JSON. |
-| `-s`, `--slurp` | Collect all input values into one array and run the filter once. |
+| `-s`, `--slurp` | Collect JSON values into one array; with `-R`, collect verbatim text into one string, including LF. |
 | `-n`, `--null-input` | Run once with null; do not acquire stdin or open data files, even with `-s`. |
 | `-e`, `--exit-status` | Base successful execution status on the last output value. |
 | `--arg NAME TEXT` | Bind a string variable. |
@@ -71,11 +73,20 @@ An explicit `--arg ARGS ...` is retained in `$ARGS.named.ARGS`; it does not
 replace the automatic `$ARGS` object. Its insertion order is `positional`, then
 `named`, matching the captured native build.
 
-Every output value ends in LF. Embedded newlines in raw strings are preserved.
+Every output value ends in LF unless `-j` is set. Embedded newlines in raw strings are preserved.
 Ordinary successful execution returns 0. With `-e`, no emitted result returns 4,
 last result null/false returns 1, and any other last result returns 0. Empty
 strings, zero, and empty containers are true-valued. A later input that emits no
 results does not erase the previous result used by `-e`.
+
+Raw input splits on LF only, not CRLF as a unit: `a\r\n` becomes `"a\r"`.
+Empty raw stdin emits no records; each blank line emits an empty string, and a
+trailing LF does not create an extra record. Raw slurp emits one empty string
+even for empty input. Data files and stdin are concatenated in operand order,
+so a partial record carries into the next file. Repeated `-` operands consume
+stdin only once in raw mode. Each file must independently contain valid UTF-8;
+byte chunks within a file may split codepoints. `-n` bypasses all raw data
+sources, even with `-s`, but still compiles the filter first.
 
 Usage/file errors return 2, compile errors 3, and data/runtime/limit errors 5.
 The first data/runtime error stops this command. A single bounded diagnostic is
@@ -172,6 +183,22 @@ byte follows it in the same chunk; valid and malformed UTF-8 split regressions
 exercise this behavior. UTF-8 overlong encodings, encoded surrogates, truncated
 sequences, BOM input, and lone JSON/string-literal surrogates are rejected.
 
+Raw input uses the same strict UTF-8 safety policy, except that BOM is ordinary
+string data. Native `jq-1.7.1-apple` replaces invalid UTF-8; this implementation
+rejects it, including a truncated codepoint at a file boundary, and preserves
+already-emitted complete records. It also retains the documented stop-on-first
+runtime-error policy rather than continuing with later records like that native
+build. These are explicit policy differences, not parity claims.
+
+Raw record mode emits each LF-completed record before EOF and awaits stdout
+before advancing the decoder or reading more input. Raw slurp intentionally
+waits for all sources. `maxValueBytes` counts the compact JSON representation
+of each raw record or the entire slurped string (quotes and escaped control
+characters included), even with raw output. Raw strings do not consume an
+array-collection slot per line. The existing cumulative input, output, result,
+work, source, AST, and collection limits still apply; `-j` removes only the
+output delimiter byte, not result accounting.
+
 All fields of `JqLimits` are readonly numbers:
 
 | Limit | Default | Scope |
@@ -224,7 +251,7 @@ should supply a deadline signal when they require a wall-clock deadline.
   Native acceptance of NaN, Infinity, or huge exponents is not modeled.
 - Invalid JSON stops the command; native versions/builds differ in error codes
   and whether they continue after an individual input's evaluation failure.
-- No raw-input, streaming path-event mode, colors, sorted-output flag, join-output,
+- No streaming path-event mode, colors, sorted-output flag,
   file-variable flags, jq environment builtins, or host process/file access.
 
 ## Source-author verification evidence

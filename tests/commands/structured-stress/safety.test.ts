@@ -48,7 +48,7 @@ test('invalid UTF-8 never becomes replacement text', async () => {
 const preflight: readonly [readonly string[], number][] = [
   [['-c', '1,('], 3], [['-c', 'if true then 1 else $missing end'], 3], [['-c', 'false and nope'], 3],
   [['-c', '"\\q"'], 3], [['-c', '.foo='], 3], [['-c', 'sort_by()'], 3], [['-c', '.[0:1]=0'], 3],
-  [['-c', '.[]? |= 0'], 3], [['-c', 'join(",")'], 3], [['-R', '.'], 2], [['--raw-input', '.'], 2],
+  [['-c', '.[]? |= 0'], 3], [['-c', 'join(",")'], 3], [['-RZ', '.'], 2], [['--raw-input=lines', '.'], 2],
   [['--argjson', 'x', '{"bad":}', '$x'], 2], [['--argjson', 'x', '1 2', '$x'], 2],
 ];
 for (const [index, [argv, status]] of preflight.entries()) test(`preflight ${index} acquires no input or data files`, async () => {

@@ -1,11 +1,13 @@
 import { FsError, readBytes, resolvePath, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { jsonValues, parseJson, stringify } from "./input.js";
+import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { parse } from "./parser.js";
 
 interface Options {
   raw: boolean;
+  rawInput: boolean;
+  joinOutput: boolean;
   compact: boolean;
   slurp: boolean;
   nullInput: boolean;
@@ -22,7 +24,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     argumentBytes += Buffer.byteLength(argument);
     if (argumentBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
   }
-  const options: Options = { raw: false, compact: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
+  const options: Options = { raw: false, rawInput: false, joinOutput: false, compact: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
   const named = object();
   let ended = false;
   let variableBytes = 0;
@@ -46,12 +48,14 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
       if (options.programFile !== undefined || options.source !== undefined) throw new JqError("provide exactly one filter program", 2);
       options.programFile = operand(); continue;
     }
-    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--compact-output": "c", "--slurp": "s", "--null-input": "n", "--exit-status": "e" };
+    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--slurp": "s", "--null-input": "n", "--exit-status": "e" };
     if (!ended && argument.startsWith("-") && argument !== "-") {
       const flags = Object.hasOwn(long, argument) ? long[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
-      if (!flags || !/^[rcsne]+$/u.test(flags)) throw new JqError(`unsupported option ${argument}`, 2);
+      if (!flags || !/^[rRjcsne]+$/u.test(flags)) throw new JqError(`unsupported option ${argument}`, 2);
       for (const flag of flags) {
         if (flag === "r") options.raw = true;
+        else if (flag === "R") options.rawInput = true;
+        else if (flag === "j") { options.joinOutput = true; options.raw = true; }
         else if (flag === "c") options.compact = true;
         else if (flag === "s") options.slurp = true;
         else if (flag === "n") options.nullInput = true;
@@ -84,19 +88,29 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi
   try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(Buffer.concat(chunks)); }
   catch { throw new JqError("program file is not valid UTF-8", 3); }
 }
-async function* inputs(context: CommandContext, options: Options, budget: Budget): AsyncGenerator<Json> {
+async function* inputSources(context: CommandContext, options: Options, budget: Budget): AsyncGenerator<ByteSource> {
   const files = options.files.length ? options.files : ["-"];
+  let usedStdin = false;
   for (const file of files) {
     let source: ByteSource;
-    if (file === "-") source = context.stdin;
+    if (file === "-") {
+      if (options.rawInput && usedStdin) continue;
+      usedStdin = true;
+      source = context.stdin;
+    }
     else {
       const absolute = resolvePath(context.cwd, file);
       const remaining = budget.limits.maxInputBytes - budget.inputBytes;
       if (context.fs.readStream) source = context.fs.readStream(absolute, { signal: context.signal });
       else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: remaining }), context.signal));
     }
-    yield* jsonValues(source, budget);
+    yield source;
   }
+}
+async function* inputs(context: CommandContext, options: Options, budget: Budget): AsyncGenerator<Json> {
+  if (options.rawInput) {
+    yield* rawValues(inputSources(context, options, budget), budget, options.slurp);
+  } else for await (const source of inputSources(context, options, budget)) yield* jsonValues(source, budget);
 }
 async function execute(context: CommandContext, limits: JqLimits): Promise<{ exitCode: number }> {
   const budget = new Budget(limits, context.signal);
@@ -112,8 +126,9 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
         await budget.tick(); budget.value(result);
         if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
         const remaining = limits.maxOutputBytes - budget.outputBytes;
-        const text = options.raw && typeof result === "string" ? result : stringify(result, budget, !options.compact, Math.max(0, remaining - 1), "maxOutputBytes");
-        const bytes = Buffer.from(`${text}\n`);
+        const suffix = options.joinOutput ? "" : "\n";
+        const text = options.raw && typeof result === "string" ? result : stringify(result, budget, !options.compact, Math.max(0, remaining - suffix.length), "maxOutputBytes");
+        const bytes = Buffer.from(`${text}${suffix}`);
         if (bytes.byteLength > remaining) throw new JqLimitError("maxOutputBytes");
         budget.outputBytes += bytes.byteLength;
         await writeBytes(context.stdout, bytes, context.signal);
@@ -121,7 +136,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
       }
     };
     if (options.nullInput) await emit(null);
-    else if (options.slurp) {
+    else if (options.slurp && !options.rawInput) {
       const values: Json[] = [];
       let bytes = 2;
       for await (const value of inputs(context, options, budget)) {

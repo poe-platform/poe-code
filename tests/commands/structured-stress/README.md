@@ -75,7 +75,9 @@ an additional asynchronous timeout, not preemption of synchronous JavaScript.
 Coverage includes agent queries, multi-output composition, empty/null, object
 and prototype keys, Unicode/escaping/numeric edges, CLI bindings, slurp, raw
 output, statuses, preflight without acquiring input, and real virtual pipelines.
-Raw-input options are tested as unsupported, not conflated with raw output.
+The baseline tested raw-input options as unsupported. The focused capability
+increment below replaces those two nonfrozen negative-policy rows with `-RZ`
+and `--raw-input=lines`: unsupported flags still fail before acquiring sources.
 
 Malformed input tests include 23 specimens at four chunk sizes (92 runs),
 malformed suffix/slurp behavior, and invalid UTF-8. These use the documented
@@ -109,7 +111,7 @@ surrogate-argv mismatches are recorded as invalid oracle transports, not bugs.
   This is a saved-expectation replay, not 781 additional native executions.
 
 The 17 differences stay in the denominator. Other deferred grammar remains
-deferred: `join`, raw input, object `any`/`all`, fractional slices, decimal
+deferred at that baseline: `join`, raw input, object `any`/`all`, fractional slices, decimal
 lexeme retention, recursion, bindings, definitions, regex, and the other source
 README gaps. No full jq parity, superiority to just-bash, or elapsed-work-duration
 claim follows from these tests.
@@ -139,3 +141,35 @@ The seven-file runtime manifest hash is
 `d0645dd53d40e74e1d745298415bafb2f8a4c00cccf4b1f87863649d18decd55`:
 SHA-256 of concatenated `basename + " " + fileSHA256 + "\n"` records for all
 `src/commands/structured/*.ts` files sorted by basename. It excludes README files.
+
+## Focused raw-input author increment (August 26, 2026)
+
+`raw-input-native.json` contains 74 new bounded native captures: 61 exact
+stdout/status parity cases and 13 explicitly recorded safety-policy differences
+(12 malformed UTF-8, including two split-file codepoints; one stop-on-first
+runtime error). Both native outputs/statuses and separate policy expectations
+are retained. These are 74 rows, not 74 distinct semantic categories.
+`capture-raw-input.mjs` is an optional, standalone capture tool using literal
+argv, `shell:false`, `/usr/bin/jq` version `jq-1.7.1-apple`, a two-second timeout,
+and 64 KiB maxBuffer. It is never invoked by committed tests. The 74 tests each
+replay at four byte chunk sizes without native jq. All 74 failed as unsupported
+before runtime changes; the fixture/test/capture paths were staged first.
+
+The additional 24 author safety tests cover every existing budget, exact UTF-8
+and escaped-value byte accounting, empty `-j` results, prompt record emission,
+sink backpressure, pending stdin/file-stream/file-fallback reads, writes,
+iterator cleanup and late rejections, cooperative cancellation, EPIPE, null
+input/preflight, cumulative virtual file inputs, and four actual MemoryFS shell
+pipelines. Raw slurp preserves CR/LF verbatim; raw records preserve CR and join
+partial records across file boundaries. No contracts or API exports changed.
+
+Author gate: 536/536 combined structured tests pass. A native-free combined run
+passes 534 with two pre-existing optional native-oracle tests skipped; none of
+the 98 new tests need native jq. These author checks are not the requested
+separate-worker final verification. Fresh scoped typing, global typecheck, and
+global build pass. The 389-test stress suite also passes with `PATH=/nonexistent`
+and no skips. Earlier unowned diff-patch test type errors cleared outside this
+assignment. All 240 original frozen native expectations replay exactly; no
+original frozen fixture or capture is changed. Runtime SHA-256 after raw input:
+`input.ts` = `c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829`,
+`jq.ts` = `b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4`.

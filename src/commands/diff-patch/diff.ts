@@ -25,14 +25,14 @@ function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--brief") result.brief = true;
     else if (arg === "--recursive") result.recursive = true;
     else if (arg === "--new-file") result.newFile = true;
-    else if (arg === "--unified") result.context = 3;
+    else if (arg === "--unified") continue;
     else if (arg.startsWith("--unified=")) result.context = integer(arg.slice(10), "context");
     else if (arg === "--label" || arg.startsWith("--label=")) result.labels.push(value(arg.includes("=") ? arg.slice(8) : undefined, "--label"));
     else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
     else {
       for (let offset = 1; offset < arg.length; offset++) {
         const flag = arg[offset]!;
-        if (flag === "u") result.context = 3;
+        if (flag === "u") continue;
         else if (flag === "q") result.brief = true;
         else if (flag === "r") result.recursive = true;
         else if (flag === "N") result.newFile = true;

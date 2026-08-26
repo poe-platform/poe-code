@@ -3,20 +3,34 @@ import test from "node:test";
 import { assertBytes, bytes, creation, cwd, deletion, instrument, invoke, memory, replacement, snapshot } from "./helpers.js";
 
 for (const [name, path] of [
-  ["absolute", "/sandbox/work/target"], ["traversal", "prefix/../../target"],
+  ["absolute", "/sandbox/work/decoy"], ["traversal", "prefix/../../target"],
   ["traversal before strip", "../target"], ["drive", "C:/target"],
   ["backslash", "prefix\\target"], ["nul", "target\0suffix"],
   ["escape", "target\u001b[2J"], ["del", "target\u007f"],
   ["carriage return", "target\r"],
 ] as const) {
-  test(`unsafe second header leaves all identities and bytes intact: ${name}`, async () => {
-    const backing = await memory({ first: "old\n", target: "old\n", sentinel: "untouched\n" });
-    const before = await snapshot(backing);
+  test(name === "absolute" ? "absolute headers reject automatic selection but explicit target wins without changing decoys"
+    : `unsafe second header leaves all identities and bytes intact: ${name}`, async () => {
     for (const args of [[], ["-p1"], ["target"], ["--dry-run"]]) {
+      const backing = await memory({ first: "old\n", target: "old\n", decoy: "old\n", sentinel: "untouched\n" });
+      const before = await snapshot(backing);
       const observed = instrument(backing);
-      const input = args.includes("target") ? replacement().replace("+++ target", `+++ ${path}`)
+      const input = args.includes("target") ? replacement("first").replace("+++ first", `+++ ${path}`)
         : replacement("first") + replacement().replace("+++ target", `+++ ${path}`);
       const result = await invoke(observed.fs, "patch", { args, input });
+      if (name === "absolute" && args.includes("target")) {
+        const expected = before.map(entry => {
+          assert(typeof entry === "object" && entry !== null && "path" in entry);
+          return entry.path === `${cwd}/target` ? { ...entry, data: Buffer.from("new\n").toString("hex") } : entry;
+        });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, `patching file ${cwd}/target\n`);
+        await assertBytes(backing, "target", "new\n");
+        assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/target`]]);
+        assert.deepEqual(await snapshot(backing), expected, "Only explicit target bytes change; all identities and decoy header targets remain intact");
+        continue;
+      }
       assert.equal(result.exitCode, 2, result.stderr);
       assert.equal(result.stdout, "");
       assert.deepEqual(observed.mutations(), []);

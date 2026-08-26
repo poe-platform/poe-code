@@ -368,6 +368,43 @@ that any implementation, command, fixture, or test currently exists.
   `tests/commands/diff-patch-stress/compatibility/helpers.ts:58` and `:59`.
   Full global validation waits for a sufficiently stable shared worktree.
 
+### Committed-HEAD integration checkpoint (August 26, 2026)
+
+- Archived `1020eb16a2c365407886ac2ed033349ecac0ead2` with `git archive`, not
+  the moving worktree. Evidence is
+  `benchmarks/reports/committed-head-integration.json` and its `-comparison.json`
+  companion. Cached dependencies were reused only after archived manifest/lock
+  SHA256 equality and installed tooling-version checks; no exhaustive dependency
+  content audit is claimed. The archive SHA256 and exact Node/npm versions are
+  recorded. Runtime dependency metadata remains empty.
+- Snapshot `npm run typecheck` and `npm run build` pass. Built ESM package-root
+  smoke registers all 49 distinct commands through six delivered plugins and
+  passes five cross-family pipelines. This is integration evidence, not a
+  command-count superiority claim.
+- Snapshot `npm test`: **4,574 tests: 4,529 pass, 36 fail, 5 skip, 4 TODO**.
+  Failures belong to the diff/patch verification suite (26, including native
+  oracle-calibration failures requiring classification by Faraday) and the shell
+  differential suite (10, Sagan). Raw failure names, locations, and diagnostics
+  are retained; no gap was converted into a pass or silently excluded.
+- All six actual-local SafeJS tests pass with
+  `SAFEJS_LOCAL_ROOT=/Users/kjopek/Workspace/poe-code/packages/safejs`, private
+  checkout HEAD `a5453ead1fefee3fe3f3b3d913d284646a5f98a8`. Its scoped Git status
+  and package hash are unchanged. This local integration was not itself archived.
+- Five unavailable GNU coreutils oracles remain skips; four Apple gzip parity
+  cases remain TODOs, not passes. Plato's subsequent GNU investigation and other
+  owners' in-progress fixes are not retroactively included in this snapshot.
+- Head-to-head pinned just-bash 3.4.2: virtual **116 pass / 2 fail of 118**;
+  just-bash **108 pass / 9 fail / 1 unsupported of 118**. Virtual failures are
+  implicit empty-pipe rg discovery (Poincare/Sagan provenance work) and guarded
+  absolute patch-target rejection (Faraday). Unsupported remains in denominator.
+  This corpus does not establish the requested superiority or full-shell parity.
+- Reproduce with `SAFEJS_LOCAL_ROOT=/Users/kjopek/Workspace/poe-code/packages/safejs
+  node benchmarks/verify-snapshot.mjs --revision
+  1020eb16a2c365407886ac2ed033349ecac0ead2 --output
+  benchmarks/reports/snapshot-recheck.json` as one shell command. The verifier
+  creates a fresh archive directory; it does not rely on an old temporary tree.
+  Reports describe the tested commit explicitly, never a clean current worktree.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

@@ -181,7 +181,22 @@ Default response limits, configurable through constructor options:
 
 `readFile.maxBytes` may lower the file-read limit, including to zero. Actual
 stream bytes are counted even without Content-Length, and excess/aborted bodies
-are cancelled. Adapter XML node and total-attribute budgets scale with
+are cancelled. Identity bodies must exactly match a valid declared
+Content-Length, including empty/null bodies; truncated, excessive or malformed
+lengths fail with `EIO` (configured byte-limit overflow remains `EFBIG`). GET
+requests prefer `Accept-Encoding: identity`. A server may still encode its
+response: with native Fetch decompression the header describes encoded bytes,
+not the decoded stream, so non-identity lengths are not compared or used as
+decoded-size bounds. Transport decoding/framing integrity remains the trusted
+transport's responsibility for encoded responses; actual delivered bytes are
+always bounded. RFC 9110 sections 8.4 and 8.6 define the encoding/length basis.
+The native-loopback regression records that Node Fetch can accept gzip with a
+missing trailer while delivering the complete decoded payload; the adapter
+cannot verify encoded trailers hidden by Fetch. Corrupt gzip headers that
+Fetch rejects surface as `EIO`. Identity length checks do not claim to remedy
+this encoded-transport limitation.
+
+Adapter XML node and total-attribute budgets scale with
 `maxXmlBytes` (at most one node/attribute per permitted byte); they cannot
 silently undercut a listing that fits the byte budget. Fixed structural
 ceilings remain: 64 nested elements, 128 attributes per element and 256

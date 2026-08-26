@@ -212,8 +212,16 @@ export class WebDavFileSystem implements FileSystem {
 
   private async bytes(response: Response, limit: number, signal: AbortSignal): Promise<Uint8Array> {
     const length = response.headers.get("content-length");
-    if (length !== null && /^\d+$/.test(length) && Number(length) > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
-    if (!response.body) return new Uint8Array();
+    if (length !== null && (!/^\d+$/.test(length) || !Number.isSafeInteger(Number(length)))) {
+      fail("EIO", "webdav", "", "invalid response Content-Length");
+    }
+    const encoding = response.headers.get("content-encoding");
+    const expected = length !== null && (!encoding || encoding.toLowerCase() === "identity") ? Number(length) : undefined;
+    if (expected !== undefined && expected > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
+    if (!response.body) {
+      if (expected !== undefined && expected !== 0) fail("EIO", "webdav", "", "response body length differs from Content-Length");
+      return new Uint8Array();
+    }
     const reader = response.body.getReader();
     const chunks: Uint8Array[] = [];
     let size = 0;
@@ -229,6 +237,7 @@ export class WebDavFileSystem implements FileSystem {
         if (size > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
         chunks.push(new Uint8Array(result.value));
       }
+      if (expected !== undefined && size !== expected) fail("EIO", "webdav", "", "response body length differs from Content-Length");
       const data = new Uint8Array(size);
       let offset = 0;
       for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.byteLength; }
@@ -393,7 +402,7 @@ export class WebDavFileSystem implements FileSystem {
     const normalized = normalize(path);
     const limit = Math.min(this.maxResponseBytes, positive(options.maxBytes ?? this.maxResponseBytes, "maxBytes", true));
     if ((await this.stat(path, options)).type === "directory") fail("EISDIR", "readFile", path);
-    return this.request("GET", normalized, options, {}, async (response, signal) => {
+    return this.request("GET", normalized, options, { headers: { "Accept-Encoding": "identity" } }, async (response, signal) => {
       if (response.status !== 200) this.httpError(response.status, "GET", path);
       return this.bytes(response, limit, signal);
     });

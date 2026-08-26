@@ -1,5 +1,6 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import { Budget, JqError, JqLimitError, object, objectKeys, objectSize, put, scalarJson, wellFormed, type Json } from "./limits.js";
+import { decimalNumber, isNumber } from "./numbers.js";
 
 export function parseJson(text: string, budget: Budget): Json {
   budget.text(text);
@@ -50,9 +51,7 @@ export function parseJson(text: string, budget: Budget): Json {
     const literal = /^(?:null|true|false|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/u.exec(text.slice(offset));
     if (!literal) return fail();
     offset += literal[0].length;
-    const value = JSON.parse(literal[0]) as Json;
-    if (typeof value === "number" && !Number.isFinite(value)) throw new JqError("nonfinite numbers are not supported");
-    return value;
+    return /^[-0-9]/u.test(literal[0]) ? decimalNumber(literal[0], budget) : JSON.parse(literal[0]) as Json;
   };
   const value = parseValue(0); space();
   if (offset !== text.length) fail();
@@ -182,7 +181,7 @@ export function stringify(value: Json, budget: Budget, pretty = false, maxBytes 
   const visit = (current: Json, depth: number): void => {
     budget.step();
     if (depth > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
-    if (current === null || typeof current !== "object") { append(scalarJson(current)); return; }
+    if (current === null || typeof current !== "object" || isNumber(current)) { append(scalarJson(current, budget)); return; }
     const keys = Array.isArray(current) ? Object.keys(current) : objectKeys(current);
     const array = Array.isArray(current);
     append(array ? "[" : "{");

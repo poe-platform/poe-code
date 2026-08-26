@@ -1,0 +1,204 @@
+{
+  "provenance": {
+    "capturedAt": "2026-08-26T20:55:23.387Z",
+    "version": {
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6a712d312e372e312d6170706c650a",
+      "stderrHex": "",
+      "stdoutSha256": "8f0cb494827734c0ed992bd222c9888398f880757e9156f3f3264ff061480bb4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+      "stderrHex": "",
+      "stdoutSha256": "91e521c87733f623b24c129f5fa117b52861aba52652a293ee3fa6c8db745703",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+    "sourceHashes": {
+      "input.ts": "c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829",
+      "jq.ts": "b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4",
+      "interpreter.ts": "fe759576d188d45a659b4894d9f983eef34a4ab6eb56caf1791bd08097b3807b",
+      "parser.ts": "a64e6289de70788609d120b81b22acf44a195910b93d95b8386b6786da726fb2",
+      "limits.ts": "f55d8f084b980633247a193802226e54c92164434cabfd7e7ae8b460999d4bb0",
+      "values.ts": "d4816d016c7e889b4944703410bdbdbb3a05445d9f6bdba14b9bde2c1651830d"
+    },
+    "note": "Bounded identity-only exponent limit probes, before numeric source changes; quantifier fix already committed. Same captureCase watchdog, argv, stream caps and environment as phase one."
+  },
+  "cases": [
+    {
+      "id": "exponent-bound-0",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "316531303030303030303030",
+      "inputSha256": "f0a0685db430401d2854ffc3607bddf9c5f1fe58914ef93ee21b3cf12db9a4ef",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": "",
+        "stdoutSha256": "02ef9237693d1f1730c33693c040e61116db956536c628b7505c72cf9ca93ffa",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "exponent-bound-1",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "2d316531303030303030303030",
+      "inputSha256": "b1a018f66ec8d668277f335184fe45de62ec6f9b73a6920a3ec38571c8112143",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": "",
+        "stdoutSha256": "d2174483f9c1d67e4db459d79550ee15a50995c2f96603a07c6f1e8edc755577",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "exponent-bound-2",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "306531303030303030303030",
+      "inputSha256": "ade46e054903666eb8b46a9977fda01b9ed2426d246548c07cb3443383df426f",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "30452b3939393939393939390a",
+        "stderrHex": "",
+        "stdoutSha256": "4581c4d8c4ecfb3d902df29afb571a3091f3d1b48d7190c8badad93139358880",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "exponent-bound-3",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "31652d31313437343833363436",
+      "inputSha256": "7f0b721a13adfbf2d56cb4802200497a72a0cfe1302d1fc5d6a1d4ae469ed3e3",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "31452d313134373438333634360a",
+        "stderrHex": "",
+        "stdoutSha256": "9b1c7dceabc6db80970fab677f9d3287f0803f21f8a74b5aaf6f961c180efb0f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "exponent-bound-4",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "31652d31313437343833363437",
+      "inputSha256": "13c0a778dfb8e5e860511e48cf2637481638ccf7492e682a0b465b4571261a23",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "30452d313134373438333634360a",
+        "stderrHex": "",
+        "stdoutSha256": "245e10adcded82408beff55894f03e8590307657df6c854e2901d41049c8b4b1",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "exponent-bound-5",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "30652d39393939393939393939",
+      "inputSha256": "bccb515d27e29bec32f9bf93767f8740389fc81f9c2773eac4d42c93da6a9589",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "30452d313134373438333634360a",
+        "stderrHex": "",
+        "stdoutSha256": "245e10adcded82408beff55894f03e8590307657df6c854e2901d41049c8b4b1",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "exponent-bound-6",
+      "category": "exponent-bound",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "31653939393939393939393939393939393939393939",
+      "inputSha256": "0474c14fa7150bb7d031c505b5c512f4577563d3f9e28b41af49397a8a298ad3",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": "",
+        "stdoutSha256": "02ef9237693d1f1730c33693c040e61116db956536c628b7505c72cf9ca93ffa",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "old-tonumber-large",
+      "category": "large-conversion",
+      "argv": [
+        "-nc",
+        "--",
+        "\"1e9999\"|tonumber"
+      ],
+      "inputHex": "",
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": "",
+        "stdoutSha256": "1e47cd3928a7414945baac7e71af57b98dd6351093429116a1d81a450ff155ba",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "old-fromjson-large",
+      "category": "large-conversion",
+      "argv": [
+        "-nc",
+        "--",
+        "\"[1e9999]\"|fromjson"
+      ],
+      "inputHex": "",
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": "",
+        "stdoutSha256": "49c3b646892cb28e95ffefadbde19a5830d79ce4023958954d99ff729ed6fe1a",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

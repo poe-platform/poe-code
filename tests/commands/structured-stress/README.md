@@ -487,3 +487,255 @@ Numeric, Unicode, recovery and diagnostic gaps remain at this intermediate
 checkpoint. No raw comparisons were relaxed. The additive native files also
 contain numeric probes reserved for the next fix; their complete denominators
 and author probe-construction mistakes will be reported separately.
+
+## Phase 2b: numeric regression author checkpoint (August 26, 2026)
+
+This is the **fix author**, not the independently assigned final verifier.
+Ownership was limited to the structured source and two structured test trees.
+No root docs/config, adapters, diff-patch files, other worker index entries,
+branches, or global test/build suites were changed or used. The complete
+original evidence and phase-one observations are still byte-identical.
+
+### Delivered root-cause fixes
+
+- Object quantifiers: zero/one-argument overloads iterate object values in
+  insertion order; two-argument standard generator overloads are lazy and
+  short-circuit both generator and condition. Empty conditions and generators
+  preserve native identities. Existing quotas and cancellation are not caught.
+- Decimal identity and conversion: retain coefficient, scale, sign and exponent
+  through input/filter parsing, `--argjson`, `tonumber`, `fromjson`, copying,
+  unrelated updates, type filters, `tojson`, `tostring`, and `join`. Normalize
+  decimal spelling as native does rather than preserving arbitrary token case.
+- Comparisons: compare decimal coefficients/exponents without lossy binary64
+  conversion when both operands are literals. Sorting, grouping, uniqueness,
+  containment and relational operators share that comparison. Mixed computed
+  and literal operands deliberately follow the native double fallback.
+- Computed numbers: apply the inspected 17-digit ties-even decimal conversion;
+  use a separate shortest-double formatter with native decimal-point thresholds
+  and two-digit small exponents. Numeric `length`, unary minus, arithmetic,
+  overflow/underflow, signed zero and initial literal `range` values are covered.
+  Computed infinity renders the signed maximum finite double; computed NaN
+  renders null. Division by zero and bounded range progression still error.
+
+There are zero new runtime dependencies, exported functions, plugin options,
+host filesystem/process facilities or eval. Internal Json/AST parsing changed,
+not the public command contract. Numeric output bytes and comparisons can
+change intentionally, and decimal work now consumes length-proportional steps.
+No Unicode or error-recovery policy change is hidden in this patch.
+
+### Full original native denominator, before and after
+
+Oracle: `/usr/bin/jq`, **jq-1.7.1-apple**, build
+`--with-oniguruma=builtin`; executable hash is retained in the native files.
+All 155 original cases / 160 fixture invocations remain in the matrix.
+
+| Coverage category | Cases | Before exact | After exact | After stdout/status differences | After diagnostic-only |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Object iteration / quantifiers | 21 | 1 | 21 | 0 | 0 |
+| Numeric identity | 12 | 1 | 12 | 0 | 0 |
+| Numeric conversions / join | 13 | 1 | 13 | 0 | 0 |
+| Numeric length | 14 | 9 | 14 | 0 | 0 |
+| Numeric transforms | 15 | 1 | 14 | 0 | 1 |
+| Raw input/output / join | 29 | 27 | 27 | 2 | 0 |
+| Generator / input error ordering | 21 | 6 | 6 | 10 | 5 |
+| Malformed UTF-8 / surrogate escapes | 18 | 0 | 0 | 16 | 2 |
+| File / repeated-stdin boundaries | 3 | 2 | 2 | 1 | 0 |
+| Actual virtual pipelines | 3 | 1 | 2 | 1 | 0 |
+| Native safety-reference outputs | 6 | 6 | 6 | 0 | 0 |
+| **Total** | **155** | **55** | **117** | **30** | **8** |
+
+Before was 55 exact / 92 stdout-status differences / 8 diagnostic-only.
+After is **117 exact / 30 stdout-status differences / 8 diagnostic-only**.
+The intermediate quantifier-only commit was 75 / 72 / 8. All 53 valid numeric
+rows now match exact native bytes; the remaining numeric-transform row is the
+original malformed `fromjson` fixture. All 21 quantifier rows match.
+
+Exclusive breakdown of the **100 baseline differences**, not distinct bugs:
+
+| Bug category | Baseline differing rows | Fixed to exact | Still different |
+| --- | ---: | ---: | ---: |
+| Object zero/one-argument iteration | 16 | 16 | 0 |
+| Missing two-argument generator overload | 4 | 4 | 0 |
+| Decimal preservation | 29 | 29 | 0 |
+| Computed-double formatting | 6 | 6 | 0 |
+| Decimal exponent range | 3 | 3 | 0 |
+| Decimal comparison / uniqueness | 3 | 3 | 0 |
+| Unicode repair / file boundary | 17 | 0 | 17 |
+| Per-input runtime-error recovery | 10 | 0 | 10 |
+| Diagnostic-only formatting | 7 | 0 | 7 |
+| Pipeline propagation of numeric/recovery differences | 2 | 1 | 1 |
+| Original malformed probe rows | 3 | 0 | 3 |
+| **Total** | **100** | **62** | **38** |
+
+The three malformed original rows (`fromjson`, `join-mixed`, and its bytewise
+variant) stay frozen, counted and failing. Diagnostic exclusion only, never an
+acceptance denominator: the other 152 rows are 117 exact / 28 stdout-status
+differences / 7 diagnostic-only. The full raw test file remains **156 tests,
+118 pass, 38 fail**, including its integrity test; zero skips or TODOs.
+
+### Additive evidence and honest probe accounting
+
+The author captured 62 cases plus six supplemental cases **before any phase-two
+source edits**. Nine exponent/conversion cases were then captured after the
+quantifier commit but **before numeric source edits**. All use the phase-one
+literal-argv runner, 2-second watchdog, isolated trusted files and 65,536-byte
+per-stream caps. Extreme native exponent probes only run bounded identity
+filters; hazardous coefficient/comparison loops run solely against product
+workers under explicit limits, not against native jq.
+
+A final inspection found that converting an overflowed decimal literal directly
+to a plain double lost its decimal comparison identity: literal infinity must
+sort beyond a finite `1e400`, even though both convert to binary64 infinity.
+Four further bounded native vectors were frozen before that correction; two
+were red before the fix and all four pass afterwards. Positive/negative literal
+overflow now retains decimal identity; mixed computed comparisons still use
+the native double fallback. This additional author cycle is not an independent
+verification claim. The earlier product observation is retained unchanged.
+
+The **81 additive cases** require 81 native fixture invocations. Results are
+**77 exact / 0 stdout-status differences / 4 diagnostic-only**. Four author
+expressions had unintended pipe grouping: `compare-mixed-double`, `scalar-types`,
+`preserve-through-copy`, and `conversion-large-token`. Native correctly errors
+for those supplied programs; product has the same stdout/status but different
+diagnostics. They were not rewritten. Correctly parenthesized replacements and
+separate conversion probes are additive. These are not four numeric bugs or
+four malformed original byte transports. The additive full raw gate remains
+**82 tests, 78 pass, 4 fail**, including integrity; zero skips or TODOs.
+
+Combined original and additive accounting is **236 cases / 241 native fixture
+invocations**, with **194 exact / 30 stdout-status differences / 12
+diagnostic-only**. All six replay commands together add twelve metadata
+invocations. Raw tests together have 238 tests including two integrity checks,
+196 pass and 42 fail. These totals do not count focused/repeated tests again.
+
+All four required immutable hashes were rechecked, not just the native bytes:
+
+| Original artifact | Verified SHA-256 |
+| --- | --- |
+| `native-vectors.json` | `924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66` |
+| `supplement-vectors.json` | `3989c0678c2e87a6efff2bee562438fc0d03dfdbf167c2329cfebf296e3f4ba2` |
+| `phase1-observation.json` | `b1553f455aedaf709384b5c76d7571bca18f6bcc7ecdb0b4d752d5d1be12a238` |
+| `supplement-observation.json` | `8b1f9ea12ae069704dc54e9c6fc42c962e62883631c3056c2e3fae1be7ee449f` |
+
+New artifacts under `independent-increment/`:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `phase2-vectors.json` (62 native cases) | `afcfae94201a04a4455e7410371bfbdcfbe35823939569cc13786779dfaca101` |
+| `phase2-extra-vectors.json` (6 native cases) | `230ac4fa5531e104b541b1e65f177c27c5efc9267125977a112df54dc7e743ac` |
+| `exponent-vectors.json` (9 native cases) | `e90ececb9f163080873975c46063245df6200b7316edd682a401e33c07f9039d` |
+| `overflow-comparison-vectors.json` (4 native cases) | `86808210a4d14d5c5e5ad86db2a0803875e6143047a3f8dbf256378635891789` |
+| `phase2-observation.json` (intermediate author product report, not expectations) | `2fc7931951d7d4baef37f2cf2164b6fdc5d21d173915a4754ade8044f07faca8` |
+| `phase2-final-observation.json` (final author product report, not expectations) | `3d17653b0b6a1dbc84c6928b1e65f00ed264fa6a20b584a1f785e5daf7d83d31` |
+
+The final observation includes all seven structured implementation source
+hashes, including new `numbers.ts`. Old source observations were not regenerated.
+Capture-time script/source hashes remain historical, even where a capture
+script subsequently gained a separate additive mode. Replay checks the pinned
+binary and unchanged native outcomes; it does not claim current sources equal
+the deliberately pre-fix source hashes.
+
+### Acceptance and exact reproduction
+
+Run from `/Users/kjopek/Workspace/safe-bash`. Existing owned tests:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured/*.test.ts tests/commands/structured-stress/*.test.ts
+```
+
+**684/684 pass**, including the seven formerly failing tests with obsolete
+numeric assumptions. Changes to those tests are backed by native evidence:
+join's three numeric policy overrides now use its already frozen native stdout;
+the stream test uses frozen `1e2` decimal normalization; `1e9999` is no longer
+classified as malformed or a compile error. The preflight test still exercises
+an invalid numeric literal (`1e+`). Existing non-JSON NaN/Infinity-token,
+Unicode and division-by-zero rejection tests remain. Large exponent/conversion
+and arithmetic overflow expectations come from the additive native captures,
+not from product output. No old frozen fixture files were edited.
+
+Focused regression/safety acceptance is separate from full raw comparisons:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts tests/commands/structured-stress/independent-increment/numeric-safety.test.ts tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts tests/commands/structured-stress/independent-increment/safety.test.ts
+```
+
+**202/202 pass**: numeric 129 (124 valid native rows, explicit scope count,
+four all-split tests), numeric safety 15, quantifier 30, and phase-one safety 28.
+Ten strict-rejection repetitions of the two safety files pass **430/430**:
+
+```sh
+for round in {1..10}; do
+  node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/safety.test.ts tests/commands/structured-stress/independent-increment/numeric-safety.test.ts || break
+done
+```
+
+Fresh **owned-scope typechecking passes**:
+
+```sh
+node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node src/commands/structured/*.ts tests/commands/structured/*.ts tests/commands/structured-stress/*.ts tests/commands/structured-stress/independent-increment/*.ts
+```
+
+Replay every native fixture without overwriting captures:
+
+```sh
+node tests/commands/structured-stress/independent-increment/native.mjs --verify
+node tests/commands/structured-stress/independent-increment/supplement.mjs --verify
+node tests/commands/structured-stress/independent-increment/phase2-native.mjs --verify
+node tests/commands/structured-stress/independent-increment/phase2-native.mjs --extra-verify
+node tests/commands/structured-stress/independent-increment/verify-exponents.mjs
+node tests/commands/structured-stress/independent-increment/verify-exponents.mjs --overflow
+```
+
+All six pass against jq-1.7.1-apple. Full reports and deliberately red gates:
+
+```sh
+node --import tsx tests/commands/structured-stress/independent-increment/phase2-report.ts
+node --import tsx tests/commands/structured-stress/independent-increment/diagnose.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/native-regressions.test.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/additive-regressions.test.ts
+```
+
+No bare `node --test`, global suite, global build, or other worker cleanup was
+run in phase two. Raw gate exit 1 is expected and is reported, not suppressed
+inside the tests. `phase2-report.ts` is a diagnostic report, not a green gate.
+
+### Numeric hazards and remaining compatibility proposal
+
+The new coefficient representation never expands a power of ten. Exponent
+normalization, coefficient parsing, comparison and serialization are bounded
+by existing byte/step quotas; repeated hidden numeric rendering is charged,
+not merely emitted output. Tests cover output/value boundaries, metadata not
+counting as an object, result-prefix quotas, 100,000-digit rejection, long
+near-equal coefficients, huge exponent text, CPU and rendering cancellation,
+blocked decimal-token reads, blocked join writes and observed late rejections.
+Hazard subprocesses use literal Node argv, a 128 MiB V8 heap, five-second kill
+deadline and 65,536-byte output cap. Host/input allocations and individual
+bounded synchronous operations are not forcibly preempted; limits are not
+exact resident-memory accounting. No arbitrary-precision arithmetic claim.
+
+Primary research and implementation details are in the source README's decimal
+section: jq 1.7 manual and the official jq-1.7.1 source tag, not secondary
+compatibility summaries. The 17-digit decimal-to-double step and formatting
+thresholds are build-specific. Exhaustive binary64 rendering, every decimal
+context rounding boundary, modulo edge behavior, nonstandard numeric tokens,
+other builds and broad grammar remain unverified or outside this delivered
+increment; they are not silently labeled compatible.
+
+**Proposed, not implemented:** improve standard jq Unicode repair and per-input
+filter-error recovery. Neither existing strict UTF-8 nor stop-first-error was a
+user-requested feature. Unicode work must match replacement grouping (including
+the frozen surrogate bytes), JSON escape asymmetry and per-file decoder resets,
+while charging raw input plus repaired/escaped value sizes and yielding safely.
+A plain nonfatal TextDecoder is insufficient. Recovery must continue only
+ordinary filter errors after preserving already-written output; parse errors,
+limits, abort, EPIPE and host failures remain fatal. Freeze a dedicated status
+aggregation matrix before changing `-e`/empty/final-error behavior and introduce
+an approved bounded aggregate diagnostic policy to prevent stderr amplification.
+Any strict-mode option needs explicit approval, not an invented current API.
+
+The remaining original red groups are Unicode (17), recovery (10), diagnostic
+formatting (7), recovery propagated through a pipeline (1), and the three
+malformed frozen fixtures. Additive diagnostics add four more red rows. This is
+not full jq parity, universal shell support, scope completion, 72 hours of work,
+or superiority to jq/just-bash. Root must assign a **different independent final
+verifier**; this author checkpoint does not replace that gate.

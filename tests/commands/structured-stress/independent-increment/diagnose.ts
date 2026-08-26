@@ -24,7 +24,7 @@ for (const result of results) {
   category[result.classification as "exact" | "semantic" | "diagnostic-only"]++;
 }
 const sourceHashes: Record<string, string> = {};
-for (const name of ["input.ts", "jq.ts", "interpreter.ts", "parser.ts", "limits.ts", "values.ts"]) sourceHashes[name] = digest(readFileSync(new URL(`../../../../src/commands/structured/${name}`, import.meta.url)));
+for (const name of ["input.ts", "jq.ts", "interpreter.ts", "parser.ts", "limits.ts", "values.ts", "numbers.ts"]) sourceHashes[name] = digest(readFileSync(new URL(`../../../../src/commands/structured/${name}`, import.meta.url)));
 const report = { capturedAt: new Date().toISOString(), vectorHash, supplementHash, sourceHashes, counts, categories, results };
 if (process.argv[2] === "--freeze-supplement") {
   const target = fileURLToPath(new URL("./supplement-observation.json", import.meta.url));

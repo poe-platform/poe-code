@@ -1,6 +1,7 @@
 import { setImmediate } from "node:timers/promises";
+import { Decimal, isNumber, numberText } from "./numbers.js";
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+export type Json = null | boolean | number | Decimal | string | Json[] | { [key: string]: Json };
 export interface JqLimits {
   readonly maxInputBytes: number;
   readonly maxValueBytes: number;
@@ -67,8 +68,7 @@ export class Budget {
     const visit = (current: Json, depth: number): void => {
       this.step();
       if (depth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
-      if (typeof current === "number" && !Number.isFinite(current)) throw new JqError("nonfinite numbers are not supported");
-      if (current !== null && typeof current === "object") {
+      if (current !== null && typeof current === "object" && !(current instanceof Decimal)) {
         if (depth + 1 > this.limits.maxDepth) throw new JqLimitError("maxDepth");
         const keys = Array.isArray(current) ? Object.keys(current) : objectKeys(current);
         this.collection(keys.length);
@@ -83,7 +83,7 @@ export class Budget {
         }
       } else {
         if (typeof current === "string") this.text(current);
-        bytes += Buffer.byteLength(scalarJson(current));
+        bytes += Buffer.byteLength(scalarJson(current, this));
       }
       if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     };
@@ -123,13 +123,12 @@ export function wellFormed(text: string): boolean {
   }
   return true;
 }
-export function isObject(value: Json): value is Record<string, Json> { return value !== null && typeof value === "object" && !Array.isArray(value); }
+export function isObject(value: Json): value is Record<string, Json> { return value !== null && typeof value === "object" && !Array.isArray(value) && !(value instanceof Decimal); }
 export function truth(value: Json): boolean { return value !== null && value !== false; }
-export function finite(value: number): number {
-  if (!Number.isFinite(value)) throw new JqError("nonfinite arithmetic result");
-  return value;
+export function scalarJson(value: null | boolean | number | Decimal | string, budget: Budget): string {
+  if (value instanceof Decimal) budget.step(Math.ceil(value.text.length / 32));
+  return isNumber(value) ? numberText(value) : JSON.stringify(value);
 }
-export function scalarJson(value: null | boolean | number | string): string { return Object.is(value, -0) ? "-0" : JSON.stringify(value); }
 export async function interruptible<Result>(operation: () => PromiseLike<Result>, signal: AbortSignal): Promise<Result> {
   signal.throwIfAborted();
   return new Promise<Result>((resolve, reject) => {

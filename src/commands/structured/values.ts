@@ -1,7 +1,8 @@
-import { Budget, copyObject, finite, isObject, JqError, JqLimitError, objectKeys, put, type Json } from "./limits.js";
+import { Budget, copyObject, isObject, JqError, JqLimitError, objectKeys, put, type Json } from "./limits.js";
+import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
 
 export function type(value: Json): string {
-  return value === null ? "null" : Array.isArray(value) ? "array" : typeof value;
+  return value === null ? "null" : isNumber(value) ? "number" : Array.isArray(value) ? "array" : typeof value;
 }
 export function stringCompare(left: string, right: string): number {
   const leftPoints = Array.from(left, character => character.codePointAt(0)!);
@@ -13,12 +14,12 @@ export function stringCompare(left: string, right: string): number {
 }
 export function compare(left: Json, right: Json, budget: Budget): number {
   budget.step();
-  const rank = (value: Json): number => value === null ? 0 : value === false ? 1 : value === true ? 2 : typeof value === "number" ? 3 : typeof value === "string" ? 4 : Array.isArray(value) ? 5 : 6;
+  const rank = (value: Json): number => value === null ? 0 : value === false ? 1 : value === true ? 2 : isNumber(value) ? 3 : typeof value === "string" ? 4 : Array.isArray(value) ? 5 : 6;
   const difference = rank(left) - rank(right);
   if (difference) return Math.sign(difference);
   if (left === right) return 0;
   if (typeof left === "string" && typeof right === "string") return stringCompare(left, right);
-  if (typeof left === "number" && typeof right === "number") return left < right ? -1 : 1;
+  if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget);
   if (Array.isArray(left) && Array.isArray(right)) {
     for (let index = 0; index < Math.min(left.length, right.length); index++) {
       const result = compare(left[index]!, right[index]!, budget); if (result) return result;
@@ -43,19 +44,21 @@ export function indexValue(value: Json, index: Json): Json {
   if (typeof index === "string") {
     if (value === null) return null;
     if (isObject(value)) return Object.hasOwn(value, index) ? value[index]! : null;
-  } else if (typeof index === "number" && Number.isFinite(index)) {
+  } else if (isNumber(index) && Number.isFinite(numberValue(index))) {
     if (value === null) return null;
-    const integer = Math.trunc(index);
+    const integer = Math.trunc(numberValue(index));
     if (Array.isArray(value)) return value[integer < 0 ? value.length + integer : integer] ?? null;
   }
   throw new JqError(`cannot index ${type(value)} with ${type(index)}`);
 }
 export function sliceValue(value: Json, start: Json, end: Json): Json {
-  if (start !== null && (typeof start !== "number" || !Number.isSafeInteger(start))) throw new JqError("slice start must be an integer or null");
-  if (end !== null && (typeof end !== "number" || !Number.isSafeInteger(end))) throw new JqError("slice end must be an integer or null");
+  if (start !== null && (!isNumber(start) || !Number.isSafeInteger(numberValue(start)))) throw new JqError("slice start must be an integer or null");
+  if (end !== null && (!isNumber(end) || !Number.isSafeInteger(numberValue(end)))) throw new JqError("slice end must be an integer or null");
+  const first = start === null ? 0 : numberValue(start);
+  const last = end === null ? undefined : numberValue(end);
   if (value === null) return null;
-  if (Array.isArray(value)) return value.slice(start ?? 0, end ?? value.length);
-  if (typeof value === "string") { const points = Array.from(value); return points.slice(start ?? 0, end ?? points.length).join(""); }
+  if (Array.isArray(value)) return value.slice(first, last);
+  if (typeof value === "string") { const points = Array.from(value); return points.slice(first, last).join(""); }
   throw new JqError(`cannot slice ${type(value)}`);
 }
 export function contains(value: Json, sought: Json, budget: Budget): boolean {
@@ -81,7 +84,7 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
   if (operator === "+") {
     if (left === null) return right;
     if (right === null) return left;
-    if (typeof left === "number" && typeof right === "number") return finite(left + right);
+    if (isNumber(left) && isNumber(right)) return numberValue(left) + numberValue(right);
     if (typeof left === "string" && typeof right === "string") { budget.text(left + right); return left + right; }
     if (Array.isArray(left) && Array.isArray(right)) { budget.collection(left.length + right.length); return [...left, ...right]; }
     if (isObject(left) && isObject(right)) { const result = copyObject(left, right); budget.collection(objectKeys(result).length); return result; }
@@ -95,23 +98,25 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
     }
     budget.collection(objectKeys(result).length); return result;
   }
-  if (operator === "*" && ((typeof left === "string" && typeof right === "number") || (typeof right === "string" && typeof left === "number"))) {
+  if (operator === "*" && ((typeof left === "string" && isNumber(right)) || (typeof right === "string" && isNumber(left)))) {
     const text = typeof left === "string" ? left : right as string;
-    const count = typeof left === "number" ? left : right as number;
+    const count = numberValue(isNumber(left) ? left : right as Numeric);
     if (count < 0) return null;
     if (text === "") return "";
-    if (Buffer.byteLength(text) * Math.floor(count) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    if (!Number.isFinite(count) || Buffer.byteLength(text) * Math.floor(count) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     const result = text.repeat(Math.floor(count)); budget.text(result); return result;
   }
   if (operator === "/" && typeof left === "string" && typeof right === "string") {
     const result = right === "" ? Array.from(left) : left.split(right); budget.collection(result.length); return result;
   }
-  if (typeof left === "number" && typeof right === "number") {
-    if ((operator === "/" && right === 0) || (operator === "%" && Math.trunc(right) === 0)) throw new JqError("division by zero");
-    if (operator === "-") return finite(left - right);
-    if (operator === "*") return finite(left * right);
-    if (operator === "/") return finite(left / right);
-    if (operator === "%") return finite(Math.trunc(left) % Math.trunc(right));
+  if (isNumber(left) && isNumber(right)) {
+    const first = numberValue(left);
+    const second = numberValue(right);
+    if ((operator === "/" && second === 0) || (operator === "%" && Math.trunc(second) === 0)) throw new JqError("division by zero");
+    if (operator === "-") return first - second;
+    if (operator === "*") return first * second;
+    if (operator === "/") return first / second;
+    if (operator === "%") return Math.trunc(first) % Math.trunc(second);
   }
   throw new JqError(`cannot apply ${operator} to ${type(left)} and ${type(right)}`);
 }

@@ -118,7 +118,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
   try {
     const options = argumentsFor(context.args, budget);
     const source = options.programFile === undefined ? options.source! : await readProgram(context, options.programFile, limits);
-    const ast = parse(source, options.variables, limits);
+    const ast = parse(source, options.variables, budget);
     const interpreter = new Interpreter(budget, options.variables);
     let last: Json | undefined;
     const emit = async (input: Json): Promise<void> => {

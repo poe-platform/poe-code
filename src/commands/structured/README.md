@@ -164,7 +164,7 @@ cross-version parity beyond its recorded tests.
 | `join(separator)` | Join array elements or object values in insertion order. Strings pass through, null becomes empty text, numbers/booleans use `tostring`; nested containers error. |
 | `first`, `first(f)`, `last`, `last(f)`, `limit(n; f)` | Lazy first/limited consumption; `first(empty)` emits nothing, `last(empty)` emits null; `limit` requires a nonnegative safe integer. |
 | `range(end)`, `range(start; end)`, `range(start; end; step)` | Lazily consume argument generators in start/end/step order; finite numeric progression, exclusive end; zero step emits nothing, nonprogress/overflow errors. |
-| `tostring`, `tonumber`, `tojson`, `fromjson` | Strict finite JSON conversion; `tonumber` requires a JSON number string. |
+| `tostring`, `tonumber`, `tojson`, `fromjson` | Decimal-preserving JSON conversion; `tonumber` requires a JSON number string or preserves an existing numeric value. |
 | `to_entries`, `from_entries`, `with_entries(f)` | Entry conversion and transformation; entry keys must be strings. Key aliases `key`, `Key`, `name`, `Name` select the first value other than false/null; values use the first present `value`/`Value` field, retaining false/null. |
 
 `join` evaluates its separator filter on the original input, once per produced
@@ -257,10 +257,11 @@ should supply a deadline signal when they require a wall-clock deadline.
 - Slice endpoints are integer-only even though native jq accepts some fractional
   bounds. `limit` count and additional function overloads are likewise restricted
   to the documented signatures.
-- Numbers use finite IEEE-754 binary64. Nonfinite input/literals/results are
-  rejected. Large integers can lose precision, decimal lexemes are not retained,
-  and rendering can differ from jq decimal-number builds (`1e2` renders `100`).
-  Native acceptance of NaN, Infinity, or huge exponents is not modeled.
+- Numeric literals retain decimal precision and scale, with normalized decimal
+  exponent spelling. Arithmetic, numeric `length`, and unary minus convert to
+  binary64; mixed literal/computed comparisons also use binary64. See the
+  version-pinned numeric checkpoint below. Non-JSON `NaN`/`Infinity` tokens
+  remain rejected. This is not universal numeric parity across jq builds.
 - Invalid JSON stops the command; native versions/builds differ in error codes
   and whether they continue after an individual input's evaluation failure.
 - No streaming path-event mode, colors, sorted-output flag,
@@ -327,9 +328,9 @@ Native jq is only required by the optional `verify-native.ts` command. Runtime
 error wording is project-specific and is not native-byte-matched. See
 `tests/commands/structured-stress/README.md` for reproduction and gate results.
 
-Object overloads of `any`/`all`, fractional
-slice endpoints, decimal lexeme/exponent rendering, and other listed grammar
-gaps remain deferred. Strict malformed JSON/UTF-8 rejection is intentional even
+At that historical checkpoint object overloads of `any`/`all` and decimal
+rendering remained deferred; the later fixes below address them. Fractional
+slice endpoints and other listed grammar gaps remain. Strict malformed JSON/UTF-8 rejection is intentional even
 where this native build accepts nonstandard input. These tests establish neither
 full jq parity nor superiority to jq or just-bash.
 
@@ -349,6 +350,7 @@ numeric policies (12 invalid UTF-8, one stop-on-first runtime error, three
 numeric rendering cases). The original 240 frozen references remain unchanged
 and pass. All ten earlier semantic fixes remain covered. No separate-worker
 final acceptance is claimed; the root will assign a verifier after this handoff.
+
 ## Quantifier regression fix (August 26, 2026)
 
 `any` and `all` now iterate object values in insertion order as well as arrays.
@@ -370,3 +372,110 @@ The complete 155-case matrix moves from 55 exact / 92 stdout-status differences
 / 8 diagnostic-only to 75 / 72 / 8. This fixes the independently frozen
 quantifier categories, not the numeric,
 Unicode, or error-continuation categories. It is not a full parity claim.
+
+## Decimal regression fix (August 26, 2026)
+
+The numeric representation now distinguishes parsed decimals from computed
+binary64 values. JSON input, filter literals, `--argjson`, `fromjson`, and
+`tonumber` preserve significant digits and trailing fractional zeroes. Copies,
+updates to unrelated fields, type filters, sorting, conversions and `join`
+retain that representation. A decimal remains a jq number, not an iterable
+object; the internal representation is not a new package export.
+
+Decimal spelling is canonicalized rather than blindly retaining the input
+token: `12.3400` stays `12.3400`, `42e+02` becomes `4.2E+3`, and `1e-400`
+becomes `1E-400`. Negative numeric input retains its sign/scale, whereas unary
+minus in a filter is arithmetic and converts to a double. Literal/literal
+comparisons use sign, coefficient and decimal exponent without rounding;
+mixed literal/double comparisons follow the native build's double fallback.
+
+Arithmetic and numeric `length` round the decimal coefficient to 17 significant
+digits with ties-to-even before binary64 conversion, matching the inspected
+build. Computed values have a separate shortest-double renderer: `1e20+0`
+prints `1e+20`, `length` of `0.0000001` prints `1e-07`, and length of
+`123456789012345678901234567890` prints `123456789012345680000000000000`.
+Computed infinities serialize as the signed largest finite double and computed
+NaN as JSON null; division by zero remains an error. A `range` preserves its
+literal first value before stepping arithmetically and retains its existing
+nonprogress/overflow guard.
+
+These rules are pinned to `/usr/bin/jq`, `jq-1.7.1-apple`, build
+`--with-oniguruma=builtin`; they are not claims about every jq version/build.
+Primary research used the jq 1.7 manual's Identity discussion and the
+`jq-1.7.1` tag's `src/jv.c`, `src/jv_dtoa.c`, `src/jv_print.c`,
+`src/decNumber/decContext.c`, and `src/builtin.jq`:
+
+```text
+https://jqlang.org/manual/v1.7/
+https://github.com/jqlang/jq/tree/jq-1.7.1/src
+```
+
+### Numeric safety and acceptance
+
+No dependencies, process spawning, host filesystem access, or eval were added
+to the product. Coefficients are bounded strings, not expanded powers or
+unbounded BigInts. Exponents are bounded to the native decimal context; an
+out-of-range coefficient retains decimal infinity identity for comparisons or
+rounds to the minimum exponent without allocating exponent-sized strings.
+Overflowed literals still sort beyond finite decimal literals such as `1e400`,
+even though both would convert to binary64 infinity. The frozen native
+boundary is maximum adjusted exponent `999999999`, minimum coefficient
+exponent `-1147483646` for this context. Zeroes retain a clamped scale.
+
+Parsing, decimal comparisons, value accounting and serialization charge
+length-proportional work to the existing shared step budget. Evaluation yields
+through `Budget.tick`; quotas stay uncatchable through `?`. Byte limits cover
+canonical output and all the earlier input/source/output limits still apply.
+Tests cover huge exponent text, 100,000-digit coefficients, near-equal long
+comparisons, repeated hidden serialization, all numeric token split positions,
+generator error ordering, blocked sinks/reads and late rejection observation.
+Hazard workers have 128 MiB V8 heaps, five-second deadlines and bounded output.
+Limits remain logical, not exact resident-memory accounting. An individual
+bounded synchronous parse/comparison/string operation is not preemptible;
+cancellation is observed at checks and between yielded evaluation work.
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts tests/commands/structured-stress/independent-increment/numeric-safety.test.ts tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts tests/commands/structured-stress/independent-increment/safety.test.ts
+node --import tsx tests/commands/structured-stress/independent-increment/phase2-report.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/native-regressions.test.ts
+node --unhandled-rejections=strict --import tsx --test tests/commands/structured-stress/independent-increment/additive-regressions.test.ts
+```
+
+The focused gates pass **202/202**; the existing owned suite remains **684/684**.
+The original frozen comparison improves from **55 exact / 92 stdout-status
+differences / 8 diagnostic-only** to **117 / 30 / 8 out of 155**. All 53 valid
+numeric rows and 21 quantifier rows match exact native bytes. The original
+raw gate remains **118 pass / 38 fail**, including its integrity test.
+The additive raw gate remains **78 pass / 4 fail** (81 vectors plus integrity).
+Those four are diagnostic mismatches in incorrectly grouped author probes,
+retained verbatim alongside separate correctly grouped probes. No failed raw
+comparison is skipped, weakened or relabeled as a pass. Detailed categories,
+hashes, exact commands and author/final-verifier boundaries are in the stress
+README. Public command/plugin signatures and limit option names are unchanged;
+numeric output bytes, comparisons, accepted large literals and work charging
+intentionally change. Consumers must not expect the old rounded numeric text.
+
+### Unicode and recovery proposal, not an implemented policy change
+
+Strict UTF-8 and stop-first-error remain the implementation's existing deliberate
+deviations, **not user-requested features or compatibility passes**. Standard jq
+compatibility should improve in a separately approved change:
+
+- Replace malformed UTF-8 with native-compatible byte-sequence grouping, not
+  simply a default TextDecoder. Preserve per-file decoder boundaries while
+  allowing raw text records to span files. Match lone-low-surrogate replacement
+  and unpaired-high-surrogate rejection separately. Charge original input bytes
+  before decoding and repaired/escaped value bytes afterwards, including
+  replacement expansion; keep chunk yielding, bounded carry and cancellation.
+- Recover from ordinary uncaught filter errors at each top-level input value,
+  retaining completed output and evaluating later inputs. Do not recover from
+  parse errors, quota exhaustion, cancellation, EPIPE, filesystem failures or
+  unexpected host errors. Freeze a separate native exit-state matrix for `-e`,
+  empty generators, final errors, later false/null results, slurp and files
+  before changing aggregation. Add an approved aggregate diagnostic byte budget
+  so repeated errors cannot amplify stderr without bound; retain backpressure.
+
+Any retained strict mode should be an explicitly approved choice, not a silent
+claim that jq behavior is unsupported by user request. No decoder/recovery
+policy, new public switch, broad grammar feature or diagnostic format changes
+are part of this fix. A different independent final verifier is still required.

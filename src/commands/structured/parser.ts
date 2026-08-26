@@ -1,4 +1,5 @@
-import { JqError, JqLimitError, wellFormed, type JqLimits, type Json } from "./limits.js";
+import { JqError, JqLimitError, wellFormed, type Budget, type Json } from "./limits.js";
+import { decimalNumber } from "./numbers.js";
 
 export type Ast =
   | { kind: "identity" }
@@ -74,7 +75,8 @@ function isPath(ast: Ast): boolean {
   }
   return true;
 }
-export function parse(source: string, variables: ReadonlyMap<string, Json>, limits: JqLimits): Ast {
+export function parse(source: string, variables: ReadonlyMap<string, Json>, budget: Budget): Ast {
+  const limits = budget.limits;
   if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
   const tokens = tokenize(source);
   let position = 0;
@@ -144,7 +146,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, limi
     else if (token.text === "if") result = guardedConditional();
     else if (token.kind === "string") result = literal(JSON.parse(token.text) as string);
     else if (token.kind === "number") {
-      const value = Number(token.text); if (!Number.isFinite(value)) fail("nonfinite numeric literal"); result = literal(value);
+      result = literal(decimalNumber(token.text, budget));
     } else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as Json);
     else if (token.kind === "name") {
       const args: Ast[] = [];

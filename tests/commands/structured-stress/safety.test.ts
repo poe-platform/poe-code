@@ -14,12 +14,13 @@ const malformed = [
   '0x10', '"bad\nstring"', '"\\q"', '"\\u12"', '"\\uD800"', '"\\uDC00"', '\uFEFF0', 'null\u0000',
   '[}', '[[[]]', '{"x": [1}', '1e9999', '-Infinity', 'NaN',
 ];
-for (const [index, input] of malformed.entries()) test(`strict malformed JSON ${index} across chunk boundaries`, { timeout: 3000 }, async () => {
+for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {
   for (const size of [1, 2, 5, 64]) {
     const result = await execute(['-c', '.'], split(Buffer.from(input), size));
-    assert.equal(result.status, 5, JSON.stringify({ input, size, result }));
-    assert.equal(result.stdout, '');
-    assert.match(result.stderr, /^jq: /u);
+    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));
+    assert.equal(result.stdout, input === '1e9999' ? '1E+9999\n' : '');
+    if (input === '1e9999') assert.equal(result.stderr, '');
+    else assert.match(result.stderr, /^jq: /u);
   }
 });
 

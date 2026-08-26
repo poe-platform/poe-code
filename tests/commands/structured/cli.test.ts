@@ -44,7 +44,7 @@ for (const [index, [args, input, stdout, status]] of streamCases.entries()) test
 
 test("whole stream, every byte, and every two-way UTF-8 split agree", async () => {
   const input = Buffer.from('{"s":"A😀B"}\n1e2\n"x\\\"y"\n');
-  const expected = '{"s":"A😀B"}\n100\n"x\\\"y"\n';
+  const expected = '{"s":"A😀B"}\n1E+2\n"x\\\"y"\n';
   for (let split = 0; split <= input.length; split++) {
     const source = (async function* () { yield input.slice(0, split); yield input.slice(split); })();
     const result = await run(["-c", "."], source);
@@ -75,7 +75,7 @@ test("compile errors precede stdin iterator creation and data-file effects", asy
   const stdin: ByteSource = { [Symbol.asyncIterator]() { effects++; throw new Error("unexpected stdin effect"); } };
   const fs = new MemoryFileSystem();
   fs.readStream = () => { effects++; throw new Error("unexpected file effect"); };
-  for (const source of ["", "(", "1,(", "{a:", "[", ".a[", "$missing", "false and unknown", '"\\uD800"', '"\\uDC00"', "1e9999", ".a |=", "def f: .; f", ".a[1:2]=[]", "(.[]|select(.>1))|=.+10"]) {
+  for (const source of ["", "(", "1,(", "{a:", "[", ".a[", "$missing", "false and unknown", '"\\uD800"', '"\\uDC00"', "1e+", ".a |=", "def f: .; f", ".a[1:2]=[]", "(.[]|select(.>1))|=.+10"]) {
     const result = await run(["-c", source, "data.json"], stdin, {}, { fs });
     assert.equal(result.exitCode, 3, `${source}: ${result.stderr}`); assert.equal(result.stdout, "");
     assert.doesNotMatch(result.stderr, /TypeError|Cannot read|stack/i);

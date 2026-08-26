@@ -1,4 +1,5 @@
-import { Budget, copyObject, finite, isObject, JqError, JqLimitError, object, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
+import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
+import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
 import { binary, compare, contains, entries, indexValue, sliceValue, stringCompare, type } from "./values.js";
@@ -27,8 +28,8 @@ export class Interpreter {
       case "variable": yield this.variables.get(ast.name)!; return;
       case "unary":
         for await (const value of this.run(ast.operand, input)) {
-          if (typeof value !== "number") throw new JqError("negation requires a number");
-          yield finite(-value);
+          if (!isNumber(value)) throw new JqError("negation requires a number");
+          yield -numberValue(value);
         }
         return;
       case "optional":
@@ -111,9 +112,9 @@ export class Interpreter {
       for await (const key of this.run(ast.index, input)) for await (const path of this.paths(ast.base, input)) {
         let base = input;
         for (const component of path) base = indexValue(base, component);
-        if (typeof key !== "string" && (typeof key !== "number" || !Number.isFinite(key))) throw new JqError("assignment index must be a string or finite number");
+        if (typeof key !== "string" && (!isNumber(key) || !Number.isFinite(numberValue(key)))) throw new JqError("assignment index must be a string or finite number");
         indexValue(base, key);
-        const integer = typeof key === "number" ? Math.trunc(key) : key;
+        const integer = isNumber(key) ? Math.trunc(numberValue(key)) : key;
         yield [...path, typeof integer === "number" && integer < 0 && Array.isArray(base) ? base.length + integer : integer];
       }
       return;
@@ -194,13 +195,13 @@ export class Interpreter {
     const filters: Readonly<Record<string, string>> = { strings: "string", numbers: "number", booleans: "boolean", arrays: "array", objects: "object", nulls: "null" };
     if (Object.hasOwn(filters, name)) { if (type(input) === filters[name]) yield input; return; }
     if (name === "scalars" || name === "iterables") {
-      if ((input !== null && typeof input === "object") === (name === "iterables")) yield input; return;
+      if ((isObject(input) || Array.isArray(input)) === (name === "iterables")) yield input; return;
     }
     if (name === "type") { yield type(input); return; }
     if (name === "not") { yield !truth(input); return; }
     if (name === "length") {
       if (input === null) yield 0;
-      else if (typeof input === "number") yield Math.abs(input);
+      else if (isNumber(input)) yield Math.abs(numberValue(input));
       else if (typeof input === "string") yield Array.from(input).length;
       else if (Array.isArray(input)) yield input.length;
       else if (isObject(input)) yield objectKeys(input).length;
@@ -232,7 +233,7 @@ export class Interpreter {
           yield contains(input, argument, budget);
         } else if (input === null) yield false;
         else if (isObject(input) && typeof argument === "string") yield Object.hasOwn(input, argument);
-        else if (Array.isArray(input) && typeof argument === "number") yield Math.trunc(argument) >= 0 && Math.trunc(argument) < input.length;
+        else if (Array.isArray(input) && isNumber(argument)) yield Math.trunc(numberValue(argument)) >= 0 && Math.trunc(numberValue(argument)) < input.length;
         else throw new JqError("has requires object/string or array/number");
       }
       return;
@@ -255,7 +256,7 @@ export class Interpreter {
             append(separator, separatorBytes);
           }
           first = false;
-          if (item !== null && typeof item === "object") throw new JqError("join elements must be strings, numbers, booleans or null");
+          if (isObject(item) || Array.isArray(item)) throw new JqError("join elements must be strings, numbers, booleans or null");
           const text = item === null ? "" : typeof item === "string" ? item : stringify(item, budget);
           append(text, budget.value(text));
         }
@@ -273,8 +274,9 @@ export class Interpreter {
       if (name === "last") yield last ?? null; return;
     }
     if (name === "limit") {
-      for await (const count of this.run(args[0]!, input)) {
-        if (typeof count !== "number" || !Number.isSafeInteger(count) || count < 0) throw new JqError("limit requires a nonnegative integer");
+      for await (const argument of this.run(args[0]!, input)) {
+        if (!isNumber(argument) || !Number.isSafeInteger(numberValue(argument)) || numberValue(argument) < 0) throw new JqError("limit requires a nonnegative integer");
+        const count = numberValue(argument);
         if (count === 0) continue;
         let emitted = 0;
         for await (const value of this.run(args[1]!, input)) { yield value; if (++emitted >= count) break; }
@@ -285,21 +287,25 @@ export class Interpreter {
       for await (const start of args.length === 1 ? [0] : this.run(args[0]!, input))
         for await (const end of this.run(args[args.length === 1 ? 0 : 1]!, input))
           for await (const increment of args[2] ? this.run(args[2], input) : [1]) {
-            if (typeof start !== "number" || typeof end !== "number" || typeof increment !== "number") throw new JqError("range requires numbers");
-            if (increment === 0) continue;
-            for (let value = start; increment > 0 ? value < end : value > end;) {
+            if (!isNumber(start) || !isNumber(end) || !isNumber(increment)) throw new JqError("range requires numbers");
+            const step = numberValue(increment);
+            const stop = numberValue(end);
+            if (step === 0) continue;
+            for (let value: Numeric = start; step > 0 ? numberValue(value) < stop : numberValue(value) > stop;) {
               await budget.tick(); yield value;
-              const next = finite(value + increment); if (next === value) throw new JqError("range increment makes no progress"); value = next;
+              const next = numberValue(value) + step;
+              if (!Number.isFinite(next)) throw new JqError("nonfinite range increment");
+              if (next === numberValue(value)) throw new JqError("range increment makes no progress"); value = next;
             }
           }
       return;
     }
     if (name === "tostring" || name === "tojson") { const result = typeof input === "string" && name === "tostring" ? input : stringify(input, budget); budget.text(result); yield result; return; }
     if (name === "tonumber" || name === "fromjson") {
-      if (name === "tonumber" && typeof input === "number") { yield input; return; }
+      if (name === "tonumber" && isNumber(input)) { yield input; return; }
       if (typeof input !== "string") throw new JqError(`${name} requires a string`);
       const result = parseJson(input, budget);
-      if (name === "tonumber" && typeof result !== "number") throw new JqError("tonumber requires a numeric string");
+      if (name === "tonumber" && !isNumber(result)) throw new JqError("tonumber requires a numeric string");
       yield result; return;
     }
     if (name === "to_entries") { yield entries(input, budget).map(([key, value]) => copyObject({ key, value })); return; }

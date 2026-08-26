@@ -45,17 +45,12 @@ function waitForLogPattern(
   }
   const logSource = options.onLog;
 
-  return new Promise<boolean>(resolve => {
+  return new Promise<boolean>((resolve, reject) => {
     let finished = false;
+    let unsubscribe: (() => void) | undefined;
     const timeout = setTimeout(() => {
       finish(false);
     }, options.timeoutMs ?? 30_000);
-
-    const unsubscribe = logSource.subscribe((line: string) => {
-      if (line.includes(pattern)) {
-        finish(true);
-      }
-    });
 
     const onAbort = () => {
       finish(false);
@@ -63,16 +58,39 @@ function waitForLogPattern(
 
     options.signal?.addEventListener("abort", onAbort, { once: true });
 
+    try {
+      unsubscribe = logSource.subscribe((line: string) => {
+        if (line.includes(pattern)) {
+          finish(true);
+        }
+      });
+    } catch (error) {
+      finished = true;
+      cleanup();
+      reject(error);
+      return;
+    }
+
+    if (finished) {
+      cleanup();
+    }
+
     function finish(result: boolean): void {
       if (finished) {
         return;
       }
 
       finished = true;
+      cleanup();
+      resolve(result);
+    }
+
+    function cleanup(): void {
       clearTimeout(timeout);
       options.signal?.removeEventListener("abort", onAbort);
-      unsubscribe();
-      resolve(result);
+      const stopListening = unsubscribe;
+      unsubscribe = undefined;
+      stopListening?.();
     }
   });
 }

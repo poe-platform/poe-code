@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as net from "node:net";
-import { EventEmitter } from "node:events";
+import { EventEmitter, getEventListeners } from "node:events";
 import { waitForReady, type ReadinessLogSource } from "./health-check.js";
 import { waitForReady as waitForReadyFromIndex } from "../index.js";
 import type { ReadyCheck } from "../types.js";
@@ -85,6 +85,134 @@ describe("waitForReady", () => {
     await expect(waitForReady(readyCheck, { onLog: createOnLog(), timeoutMs: 20 })).resolves.toBe(
       false
     );
+  });
+
+  describe("log subscription lifecycle", () => {
+    it.each([false, true])("cleans up synchronous replay with signal=%s", async withSignal => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      const onLog = createOnLog();
+      const subscribe = onLog.subscribe;
+      const unsubscribe = vi.fn();
+      onLog.subscribe = listener => {
+        unsubscribe.mockImplementation(subscribe(listener));
+        onLog("server ready", "stdout");
+        return unsubscribe;
+      };
+
+      const result = waitForReady(
+        { kind: "log-pattern", pattern: "ready" },
+        { onLog, signal: withSignal ? controller.signal : undefined, timeoutMs: 100 }
+      );
+      const outcome = vi.fn();
+      void result.then(outcome, outcome);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(outcome).toHaveBeenCalledWith(true);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+      expect(onLog.listenerCount()).toBe(0);
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+
+      controller.abort();
+      onLog("server ready again", "stderr");
+      await vi.advanceTimersByTimeAsync(100);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it("settles synchronous replay when the source catches callback errors", async () => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      const onLog = createOnLog();
+      const subscribe = onLog.subscribe;
+      const unsubscribe = vi.fn();
+      const callbackErrors: unknown[] = [];
+      onLog.subscribe = listener => {
+        unsubscribe.mockImplementation(subscribe(listener));
+        try {
+          onLog("server ready", "stdout");
+        } catch (error) {
+          callbackErrors.push(error);
+        }
+        return unsubscribe;
+      };
+
+      const result = waitForReady(
+        { kind: "log-pattern", pattern: "ready" },
+        { onLog, signal: controller.signal, timeoutMs: 100 }
+      );
+      const outcome = vi.fn();
+      void result.then(outcome, outcome);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(outcome).toHaveBeenCalledWith(true);
+      expect(callbackErrors).toEqual([]);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+      expect(onLog.listenerCount()).toBe(0);
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it.each([false, true])("settles abort during subscribe before later readiness, replay=%s", async replay => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      const onLog = createOnLog();
+      const subscribe = onLog.subscribe;
+      const unsubscribe = vi.fn();
+      onLog.subscribe = listener => {
+        unsubscribe.mockImplementation(subscribe(listener));
+        controller.abort();
+        if (replay) {
+          onLog("server ready", "stdout");
+        }
+        return unsubscribe;
+      };
+
+      const result = waitForReady(
+        { kind: "log-pattern", pattern: "ready" },
+        { onLog, signal: controller.signal, timeoutMs: 100 }
+      );
+      const outcome = vi.fn();
+      void result.then(outcome, outcome);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(outcome).toHaveBeenCalledWith(false);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+      expect(onLog.listenerCount()).toBe(0);
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+
+      onLog("server ready", "stdout");
+      await vi.advanceTimersByTimeAsync(100);
+      expect(outcome).toHaveBeenCalledTimes(1);
+      expect(outcome).toHaveBeenCalledWith(false);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([false, true])("preserves subscription errors and cleans up with signal=%s", async withSignal => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      const error = new Error("subscription failed");
+      let retainedListener: LogListener | undefined;
+      const onLog: ReadinessLogSource = {
+        subscribe(listener) {
+          retainedListener = listener;
+          throw error;
+        }
+      };
+
+      await expect(waitForReady(
+        { kind: "log-pattern", pattern: "ready" },
+        { onLog, signal: withSignal ? controller.signal : undefined, timeoutMs: 100 }
+      )).rejects.toBe(error);
+
+      expect(vi.getTimerCount()).toBe(0);
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+      expect(() => retainedListener?.("server ready", "stdout")).not.toThrow();
+      controller.abort();
+      await vi.advanceTimersByTimeAsync(100);
+      expect(vi.getTimerCount()).toBe(0);
+    });
   });
 
   it("rejects a callback that cannot subscribe to log lines", async () => {

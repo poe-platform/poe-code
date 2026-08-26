@@ -90,5 +90,17 @@
     "No broad full-suite run or independent author-verifier parity claim",
     "Faraday's historical 34 diff/patch pruning failures remain a separate cohort",
     "No remote-provider credentials, protocol certification or transaction guarantee"
-  ]
+  ],
+  "postCommitGlobalTypecheck": {
+    "observedHead": "4a021a9",
+    "exitCode": 2,
+    "errorCount": 3,
+    "owner": "Faraday; pruning-consumer tests not modified by Curie",
+    "errors": [
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts:210 TS2322 union-returning wrapper incompatible with intersected methods",
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts:265 TS2550 Promise.withResolvers absent from configured ES2023 library",
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts:266 TS2550 Promise.withResolvers absent from configured ES2023 library"
+    ],
+    "qualification": "Earlier eight backend-test and one network-source errors are absent in this later moving-worktree check; not a clean whole-repository claim"
+  }
 }

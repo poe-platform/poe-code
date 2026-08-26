@@ -34,6 +34,22 @@ not a frozen clean-repository or remote-backend certification. Curl remains
 Archimedes-owned; metadata remains deferred. The broader goal, superiority and
 72-hour requirement are not demonstrated by this increment.
 
+The core fix/evidence commit is `6b89de5`. A subsequent moving-worktree typecheck
+at observed HEAD `4a021a9` reports three errors, all in Faraday's new
+`tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts`: line 210
+assigns a union-returning wrapper to intersected method signatures; lines 265
+and 266 use `Promise.withResolvers` outside the configured ES2023 library.
+The earlier eight backend-test and one network-source errors no longer appear;
+retain their historical runs rather than replacing them with a clean claim.
+
+Curie's read-only output-lifecycle design review is in
+`docs/OUTPUT_LIFECYCLE_REVIEW.md`. Existing lifecycle controls pass 13/13,
+zero-read head 1/1, and fresh pinned Bash 3.2/5.3 controls 6/6. No I/O contract or
+shell/curl change is made. Recommend explicit owned-transfer opt-in rather than
+automatic `pipeBytes` leases; distinguish whole-stage cancellation from an
+operation-local guarantee. Sagan's five pending first-read failures remain an
+open cohort, including the curl zero-byte corner. Metadata remains deferred.
+
 ## Curl author assignment — August 26, 2026
 
 The user explicitly requires **"i also need curl"**. This supersedes the just

@@ -1,0 +1,143 @@
+[
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-qzrIgz/private-before-copy.json",
+    "recordedAt": "2026-08-26T21:59:22.662Z",
+    "revision": "031436f3d89ea1df8a33371e30076cb5e44ec262",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-qzrIgz/private-after-copy.json",
+    "recordedAt": "2026-08-26T21:59:24.538Z",
+    "revision": "031436f3d89ea1df8a33371e30076cb5e44ec262",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-qzrIgz/private-after-tooling-copy.json",
+    "recordedAt": "2026-08-26T22:00:02.645Z",
+    "revision": "031436f3d89ea1df8a33371e30076cb5e44ec262",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-TKeNic/private-before-copy.json",
+    "recordedAt": "2026-08-26T22:09:09.136Z",
+    "revision": "031436f3d89ea1df8a33371e30076cb5e44ec262",
+    "status": "A  docs/plans/bugfix-non-tty-prompt-abort.md\n M package-lock.json\n M package.json\n M packages/poe-agent/package.json\nM  packages/toolcraft-design/src/prompts/interactive/core.ts\nA  packages/toolcraft-design/src/prompts/interactive/non-tty-abort.test.ts\n M src/cli/commands/experiment-ralph.test.ts\n M src/cli/commands/experiment.ts\n M src/cli/commands/ralph.ts\n?? docs/plans/bugfix-batch-dry-run-previews.md\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-TKeNic/private-after-copy.json",
+    "recordedAt": "2026-08-26T22:09:19.451Z",
+    "revision": "031436f3d89ea1df8a33371e30076cb5e44ec262",
+    "status": "A  docs/plans/bugfix-non-tty-prompt-abort.md\n M package-lock.json\n M package.json\n M packages/poe-agent/package.json\nM  packages/toolcraft-design/src/prompts/interactive/core.ts\nA  packages/toolcraft-design/src/prompts/interactive/non-tty-abort.test.ts\n M src/cli/commands/experiment-ralph.test.ts\n M src/cli/commands/experiment.ts\n M src/cli/commands/ralph.ts\n?? docs/plans/bugfix-batch-dry-run-previews.md\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-TKeNic/private-after-tooling-copy.json",
+    "recordedAt": "2026-08-26T22:10:53.161Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-TKeNic/private-final.json",
+    "recordedAt": "2026-08-26T22:11:49.458Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-gnP0gu/private-before-copy.json",
+    "recordedAt": "2026-08-26T22:12:13.103Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-gnP0gu/private-after-copy.json",
+    "recordedAt": "2026-08-26T22:12:17.038Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-gnP0gu/private-after-tooling-copy.json",
+    "recordedAt": "2026-08-26T22:13:14.337Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "/tmp/safe-bash-safejs-isolated-gnP0gu/private-final.json",
+    "recordedAt": "2026-08-26T22:13:56.827Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineFiles": 259,
+    "sourceFiles": 238,
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "hashAlgorithm": "SHA256(JSON.stringify(engine map in traversal order)); full per-file hashes in baseline-hashes.json"
+  },
+  {
+    "source": "post-validation private read",
+    "recordedAt": "2026-08-26T22:15:26.194Z",
+    "revision": "b9113a172089e716b5eda7bbd117e630df211597",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "engineMatchesPinnedBaseline": true,
+    "engineManifestSha256": "614e373780c88bb68443ab01452e94e024db21c842c65e247baace0a9ebd1fc7",
+    "licenseSha256": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13"
+  }
+]

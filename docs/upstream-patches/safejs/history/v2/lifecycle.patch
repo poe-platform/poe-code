@@ -1,0 +1,256 @@
+*** Begin Patch
+*** Update File: packages/safejs/src/run.ts
+@@
+ import { createReplayableRandom } from "./random.js";
+ import {
+   attachErrorSpan,
++  createSourceSpan,
+   describeThrownValue,
+   materializeWrappedErrorCause,
+   replaceErrorStack,
+@@
+ } from "./parse/parser.js";
+ import { restore, type SafeJSSnapshot } from "./restore.js";
+ import { Budget } from "./interp/budget.js";
++import { createSubsetErrorValue } from "./interp/exceptions.js";
+ import {
+   PromiseReplay,
+   promiseReplayContext,
+@@
+ const DEFAULT_MAX_CALL_DEPTH = 1_000;
+ 
+ export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
++  if (options.signal?.aborted) {
++    const reason: unknown = options.signal.reason;
++    if (reason === null || (typeof reason !== "object" && typeof reason !== "function")) {
++      return Promise.reject(reason);
++    }
++    const error = createSubsetErrorValue(
++      "AbortError",
++      "The operation was aborted.",
++      [],
++      new Budget(),
++      { cause: reason, chargeBudget: false, span: createSourceSpan(source, 1, 1, 1, 1) }
++    );
++    materializeWrappedErrorCause(error);
++    return Promise.reject(error);
++  }
+   const lifecycle = { hostCallbackDepth: 0 };
+   const dumpController = createDumpController(lifecycle);
+   const promiseTracker = createSandboxPromiseRejectionTracker();
+*** Update File: packages/safejs/src/interp/cancel.ts
+@@
+ import {
+   createSandboxClosure,
+   createSandboxPromise,
++  getSandboxClosureRetainedValues,
+   isSandboxClosure,
++  isSandboxGenerator,
++  isSandboxMap,
+   isSandboxPromise,
++  isSandboxRegex,
++  isSandboxSet,
+   type SandboxArray,
+   type SandboxObject,
+   type SandboxValue
+ } from "./values.js";
+ import { observeSandboxPromise } from "./promise-tracker.js";
+ import { replaceErrorStack } from "../error/shape.js";
++import { isSandboxErrorObject } from "./exceptions.js";
+ 
+ export function wrapCancelableBindings(
+   bindings: Record<string, SandboxValue>,
+@@
+   }
+ 
+   if (isSandboxClosure(value)) {
++    const properties = value.properties;
++    const construct = value.construct;
+     const wrapped = createSandboxClosure({
+       ...(value.async === true ? { async: true } : {}),
+       call: (args, context) => {
+@@
+ 
+         return wrapCancelableResult(value.call(args, context), signal, seen);
+       },
++      ...(construct === undefined ? {} : {
++        construct: (args, context) => {
++          if (signal.aborted) throw readAbortReason(signal);
++          return wrapCancelableResult(construct.call(value, args, context), signal, seen);
++        }
++      }),
++      ...(properties === undefined ? {} : {
++        properties: (closure) => {
++          seen.set(value, closure);
++          return wrapCancelableValue(properties, signal, seen) as SandboxObject;
++        }
++      }),
++      retainedValues: () => getSandboxClosureRetainedValues(value),
++      identity: value,
+       name: value.name
+     });
+     seen.set(value, wrapped);
+@@
+     return wrapped;
+   }
+ 
++  if (isSandboxMap(value) || isSandboxSet(value) || isSandboxRegex(value) || isSandboxGenerator(value) || isSandboxErrorObject(value)) {
++    return value;
++  }
++
+   const wrapped = Object.create(Object.getPrototypeOf(value)) as SandboxObject;
+   seen.set(value, wrapped);
+ 
+   for (const [key, entry] of Object.entries(value)) {
+-    wrapped[key] = wrapCancelableValue(entry, signal, seen);
++    Object.defineProperty(wrapped, key, {
++      value: wrapCancelableValue(entry, signal, seen),
++      enumerable: true,
++      configurable: true,
++      writable: true
++    });
+   }
+ 
+   return wrapped;
+@@
+   seen: WeakMap<object, SandboxValue>
+ ): Promise<SandboxValue> {
+   if (signal.aborted) {
++    Promise.resolve(promise).catch(() => undefined);
+     return Promise.reject(readAbortReason(signal));
+   }
+ 
+@@
+ }
+ 
+ function readAbortReason(signal: AbortSignal): unknown {
+-  return signal.reason ?? createAbortError();
++  return signal.reason === undefined ? createAbortError() : signal.reason;
+ }
+ 
+ function createAbortError(): Error {
+*** Update File: packages/safejs/src/interp/values.ts
+@@
+ const sandboxRegexPattern = Symbol("SandboxRegexPattern");
+ const sandboxSetBrand = Symbol("SandboxSet");
+ const sandboxRetainedValues = Symbol("SandboxRetainedValues");
++const sandboxClosureIdentities = new WeakMap<SandboxClosure, SandboxClosure>();
+ 
+ export type SandboxPrimitive = string | number | boolean | null | undefined;
+ 
+@@
+   name?: string;
+   properties?: SandboxObject | ((closure: SandboxClosure) => SandboxObject);
+   retainedValues?: () => Iterable<SandboxValue>;
++  identity?: SandboxClosure;
+ }): SandboxClosure {
+   const closure = {
+     kind: "fn" as const,
+@@
+     value: true
+   });
+ 
++  if (input.identity !== undefined) {
++    sandboxClosureIdentities.set(closure, getSandboxClosureIdentity(input.identity));
++  }
++
+   if (input.properties !== undefined) {
+     Object.defineProperty(closure, "properties", {
+       enumerable: false,
+@@
+   }
+ 
+   return Object.freeze(closure);
++}
++
++export function getSandboxClosureRetainedValues(closure: SandboxClosure): Iterable<SandboxValue> {
++  return closure[sandboxRetainedValues]?.() ?? [];
++}
++
++export function getSandboxClosureIdentity(closure: SandboxClosure): SandboxClosure {
++  return sandboxClosureIdentities.get(closure) ?? closure;
+ }
+ 
+ export function createSandboxPromise(
+*** Update File: packages/safejs/src/interp/host-bridge.ts
+@@
+   }
+ 
+   if (signal.aborted) {
++    promise.catch(() => undefined);
+     return Promise.reject(readAbortReason(signal));
+   }
+ 
+@@
+ }
+ 
+ function readAbortReason(signal: AbortSignal): unknown {
+-  return signal.reason ?? createAbortError();
++  return signal.reason === undefined ? createAbortError() : signal.reason;
+ }
+ 
+ function createAbortError(): Error {
+*** Update File: packages/safejs/src/interp/exceptions.ts
+@@
+   return sandboxErrorNames.includes(name as SandboxErrorName);
+ }
+ 
+-function isSandboxErrorObject(value: SandboxValue): value is SandboxErrorObject {
++export function isSandboxErrorObject(value: SandboxValue): value is SandboxErrorObject {
+   return typeof value === "object" && value !== null && sandboxErrorBrand in value;
+ }
+ 
+*** Update File: packages/safejs/src/interp/globals/error.ts
+@@
+ } from "../exceptions.js";
+ import {
+   createSandboxClosure,
++  getSandboxClosureIdentity,
+   isSandboxClosure,
+   type SandboxArray,
+   type SandboxClosure,
+@@
+     throw new TypeError("Right-hand side of 'instanceof' is not a function.");
+   }
+ 
+-  const name = errorConstructorNames.get(constructor);
++  const name = errorConstructorNames.get(getSandboxClosureIdentity(constructor));
+   if (name === undefined) {
+     return false;
+   }
+@@
+ }
+ 
+ export function isSandboxErrorConstructor(value: SandboxValue): value is SandboxClosure {
+-  return isSandboxClosure(value) && errorConstructorNames.has(value);
++  return isSandboxClosure(value) && errorConstructorNames.has(getSandboxClosureIdentity(value));
+ }
+ 
+ function createErrorConstructor(name: ErrorName, budget: Budget): SandboxClosure {
+*** Update File: packages/safejs/src/interp/globals/collections.ts
+@@
+   createSandboxClosure,
+   createSandboxMap,
+   createSandboxSet,
++  getSandboxClosureIdentity,
++  isSandboxClosure,
+   isSandboxMap,
+   isSandboxSet,
+   type SandboxClosure,
+@@
+ 
+ export function isSandboxMapConstructor(value: unknown): value is SandboxClosure {
+   return (
+-    typeof value === "object" && value !== null && mapConstructors.has(value as SandboxClosure)
++    isSandboxClosure(value) && mapConstructors.has(getSandboxClosureIdentity(value))
+   );
+ }
+ 
+ export function isSandboxSetConstructor(value: unknown): value is SandboxClosure {
+   return (
+-    typeof value === "object" && value !== null && setConstructors.has(value as SandboxClosure)
++    isSandboxClosure(value) && setConstructors.has(getSandboxClosureIdentity(value))
+   );
+ }
+ 
+*** End Patch

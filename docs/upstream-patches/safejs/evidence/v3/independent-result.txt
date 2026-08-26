@@ -1,0 +1,10 @@
+**PASS for artifact-only commit as a LIMITED UNAPPROVED proposal. Overall acceptance remains FAIL.**
+- Original nine: **0/9 → 8/9**; action-abort: **0/1 → 1/1**.
+- Full suite, each engine: **3225 pass / 0 fail / 38 skip**, 125 files.
+- Patched reasons: **18/18**; invariants: **8/9**. Verifier: **exit 1, `passed:false`**.
+- Executables stable; guards pass; imports resolve fresh patched copies.
+- Private source/revision/index/license unchanged; an external untracked document changed status.
+- Identity contract, quota overcount and typecheck gaps remain unresolved.
+
+Patch SHA256: `5a12e79d07fc9379c9a6a67897f8aa72767467cc775fac5ea88e55a5bcde95d3`
+Report: `/tmp/safe-bash-safejs-v3-independent-detail.txt:1`

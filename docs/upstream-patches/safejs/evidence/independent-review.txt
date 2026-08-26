@@ -1,0 +1,178 @@
+INDEPENDENT ISOLATED SAFEJS REVIEW — FAIL / NOT APPROVED
+Final finite-review gate: 2026-08-26 22:11 UTC. No repository edits, staging,
+commits, delegation, private writes, new dependencies, or network requests.
+Only reviewer-owned /tmp copies and review evidence were written. No denied
+extra crash fixture was reconstructed; the supplied bounded lifecycle test was
+audited and run as authorized defensive acceptance.
+
+REVIEWED CANDIDATE
+Patch SHA256: 5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09
+Patch manifest: 5bf795222453d0a912fd0441b4c14661b8aad3a23d66ca5731f769f538c0af53
+Baseline manifest: e972ae842abbe52563f385965fc452f4f35fb988bd4c2e1fb1a65e252eb835c7
+Pinned baseline revision: 031436f3d89ea1df8a33371e30076cb5e44ec262
+Seven modified paths, all under packages/safejs/: src/run.ts,
+src/interp/cancel.ts, src/interp/values.ts, src/interp/host-bridge.ts,
+src/interp/exceptions.ts, src/interp/globals/error.ts,
+src/interp/globals/collections.ts. Complete target hashes matched manifest;
+no additional source/test files changed. No private engine was vendored into
+the repository; artifact is a minimal 6981-byte patch plus provenance/guards.
+
+INDEPENDENT RESULTS (not author temporary results)
+Two independent reviewer snapshots reproduced the same targeted and suite
+outcomes. First: /tmp/safe-bash-safejs-isolated-NM75nj/{baseline,patched}.
+Full author apply/verify script: /tmp/safe-bash-safejs-isolated-Ez7FxL/
+{baseline,patched}. Fresh regular-file snapshots; no engine symlinks found.
+
+Original nine unchanged desired assertions:
+  baseline 0 passed / 9 failed / 0 skipped; patched 9 passed / 0 failed / 0 skipped.
+Durable action-abort lifecycle:
+  baseline 0 passed / 1 failed; patched 1 passed / 0 failed; no skips.
+Combined original nine plus lifecycle: baseline exit 1, patched exit 0.
+Original desired fixture SHA256 unchanged throughout:
+  7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab
+Lifecycle child SHA256 unchanged throughout:
+  5101b9da6c6ce511241b3749e3a9a693977230e4d155244854106101648f072d
+The lifecycle probe later adds an import-proof preload, not changed expected
+semantics. Both baseline and patched reproduction used that version:
+  83fdc5c16bc381b552285e73d4ef0048b6aa391e58f09607fa10b7a7fe16cf49
+
+FULL available upstream suite, with SAFEJS_PARSE_FUZZ=1 and
+SAFEJS_ADVERSARIAL_SLOW=1, all 125 discovered source/test files, 3263 tests:
+  baseline: 3225 passed, 0 failed, 38 existing skipped; exit 0.
+  patched:  3224 passed, 1 failed, 38 existing skipped; exit 1.
+Both independent full-suite executions reproduced the SAME regression.
+The 38 skips are 5 explicit unsupported test262 features plus 33 recorded
+filesystem/memfs reference gaps. They remain in the denominator, are not new
+exceptions, and are not claimed as successful guest semantics.
+
+Author additional wrapper invariants during reproducible gate:
+  baseline 0 passed / 9 failed; patched 8 passed / 1 failed; zero skips.
+Invariant fixture SHA256:
+  8eeb6f698cdae6a45bf0c7cff62a74d5390ef4ee4f1284b5f910d9dc36604545
+Separate original reviewer supplemental diagnostic, unchanged across runs:
+  baseline 0/8 passed; patched 7/8 passed. Do not sum overlapping suites.
+Independent isolation guard checks: 8 passed / 0 failed.
+Overall reproducible verify process exit: 1. No all-green acceptance claim.
+
+BLOCKING FINDING
+packages/safejs/src/error/shape-audit.test.ts:106 —
+"passes for a cancellation error and is recognizable as an abort".
+The new run.ts early preabort return rejects the raw default AbortError.
+Its stack exposes host /node_modules/ paths, failing the unchanged audit at
+shape-audit.test.ts:192. This is introduced by the candidate; baseline passes.
+The same audit also requires a valid source-bound span, which the early return
+appears to omit; execution stops at the stack assertion first.
+Required author action: reconcile original-reason identity, no preabort host
+work, and established public error-shape invariants WITHOUT waiving upstream
+tests, blindly mutating arbitrary/frozen host reasons, or dropping signals.
+No reviewer source fix was made. Author was notified promptly in the checkpoint.
+
+OTHER FINDINGS / LIMITS
+- Live retained metadata is restored, but a shared static-property/captured
+  object is conservatively charged 87 versus 49 units. Both author's and
+  reviewer's unchanged diagnostic fail. This is quota inflation, not evidence
+  of weakened quotas. Broad canonical-object deduplication was discouraged
+  because original mutable captures and wrapped copies may diverge and then
+  be undercounted. No safe budget redesign was approved or implemented here.
+- Closure factory brands/freezing, construct receiver, static cycles, repeated
+  identity, narrow interpreter-owned Map/Set/RegExp/generator/error brands,
+  own __proto__/constructor/prototype data, constructor identity registries,
+  and live retained callbacks were audited. No Proxy, host evaluator/native
+  escape, signal removal, host-operation annotation removal, or quota-constant
+  weakening was found in this candidate.
+- Both early-aborted promise wrappers now observe the original rejection
+  locally while leaving the outward abort rejection visible. Existing full
+  cancellation tests run; the new lifecycle child specifically covers one
+  synchronous abort+immediate rejection ordering. It is not exhaustive evidence
+  for every asynchronous host, thenable, late-rejection, or lifecycle ordering.
+- Source patch/pre/post hashes, update-only allowlist, path traversal rejection,
+  exact wrong-baseline failure without input mutation, symlink leaf/ancestor
+  rejection, and source-symlink rejection were checked independently. Negative
+  symlink cases used inert /tmp targets, never private targets.
+- verify.mjs and snapshot.mjs changed during the author's concurrent work.
+  Recorded intermediate verify hash:
+  ed3895c661ff82289dffbfa18fca81e3fd1fe2d7e8cf12b46eff7d403946f0a3
+  End-of-review verify hash:
+  56cb05286df58d306043bc1d09506ba971a7d24fc7d42da57289a1b26adfa73d
+  End snapshot hash:
+  af610139cdff2da40f92a623486b9c1404d5b7909a9c9c8fcebce6d95859024b
+  Later source inspection confirms added exact baseline/patch TAP count checks
+  and global drift affects aggregate success. Do not conflate this inspected
+  later verifier with a separately rerun final-verifier gate; the candidate
+  patch hash and reproduced engine outcomes remained unchanged.
+- No independent build/typecheck claim; no dependency installation attempted.
+  No exhaustive sandbox security, universal conformance, or superiority claim.
+
+PRIVATE UNCHANGED PROOF — ENGINE ONLY; GLOBAL GIT DRIFT OBSERVED
+Before, midpoint, after: all 238 SafeJS src files unchanged. Digest algorithm:
+SHA256(JSON.stringify(sorted [package-relative path, file SHA256] pairs)).
+Private/baseline source digest:
+  ce71b29631d9eb09d8a23107f71b16cf8646b1d7d67c14c81b38de781c585bfd
+Patched isolated 238-source digest:
+  d884138361ad98e32d84ebf9f6110697ca730f14274b45043926b58c8c95bab9
+All 490 private package files, INCLUDING preexisting dist, also unchanged:
+  19141efafdd18a1cab9a183614ca7ccacdc1360d5f11e73f36e5c7798e795d04
+Author baseline pin covers 259 non-generated files, including all 238 src
+files and all 125 suite files. It excludes 231 preexisting dist files; they
+were neither imported nor patched, and independent full-package hashes cover
+them for private-write detection.
+Observed root MIT license SHA256, equal to LICENSE.upstream:
+  0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13
+Package is private:true with no separate manifest license field.
+
+Global private revision changed externally during verification:
+  031436f3d89ea1df8a33371e30076cb5e44ec262 ->
+  b9113a172089e716b5eda7bbd117e630df211597
+Read-only git log shows unrelated runner/design commits. Status changed inside
+the full reproduction interval. Private index hash also changed:
+  8a70acec31dc35e70602b2faf9a72569bce92ff2f2953c6d53227a0b2091129a ->
+  f897e8c032c70d1333b4c0bf20b66c4e4ad042de8a533e45838f059fa268b287
+Thus the requested global revision/status-unchanged proof is NOT satisfied.
+No reviewer write command targeted private. All reviewer private Git reads
+used GIT_OPTIONAL_LOCKS=0; no worktree/index refresh/build/cache/chmod actions.
+Exact status strings are retained in before.json/midpoint.json/after.json and
+the reproducible snapshot private-before-copy.json/private-final.json.
+
+ACTUAL IMPORT PROOF
+Node load hooks recorded the reviewer's patched engine, not an original alias:
+/private/tmp/safe-bash-safejs-isolated-Ez7FxL/patched/packages/safejs/src/run.ts
+  SHA256 437516219bd7e6150b35b76d4f4db3a5027496d75d1534142032a4fe466ff4f2
+/private/tmp/safe-bash-safejs-isolated-Ez7FxL/patched/packages/safejs/src/interp/interpreter.ts
+  SHA256 9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d
+Private engine imports were forbidden by the preload. Upstream Vite aliases
+were audited to point into the copied workspace; its tooling/config/setup and
+all suite paths are regular temporary copies, not private workspace symlinks.
+
+REPRODUCTION / TOOL VERSIONS / EVIDENCE
+Executed from /Users/kjopek/Workspace/safe-bash:
+  node docs/upstream-patches/safejs/verify.mjs /Users/kjopek/Workspace/poe-code
+  node /tmp/safejs-independent-review-vHL7ba/guards.mjs
+Manual Node probes used SAFEJS_LOCAL_ROOT=<reviewer snapshot>/packages/safejs,
+TMPDIR=<snapshot>/temporary, TSX_DISABLE_CACHE=1, then:
+  node --unhandled-rejections=strict --import tsx --test \
+    tests/commands/safejs-stress/upstream-desired.probe.ts \
+    tests/commands/safejs-stress/action-abort.probe.ts
+Manual full suites ran from each copied snapshot with HOME/TMP/TEMP/TMPDIR/
+XDG_CACHE_HOME outside private, playback/error LLM settings, both slow/fuzz
+flags, then:
+  node --unhandled-rejections=strict node_modules/vitest/vitest.mjs run \
+    packages/safejs/src packages/safejs/test --reporter=json --outputFile=<log>
+The reproducible script also used --no-cache for full suites. Exact executable,
+argv, environment, cwd, status and logs: /tmp/safe-bash-safejs-isolated-Ez7FxL/commands.json.
+Node v22.22.2; safe-bash tsx 4.23.12 for Node probes; copied private Vitest 3.2.6,
+Vite 6.4.3; installed private tsx 4.22.4 and TypeScript 5.9.3 inventoried only.
+Git 2.50.1 (Apple Git-155). apply_patch was the installed Codex helper, not patch(1).
+
+Evidence root: /tmp/safejs-independent-review-vHL7ba/
+  before.json, midpoint.json, after.json, baseline-nine.log,
+  baseline-ten.log, patched-ten.log, baseline-contracts.log,
+  patched-contracts.log, baseline-full.json, patched-full.json,
+  guards.log, artifacts-during-reproduce.sha256, reproduce.log.
+Full reproducible evidence: /tmp/safe-bash-safejs-isolated-Ez7FxL/
+  baseline-acceptance.log, patched-acceptance.log, baseline-invariants.log,
+  patched-invariants.log, baseline-fullsuite-slow.json,
+  patched-fullsuite-slow.json, private-comparison.json, commands.json.
+
+STOP: finite review complete for the identified candidate. No fixes were made
+by this reviewer. Any subsequent author patch needs a fresh versioned gate;
+this FAIL is not an assertion about future unreviewed changes.

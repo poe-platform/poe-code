@@ -231,6 +231,46 @@ describe the updated documentation. Root retains final documentation review.
 
 ## Evidence locations
 
+### Current v3 proposal (August 26, 2026)
+
+Only the candidate's static AbortError message is corrected to the established
+native/upstream spelling. The new 18-case reason fixture now uses an independent
+default native AbortSignal message; original nine/upstream tests stay unchanged.
+Targeted tests pass **109/109**; full pinned suite passes **3225/0/38**
+(pass/fail/skip, 3263 tests/125 files); reason safety **18/18**. Original ten stays
+**9/10**, invariant gate **8/9**, and verifier still demands 10/10 and exits 1.
+Stable source checkpoint: `/tmp/safe-bash-safejs-v3-source-stable.txt`.
+Evidence: `docs/upstream-patches/safejs/EVIDENCE.md`. Separate review pending;
+no rawidentity or quota redesign, no private edits or commit.
+
+### Historical v2 proposal (August 26, 2026)
+
+The cause-preserving run.ts proposal and durable `reason-contract.probe.mjs`
+retain the investigator's 18 safety assertions after source/fixture inspection.
+V2 passes 18/18 and the unchanged shape audit 12/12, but original nine plus
+action-abort remains **9/10** because raw Error identity is not cause identity.
+Two full-suite message-spelling mismatches remain (**3223 pass / 2 fail / 38
+skip**, 3263 tests/125 files on the pinned baseline). Invariants remain **8/9**
+with conservative quota inflation. No tests were relaxed; verifier still expects
+10/10 and exits 1. Current private source drift is recorded and rejected by the
+baseline guard; explicit fresh copies of the preserved pinned baseline are used.
+See `docs/upstream-patches/safejs/EVIDENCE.md` for distinct v1/v2 evidence. Status:
+**NOT APPROVED**, pending upstream contract decision and separate final review.
+
+### Historical v1 isolated candidate (August 26, 2026)
+
+`docs/upstream-patches/safejs/README.md` documents the new guarded, temporary-copy
+patch reproducer. This later assignment adds durable action-abort, wrapper and
+promise lifecycle, import-provenance, and artifact-guard probes in this directory.
+It does not modify the shipped plugin or private engine. The unchanged original
+nine plus durable action-abort pass 10/10 on the candidate, compared with 0/10 on
+baseline; the full unchanged upstream suite still fails one error-shape audit and
+a conservative shared-capture budget diagnostic remains unresolved. Candidate
+status: **NOT APPROVED**. Earlier prose-only/no-execution statements in this file
+belong to their historical documentation handoff, not the new implementation.
+
+### Historical logs
+
 Checkpoint: `/tmp/safe-bash-safejs-stress-checkpoint.txt`.
 TAP logs under `/tmp/safe-bash-safejs-stress-`: `baseline-real.tap`,
 `baseline-without.tap`, `command-bridge.tap`, `final-real.tap`,

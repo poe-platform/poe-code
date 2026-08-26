@@ -1,0 +1,63 @@
+{
+  "candidate": "NOT APPROVED",
+  "patchSha256": "5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09",
+  "snapshot": "/tmp/safe-bash-safejs-isolated-gnP0gu",
+  "acceptance": {
+    "baseline": {
+      "pass": 0,
+      "fail": 10,
+      "skip": 0
+    },
+    "patched": {
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "supplemental": {
+    "baseline": {
+      "pass": 0,
+      "fail": 9,
+      "skip": 0
+    },
+    "patched": {
+      "pass": 8,
+      "fail": 1,
+      "skip": 0
+    }
+  },
+  "guardTests": {
+    "pass": 2,
+    "fail": 0
+  },
+  "privateComparison": {
+    "engineUnchanged": true,
+    "revisionUnchanged": true,
+    "statusUnchanged": true,
+    "licenseUnchanged": true
+  },
+  "postTestSnapshotHashesMatch": true,
+  "versions": {
+    "node": "v22.22.2",
+    "safeBashTsx": "4.23.12",
+    "copied_vitest": "3.2.6",
+    "copied_vite": "6.4.3",
+    "copied_tsx": "4.22.4",
+    "copied_typescript": "5.9.3"
+  },
+  "actualImports": {
+    "run": {
+      "path": "/private/tmp/safe-bash-safejs-isolated-gnP0gu/patched/packages/safejs/src/run.ts",
+      "sha256": "437516219bd7e6150b35b76d4f4db3a5027496d75d1534142032a4fe466ff4f2"
+    },
+    "interpreter": {
+      "path": "/private/tmp/safe-bash-safejs-isolated-gnP0gu/patched/packages/safejs/src/interp/interpreter.ts",
+      "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+    }
+  },
+  "typecheck": {
+    "status": "blocked by missing unbuilt workspace declarations; not passing",
+    "diagnostics": 8,
+    "baselineEqualsPatched": true
+  }
+}

@@ -1,0 +1,120 @@
+TAP version 13
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-ZicyG4/patched/packages/safejs/src/run.ts","sha256":"c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1"}
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-ZicyG4/patched/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+# Subtest: preserves primitive null exactly
+ok 1 - preserves primitive null exactly
+  ---
+  duration_ms: 0.455666
+  type: 'test'
+  ...
+# Subtest: preserves primitive false exactly
+ok 2 - preserves primitive false exactly
+  ---
+  duration_ms: 0.074458
+  type: 'test'
+  ...
+# Subtest: preserves primitive 0 exactly
+ok 3 - preserves primitive 0 exactly
+  ---
+  duration_ms: 0.030542
+  type: 'test'
+  ...
+# Subtest: preserves primitive 0 exactly
+ok 4 - preserves primitive 0 exactly
+  ---
+  duration_ms: 0.02775
+  type: 'test'
+  ...
+# Subtest: preserves primitive  exactly
+ok 5 - preserves primitive  exactly
+  ---
+  duration_ms: 0.030291
+  type: 'test'
+  ...
+# Subtest: preserves primitive custom primitive reason exactly
+ok 6 - preserves primitive custom primitive reason exactly
+  ---
+  duration_ms: 0.024041
+  type: 'test'
+  ...
+# Subtest: preserves primitive 7 exactly
+ok 7 - preserves primitive 7 exactly
+  ---
+  duration_ms: 0.022875
+  type: 'test'
+  ...
+# Subtest: preserves primitive Symbol(cancel) exactly
+ok 8 - preserves primitive Symbol(cancel) exactly
+  ---
+  duration_ms: 0.055667
+  type: 'test'
+  ...
+# Subtest: shapes default with untouched exact cause
+ok 9 - shapes default with untouched exact cause
+  ---
+  duration_ms: 0.517
+  type: 'test'
+  ...
+# Subtest: shapes frozen-default with untouched exact cause
+ok 10 - shapes frozen-default with untouched exact cause
+  ---
+  duration_ms: 0.22825
+  type: 'test'
+  ...
+# Subtest: shapes custom-error with untouched exact cause
+ok 11 - shapes custom-error with untouched exact cause
+  ---
+  duration_ms: 0.095375
+  type: 'test'
+  ...
+# Subtest: shapes frozen-error with untouched exact cause
+ok 12 - shapes frozen-error with untouched exact cause
+  ---
+  duration_ms: 0.043166
+  type: 'test'
+  ...
+# Subtest: shapes frozen-record with untouched exact cause
+ok 13 - shapes frozen-record with untouched exact cause
+  ---
+  duration_ms: 0.04775
+  type: 'test'
+  ...
+# Subtest: shapes frozen-function with untouched exact cause
+ok 14 - shapes frozen-function with untouched exact cause
+  ---
+  duration_ms: 0.44575
+  type: 'test'
+  ...
+# Subtest: does not read reason getters, stringify it, or traverse its prototype
+ok 15 - does not read reason getters, stringify it, or traverse its prototype
+  ---
+  duration_ms: 0.138208
+  type: 'test'
+  ...
+# Subtest: does not touch own reason accessors or stack formatting hooks
+ok 16 - does not touch own reason accessors or stack formatting hooks
+  ---
+  duration_ms: 0.074334
+  type: 'test'
+  ...
+# Subtest: does not inspect caller options or run setup before rejection
+ok 17 - does not inspect caller options or run setup before rejection
+  ---
+  duration_ms: 0.143583
+  type: 'test'
+  ...
+# Subtest: entry span stays valid for empty, multiline, and invalid source
+ok 18 - entry span stays valid for empty, multiline, and invalid source
+  ---
+  duration_ms: 0.088708
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 232.512667

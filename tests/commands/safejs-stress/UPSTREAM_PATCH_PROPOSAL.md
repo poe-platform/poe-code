@@ -1,5 +1,39 @@
 # Read-only upstream findings and untested patch proposal
 
+**Current v3, August 26, 2026:** the fixed native/upstream AbortError spelling
+repairs v2's two message mismatches. Targeted unchanged tests pass 109/109; full
+pinned suite is 3225 pass / 0 fail / 38 skip. The authorized new 18-case fixture
+uses a native default-message oracle and passes 18/18. Original nine bytes remain
+unchanged: original ten is still 9/10 (raw identity), invariants 8/9 (quota), and
+verifier requires 10/10 with visible exit 1 / passed:false. Current evidence is
+under `docs/upstream-patches/safejs/evidence/v3/`; v1/v2 results below are historical.
+Stable source checkpoint: `/tmp/safe-bash-safejs-v3-source-stable.txt`. No commit;
+separate final review pending, no accepted API contract change.
+
+**Historical V2 proposal, August 26, 2026:** a run.ts-only cause-preserving revision relative
+to v1 now repairs the unchanged 12-test error-shape audit and passes 18 new
+frozen/accessor reason-safety checks. It does **not** satisfy the unchanged raw
+Error identity assertion: original nine plus action-abort is **9/10**, not
+10/10. The full pinned 125-file suite reports **3223 pass / 2 fail / 38 skip**;
+both failures concern the investigator's generic AbortError message spelling.
+The original nine file and supplemental invariants are unchanged. The verifier
+still demands 10/10 and exits 1 with `passed: false`; no API contract is approved.
+Fresh copies use the explicit preserved hash-pinned baseline because current
+private source has drifted and is correctly rejected. V1 artifacts/logs are
+retained separately; see `docs/upstream-patches/safejs/EVIDENCE.md`.
+
+**Historical v1 isolated artifact update, August 26, 2026:** the historical proposal
+below now has a reproduced candidate under `docs/upstream-patches/safejs/`.
+Only fresh temporary regular-file engine copies were patched. The unchanged
+original nine acceptances plus the new durable action-abort child move from
+0/10 baseline to 10/10 patched, but the full unchanged upstream suite exposes
+one cancellation error-shape regression (3224 pass / 1 fail / 38 skip), and a
+supplemental shared-capture budget diagnostic remains failing. The candidate is
+**NOT APPROVED**; `verify.mjs` intentionally exits nonzero. See that directory's
+README and evidence for hashes, isolation, licensing, commands and limitations.
+Statements below that no patch or durable lifecycle executable existed describe
+the earlier handoff, not this later isolated implementation.
+
 Independent verification, August 26, 2026. This document proposes private
 SafeJS changes; **none have been applied or tested as a patch**. The shipped
 plugin still passes its signal. No host evaluator or substitute interpreter is

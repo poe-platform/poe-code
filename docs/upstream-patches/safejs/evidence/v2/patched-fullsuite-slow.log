@@ -1,0 +1,283 @@
+
+ RUN  v3.2.6 /private/tmp/safe-bash-safejs-isolated-pu6gX6/patched
+
+ ✓ packages/safejs/src/modules/fs.test.ts (553 tests) 117ms
+ ✓ packages/safejs/src/interp/interpreter.test.ts (477 tests) 308ms
+ ✓ packages/safejs/src/parse/parser.test.ts (92 tests) 72ms
+ ❯ packages/safejs/src/run.test.ts (66 tests | 1 failed) 178ms
+   ✓ run > continues to accept an injected promise without requiring durable snapshots 8ms
+   ✓ run > executes sources with a leading hashbang or byte order mark 2ms
+   ✓ run > rejects parser stack stress with a controlled parse error 25ms
+   ✓ run > rejects unbounded recursion with the default call-depth guard 76ms
+   ✓ run > preserves non-enumerable static methods on injected functions 2ms
+   ✓ run > registers declarative host operation resume policies 1ms
+   ✓ run > leaves undeclared host operations unregistered for typed resume failures 1ms
+   ✓ run > registers Math globals by default 1ms
+   ✓ run > registers standard numeric globals used by Math edge cases 1ms
+   ✓ run > registers structuredClone and coercing numeric globals by default 2ms
+   ✓ run > keeps caught circular JSON.stringify failures from failing final snapshotting 1ms
+   ✓ run > includes the current dump format version in in-memory snapshots 0ms
+   ✓ run > lets scripts read only allow-listed environment variables through the env module 1ms
+   ✓ run > does not expose process.env or other extra exports through env namespace imports 1ms
+   ✓ run > resolves named, default, and namespace imports from the module registry 1ms
+   ✓ run > converts fail module throws into catchable HarnessFailure subset errors 1ms
+   ✓ run > rejects unhandled fail module throws with a HarnessFailure subset error 1ms
+   ✓ run > preserves fail module message whitespace through unhandled runner failures 0ms
+   ✓ run > accepts Map-based registries and module export maps at runtime 0ms
+   ✓ run > throws the lint-style unknown module error when a module import is missing at runtime 0ms
+   ✓ run > throws the lint-style unknown export error when an imported export is missing at runtime 0ms
+   ✓ run > attaches import-site source context to missing runtime export errors 1ms
+   ✓ run > supports edge-case import local names without leaking inherited namespace members 1ms
+   ✓ run > runs agent spawns through the injected module and returns the full spawn result 2ms
+   ✓ run > keeps sandbox spawn labels in lifecycle events and out of provider input 1ms
+   ✓ run > runs explicit sandbox retries with lifecycle events 2ms
+   ✓ run > rejects explicit sandbox retry policies above five attempts 1ms
+   ✓ run > runs agent.spawn.parallel through the injected module 2ms
+   ✓ run > applies numbered lifecycle events and default retries to sandbox parallel spawns 3ms
+   ✓ run > surfaces agent spawn failures as catchable sandbox errors 1ms
+   ✓ run > supports MCP clients returned from module calls inside the sandbox 1ms
+   ✓ run > validates malformed agent spawn calls from scripts with explicit errors 1ms
+   ✓ run > registers Object, Array, and coercion globals by default 2ms
+   ✓ run > registers structured clone and coercing numeric globals by default 1ms
+   ✓ run > registers subset Promise helpers by default 1ms
+   ✓ run > supports catch and finally promise chains in sandbox scripts 1ms
+   ✓ run > rejects detached async function rejections as unhandled 1ms
+   ✓ run > reports a returned rejected host call promise as unhandled after a sandbox catch 0ms
+   ✓ run > does not reject detached async function rejections with sandbox catches 0ms
+   ✓ run > drains detached fulfilled promise reactions before completing 1ms
+   ✓ run > applies detached fulfilled promise side effects before snapshotting 1ms
+   ✓ run > rejects promise chains that resolve to themselves 0ms
+   ✓ run > rejects in-flight awaits and the next host call when aborted 1ms
+   ✓ run > resolves import.meta from an injected deep copy 1ms
+   ✓ run > calls the default export with entryPointArgs and returns its awaited result 1ms
+   ✓ run > copies entryPointArgs before top-level evaluation can yield 0ms
+   ✓ run > throws a runtime error with the filename when entryPointArgs is set without a default export 0ms
+   ✓ run > propagates default export throws with sandbox stack formatting 0ms
+   ✓ run > preserves sandbox call stacks for missing identifiers 1ms
+   × run > blocks imported module calls when the signal is already aborted 7ms
+     → expected { name: 'AbortError', …(4), …(2) } to match object { …(2) }
+(1 matching property omitted from actual)
+   ✓ run > aborts at the next host call inside the entry function and can restore a pre-abort snapshot 4ms
+   ✓ run > wraps caller-injected host function arguments and return values across the sandbox boundary 1ms
+   ✓ run > converts caller-injected host throws into subset errors without host stack frames 0ms
+   ✓ run > wraps caller-injected callback arguments so host code can await them repeatedly 1ms
+   ✓ run > treats async caller-injected host functions as subset promises with copied values 1ms
+   ✓ run > converts async caller-injected copy failures into subset errors through run() 0ms
+   ✓ run > supports empty Promise iterables and enforces budgets through run() 0ms
+   ✓ run > registers Error globals by default 0ms
+   ✓ run > intercepts supported string properties and methods 1ms
+   ✓ run > matches JavaScript edge behavior for intercepted string methods 1ms
+   ✓ run > keeps coercion helpers opaque when used as Object sources 0ms
+   ✓ run > supports string replacer closures and rejects other function string arguments 1ms
+   ✓ run > uses deterministic Math.random() when seeded 0ms
+   ✓ run > replays seeded random progress from a saved snapshot 1ms
+   ✓ run > serializes automatically seeded random state by default 0ms
+   ✓ run > evaluates regex literals and constructable RegExp globals 3ms
+ ✓ packages/safejs/src/modules/agent.test.ts (45 tests) 34ms
+ ✓ packages/safejs/src/snapshot/restore.test.ts (62 tests) 419ms
+   ✓ snapshot restore > restores thousands of parent scopes without using the host call stack  373ms
+ ✓ packages/safejs/src/run.snapshot.test.ts (31 tests) 99ms
+ ✓ packages/safejs/src/run.replay.stress.test.ts (56 tests) 252ms
+ ✓ packages/safejs/src/modules/git.test.ts (24 tests) 21ms
+ ❯ packages/safejs/src/runner/run-harness.test.ts (31 tests | 1 failed) 92ms
+   ✓ runHarness > loads frontmatter and the first js block, builds modules, and returns the run result 22ms
+   ✓ runHarness > ignores inherited frontmatter metadata for markdown harnesses 4ms
+   ✓ runHarness > normalizes missing harness files with the missing path in the message 1ms
+   ✓ runHarness > normalizes harness paths under a file parent 0ms
+   ✓ runHarness > normalizes missing paired raw script files 0ms
+   ✓ runHarness > throws a clear error when the path points at a directory 0ms
+   ✓ runHarness > throws a no code block error when the file is empty 0ms
+   ✓ runHarness > accepts hashbangs in raw scripts and fenced code blocks 2ms
+   ✓ runHarness > reports parse errors on source-mapped markdown lines 1ms
+   ✓ runHarness > returns an execution error result when the first await throws and still runs finally 7ms
+   ✓ runHarness > returns the value when the harness completes with no awaits 2ms
+   ✓ runHarness > invokes a markdown default export with no arguments 2ms
+   ✓ runHarness > surfaces modulesFor errors before code runs 0ms
+   ✓ runHarness > names the missing module when modulesFor omits a required module 1ms
+   ✓ runHarness > does not snapshot when snapshotIntervalMs is zero 3ms
+   ✓ runHarness > allows harness applyConstraints through lint and runtime module exports 4ms
+   ✓ runHarness > aborts before execution when lint reports an error diagnostic 2ms
+   ✓ runHarness > reports lint diagnostics on the original file lines for BOM and CRLF content 1ms
+   ✓ runHarness > supports map-based module registries for linting and execution 3ms
+   ✓ runHarness > runs the body directly when the file has frontmatter but no fenced script block 1ms
+   ✓ runHarness > treats .ajs files as raw scripts without frontmatter or markdown block extraction 2ms
+   ✓ runHarness > treats .safejs files as raw scripts without frontmatter or markdown block extraction 2ms
+   ✓ runHarness > does not register the harness module for .ajs files 1ms
+   ✓ runHarness > does not register the harness module for .safejs files 1ms
+   × runHarness > returns an aborted result when the signal is aborted before the first step 7ms
+     → expected { aborted: true, …(2) } to match object { Object (aborted, error, ...) }
+(1 matching property omitted from actual)
+   ✓ runHarness > does not mark inherited error names as aborted 2ms
+   ✓ runHarness > checkpoints the running script to snapshotPath 6ms
+   ✓ runHarnessPair > ignores inherited frontmatter metadata for harness pairs 4ms
+   ✓ runHarnessPair > rejects frontmatter agents whose agent does not support the requested mode 1ms
+   ✓ runHarnessPair > accepts frontmatter agents whose agent supports the requested mode 2ms
+   ✓ runHarnessPair > keeps concurrent runs against the same pair independent 9ms
+ ✓ packages/safejs/src/interp/methods/array.test.ts (20 tests) 22ms
+ ✓ packages/safejs/src/interp/host-bridge.test.ts (33 tests) 28ms
+ ✓ packages/safejs/src/index.test.ts (15 tests) 36ms
+ ✓ packages/safejs/src/parse/tokenizer.test.ts (25 tests) 12ms
+ ✓ packages/safejs/src/interp/promise.test.ts (41 tests) 8ms
+ ✓ packages/safejs/src/interp/conformance.test.ts (72 tests) 46ms
+ ✓ packages/safejs/src/modules/mcp.test.ts (16 tests) 9ms
+ ✓ packages/safejs/src/cli.test.ts (27 tests) 75ms
+ ✓ packages/safejs/src/snapshot/serialize.test.ts (15 tests) 34ms
+ ✓ packages/safejs/src/interp/globals/object-array.test.ts (15 tests) 15ms
+ ✓ packages/safejs/src/lint/index.test.ts (38 tests) 40ms
+ ✓ packages/safejs/src/sandbox-integrity.test.ts (36 tests) 46ms
+ ✓ packages/safejs/src/runner/signal-dump.test.ts (12 tests) 89ms
+ ✓ packages/safejs/test/integration/crash-resume.test.ts (11 tests) 86ms
+ ✓ packages/safejs/src/interp/methods/string.test.ts (22 tests) 24ms
+ ✓ packages/safejs/src/snapshot/scheduler.test.ts (14 tests) 10ms
+ ✓ packages/safejs/src/interp/cancel.test.ts (12 tests) 21ms
+ ✓ packages/safejs/src/interp/values.test.ts (25 tests) 13ms
+ ✓ packages/safejs/test/integration/snapshot-roundtrip.test.ts (2 tests) 41ms
+ ✓ packages/safejs/src/parse/fuzz.test.ts (1 test) 324ms
+   ✓ parse fuzz > handles deterministic random sources without parser crashes  323ms
+ ✓ packages/safejs/src/modules/fs.conformance.test.ts (201 tests | 33 skipped) 42ms
+ ✓ packages/safejs/src/interp/scope.test.ts (28 tests) 30ms
+ ✓ packages/safejs/src/modules/fs.host-module.test.ts (9 tests) 39ms
+ ✓ packages/safejs/src/interp/globals/collections.test.ts (11 tests) 34ms
+ ✓ packages/safejs/src/parse/assign-ids.test.ts (13 tests) 164ms
+ ✓ packages/safejs/src/snapshot/policy.test.ts (17 tests) 3ms
+ ✓ packages/safejs/src/snapshot/backend.test.ts (11 tests) 8ms
+ ✓ packages/safejs/src/interp/globals/console-json.test.ts (21 tests) 7ms
+ ✓ packages/safejs/src/interp/host-call.test.ts (17 tests) 8ms
+ ✓ packages/safejs/src/interp/running-state.test.ts (13 tests) 17ms
+ ✓ packages/safejs/src/interp/generator.test.ts (16 tests) 20ms
+ ✓ packages/safejs/src/lint/rules/AS003.test.ts (21 tests) 10ms
+ ✓ packages/safejs/src/interp/patterns.test.ts (10 tests) 9ms
+ ✓ packages/safejs/src/interp/globals/math.test.ts (36 tests) 90ms
+ ✓ packages/safejs/test/integration/budgets.test.ts (12 tests) 39ms
+ ✓ packages/safejs/src/interp/interactions.test.ts (10 tests) 45ms
+ ✓ packages/safejs/src/lint/rules/AS014.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/error/shape-audit.test.ts (12 tests) 19ms
+ ✓ packages/safejs/src/lint/rules/AS001.test.ts (12 tests) 4ms
+ ✓ packages/safejs/src/interp/budget.test.ts (24 tests) 7ms
+ ✓ packages/safejs/src/loader/extract-block.test.ts (24 tests) 4ms
+ ✓ packages/safejs/src/modules/harness.test.ts (12 tests) 4ms
+ ✓ packages/safejs/src/lint/rules/AS013.test.ts (11 tests) 7ms
+ ✓ packages/safejs/src/interp/async.test.ts (13 tests) 15ms
+ ✓ packages/safejs/src/interp/data-budget.test.ts (15 tests) 45ms
+ ✓ packages/safejs/src/interp/methods/number.test.ts (9 tests) 4ms
+ ✓ packages/safejs/src/loader/frontmatter.test.ts (21 tests) 32ms
+ ✓ packages/safejs/src/interp/globals/misc.test.ts (9 tests) 23ms
+ ✓ packages/safejs/src/modules/fs.option-surface.test.ts (29 tests) 3ms
+ ✓ packages/safejs/src/lint/rules/AS011.test.ts (11 tests) 8ms
+ ✓ packages/safejs/src/lint/rules/AS005.test.ts (13 tests) 5ms
+ ✓ packages/safejs/src/parse/format-error.test.ts (13 tests) 7ms
+ ✓ packages/safejs/src/modules/time.test.ts (17 tests) 97ms
+ ✓ packages/safejs/src/parse/parse-export.test.ts (9 tests) 6ms
+ ✓ packages/safejs/src/modules/log.test.ts (9 tests) 7ms
+ ✓ packages/safejs/src/lint/rules/AS-jsdoc-type.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/interp/globals/error.test.ts (22 tests) 12ms
+ ✓ packages/safejs/src/snapshot/replay-data.test.ts (16 tests) 5ms
+ ✓ packages/safejs/src/run.random.test.ts (28 tests) 81ms
+ ✓ packages/safejs/src/lint/rules/AS006-007.test.ts (11 tests) 7ms
+ ✓ packages/safejs/src/lint/rules/AS-unused-import.test.ts (14 tests) 7ms
+ ✓ packages/safejs/src/lint/rules/AS010.test.ts (13 tests) 7ms
+ ✓ packages/safejs/src/interp/promise-replay.test.ts (16 tests) 4ms
+ ✓ packages/safejs/src/lint/function-syntax.test.ts (41 tests) 68ms
+ ✓ packages/safejs/src/lint/rules/AS009.test.ts (12 tests) 6ms
+ ✓ packages/safejs/src/dump.test.ts (11 tests) 8ms
+ ✓ packages/safejs/src/loader/find-exported.test.ts (14 tests) 5ms
+ ✓ packages/safejs/src/interp/methods/function.test.ts (8 tests) 10ms
+ ✓ packages/safejs/src/lint/rules/AS008.test.ts (12 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-import-cycle.test.ts (6 tests) 5ms
+ ✓ packages/safejs/src/error/format.test.ts (10 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS004.test.ts (10 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS015.test.ts (12 tests) 7ms
+ ✓ packages/safejs/src/lint/rules/AS-floating-promise.test.ts (14 tests) 7ms
+ ✓ packages/safejs/src/interp/exceptions.test.ts (13 tests) 15ms
+ ✓ packages/safejs/src/parse/hash.test.ts (19 tests) 9ms
+ ✓ packages/safejs/src/restore.test.ts (17 tests) 5ms
+ ✓ packages/safejs/src/lint.test.ts (9 tests) 29ms
+ ✓ packages/safejs/src/lint/mutable-closures.stress.test.ts (25 tests) 294ms
+ ✓ packages/safejs/src/parse/generator.test.ts (6 tests) 8ms
+ ✓ packages/safejs/src/interp/regex/engine.test.ts (33 tests) 9ms
+ ✓ packages/safejs/src/lint/rules/AS-missing-async.test.ts (11 tests) 9ms
+ ✓ packages/safejs/src/parse/parse-import-meta.test.ts (14 tests) 17ms
+ ✓ packages/safejs/src/lint/rules/AS-unreachable.test.ts (13 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-mutating-frozen.test.ts (11 tests) 8ms
+ ✓ packages/safejs/src/interp/arguments.test.ts (14 tests) 55ms
+ ✓ packages/safejs/src/lint/function-syntax.stress.test.ts (14 tests) 178ms
+ ✓ packages/safejs/src/lint/rules/AS-needless-template.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-await-non-promise.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-destructure-null-default.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-shadow-global.test.ts (7 tests) 4ms
+ ✓ packages/safejs/src/lint/rules/AS-frontmatter-field-unused.test.ts (6 tests) 25ms
+ ✓ packages/safejs/src/lint/rules/AS-large-literal.test.ts (7 tests) 26ms
+ ✓ packages/safejs/src/modules/env.test.ts (9 tests) 3ms
+ ✓ packages/safejs/src/example-runner.test.ts (3 tests) 19ms
+ ✓ packages/safejs/src/error/shape.test.ts (3 tests) 2ms
+ ✓ packages/safejs/src/lint/rules/AS-export-import-meta.test.ts (6 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS-unbounded-loop.test.ts (13 tests) 6ms
+ ✓ packages/safejs/src/interp/methods/regex.test.ts (4 tests) 4ms
+ ✓ packages/safejs/src/lint/rules/AS-async-not-needed.test.ts (5 tests) 4ms
+ ✓ packages/safejs/src/interp/regex/parse.test.ts (18 tests) 4ms
+ ✓ packages/safejs/src/snapshot/replay-inputs.test.ts (7 tests) 4ms
+ ✓ packages/safejs/src/modules/registry.test.ts (4 tests) 4ms
+ ✓ packages/safejs/src/modules/metric.test.ts (10 tests) 3ms
+ ✓ packages/safejs/src/lint/mutable-closures.test.ts (6 tests) 38ms
+ ✓ packages/safejs/src/lint/rules/module-registry.test.ts (2 tests) 2ms
+ ✓ packages/safejs/src/lint/runtime-modules.test.ts (2 tests) 15ms
+ ✓ packages/safejs/test/adversarial/test262-semantics.test.ts (8 tests | 5 skipped) 12ms
+ ✓ packages/safejs/src/parse/parse-switch.test.ts (3 tests) 5ms
+ ✓ packages/safejs/src/modules/fail.test.ts (3 tests) 2ms
+ ✓ packages/safejs/test/adversarial/report.test.ts (2 tests) 2ms
+ ✓ packages/safejs/src/core.test.ts (1 test) 1ms
+ ✓ packages/safejs/test/adversarial/snapshot-mutation.test.ts (1 test) 138ms
+ ✓ packages/safejs/test/adversarial/corpus.test.ts (1 test) 39ms
+ ✓ packages/safejs/test/adversarial/parser-smoke.test.ts (1 test) 227ms
+
+ Test Files  2 failed | 123 passed (125)
+      Tests  2 failed | 3223 passed | 38 skipped (3263)
+   Start at  17:30:34
+   Duration  12.03s (transform 1.07s, setup 880ms, collect 4.65s, tests 4.95s, environment 10ms, prepare 3.89s)
+
+JSON report written to /tmp/safe-bash-safejs-isolated-pu6gX6/patched-fullsuite-slow.json
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safejs/src/run.test.ts > run > blocks imported module calls when the signal is already aborted
+AssertionError: expected { name: 'AbortError', …(4), …(2) } to match object { …(2) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "message": "This operation was aborted",
++   "message": "The operation was aborted.",
+    "name": "AbortError",
+  }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safejs/src/runner/run-harness.test.ts > runHarness > returns an aborted result when the signal is aborted before the first step
+AssertionError: expected { aborted: true, …(2) } to match object { Object (aborted, error, ...) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "aborted": true,
+    "error": {
+-     "message": "This operation was aborted",
++     "message": "The operation was aborted.",
+      "name": "AbortError",
+    },
+    "ok": false,
+  }
+
+ ❯ packages/safejs/src/runner/run-harness.test.ts:819:20
+    817|     });
+    818| 
+    819|     expect(result).toMatchObject({
+       |                    ^
+    820|       aborted: true,
+    821|       error: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯

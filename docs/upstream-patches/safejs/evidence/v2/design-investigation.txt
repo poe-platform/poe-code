@@ -1,0 +1,216 @@
+FINITE INDEPENDENT PREABORT ERROR-SHAPE INVESTIGATION
+August 26, 2026. Result: bounded candidate demonstrated; NOT an approved patch.
+
+SUMMARY
+The raw preabort return skips the upstream error-shaping boundary. A small
+run.ts-only replacement can restore a clean, source-bound AbortError without
+reading or mutating the caller's reason: construct an interpreter-owned error
+through createSubsetErrorValue, retain the exact object/function reason as
+cause, and materialize that cause through the existing helper. Keep primitive
+reasons, including null and false, as exact rejection values.
+
+This passes all 12 unchanged upstream shape-audit tests and all 18 added safety
+checks. It passes 9/10 of the unchanged original-nine-plus-action-abort suite;
+the sole failure is the original probe's additional exact raw Error identity
+assertion. This report does NOT reclassify that failure, alter that assertion,
+claim ten passing acceptances, or approve the main artifact.
+
+ISOLATION AND INPUTS
+Read root/parent AGENTS, artifact README/EVIDENCE/independent review, the patch,
+and the supplied baseline/patched snapshots. No network or delegation. No main
+repository edits, upstream-test edits, private checkout writes, git operations,
+worktrees, builds, installations, private symlinks, or commits.
+
+Own fresh root:
+  /tmp/safe-bash-safejs-abort-shape-design-Xp9WDu
+Copied the supplied patched snapshot into its candidate/ subtree using lstat
+checks and exclusive regular-file copies, rejecting symlinks and other file
+types. 25,874 regular files, zero symlinks; no hardlinks were created. All test
+cwd/HOME/TMP/TEMP/cache locations are inside the fresh temporary copy. Node
+acceptance hooks record actual engine source hashes and reject private imports.
+The original test/probe files are read unchanged; tsx caching is disabled.
+
+At 2026-08-26T22:23:40.004Z, independently rehashed all 259 manifest engine
+files in EACH supplied snapshot and in the candidate. Both supplied snapshots
+still match their pinned baseline/patched manifests. The candidate differs from
+the supplied patched snapshot ONLY in packages/safejs/src/run.ts. This includes
+verification that all pinned upstream tests are unchanged. No fresh assertion
+about global private checkout state is made; this task did not inspect its git
+state or load its implementation.
+
+Original lifecycle.patch SHA256:
+  5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09
+Supplied patched run.ts SHA256:
+  437516219bd7e6150b35b76d4f4db3a5027496d75d1534142032a4fe466ff4f2
+Final candidate run.ts SHA256:
+  4c7bebb540df03cfa66b367ab1f59284c300fb57aa1a3b8500f58d7811c00cc6
+Unchanged upstream shape-audit.test.ts SHA256:
+  31e092096221cac3716d2cd27ebe6301b41b22e43ff2fcf6fd02fa5185e6f085
+Unchanged original nine-probe SHA256:
+  7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab
+All additional hashes and isolation checks: evidence/input-proof.json.
+
+ROOT CAUSE AND CONTRACT DISTINCTION
+1. Supplied patched packages/safejs/src/run.ts:162-164 returns signal.reason
+   directly. For default AbortController.abort(), that reason has a native host
+   stack and no source span. The unchanged audit at
+   packages/safejs/src/error/shape-audit.test.ts:106 checks this case; its first
+   failure is the forbidden host path at line 192, with required span checked at
+   line 197. Both issues are real, not dialect differences.
+2. Existing packages/safejs/src/interp/exceptions.ts:216 surfaceThrownValue
+   already wraps host Error objects and preserves them as cause, instead of
+   guaranteeing raw Error identity at the public interpreter boundary. It calls
+   createSubsetErrorValue, which uses attachErrorSpan and attachWrappedErrorCause.
+   run.ts:434 materializes the wrapped cause on normal surfaced failures.
+3. Do not directly call surfaceThrownValue on an arbitrary cancellation reason:
+   it reads name/message, tests error-like properties, and can mutate an existing
+   plain subset-shaped object. Its generic fallback can stringify caller values.
+   Those behaviors do not meet this task's no-caller-getters/no-host-mutation
+   constraints for arbitrary frozen/accessor reasons.
+4. Exact raw Error identity is NOT an assertion of the unchanged upstream audit.
+   It IS explicitly required by this artifact's original nine-probe at
+   tests/commands/safejs-stress/upstream-desired.probe.ts:37. Thus it would be
+   inaccurate to describe the only failure as outside the ten-test denominator.
+   It is an additional raw-boundary assertion beyond preventing guest/host work
+   and retaining the original reason; passing those semantics does not make its
+   strict equality assertion pass. Only the coordinator can authorize a revised,
+   versioned contract/gate, and no such revision occurred here.
+5. Supplemental wrapper-invariants.probe.mjs:76 separately checks exact reasons
+   at internal closure call/construct boundaries. That behavior is unaffected
+   and still passes. Its :87 null/false raw-preabort equality/no-work check also
+   remains unchanged and passing. Do not relax these assertions wholesale.
+
+CONCRETE CANDIDATE DIFF
+Target: packages/safejs/src/run.ts, supplied patched lines 4, 22, and 162-164.
+This is incremental to lifecycle.patch, not a standalone baseline replacement.
+
+@@
+   attachErrorSpan,
++  createSourceSpan,
+@@
+ import { Budget } from "./interp/budget.js";
++import { createSubsetErrorValue } from "./interp/exceptions.js";
+@@
+   if (options.signal?.aborted) {
+-    return Promise.reject(options.signal.reason);
++    const reason: unknown = options.signal.reason;
++    if (reason === null || (typeof reason !== "object" && typeof reason !== "function")) {
++      return Promise.reject(reason);
++    }
++    const error = createSubsetErrorValue(
++      "AbortError",
++      "The operation was aborted.",
++      [],
++      new Budget(),
++      { cause: reason, chargeBudget: false, span: createSourceSpan(source, 1, 1, 1, 1) }
++    );
++    materializeWrappedErrorCause(error);
++    return Promise.reject(error);
+   }
+
+PROPOSED SEMANTICS AND BOUNDED TRADEOFFS
+- Already-aborted object/function reasons become an engine-owned AbortError
+  record, with a fixed nonempty message and clean stack. error.cause === reason;
+  the original custom name, message, fields, inner cause, and freezing remain on
+  that exact reason object. No property of the reason is inspected, no descriptor
+  is fetched, no prototype is traversed, and no JSON/string coercion occurs.
+  The top-level message is deliberately generic; this changes diagnostics for
+  custom reasons relative to raw rejection. It is not custom-message equivalence.
+- null, false and all other primitive reasons remain exact raw rejections. This
+  intentionally does NOT promise an Error-shaped envelope for primitives. Native
+  AbortSignal.abort(undefined) creates its default object reason; it follows the
+  object branch, rather than becoming an undefined rejection.
+- Frozen default/custom Errors, frozen records/functions and own/inherited
+  throwing accessors are preserved through cause without writes or reads. No
+  native Error stack is read or formatted. No Proxy, host evaluator, signal drop,
+  thenable assimilation, host callback or quota redesign is introduced.
+- The span is an entry anchor, NOT a claim that a particular guest expression
+  executed. createSourceSpan(source, 1, 1, 1, 1) uses upstream endpoint handling
+  to cover the first source unit (or a zero-length empty-source anchor). It also
+  handles a leading newline correctly and avoids parsing invalid source before
+  cancellation. No caller filename/modules/bindings/options.budget getter is read.
+- A fresh internal Budget is used only to create the small error record through
+  the existing error-construction pathway, with its existing chargeBudget:false
+  behavior. It is not a replacement run budget and never executes guest code.
+  Caller budgets, quotas, limits, and live-signal execution are untouched.
+- The outward stack is sanitized, NOT the recursive cause graph. That graph may
+  contain native paths, getters or capabilities supplied by the caller. This is
+  an intentional host-side diagnostic preservation tradeoff already present in
+  the upstream host-Error cause path. Do not recursively serialize/expose it to
+  guests or call it a recursively sanitized error.
+- Trusted native AbortSignal and string source inputs remain prerequisites.
+  Arbitrary getters on options.signal or monkeypatched host intrinsics are not
+  addressed. The existing fast-path lack of dump-controller attachment is also
+  unchanged; this task does not redesign lifecycle setup.
+
+WHY UNIVERSAL EXACT IDENTITY CANNOT ALSO BE REQUIRED
+A caller can freeze an Error whose stack contains native paths and which has no
+span. If the outward rejection must be that same object, no wrapper is allowed;
+if mutation is forbidden (and freezing makes it impossible anyway), there is no
+way to add the required span or replace its stack. General simultaneous raw
+identity, source-bound sanitized shape, and immutable caller reasons are
+incompatible. Cause identity is a safe alternative, not raw identity.
+
+A default-DOMException-only special case could make the currently observed ten
+tests green while passing the audit, but it would leave custom/frozen Error
+reasons unshaped and lacks a reliable provenance distinction: callers can supply
+the same default-looking DOMException themselves. That is not a general solution
+to the requested contract. This report does not claim the literal test assertions
+alone are mathematically impossible to satisfy; the conflict is the general
+contract when arbitrary frozen reasons must also have the shaped outward error.
+
+EXACT VALIDATION RESULTS
+All tests unchanged except the newly added independent /tmp-only safety probe.
+No test expectations, skips, budgets or upstream sources other than run.ts were
+modified to obtain these results. Node 22.22.2; existing installed tools only.
+
+Own fresh copy before correction, 2026-08-26T22:21:11.013Z-22:21:13.043Z:
+  unchanged shape audit: 11 pass / 1 fail / 0 skip, denominator 12; exit 1.
+  original nine + action-abort: 10 pass / 0 fail / 0 skip, denominator 10; exit 0.
+
+Final candidate, 2026-08-26T22:22:38.923Z-22:22:41.777Z:
+  unchanged shape audit: 12 pass / 0 fail / 0 skip, denominator 12; exit 0.
+  unchanged original nine + action-abort: 9 pass / 1 fail / 0 skip, denominator 10;
+    exit 1. Only upstream-desired.probe.ts:37 strict raw Error identity fails.
+    All eight other original cases and durable action-abort pass.
+  unchanged supplemental invariants: 8 pass / 1 fail / 0 skip, denominator 9;
+    exit 1. The sole failure remains shared-graph quota overcount 87 versus 49.
+  new independent reason-contract probe: 18 pass / 0 fail / 0 skip; exit 0.
+    Eight primitive reasons, six default/custom/frozen object/function cases,
+    inherited getters, own Error accessors plus Error.prepareStackTrace,
+    no preabort setup-option reads, and empty/newline/invalid-source spans.
+
+An intermediate candidate used createSourceSpan(..., 1, 2) for its end location.
+It passed the audit but the independent leading-newline check caught an endpoint
+lookup that scanned to EOF (11 rather than 1). Only the candidate source was
+corrected to identical entry coordinates; the failing probe was NOT weakened.
+Intermediate logs are retained as after-*; final-* is the final candidate.
+
+Evidence under /tmp/safe-bash-safejs-abort-shape-design-Xp9WDu/:
+  evidence/before-commands.json, evidence/after-commands.json,
+  evidence/final-commands.json: exact argv, cwd, isolated env, timestamps/status.
+  evidence/{before,after,final}-shape-audit.{log,json}: unchanged upstream audit.
+  evidence/{before,after,final}-original-ten.log: unchanged original acceptance.
+  evidence/final-supplemental.log: unchanged extra wrapper/lifecycle assertions.
+  evidence/final-reason-contract.log: all 18 additional assertions.
+  evidence/input-proof.json: complete pinned-engine manifest verification.
+  candidate/packages/safejs/src/run.ts: concrete final implementation.
+  reason-contract.probe.mjs, run-checks.mjs, verify-inputs.mjs: local reproduction.
+
+The exact audit command is recorded in final-commands.json and is:
+  node node_modules/vitest/vitest.mjs run
+    packages/safejs/src/error/shape-audit.test.ts --no-cache
+    --reporter=default --reporter=json --outputFile=<fresh temporary JSON>
+Node acceptance uses --unhandled-rejections=strict, unchanged tsx/import-proof
+hooks, and --test with the unchanged two original acceptance probe paths.
+
+STOP / REQUIRED COORDINATOR DECISION
+No full upstream suite or typecheck was rerun for this candidate. Existing full
+suite results belong to the original artifact and must not be attributed to this
+candidate. Quota inflation remains outside scope. No broad approval is claimed.
+
+There is a concrete safe cause-preserving shape correction, but accepting it
+requires an explicit decision about the public raw-preabort object-reason
+contract and its separately versioned local identity assertion. Until that
+decision and fresh wider validation, both this hypothesis and lifecycle.patch
+remain NOT APPROVED. Finite investigation complete; no further work scheduled.

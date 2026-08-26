@@ -1,0 +1,2408 @@
+{
+  "baseline": {
+    "rawPath": "/tmp/safe-bash-safejs-isolated-ZicyG4/baseline-fullsuite-slow.json",
+    "rawSha256": "74a258de5f341b9d5097d76b1a39daa10bc531a1b1e8e5fd3386f18437a6da29",
+    "files": 125,
+    "totalTests": 3263,
+    "passed": 3225,
+    "failed": 0,
+    "skipped": 38,
+    "results": [
+      {
+        "path": "src/cli.test.ts",
+        "tests": 27,
+        "passed": 27,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/core.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/dump.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/example-runner.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/index.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/restore.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.random.test.ts",
+        "tests": 28,
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.replay.stress.test.ts",
+        "tests": 56,
+        "passed": 56,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.snapshot.test.ts",
+        "tests": 31,
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.test.ts",
+        "tests": 66,
+        "passed": 66,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/sandbox-integrity.test.ts",
+        "tests": 36,
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/error/format.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/error/shape-audit.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/error/shape.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/arguments.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/async.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/budget.test.ts",
+        "tests": 24,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/cancel.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/conformance.test.ts",
+        "tests": 72,
+        "passed": 72,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/data-budget.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/exceptions.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/generator.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/host-bridge.test.ts",
+        "tests": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/host-call.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/interactions.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/interpreter.test.ts",
+        "tests": 477,
+        "passed": 477,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/patterns.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/promise-replay.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/promise.test.ts",
+        "tests": 41,
+        "passed": 41,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/running-state.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/scope.test.ts",
+        "tests": 28,
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/values.test.ts",
+        "tests": 25,
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/function-syntax.stress.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/function-syntax.test.ts",
+        "tests": 41,
+        "passed": 41,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/index.test.ts",
+        "tests": 38,
+        "passed": 38,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/mutable-closures.stress.test.ts",
+        "tests": 25,
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/mutable-closures.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/runtime-modules.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/agent.test.ts",
+        "tests": 45,
+        "passed": 45,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/env.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fail.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fs.conformance.test.ts",
+        "tests": 201,
+        "passed": 168,
+        "failed": 0,
+        "skipped": 33,
+        "nonPassing": [
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the open rather than the read and names the path node omits: readFile on a directory is blamed on read, which names no path",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames rm, the fs function, where node blames the unlink it refused: rm of a file in a write-denied directory is blamed on unlink",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames copyFile, the fs function, where node blames the lower-cased syscall: copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames utimes, the fs function, where node blames the utime syscall: utimes on a missing path is blamed on utime",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory it created",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory created below an existing parent",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory it created as the path was spelled",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the missing parent rather than the path mkdir was given: mkdir non-recursive with a missing parent rejects with ENOENT",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the file segment rather than the path mkdir was given: mkdir non-recursive through a file segment rejects with ENOTDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs forgives an existing file when mkdir is recursive and resolves: mkdir recursive on an existing file rejects with EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames stat where node's rm lstats the path first: rm on a missing path without force rejects with ENOENT",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames stat where node's rm lstats the path first: rm force through a file segment still rejects with ENOTDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain Error and prefixes the code to node's message: rm on a directory without recursive rejects with ERR_FS_EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain Error and prefixes the code to node's message: rm force on a directory without recursive still rejects with ERR_FS_EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs follows the link and refuses it as a directory instead of unlinking it: rm on a symlink to a directory unlinks the link",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs stats through the link and reports the missing target as ENOENT: rm on a dangling symlink without force unlinks the link",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs ignores the read-only flag and appends where node refuses the write: appendFile with flag r rejects with EBADF",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames open with the directory the link resolved to where node blames a pathless read: readFile through a symlink to a directory rejects with EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs recurses through the cycle instead of answering ELOOP: readFile through a symlink loop rejects with ELOOP",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs recurses through the cycle instead of answering ELOOP: stat through a symlink loop rejects with ELOOP",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs recurses through the cycle instead of answering ELOOP: realpath through a symlink loop rejects with ELOOP",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs names the copyFile function where node names the copyfile syscall: copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs names the copyFile function where node names the copyfile syscall: copyFile onto itself with COPYFILE_EXCL rejects with EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP: copyFile where the source is a directory rejects with darwin's own code",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the destination it opened where node blames the source and reports the destination as dest: copyFile where the destination is a directory rejects with EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain EISDIR where node raises its own ERR_FS_EISDIR: cp non-recursive on a directory rejects with ERR_FS_EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain EEXIST where node raises its own ERR_FS_CP_EEXIST: cp with errorOnExist and force off onto an existing file rejects with ERR_FS_CP_EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain EINVAL blaming the source where node raises ERR_FS_CP_EINVAL blaming the destination: cp of a directory into itself rejects with ERR_FS_CP_EINVAL",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs replaces the directory with the file instead of refusing it as EISDIR: rename of a file onto an existing directory rejects with EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs replaces the file with the directory instead of refusing it as ENOTDIR: rename of a directory onto an existing file rejects with ENOTDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs overwrites the non-empty directory instead of refusing it as ENOTEMPTY: rename of a directory onto a non-empty directory rejects with ENOTEMPTY",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs hard-links the directory instead of refusing it as EPERM: link where the source is a directory rejects with EPERM",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the missing parent rather than the path it was given, and names no syscall in the message at all: writeFile into a missing directory rejects with ENOENT",
+            "status": "skipped",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "path": "src/modules/fs.host-module.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fs.option-surface.test.ts",
+        "tests": 29,
+        "passed": 29,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fs.test.ts",
+        "tests": 553,
+        "passed": 553,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/git.test.ts",
+        "tests": 24,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/harness.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/log.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/mcp.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/metric.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/registry.test.ts",
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/time.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/loader/extract-block.test.ts",
+        "tests": 24,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/loader/find-exported.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/loader/frontmatter.test.ts",
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/assign-ids.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/format-error.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/fuzz.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/generator.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/hash.test.ts",
+        "tests": 19,
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parse-export.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parse-import-meta.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parse-switch.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parser.test.ts",
+        "tests": 92,
+        "passed": 92,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/tokenizer.test.ts",
+        "tests": 25,
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/runner/run-harness.test.ts",
+        "tests": 31,
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/runner/signal-dump.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/backend.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/policy.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/replay-data.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/replay-inputs.test.ts",
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/restore.test.ts",
+        "tests": 62,
+        "passed": 62,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/scheduler.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/serialize.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/integration/budgets.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/integration/crash-resume.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/integration/snapshot-roundtrip.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/corpus.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/parser-smoke.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/report.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/snapshot-mutation.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/test262-semantics.test.ts",
+        "tests": 8,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 5,
+        "nonPassing": [
+          {
+            "name": "explicit unsupported ECMAScript syntax skips classes rather than widening SafeJS syntax",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips private fields rather than widening SafeJS syntax",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips dynamic import rather than registering arbitrary modules",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips array elisions rather than widening array literal syntax",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips proxies and weak references outside the sandbox language",
+            "status": "skipped",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "path": "src/interp/globals/collections.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/console-json.test.ts",
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/error.test.ts",
+        "tests": 22,
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/math.test.ts",
+        "tests": 36,
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/misc.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/object-array.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/array.test.ts",
+        "tests": 20,
+        "passed": 20,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/function.test.ts",
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/number.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/regex.test.ts",
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/string.test.ts",
+        "tests": 22,
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/regex/engine.test.ts",
+        "tests": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/regex/parse.test.ts",
+        "tests": 18,
+        "passed": 18,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-async-not-needed.test.ts",
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-await-non-promise.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-destructure-null-default.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-export-import-meta.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-floating-promise.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-frontmatter-field-unused.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-import-cycle.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-jsdoc-type.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-large-literal.test.ts",
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-missing-async.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-mutating-frozen.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-needless-template.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-shadow-global.test.ts",
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-unbounded-loop.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-unreachable.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-unused-import.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS001.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS003.test.ts",
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS004.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS005.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS006-007.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS008.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS009.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS010.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS011.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS013.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS014.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS015.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/module-registry.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      }
+    ]
+  },
+  "patched": {
+    "rawPath": "/tmp/safe-bash-safejs-isolated-ZicyG4/patched-fullsuite-slow.json",
+    "rawSha256": "2557d33579e91fdeab30de853cad738bb6b4ecb7c5e7552da7519773ac5ec274",
+    "files": 125,
+    "totalTests": 3263,
+    "passed": 3225,
+    "failed": 0,
+    "skipped": 38,
+    "results": [
+      {
+        "path": "src/cli.test.ts",
+        "tests": 27,
+        "passed": 27,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/core.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/dump.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/example-runner.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/index.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/restore.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.random.test.ts",
+        "tests": 28,
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.replay.stress.test.ts",
+        "tests": 56,
+        "passed": 56,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.snapshot.test.ts",
+        "tests": 31,
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/run.test.ts",
+        "tests": 66,
+        "passed": 66,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/sandbox-integrity.test.ts",
+        "tests": 36,
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/corpus.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/parser-smoke.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/report.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/snapshot-mutation.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/adversarial/test262-semantics.test.ts",
+        "tests": 8,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 5,
+        "nonPassing": [
+          {
+            "name": "explicit unsupported ECMAScript syntax skips classes rather than widening SafeJS syntax",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips private fields rather than widening SafeJS syntax",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips dynamic import rather than registering arbitrary modules",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips array elisions rather than widening array literal syntax",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "explicit unsupported ECMAScript syntax skips proxies and weak references outside the sandbox language",
+            "status": "skipped",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "path": "test/integration/budgets.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/integration/crash-resume.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "test/integration/snapshot-roundtrip.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/function-syntax.stress.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/function-syntax.test.ts",
+        "tests": 41,
+        "passed": 41,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/index.test.ts",
+        "tests": 38,
+        "passed": 38,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/mutable-closures.stress.test.ts",
+        "tests": 25,
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/mutable-closures.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/runtime-modules.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/loader/extract-block.test.ts",
+        "tests": 24,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/loader/find-exported.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/loader/frontmatter.test.ts",
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/error/format.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/error/shape-audit.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/error/shape.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/arguments.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/async.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/budget.test.ts",
+        "tests": 24,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/cancel.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/conformance.test.ts",
+        "tests": 72,
+        "passed": 72,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/data-budget.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/exceptions.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/generator.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/host-bridge.test.ts",
+        "tests": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/host-call.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/interactions.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/interpreter.test.ts",
+        "tests": 477,
+        "passed": 477,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/patterns.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/promise-replay.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/promise.test.ts",
+        "tests": 41,
+        "passed": 41,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/running-state.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/scope.test.ts",
+        "tests": 28,
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/values.test.ts",
+        "tests": 25,
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/agent.test.ts",
+        "tests": 45,
+        "passed": 45,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/env.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fail.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fs.conformance.test.ts",
+        "tests": 201,
+        "passed": 168,
+        "failed": 0,
+        "skipped": 33,
+        "nonPassing": [
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the open rather than the read and names the path node omits: readFile on a directory is blamed on read, which names no path",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames rm, the fs function, where node blames the unlink it refused: rm of a file in a write-denied directory is blamed on unlink",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames copyFile, the fs function, where node blames the lower-cased syscall: copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames utimes, the fs function, where node blames the utime syscall: utimes on a missing path is blamed on utime",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory it created",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory created below an existing parent",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory it created as the path was spelled",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the missing parent rather than the path mkdir was given: mkdir non-recursive with a missing parent rejects with ENOENT",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the file segment rather than the path mkdir was given: mkdir non-recursive through a file segment rejects with ENOTDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs forgives an existing file when mkdir is recursive and resolves: mkdir recursive on an existing file rejects with EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames stat where node's rm lstats the path first: rm on a missing path without force rejects with ENOENT",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames stat where node's rm lstats the path first: rm force through a file segment still rejects with ENOTDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain Error and prefixes the code to node's message: rm on a directory without recursive rejects with ERR_FS_EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain Error and prefixes the code to node's message: rm force on a directory without recursive still rejects with ERR_FS_EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs follows the link and refuses it as a directory instead of unlinking it: rm on a symlink to a directory unlinks the link",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs stats through the link and reports the missing target as ENOENT: rm on a dangling symlink without force unlinks the link",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs ignores the read-only flag and appends where node refuses the write: appendFile with flag r rejects with EBADF",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames open with the directory the link resolved to where node blames a pathless read: readFile through a symlink to a directory rejects with EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs recurses through the cycle instead of answering ELOOP: readFile through a symlink loop rejects with ELOOP",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs recurses through the cycle instead of answering ELOOP: stat through a symlink loop rejects with ELOOP",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs recurses through the cycle instead of answering ELOOP: realpath through a symlink loop rejects with ELOOP",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs names the copyFile function where node names the copyfile syscall: copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs names the copyFile function where node names the copyfile syscall: copyFile onto itself with COPYFILE_EXCL rejects with EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP: copyFile where the source is a directory rejects with darwin's own code",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the destination it opened where node blames the source and reports the destination as dest: copyFile where the destination is a directory rejects with EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain EISDIR where node raises its own ERR_FS_EISDIR: cp non-recursive on a directory rejects with ERR_FS_EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain EEXIST where node raises its own ERR_FS_CP_EEXIST: cp with errorOnExist and force off onto an existing file rejects with ERR_FS_CP_EEXIST",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs raises a plain EINVAL blaming the source where node raises ERR_FS_CP_EINVAL blaming the destination: cp of a directory into itself rejects with ERR_FS_CP_EINVAL",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs replaces the directory with the file instead of refusing it as EISDIR: rename of a file onto an existing directory rejects with EISDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs replaces the file with the directory instead of refusing it as ENOTDIR: rename of a directory onto an existing file rejects with ENOTDIR",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs overwrites the non-empty directory instead of refusing it as ENOTEMPTY: rename of a directory onto a non-empty directory rejects with ENOTEMPTY",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs hard-links the directory instead of refusing it as EPERM: link where the source is a directory rejects with EPERM",
+            "status": "skipped",
+            "failureMessages": []
+          },
+          {
+            "name": "fs module conformance against real node's recorded truth reference gap — memfs blames the missing parent rather than the path it was given, and names no syscall in the message at all: writeFile into a missing directory rejects with ENOENT",
+            "status": "skipped",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "path": "src/modules/fs.host-module.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fs.option-surface.test.ts",
+        "tests": 29,
+        "passed": 29,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/fs.test.ts",
+        "tests": 553,
+        "passed": 553,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/git.test.ts",
+        "tests": 24,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/harness.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/log.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/mcp.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/metric.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/registry.test.ts",
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/modules/time.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/runner/run-harness.test.ts",
+        "tests": 31,
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/runner/signal-dump.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/assign-ids.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/format-error.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/fuzz.test.ts",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/generator.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/hash.test.ts",
+        "tests": 19,
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parse-export.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parse-import-meta.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parse-switch.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/parser.test.ts",
+        "tests": 92,
+        "passed": 92,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/parse/tokenizer.test.ts",
+        "tests": 25,
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/backend.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/policy.test.ts",
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/replay-data.test.ts",
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/replay-inputs.test.ts",
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/restore.test.ts",
+        "tests": 62,
+        "passed": 62,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/scheduler.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/snapshot/serialize.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/collections.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/console-json.test.ts",
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/error.test.ts",
+        "tests": 22,
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/math.test.ts",
+        "tests": 36,
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/misc.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/globals/object-array.test.ts",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-async-not-needed.test.ts",
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-await-non-promise.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-destructure-null-default.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-export-import-meta.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-floating-promise.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-frontmatter-field-unused.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-import-cycle.test.ts",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-jsdoc-type.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-large-literal.test.ts",
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-missing-async.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-mutating-frozen.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-needless-template.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-shadow-global.test.ts",
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-unbounded-loop.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-unreachable.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS-unused-import.test.ts",
+        "tests": 14,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS001.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS003.test.ts",
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS004.test.ts",
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS005.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS006-007.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS008.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS009.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS010.test.ts",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS011.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS013.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS014.test.ts",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/AS015.test.ts",
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/lint/rules/module-registry.test.ts",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/regex/engine.test.ts",
+        "tests": 33,
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/regex/parse.test.ts",
+        "tests": 18,
+        "passed": 18,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/array.test.ts",
+        "tests": 20,
+        "passed": 20,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/function.test.ts",
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/number.test.ts",
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/regex.test.ts",
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      },
+      {
+        "path": "src/interp/methods/string.test.ts",
+        "tests": 22,
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "nonPassing": []
+      }
+    ]
+  }
+}

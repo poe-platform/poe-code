@@ -1,0 +1,6 @@
+PASS pinned source matches every baseline hash
+OBSERVED source-root symlink is canonicalized, not rejected by current CLI
+PASS nested source symlink rejected by real snapshot CLI before copying engine
+PASS wrong baseline rejected
+PASS patch-target symlink rejected; source and outside fixture unchanged
+{"temporary":"/tmp/safejs-v2-source-guards-lvMN6V","checksPassed":4,"sourceRootAliasPolicy":"canonicalized rather than rejected","inputUnchanged":true}

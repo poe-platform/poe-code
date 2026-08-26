@@ -5,7 +5,119 @@ just-bash comparator or a claim of full-shell completion or superiority. It adds
 no runtime or development dependencies. The existing `tsx`, TypeScript, and
 `node:test` tooling is sufficient.
 
-## Final independent bugfix review
+## Current inline-input checkpoint — 2026-08-26
+
+Working directory: `/Users/kjopek/Workspace/safe-bash`. This checkpoint supersedes
+the historical validation summaries below, without deleting their evidence.
+The package remains `virtual-bash`; no dependencies or public shell API changes
+were introduced by this verifier. Work stopped at the user's urgent checkpoint;
+no full-shell, general superiority, or 72-hour completion claim is made.
+
+Feature commits are `91ac2e1` (queued heredocs) and `834f76c` (scalar here-strings).
+Independent commits: `a08d1c6` (30 regression cases, initially 14 failures),
+`3f6605a` (fatal inline parameter-expansion scope), `e6036bb` (real text-program
+oracle registration), `0c85433` (26 independent grammar/lifecycle checks), and
+`df541c7` (exact, versioned reference-status assertions). The preserved case and
+unsupported-option commits `441124d` and `d7a0d77` remain ancestors.
+
+`<<`/`<<-` queue FIFO documents, remove delimiter quotes, suppress expansion for
+quoted/mixed delimiters, and distinguish leading tabs from spaces. Whole-source
+syntax validation precedes effects; skipped bodies never expand. `<<<` expands
+one scalar without splitting/globbing and appends one LF. Descriptor copies share
+input cursors; function calls and separately executed loop redirects get fresh
+inputs. Source/expansion/output/command/depth budgets and active-read cancellation
+are tested. Fatal parameter expansion now stops the current builtin/function/
+compound/redirect-only environment, while external commands and subshells retain
+their isolated failure scope. This does not erase legacy Bash arithmetic recovery
+differences. EOF documents warn; text expansion is UTF-8, removes substitution NUL,
+and does not promise arbitrary binary preservation.
+
+| Check | Recorded checkpoint result |
+| --- | --- |
+| Latest complete strict shell run | **409/409 pass**, zero failures/skips/TODOs/cancellations |
+| Unmodified independent stress suite | **95/105 pass**, ten failures, zero skips/TODOs/cancellations; exit 1 |
+| Complete oracle with real standard + text-program definitions | **88/88 pass**: core 64/64, advanced 24/24 |
+| Repetitions stopped by root | Four stable **111/111** runs, 444 passes; interrupted fifth is not a failure |
+| Fresh `npm run typecheck` | Exit 0 at 20:32:16 UTC |
+| Earlier scoped typing, build-config noEmit, build, built ESM smoke | All exit 0; not rerun at urgent checkpoint |
+
+The four completed repetitions are root-observed progress from the interrupted
+driver; its final JSON was not flushed. An earlier repeat attempt and a 405/409
+shell run were invalidated by explicit unrelated-source-change guards, not by
+semantic assertions. The subsequent complete shell run passed 409/409. No guards,
+expectations, or test denominators were weakened. The old `<<EOF` unsupported
+syntax test was replaced by a genuinely missing delimiter, preserving pre-effect
+rejection; positive heredoc coverage was added. Oracle registration previously
+omitted existing awk/sed definitions: adding their real factory, not mocks or
+semantic changes, changes that test-only result from 81/88 to 88/88.
+
+### Exact remaining stress failures
+
+| Case name | Classification |
+| --- | --- |
+| `descriptor-move-closes-original-after-copy` | Unsupported descriptor-move semantics |
+| `read-n-consumes-exactly-two-characters` | Unsupported `read -n` |
+| `read-d-consumes-through-delimiter-only` | Unsupported `read -d` |
+| `command-substitution-file-shortcut-reads-and-trims` | Unsupported `$(<file)` shortcut |
+| `ansi-c-quoted-word-decodes-escape-before-argument-passing` | Unsupported ANSI-C words |
+| `glob-posix-bracket-digit-class` | Unsupported pathname POSIX bracket classes |
+| `nested-substitution-syntax-error-does-not-prevent-earlier-effects` | Deliberately stricter whole-source prevalidation policy |
+| `fatal-parameter-expansion-prevents-following-file-effect` | Diagnostic/status difference; forbidden later effect is prevented |
+| `fatal-arithmetic-expansion-prevents-following-file-effect` | Diagnostic difference; forbidden later effect is prevented |
+| `fatal-expansion-in-substitution-stops-substitution-only` | Diagnostic difference; substitution isolation is retained |
+
+Reference: `/bin/bash` 3.2.57(1)-release, arm64-apple-darwin25. Its old here-string
+splitting and nested case/substitution parser quirks are not target semantics.
+No newer Bash execution is claimed. An additional **unverified audit lead** remains:
+`src/shell/pattern.ts` tokenizes synchronously and may repeatedly scan unmatched
+brackets before reaching the bounded/yielding matching loop. No watchdog regression
+or source fix was attempted before the urgent stop. Do not claim that this parsing
+path has demonstrated timer-cancellation safety.
+
+### Current comparison, with every outcome retained
+
+The existing owner-expanded harness was run unchanged, once at this checkpoint:
+
+```sh
+npm run benchmark -- --output /tmp/safe-bash-checkpoint-comparison.json --seed 1526603814 --timeout-ms 6500
+```
+
+It now runs **118 cases per engine**: original 88 fixtures + 18 deterministic
+cases + 3 probes, plus 7 plugin integrations and 2 pinned GNU-dialect cases.
+No filtering or expectation edits were made by this verifier.
+
+| Engine | All 118: pass / fail / unsupported | Original 109 cohort: pass / fail / unsupported |
+| --- | --- | --- |
+| virtual-bash 0.0.0 | **116 / 2 / 0** | **109 / 0 / 0** |
+| just-bash 3.4.2 | **108 / 9 / 1** | **103 / 5 / 1** |
+
+Both have zero errors, timeouts, and pending outcomes. Exit 1 reflects retained
+non-pass results, not an incomplete run. Source/harness fingerprints were stable
+during the run and background errors were empty. Measured engine-run window:
+20:32:17.190–20:32:17.727 UTC (**537 ms**); npm process wall time **796 ms**.
+This is descriptive timing, not a performance claim. Node v22.22.2, tsx 4.23.12,
+TypeScript 5.9.3; installed/pinned comparator 3.4.2, no installation performed.
+
+The original corpus SHA-256 remains
+`cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c`;
+original deterministic/probe expectation files also match the supplied baseline.
+The baseline operational bundle `6c9346cc8ab9758bd368ab2d91dbb0164e03fdfc362f1032d976c0aec809b92d`
+changed to `ad9e3d44a3e585bb14e07fbc65e7480006f57cf91b45ab468b6b86959a895804`
+because the benchmark owner changed model metadata, worker reporting, plugin
+registration, and run composition. This is **not** an unchanged-baseline-harness
+claim. Those four files were unchanged across the checkpoint execution.
+
+The two current virtual failures require owner integration: implicit empty-pipe
+`rg` searches files instead of consuming empty input; the diff/patch integration
+requests an absolute target rejected by patch's current safety policy. Neither
+was edited or relabeled as passing. GNU sed policy remains separate and unchanged.
+All 236 engine outcomes, original-cohort membership, raw-result hashes, current
+source/test/contract hashes, and validation provenance are preserved in
+`final-inline-input-evidence.json`. Original raw comparison remains at the `/tmp`
+output above. Owned source/tests were clean at checkpoint; foreign changes and
+staged entries were not touched. All verifier test/repeat children are stopped.
+
+## Historical independent bugfix review
 
 Recorded August 26, 2026. **Bugfix review delivered; full-shell compatibility
 is not complete. No superiority claim is supported.**

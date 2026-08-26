@@ -146,7 +146,10 @@ function formatParameterValues(schema: ModelParameter["schema"]): string {
 
 function formatDefaultValue(value: unknown): string {
   if (value == null) return "";
-  return truncate(String(value), MAX_DEFAULT_LENGTH);
+  return truncate(
+    typeof value === "object" ? JSON.stringify(value) : String(value),
+    MAX_DEFAULT_LENGTH
+  );
 }
 
 function namespacedModelId(model: ModelEntry): string {

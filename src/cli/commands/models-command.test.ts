@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { parse as yamlParse } from "yaml";
+import { withOutputFormat } from "toolcraft-design";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
@@ -1982,6 +1983,88 @@ describe("models command", () => {
 
     expect(yamlParse(output)).toEqual([expect.objectContaining({ id: "newest" })]);
     expect(output).not.toContain("showing");
+  });
+
+  describe("structured parameter defaults", () => {
+    it.each([
+      { label: "short object", type: "object", value: { mode: "x" }, expected: '{"mode":"x"}' },
+      { label: "empty object", type: "object", value: {}, expected: "{}" },
+      { label: "nested object", type: "object", value: { a: [1] }, expected: '{"a":[1]}' },
+      { label: "array", type: "array", value: ["a", "b"], expected: '["a","b"]' },
+      { label: "empty array", type: "array", value: [], expected: "[]" },
+      { label: "zero", type: "number", value: 0, expected: "0" },
+      { label: "false", type: "boolean", value: false, expected: "false" },
+      { label: "true", type: "boolean", value: true, expected: "true" },
+      { label: "string", type: "string", value: "text", expected: "text" },
+      { label: "null", type: "string", value: null, expected: "" },
+      { label: "undefined", type: "string", value: undefined, expected: "" },
+      { label: "empty string", type: "string", value: "", expected: "" }
+    ])("renders the exact default cell for $label", async ({ type, value, expected }) => {
+      fs = await createConfigVolume("test-key");
+      const models = [createModelEntry({
+        parameters: [{ name: "setting", schema: { type }, default_value: value }]
+      })];
+      (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ object: "list", data: models })
+      });
+
+      const output = await withOutputFormat("terminal", () =>
+        runModels({ fs, httpClient, logs, args: ["--view", "parameters"] })
+      );
+      const parameterRow = output.split("\n")
+        .map((line) => line.split("│").map((cell) => cell.trim()))
+        .find((cells) => cells[2] === "setting");
+
+      expect(parameterRow).toEqual(["", "", "setting", type, expected, "", ""]);
+    });
+
+    it("truncates a long object default to exactly 36 characters", async () => {
+      fs = await createConfigVolume("test-key");
+      const models = [createModelEntry({
+        parameters: [{
+          name: "setting",
+          schema: { type: "object" },
+          default_value: { mode: "abcdefghijklmnopqrstuvwxyz0123456789" }
+        }]
+      })];
+      (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ object: "list", data: models })
+      });
+
+      const output = await withOutputFormat("markdown", () =>
+        runModels({ fs, httpClient, logs, args: ["--view", "parameters"] })
+      );
+
+      expect(output.split("\n")).toContain(
+        '|  | setting | object | {"mode":"abcdefghijklmnopqrstuvwx... |  |'
+      );
+    });
+
+    it("round-trips structured defaults through raw YAML without formatting or truncation", async () => {
+      fs = await createConfigVolume("test-key");
+      const defaults = [
+        { mode: "x" }, {}, { a: [1] }, ["a", "b"], [],
+        { mode: "abcdefghijklmnopqrstuvwxyz0123456789" }
+      ];
+      const parameters = defaults.map((value, index) => ({
+        name: `setting-${index}`,
+        schema: { type: Array.isArray(value) ? "array" : "object" },
+        default_value: value
+      }));
+      (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ object: "list", data: [createModelEntry({ parameters })] })
+      });
+
+      const output = await runModelsWithStdout({ fs, httpClient, args: ["--view", "raw"] });
+
+      expect(yamlParse(output)).toEqual([expect.objectContaining({ parameters })]);
+    });
   });
 
   it("--view parameters truncates long default values", async () => {

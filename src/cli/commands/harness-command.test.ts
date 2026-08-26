@@ -2,7 +2,9 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol, fs as memfs } from "memfs";
 import { Command } from "commander";
+import { isCancel } from "toolcraft-design";
 import { createCliContainer } from "../container.js";
+import { OperationCancelledError, ValidationError } from "../errors.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
 const harnessMocks = vi.hoisted(() => ({
@@ -10,6 +12,7 @@ const harnessMocks = vi.hoisted(() => ({
   listBuiltinTemplatesMock: vi.fn(),
   selectMock: vi.fn(),
   promptTextMock: vi.fn(),
+  cancelMock: vi.fn(),
   spawnMock: vi.fn(),
   runWithOptionalWorktreeMock: vi.fn()
 }));
@@ -36,6 +39,7 @@ vi.mock("toolcraft-design", async () => {
   const actual = await vi.importActual<typeof import("toolcraft-design")>("toolcraft-design");
   return {
     ...actual,
+    cancel: harnessMocks.cancelMock,
     select: harnessMocks.selectMock,
     promptText: harnessMocks.promptTextMock,
     withSpinner: async <T>(options: { message: string | (() => string); fn: () => Promise<T> }) => {
@@ -174,6 +178,7 @@ describe("harness command", () => {
     ]);
     harnessMocks.selectMock.mockReset();
     harnessMocks.promptTextMock.mockReset();
+    harnessMocks.cancelMock.mockReset();
     harnessMocks.spawnMock.mockReset();
     harnessMocks.spawnMock.mockReturnValue({
       events: (async function* () {})(),
@@ -1307,6 +1312,51 @@ describe("harness command", () => {
       /ambiguous, pass a path/i
     );
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(harnessMocks.selectMock).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])("silently cancels harness selection (dry run: %s)", async (dryRun) => {
+    writePair("/repo/.poe-code/harnesses", "alpha");
+    writePair("/repo/.poe-code/harnesses", "beta");
+    const cancelled = Symbol.for("poe.cancel");
+    expect(isCancel(cancelled)).toBe(true);
+    harnessMocks.selectMock.mockResolvedValue(cancelled);
+    const filesBefore = vol.toJSON();
+    const logs: string[] = [];
+
+    await expect(
+      runHarnessCommand([...(dryRun ? ["--dry-run"] : []), "harness", "run"], logs)
+    ).rejects.toBeInstanceOf(OperationCancelledError);
+
+    expect(harnessMocks.selectMock).toHaveBeenCalledExactlyOnceWith({
+      message: "Select harness",
+      options: expect.arrayContaining([
+        expect.objectContaining({ value: "/repo/.poe-code/harnesses/alpha/alpha.md" }),
+        expect.objectContaining({ value: "/repo/.poe-code/harnesses/beta/beta.md" })
+      ])
+    });
+    expect(harnessMocks.cancelMock).toHaveBeenCalledExactlyOnceWith("Operation cancelled.");
+    expect(harnessMocks.promptTextMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runWithOptionalWorktreeMock).not.toHaveBeenCalled();
+    expect(harnessMocks.spawnMock).not.toHaveBeenCalled();
+    expect(logs).toEqual([]);
+    expect(vol.toJSON()).toEqual(filesBefore);
+  });
+
+  it.each([false, true])("rejects an unmatched harness selection (dry run: %s)", async (dryRun) => {
+    writePair("/repo/.poe-code/harnesses", "alpha");
+    writePair("/repo/.poe-code/harnesses", "beta");
+    harnessMocks.selectMock.mockResolvedValue("/repo/missing.md");
+    const filesBefore = vol.toJSON();
+
+    await expect(
+      runHarnessCommand([...(dryRun ? ["--dry-run"] : []), "harness", "run"])
+    ).rejects.toEqual(new ValidationError("Selected harness was not found."));
+
+    expect(harnessMocks.cancelMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(vol.toJSON()).toEqual(filesBefore);
   });
 
   it("fails run discovery without prompting when multiple harnesses are found in non-interactive mode", async () => {
@@ -1614,6 +1664,49 @@ describe("harness command", () => {
     await expect(
       memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.md", "utf8")
     ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it.each([false, true])("silently cancels the harness directory prompt (dry run: %s)", async (dryRun) => {
+    harnessMocks.listBuiltinTemplatesMock.mockReturnValue([
+      { kind: "ralph-demo", mdPath: "/templates/demo.md", ajsPath: "/templates/demo.ajs" }
+    ]);
+    const cancelled = Symbol.for("poe.cancel");
+    expect(isCancel(cancelled)).toBe(true);
+    harnessMocks.promptTextMock.mockResolvedValue(cancelled);
+    const filesBefore = vol.toJSON();
+    const logs: string[] = [];
+
+    await expect(
+      runHarnessCommand(
+        [...(dryRun ? ["--dry-run"] : []), "harness", "new", "ralph-demo", "audit"],
+        logs
+      )
+    ).rejects.toBeInstanceOf(OperationCancelledError);
+
+    expect(harnessMocks.promptTextMock).toHaveBeenCalledExactlyOnceWith({
+      message: "Harness directory",
+      initialValue: ".poe-code/harnesses/audit"
+    });
+    expect(harnessMocks.cancelMock).toHaveBeenCalledExactlyOnceWith("Operation cancelled.");
+    expect(harnessMocks.selectMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runWithOptionalWorktreeMock).not.toHaveBeenCalled();
+    expect(harnessMocks.spawnMock).not.toHaveBeenCalled();
+    expect(logs).toEqual(["harness new"]);
+    expect(vol.toJSON()).toEqual(filesBefore);
+  });
+
+  it.each([false, true])("rejects a blank harness directory (dry run: %s)", async (dryRun) => {
+    harnessMocks.promptTextMock.mockResolvedValue(" \t ");
+    const filesBefore = vol.toJSON();
+
+    await expect(
+      runHarnessCommand([...(dryRun ? ["--dry-run"] : []), "harness", "new", "demo", "example"])
+    ).rejects.toEqual(new ValidationError("Harness directory is required."));
+
+    expect(harnessMocks.cancelMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(vol.toJSON()).toEqual(filesBefore);
   });
 
   it("refuses to overwrite an existing scaffold file", async () => {

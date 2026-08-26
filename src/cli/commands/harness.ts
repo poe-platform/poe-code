@@ -33,7 +33,7 @@ import {
   withSpinner
 } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
-import { ReportedError, ValidationError } from "../errors.js";
+import { OperationCancelledError, ReportedError, ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
@@ -774,7 +774,7 @@ async function resolveDiscoveredHarness(
 
   if (isCancel(selected)) {
     cancel("Operation cancelled.");
-    throw new ValidationError("Operation cancelled.");
+    throw new OperationCancelledError();
   }
 
   const pair = pairs.find((entry) => entry.mdPath === selected);
@@ -876,7 +876,7 @@ async function resolveOutputDir(defaultDir: string, assumeYes: boolean): Promise
 
   if (isCancel(answer)) {
     cancel("Operation cancelled.");
-    throw new ValidationError("Operation cancelled.");
+    throw new OperationCancelledError();
   }
 
   const dir = answer.trim();

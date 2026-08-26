@@ -1,4 +1,4 @@
-import { ACCESS_MODES, FsError } from "../../contracts/index.js";
+import { ACCESS_MODES, FsError, readBytes } from "../../contracts/index.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileStat,
   FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions,
@@ -28,6 +28,7 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
+    const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = Object.freeze({
       readOnly: true,
       symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
@@ -35,7 +36,7 @@ export class ReadOnlyFileSystem implements FileSystem {
       permissions: false,
       timestamps: false,
       atomicRename: false,
-      streamingRead: filesystem.capabilities.streamingRead === true && typeof filesystem.readStream === "function",
+      ...(streamingRead === undefined ? {} : { streamingRead }),
       streamingWrite: false,
     });
   }
@@ -83,7 +84,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     if (typeof this.#filesystem.readStream !== "function") {
       throw new FsError("ENOTSUP", { syscall: "readStream", path });
     }
-    for await (const chunk of this.#filesystem.readStream(path, options)) {
+    for await (const chunk of readBytes(this.#filesystem.readStream(path, options), options?.signal)) {
       yield new Uint8Array(chunk);
     }
   }

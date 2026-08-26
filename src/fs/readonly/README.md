@@ -46,9 +46,11 @@ generator: creating the iterable does no delegate work, and absence rejects
 the first `next()` with `ENOTSUP`. Stopping iteration closes the underlying
 iterator. Existing optional read methods are called even when their capability
 flag is false or absent, so adapter-provided `ENOTSUP` errors remain intact.
-Supported reads leave cancellation semantics to the delegate; an absent
-optional read reports `ENOTSUP` even with a pre-aborted signal. The wrapper
-does not forcibly terminate uncooperative operations.
+Stream iteration uses `readBytes` to stop waiting on cancellation, close the
+delegate iterator, and observe late read/cleanup rejections. A primary read
+failure is not replaced by a cleanup failure. Non-stream reads retain delegate
+cancellation semantics. An absent optional read reports `ENOTSUP` even with a
+pre-aborted signal. The wrapper cannot forcibly terminate host work.
 
 ## Capabilities and limits
 
@@ -56,9 +58,11 @@ Capabilities are a frozen, constructor-time snapshot held behind a getter:
 `readOnly: true`; `hardlinks`, `permissions`, `timestamps`, `atomicRename`, and
 `streamingWrite`: false. Here mutation-related flags describe operations
 available through this wrapper, not whether underlying metadata remains
-readable. `symlinks` and `streamingRead` are true only when the delegate explicitly
-advertises the corresponding capability and provides `readlink` or
-`readStream`, respectively. Unknown extension flags are omitted rather than
+readable. `symlinks` is true only with the advertised flag and a `readlink` method.
+`streamingRead` retains the delegate's true/false flag when `readStream` exists;
+an absent flag remains absent (conditional/unknown support), and an absent method
+produces false. A read-only view of a heterogeneous mount does not disable its
+working read paths or advertise universal support. Unknown extension flags are omitted rather than
 accidentally advertising a write capability or an unforwarded method. Mutating
 the original capability object does not change this snapshot.
 
@@ -73,10 +77,18 @@ No superiority over other filesystem libraries is asserted.
 
 On 2026-08-26, `node --unhandled-rejections=strict --import tsx --test
 tests/fs/readonly/*.test.ts` passed all 82 tests, including 20 repeated runs.
-The tests use only an instrumented fake and the memory adapter, never real host
+That original test run used only an instrumented fake and the memory adapter, never real host
 directories. They cover mutation denial, adversarial flags, stream
 nonconsumption/lifecycle, error metadata, pre-aborted options, byte/metadata
 ownership, optional capability permutations, alias safety, and nested wrappers.
 Strict TypeScript checking of this implementation and its three test files also
 passed with the repository's compiler settings. These are scoped results, not
 whole-repository validation or comparative benchmark evidence.
+
+The production-streaming regressions in `tests/fs/readonly/streaming.test.ts`
+also use managed temporary real roots inside that test directory, removed after
+each case. They verify empty/binary/ranged reads without a `readFile` fallback,
+conditional mount composition, mutation denial without input consumption,
+blocked-reader cancellation, late rejection handling, and cleanup error fidelity.
+On 2026-08-26, the complete readonly suite passed 102/102 tests with strict
+unhandled-rejection checking; scoped strict source/test typechecking also passed.

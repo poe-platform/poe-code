@@ -225,7 +225,7 @@ test("underlying read errors including arbitrary abort reasons retain their iden
   }
 });
 
-test("supported reads delegate pre-aborted signals and preserve cancellation identity", async () => {
+test("supported reads preserve cancellation identity without starting pre-aborted streams", async () => {
   const fixture = createFixture();
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
   const reason = new Error("delegate cancellation");
@@ -238,7 +238,7 @@ test("supported reads delegate pre-aborted signals and preserve cancellation ide
     () => collectBytes(filesystem.readStream(path, options), { maxBytes: 16 }),
   ];
   for (const read of readers) await assert.rejects(read(), (error: unknown) => error === reason);
-  assert.equal(fixture.calls.length, readers.length);
+  assert.equal(fixture.calls.length, readers.length - 1);
 });
 
 test("missing optional reads reject with ENOTSUP, including pre-aborted requests", async () => {
@@ -312,7 +312,7 @@ for (const readlink of [false, true]) {
         if (!readStream) delete fixture.filesystem.readStream;
         const filesystem = createReadOnlyFileSystem(fixture.filesystem);
         assert.equal(filesystem.capabilities.symlinks, readlink && advertised === true);
-        assert.equal(filesystem.capabilities.streamingRead, readStream && advertised === true);
+        assert.equal(filesystem.capabilities.streamingRead, readStream ? advertised : false);
         if (readlink) assert.equal(await filesystem.readlink(path), "../file");
         else await assert.rejects(filesystem.readlink(path), fsError("ENOTSUP", "readlink", path));
         if (readStream) assert.equal((await collectBytes(filesystem.readStream(path), { maxBytes: 8 })).length, 8);

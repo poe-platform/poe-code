@@ -158,6 +158,59 @@ JSON captures, `audit.json` and `seal.json`. Do not overwrite/rerun into that
 evidence directory. This update inspects the final handoff; it reruns no tests,
 build, server or oracle.
 
+## Metadata author integration — August 26, 2026
+
+The user resumed Curie's deferred chmod/stat/mktemp author assignment after curl
+handoff and the identity contract handoff. Source/tool commits are `64b55e4`
+(chmod), `cb707e6` (stat), `7e14b72` (mktemp), `f846ce4` (GNU sequential `X`
+semantics), and `c7f8d59` (readonly mutation errors versus readable mode fields).
+Root integration exports `metadataCommands`/`createMetadataCommands` and their
+option/limit types, adds `./commands/metadata`, and extends `agentCommands` to
+seven families / 52 unique registered plugin names. Curl and SafeJS remain
+explicitly optional. Archive is not yet integrated. No runtime dependency or
+private engine dependency is added; development manifest/lock settings agree.
+
+This is author delivery, not independent verification or broad GNU parity.
+Tests cover 43 metadata cases (including six actual root/FS/shell integrations)
+and 28 aggregate cases: **71/71**, zero failure/skip/TODO. A preceding
+contracts/core/metadata/plugins run recorded **301/301** at HEAD `57d9d98`.
+Live native chmod evidence has 15 observations: 13 agree and two explicitly
+preserve BSD disagreement with the GNU source-derived target. No pinned GNU
+chmod executable was tested. Optional stat fields are never fabricated;
+timestamps have millisecond resolution. Private mktemp creation requires
+declared backend permission support and an existing VFS temporary directory.
+No blanket descriptor/parent-path race guarantee or rollback is claimed.
+
+Fresh moving-worktree checks at **4fa4ba9502dac843bd13aa5031d128a3171f597d**
+recorded 71/71 tests but global build/typecheck both exited 2: unfinished,
+untracked Archimedes archive sources use `String.isWellFormed` at
+`src/commands/archive/internal.ts:91`, and `ZlibOptions.highWaterMark` at
+`src/commands/archive/stream.ts:9` and `:10` does not typecheck. These are routed
+to that owner, not suppressed or fixed in metadata. An earlier moving check
+passed typechecking while HEAD advanced from `5233114` to `57d9d98`; the two
+observations are not conflated.
+
+An isolated archive of exact base **4fa4ba9502dac843bd13aa5031d128a3171f597d**
+plus the five explicitly hashed metadata integration files passes global
+typecheck/build and **71/71** scoped tests. All **16** expanded package exports
+import and have JS/declaration files. A built-root actual shell/VFS workflow
+asserts exit 0, empty stderr, stdout bytes `600:7\n`, and preserved file bytes
+`payload`. Manifest/lock declare zero runtime dependencies; TypeScript AST
+inspection finds no third-party or computed imports in that source snapshot.
+This is an explicitly overlaid author snapshot, not pristine committed-HEAD
+evidence or a rerun of the full repository suite. Exact hashes, commands and
+remaining limitations: `tests/commands/metadata/AUTHOR_CHECKPOINT.md`.
+
+Metadata is ready for the requested different-agent independent stress/fix
+cycle. Archimedes owns new tar source/tests in `commands/archive`; Dirac owns
+the separate frozen audit in `benchmarks/reports/current-integration/**` and
+later tar verification. Poincare retains all FS identity/backend fixes. Curie
+alone integrates root package/aggregate exports after handoffs. No shared
+output-lifecycle API agreement is inferred; SafeJS upstream `0c1bfe2` remains
+unapproved 8/9 with caveats. Full scope, superiority and 72-hour requirements
+remain unproven. Prior 49-name inventories and all historical failures remain
+unchanged; no refreshed comparative result is claimed by this integration.
+
 ## Curl author assignment — August 26, 2026 (historical)
 
 The user explicitly requires **"i also need curl"**. This supersedes the just

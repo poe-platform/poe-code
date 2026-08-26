@@ -34,9 +34,10 @@
   `src/commands/network/**` and its author/independent tests. Curie retains root
   exports, package/inventory audits and documentation only; do not edit network
   source/tests without coordination. Count optional curl separately from the
-  committed 49-command default bundle. Metadata work resumed under a later
-  explicit instruction; its root wiring remains uncommitted and paused for
-  filesystem identity stabilization, not part of the curl delivery commit.
+  default bundle. The metadata author integration adds chmod/stat/mktemp to
+  the earlier 49-command bundle (52 defaults); curl and SafeJS remain optional.
+  Metadata requires a different agent's independent stress/fix review. Its
+  integration is separate from the earlier curl delivery evidence.
 - Curl finalization `17285d1` records 214 targeted passes across six separately
   counted cohorts, build success and 5/5 built-package checks on network source
   `aa2da57`; `cbde2fe` corrects one stale author assertion using frozen native
@@ -193,6 +194,16 @@
 - Poincare now owns all filesystem source, backend/wrapper tests, adapter
   conformance/stress, and `tests/integration/adapter-tools/**`. Core commands
   and shared contracts remain Curie's; route cross-layer changes explicitly.
+- Curie owns metadata commands/tests and root package/exports/aggregate wiring.
+  Do not fabricate unavailable stat fields or remote permission enforcement;
+  mktemp uses exclusive VFS creation and requires an existing virtual temporary
+  directory and declared permission support. Preserve explicit GNU/BSD oracle
+  differences and bounded author evidence, not universal utility parity.
+- Exclude Archimedes' new tar author scope `src/commands/archive/**` and
+  `tests/commands/archive/**`. Archive integration waits for its handoff; only
+  Curie changes root exports/aggregate/package entries. Exclude Dirac's frozen
+  integration audit `benchmarks/reports/current-integration/**`; its observations
+  must remain separate from moving-worktree and metadata author checkpoints.
 - Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;

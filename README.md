@@ -63,8 +63,10 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs all six delivered families once: standard,
-text programs, structured (`jq`), search (`rg`), byte tools, and diff/patch.
+`agentCommands(options?)` installs seven delivered families once: standard,
+text programs, structured (`jq`), search (`rg`), byte tools, diff/patch, and
+metadata (`chmod`, `stat`, `mktemp`), totaling 52 registered plugin names.
+Metadata is an author delivery awaiting a different agent's independent review.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;
 `replace: true` applies uniformly across all families, leaving unrelated commands.
@@ -85,6 +87,7 @@ agentCommands({
   structured: { limits: { maxInputBytes: 8 * 1024 * 1024 } },
   search: { maxLineBytes: 1024 * 1024, defaultInput: "auto" },
   diffPatch: { maxInputBytes: 8 * 1024 * 1024, maxWork: 1_000_000 },
+  metadata: { umask: 0o022, limits: { maxEntries: 100_000 } },
 });
 ```
 
@@ -93,6 +96,39 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 `exec` buffers its returned output under shell limits, while internal pipes use
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
+
+## Metadata Commands
+
+The package root and `virtual-bash/commands/metadata` export
+`metadataCommands(options?)`, `createMetadataCommands(options?)`,
+`MetadataCommandsOptions`, and `MetadataLimits`. Install this family separately
+only if you are not already using `agentCommands()`:
+
+```ts
+import { Shell, createMemoryFileSystem, metadataCommands } from "virtual-bash";
+
+const fs = createMemoryFileSystem();
+await fs.mkdir("/tmp");
+const shell = new Shell({ fs }).use(metadataCommands());
+try {
+  const result = await shell.exec("file=$(mktemp); chmod 600 \"$file\"; stat -c '%a:%s' \"$file\"");
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+The example returns `600:0` followed by a newline. `chmod` supports
+numeric/symbolic modes, recursion and reference modes; `stat`
+supports common format fields and deterministic UTC millisecond timestamps;
+`mktemp` creates exclusive private files/directories using crypto randomness.
+Temporary directories must already exist in the VFS (`TMPDIR` or `/tmp` by
+default), never in an implicit host fallback. Unsupported backend permissions
+and absent optional metadata fail explicitly; dry-run names are not reserved.
+The configurable virtual umask defaults to 0022, not the host process umask.
+See `src/commands/metadata/README.md` for exact flags, limits, symlink behavior,
+GNU/BSD differences and non-atomic race limits. Author evidence is in
+`tests/commands/metadata/AUTHOR_CHECKPOINT.md`; this is not full GNU parity.
 
 ## Optional Curl Network Command
 
@@ -145,11 +181,13 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Archimedes retains
 network source/test ownership until reassigned.
 
-The **committed** default aggregate remains 49 plugin names; optional `curl` and
-`safejs` add one each only when explicitly installed. Separately, uncommitted
-metadata root wiring exposes 52 defaults in the working tree and the built
-package used during finalization. That build/smoke is a moving-worktree result,
-not an isolated committed-HEAD snapshot. Zero runtime dependencies remain.
+The current default aggregate has 52 plugin names; optional `curl` and `safejs`
+add one each only when explicitly installed. At curl finalization, the committed
+aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
+the working tree and its built package. That historical build/smoke remains a
+moving-worktree result, not an isolated committed-HEAD snapshot. Later metadata
+integration does not retroactively change that evidence. Runtime dependencies
+remain zero.
 The older frozen package audit at `b98e239` retains its 15-export evidence in
 `benchmarks/reports/PACKAGE_AUDIT.json`; it is not rescored here. Exact flags,
 bounds and unsupported features remain in `src/commands/network/README.md`.

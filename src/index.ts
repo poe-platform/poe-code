@@ -9,6 +9,7 @@ export * from "./commands/bytes/index.js";
 export * from "./commands/diff-patch/index.js";
 export * from "./commands/safejs/index.js";
 export * from "./commands/network/index.js";
+export * from "./commands/metadata/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";

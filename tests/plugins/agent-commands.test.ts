@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, Shell,
   createStandardCommands, createTextProgramCommands, createStructuredCommands,
-  createSearchCommands, createByteCommands, createDiffPatchCommands, toByteSource,
+  createSearchCommands, createByteCommands, createDiffPatchCommands, createMetadataCommands, toByteSource,
   type AgentCommandsOptions, type CommandContext, type PluginHost,
 } from "../../src/index.js";
 
@@ -24,20 +24,20 @@ async function direct(commands: CommandRegistry, command: string, args: readonly
   return { ...result, stdout: Buffer.concat(chunks).toString(), stderr: Buffer.concat(errors).toString() };
 }
 
-test("aggregate definitions are exactly the six delivered families, each registered once", async () => {
+test("aggregate definitions are exactly the seven delivered families, each registered once", async () => {
   const expected = [
     ...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands(),
-    ...createSearchCommands(), ...createByteCommands(), ...createDiffPatchCommands(),
+    ...createSearchCommands(), ...createByteCommands(), ...createDiffPatchCommands(), ...createMetadataCommands(),
   ].map(command => command.name).sort();
-  assert.equal(expected.length, 49);
-  assert.equal(new Set(expected).size, 49);
+  assert.equal(expected.length, 52);
+  assert.equal(new Set(expected).size, 52);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);
 });
 
-for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch"]) {
+for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp"]) {
   test(`collision with ${conflict} leaves the entire host registry untouched`, () => {
     const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);
     const before = commands.list();
@@ -53,9 +53,9 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 50);
+  assert.equal(target.commands.list().length, 53);
   assert.equal(target.commands.get("custom"), original[0]);
-  for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch"]) {
+  for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
   }
 });
@@ -106,6 +106,7 @@ const limited: readonly [AgentCommandsOptions, string, string, RegExp][] = [
   [{ structured: { limits: { maxInputBytes: 1 } } }, "jq .", "[1]", /maxInputBytes/u],
   [{ search: { maxLineBytes: 1 } }, "rg x -", "xxxx\n", /limit/u],
   [{ diffPatch: { maxInputBytes: 1 } }, "printf 'ab\\n' > first; printf 'cd\\n' > second; diff first second", "", /limit|maxBytes/u],
+  [{ metadata: { limits: { maxOutputBytes: 1 } } }, "mkdir /tmp; mktemp", "", /limit/u],
 ];
 for (const [options, source, stdin, diagnostic] of limited) {
   test(`aggregate forwards ${Object.keys(options)[0]} limits without rewriting them`, async () => {

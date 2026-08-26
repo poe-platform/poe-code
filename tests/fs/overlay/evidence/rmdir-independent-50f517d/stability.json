@@ -1,0 +1,10 @@
+{
+  "archiveFiles": 278,
+  "archiveStable": true,
+  "originalArtifactCount": 10,
+  "originalStable": true,
+  "liveFsFilesStable": true,
+  "liveFsTreeStable": true,
+  "liveFsMatchesPin": true,
+  "fsTypecheckEntrypoints": 94
+}

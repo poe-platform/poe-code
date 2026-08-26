@@ -1,0 +1,32 @@
+commit 3a9177a7b8ddc1c20142720ffa96ea6f87f65e86
+Author: Kamil Jopek <kjopek@quora.com>
+Date:   Wed Aug 26 18:04:35 2026 -0500
+
+    feat(fs): add safe directory-only removal without recursive fallback
+
+diff --git a/tests/fs/readonly/conformance.test.ts b/tests/fs/readonly/conformance.test.ts
+index 1ec5bb4..285abe5 100644
+--- a/tests/fs/readonly/conformance.test.ts
++++ b/tests/fs/readonly/conformance.test.ts
+@@ -67,7 +67,7 @@ test("memory conformance: denied writes cannot mutate files through hard or symb
+   }
+   await assert.rejects(filesystem.mkdir("/directory", { recursive: true }), code("EROFS"));
+   await assert.rejects(filesystem.rm("/directory", { recursive: true, force: true }), code("EROFS"));
+-  await assert.rejects(filesystem.rmdir("/directory", { recursive: true }), code("EROFS"));
++  await assert.rejects(filesystem.rmdir("/directory"), code("EROFS"));
+   await assert.rejects(filesystem.symlink("/directory/file", "/new-symbolic"), code("EROFS"));
+   await assert.rejects(filesystem.link("/directory/file", "/new-hard"), code("EROFS"));
+   assert.deepEqual(await delegate.stat("/directory/file"), beforeFile);
+diff --git a/tests/fs/readonly/readonly.test.ts b/tests/fs/readonly/readonly.test.ts
+index 0b328ff..bec4f48 100644
+--- a/tests/fs/readonly/readonly.test.ts
++++ b/tests/fs/readonly/readonly.test.ts
+@@ -40,7 +40,7 @@ const mutations: {
+   { name: "mkdir", invoke: (filesystem, options) => filesystem.mkdir(path, { ...options, recursive: true }) },
+   { name: "rm", invoke: (filesystem, options) => filesystem.rm(path, { ...options, recursive: true, force: true }) },
+   { name: "unlink", invoke: (filesystem, options) => filesystem.unlink(path, options) },
+-  { name: "rmdir", invoke: (filesystem, options) => filesystem.rmdir(path, { ...options, recursive: true }) },
++  { name: "rmdir", invoke: (filesystem, options) => filesystem.rmdir(path, options) },
+   { name: "rename", destination, invoke: (filesystem, options) => filesystem.rename(path, destination, options) },
+   { name: "copyFile", destination, invoke: (filesystem, options) => filesystem.copyFile(path, destination, { ...options, exclusive: true }) },
+   { name: "symlink", destination, invoke: (filesystem, options) => filesystem.symlink(path, destination, options) },

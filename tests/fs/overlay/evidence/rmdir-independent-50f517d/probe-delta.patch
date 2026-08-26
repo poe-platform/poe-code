@@ -1,0 +1,30 @@
+--- /tmp/safe-bash-rmdir-independent-50f517d-ToVAuL/original/probe.mjs	2026-08-26 18:19:34
++++ /tmp/safe-bash-rmdir-independent-50f517d-ToVAuL/probe.mjs	2026-08-26 18:19:34
+@@ -66,9 +66,19 @@
+   assert.deepEqual(after.lower, before.lower);
+   assert.ok(removalCalls.every(call => call.layer === 'upper' && call.method === 'rmdir'));
+   if (result.status === 'rejected') assert.deepEqual(after, before);
+-  const expected = ['overlay-created-upper', 'hidden-lower-child-opaque'].includes(kind) ? undefined : kind.startsWith('visible-') ? 'ENOTEMPTY' : 'ENOTSUP';
++  const expected = kind.startsWith('visible-') ? 'ENOTEMPTY' : undefined;
+   assert.equal(result.code, expected);
+-  if (!expected) assert.equal((await outcome(() => overlay.stat('/d'))).code, 'ENOENT');
++  if (!expected) {
++    assert.equal((await outcome(() => overlay.stat('/d'))).code, 'ENOENT');
++    const expectedOverlayChildren = { ...before.overlay.children };
++    delete expectedOverlayChildren.d;
++    assert.deepEqual(after.overlay.children, expectedOverlayChildren);
++    const expectedUpperChildren = { ...before.upper.children };
++    delete expectedUpperChildren.d;
++    assert.deepEqual(after.upper.children, expectedUpperChildren);
++    const hadUpper = Object.hasOwn(before.upper.children, 'd');
++    assert.deepEqual(removalCalls, hadUpper ? [{ layer: 'upper', method: 'rmdir', path: '/d', recursive: undefined }] : []);
++  }
+   rows.push({ case: kind, expectedUnderExistingOwnershipPreconditions: kind.startsWith('visible-') ? 'ENOTEMPTY' : 'success', result, removalCalls, before, after });
+ }
+ 
+@@ -126,4 +136,4 @@
+   rows.push({ case: 'external-lower-write-outside-documented-precondition', outsideContract: true, result, calls, preservedBytes: [...await lower.readFile('/d/external')] });
+ }
+ 
+-console.log(JSON.stringify({ pin: '3a9177a7b8ddc1c20142720ffa96ea6f87f65e86', observations: rows.length, rows }, null, 2));
++console.log(JSON.stringify({ pin: '50f517d4e28281ccba8c7580d017fe65a4bf8e20', observations: rows.length, rows }, null, 2));

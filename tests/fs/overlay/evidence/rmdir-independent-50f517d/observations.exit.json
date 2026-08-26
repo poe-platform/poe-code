@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "../probe.mjs"
+  ],
+  "cwd": "/private/tmp/safe-bash-rmdir-independent-50f517d-ToVAuL/archive",
+  "start": "2026-08-26T23:21:02.005Z",
+  "end": "2026-08-26T23:21:02.520Z",
+  "status": 0,
+  "signal": null
+}

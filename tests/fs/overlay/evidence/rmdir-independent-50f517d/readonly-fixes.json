@@ -1,0 +1,14 @@
+[
+  {
+    "path": "tests/fs/readonly/readonly.test.ts",
+    "originalBlob": "bec4f48047d94dda6c0393c1cc06b3968cf0f681",
+    "fixedBlob": "bec4f48047d94dda6c0393c1cc06b3968cf0f681",
+    "same": true
+  },
+  {
+    "path": "tests/fs/readonly/conformance.test.ts",
+    "originalBlob": "285abe5ba4f5b36a3daa7bbfbd0dea31e157d21d",
+    "fixedBlob": "285abe5ba4f5b36a3daa7bbfbd0dea31e157d21d",
+    "same": true
+  }
+]

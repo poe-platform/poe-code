@@ -39,7 +39,7 @@
     "jsonc-parser": "^3.3.1",
     "sisteransi": "^1.0.5",
     "smol-toml": "^1.6.0",
-    "tar": "^7.5.16",
+    "tar": "^7.5.22",
     "toolcraft-design": "*",
     "yaml": "^2.8.2"
   },

@@ -610,6 +610,10 @@ export class Runtime {
         state.pipefail = args[0] === "-o";
         return 0;
       }
+      if (args.some((arg) => /^[+-]/u.test(arg))) {
+        await writeText(stderr, "set: unsupported shell option; supported forms are -- arguments, -o pipefail, +o pipefail\n");
+        throw new Flow("exit", 2);
+      }
       await writeText(stderr, "set: supported forms are -- arguments, -o pipefail, +o pipefail\n");
       return 2;
     }

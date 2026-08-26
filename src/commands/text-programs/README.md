@@ -64,6 +64,7 @@ in-place editing reset line/range/hold state per file.
 | --- | --- |
 | `s/regex/replacement/flags` | First, numbered, global, or numbered-and-later substitution; `p` prints changed pattern space; `I`/`i` ignores case. Replacement `&` and `\1`…`\9` expand matches/captures; escaped literals and newline/tab work. |
 | `p`, `P`, `=` | Print pattern space, its first line, or the input line number. |
+| `l` | Unambiguous C-byte listing with control/backslash escapes, three-digit octal for other nonprintable bytes, `$` record markers, and 60-column continuation wrapping. Literal backslashes are doubled rather than reproducing BSD's ambiguous single-backslash listing. |
 | `d`, `D` | Delete the cycle, or remove the first pattern-space line and restart the program without reading input. |
 | `q [status]` | Quit after the current cycle's normal output; optional numeric status 0–255. |
 | `a`, `i`, `c` | Queue appended text, immediately insert text, or replace a selected line/range. POSIX backslash-newline text and one-line inline text are accepted. |
@@ -79,8 +80,8 @@ Whitespace, semicolons, newlines, and comments separate commands where their
 syntax permits it. Labels are identifiers using letters/digits/underscore/dot/
 hyphen and must be defined exactly once. Unknown commands, flags, malformed
 groups/regexes, unknown labels, and invalid capture references are checked
-before input or output processing. Shell-execution substitutions and `r`/`w`
-file commands are deliberately unsupported, not delegated to host tools.
+before input or output processing. Shell-execution substitutions remain
+unsupported; file commands use only the supplied virtual filesystem.
 
 Sed streams line records and buffers only required lookahead/pattern/hold/text
 state except in-place editing, which buffers one rewritten file. `-i` requires

@@ -167,7 +167,7 @@ function parse(source: string, extended: boolean): Instruction[] {
       const to = decode(delimited(delimiter));
       if (from.length !== to.length) throw new ProgramError("translation sets have different lengths");
       instruction.translation = new Map([...from].map((character, index) => [character, to[index]!]));
-    } else if (!"pdDPhHgGxnN=".includes(kind)) throw new ProgramError(`unsupported sed command '${kind}'`);
+    } else if (!"pdDPhHgGxnN=l".includes(kind)) throw new ProgramError(`unsupported sed command '${kind}'`);
     result.push(instruction);
     horizontal();
     if (offset < source.length && ![";", "\n", "}"].includes(source[offset]!)) throw new ProgramError(`unexpected text after '${kind}' command`);
@@ -276,6 +276,19 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             await write(context, end < 0 ? pattern + (record.terminated ? "\n" : "") : pattern.slice(0, end + 1)); break;
           }
           case "=": await write(context, `${number}\n`); break;
+          case "l": {
+            const escapes: Record<string, string> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\" };
+            let line = "";
+            for (let offset = 0; offset <= pattern.length; offset++) {
+              budget.step(); await budget.checkpoint();
+              const character = pattern[offset];
+              const token = character === undefined ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
+              if (line.length + token.length >= 60) { await write(context, line + "\\\n"); line = ""; }
+              line = budget.check(line + token);
+            }
+            await write(context, line + "\n");
+            break;
+          }
           case "d": deleted = true; pc = program.length; continue;
           case "D": {
             const end = pattern.indexOf("\n");

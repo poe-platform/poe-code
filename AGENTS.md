@@ -73,6 +73,13 @@
 - Root exports include delivered shell, standard/text/structured command
   plugins, filesystem adapters/wrappers, and SafeJS bridges. Wrapper package
   subpaths are `./fs/readonly`, `./fs/mount`, and `./fs/overlay`.
+- `agentCommands(options?)` from the package root installs the six delivered
+  command families as one bundle; `createAgentCommands(options?)` returns their
+  definitions. One top-level `replace` controls all registration; preflight all
+  collisions before modifying the host registry. Do not install individual
+  families again unless replacement is intentional. `text`, `structured`,
+  `search`, and `diffPatch` preserve the existing family option/limit types;
+  they are not one shared budget. Shell limits remain separate.
 - Wrapper parity is incomplete: mount rejects missing/dangling symlink tails;
   overlay metadata is instance-local, hardlinks are unsupported, stream buffers
   default to 64 MiB, and the upper backend must support atomic rename. A shared

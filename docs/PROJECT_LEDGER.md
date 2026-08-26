@@ -405,6 +405,30 @@ that any implementation, command, fixture, or test currently exists.
   creates a fresh archive directory; it does not rely on an old temporary tree.
   Reports describe the tested commit explicitly, never a clean current worktree.
 
+### Aggregate command integration
+
+- `src/plugins/index.ts`, exported by the package root, provides
+  `agentCommands(options?): VirtualShellPlugin` and
+  `createAgentCommands(options?): readonly CommandDefinition[]` with exported
+  `AgentCommandsOptions`. They compose the existing standard/text/structured/
+  search/bytes/diff-patch factories, not separate implementations or processes.
+- Top-level `replace` is uniform and collisions are checked across all families
+  before registration. Per-family `text`, `structured`, `search`, and `diffPatch`
+  options retain their own typed limits; no invented universal budget or new
+  byte-tool limits are claimed. Nested literal argv prefers `context.invoke`;
+  registry-only fallback resolves across the full bundle and plugin host.
+- Initial scoped verification: 19/19 aggregate tests, zero skips/TODOs. These
+  cover 49 unique definitions, collisions in each family without partial
+  registration, explicit replacement, external host commands, fallback and
+  middleware precedence, four family-limit paths, README usage, and binary
+  pipelines. No CLI, package rename, or runtime dependency was added.
+- An isolated current committed base plus exactly the three owned aggregate
+  source/test files passes typecheck, build, all 19 tests, and built package-root
+  smoke. `benchmarks/reports/aggregate-isolated-proof.json` records the base
+  commit and each overlay hash. It retains an invalid inline smoke-script
+  escaping attempt separately from the corrected passing package smoke; no
+  product failure was repaired by changing expected output.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

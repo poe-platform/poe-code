@@ -58,12 +58,10 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   };
   const selectedOutput = !args.quiet && (args.mode === "lines" || args.mode === "json");
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
-  if (binaryOutput) limits.bufferOutput();
-  try {
   for await (const line of lines(source, limits, state, binary, args.nullData)) {
     await limits.tick();
     if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0) {
-      limits.discardOutput(); await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break;
+      await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break;
     }
     const content = args.crlf && line.content.at(-1) === 13 ? line.content.subarray(0, -1) : line.content;
     const matches = matcher.matches(content, args.onlyMatching || args.mode === "json" || args.mode === "matches", line.bytes.length !== line.content.length);
@@ -76,7 +74,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       if (selectedOutput) {
         await begin();
         if (state.binaryOffset !== null && args.mode !== "json") {
-          if (!binaryPrinted) { limits.discardOutput(); await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; }
+          if (!binaryPrinted) { await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; }
           break;
         }
         for (const previous of before) if (previous.line.number > lastPrinted) {
@@ -99,9 +97,8 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
     if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
   }
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {
-    limits.discardOutput(); await printer.binary(target.label, state.binaryOffset, filename);
+    await printer.binary(target.label, state.binaryOffset, filename);
   }
-  } finally { await limits.flushOutput(); }
   const matched = totals.matched_lines > 0;
   const found = args.mode === "without" ? !matched && !state.skipped : matched;
   totals.searches_with_match = matched ? 1 : 0;

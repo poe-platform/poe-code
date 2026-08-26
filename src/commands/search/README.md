@@ -134,13 +134,16 @@ record boundary and reporting a binary-match message instead of plain content.
 `-a` treats NUL as ordinary data. `--null-data` makes NUL the record delimiter
 and disables NUL binary detection. Files listed by `--files` are not read or
 binary-filtered. Binary detection is chunk-based; later NUL discovery cannot
-retract earlier streamed output. Binary-aware explicit line searches stage
-initial output until EOF, binary detection, or a 64 KiB input/output threshold;
-this preserves the tested warning-only result for fragmented small inputs.
-After that threshold, a late binary warning preserves already-flushed output.
-This adds bounded initial output latency, and a single large record can exceed
-the staging threshold before it is flushed. Large-file/chunk-boundary behavior
-is not claimed identical to native rg's reader/mmap heuristics.
+retract earlier streamed output. Completed matching records are written and
+awaited before requesting another input chunk; there is no speculative stdout
+staging or whole-input buffering. A late binary warning preserves earlier output.
+For `foo\n\0\nno\n`, whole-write delivery produces only the warning, whereas
+one-byte delivery at 25 ms intervals produces `foo\n` followed by the warning.
+Both schedules have exact native regressions. Native back-to-back pipe writes
+may be grouped differently by its reader, so these results do not establish
+universal chunk/scheduling parity or identical mmap heuristics. Existing record,
+input and output byte limits still apply; blocked stdout stops further reads and
+remains cancellable.
 
 JSON Lines uses `begin`, `match`, `context`, `end`, and final `summary` events.
 Files without emitted matches/context have no begin/end pair. Paths and record

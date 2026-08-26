@@ -19,8 +19,6 @@ export class Limits {
   private ticks = 0;
   private readonly stopped = new AbortController();
   readonly signal: AbortSignal;
-  private pending: Uint8Array[] | undefined;
-  private pendingBytes = 0;
   constructor(readonly context: CommandContext, options: SearchOptions) {
     this.signal = AbortSignal.any([context.signal, this.stopped.signal]);
     this.maxOutputBytes = options.maxOutputBytes ?? 16 * 1024 * 1024;
@@ -35,11 +33,6 @@ export class Limits {
     this.context.signal.throwIfAborted();
     if (++this.ticks % 128 === 0) await setImmediate(undefined, { signal: this.context.signal });
   }
-  bufferOutput(): void { this.pending = []; this.pendingBytes = 0; }
-  discardOutput(): void {
-    this.outputBytes -= this.pendingBytes;
-    this.pending = []; this.pendingBytes = 0;
-  }
   private async write(chunk: Uint8Array): Promise<void> {
     try { await writeBytes(this.context.stdout, chunk, this.signal); }
     catch (error) {
@@ -50,20 +43,9 @@ export class Limits {
       throw error;
     }
   }
-  async flushOutput(): Promise<void> {
-    const pending = this.pending;
-    this.pending = undefined; this.pendingBytes = 0;
-    if (pending?.length) await this.write(Buffer.concat(pending));
-  }
   async output(value: string | Uint8Array): Promise<void> {
     const chunk = typeof value === "string" ? Buffer.from(value) : value;
     if (this.outputBytes + chunk.byteLength > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
-    if (this.pending) {
-      this.pending.push(Buffer.from(chunk)); this.pendingBytes += chunk.length;
-      this.outputBytes += chunk.byteLength;
-      if (this.pendingBytes >= 64 * 1024) await this.flushOutput();
-      return;
-    }
     await this.write(chunk);
     this.outputBytes += chunk.byteLength;
   }
@@ -106,7 +88,6 @@ export async function* lines(source: ByteSource, limits: Limits, state: ReadStat
     }
     if (pending.length + chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
     pending = Buffer.concat([pending, chunk.subarray(start)]);
-    if (state.bytesRead >= 64 * 1024 && state.binaryOffset === null) await limits.flushOutput();
   }
   if (pending.length) { state.bytesSearched = offset + pending.length; yield { bytes: pending, content: pending, number: ++number, offset }; }
 }

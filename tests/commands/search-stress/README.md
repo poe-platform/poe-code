@@ -14,21 +14,28 @@ npm run build
 git diff --check -- src/commands/search tests/commands/search tests/commands/search-stress
 ```
 
-- Focused suites: **631/631 pass**, no skipped or cancelled tests.
-- New strict native comparisons: **505** (486 deterministic command cases,
-  10 Bash/rg versus virtual-shell pipelines, 9 minimized review cases).
-  Including the baseline's 86 comparisons gives **591** equality comparisons.
+- Focused suites: **632/632 pass**, no skipped or cancelled tests.
+- New top-level strict native comparisons: **504** (486 deterministic command
+  cases, 10 Bash/rg versus virtual-shell pipelines, 8 minimized review cases).
+  Including the baseline's 86 comparisons gives **590** top-level equality
+  comparisons. Four additional isolated streaming comparisons (three delayed,
+  one whole-write) bring the combined equality count to **594**. The former
+  unlike-delivery review comparison is now a virtual-only streaming assertion;
+  the explicit correction and both native expectations are recorded below.
 - JSON comparisons replace only `elapsed` / `elapsed_total` values, preserving
   object member order and every other field. Non-JSON output is byte-exact.
 - The safety wrapper separately runs **10 isolated tests**, including three
   native closed-stdout repetitions. Four additional tests deliberately record
   non-parity: three unsupported Rust regex syntaxes and one catastrophic-regex
   probe killed by the external harness, not by the library.
-- Ten repetitions with `--unhandled-rejections=strict` pass: **100 isolated
-  tests**, including **30 native EPIPE runs**.
-- Build passes. Final whole-repository typecheck reports only foreign errors at
-  `tests/commands/diff-patch-stress/compatibility/helpers.ts:58` and `:59`
-  (byte-sink callbacks return `void`, not `Promise<void>`). No owned errors.
+- The streaming wrapper runs six isolated tests: three matched 25 ms producer
+  comparisons, one whole-write comparison, and two backpressure/cancellation
+  checks proving output is awaited before reading the next input chunk.
+- Ten fresh repetitions with `--unhandled-rejections=strict` pass: **100 safety
+  checks** (30 native EPIPE runs) and **60 streaming checks** (30 matched delayed
+  native comparisons, 10 whole-write comparisons, 20 backpressure checks).
+- Fresh whole-repository typecheck, build, and owned-path diff-check pass. The
+  foreign typecheck errors recorded at the previous checkpoint are now resolved.
 
 The native command timeout is three seconds; virtual batches are killable Node
 children with ten-second deadlines and 16 MiB capture limits. The catastrophic
@@ -60,12 +67,38 @@ subdirectory roots; direct probes disable external parent/global ignores.
   cancellation wins races, and uncooperative iterator cleanup cannot hold EPIPE.
 - Legacy auto-input empty chunks yield to cancellation rather than starving it.
 
-The fragmented warning regression keeps the review's original **single-write
-native** expectation unchanged. The virtual side receives one-byte chunks. This
-is evidence for that delivery comparison only, not matched scheduling or global
-chunk parity. Initial binary-aware output staging is bounded at a 64 KiB
-input/output threshold; later NUL discovery cannot retract flushed bytes. Native
-reader/mmap heuristics and other scheduling patterns remain a comparison gap.
+## Matched-delivery correction
+
+The original `bebfc27` review fixture compared virtual one-byte chunks against a
+native **whole write**. That comparison passed only after speculative output
+staging, which hid a real streaming/backpressure defect. The subsequent review
+found three identical failures with both producers delivering one byte every
+25 ms; this worker independently reproduced all three failures before this fix.
+
+Input is exactly `foo\n\0\nno\n`; arguments remain `foo -`. Both native schedules
+return status 0 with empty stderr, but their exact stdout differs:
+
+```text
+Whole write:       "binary file matches (found \"\\0\" byte around offset 4)\n"
+25 ms byte writes: "foo\nbinary file matches (found \"\\0\" byte around offset 4)\n"
+```
+
+The whole-write expectation is unchanged and remains enforced against both
+implementations. The unlike-delivery assertion in `review.test.ts` is explicitly
+replaced by a virtual-only assertion that already-emitted `foo\n` is retained.
+It is no longer counted as a native comparison. `streaming-cases.ts` now enforces
+the delayed native expectation in three matched-producer repetitions and proves
+the whole-write expectation separately. No output alternatives are accepted by
+these assertions. Native back-to-back one-byte scheduling was variable in the
+independent review (one warning-only result and two text-plus-warning results),
+so it is not assigned the whole-write expectation or called a parity pass.
+
+The fix removes speculative stdout staging, not the late-warning fix. Matching
+records are written immediately and their sink promises are awaited before the
+next input read. No production timing heuristic, extra buffering, dependency,
+or host process is introduced. Existing incomplete-record/input/output bounds,
+cancellation, and EPIPE cleanup remain enforced. Native reader/mmap heuristics,
+other chunk groupings, and arbitrary scheduling remain comparison limits.
 
 ## Upstream stdin metadata blocker
 

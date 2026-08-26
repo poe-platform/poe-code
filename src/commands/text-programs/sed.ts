@@ -202,6 +202,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         if (instruction.first) {
           if (instruction.second) {
             if (active.has(pc)) {
+              if (instruction.second.kind === "number" && number > instruction.second.number) selected = false;
               ending = instruction.second.kind === "number" ? number >= instruction.second.number : matches(instruction.second);
               if (ending) active.delete(pc);
             } else {

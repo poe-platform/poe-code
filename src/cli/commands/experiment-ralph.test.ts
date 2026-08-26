@@ -246,6 +246,163 @@ function experimentPlanDoc(name: string): string {
   return ["---", "kind: experiment", "version: 1", "baseline: null", "---", `# ${name}`].join("\n");
 }
 
+describe.each([
+  { command: "ralph", register: registerRalphCommand, planDoc: ralphPlanDoc },
+  { command: "experiment", register: registerExperimentCommand, planDoc: experimentPlanDoc }
+])("$command batch dry-run previews", ({ command, register, planDoc }) => {
+  let volume: Volume;
+  let fs: FileSystem;
+  let initialFiles: ReturnType<Volume["toJSON"]>;
+  let program: Command;
+  let logs: string[];
+  let prompts: ReturnType<typeof vi.fn>;
+  const forbiddenCalls = [
+    sdkRunRalph,
+    sdkRunExperiment,
+    sdkReadExperimentJournal,
+    sdkAppendExperimentJournalEntry,
+    sdkSpawn,
+    sdkSpawn.autonomous,
+    braintrustLoadIntegrationsMock,
+    selectMock,
+    promptTextMock,
+    createDashboard
+  ];
+
+  beforeEach(() => {
+    for (const callback of forbiddenCalls) {
+      vi.mocked(callback).mockImplementation(() => {
+        throw new Error("Unexpected dry-run side effect");
+      });
+    }
+    volume = Volume.fromJSON({
+      "/repo/docs/a.md": planDoc("A").replace(
+        "---",
+        `---\nagent: claude${command === "ralph" ? "\niterations: 2" : ""}`
+      ),
+      "/repo/docs/b.md": planDoc("B").replace(
+        "---",
+        `---\nagent: codex${command === "ralph" ? "\niterations: 5" : ""}`
+      )
+    });
+    volume.mkdirSync(homeDir, { recursive: true });
+    initialFiles = volume.toJSON();
+    fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+    logs = [];
+    prompts = vi.fn(() => {
+      throw new Error("Unexpected dry-run prompt");
+    });
+    const container = createCliContainer({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    program = createBaseProgram();
+    register(program, container);
+  });
+
+  afterEach(() => {
+    try {
+      expect(volume.toJSON()).toEqual(initialFiles);
+      expect(prompts).not.toHaveBeenCalled();
+      for (const callback of forbiddenCalls) {
+        expect(callback).not.toHaveBeenCalled();
+      }
+    } finally {
+      for (const callback of forbiddenCalls) {
+        vi.mocked(callback).mockReset();
+      }
+      vi.restoreAllMocks();
+      vi.clearAllMocks();
+    }
+  });
+
+  it.each([
+    { label: "per-document configuration", override: false },
+    { label: "CLI overrides", override: true }
+  ])("previews both docs in order with $label", async ({ override }) => {
+    const readFile = vi.spyOn(fs, "readFile");
+    const cliOptions = override
+      ? ["--agent", "codex", command === "ralph" ? "--iterations" : "--max-experiments", "7"]
+      : [];
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "--dry-run",
+      command,
+      "run",
+      "docs/a.md",
+      "docs/b.md",
+      ...cliOptions
+    ]);
+
+    const previews = logs.filter((message) => message.includes("Dry run: would run"));
+    const firstAgent = override ? "codex" : "claude-code";
+    expect(previews).toEqual(
+      command === "ralph"
+        ? [
+            expect.stringContaining(
+              `Dry run: would run Ralph with Agent: ${firstAgent} · Iterations: ${override ? 7 : 2} · Cwd: /repo · Doc: docs/a.md.`
+            ),
+            expect.stringContaining(
+              `Dry run: would run Ralph with Agent: codex · Iterations: ${override ? 7 : 5} · Cwd: /repo · Doc: docs/b.md.`
+            )
+          ]
+        : [
+            expect.stringContaining(
+              `Dry run: would run experiment doc docs/a.md with ${firstAgent} for up to ${override ? 7 : "unlimited"} experiments.`
+            ),
+            expect.stringContaining(
+              `Dry run: would run experiment doc docs/b.md with codex for up to ${override ? 7 : "unlimited"} experiments.`
+            )
+          ]
+    );
+    expect(
+      readFile.mock.calls
+        .map(([filePath]) => filePath)
+        .filter((filePath) => filePath === "/repo/docs/a.md" || filePath === "/repo/docs/b.md")
+    ).toEqual(["/repo/docs/a.md", "/repo/docs/b.md"]);
+  });
+
+  it.each(["missing", "malformed"])(
+    "rejects a %s second doc after previewing the first",
+    async (failure) => {
+      if (failure === "missing") {
+        volume.unlinkSync("/repo/docs/b.md");
+      } else {
+        volume.writeFileSync("/repo/docs/b.md", "---\nagent: [\n---\n# B");
+      }
+      initialFiles = volume.toJSON();
+
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "--dry-run",
+          command,
+          "run",
+          "docs/a.md",
+          "docs/b.md",
+          "--agent",
+          "codex"
+        ])
+      ).rejects.toThrow(
+        expect.objectContaining({
+          name: "ValidationError",
+          message: expect.stringContaining("docs/b.md")
+        })
+      );
+      expect(logs.filter((message) => message.includes("Dry run: would run"))).toEqual([
+        expect.stringContaining("docs/a.md")
+      ]);
+    }
+  );
+});
+
 describe("experiment run command", () => {
   afterEach(() => {
     vi.clearAllMocks();

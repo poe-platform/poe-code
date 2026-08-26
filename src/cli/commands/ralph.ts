@@ -930,7 +930,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           resources.logger.dryRun(
             `Dry run: would run Ralph with ${formatRalphConfigSummary({ agent, docPath, cwd: runCwd, maxIterations })}.`
           );
-          return;
+          continue;
         }
         const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
         const result = useDashboard

@@ -810,7 +810,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           resources.logger.dryRun(
             `Dry run: would run experiment doc ${docPath} with ${formatExperimentAgentSummary(agent)} for up to ${formatMaxExperimentsLabel(maxExperiments)} experiments.`
           );
-          return;
+          continue;
         }
 
         integrations = await loadIntegrations(commandConfig.configDoc);

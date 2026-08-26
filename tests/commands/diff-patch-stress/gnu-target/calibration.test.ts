@@ -46,6 +46,13 @@ for (const fixture of calibration.parser) {
   test(`GNU parser calibration only: ${fixture.id}`, { timeout: 7000 }, async context => {
     const captured = fixture.gnu;
     const binary = oraclePath("patch");
+    if (fixture.generated) {
+      const generated = await native("diff", fixture.generated.args, fixture.generated.before);
+      assert.equal(generated.exitCode, fixture.generated.exitCode);
+      assert.equal(generated.stdout, fixture.generated.stdout);
+      assert.equal(generated.stderr, fixture.generated.stderr);
+      assert.equal(generated.stdout, captured.input);
+    }
     context.diagnostic(`evidence SHA-256 ${calibrationSha256}; input ${JSON.stringify(captured.input)}`);
     const root = await mkdtemp(join(fileURLToPath(new URL("./", import.meta.url)), ".native-"));
     try {

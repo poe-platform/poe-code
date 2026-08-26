@@ -59,7 +59,7 @@ export async function product(fixture: ParserCase) {
   try {
     const command = createDiffPatchCommands(fixture.options).find(candidate => candidate.name === "patch")!;
     const result = await command.execute({
-      command: "patch", args: ["/work/target"], fs, cwd: "/work", env: {},
+      command: "patch", args: [...(fixture.args ?? []), "/work/target"], fs, cwd: "/work", env: {},
       signal: controller.signal, stdin,
       stdout: { async write(chunk) { stdout.push(Buffer.from(chunk)); } },
       stderr: { async write(chunk) { stderr.push(Buffer.from(chunk)); } },

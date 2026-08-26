@@ -7,16 +7,16 @@ import { contents, memory, native, nativeDirectory, nativePatch, nativePatchResu
 
 const bsdZeroContext = "--- target\n+++ target\n@@ -1 +1,0 @@\n-a\n";
 
-for (const reverse of [false, true]) test(`GAP-01 legacy Apple-range product contract ${reverse ? "reverse" : "forward"}`, async () => {
+for (const reverse of [false, true]) test(`GAP-01 GNU literal-coordinate product contract ${reverse ? "reverse" : "forward"}`, async () => {
   const filesystem = await memory({ target: reverse ? "b\n" : "a\nb\n" });
   const result = await run("patch", reverse ? ["-R"] : [], filesystem, bsdZeroContext);
   assert.equal(result.exitCode, 0, `reverse=${reverse}: ${result.stderr}`);
-  assert.equal(await contents(filesystem), reverse ? "a\nb\n" : "b\n");
+  assert.equal(await contents(filesystem), reverse ? "b\na\n" : "b\n");
 });
 
 for (const reverse of [false, true]) test(`GAP-01 raw selected-oracle Apple-range compatibility ${reverse ? "reverse" : "forward"}`, { timeout: 5000 }, async context => {
   const identity = oracleIdentity("patch");
-  const expected = reverse ? identity.dialect === "apple-patch-2.0-12u11" ? "a\nb\n" : "b\na\n" : "b\n";
+  const expected = reverse ? "b\na\n" : "b\n";
   await nativeDirectory(async root => {
     const reference = await nativePatchResult(root, reverse ? "b\n" : "a\nb\n", bsdZeroContext, reverse);
     context.diagnostic(`LEGACY_RANGE_NATIVE ${JSON.stringify({ identity, reverse, reference })}`);

@@ -1,0 +1,646 @@
+TAP version 13
+# Subtest: GNU default: normal/without-E-retains-empty
+ok 1 - GNU default: normal/without-E-retains-empty
+  ---
+  duration_ms: 8.599875
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/-E/apply
+not ok 2 - GNU default: normal/-E/apply
+  ---
+  duration_ms: 3.215625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    patch: EISDIR: illegal operation on a directory, rm '/authorized'
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:11:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: normal/-E/dry
+ok 3 - GNU default: normal/-E/dry
+  ---
+  duration_ms: 1.495291
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/-E/reverse
+ok 4 - GNU default: normal/-E/reverse
+  ---
+  duration_ms: 1.324125
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/--remove-empty-files/apply
+not ok 5 - GNU default: normal/--remove-empty-files/apply
+  ---
+  duration_ms: 2.873875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    patch: EISDIR: illegal operation on a directory, rm '/authorized'
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:11:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: normal/--remove-empty-files/dry
+ok 6 - GNU default: normal/--remove-empty-files/dry
+  ---
+  duration_ms: 1.079875
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/--remove-empty-files/reverse
+ok 7 - GNU default: normal/--remove-empty-files/reverse
+  ---
+  duration_ms: 1.733959
+  type: 'test'
+  ...
+# Subtest: GNU default: context/without-E-retains-empty
+ok 8 - GNU default: context/without-E-retains-empty
+  ---
+  duration_ms: 2.136334
+  type: 'test'
+  ...
+# Subtest: GNU default: context/-E/apply
+not ok 9 - GNU default: context/-E/apply
+  ---
+  duration_ms: 2.555709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    patch: EISDIR: illegal operation on a directory, rm '/authorized'
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:11:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: context/-E/dry
+ok 10 - GNU default: context/-E/dry
+  ---
+  duration_ms: 1.034125
+  type: 'test'
+  ...
+# Subtest: GNU default: context/-E/reverse
+ok 11 - GNU default: context/-E/reverse
+  ---
+  duration_ms: 0.905042
+  type: 'test'
+  ...
+# Subtest: GNU default: context/--remove-empty-files/apply
+not ok 12 - GNU default: context/--remove-empty-files/apply
+  ---
+  duration_ms: 1.344
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    patch: EISDIR: illegal operation on a directory, rm '/authorized'
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:11:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: context/--remove-empty-files/dry
+ok 13 - GNU default: context/--remove-empty-files/dry
+  ---
+  duration_ms: 0.876334
+  type: 'test'
+  ...
+# Subtest: GNU default: context/--remove-empty-files/reverse
+ok 14 - GNU default: context/--remove-empty-files/reverse
+  ---
+  duration_ms: 1.010875
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/without-E-retains-empty
+ok 15 - GNU default: unified/without-E-retains-empty
+  ---
+  duration_ms: 1.842209
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/-E/apply
+not ok 16 - GNU default: unified/-E/apply
+  ---
+  duration_ms: 1.018333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    patch: EISDIR: illegal operation on a directory, rm '/authorized'
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:11:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: unified/-E/dry
+ok 17 - GNU default: unified/-E/dry
+  ---
+  duration_ms: 0.857625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/-E/reverse
+ok 18 - GNU default: unified/-E/reverse
+  ---
+  duration_ms: 1.014625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/--remove-empty-files/apply
+not ok 19 - GNU default: unified/--remove-empty-files/apply
+  ---
+  duration_ms: 0.997917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    patch: EISDIR: illegal operation on a directory, rm '/authorized'
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:11:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: unified/--remove-empty-files/dry
+ok 20 - GNU default: unified/--remove-empty-files/dry
+  ---
+  duration_ms: 1.121084
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/--remove-empty-files/reverse
+ok 21 - GNU default: unified/--remove-empty-files/reverse
+  ---
+  duration_ms: 2.946417
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/missing/apply
+ok 22 - GNU default: context/null/forward/auto/missing/apply
+  ---
+  duration_ms: 1.362583
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/missing/dry
+ok 23 - GNU default: context/null/forward/auto/missing/dry
+  ---
+  duration_ms: 1.338583
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/empty/apply
+ok 24 - GNU default: context/null/forward/auto/empty/apply
+  ---
+  duration_ms: 1.367084
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/empty/dry
+ok 25 - GNU default: context/null/forward/auto/empty/dry
+  ---
+  duration_ms: 0.633042
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/auto/occupied/apply
+ok 26 - atomic extension no-publication: context/null/forward/auto/occupied/apply
+  ---
+  duration_ms: 0.75075
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/auto/occupied/dry
+ok 27 - atomic extension no-publication: context/null/forward/auto/occupied/dry
+  ---
+  duration_ms: 4.1005
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/missing/apply
+ok 28 - GNU default: context/null/forward/absolute/missing/apply
+  ---
+  duration_ms: 0.711959
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/missing/dry
+ok 29 - GNU default: context/null/forward/absolute/missing/dry
+  ---
+  duration_ms: 1.052917
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/empty/apply
+ok 30 - GNU default: context/null/forward/absolute/empty/apply
+  ---
+  duration_ms: 1.086542
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/empty/dry
+ok 31 - GNU default: context/null/forward/absolute/empty/dry
+  ---
+  duration_ms: 0.45625
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/absolute/occupied/apply
+ok 32 - atomic extension no-publication: context/null/forward/absolute/occupied/apply
+  ---
+  duration_ms: 0.488125
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/absolute/occupied/dry
+ok 33 - atomic extension no-publication: context/null/forward/absolute/occupied/dry
+  ---
+  duration_ms: 0.435625
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/missing/apply
+ok 34 - GNU default: context/null/reverse/auto/missing/apply
+  ---
+  duration_ms: 0.4295
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/missing/dry
+ok 35 - GNU default: context/null/reverse/auto/missing/dry
+  ---
+  duration_ms: 0.342209
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/empty/apply
+ok 36 - GNU default: context/null/reverse/auto/empty/apply
+  ---
+  duration_ms: 0.400959
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/empty/dry
+ok 37 - GNU default: context/null/reverse/auto/empty/dry
+  ---
+  duration_ms: 0.403459
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/auto/occupied/apply
+ok 38 - atomic extension no-publication: context/null/reverse/auto/occupied/apply
+  ---
+  duration_ms: 0.592
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/auto/occupied/dry
+ok 39 - atomic extension no-publication: context/null/reverse/auto/occupied/dry
+  ---
+  duration_ms: 0.763292
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/missing/apply
+ok 40 - GNU default: context/null/reverse/absolute/missing/apply
+  ---
+  duration_ms: 0.673417
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/missing/dry
+ok 41 - GNU default: context/null/reverse/absolute/missing/dry
+  ---
+  duration_ms: 0.447041
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/empty/apply
+ok 42 - GNU default: context/null/reverse/absolute/empty/apply
+  ---
+  duration_ms: 0.443292
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/empty/dry
+ok 43 - GNU default: context/null/reverse/absolute/empty/dry
+  ---
+  duration_ms: 0.4675
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/absolute/occupied/apply
+ok 44 - atomic extension no-publication: context/null/reverse/absolute/occupied/apply
+  ---
+  duration_ms: 0.630833
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/absolute/occupied/dry
+ok 45 - atomic extension no-publication: context/null/reverse/absolute/occupied/dry
+  ---
+  duration_ms: 1.031125
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/missing/apply
+ok 46 - GNU default: unified/null/forward/auto/missing/apply
+  ---
+  duration_ms: 2.867625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/missing/dry
+ok 47 - GNU default: unified/null/forward/auto/missing/dry
+  ---
+  duration_ms: 0.574458
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/empty/apply
+ok 48 - GNU default: unified/null/forward/auto/empty/apply
+  ---
+  duration_ms: 0.590208
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/empty/dry
+ok 49 - GNU default: unified/null/forward/auto/empty/dry
+  ---
+  duration_ms: 0.573333
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/auto/occupied/apply
+ok 50 - atomic extension no-publication: unified/null/forward/auto/occupied/apply
+  ---
+  duration_ms: 0.628833
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/auto/occupied/dry
+ok 51 - atomic extension no-publication: unified/null/forward/auto/occupied/dry
+  ---
+  duration_ms: 0.40375
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/missing/apply
+ok 52 - GNU default: unified/null/forward/absolute/missing/apply
+  ---
+  duration_ms: 0.398166
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/missing/dry
+ok 53 - GNU default: unified/null/forward/absolute/missing/dry
+  ---
+  duration_ms: 0.398958
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/empty/apply
+ok 54 - GNU default: unified/null/forward/absolute/empty/apply
+  ---
+  duration_ms: 0.418625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/empty/dry
+ok 55 - GNU default: unified/null/forward/absolute/empty/dry
+  ---
+  duration_ms: 0.319333
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/absolute/occupied/apply
+ok 56 - atomic extension no-publication: unified/null/forward/absolute/occupied/apply
+  ---
+  duration_ms: 0.357625
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/absolute/occupied/dry
+ok 57 - atomic extension no-publication: unified/null/forward/absolute/occupied/dry
+  ---
+  duration_ms: 0.438625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/missing/apply
+ok 58 - GNU default: unified/null/reverse/auto/missing/apply
+  ---
+  duration_ms: 0.49275
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/missing/dry
+ok 59 - GNU default: unified/null/reverse/auto/missing/dry
+  ---
+  duration_ms: 0.350042
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/empty/apply
+ok 60 - GNU default: unified/null/reverse/auto/empty/apply
+  ---
+  duration_ms: 0.515792
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/empty/dry
+ok 61 - GNU default: unified/null/reverse/auto/empty/dry
+  ---
+  duration_ms: 0.6565
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/auto/occupied/apply
+ok 62 - atomic extension no-publication: unified/null/reverse/auto/occupied/apply
+  ---
+  duration_ms: 0.615667
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/auto/occupied/dry
+ok 63 - atomic extension no-publication: unified/null/reverse/auto/occupied/dry
+  ---
+  duration_ms: 0.531083
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/missing/apply
+ok 64 - GNU default: unified/null/reverse/absolute/missing/apply
+  ---
+  duration_ms: 0.600375
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/missing/dry
+ok 65 - GNU default: unified/null/reverse/absolute/missing/dry
+  ---
+  duration_ms: 2.972792
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/empty/apply
+ok 66 - GNU default: unified/null/reverse/absolute/empty/apply
+  ---
+  duration_ms: 0.476541
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/empty/dry
+ok 67 - GNU default: unified/null/reverse/absolute/empty/dry
+  ---
+  duration_ms: 0.391
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/absolute/occupied/apply
+ok 68 - atomic extension no-publication: unified/null/reverse/absolute/occupied/apply
+  ---
+  duration_ms: 0.346583
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/absolute/occupied/dry
+ok 69 - atomic extension no-publication: unified/null/reverse/absolute/occupied/dry
+  ---
+  duration_ms: 0.3635
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed normal/unified delete-recreate forward commits final state once
+ok 70 - atomic extension mixed normal/unified delete-recreate forward commits final state once
+  ---
+  duration_ms: 0.658708
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed normal/unified delete-recreate reverse commits final state once
+ok 71 - atomic extension mixed normal/unified delete-recreate reverse commits final state once
+  ---
+  duration_ms: 0.53925
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed context/unified delete-recreate forward commits final state once
+ok 72 - atomic extension mixed context/unified delete-recreate forward commits final state once
+  ---
+  duration_ms: 0.496375
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed context/unified delete-recreate reverse commits final state once
+ok 73 - atomic extension mixed context/unified delete-recreate reverse commits final state once
+  ---
+  duration_ms: 0.50875
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed unified/unified delete-recreate forward commits final state once
+ok 74 - atomic extension mixed unified/unified delete-recreate forward commits final state once
+  ---
+  duration_ms: 0.592875
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed unified/unified delete-recreate reverse commits final state once
+ok 75 - atomic extension mixed unified/unified delete-recreate reverse commits final state once
+  ---
+  duration_ms: 0.73025
+  type: 'test'
+  ...
+# Subtest: atomic extension later hunk rejects staged removal without early writes
+ok 76 - atomic extension later hunk rejects staged removal without early writes
+  ---
+  duration_ms: 0.788167
+  type: 'test'
+  ...
+# Subtest: atomic extension later occupied-creation rejects staged removal without early writes
+ok 77 - atomic extension later occupied-creation rejects staged removal without early writes
+  ---
+  duration_ms: 0.780625
+  type: 'test'
+  ...
+# Subtest: symlink create rejected without mutations
+ok 78 - symlink create rejected without mutations
+  ---
+  duration_ms: 0.689833
+  type: 'test'
+  ...
+# Subtest: symlink remove rejected without mutations
+ok 79 - symlink remove rejected without mutations
+  ---
+  duration_ms: 0.333
+  type: 'test'
+  ...
+# Subtest: hardlink create rejected without mutations
+ok 80 - hardlink create rejected without mutations
+  ---
+  duration_ms: 0.438125
+  type: 'test'
+  ...
+# Subtest: hardlink remove rejected without mutations
+ok 81 - hardlink remove rejected without mutations
+  ---
+  duration_ms: 0.294292
+  type: 'test'
+  ...
+# Subtest: ancestor-symlink create rejected without mutations
+ok 82 - ancestor-symlink create rejected without mutations
+  ---
+  duration_ms: 0.31725
+  type: 'test'
+  ...
+# Subtest: ancestor-symlink remove rejected without mutations
+ok 83 - ancestor-symlink remove rejected without mutations
+  ---
+  duration_ms: 2.228792
+  type: 'test'
+  ...
+# Subtest: pre-cancelled create performs no filesystem work
+ok 84 - pre-cancelled create performs no filesystem work
+  ---
+  duration_ms: 0.434458
+  type: 'test'
+  ...
+# Subtest: pre-cancelled remove performs no filesystem work
+ok 85 - pre-cancelled remove performs no filesystem work
+  ---
+  duration_ms: 0.145458
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure before effect reports partial commit, not rollback
+ok 86 - atomic extension writeFile failure before effect reports partial commit, not rollback
+  ---
+  duration_ms: 1.052333
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure after effect reports partial commit, not rollback
+ok 87 - atomic extension writeFile failure after effect reports partial commit, not rollback
+  ---
+  duration_ms: 0.85875
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure before effect reports partial commit, not rollback
+ok 88 - atomic extension rm failure before effect reports partial commit, not rollback
+  ---
+  duration_ms: 1.347459
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure after effect reports partial commit, not rollback
+ok 89 - atomic extension rm failure after effect reports partial commit, not rollback
+  ---
+  duration_ms: 1.840375
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 83
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 293.293125

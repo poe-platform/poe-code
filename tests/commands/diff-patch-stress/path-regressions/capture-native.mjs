@@ -5,16 +5,20 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const directory = fileURLToPath(new URL(".", import.meta.url));
+const binding = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e",
+  `import { oraclePath } from ${JSON.stringify(new URL("../gnu-target/oracle.ts", import.meta.url).href)}; console.log(JSON.stringify({ gnuPatch: oraclePath("patch"), gnuDiff: oraclePath("diff"), applePatch: oraclePath("patch", "apple-calibration") }));`],
+  { cwd: directory, encoding: "utf8", timeout: 5000, killSignal: "SIGKILL", maxBuffer: 65_536 });
+assert.ifError(binding.error);
+assert.equal(binding.signal, null);
+assert.equal(binding.status, 0, binding.stderr);
 const paths = {
-  gnuPatch: "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
-  gnuDiff: "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
-  applePatch: "/usr/bin/patch",
+  ...JSON.parse(binding.stdout),
   git: "/usr/bin/git",
 };
 const root = await mkdtemp(`${directory}.oracle-`);
 const env = { PATH: "/usr/bin:/bin", LC_ALL: "C", HOME: root, TMPDIR: root, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" };
 function execute(binary, args, cwd, input = "") {
-  const result = spawnSync(binary, args, { cwd, input, encoding: "utf8", env, timeout: 3000, maxBuffer: 1024 * 1024 });
+  const result = spawnSync(binary, args, { cwd, input, encoding: "utf8", env, shell: false, timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024 });
   assert.ifError(result.error);
   assert.equal(result.signal, null);
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };

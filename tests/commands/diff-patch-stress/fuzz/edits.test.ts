@@ -84,20 +84,36 @@ const malformed: Readonly<Record<string, string>> = {
   "empty-incomplete-line": "@@ -1 +1 @@\n-old\n+\n\\ No newline at end of file\n",
   "content-after-incomplete-old": "@@ -1,2 +1 @@\n-old\n\\ No newline at end of file\n-tail\n+new\n",
   "content-after-incomplete-new": "@@ -1 +1,2 @@\n-old\n+new\n\\ No newline at end of file\n+tail\n",
-  "inconsistent-second-hunk": "@@ -1 +1 @@\n-old\n+new\n@@ -3 +4 @@\n-tail\n+end\n",
   "backward-second-hunk": "@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
   "missing-physical-newline": "@@ -1 +1 @@\n-old\n+new",
   "header-only": "",
   "context-only-hunk": "@@ -1 +1 @@\n old\n",
 };
 
-for (const [name, broken] of Object.entries(malformed)) test(`malformed ${name} is not swallowed after a valid file section`, { timeout: 3000 }, async () => {
+for (const [name, broken] of Object.entries(malformed)) test(`atomic extension malformed ${name} is not swallowed after a valid file section`, { timeout: 3000 }, async () => {
   const first = golden("keep\n", "changed\n", "first");
   const filesystem = await memory({ first: "keep\n", target: "old\nmiddle\ntail\n" });
-  const result = await run("patch", [], filesystem, `${first}--- target\n+++ target\n${broken}`);
+  const result = await run("patch", ["--atomic"], filesystem, `${first}--- target\n+++ target\n${broken}`);
   assert.equal(result.exitCode, 2, result.stderr);
   assert.equal(await contents(filesystem, "first"), "keep\n");
   assert.equal(await contents(filesystem), "old\nmiddle\ntail\n");
+});
+
+for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU default"} advisory new coordinate in second hunk remains applicable`, async () => {
+  const input = golden("keep\n", "changed\n", "first") + "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -3 +4 @@\n-tail\n+end\n";
+  await nativeDirectory(async root => {
+    await writeFile(join(root, "first"), "keep\n");
+    await writeFile(join(root, "target"), "old\nmiddle\ntail\n");
+    const reference = native(root, "patch", ["--batch", "--fuzz=0", "--no-backup-if-mismatch", "-p0"], input);
+    assert.equal(reference.exitCode, 0, reference.stderr);
+    assert.equal(await readFile(join(root, "first"), "utf8"), "changed\n");
+    assert.equal(await readFile(join(root, "target"), "utf8"), "new\nmiddle\nend\n");
+  });
+  const filesystem = await memory({ first: "keep\n", target: "old\nmiddle\ntail\n" });
+  const result = await run("patch", [...(atomic ? ["--atomic"] : []), "-F0", "-p0"], filesystem, input);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(filesystem, "first"), "changed\n");
+  assert.equal(await contents(filesystem), "new\nmiddle\nend\n");
 });
 
 test("12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows", { timeout: 15_000 }, async context => {

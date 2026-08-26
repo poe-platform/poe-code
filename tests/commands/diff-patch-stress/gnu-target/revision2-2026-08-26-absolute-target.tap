@@ -1,0 +1,194 @@
+TAP version 13
+# Subtest: absolute target with relative headers
+ok 1 - absolute target with relative headers
+  ---
+  duration_ms: 8.790792
+  type: 'test'
+  ...
+# Subtest: absolute target outside cwd remains inside VFS
+ok 2 - absolute target outside cwd remains inside VFS
+  ---
+  duration_ms: 3.740625
+  type: 'test'
+  ...
+# Subtest: relative explicit target overrides existing absolute headers
+ok 3 - relative explicit target overrides existing absolute headers
+  ---
+  duration_ms: 1.559208
+  type: 'test'
+  ...
+# Subtest: absolute target overrides different absolute headers
+ok 4 - absolute target overrides different absolute headers
+  ---
+  duration_ms: 2.368417
+  type: 'test'
+  ...
+# Subtest: large strip cannot remove absolute explicit target
+ok 5 - large strip cannot remove absolute explicit target
+  ---
+  duration_ms: 1.974208
+  type: 'test'
+  ...
+# Subtest: large strip cannot remove relative target or reject ignored absolute headers
+ok 6 - large strip cannot remove relative target or reject ignored absolute headers
+  ---
+  duration_ms: 2.385541
+  type: 'test'
+  ...
+# Subtest: no target still rejects absolute headers
+ok 7 - no target still rejects absolute headers
+  ---
+  duration_ms: 2.349042
+  type: 'test'
+  ...
+# Subtest: no target cannot strip away an absolute new header
+ok 8 - no target cannot strip away an absolute new header
+  ---
+  duration_ms: 1.15525
+  type: 'test'
+  ...
+# Subtest: traversal in stripped prefix is rejected without target
+ok 9 - traversal in stripped prefix is rejected without target
+  ---
+  duration_ms: 2.351083
+  type: 'test'
+  ...
+# Subtest: ignored new header traversal is rejected before stripping
+ok 10 - ignored new header traversal is rejected before stripping
+  ---
+  duration_ms: 0.88725
+  type: 'test'
+  ...
+# Subtest: explicit target traversal is rejected before normalization
+ok 11 - explicit target traversal is rejected before normalization
+  ---
+  duration_ms: 0.39175
+  type: 'test'
+  ...
+# Subtest: ignored quoted control metadata remains rejected
+ok 12 - ignored quoted control metadata remains rejected
+  ---
+  duration_ms: 0.682667
+  type: 'test'
+  ...
+# Subtest: explicit final symlink is rejected
+ok 13 - explicit final symlink is rejected
+  ---
+  duration_ms: 0.560417
+  type: 'test'
+  ...
+# Subtest: explicit ancestor symlink is rejected
+ok 14 - explicit ancestor symlink is rejected
+  ---
+  duration_ms: 0.524
+  type: 'test'
+  ...
+# Subtest: dangling final symlink cannot become creation target
+ok 15 - dangling final symlink cannot become creation target
+  ---
+  duration_ms: 0.577959
+  type: 'test'
+  ...
+# Subtest: explicit hardlinked target is rejected without changing either name
+ok 16 - explicit hardlinked target is rejected without changing either name
+  ---
+  duration_ms: 1.384833
+  type: 'test'
+  ...
+# Subtest: absolute virtual input file outside cwd is read without mutation
+ok 17 - absolute virtual input file outside cwd is read without mutation
+  ---
+  duration_ms: 1.702625
+  type: 'test'
+  ...
+# Subtest: absolute virtual input symlink is rejected
+ok 18 - absolute virtual input symlink is rejected
+  ---
+  duration_ms: 0.489917
+  type: 'test'
+  ...
+# Subtest: dry-run explicit target validates without mutation
+ok 19 - dry-run explicit target validates without mutation
+  ---
+  duration_ms: 1.339416
+  type: 'test'
+  ...
+# Subtest: reverse explicit target ignores header selection
+ok 20 - reverse explicit target ignores header selection
+  ---
+  duration_ms: 0.833375
+  type: 'test'
+  ...
+# Subtest: create explicit absolute target ignores creation header
+ok 21 - create explicit absolute target ignores creation header
+  ---
+  duration_ms: 0.99025
+  type: 'test'
+  ...
+# Subtest: delete explicit absolute target ignores deletion header
+ok 22 - delete explicit absolute target ignores deletion header
+  ---
+  duration_ms: 0.844125
+  type: 'test'
+  ...
+# Subtest: reverse creation deletes only explicit target
+ok 23 - reverse creation deletes only explicit target
+  ---
+  duration_ms: 0.599417
+  type: 'test'
+  ...
+# Subtest: reverse deletion creates only explicit target
+ok 24 - reverse deletion creates only explicit target
+  ---
+  duration_ms: 0.70475
+  type: 'test'
+  ...
+# Subtest: dry-run creation leaves target absent
+ok 25 - dry-run creation leaves target absent
+  ---
+  duration_ms: 0.518625
+  type: 'test'
+  ...
+# Subtest: dry-run deletion leaves target present
+ok 26 - dry-run deletion leaves target present
+  ---
+  duration_ms: 0.761958
+  type: 'test'
+  ...
+# Subtest: ignored symlink header paths are not selected or inspected
+ok 27 - ignored symlink header paths are not selected or inspected
+  ---
+  duration_ms: 2.079666
+  type: 'test'
+  ...
+# Subtest: exact benchmark fixture through existing EngineSession and pluginFixtures
+ok 28 - exact benchmark fixture through existing EngineSession and pluginFixtures
+  ---
+  duration_ms: 371.834167
+  type: 'test'
+  ...
+# {"engine":"virtual-bash","name":"plugin-diff-patch-roundtrip","tier":"plugin-integration","tags":["diff","patch","files"],"source":"plugin-integration","assertions":[{"name":"stdout.bytes","status":"pass","expected":{"byteLength":31,"sha256":"b94030adb9613cc6afe013713e25e8a3117982b658f69e8ae2d73911bbd16f87","base64Prefix":"cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==","truncated":false},"actual":{"byteLength":31,"sha256":"b94030adb9613cc6afe013713e25e8a3117982b658f69e8ae2d73911bbd16f87","base64Prefix":"cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==","truncated":false},"detail":"native-bytes"},{"name":"stderr.bytes","status":"pass","expected":{"byteLength":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64Prefix":"","truncated":false},"actual":{"byteLength":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64Prefix":"","truncated":false},"detail":"native-bytes"},{"name":"exitCode","status":"pass","expected":0,"actual":0},{"name":"filesystem.complete-regular-file-snapshot","status":"pass","expected":{"old":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false},"new":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false},"change":{"byteLength":41,"sha256":"4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54","base64Prefix":"LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=","truncated":false}},"actual":{"change":{"byteLength":41,"sha256":"4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54","base64Prefix":"LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=","truncated":false},"new":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false},"old":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false}},"detail":"{\\"fileDifferences\\":[],\\"rejectedNonRegularEntries\\":[]}"}],"status":"pass","durationMs":8.286541999999997,"details":{"configuredCommandNames":["true","false","echo","pwd","basename","dirname","printf","mkdir","touch","cp","mv","rm","rmdir","ln","readlink","realpath","ls","cat","head","tail","wc","tee","tr","sort","uniq","cut","grep","test","[","env","xargs","find","sed","awk","jq","rg","base64","base32","xxd","od","sha256sum","sha1sum","md5sum","cksum","gzip","gunzip","zcat","diff","patch"],"configuredPluginNames":["standard-commands","text-program-commands","structured-commands","search-commands","byte-commands","diff-patch-commands"],"stdoutCapture":"native-bytes","stderrCapture":"native-bytes"}}
+# {"engine":"just-bash","name":"plugin-diff-patch-roundtrip","tier":"plugin-integration","tags":["diff","patch","files"],"source":"plugin-integration","assertions":[{"name":"stdout.bytes","status":"fail","expected":{"byteLength":31,"sha256":"b94030adb9613cc6afe013713e25e8a3117982b658f69e8ae2d73911bbd16f87","base64Prefix":"cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==","truncated":false},"actual":{"byteLength":4,"sha256":"911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2","base64Prefix":"YQpiCg==","truncated":false},"detail":"public-text-utf8"},{"name":"stderr.bytes","status":"fail","expected":{"byteLength":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64Prefix":"","truncated":false},"actual":{"byteLength":67,"sha256":"b52a8e10539fb98b0a4ac2205312817ac659675afa99915f7bfa6172e8d5b22d","base64Prefix":"ZGlmZjogdW5yZWNvZ25pemVkIG9wdGlvbiAnLS1sYWJlbCcKYmFzaDogcGF0Y2g6IGNvbW1hbmQgbm90IGZvdW5kCg==","truncated":false},"detail":"public-text-utf8"},{"name":"exitCode","status":"pass","expected":0,"actual":0},{"name":"filesystem.complete-regular-file-snapshot","status":"fail","expected":{"old":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false},"new":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false},"change":{"byteLength":41,"sha256":"4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54","base64Prefix":"LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=","truncated":false}},"actual":{"change":{"byteLength":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64Prefix":"","truncated":false},"new":{"byteLength":4,"sha256":"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750","base64Prefix":"YQpjCg==","truncated":false},"old":{"byteLength":4,"sha256":"911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2","base64Prefix":"YQpiCg==","truncated":false}},"detail":"{\\"fileDifferences\\":[{\\"path\\":\\"change\\",\\"expected\\":{\\"byteLength\\":41,\\"sha256\\":\\"4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54\\",\\"base64Prefix\\":\\"LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=\\",\\"truncated\\":false},\\"actual\\":{\\"byteLength\\":0,\\"sha256\\":\\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\\",\\"base64Prefix\\":\\"\\",\\"truncated\\":false}},{\\"path\\":\\"old\\",\\"expected\\":{\\"byteLength\\":4,\\"sha256\\":\\"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750\\",\\"base64Prefix\\":\\"YQpjCg==\\",\\"truncated\\":false},\\"actual\\":{\\"byteLength\\":4,\\"sha256\\":\\"911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2\\",\\"base64Prefix\\":\\"YQpiCg==\\",\\"truncated\\":false}}],\\"rejectedNonRegularEntries\\":[]}"}],"status":"fail","durationMs":35.35208400000005,"details":{"configuredCommandNames":["echo","cat","printf","ls","mkdir","rmdir","touch","rm","cp","mv","ln","chmod","pwd","readlink","head","tail","wc","stat","grep","fgrep","egrep","rg","sed","awk","sort","uniq","comm","cut","paste","tr","rev","nl","fold","expand","unexpand","strings","split","column","join","tee","find","basename","dirname","tree","du","env","printenv","alias","unalias","history","xargs","true","false","clear","bash","sh","jq","base64","diff","date","sleep","timeout","time","seq","expr","md5sum","sha1sum","sha256sum","file","html-to-markdown","help","which","tac","hostname","whoami","od","gzip","gunzip","zcat","tar","yq","xan","sqlite3"],"configuredPluginNames":[],"stdoutCapture":"public-text-utf8","stderrCapture":"public-text-utf8"}}
+# Subtest: GNU 2.8 literal argv: relative target overrides absolute headers and -p999
+ok 29 - GNU 2.8 literal argv: relative target overrides absolute headers and -p999
+  ---
+  duration_ms: 23.047333
+  type: 'test'
+  ...
+# {"executable":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","binarySha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00","version":"GNU patch 2.8","args":["--batch","--no-backup-if-mismatch","-p999","target"],"cwd":"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/cwd","input":"--- /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/outside/old-header\\n+++ /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/outside/new-header\\n@@ -1,3 +1,3 @@\\n anchor\\n-before\\n+after\\n end\\n","result":{"exitCode":0,"stdout":"patching file target\\n","stderr":""},"files":{"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/cwd/sentinel":"untouched\\n","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/cwd/target":"anchor\\nafter\\nend\\n","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/outside/new-header":"unchanged new header\\n","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-45R5EU/outside/old-header":"anchor\\nbefore\\nend\\n"}}
+# Subtest: GNU 2.8 literal argv: absolute target outside cwd
+ok 30 - GNU 2.8 literal argv: absolute target outside cwd
+  ---
+  duration_ms: 27.867458
+  type: 'test'
+  ...
+# {"executable":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","binarySha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00","version":"GNU patch 2.8","args":["--batch","--no-backup-if-mismatch","-p999","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/outside/target"],"cwd":"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/cwd","input":"--- old-header\\n+++ new-header\\n@@ -1,3 +1,3 @@\\n anchor\\n-before\\n+after\\n end\\n","result":{"exitCode":0,"stdout":"patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/outside/target\\n","stderr":""},"files":{"/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/cwd/sentinel":"untouched\\n","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/outside/new-header":"unchanged new header\\n","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/outside/old-header":"anchor\\nbefore\\nend\\n","/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-dppkSW/outside/target":"anchor\\nafter\\nend\\n"}}
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 577.319625

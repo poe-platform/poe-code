@@ -115,8 +115,8 @@ for (const [format, input] of [
   ["normal", "1c1\n< old\n---\n> replacement\n"],
   ["context", "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! replacement\n"],
 ] as const) for (const options of [{ maxInputBytes: 4 }, { maxOutputBytes: 2 }]) {
-  test(`patch format budget atomic ${format}/${JSON.stringify(options)}`, async () => {
-    const result = await run("patch", ["target"], { files: { target: "old\n" }, input, options });
+  test(`patch atomic extension format budget ${format}/${JSON.stringify(options)}`, async () => {
+    const result = await run("patch", ["--atomic", "target"], { files: { target: "old\n" }, input, options });
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /limit|maxBytes/u);
     assert.equal(await contents(result.fs), "old\n");

@@ -14,11 +14,11 @@ for (const [name, invalid] of [
   ["extra deletion", "@@ -1 +1 @@\n-old\n+new\n-old\n"],
   ["huge coordinate", "@@ -999999999 +999999999 @@\n-old\n+new\n"],
   ["repeated newline marker", "@@ -1 +1 @@\n-old\n+new\n\\ No newline at end of file\n\\ No newline at end of file\n"],
-] as const) test(`malformed later section ${name} cannot partially commit`, async () => {
+] as const) test(`atomic extension malformed later section ${name} cannot partially commit`, async () => {
   const backing = await memory({ first: "old\n", second: "old\n" });
   const before = await snapshot(backing);
   const observed = instrument(backing);
-  const result = await invoke(observed.fs, "patch", { input: replacement("first") + `--- second\n+++ second\n${invalid}` });
+  const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + `--- second\n+++ second\n${invalid}` });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.equal(result.stdout, "");
   assert.deepEqual(observed.mutations(), []);
@@ -29,23 +29,23 @@ for (const [name, options] of [
   ["aggregate input", { maxInputBytes: 20 }], ["aggregate output", { maxOutputBytes: 25 }],
   ["aggregate lines", { maxLines: 8 }], ["file count", { maxFiles: 1 }],
   ["hunk count", { maxHunks: 1 }], ["work", { maxWork: 5 }],
-] satisfies [string, DiffPatchOptions][]) test(`${name} budget failure during preparation leaves targets unchanged`, async () => {
+] satisfies [string, DiffPatchOptions][]) test(`atomic extension ${name} budget failure during preparation leaves targets unchanged`, async () => {
   const backing = await memory({ first: "old\n", second: "old\n" });
   const before = await snapshot(backing);
   const observed = instrument(backing);
-  const result = await invoke(observed.fs, "patch", { input: replacement("first") + replacement("second"), options });
+  const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second"), options });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.equal(result.stdout, "");
   assert.deepEqual(observed.mutations(), []);
   assert.deepEqual(await snapshot(backing), before);
 });
 
-test("recheck input bytes are charged before any commit", async () => {
+test("atomic extension recheck input bytes are charged before any commit", async () => {
   const backing = await memory({ first: "old\n", second: "old\n" });
   const before = await snapshot(backing);
   const observed = instrument(backing);
   const input = replacement("first") + replacement("second");
-  const result = await invoke(observed.fs, "patch", { input, options: { maxInputBytes: Buffer.byteLength(input) + 8 } });
+  const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input, options: { maxInputBytes: Buffer.byteLength(input) + 8 } });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.deepEqual(observed.mutations(), []);
   assert.deepEqual(await snapshot(backing), before);
@@ -73,12 +73,12 @@ for (const invalid of [0, -1, 1.5, Number.POSITIVE_INFINITY, Number.NaN, Number.
   });
 }
 
-test("bounded work-limit sweep covers preflight, partial-commit and success states", { timeout: 10000 }, async () => {
+test("atomic extension bounded work-limit sweep covers preflight, partial-commit and success states", { timeout: 10000 }, async () => {
   const states = new Set<string>();
-  for (let limit = 1; limit <= 180; limit++) {
+  for (let limit = 1; limit <= 512; limit++) {
     const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
     const observed = instrument(backing);
-    const result = await invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third"), options: { maxWork: limit } });
+    const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second") + replacement("third"), options: { maxWork: limit } });
     const writes = observed.mutations();
     assert.deepEqual(writes.map(call => call.path), ["first", "second", "third"].slice(0, writes.length).map(name => `${cwd}/${name}`));
     for (const [index, name] of ["first", "second", "third"].entries()) await assertBytes(backing, name, index < writes.length ? "new\n" : "old\n");
@@ -96,11 +96,11 @@ test("bounded work-limit sweep covers preflight, partial-commit and success stat
 });
 
 for (const input of [bytes("bad\0text\n"), new Uint8Array([0xff, 0xfe, 0x0a])]) {
-  test(`binary later target ${Buffer.from(input).toString("hex")} cannot cause an earlier write`, async () => {
+  test(`atomic extension binary later target ${Buffer.from(input).toString("hex")} cannot cause an earlier write`, async () => {
     const backing = await memory({ first: "old\n", second: input });
     const before = await snapshot(backing);
     const observed = instrument(backing);
-    const result = await invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") });
+    const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second") });
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /binary input/u);
     assert.deepEqual(observed.mutations(), []);

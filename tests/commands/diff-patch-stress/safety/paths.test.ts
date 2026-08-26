@@ -25,7 +25,7 @@ for (const [name, path] of [
         });
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stderr, "");
-        assert.equal(result.stdout, `patching file ${cwd}/target\n`);
+        assert.equal(result.stdout, "patching file target\n");
         await assertBytes(backing, "target", "new\n");
         assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/target`]]);
         assert.deepEqual(await snapshot(backing), expected, "Only explicit target bytes change; all identities and decoy header targets remain intact");
@@ -55,12 +55,12 @@ for (const name of ["café.txt", "cafe\u0301.txt", "file with spaces", "leading 
 }
 
 const normalizedTargets = [
-  ["target", "./target", []], ["dir/target", "dir/./target", []],
+  ["target", "./target", []], ["dir/target", "dir/./target", ["-p0"]],
   ["a/target", "b/target", ["-p1"]], ["a/./target", "b/target", ["-p1"]],
 ] as const;
 
 for (const [first, second, args] of normalizedTargets) for (const reverse of [false, true]) for (const dryRun of [false, true]) {
-  test(`coherent normalized sequence: ${first} + ${second}, reverse=${reverse}, dryRun=${dryRun}`, async () => {
+  test(`atomic extension single-final-write normalized sequence: ${first} + ${second}, reverse=${reverse}, dryRun=${dryRun}`, async () => {
     const target = first.startsWith("dir/") ? "dir/target" : "target";
     const initial = reverse ? "final\n" : "old\n";
     const backing = await memory({ [target]: initial, sentinel: "untouched\n" });
@@ -68,7 +68,7 @@ for (const [first, second, args] of normalizedTargets) for (const reverse of [fa
     const identity = await backing.lstat(`${cwd}/${target}`);
     const observed = instrument(backing);
     const input = replacement(first) + replacement(second).replace("-old\n+new\n", "-new\n+final\n");
-    const result = await invoke(observed.fs, "patch", { args: [...args, ...(reverse ? ["-R"] : []), ...(dryRun ? ["--dry-run"] : [])], input });
+    const result = await invoke(observed.fs, "patch", { args: ["--atomic", ...args, ...(reverse ? ["-R"] : []), ...(dryRun ? ["--dry-run"] : [])], input });
     assert.equal(result.exitCode, 0, result.stderr);
     await assertBytes(backing, target, dryRun ? initial : reverse ? "old\n" : "final\n");
     await assertBytes(backing, "sentinel", "untouched\n");
@@ -78,11 +78,11 @@ for (const [first, second, args] of normalizedTargets) for (const reverse of [fa
   });
 }
 
-for (const [first, second, args] of normalizedTargets) test(`contradictory normalized sequence prevalidation: ${first} + ${second}`, async () => {
+for (const [first, second, args] of normalizedTargets) test(`atomic extension --force contradictory normalized sequence prevalidation: ${first} + ${second}`, async () => {
   const backing = await memory({ target: "old\n", "dir/target": "old\n" });
   const before = await snapshot(backing);
   const observed = instrument(backing);
-  const result = await invoke(observed.fs, "patch", { args, input: replacement(first) + replacement(second) });
+  const result = await invoke(observed.fs, "patch", { args: ["--atomic", "--force", ...args], input: replacement(first) + replacement(second) });
   assert.equal(result.exitCode, 1, result.stderr);
   assert.match(result.stderr, /hunk .* does not match/u);
   assert.equal(result.stdout, "");
@@ -130,7 +130,7 @@ test("dry-run mixed create/update/delete validates every result without mutation
   const observed = instrument(backing);
   const result = await invoke(observed.fs, "patch", { args: ["--dry-run"], input: creation("new") + replacement() + deletion("remove") });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, `checking file ${cwd}/new\nchecking file ${cwd}/target\nchecking file ${cwd}/remove\n`);
+  assert.equal(result.stdout, "checking file new\nchecking file target\nchecking file remove\n");
   assert.deepEqual(observed.mutations(), []);
   assert.deepEqual(await snapshot(backing), before);
 });

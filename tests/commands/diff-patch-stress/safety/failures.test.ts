@@ -5,7 +5,7 @@ import { assertBytes, bytes, creation, cwd, deletion, instrument, invoke, memory
 
 for (const method of ["lstat", "readFile", "readStream"] as const) {
   for (const code of ["EACCES", "EIO", "EPERM"] as const) {
-    test(`${method} ${code} on later target stops prevalidation without writes`, async () => {
+    test(`atomic extension ${method} ${code} on later target stops prevalidation without writes`, async () => {
       const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
       const before = await snapshot(backing);
       const controller = new AbortController();
@@ -20,7 +20,7 @@ for (const method of ["lstat", "readFile", "readStream"] as const) {
           }
         },
       });
-      const result = await invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal });
+      const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal });
       assert(injected);
       assert.equal(result.exitCode, 2, result.stderr);
       assert.match(result.stderr, new RegExp(code));
@@ -33,7 +33,7 @@ for (const method of ["lstat", "readFile", "readStream"] as const) {
 
 for (const failedIndex of [0, 1, 2]) {
   for (const operation of ["writeFile", "rm"] as const) {
-    test(`${operation} failure at commit ${failedIndex + 1} preserves precisely the completed prefix`, async () => {
+    test(`atomic extension ${operation} failure at commit ${failedIndex + 1} preserves precisely the completed prefix`, async () => {
       const names = ["first", "second", "third"];
       const backing = await memory(Object.fromEntries(names.map(name => [name, "old\n"])));
       const identities = await Promise.all(names.map(name => backing.lstat(`${cwd}/${name}`)));
@@ -44,7 +44,7 @@ for (const failedIndex of [0, 1, 2]) {
         },
       });
       const input = names.map(name => operation === "rm" ? deletion(name) : replacement(name)).join("");
-      const result = await invoke(observed.fs, "patch", { input });
+      const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input });
       assert.equal(result.exitCode, 2, result.stderr);
       assert.match(result.stderr, new RegExp(`${failedIndex}/3 files committed`));
       assert.match(result.stderr, /failing operation may have side effects/u);
@@ -62,7 +62,7 @@ for (const failedIndex of [0, 1, 2]) {
 }
 
 for (const operation of ["writeFile", "rm"] as const) {
-  test(`a ${operation} that mutates then throws is not falsely rolled back or counted successful`, async () => {
+  test(`atomic extension: a ${operation} that mutates then throws is not falsely rolled back or counted successful`, async () => {
     const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
     const observed = instrument(backing, {
       async before(call) {
@@ -107,7 +107,7 @@ test("exclusive creation refuses a competing new file without cleanup unlink", a
 });
 
 for (const change of ["content", "symlink", "hardlink", "removed", "parent"] as const) {
-  test(`observable ${change} change after preparation prevents every command write`, async () => {
+  test(`atomic extension observable ${change} change after preparation prevents every command write`, async () => {
     const backing = await memory({ first: "old\n", "dir/second": "old\n", sentinel: "sentinel\n" });
     let injected = false;
     let changedState: unknown[] = [];
@@ -123,7 +123,7 @@ for (const change of ["content", "symlink", "hardlink", "removed", "parent"] as 
         changedState = await snapshot(backing);
       },
     });
-    const result = await invoke(observed.fs, "patch", { input: replacement("first") + replacement("dir/second") });
+    const result = await invoke(observed.fs, "patch", { args: ["--atomic", "-p0"], input: replacement("first") + replacement("dir/second") });
     assert(injected);
     assert.notEqual(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "");
@@ -142,11 +142,11 @@ test("rename capability and rename failures are not used as an atomicity fallbac
   assert.deepEqual(observed.mutations().map(call => call.method), ["writeFile"]);
 });
 
-test("status sink failure after publication preserves all committed files", async () => {
+test("atomic extension status sink failure after publication preserves all committed files", async () => {
   const backing = await memory({ first: "old\n", second: "old\n" });
   const observed = instrument(backing);
   const result = await invoke(observed.fs, "patch", {
-    input: replacement("first") + replacement("second"),
+    args: ["--atomic"], input: replacement("first") + replacement("second"),
     stdout: { async write() { throw new FsError("EPIPE"); } },
   });
   assert.equal(result.exitCode, 2, result.stderr);

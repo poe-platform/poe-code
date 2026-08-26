@@ -24,9 +24,9 @@ const laterSections = [
 
 for (const [index, suffix] of laterSections.entries()) {
   for (const boundary of ["after-patch", "after-signature"] as const) {
-    test(`mail cannot conceal later section ${index} ${boundary}`, async () => {
+    test(`${index >= 2 ? "atomic extension " : ""}mail cannot conceal later section ${index} ${boundary}`, async () => {
       await rejectsWithoutMutation(preamble + section("a/first")
-        + (boundary === "after-signature" ? "-- \n2.50.1\n" : "") + suffix, ["-p1"]);
+        + (boundary === "after-signature" ? "-- \n2.50.1\n" : "") + suffix, [...(index >= 2 ? ["--atomic"] : []), "-p1"]);
     });
   }
 }

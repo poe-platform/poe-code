@@ -33,14 +33,14 @@ for (const [first, second] of [
   ["a/dir/target", "a///dir/./target"],
 ] as const) {
   for (const dryRun of [false, true]) {
-    test(`coherent normalized sequence ${first} -> ${second} dry=${dryRun}`, async () => {
+    test(`${dryRun ? "atomic extension " : "GNU default "}coherent normalized sequence ${first} -> ${second} dry=${dryRun}`, async () => {
       const target = first.includes("dir") ? "dir/target" : "target";
       const backing = await memory({ [target]: "old\n", first: "old\n", sentinel: "untouched\n" });
       const identity = (await backing.lstat(`${cwd}/${target}`)).ino;
       const before = await snapshot(backing);
       const observed = instrument(backing);
       const result = await invoke(observed.fs, "patch", {
-        args: ["-p1", ...(dryRun ? ["--dry-run"] : [])],
+        args: ["-p1", ...(dryRun ? ["--atomic", "--dry-run"] : [])],
         input: section("a/first") + section(first, first, "old", "middle") + section(second, second, "middle", "new"),
       });
       assert.equal(result.exitCode, 0, `Coherent duplicates must apply, not blanket-reject: ${result.stderr}`);
@@ -56,9 +56,9 @@ for (const [first, second] of [
       }
     });
   }
-  test(`conflicting normalized sequence is status 1 with zero early writes ${second}`, async () => {
+  test(`atomic extension conflicting normalized sequence is status 1 with zero early writes ${second}`, async () => {
     await rejectsWithoutMutation(section("a/first") + section(first, first, "old", "middle")
-      + section(second, second, "wrong", "new"), ["-p1"], 1);
+      + section(second, second, "wrong", "new"), ["--atomic", "-p1"], 1);
   });
 }
 

@@ -10,7 +10,7 @@ test("bounded 4079-byte path accepts 16318-character octal quoted header", { tim
   const encoded = `"${[...Buffer.from(name)].map(byte => `\\${byte.toString(8).padStart(3, "0")}`).join("")}"`;
   assert.equal(name.length, 4079);
   assert.equal(encoded.length, 16318);
-  await exactUpdate(name, section(encoded));
+  await exactUpdate(name, section(encoded), ["-p0"]);
 });
 
 for (const [name, header] of [

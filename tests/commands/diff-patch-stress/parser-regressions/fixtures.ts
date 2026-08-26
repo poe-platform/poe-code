@@ -9,6 +9,7 @@ export interface ParserCase {
   readonly options?: DiffPatchOptions;
   readonly cancel?: "before" | "input" | "parse";
   readonly native?: boolean;
+  readonly args?: readonly string[];
 }
 
 export const marker = "\\ No newline at end of file\n";
@@ -53,12 +54,12 @@ export const grammarCases: readonly ParserCase[] = [
   invalid("normal-truncated-final-lf", normalChange.slice(0, -1), "truncation"),
   invalid("normal-missing-change-separator", "1c1\n< old\n> new\n", "malformed delimiter"),
   invalid("normal-old-count-underflow", "1,2c1\n< old\n---\n> new\n", "count mismatch"),
-  invalid("normal-new-count-overflow", `${normalChange}> extra\n`, "count mismatch"),
+  { ...invalid("atomic-extension-normal-new-count-overflow", `${normalChange}> extra\n`, "count mismatch"), args: ["--atomic"] },
   invalid("normal-descending-range", "2,1c1\n< old\n---\n> new\n", "range/order"),
   invalid("normal-append-old-range", "0,1a1\n> new\n", "range/order"),
   invalid("normal-delete-new-range", "1d0,1\n< old\n", "range/order"),
   invalid("normal-overlapping-old-hunks", normalChange + normalChange, "overlap"),
-  invalid("normal-inconsistent-new-coordinates", "1c2\n< old\n---\n> new\n", "coordinate consistency"),
+  valid("GNU-normal-new-coordinates-are-advisory", "old\nkeep\nend\n", "1c2\n< old\n---\n> new\n", "new\nkeep\nend\n", "GNU coordinate target"),
   invalid("normal-unsafe-integer", "9007199254740993a1\n> new\n", "coordinate overflow"),
   invalid("normal-marker-before-body", `1c1\n${marker}< old\n---\n> new\n`, "newline marker"),
   invalid("normal-incomplete-nonfinal-new-line", `1c1,2\n< old\n---\n> new\n${marker}> tail\n`, "newline marker"),
@@ -71,10 +72,10 @@ export const grammarCases: readonly ParserCase[] = [
   invalid("context-missing-changed-new-half", context("*** 1 ****\n! old\n--- 1 ----\n"), "omitted changed half"),
   invalid("context-halves-disagree", context("*** 1,2 ****\n  old\n! keep\n--- 1,2 ----\n  wrong\n! new\n"), "context disagreement"),
   invalid("context-duplicate-newline-marker", context(`*** 1 ****\n! old\n--- 1 ----\n! new\n${marker}${marker}`), "newline marker"),
-  invalid("normal-valid-then-malformed-context", normalChange + context("*** 1 ****\n! new\n--- 1 ----\n"), "late malformed section"),
-  invalid("context-valid-then-malformed-unified", contextChange + "--- other\n+++ other\n@@ -1 +1 @@\n-old\n", "late malformed section"),
-  invalid("normal-valid-then-truncated-normal", normalChange + "3c3\n< end\n---\n", "late malformed same-format hunk"),
-  invalid("context-valid-then-truncated-context", contextChange + context("*** 1 ****\n! new\n--- 1 ----\n"), "late malformed same-format section"),
+  { ...invalid("atomic-extension-normal-valid-then-malformed-context", normalChange + context("*** 1 ****\n! new\n--- 1 ----\n"), "late malformed section"), args: ["--atomic"] },
+  { ...invalid("atomic-extension-context-valid-then-malformed-unified", contextChange + "--- other\n+++ other\n@@ -1 +1 @@\n-old\n", "late malformed section"), args: ["--atomic"] },
+  { ...invalid("atomic-extension-normal-valid-then-truncated-normal", normalChange + "3c3\n< end\n---\n", "late malformed same-format hunk"), args: ["--atomic"] },
+  { ...invalid("atomic-extension-context-valid-then-truncated-context", contextChange + context("*** 1 ****\n! new\n--- 1 ----\n"), "late malformed same-format section"), args: ["--atomic"] },
 ];
 
 const mutationSeeds = [normalChange, contextChange] as const;

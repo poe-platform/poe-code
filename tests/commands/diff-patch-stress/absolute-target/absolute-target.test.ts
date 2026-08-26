@@ -100,8 +100,7 @@ for (const vector of vectors) {
         assert.equal(result.exitCode, 0, stderr);
         assert.equal(stderr, "");
         const target = vector.args.at(-1)!;
-        const absolute = target.startsWith("/") ? target : `/fixture/${target}`;
-        assert.equal(stdout, `${vector.checking ? "checking" : "patching"} file ${absolute}\n`);
+        assert.equal(stdout, `${vector.checking ? "checking" : "patching"} file ${target}\n`);
       }
       const expected = structuredClone(before);
       if (vector.change) {

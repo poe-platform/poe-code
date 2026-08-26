@@ -50,7 +50,7 @@ for (const invalid of [[0x80], [0xc0, 0xaf], [0xe2, 0x82], [0xed, 0xa0, 0x80], [
 for (const suffix of ['--- "target"\n', '--- "target"\n+++ "target', '--- "target"\n+++ "target"\n',
   '--- "target"\n+++ "target"\n@@ -1 +1 @@\n-old\n',
   '--- "target"\n+++ "target"\n@@ -1 +1 @@\n-old\n+new']) {
-  test(`later section truncation ${JSON.stringify(suffix)}`, async () => {
-    await rejectsWithoutMutation(section("first") + suffix);
+  test(`atomic extension later section truncation ${JSON.stringify(suffix)}`, async () => {
+    await rejectsWithoutMutation(section("first") + suffix, ["--atomic"]);
   });
 }

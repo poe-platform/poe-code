@@ -41,7 +41,7 @@ test("quoted-path security: explicit target overrides absolute header without to
   const result = await run("patch", ["authorized"], observed.fs, replacement("target", '"\\057work/target"'));
   assert.equal(result.status, 0, result.stderr.toString());
   assert.deepEqual(result.stderr, Buffer.alloc(0));
-  assert.deepEqual(result.stdout, Buffer.from(`patching file ${target}\n`));
+  assert.deepEqual(result.stdout, Buffer.from("patching file authorized\n"));
   assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
     [{ method: "writeFile", path: target }]);
   assert.deepEqual(await snapshot(filesystem), expected, "Only the explicit target changes; header names and all other VFS entries remain intact");

@@ -19,7 +19,7 @@ for (const tool of ["diff", "patch"] as const) {
 }
 
 for (const method of ["lstat", "readFile", "readStream"] as const) {
-  test(`blocked ${method} aborts without effects and observes late host rejection`, { timeout: 4000 }, async () => {
+  test(`atomic extension blocked ${method} aborts without effects and observes late host rejection`, { timeout: 4000 }, async () => {
     const backing = await memory({ first: "old\n", second: "old\n" });
     const before = await snapshot(backing);
     const entered = deferred<void>();
@@ -35,7 +35,7 @@ for (const method of ["lstat", "readFile", "readStream"] as const) {
         await blocked.promise;
       },
     });
-    const running = invoke(observed.fs, "patch", { input: replacement("first") + replacement("second"), signal: controller.signal });
+    const running = invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second"), signal: controller.signal });
     const rejected = assert.rejects(running, error => error === reason);
     try {
       await entered.promise;
@@ -171,7 +171,7 @@ test("abort immediately after first publication preserves that side effect and e
 });
 
 for (const mode of ["dry-run", "status", "diagnostic"] as const) {
-  test(`abort blocked ${mode} sink preserves the corresponding target state`, { timeout: 4000 }, async () => {
+  test(`atomic extension abort blocked ${mode} sink preserves the corresponding target state`, { timeout: 4000 }, async () => {
     const backing = await memory();
     const before = await snapshot(backing);
     const entered = deferred<void>();
@@ -182,7 +182,7 @@ for (const mode of ["dry-run", "status", "diagnostic"] as const) {
     const observed = instrument(backing);
     const rejected = assert.rejects(invoke(observed.fs, "patch", {
       input: mode === "diagnostic" ? "not a patch\n" : replacement(),
-      args: mode === "dry-run" ? ["--dry-run"] : [], signal: controller.signal,
+      args: mode === "dry-run" ? ["--atomic", "--dry-run"] : ["--atomic"], signal: controller.signal,
       ...(mode === "diagnostic" ? { stderr: sink } : { stdout: sink }),
     }), error => error === reason);
     try {

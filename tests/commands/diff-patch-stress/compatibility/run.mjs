@@ -4,11 +4,15 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
+const binding = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e",
+  `import { oracleIdentity } from ${JSON.stringify(new URL("../gnu-target/oracle.ts", import.meta.url).href)}; console.log(JSON.stringify({ diff: oracleIdentity("diff"), patch: oracleIdentity("patch") }));`],
+  { cwd: root, encoding: "utf8", timeout: 5000, killSignal: "SIGKILL", maxBuffer: 65_536 });
+if (binding.error || binding.status !== 0 || binding.signal) throw binding.error ?? new Error(binding.stderr);
 const source = new URL("../../../../src/commands/diff-patch/", import.meta.url);
 const snapshot = () => Object.fromEntries(readdirSync(source).filter(name => name.endsWith(".ts")).sort().map(name =>
   [name, createHash("sha256").update(readFileSync(new URL(name, source))).digest("hex")]));
 const report = { startedAt: new Date().toISOString(), head: spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim(),
-  selected: { diff: process.env.DIFF_PATCH_NATIVE_DIFF ?? "/usr/bin/diff", patch: process.env.DIFF_PATCH_NATIVE_PATCH ?? "/usr/bin/patch" },
+  selected: JSON.parse(binding.stdout),
   sourceBefore: snapshot(), suites: {}, typescript: {}, sourceAfter: {}, sourceChanged: false };
 const typedFiles = [];
 for (const suite of ["compatibility", "fuzz", "safety"]) {

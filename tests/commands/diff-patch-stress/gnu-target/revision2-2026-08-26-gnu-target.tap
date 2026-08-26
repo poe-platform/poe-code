@@ -1,0 +1,182 @@
+TAP version 13
+# Subtest: binding: exact selected GNU versions and executable hashes
+ok 1 - binding: exact selected GNU versions and executable hashes
+  ---
+  duration_ms: 16.138291
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch ""
+ok 2 - binding: fail closed for unproved patch ""
+  ---
+  duration_ms: 113.149542
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "patch"
+ok 3 - binding: fail closed for unproved patch "patch"
+  ---
+  duration_ms: 105.73975
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "/missing/gnu/patch"
+ok 4 - binding: fail closed for unproved patch "/missing/gnu/patch"
+  ---
+  duration_ms: 108.749291
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "/usr/bin/patch"
+ok 5 - binding: fail closed for unproved patch "/usr/bin/patch"
+  ---
+  duration_ms: 107.283042
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff"
+ok 6 - binding: fail closed for unproved patch "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff"
+  ---
+  duration_ms: 129.043292
+  type: 'test'
+  ...
+# Subtest: Apple alternate calibration only: exact reverse corruption delete-3
+ok 7 - Apple alternate calibration only: exact reverse corruption delete-3
+  ---
+  duration_ms: 23.312208
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption delete-7
+ok 8 - Apple alternate calibration only: exact reverse corruption delete-7
+  ---
+  duration_ms: 10.674458
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption delete-11
+ok 9 - Apple alternate calibration only: exact reverse corruption delete-11
+  ---
+  duration_ms: 7.803292
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption repeated-alignment-7
+ok 10 - Apple alternate calibration only: exact reverse corruption repeated-alignment-7
+  ---
+  duration_ms: 9.196791
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption repeated-alignment-11
+ok 11 - Apple alternate calibration only: exact reverse corruption repeated-alignment-11
+  ---
+  duration_ms: 8.574833
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: GNU parser calibration only: normal-tab-prefix
+ok 12 - GNU parser calibration only: normal-tab-prefix
+  ---
+  duration_ms: 16.674958
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "1c1\\n<\\told\\n---\\n>\\tnew\\n"
+# Subtest: GNU parser calibration only: normal-suppress-blank-empty
+ok 13 - GNU parser calibration only: normal-suppress-blank-empty
+  ---
+  duration_ms: 16.25825
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "1c1\\n< old\\n---\\n>\\n"
+# Subtest: GNU parser calibration only: normal-unsafe-integer
+ok 14 - GNU parser calibration only: normal-unsafe-integer
+  ---
+  duration_ms: 3004.906667
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "9007199254740993a1\\n> new\\n"
+# Subtest: GNU parser calibration only: GNU-normal-suppress-blank-empty
+ok 15 - GNU parser calibration only: GNU-normal-suppress-blank-empty
+  ---
+  duration_ms: 16.220792
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "1c1\\n< old\\n---\\n>\\n"
+# Subtest: GNU parser calibration only: GNU-context-zero-middle-deletion
+ok 16 - GNU parser calibration only: GNU-context-zero-middle-deletion
+  ---
+  duration_ms: 16.585084
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "*** target\\n--- target\\n***************\\n*** 2 ****\\n- removed\\n--- 1 ----\\n"
+# Subtest: independent edit verifier accepts either minimum repeated-line alignment
+ok 17 - independent edit verifier accepts either minimum repeated-line alignment
+  ---
+  duration_ms: 1.05575
+  type: 'test'
+  ...
+# Subtest: independent edit verifier rejects wrong bytes despite plausible ranges
+ok 18 - independent edit verifier rejects wrong bytes despite plausible ranges
+  ---
+  duration_ms: 1.269625
+  type: 'test'
+  ...
+# Subtest: independent edit verifier rejects valid but nonminimal replacement
+ok 19 - independent edit verifier rejects valid but nonminimal replacement
+  ---
+  duration_ms: 0.248875
+  type: 'test'
+  ...
+# Subtest: independent edit verifier rejects dropping a retained line
+ok 20 - independent edit verifier rejects dropping a retained line
+  ---
+  duration_ms: 0.307333
+  type: 'test'
+  ...
+# Subtest: independent edit verifier checks unterminated context bytes
+ok 21 - independent edit verifier checks unterminated context bytes
+  ---
+  duration_ms: 0.064125
+  type: 'test'
+  ...
+# Subtest: GNU default mirror: same-file partial hunk publication and reject
+ok 22 - GNU default mirror: same-file partial hunk publication and reject
+  ---
+  duration_ms: 24.536917
+  type: 'test'
+  ...
+# Subtest: atomic extension mirror: same-file partial hunk publication and reject has no publication
+ok 23 - atomic extension mirror: same-file partial hunk publication and reject has no publication
+  ---
+  duration_ms: 1.267083
+  type: 'test'
+  ...
+# Subtest: GNU default mirror: multi-file continues after rejected file
+ok 24 - GNU default mirror: multi-file continues after rejected file
+  ---
+  duration_ms: 16.696041
+  type: 'test'
+  ...
+# Subtest: atomic extension mirror: multi-file continues after rejected file has no publication
+ok 25 - atomic extension mirror: multi-file continues after rejected file has no publication
+  ---
+  duration_ms: 1.693459
+  type: 'test'
+  ...
+# Subtest: GNU default mirror: sequential sections publish each section
+ok 26 - GNU default mirror: sequential sections publish each section
+  ---
+  duration_ms: 13.000625
+  type: 'test'
+  ...
+# Subtest: atomic extension mirror: sequential sections publish one final write
+ok 27 - atomic extension mirror: sequential sections publish one final write
+  ---
+  duration_ms: 11.751792
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3855.402208

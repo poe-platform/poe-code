@@ -63,7 +63,7 @@ export async function explicitTargetOnlyUpdate(input: string): Promise<void> {
   const result = await invoke(observed.fs, "patch", { args: ["-p1", "authorized"], input });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stderr, "");
-  assert.equal(result.stdout, `patching file ${target}\n`);
+  assert.equal(result.stdout, "patching file authorized\n");
   assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
     [{ method: "writeFile", path: target }]);
   assert.deepEqual(await snapshot(backing), expected, "Only the explicit target changes; every header decoy and VFS identity remains intact");

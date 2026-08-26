@@ -1,0 +1,137 @@
+{
+  "at": "2026-08-26T23:38:25.606Z",
+  "authorCommit": "cbde2fea6a645dbd6395e6b82f1526769e51c1fc",
+  "source": {
+    "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+    "networkDigest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4",
+    "networkHashes": [
+      [
+        "src/commands/network/README.md",
+        "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+      ],
+      [
+        "src/commands/network/args.ts",
+        "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+      ],
+      [
+        "src/commands/network/body.ts",
+        "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+      ],
+      [
+        "src/commands/network/curl.ts",
+        "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+      ],
+      [
+        "src/commands/network/index.ts",
+        "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+      ],
+      [
+        "src/commands/network/output.ts",
+        "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+      ],
+      [
+        "src/commands/network/shared.ts",
+        "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+      ],
+      [
+        "src/commands/network/transport.ts",
+        "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+      ],
+      [
+        "src/commands/network/types.ts",
+        "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+      ]
+    ]
+  },
+  "fileHashes": {
+    "tests/commands/network-stress/finalization/FINAL_REPORT.md": "a040fed08f2c747be72402b228f1b80a62860e978bcb21c14eb8184dfcc87066",
+    "tests/commands/network-stress/finalization/audit.json": "06661eed46ce354b453de25d82efd01fa417ab9d8fe83b5f5e0bb2fbaddd3299",
+    "tests/commands/network-stress/finalization/author-81.json": "8761a37b466c57ebf715c6129ee14fd9dc806271a9fe76c14e5cf34c6240b1d4",
+    "tests/commands/network-stress/finalization/build.json": "cf1fcfece81c8ba741f9abbe14c2b5c80ec290ec6e0a41c0b9e5cbee31a9f4c6",
+    "tests/commands/network-stress/finalization/independent-60.json": "474779462593bb2226d8fefaac023714705ea41c55f4b75ed2ce4521f0b3035f",
+    "tests/commands/network-stress/finalization/lifecycle-15.json": "85b300ddcd7f005cf6b307169f4cddbed61b87c996cff2fa29474bc666f3343a",
+    "tests/commands/network-stress/finalization/package-smoke.json": "2b9328b5aeec2a3c677dd44e2f5827fe9c4e2d5a0fe55931c015bf6df35aba3e",
+    "tests/commands/network-stress/finalization/policy-22.json": "01ae6df481e6fbda6704395389648f2261d5f49443ac911069b3d58cafde7a2f",
+    "tests/commands/network-stress/finalization/retry-18.json": "ed53a54018c4a1de0d7b19858fcd115d4ec95ae314847cb178450fa058de31b4",
+    "tests/commands/network-stress/finalization/run.mjs": "ba622e296587d94d06a4d2398aa098536381a702b7e97d74e1cdb465a947ac43",
+    "tests/commands/network-stress/finalization/smoke.mjs": "769a090b3a20c342576408c3a9dc6aadff7beb087463db11ec287e0802dc84da",
+    "tests/commands/network-stress/finalization/start.json": "94b741290a7a06c0d1d33a097f0285d40816b0d6cd42669d2bc5a0a2e242ab6d",
+    "tests/commands/network-stress/finalization/supplement-18.json": "aa9f5910212eb764ac5196e0ca0d5004944567c3cc28fe7665325897d526507f",
+    "tests/commands/network-stress/finalization/typecheck.json": "4366c1383e95b419db4e73e27e3d20e6b0060af0e8dadf0ea14dbb30ac4ee35d"
+  },
+  "preservedHistoricalFiles": 92,
+  "unchangedPolicyFiles": 8,
+  "sharedChangesAfterCapture": [],
+  "activeOwnedGroups": [],
+  "ownedGroups": [
+    {
+      "name": "author-81",
+      "group": 19755
+    },
+    {
+      "name": "independent-60",
+      "group": 19853
+    },
+    {
+      "name": "supplement-18",
+      "group": 19974
+    },
+    {
+      "name": "retry-18",
+      "group": 20172
+    },
+    {
+      "name": "lifecycle-15",
+      "group": 20477
+    },
+    {
+      "name": "policy-22",
+      "group": 20639
+    },
+    {
+      "name": "build",
+      "group": 20727
+    },
+    {
+      "name": "typecheck",
+      "group": 20811
+    },
+    {
+      "name": "package-smoke",
+      "group": 20896
+    }
+  ],
+  "head": "d29754dbe8ac928e97f80b082feebcccb624b63b",
+  "statusBeforeCommit": "M package.json\n M src/index.ts\n M src/plugins/index.ts\n M tests/plugins/agent-commands.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata/integration.test.ts\n?? tests/commands/network-stress/finalization/\n?? tests/commands/search-stress/.native-1m4O1e/",
+  "finalizationScope": [
+    "tests/commands/network-stress/finalization/FINAL_REPORT.md",
+    "tests/commands/network-stress/finalization/audit.json",
+    "tests/commands/network-stress/finalization/author-81.json",
+    "tests/commands/network-stress/finalization/build.json",
+    "tests/commands/network-stress/finalization/independent-60.json",
+    "tests/commands/network-stress/finalization/lifecycle-15.json",
+    "tests/commands/network-stress/finalization/package-smoke.json",
+    "tests/commands/network-stress/finalization/policy-22.json",
+    "tests/commands/network-stress/finalization/retry-18.json",
+    "tests/commands/network-stress/finalization/run.mjs",
+    "tests/commands/network-stress/finalization/smoke.mjs",
+    "tests/commands/network-stress/finalization/start.json",
+    "tests/commands/network-stress/finalization/supplement-18.json",
+    "tests/commands/network-stress/finalization/typecheck.json",
+    "tests/commands/network-stress/finalization/seal.json"
+  ],
+  "sealingAttempts": [
+    {
+      "attempt": 1,
+      "status": "failed before write/staging",
+      "reason": "Accidental empty apply_patch invocation returned usage status 2",
+      "productOrSuiteExecutions": 0
+    },
+    {
+      "attempt": 2,
+      "status": "saved",
+      "productOrSuiteExecutions": 0
+    }
+  ],
+  "semantics": "Precommit evidence manifest and cleanup observation only; no suite, compiler, smoke, native process, or product operation rerun. Self hash excluded to avoid recursion. Postcommit owned status is reported in final handoff."
+}

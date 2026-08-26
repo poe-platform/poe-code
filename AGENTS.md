@@ -163,6 +163,9 @@
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;
   never infer global atomicity, incarnation identity or snapshot isolation.
+- The S3 policy recheck routes source remediation to Poincare, not Curie. Reject
+  unsafe capability downgrades before effects without blocking legitimate
+  guarded basic rename; retain measured non-atomic and ETag-identity limits.
 - Also exclude `src/commands/diff-patch/**` and `tests/commands/diff-patch/**`
   (Faraday, independent verifier after author handoff); no source ownership
   transfer to the foundation worker has been granted.

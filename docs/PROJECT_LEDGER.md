@@ -681,6 +681,47 @@ that any implementation, command, fixture, or test currently exists.
   README documents optional runtime injection; AGENTS preserves zero shipped
   runtime deps and Dirac's ownership. The full goal remains unfulfilled.
 
+### Current committed S3 policy recheck and ownership
+
+- Renewed review archives current observed HEAD
+  **677e03cd21e13e609a5f67d245b0b2f61d635024**, not stale source from the earlier
+  root-export report. Three new processes each reproduce **39 pass / 3 fail of
+  42**, zero skips/TODO/cancelled. Both limitation observations rerun, and scoped
+  strict types pass inside the archive. `tests/stress/s3-policy/677e03c-evidence.json`
+  retains exact source/test hashes and transcripts. S3 source hashes match
+  acef111; unchanged semantics are verified, not inferred from passing exports.
+- **Open concrete safety defect, Poincare:** default rename with conditional
+  deletion but absent/false destination conditional-copy capability writes
+  without destination conditions. The independent hook creates a concurrent
+  destination; rename overwrites it, deletes source and resolves successfully.
+  Three red tests cover absent and false capability preflight plus the actual
+  concurrent-create clobber. Require sufficient guards before effects or reject
+  an under-capable client. Keep ordinary default rename and stable replacement
+  useful on capable clients; `atomicRename` remains false. No blanket rejection
+  solely because global atomicity is impossible is requested.
+- Current failure-injection controls pass: copy-before-delete ordering, per-key
+  copy/delete failures, changed-ETag source protection, typed phase and immutable
+  acknowledged progress, cancellation and lost acknowledgements. Same-content
+  recreation with different metadata can still be deleted because its ETag is
+  unchanged. New children after enumeration survive but rename may resolve with
+  a remaining source tree. These are measured identity/snapshot limitations,
+  not acceptance passes or evidence that every newly created object is safe.
+- Current last-assigned ownership: **Poincare** all FS/backend/wrapper source,
+  conformance/stress and adapter-tools matrix; **Curie** shared contracts, core
+  commands, root exports/config/docs, aggregate plugins, comparative harnesses
+  and independent S3-policy tests (read-only on adapters); **Dirac** independent
+  SafeJS command source/test verification; **Faraday** diff/patch source/tests;
+  **Sagan** shell source/tests and shell-stress benchmarks; **Archimedes**
+  structured command verification. Poincare retains the search assignment.
+  Plato is closed; no new bytes-source owner is inferred from that closure.
+  Historical names elsewhere are historical checkpoints, not ownership transfers.
+- No FS source or other worker's files changed in this review. Source remediation
+  is routed to Poincare/root, with reproduction in the policy README. No global
+  suite, new CLI or extra tools were run/added. The exact requirement **"IT MUST
+  BE BETTER than just-bash, much better"** remains unproven; the broad FS/tools/
+  full-shell goal and **72-hour** request are not complete. Zero runtime
+  dependencies and the full scope remain intact.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

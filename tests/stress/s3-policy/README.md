@@ -17,6 +17,15 @@ overlay; no uncommitted adapter edits enter them.
 | --- | ---: | ---: | ---: | ---: | --- |
 | b4033fb96b353bf82025a28aafff6619066967dc | 3 | 42 | 34 | 8 | 0 / 0 / 0 |
 | acef1118fe4e5e0342114ee7d28de5ea02df2327 | 3 | 42 | 39 | 3 | 0 / 0 / 0 |
+| 677e03cd21e13e609a5f67d245b0b2f61d635024 | 3 | 42 | 39 | 3 | 0 / 0 / 0 |
+
+**Current-HEAD recheck:** the last row archives HEAD observed at the start of
+the renewed review, not a reused earlier checkout. `677e03c-evidence.json`
+records three newly executed processes and both limitation probes. Its four
+S3 source hashes and unchanged test hash match acef111: the unsafe capability
+fallback has not yet been fixed in this committed source. Strict scoped
+TypeScript also passes inside the fresh archive. No adapter edits, credentials,
+new tools or CLI work are part of this recheck.
 
 `b4033fb-evidence.json` and `acef111-evidence.json` retain every TAP assertion,
 exact source/archive/manifest hashes, command, revisions and separate limitation
@@ -29,7 +38,8 @@ new build is claimed.
 
 ## Concrete defect for Poincare
 
-**Missing minimum destination-mutation capability preflight.** At acef111,
+**Missing minimum destination-mutation capability preflight.** At acef111 and
+the newly verified 677e03c,
 `rename()` requires `conditionalDelete`, but if `conditionalCopy` is absent or
 false, it intentionally omits the destination `If-Match` / `If-None-Match`
 guards. It then resolves successfully after overwriting the destination and
@@ -149,6 +159,7 @@ These AWS facts do not automatically apply to every S3-compatible transport.
 node --unhandled-rejections=strict --import tsx --test tests/stress/s3-policy/rename.test.ts
 node tests/stress/s3-policy/verify.mjs --revision b4033fb --output /tmp/s3-policy-before.json --repeat 3
 node tests/stress/s3-policy/verify.mjs --revision acef111 --output /tmp/s3-policy-after.json --repeat 3
+node tests/stress/s3-policy/verify.mjs --revision 677e03c --output /tmp/s3-policy-current.json --repeat 3
 ```
 
 The archive runner checks cached package/lock consistency, overlays only its

@@ -39,6 +39,16 @@ final URL is rejected, but such detection cannot undo I/O already performed by
 a nonconforming transport. DNS, proxies, TLS trust, and server-side URL aliases
 remain transport/server responsibilities, not a host-filesystem sandbox.
 
+Pending fetch-response waits race the supplied caller signal and per-request
+deadline. Even if an injected fetch ignores abort, the adapter stops awaiting
+it and does not resume normal operations when it eventually settles. Late
+rejections are observed; late unlocked response bodies receive a best-effort
+`cancel(signal.reason)` without awaiting their cleanup. This bounds the outward
+fetch wait, not the lifetime of ignored transport work, sockets or remote side
+effects. Synchronous host work cannot be interrupted. The transport must still
+honor abort to actually stop its own work; cancellation does not undo accepted
+PUT/MOVE/COPY effects.
+
 ## Operations and semantics
 
 - `stat`/`lstat`: depth-zero `PROPFIND`, named DAV properties only.
@@ -126,6 +136,13 @@ also covers cancellation while reading the lock body. A lost LOCK response,
 an untrusted response URL or an unusable token can still leave a lock behind;
 cleanup is best-effort, not cancellation atomicity. Infinite grants are
 rejected with cleanup.
+If a successful LOCK response arrives only after the outward fetch wait has
+already been cancelled, the same response-origin/resource/redirect and token
+checks gate a detached best-effort UNLOCK with a fresh deadline. Only cleanup
+runs, never the transfer. The cancelled API call does not wait for this late
+response or its cleanup. Cleanup fetch waits are also bounded if the injected
+transport ignores their signals, but an unknown token, rejected/never-settling
+fetch or failed UNLOCK can still leave a remote lock until expiry.
 Servers without the required lock support return `ENOTSUP`; there is no silent
 downgrade to an unprotected overwrite.
 
@@ -288,8 +305,9 @@ simultaneously in-scope namespace bindings, including the predefined `xml`
 binding. Repeated local declarations on sibling responses do not consume a
 document-wide namespace budget. The standalone scanner retains its optional
 node/attribute limits; the adapter explicitly supplies byte-derived budgets.
-A conforming transport must honor abort for request timeouts;
-the adapter separately cancels pending body reads when aborted.
+Fetch-response waits are bounded outwardly by caller abort and request timeout;
+the adapter separately cancels pending body reads when aborted. These guarantees
+do not force an uncooperative transport or response cleanup callback to stop.
 
 RFC 4918 depth-one PROPFIND has no standard pagination cursor. This adapter
 expects a complete multistatus, rejects excessive results instead of truncating,
@@ -302,6 +320,13 @@ to `EACCES`, missing resources to `ENOENT`, locks to `EBUSY`, quota to `ENOSPC`,
 exclusive conflicts to `EEXIST`, unsupported methods to `ENOTSUP`, and transport
 or malformed responses to `EIO`. Caller cancellation is `ECANCELED`; deadlines
 are `ETIMEDOUT`. Unexpected success statuses are not silently accepted.
+When abort wins the pending-fetch race, `cause` is the combined request signal's
+exact reason (the caller's reason or the deadline's reason). Existing pre-abort
+rejection remains `ECANCELED` without a cause. Existing outer operations such as
+`writeStream` may wrap the request error as their cause. Fetch failures when no
+cancellation is observed retain their `EIO` translation and original cause; HTTP
+status translation is unchanged. Fetch-race abort listeners are removed on
+success, rejection, synchronous transport throw and abort.
 Mutation multistatus failures report `EIO` with the individual mapped `FsError`
 as `cause`. Earlier server-side changes may already have happened; there is no
 rollback. A mutation multistatus without a reported failure is also rejected

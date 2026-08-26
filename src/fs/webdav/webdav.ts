@@ -176,7 +176,7 @@ export class WebDavFileSystem implements FileSystem {
 
   private async request<T>(method: string, path: string, options: FsOptions, init: RequestInit,
     consume: (response: Response, signal: AbortSignal) => Promise<T>, collection = false,
-    received?: (response: Response) => void): Promise<T> {
+    received?: (response: Response, late: boolean) => void): Promise<T> {
     for await (const result of this.requestStream(method, path, options, init, async function* (response, signal) {
       yield await consume(response, signal);
     }, collection, received)) return result;
@@ -185,7 +185,7 @@ export class WebDavFileSystem implements FileSystem {
 
   private async *requestStream<T>(method: string, path: string, options: FsOptions, init: RequestInit,
     consume: (response: Response, signal: AbortSignal) => AsyncIterable<T>, collection = false,
-    received?: (response: Response) => void): AsyncGenerator<T> {
+    received?: (response: Response, late: boolean) => void): AsyncGenerator<T> {
     if (options.signal?.aborted) fail("ECANCELED", method, path);
     const timeout = AbortSignal.timeout(this.timeoutMs);
     const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
@@ -193,15 +193,46 @@ export class WebDavFileSystem implements FileSystem {
     for (const [name, value] of new Headers(init.headers)) headers.set(name, value);
     headers.set("Cache-Control", "no-cache");
     let response: Response | undefined;
+    const receive = (value: Response, late: boolean): void => {
+      if (value.redirected || value.type === "opaqueredirect") fail("ENOTSUP", method, path, "transport followed or hid a redirect");
+      if (value.url && this.hrefPath(value.url) !== path) fail("EACCES", method, path, "transport changed the requested resource");
+      received?.(value, late);
+    };
     try {
       let url = this.url(path, collection);
       for (let attempt = 0; ; attempt++) {
-        response = await this.transport(url, {
-          ...init, method, headers, redirect: "manual", credentials: "omit", signal,
+        signal.throwIfAborted();
+        response = await new Promise<Response>((resolve, reject) => {
+          let abandoned = false;
+          const abort = (): void => {
+            abandoned = true;
+            signal.removeEventListener("abort", abort);
+            reject(signal.reason);
+          };
+          signal.addEventListener("abort", abort, { once: true });
+          try {
+            Promise.resolve(this.transport(url, {
+              ...init, method, headers, redirect: "manual", credentials: "omit", signal,
+            })).then((value) => {
+              signal.removeEventListener("abort", abort);
+              if (!abandoned) resolve(value);
+              else {
+                try { receive(value, true); }
+                catch {}
+                finally {
+                  if (value.body && !value.body.locked) void value.body.cancel(signal.reason).catch(() => {});
+                }
+              }
+            }, (error: unknown) => {
+              signal.removeEventListener("abort", abort);
+              reject(error);
+            }).catch(reject);
+          } catch (error) {
+            signal.removeEventListener("abort", abort);
+            reject(error);
+          }
         });
-        if (response.redirected || response.type === "opaqueredirect") fail("ENOTSUP", method, path, "transport followed or hid a redirect");
-        if (response.url && this.hrefPath(response.url) !== path) fail("EACCES", method, path, "transport changed the requested resource");
-        received?.(response);
+        receive(response, false);
         signal.throwIfAborted();
         const location = response.headers.get("Location");
         if (attempt === 0 && method === "PROPFIND" && !url.endsWith("/")
@@ -702,6 +733,11 @@ export class WebDavFileSystem implements FileSystem {
     let token: string | undefined;
     const collection = stat.type === "directory";
     const validator = this.etags.get(stat);
+    const unlock = async (value: string): Promise<void> => {
+      await this.request("UNLOCK", path, {}, { headers: { "Lock-Token": value } }, async (response) => {
+        if (response.status !== 204) this.httpError(response.status, "UNLOCK", path);
+      }, collection).catch(() => {});
+    };
     try {
       await this.request("LOCK", path, options, {
         headers: { "Content-Type": "application/xml; charset=utf-8", Depth: "infinity", Timeout: "Second-60",
@@ -727,17 +763,16 @@ export class WebDavFileSystem implements FileSystem {
           || !timeout || !/^Second-[1-9]\d*$/i.test(scalar(timeout)) || Number(scalar(timeout).slice(7)) > 4_294_967_295) {
           fail("ENOTSUP", "LOCK", path, "server did not grant a finite exclusive depth-infinity write lock");
         }
-      }, collection, (response) => {
+      }, collection, (response, late) => {
         if (response.status !== 200) return;
         const header = response.headers.get("Lock-Token");
         if (!header || !/^<[a-z][a-z0-9+.-]*:[^<>\s\x00-\x20\x7f]+>$/i.test(header)) throw new Error("invalid LOCK token");
-        token = header;
+        if (late) void unlock(header);
+        else token = header;
       });
       await operation(token!);
     } finally {
-      if (token) await this.request("UNLOCK", path, {}, { headers: { "Lock-Token": token } }, async (response) => {
-        if (response.status !== 204) this.httpError(response.status, "UNLOCK", path);
-      }, collection).catch(() => {});
+      if (token) await unlock(token);
     }
   }
 

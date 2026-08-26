@@ -6,27 +6,33 @@ import { MockDav } from "./mock.js";
 
 for (const method of ["copyFile", "rename"] as const) {
   for (const reason of ["caller", "timeout"] as const) {
-    test(`${method} cleans up an available LOCK response after acquisition-time ${reason} cancellation`, async () => {
+    test(`${method} cleans up an available LOCK response after acquisition-time ${reason} cancellation`, { timeout: 2000 }, async () => {
       const mock = new MockDav();
       mock.files.set("/source", new Uint8Array([1]));
       mock.files.set("/target", new Uint8Array([2]));
       const controller = new AbortController();
       let cancelled = false;
+      let disposed!: () => void;
+      const disposal = new Promise<void>(resolve => { disposed = resolve; });
+      let unlocked!: () => void;
+      const unlocking = new Promise<void>(resolve => { unlocked = resolve; });
       let lockSignal: AbortSignal | null | undefined;
       const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", timeoutMs: 30, fetch: async (url, init) => {
         const response = await mock.fetch(url, init);
+        if (init.method === "UNLOCK") unlocked();
         if (init.method !== "LOCK") return response;
         lockSignal = init.signal;
         await response.body?.cancel();
         if (reason === "caller") controller.abort();
         else await delay(60);
-        return new Response(new ReadableStream({ cancel() { cancelled = true; } }), {
+        return new Response(new ReadableStream({ cancel() { cancelled = true; disposed(); } }), {
           status: response.status, headers: response.headers,
         });
       } });
       await assert.rejects(fs[method]("/source", "/target", { signal: controller.signal }), {
         code: reason === "caller" ? "ECANCELED" : "ETIMEDOUT", syscall: "LOCK", path: "/target",
       });
+      await Promise.all([disposal, unlocking]);
       assert.equal(cancelled, true);
       assert.equal(mock.locks.size, 0);
       assert.deepEqual(mock.requests.map(({ init }) => init.method), ["PROPFIND", "PROPFIND", "LOCK", "UNLOCK"]);

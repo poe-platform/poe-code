@@ -3,6 +3,7 @@ import { graphemes } from "../../dashboard/terminal-width.js";
 import { GLYPHS, symbol, symbolBar } from "./glyphs.js";
 import { CANCEL } from "./cancel-symbol.js";
 import { Prompt } from "./core.js";
+import { wrapTextWithPrefix } from "./wrap.js";
 
 export interface TextOptions {
   message: string;
@@ -60,10 +61,10 @@ function renderHeader(prompt: Prompt<string>, message: string): string {
 function renderTextPrompt(prompt: TextPrompt, opts: TextOptions): string {
   const value = prompt.value ?? "";
   if (prompt.state === "submit") {
-    return `${renderHeader(prompt, opts.message)}\n${color.gray(GLYPHS.bar)}  ${color.dim(value)}\n${color.green(GLYPHS.barEnd)}`;
+    return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, color.dim(value), `${color.gray(GLYPHS.bar)}  `)}\n${color.green(GLYPHS.barEnd)}`;
   }
   if (prompt.state === "cancel") {
-    return `${renderHeader(prompt, opts.message)}\n${color.gray(GLYPHS.bar)}  ${color.dim.strikethrough(value)}\n${color.red(GLYPHS.barEnd)}`;
+    return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, color.dim.strikethrough(value), `${color.gray(GLYPHS.bar)}  `)}\n${color.red(GLYPHS.barEnd)}`;
   }
 
   const [placeholder, ...placeholderRest] = graphemes(opts.placeholder ?? "");
@@ -74,10 +75,10 @@ function renderTextPrompt(prompt: TextPrompt, opts: TextOptions): string {
       : color.inverse("_");
 
   if (prompt.state === "error") {
-    return `${renderHeader(prompt, opts.message)}\n${symbolBar(prompt.state)}  ${input}\n${color.yellow(GLYPHS.barEnd)}  ${color.yellow(prompt.error)}`;
+    return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, input, `${symbolBar(prompt.state)}  `)}\n${color.yellow(GLYPHS.barEnd)}  ${color.yellow(prompt.error)}`;
   }
 
-  return `${renderHeader(prompt, opts.message)}\n${symbolBar(prompt.state)}  ${input}\n${color.cyan(GLYPHS.barEnd)}`;
+  return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, input, `${symbolBar(prompt.state)}  `)}\n${color.cyan(GLYPHS.barEnd)}`;
 }
 
 export function textPrompt(opts: TextOptions): Promise<string | typeof CANCEL> {

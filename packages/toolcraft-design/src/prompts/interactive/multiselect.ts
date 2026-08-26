@@ -3,6 +3,7 @@ import { CANCEL } from "./cancel-symbol.js";
 import { GLYPHS, symbol } from "./glyphs.js";
 import { Prompt, type PromptOptions } from "./core.js";
 import { limitOptions } from "./pagination.js";
+import { wrapTextWithPrefix } from "./wrap.js";
 import { findNonDisabled, type SelectOption } from "./select.js";
 import type { Action } from "./keys.js";
 
@@ -136,7 +137,7 @@ function renderMultiselectPrompt<Value>(prompt: MultiselectPrompt<Value>, opts: 
         .map((option) => prompt.state === "submit" ? color.dim(option.label) : color.dim.strikethrough(option.label))
         .join(", ");
     const end = prompt.state === "submit" ? color.green(GLYPHS.barEnd) : color.red(GLYPHS.barEnd);
-    return `${color.gray(GLYPHS.barStart)} ${symbol(prompt.state)} ${opts.message}\n${color.gray(GLYPHS.bar)}  ${labels}\n${end}`;
+    return `${color.gray(GLYPHS.barStart)} ${symbol(prompt.state)} ${opts.message}\n${wrapTextWithPrefix(opts.output ?? process.stdout, labels, `${color.gray(GLYPHS.bar)}  `)}\n${end}`;
   }
 
   const lines = limitOptions({

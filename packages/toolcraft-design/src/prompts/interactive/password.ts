@@ -3,6 +3,7 @@ import { graphemes } from "../../dashboard/terminal-width.js";
 import { CANCEL } from "./cancel-symbol.js";
 import { GLYPHS, symbol, symbolBar } from "./glyphs.js";
 import { Prompt, type PromptOptions } from "./core.js";
+import { wrapTextWithPrefix } from "./wrap.js";
 
 export interface PasswordOptions {
   message: string;
@@ -61,15 +62,15 @@ function renderHeader(prompt: Prompt<string>, message: string): string {
 function renderPasswordPrompt(prompt: PasswordPrompt, opts: PasswordOptions): string {
   const value = prompt.masked;
   if (prompt.state === "submit") {
-    return `${renderHeader(prompt, opts.message)}\n${color.gray(GLYPHS.bar)}  ${color.dim(value)}\n${color.green(GLYPHS.barEnd)}`;
+    return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, color.dim(value), `${color.gray(GLYPHS.bar)}  `)}\n${color.green(GLYPHS.barEnd)}`;
   }
   if (prompt.state === "cancel") {
-    return `${renderHeader(prompt, opts.message)}\n${color.gray(GLYPHS.bar)}  ${color.dim.strikethrough(value)}\n${color.red(GLYPHS.barEnd)}`;
+    return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, color.dim.strikethrough(value), `${color.gray(GLYPHS.bar)}  `)}\n${color.red(GLYPHS.barEnd)}`;
   }
   if (prompt.state === "error") {
-    return `${renderHeader(prompt, opts.message)}\n${symbolBar(prompt.state)}  ${prompt.userInputWithCursor}\n${color.yellow(GLYPHS.barEnd)}  ${color.yellow(prompt.error)}`;
+    return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, prompt.userInputWithCursor, `${symbolBar(prompt.state)}  `)}\n${color.yellow(GLYPHS.barEnd)}  ${color.yellow(prompt.error)}`;
   }
-  return `${renderHeader(prompt, opts.message)}\n${symbolBar(prompt.state)}  ${prompt.userInputWithCursor}\n${color.cyan(GLYPHS.barEnd)}`;
+  return `${renderHeader(prompt, opts.message)}\n${wrapTextWithPrefix(opts.output ?? process.stdout, prompt.userInputWithCursor, `${symbolBar(prompt.state)}  `)}\n${color.cyan(GLYPHS.barEnd)}`;
 }
 
 export function passwordPrompt(opts: PasswordOptions): Promise<string | typeof CANCEL> {

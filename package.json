@@ -35,6 +35,7 @@
     "dist"
   ],
   "scripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",

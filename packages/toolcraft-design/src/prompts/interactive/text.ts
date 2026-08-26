@@ -2,7 +2,7 @@ import { color } from "../../components/color.js";
 import { graphemes } from "../../dashboard/terminal-width.js";
 import { GLYPHS, symbol, symbolBar } from "./glyphs.js";
 import { CANCEL } from "./cancel-symbol.js";
-import { Prompt, type PromptOptions } from "./core.js";
+import { Prompt } from "./core.js";
 
 export interface TextOptions {
   message: string;
@@ -23,7 +23,7 @@ class TextPrompt extends Prompt<string> {
       initialValue: initialUserInput,
       initialUserInput,
       render: (prompt) => renderTextPrompt(prompt as TextPrompt, opts),
-      validate: opts.validate as PromptOptions<string>["validate"]
+      validate: (value) => opts.validate?.(value || opts.defaultValue || "")
     });
     this.on("userInput", (value: string) => this.setValue(value));
     this.on("finalize", () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { isCancel } from "./cancel-symbol.js";
 import { textPrompt } from "./text.js";
 import { createPromptHarness, tick } from "./test-helpers.js";
@@ -47,6 +47,89 @@ describe("textPrompt", () => {
 
     await expect(result).resolves.toBe("default");
   });
+
+  it.each([
+    { name: "empty input uses the default", initialValue: undefined, typed: "", defaultValue: "demo", expected: "demo" },
+    { name: "Ctrl+U clears the initial value to the default", initialValue: "initial", typed: "\x15", defaultValue: "demo", expected: "demo" },
+    { name: "typed input overrides the default", initialValue: undefined, typed: "Ada", defaultValue: "demo", expected: "Ada" },
+    { name: "initial input overrides the default", initialValue: "Grace", typed: "", defaultValue: "demo", expected: "Grace" },
+    { name: "typed whitespace overrides the default", initialValue: undefined, typed: "   ", defaultValue: "demo", expected: "   " },
+    { name: "whitespace default is preserved", initialValue: undefined, typed: "", defaultValue: "   ", expected: "   " }
+  ])("validates the exact submitted value when $name", async ({ initialValue, typed, defaultValue, expected }) => {
+    const { input, output } = createPromptHarness();
+    const validate = vi.fn((value: string) => value.length > 0 ? undefined : "Name is required");
+    const result = textPrompt({ message: "Name?", initialValue, defaultValue, validate, input, output });
+
+    try {
+      await tick();
+      input.write(typed);
+      input.write("\r");
+      await tick();
+
+      expect(validate).toHaveBeenCalledExactlyOnceWith(expected);
+      await expect(result).resolves.toBe(expected);
+    } finally {
+      input.write("\x03");
+      await result;
+    }
+  });
+
+  it("rejects an invalid default and allows a typed replacement", async () => {
+    const { input, output, getOutput } = createPromptHarness();
+    const validate = vi.fn((value: string) => value === "bad" ? "Choose another name" : undefined);
+    const settled = vi.fn();
+    const result = textPrompt({ message: "Name?", defaultValue: "bad", validate, input, output });
+    void result.then(settled);
+
+    try {
+      await tick();
+      input.write("\r");
+      await tick();
+
+      expect(validate).toHaveBeenCalledExactlyOnceWith("bad");
+      expect(getOutput()).toContain("Choose another name");
+      expect(settled).not.toHaveBeenCalled();
+
+      input.write("good");
+      input.write("\r");
+
+      await expect(result).resolves.toBe("good");
+      expect(validate.mock.calls).toEqual([["bad"], ["good"]]);
+    } finally {
+      input.write("\x03");
+      await result;
+    }
+  });
+
+  it.each([{}, { defaultValue: "" }, { placeholder: "demo" }])(
+    "validates empty input without a usable default (%j)",
+    async (options) => {
+      const { input, output, getOutput } = createPromptHarness();
+      const validate = vi.fn((value: string) => value.length > 0 ? undefined : "Name is required");
+      const settled = vi.fn();
+      const result = textPrompt({ message: "Name?", ...options, validate, input, output });
+      void result.then(settled);
+
+      try {
+        await tick();
+        input.write("\r");
+        await tick();
+
+        expect(validate).toHaveBeenCalledExactlyOnceWith("");
+        expect(getOutput()).toContain("Name is required");
+        expect(settled).not.toHaveBeenCalled();
+
+        input.write("Ada");
+        input.write("\r");
+
+        await expect(result).resolves.toBe("Ada");
+        expect(validate.mock.calls).toEqual([[""], ["Ada"]]);
+      } finally {
+        input.write("\x03");
+        await result;
+      }
+    }
+  );
 
   it("renders validation errors and keeps editing", async () => {
     const { input, output, getOutput } = createPromptHarness();

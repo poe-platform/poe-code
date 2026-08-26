@@ -138,7 +138,10 @@ function formatParameterValues(schema: ModelParameter["schema"]): string {
   let result = "";
   if (schema.enum) {
     result = schema.enum.join(", ");
-  } else if (schema.type === "number" && (schema.minimum != null || schema.maximum != null)) {
+  } else if (
+    (schema.type === "number" || schema.type === "integer") &&
+    (schema.minimum != null || schema.maximum != null)
+  ) {
     result = `${schema.minimum ?? ""}..${schema.maximum ?? ""}`;
   }
   return truncate(result, MAX_VALUES_LENGTH);

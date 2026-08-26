@@ -1554,6 +1554,86 @@ describe("models command", () => {
     expect(output).toContain("0..2");
   });
 
+  describe("integer parameter ranges", () => {
+    describe.each(["integer", "number"])("%s bounds", (type) => {
+      it.each([
+        { label: "positive minimum", bounds: { minimum: 3 }, expected: "3.." },
+        { label: "positive maximum", bounds: { maximum: 9 }, expected: "..9" },
+        { label: "zero minimum", bounds: { minimum: 0 }, expected: "0.." },
+        { label: "zero maximum", bounds: { maximum: 0 }, expected: "..0" },
+        { label: "negative minimum", bounds: { minimum: -5 }, expected: "-5.." },
+        { label: "negative maximum", bounds: { maximum: -2 }, expected: "..-2" },
+        { label: "positive bounds", bounds: { minimum: 2, maximum: 8 }, expected: "2..8" },
+        { label: "mixed-sign bounds", bounds: { minimum: -4, maximum: 6 }, expected: "-4..6" },
+        { label: "zero bounds", bounds: { minimum: 0, maximum: 0 }, expected: "0..0" },
+        { label: "unbounded", bounds: {}, expected: "" }
+      ])("renders the exact Values/Range cell for $label", async ({ bounds, expected }) => {
+        fs = await createConfigVolume("test-key");
+        const models = [createModelEntry({
+          parameters: [{ name: "setting", schema: { type, ...bounds } }]
+        })];
+        (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: async () => ({ object: "list", data: models })
+        });
+
+        const output = await withOutputFormat("terminal", () =>
+          runModels({ fs, httpClient, logs, args: ["--view", "parameters"] })
+        );
+        const parameterRow = output.split("\n")
+          .map((line) => line.split("│").map((cell) => cell.trim()))
+          .find((cells) => cells[2] === "setting");
+
+        expect(parameterRow).toEqual(["", "", "setting", type, "", expected, ""]);
+      });
+
+      it("preserves enum precedence over numeric bounds", async () => {
+        fs = await createConfigVolume("test-key");
+        const models = [createModelEntry({
+          parameters: [{
+            name: "setting",
+            schema: { type, enum: ["2", "8"], minimum: 2, maximum: 8 }
+          }]
+        })];
+        (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: async () => ({ object: "list", data: models })
+        });
+
+        const output = await withOutputFormat("terminal", () =>
+          runModels({ fs, httpClient, logs, args: ["--view", "parameters"] })
+        );
+        const parameterRow = output.split("\n")
+          .map((line) => line.split("│").map((cell) => cell.trim()))
+          .find((cells) => cells[2] === "setting");
+
+        expect(parameterRow).toEqual(["", "", "setting", "enum", "", "2, 8", ""]);
+      });
+    });
+
+    it("round-trips numeric constraints through raw YAML unchanged", async () => {
+      fs = await createConfigVolume("test-key");
+      const parameters: TestParameter[] = [
+        { name: "integer_bounds", schema: { type: "integer", minimum: 0, maximum: 10 } },
+        { name: "integer_minimum", schema: { type: "integer", minimum: -5 } },
+        { name: "integer_maximum", schema: { type: "integer", maximum: 0 } },
+        { name: "integer_unbounded", schema: { type: "integer" } },
+        { name: "number_control", schema: { type: "number", minimum: 0, maximum: 10 } }
+      ];
+      (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ object: "list", data: [createModelEntry({ parameters })] })
+      });
+
+      const output = await runModelsWithStdout({ fs, httpClient, args: ["--view", "raw"] });
+
+      expect(yamlParse(output)).toEqual([expect.objectContaining({ parameters })]);
+    });
+  });
+
   it("--view parameters skips models without parameters", async () => {
     fs = await createConfigVolume("test-key");
     const models = [

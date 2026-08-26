@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { constants } from "node:os";
+import { getSystemErrorMap, getSystemErrorName } from "node:util";
 import test from "node:test";
 import { FsError, isErrnoCode, isFsError, toFsError } from "../../src/contracts/index.js";
 
@@ -7,7 +7,7 @@ test("FsError exposes standard errno metadata and cause", () => {
   const cause = new Error("backend unavailable");
   const error = new FsError("ENOENT", { syscall: "rename", path: "/before", dest: "/after", cause });
   assert.equal(error.code, "ENOENT");
-  assert.equal(error.errno, -constants.errno.ENOENT);
+  assert.equal(getSystemErrorName(error.errno), "ENOENT");
   assert.equal(error.syscall, "rename");
   assert.equal(error.path, "/before");
   assert.equal(error.dest, "/after");
@@ -51,5 +51,18 @@ test("unknown failures use EIO and retain the original cause", () => {
     const error = toFsError(cause, { syscall: "readFile" });
     assert.equal(error.code, "EIO");
     assert.equal(error.cause, cause);
+  }
+});
+
+test("errno values use Node system-error numbers and normalize the EOPNOTSUPP alias", () => {
+  const supported = new FsError("ENOTSUP");
+  const alias = new FsError("EOPNOTSUPP");
+  assert.equal(alias.code, "EOPNOTSUPP");
+  assert.equal(alias.errno, supported.errno);
+  assert.equal(getSystemErrorName(alias.errno), "ENOTSUP");
+  assert.equal(toFsError({ code: "EOPNOTSUPP", errno: -102 }).errno, supported.errno);
+  const numbers = new Map([...getSystemErrorMap()].map(([number, [name]]) => [name, number]));
+  for (const code of ["EACCES", "ENOENT", "EXDEV", "EPIPE", "ECANCELED"] as const) {
+    assert.equal(new FsError(code).errno, numbers.get(code));
   }
 });

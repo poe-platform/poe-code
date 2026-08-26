@@ -1,4 +1,6 @@
-import { constants } from "node:os";
+import { getSystemErrorMap } from "node:util";
+
+const systemErrnos = new Map([...getSystemErrorMap()].map(([errno, [name]]) => [name, errno]));
 
 const descriptions = {
   EACCES: "permission denied",
@@ -49,13 +51,15 @@ export class FsError extends Error {
 
   constructor(code: ErrnoCode, options: FsErrorOptions = {}) {
     if (!isErrnoCode(code)) throw new TypeError(`Unsupported errno code: ${String(code)}`);
+    const errno = systemErrnos.get(code === "EOPNOTSUPP" ? "ENOTSUP" : code);
+    if (errno === undefined) throw new TypeError(`Unsupported platform errno code: ${code}`);
     const operation = options.syscall ? `, ${options.syscall}` : "";
     const path = options.path === undefined ? "" : ` '${options.path}'`;
     const destination = options.dest === undefined ? "" : ` -> '${options.dest}'`;
     super(`${code}: ${options.message ?? descriptions[code]}${operation}${path}${destination}`, options);
     this.name = "FsError";
     this.code = code;
-    this.errno = -constants.errno[code];
+    this.errno = errno;
     if (options.syscall !== undefined) this.syscall = options.syscall;
     if (options.path !== undefined) this.path = options.path;
     if (options.dest !== undefined) this.dest = options.dest;

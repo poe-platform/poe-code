@@ -114,8 +114,13 @@ was edited or relabeled as passing. GNU sed policy remains separate and unchange
 All 236 engine outcomes, original-cohort membership, raw-result hashes, current
 source/test/contract hashes, and validation provenance are preserved in
 `final-inline-input-evidence.json`. Original raw comparison remains at the `/tmp`
-output above. Owned source/tests were clean at checkpoint; foreign changes and
-staged entries were not touched. All verifier test/repeat children are stopped.
+output above. Owned source/tests were clean at the validation checkpoint. At the
+20:35 UTC final status check, external edits appeared in `src/shell/runtime.ts`,
+`src/shell/shell.ts`, `src/shell/types.ts`, and new
+`tests/shell/stdin-origin.test.ts`. They were not edited, staged, committed, or
+validated by this verifier. The recorded test/benchmark results describe their
+captured source snapshots, not these later in-flight changes. Foreign staged
+entries were untouched. All verifier test/repeat children are stopped.
 
 ## Historical independent bugfix review
 

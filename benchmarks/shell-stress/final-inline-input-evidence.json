@@ -1,4 +1,15 @@
 {
+  "finalSourceObservation": {
+    "observedAt": "2026-08-26T20:36:00.528Z",
+    "status": " M benchmarks/shell-stress/README.md\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M src/shell/types.ts\n?? tests/shell/stdin-origin.test.ts\n",
+    "foreignShellChanges": {
+      "src/shell/runtime.ts": "cf2655cc3cf21b7cdd9ddac69eea4d37098916925ff665ba214ce03d2b53d369",
+      "src/shell/shell.ts": "be5e2727b68396c346d7f374975edfdd2aa0048bd1cabea45c108a03007d86a1",
+      "src/shell/types.ts": "b4ffd34a796dc8d211b0355f11b704a2a7d44627623d3abbffcf3610154c4fc6",
+      "tests/shell/stdin-origin.test.ts": "0ebf021a14d78014b9e1196e4ac7ced182e3eec54e48a1ca56575a95e24ba109"
+    },
+    "note": "External stdin-origin work appeared after checkpoint validation. These changes were left untouched and unvalidated. No own test/repeat children remain."
+  },
   "schemaVersion": 1,
   "recordedAt": "2026-08-26T20:35:00.533Z",
   "cwd": "/Users/kjopek/Workspace/safe-bash",

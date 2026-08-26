@@ -69,7 +69,7 @@ test("per-hop authorization and cross-origin custom credentials are removed", as
 
 test("retry status and bounded fractional delay", async () => {
   const result = await run(["--retry", "2", "--retry-delay", "0.001", "-w", ":%{num_retries}", host.origin + "/retry-author"]);
-  assert.equal(result.exitCode, 0); assert.equal(result.stdout.toString(), "recovered:2");
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout.toString(), "retryretryrecovered:2");
   assert.equal(host.retries.get("/retry-author"), 3);
 });
 

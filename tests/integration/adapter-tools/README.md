@@ -361,3 +361,106 @@ virtual timestamps, no distributed metadata-lock guarantee, WebDAV dead-property
 ETag requirements, and unsupported POSIX staging permissions for WebDAV named
 `gzip -k`. Mock S3 and loopback WebDAV are not live-provider credential/signing or
 interoperability validation. No foreign `.native` directories were touched.
+
+## August 26 append-open boundary coverage correction
+
+Independent audit `d5ac96afd5288234de3b617bc15af3b2a3c42bf5`, specifically
+`tests/integration/adapter-tools-diagnostics/{README.md,check-coverage.mjs,coverage.json}`,
+found a real coverage gap in `df5bc45`: readonly `>>` first calls
+`writeFile("/work/target.txt", new Uint8Array(), { flag: "a" })`, not
+`appendFile`. The previous 20 direct typed checks and green 79-case result did
+not establish the type of this actual append-open rejection. Its mutation
+survived the old row while the independent acceptance row rejected it.
+
+The existing append-redirection row now also invokes that exact public adapter
+operation and requires an actual `FsError`, exact `EROFS`, and exact
+`/work/target.txt`, then checks the complete `/work` namespace and bytes against
+the pre-shell snapshot. The existing direct `appendFile` assertion remains.
+There are now **21 direct typed checks within the same eight diagnostic cases**;
+the matrix still has **79 tests**. Human stderr, status, stdout routing, existing
+byte checks and all other expected outcomes are unchanged. This corrects test
+coverage, not backend behavior or the shell's canonical human diagnostic.
+
+### Frozen source and fixture provenance
+
+Run started **2026-08-26T21:59:34Z**, Node **v22.22.2**. All checks below use
+committed source **`bb74849174ea9f53420d00b2f5d210d290664c0a`**, `src` tree
+**`b77579f5d588d441caf7969b1e56b3eb17229244`**, extracted to
+`/tmp/safe-bash-append-open.Y90OUY/snapshot`. Only this corrected matrix file was
+copied over its archived version; production source and the independent loader
+were not modified. A concurrent foreign `src/commands/diff-patch/patch.ts` edit
+and generated untracked JavaScript were excluded by the archive. Package and
+lockfile bytes matched the workspace before linking its cached `node_modules`;
+no install, network provider or native command oracle was used.
+
+SHA-256 identities:
+
+- Corrected `matrix.test.ts`: `14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d`.
+- Unchanged `fixtures.ts`: `59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab`.
+- Independent `revision-loader.mjs`: `30e359042eeb39190754bb2c511d1117bb28896500f215751aec06b774647964`.
+- Prior fixture revision: `df5bc453de004a8eb483696cf4ae1986a012cca1`, matrix Git
+  blob `f007991b74b780e6aeb5fc4e8e570b1a18379528`.
+
+Archive setup from the repository root (the recorded `mktemp` result was the
+directory above):
+
+```sh
+root="$PWD"
+checkpoint=bb74849174ea9f53420d00b2f5d210d290664c0a
+evidence=$(mktemp -d /tmp/safe-bash-append-open.XXXXXX)
+mkdir "$evidence/snapshot"
+git archive "$checkpoint" | tar -xf - -C "$evidence/snapshot"
+cmp package.json "$evidence/snapshot/package.json"
+cmp package-lock.json "$evidence/snapshot/package-lock.json"
+ln -s "$root/node_modules" "$evidence/snapshot/node_modules"
+cp tests/integration/adapter-tools/matrix.test.ts "$evidence/snapshot/tests/integration/adapter-tools/matrix.test.ts"
+cd "$evidence/snapshot"
+```
+
+Exact validation commands, run in that snapshot:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/integration/adapter-tools/matrix.test.ts > ../matrix-baseline.tap 2>&1
+node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/integration/adapter-tools-diagnostics/eight-cases.test.ts > ../independent-baseline.tap 2>&1
+node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node tests/integration/adapter-tools/fixtures.ts tests/integration/adapter-tools/matrix.test.ts > ../typecheck.log 2>&1
+
+DIAGNOSTIC_REVISION=worktree DIAGNOSTIC_MATRIX_REVISION=df5bc453de004a8eb483696cf4ae1986a012cca1 DIAGNOSTIC_MUTATION=append-untyped GIT_DIR=/Users/kjopek/Workspace/safe-bash/.git node --unhandled-rejections=strict --import tsx --import ./tests/integration/adapter-tools-diagnostics/register.mjs --test --test-reporter=tap --test-name-pattern "^readonly: rejects mutation: printf 'changed' >> target\\.txt$" tests/integration/adapter-tools/matrix.test.ts > ../prior-mutant.tap 2>&1
+DIAGNOSTIC_REVISION=worktree DIAGNOSTIC_MUTATION=append-untyped node --unhandled-rejections=strict --import tsx --import ./tests/integration/adapter-tools-diagnostics/register.mjs --test --test-reporter=tap --test-name-pattern "^readonly: rejects mutation: printf 'changed' >> target\\.txt$" tests/integration/adapter-tools/matrix.test.ts > ../corrected-mutant.tap 2>&1
+```
+
+Here `worktree` means the isolated archive, not the concurrently changing
+repository. `GIT_DIR` permits only the loader's read-only `git show` of the old
+fixture; both mutation runs otherwise use identical archived production source.
+The independent loader is unchanged: only readonly `writeFile` with flag `a`
+throws ordinary `Error` with correct `code: "EROFS"` and `path`, without effects;
+all other operations, including `appendFile`, retain their implementations.
+The independent writing/report harness was not invoked and no independent audit
+files were edited.
+
+| Gate | Pass / total | Fail | Exit |
+| --- | ---: | ---: | ---: |
+| Corrected complete aggregate matrix | 79 / 79 | 0 | 0 |
+| Independent eight-case baseline | 8 / 8 | 0 | 0 |
+| Prior `df5bc45` append row, same mutant | 1 / 1 | 0 | 0 |
+| Corrected append row, same mutant | 0 / 1 | 1 | 1 |
+| Strict owned-scope typecheck | successful | 0 diagnostics | 0 |
+
+The expected mutant failure is specifically
+`filesystem boundary must reject with an actual FsError`, at the new direct
+append-open assertion, not a CLI mismatch or loader/setup failure. Baseline
+subtotals are memory **11/11**, real **11/11**, S3 **11/11**, WebDAV **11/11**
+(required four **44/44**), mount **12/12**, overlay **12/12**, readonly **10/10**,
+and standalone jq split **1/1**. All recorded test runs have **0 skipped, 0 TODO,
+0 cancelled**; targeted mutation runs select one row rather than count omitted
+rows as passes. The full baseline still uses actual root `agentCommands()` and
+all six plugin families. Test-managed real fixtures and mock/loopback services
+were cleaned by their existing lifecycle; raw logs remain in the temporary
+evidence directory. No source, foreign test, index entry or `.native` directory
+was changed by this task, except for the explicitly owned fixture and report.
+
+The **ORIGINAL `6a259ff`** fixture remains a separate cohort: its previously
+recorded modern-source result was **71/79**, not 79/79. It was not rerun here;
+the unchanged historical **58/79** initial snapshot above is also retained.
+These revised-fixture results neither rewrite those observations nor claim
+universal provider interoperability. No full filesystem-suite rerun or new
+adapter breadth was part of this narrow coverage correction.

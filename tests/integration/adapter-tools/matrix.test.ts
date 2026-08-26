@@ -296,6 +296,13 @@ for (const source of [
         assert.equal(result.stdout, "");
         assert.equal(result.stderr, "shell: line 1: target.txt: Read-only file system\n");
         const path = "/work/target.txt";
+        if (source === "printf 'changed' >> target.txt") {
+          await assert.rejects(
+            () => fs.writeFile(path, new Uint8Array(), { flag: "a" }),
+            fsError("EROFS", path),
+          );
+          assert.deepEqual(await snapshotTree(fs), before, "readonly append-open rejection preserves namespace and bytes");
+        }
         const mutation = source === "printf 'changed' > target.txt"
           ? () => fs.writeFile(path, Buffer.from("changed"), { flag: "w" })
           : () => fs.appendFile(path, Buffer.from("changed"));

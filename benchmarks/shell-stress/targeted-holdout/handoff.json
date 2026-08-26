@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-08-26T21:06:02.499Z",
+  "files": {
+    "tests/shell-stress/targeted-holdout/cases.ts": "7829b1528b38d8951692ea8fdbc9ad7bd9119284f5a772528f86d08c5c935714",
+    "tests/shell-stress/targeted-holdout/compatibility.test.ts": "cd3722637e4c4b27f6813e1cfc3849603920e30aadaca87dd85f1a462f70d675",
+    "tests/shell-stress/targeted-holdout/frozen.ts": "006bc964431fe4897c88255a3cb90b567dce0b2c3f2ebae66acf1486a12e1963",
+    "tests/shell-stress/targeted-holdout/lifecycle.test.ts": "f3e23d3154c33d9c192055f4431d4c63ea441efba6b418690df6ea95069b588a",
+    "tests/shell-stress/targeted-holdout/probe-child.ts": "1ee7aa131f0c995fcad122688020a690536c0131399c4402e9292d9d5aaedeb5",
+    "tests/shell-stress/targeted-holdout/probes.ts": "ba000fb948f15f699e5883d672da5e265ba92a16c6e76839b9a688267659033c",
+    "benchmarks/shell-stress/targeted-holdout/README.md": "f3e8b1c1d0880e9b6f88994131691e6252af24f2adba464e52988839d89a865c",
+    "benchmarks/shell-stress/targeted-holdout/baseline.json": "d8b72bf6920cb08e5e3853599bded8aa7883198231dde5be53830bbf5f1f8e77",
+    "benchmarks/shell-stress/targeted-holdout/calibrated.json": "b44276ba716b2c8631231fe213c3ebdf6d329154101762e044e5fbf5a064147a",
+    "benchmarks/shell-stress/targeted-holdout/capture.ts": "28e0a6afba7d720a933741996fba035490ea311ffd11dd31a89c35a9f078d204",
+    "benchmarks/shell-stress/targeted-holdout/references.json": "0c54a6736fc32729767861ad542324e1904c10f7ac7f6d7848bb43ce73c31cb4",
+    "benchmarks/shell-stress/targeted-holdout/run.ts": "8c12dd3ebe81809cc36f1e66eb58602cb04484e319f2c2a33840b6e82f260376",
+    "benchmarks/shell-stress/targeted-holdout/validation.json": "16b8aea6fe66411f8689d27ba03af08a7093a22f73f797b1e1374b7b6b925dfd"
+  },
+  "validation": {
+    "compatibility": {
+      "pass": 27,
+      "total": 49,
+      "fail": 22,
+      "invalidated": 0,
+      "diagnosticOnlyFailures": 14,
+      "otherFailures": 8
+    },
+    "lifecycle": {
+      "pass": 7,
+      "total": 8,
+      "fail": 1,
+      "invalidated": 0
+    },
+    "scopedTypecheckExitCode": 0
+  },
+  "policy": "No broad tests or source edits. Baseline and raw paired references retained; calibrated rerun performed once on one stable source aggregate. Root performs final verification after author fixes."
+}

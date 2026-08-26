@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
+import type { ByteSource } from "../../src/contracts/index.js";
+import { ShellInput } from "../../src/shell/input.js";
+import { Budget, defaultLimits } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
 
 test("signal-only upstream remains pending until the caller cancels", { timeout: 2000 }, async () => {
@@ -56,3 +59,83 @@ test("cooperative yielding preserves the loop iteration budget", async () => {
     assert.equal(executed, 129);
   } finally { await shell.dispose(); }
 });
+
+test("cancelling an active input view preserves its pending byte for the next reader", { timeout: 2000 }, async () => {
+  const budget = new Budget(defaultLimits);
+  const controller = new AbortController();
+  const reason = new Error("cancel active view only");
+  let started!: () => void;
+  const entered = new Promise<void>(resolve => { started = resolve; });
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let reads = 0;
+  let active = 0;
+  let maximum = 0;
+  let returned = 0;
+  const source: ByteSource = { [Symbol.asyncIterator]() { return {
+    async next() {
+      const position = reads++;
+      active++;
+      maximum = Math.max(maximum, active);
+      try {
+        if (position === 0) { started(); await gate; }
+        return { done: false, value: new Uint8Array([65 + position]) };
+      } finally { active--; }
+    },
+    async return() { returned++; return { done: true, value: undefined }; },
+  }; } };
+  const owner = new ShellInput(source, budget);
+  const cancelled = new ShellInput(owner, budget, controller.signal);
+  const first = cancelled.next();
+  const rejection = assert.rejects(first, error => error === reason);
+  await entered;
+  controller.abort(reason);
+  await rejection;
+  await cancelled.close();
+  assert.equal(returned, 0);
+  const retained = owner.next();
+  release();
+  assert.deepEqual((await retained).value, new Uint8Array([65]));
+  assert.deepEqual((await owner.next()).value, new Uint8Array([66]));
+  assert.equal(reads, 2);
+  assert.equal(maximum, 1);
+  await owner.close();
+  assert.equal(returned, 1);
+});
+
+for (const retain of [false, true]) {
+  test(`cancelled active input late rejection stays observed, retained=${retain}`, { timeout: 2000 }, async () => {
+    const budget = new Budget(defaultLimits);
+    const controller = new AbortController();
+    const reason = new Error("cancel active view only");
+    const sourceError = new Error("late source rejection");
+    let entered!: () => void;
+    const started = new Promise<void>(resolve => { entered = resolve; });
+    let rejectRead!: (error: Error) => void;
+    let reads = 0;
+    let returned = 0;
+    const source: ByteSource = { [Symbol.asyncIterator]() { return {
+      next() { reads++; entered(); return new Promise<IteratorResult<Uint8Array>>((_resolve, reject) => { rejectRead = reject; }); },
+      async return() { returned++; return { done: true, value: undefined }; },
+    }; } };
+    const owner = new ShellInput(source, budget);
+    const cancelled = new ShellInput(owner, budget, controller.signal);
+    const rejected = assert.rejects(cancelled.next(), error => error === reason);
+    await started;
+    controller.abort(reason);
+    await rejected;
+    await cancelled.close();
+    if (retain) {
+      const retained = assert.rejects(owner.next(), error => error === sourceError);
+      rejectRead(sourceError);
+      await retained;
+    } else {
+      await owner.close();
+      rejectRead(sourceError);
+    }
+    await new Promise<void>(resolve => setImmediate(resolve));
+    await owner.close();
+    assert.equal(reads, 1);
+    assert.equal(returned, 1);
+  });
+}

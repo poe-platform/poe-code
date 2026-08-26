@@ -205,7 +205,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const newText = await read(right, !!rightStat);
     if (oldText === newText) continue;
     different = true;
-    if (options.brief) append(`Files ${left} and ${right} differ\n`);
+    if (options.brief) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
     else await unified(oldText, newText, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
   }
   await writeBytes(context.stdout, Buffer.from(pieces.join("")), context.signal);

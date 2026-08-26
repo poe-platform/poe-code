@@ -67,7 +67,7 @@ test("memory conformance: denied writes cannot mutate files through hard or symb
   }
   await assert.rejects(filesystem.mkdir("/directory", { recursive: true }), code("EROFS"));
   await assert.rejects(filesystem.rm("/directory", { recursive: true, force: true }), code("EROFS"));
-  await assert.rejects(filesystem.rmdir("/directory", { recursive: true }), code("EROFS"));
+  await assert.rejects(filesystem.rmdir("/directory"), code("EROFS"));
   await assert.rejects(filesystem.symlink("/directory/file", "/new-symbolic"), code("EROFS"));
   await assert.rejects(filesystem.link("/directory/file", "/new-hard"), code("EROFS"));
   assert.deepEqual(await delegate.stat("/directory/file"), beforeFile);

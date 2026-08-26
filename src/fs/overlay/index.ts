@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
-  collectBytes, dirname, FsError, isPathWithin, normalizePath, readBytes, validatePath,
+  collectBytes, dirname, FsError, isPathWithin, normalizePath, readBytes, toFsError, validatePath,
 } from "../../contracts/index.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, ErrnoCode,
@@ -135,7 +135,7 @@ export class OverlayFileSystem implements FileSystem {
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
   }
 
-  private async run<Result>(options: FsOptions, operation: () => Promise<Result>): Promise<Result> {
+  private async run<Result>(options: FsOptions, operation: () => Promise<Result>, cleanup = true): Promise<Result> {
     options.signal?.throwIfAborted();
     const previous = this.queue;
     let release!: () => void;
@@ -147,7 +147,7 @@ export class OverlayFileSystem implements FileSystem {
     }
     try {
       options.signal?.throwIfAborted();
-      await this.cleanGarbage(false);
+      if (cleanup) await this.cleanGarbage(false);
       return await operation();
     } finally {
       release();
@@ -551,6 +551,33 @@ export class OverlayFileSystem implements FileSystem {
         await this.makeDirectory(location.path, options.mode ?? 0o777, options);
       }
     });
+  }
+
+  async rmdir(path: string, options: FsOptions = {}): Promise<void> {
+    try {
+      await this.run(options, async () => {
+        this.writable(path);
+        validatePath(path);
+        const entry = await this.required(path.replace(/\/+$/, "") || (path ? "/" : ""), options, false);
+        if (/(?:^|\/)\.{1,2}\/*$/.test(path)) fail("EINVAL", path);
+        if (entry.path === "/") fail("EBUSY", path);
+        if (entry.stat.type !== "directory") fail("ENOTDIR", path);
+        const parent = await this.required(dirname(entry.path), options);
+        this.permission(parent, 3);
+        if ((await this.listing(entry, options)).length) fail("ENOTEMPTY", path);
+        if (entry.backend !== this.#upper || !this.#upper.rmdir) fail("ENOTSUP", path);
+        const isolated = [...this.whiteouts, ...this.opaque].some((root) => isPathWithin(root, entry.path));
+        if (!isolated) fail("ENOTSUP", path, "live lower-layer emptiness cannot be guarded atomically");
+        options.signal?.throwIfAborted();
+        await this.#upper.rmdir(entry.path, options);
+        this.whiteouts.add(entry.path);
+        for (const key of this.linkMetadata.keys()) if (isPathWithin(entry.path, key)) this.linkMetadata.delete(key);
+        for (const key of this.linkOrigins.keys()) if (isPathWithin(entry.path, key)) this.linkOrigins.delete(key);
+      }, false);
+    } catch (error) {
+      options.signal?.throwIfAborted();
+      throw new FsError(toFsError(error).code, { syscall: "rmdir", path, cause: error });
+    }
   }
 
   async rm(path: string, options: RemoveOptions = {}): Promise<void> {

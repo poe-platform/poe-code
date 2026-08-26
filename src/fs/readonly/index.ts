@@ -113,7 +113,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     readOnly("unlink", path);
   }
 
-  async rmdir(path: string, _options?: RemoveOptions): Promise<void> {
+  async rmdir(path: string, _options?: FsOptions): Promise<void> {
     readOnly("rmdir", path);
   }
 

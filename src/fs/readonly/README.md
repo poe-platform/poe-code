@@ -13,9 +13,10 @@ reading options, inspecting payloads, checking paths, or calling the delegate.
 This includes `writeFile` with **any** flag (even a read-looking or invalid flag),
 `appendFile`, `writeStream`, `mkdir`, `rm`, `rename`, `copyFile`, `symlink`, `link`,
 `chmod`, `utimes`, and `truncate`. Optional mutations are present and denied even
-when the underlying adapter does not implement them. The additional convenience
-methods `unlink(path: string, options?: FsOptions): Promise<void>` and
-`rmdir(path: string, options?: RemoveOptions): Promise<void>` are also denied.
+when the underlying adapter does not implement them. The optional contract
+method `rmdir(path: string, options?: FsOptions): Promise<void>` and additional
+convenience method `unlink(path: string, options?: FsOptions): Promise<void>`
+are also denied.
 Other adapter-specific methods are not forwarded; there is no native execution
 or public delegate property.
 

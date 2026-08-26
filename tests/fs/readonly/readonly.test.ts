@@ -40,7 +40,7 @@ const mutations: {
   { name: "mkdir", invoke: (filesystem, options) => filesystem.mkdir(path, { ...options, recursive: true }) },
   { name: "rm", invoke: (filesystem, options) => filesystem.rm(path, { ...options, recursive: true, force: true }) },
   { name: "unlink", invoke: (filesystem, options) => filesystem.unlink(path, options) },
-  { name: "rmdir", invoke: (filesystem, options) => filesystem.rmdir(path, { ...options, recursive: true }) },
+  { name: "rmdir", invoke: (filesystem, options) => filesystem.rmdir(path, options) },
   { name: "rename", destination, invoke: (filesystem, options) => filesystem.rename(path, destination, options) },
   { name: "copyFile", destination, invoke: (filesystem, options) => filesystem.copyFile(path, destination, { ...options, exclusive: true }) },
   { name: "symlink", destination, invoke: (filesystem, options) => filesystem.symlink(path, destination, options) },

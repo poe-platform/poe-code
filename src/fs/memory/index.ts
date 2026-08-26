@@ -290,6 +290,21 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(location.parent);
   }
 
+  async rmdir(path: string, options: FsOptions = {}): Promise<void> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "rmdir");
+    const node = location.node!;
+    if (this.terminalDot(path)) this.fail("EINVAL", "rmdir", path);
+    if (node === this.root) this.fail("EBUSY", "rmdir", path);
+    if (node.type !== "directory") this.fail("ENOTDIR", "rmdir", path);
+    this.permission(location.parent, 3, "rmdir", path);
+    if (node.entries.size > 0) this.fail("ENOTEMPTY", "rmdir", path);
+    location.parent.entries.delete(location.name);
+    node.nlink = 0;
+    node.ctimeMs = Date.now();
+    this.changed(location.parent);
+  }
+
   async rm(path: string, options: RemoveOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     let location: Location;

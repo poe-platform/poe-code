@@ -362,6 +362,19 @@ export class MountFileSystem implements FileSystem {
     });
   }
 
+  rmdir(path: string, options: FsOptions = {}): Promise<void> {
+    return this.operation("rmdir", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true });
+      this.mutable(location);
+      this.entryPath(path);
+      if (location.stat?.type !== "directory") fail("ENOTDIR");
+      const backend = location.mount.backend;
+      if (!backend.rmdir) fail("ENOTSUP");
+      options.signal?.throwIfAborted();
+      await backend.rmdir(location.local, options);
+    });
+  }
+
   rm(path: string, options: RemoveOptions = {}): Promise<void> {
     return this.operation("rm", path, options, async () => {
       let location: Location;

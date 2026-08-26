@@ -145,3 +145,25 @@ No mutation method is ever called on lower. A backend's own read-side effects
   rejects rather than breaking aliases. Moving existing
   upper hardlinks without copying remains possible. `truncate` is provided with
   a bounded buffer fallback when upper lacks a truncate method.
+
+## Directory-only removal
+
+`rmdir(path, options?: FsOptions)` rejects non-directories with `ENOTDIR`,
+missing entries with `ENOENT`, and a nonempty merged view with `ENOTEMPTY`.
+It never uses staged rename, recursive backing removal, or pending garbage
+cleanup. A successful removal invokes only the upper backend's optional
+directory-only `rmdir` and then records the whiteout; backing errors are not
+swallowed, and a raced upper child remains visible when the backend rejects.
+Errors retain the original operand and the `rmdir` syscall. Lower entries
+are never deleted. Existing `rm` semantics are unchanged.
+
+Safe support requires an upper directory whose lower contribution is already
+isolated by this overlay's opaque/whiteout state (for example a directory
+created through this overlay). An empty lower-only or unisolated merged
+directory returns `ENOTSUP`: its observed emptiness cannot be coupled atomically
+to a whiteout using the current contract. Even an upper-only directory observed
+above an absent lower entry is not proof that a concurrent lower writer cannot
+add children. A lower `readOnly` capability restricts that handle, not every
+other reference to the storage, so it is not an immutable-snapshot guarantee.
+Absent upper `rmdir` support also returns `ENOTSUP` without mutation. These
+refusals avoid hiding concurrent descendants or inventing provider guarantees.

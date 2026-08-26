@@ -83,6 +83,15 @@ delegate to the selected backend and retain its failure/partial-write semantics.
 
 ## Optional methods, errors, and streams
 
+`rmdir(path, options?: FsOptions)` removes only an empty directory using the
+selected backend's optional `rmdir`, never a listing followed by recursive
+`rm`. It preserves mount-root/ancestor protections, readonly checks, exact
+global error operands and cancellation forwarding. Missing backend support
+returns `ENOTSUP` before any deletion; errors including `ENOTEMPTY` propagate.
+The backend must perform its own empty check atomically with deletion, so a
+child arriving after mount resolution is not recursively removed. Existing
+`rm` behavior is unchanged.
+
 All contract optional methods are exposed as guarded dispatchers. A method absent
 on the selected backend, or explicitly disabled by its associated capability,
 returns `ENOTSUP`; other mounts can still support it. Global capability flags are

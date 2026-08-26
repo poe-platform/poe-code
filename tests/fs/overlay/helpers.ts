@@ -21,7 +21,7 @@ export function wrapped(backend: FileSystem, overrides: Partial<FileSystem>): Fi
 
 export function immutable(backend: FileSystem): { lower: FileSystem; mutations: string[] } {
   const mutations: string[] = [];
-  const forbidden = new Set(["writeFile", "appendFile", "mkdir", "rm", "rename", "copyFile", "symlink", "link", "chmod", "utimes", "truncate", "writeStream"]);
+  const forbidden = new Set(["writeFile", "appendFile", "mkdir", "rm", "rmdir", "rename", "copyFile", "symlink", "link", "chmod", "utimes", "truncate", "writeStream"]);
   const lower = new Proxy(backend, {
     get(target, property) {
       if (property === "capabilities") return { ...target.capabilities, readOnly: true };

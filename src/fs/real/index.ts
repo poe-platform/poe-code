@@ -300,6 +300,16 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
+  async rmdir(path: string, options: FsOptions = {}): Promise<void> {
+    return this.operation("rmdir", path, options, async () => {
+      const target = await this.path(path.replace(/\/+$/, "") || (path ? "/" : ""), { ...options, followFinal: false });
+      this.protectTerminal(path);
+      this.protectRoot(target, await this.root(options));
+      options.signal?.throwIfAborted();
+      await native.rmdir(target);
+    });
+  }
+
   async rm(path: string, options: RemoveOptions = {}): Promise<void> {
     return this.operation("rm", path, options, async () => {
       let target: string;

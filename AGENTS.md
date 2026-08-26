@@ -17,6 +17,11 @@
 - Preserve the full target: memory, real, S3-compatible (build a mock), WebDAV,
   and additional filesystems; many agent tools; piping, stdin, and full shell
   support. A partial implementation does not satisfy the full-shell goal.
+- Preserve the user's exact requirement: **"IT MUST BE BETTER than just-bash,
+  much better"**. This requirement is not yet demonstrated. Require broad,
+  reproducible head-to-head benchmark evidence before claiming superiority;
+  do not redefine it as passing a tiny selected subset. Record comparison
+  criteria, versions, workloads, results, losses, and remaining gaps.
 - Build tools sequentially, then run independent stress-test/fix cycles.
 - The user explicitly requested **WORK 72 hours**. Record actual work and
   remaining scope; do not claim this duration or completion without evidence.
@@ -25,10 +30,30 @@
 - Stage explicit owned paths only. Do not include another worker's changes in
   a commit or alter their files without a revised ownership assignment.
 
-## Architecture and commands: intended versus established
+## Established foundation and validation limits
 
-- Intended foundation: TypeScript, ESM, Node.js 22 contracts. The foundation
-  worker is building these; this is not evidence of verified APIs or behavior.
+- Foundation commit `5468d14` establishes TypeScript 5.9, ESM, Node.js `>=22`,
+  strict NodeNext compilation, and `node:test` through `tsx`. There are no
+  runtime dependencies in that foundation package; tooling is development-only.
+- Shared contracts are in `src/contracts/**`, exported by
+  `src/contracts/index.ts` and `src/index.ts`. Use `.js` import specifiers in
+  TypeScript. Command and filesystem payloads are explicitly `Uint8Array`;
+  await byte-sink writes and set an explicit `maxBytes` when collecting output.
+- Middleware must await or return `next()`. Filesystem adapters and command
+  implementations must propagate the supplied signal into host work; helper
+  cancellation does not forcibly terminate an uncooperative host operation.
+- `normalizePath`, `resolvePath`, and `relativePath` use virtual POSIX paths.
+  `isPathWithin` and `assertPathWithin` are lexical containment helpers, not
+  symlink security guarantees.
+- Commands: `npm test` runs `tests/**/*.test.ts`; `npm run test:contracts` runs
+  contract tests; `npm run typecheck` checks source and test types;
+  `npm run build` emits ESM and declarations to `dist/`.
+- At foundation delivery, all four commands and built-package import checks
+  passed. After the contract stress fixes, 65 contract tests and owned-scope
+  typechecking passed, including 20 strict-rejection repetitions. A subsequent
+  whole-repo typecheck encountered concurrent filesystem and shell errors;
+  record fresh whole-repo results rather than treating scoped success as a
+  product-wide pass. See `docs/PROJECT_LEDGER.md` for commands and revisions.
 - At the initial inspection on 2026-08-26, the repository contained only `.git`
   and had no commits. No source, package scripts, or tests were established.
 - Until implementation is inspected and validation succeeds, do not document
@@ -39,8 +64,10 @@
 
 ## Documentation ownership
 
-- This worker owns `AGENTS.md`, `README.md`, and `docs/**`, except
-  `docs/testing-shell-oracle.md`, which belongs to the separate oracle worker.
+- The initial documentation worker has finished. The user temporarily assigned
+  the foundation worker `AGENTS.md` and `docs/PROJECT_LEDGER.md` to record the
+  exact superiority requirement and established foundation evidence. This
+  reassignment does not include `README.md` or other documentation.
 - The oracle worker also owns `tests/fixtures/shell-cases.json`; do not edit it.
   Their assignment is at least 40 verified Bash fixtures tagged by feature as
   `core` or `advanced`. Track delivery and verification separately from intent.

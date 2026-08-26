@@ -35,11 +35,40 @@ available; never substitute elapsed calendar time for demonstrated work.
 | R15 | Make atomic commits. | Required throughout; stage explicit owned paths and keep each commit coherent. |
 | R16 | Maintain `AGENTS.md` codebase rules. | Documentation added in this change; ongoing maintenance required as conventions become verified. |
 | R17 | Supply at least 40 verified Bash fixtures tagged by feature as `core` or `advanced`. | Separate oracle worker assignment; fixture count, tags, Bash results, and delivery not yet verified by this worker. |
+| R18 | "IT MUST BE BETTER than just-bash, much better" | Exact user requirement; not demonstrated. Broad head-to-head benchmark evidence is required. A tiny selected passing subset cannot redefine or satisfy this requirement. |
 
-The foundation worker is reported to be building TypeScript ESM Node.js 22
-contracts. This is the intended foundation, not a verified public API. No
-package manager, exports, plugin signature, filesystem interface, command
-catalogue, or shell-conformance boundary has been established by this ledger.
+Foundation commit `5468d14` establishes a TypeScript 5.9 ESM package requiring
+Node.js `>=22`, with npm, strict NodeNext compilation, development-only tooling,
+and shared byte-oriented filesystem, command, middleware, plugin, errno, path,
+and streaming contracts. The contracts are not a complete shell or evidence of
+superiority to `just-bash`. Command inventory and whole-product conformance
+remain separate acceptance work.
+
+## Established commands and contract boundary
+
+| Command or import | Observed behavior / verification boundary |
+| --- | --- |
+| `npm test` | `node --import tsx --test "tests/**/*.test.ts"`; passed 33 tests at initial foundation delivery. Later worker suites require a new whole-repo run. |
+| `npm run test:contracts` | Runs `tests/contracts/**/*.test.ts`; the expanded suite has 65 passing tests at the contract stress checkpoint. |
+| `npm run typecheck` | `tsc --noEmit`, including source and tests; passed at foundation delivery. Later concurrent source errors were observed; not currently claimed as a whole-repo pass. |
+| `npm run build` | `tsc -p tsconfig.build.json`, emitting `dist/`; passed at foundation delivery. A fresh build is required after concurrent changes. |
+| Source contracts | `src/contracts/index.ts`; use relative `.js` import specifiers from TypeScript sources. |
+| Built contracts | `virtual-bash`, `virtual-bash/contracts`, and `virtual-bash/contracts/{filesystem,io,command,plugin,errors,path}`; built import smoke checks passed at foundation delivery. |
+
+Commands implement `CommandDefinition` with
+`execute(context): CommandResult | Promise<CommandResult>`, returning
+`{ exitCode: number }`. Context contains `command`, `args` excluding argv[0],
+mutable `cwd`/`env`, `fs`, required `signal`, async byte `stdin`, and awaited
+byte-writer `stdout`/`stderr`. `FileSystem` file payloads are `Uint8Array`.
+`createBytePipe` supplies streaming backpressure; `collectBytes` and
+`collectText` require `maxBytes`. Watermarks are pressure thresholds, not hard
+chunk-size limits. Middleware must await or return `next()`.
+
+Cancellation is observed during pending helper reads and writes, with cleanup
+requested and late rejections observed. A host operation that ignores its
+signal may continue; adapters must explicitly propagate cancellation into the
+actual host operation. POSIX containment helpers are lexical only, and cannot
+replace real-filesystem symlink checks.
 
 ## Ownership and coordination
 
@@ -52,6 +81,10 @@ catalogue, or shell-conformance boundary has been established by this ledger.
   `01a03f3d-492a-7e30-af3e-1e0e0e56f7e7`. Obtain and verify API details before
   expanding README usage guidance. Concurrent read-only inspection is allowed;
   this documentation assignment does not authorize implementation edits.
+- After the initial documentation worker finished, the user temporarily
+  reassigned `AGENTS.md` and this ledger to the foundation worker for the exact
+  superiority requirement and verified foundation state. Other documentation
+  and README ownership did not transfer.
 - Oracle worker: owns `docs/testing-shell-oracle.md` and
   `tests/fixtures/shell-cases.json`. Do not edit either file. The expected
   testing ledger is [the shell oracle document](testing-shell-oracle.md);
@@ -73,6 +106,7 @@ that any implementation, command, fixture, or test currently exists.
 | Shell oracle | Confirm at least 40 fixtures, their feature tags and `core`/`advanced` classification, and actual Bash verification evidence in the oracle worker's artifacts. |
 | Shell execution | Compare implementation results against the verified oracle; exercise stdin and piping; maintain uncovered full-shell behavior explicitly, including advanced cases. |
 | Independent stress/fix cycles | After sequential tool construction, record independent tester identity, tested revision, stress cases, failures, fixes, and retest outcomes for each cycle. |
+| Broad head-to-head superiority evidence | Preserve R18 exactly. Agree representative comparison criteria and pin versions, environment, workloads, and raw results for both projects. Report failures, unsupported behavior, and tradeoffs alongside wins. No benchmark has yet established superiority; do not substitute a tiny passing subset or invent an achieved threshold. |
 | Final scope and duration audit | Reconcile every requirement with evidence or explicit pending status; record the 72-hour work history honestly; verify atomic commits and current project rules. |
 
 ## Progress record
@@ -85,11 +119,21 @@ that any implementation, command, fixture, or test currently exists.
 | 2026-08-26 | User assigned the separate oracle worker the oracle document and fixture file, with at least 40 verified Bash fixtures tagged `core`/`advanced` by feature. | Delivery and fixture validation remain pending; ownership exclusions apply immediately. |
 | 2026-08-26 | Added project rules, brief status README, and this requirements/progress ledger. | Documentation only; this does not establish product implementation or completion of the 72-hour request. |
 | 2026-08-26 | Verified all three owned documentation files exist, counted 17 requirement rows, and passed `git diff --cached --check -- AGENTS.md README.md docs/PROJECT_LEDGER.md`. | Documentation checks only; no product tests or APIs were verified. |
+| 2026-08-26 | Foundation worker delivered `5468d14`; 33 contract tests, `npm test`, `npm run typecheck`, `npm run build`, built ESM/subpath import smoke checks, and owned-file whitespace checks passed. | Verified foundation checkpoint only, not the full shell product or the 72-hour requirement. |
+| 2026-08-26 | Foundation worker added 32 stress tests and committed regressions with fixes: `d1e9339` (I/O cancellation/lifecycle), `1afc1c1` (middleware continuation/registry validation), `1d53d49` (virtual-relative paths/errno normalization). | 65 total contract tests pass. Cases include blocked I/O, abort-after-close, producer failure, mutable bytes, early return, detached/late/reentrant middleware calls, traversal, and error overrides. This is a foundation self-stress cycle, not independent verification of another worker's tools. |
+| 2026-08-26 | Ran `node --unhandled-rejections=strict --import tsx --test --test-reporter=dot 'tests/contracts/**/*.test.ts'` 20 times successfully: 1,300 test executions, with no dangling-rejection failures. | Scoped repetition is not a just-bash benchmark or proof of complete correctness. |
+| 2026-08-26 | Owned-scope typechecking passed using `./node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --skipLibCheck --types node src/contracts/*.ts tests/contracts/*.ts`. | A whole-repo `npm run typecheck` attempt during concurrent development reported S3/WebDAV ES2024 string-typing issues, WebDAV `RequestInit.cache`, and shell narrowing errors. Those workers' files were not changed in this task; fresh whole-repo validation remains required. |
+| 2026-08-26 | User added the exact requirement "IT MUST BE BETTER than just-bash, much better" and requested head-to-head evidence without narrowing superiority to a tiny selected subset. | Recorded as R18; not achieved or benchmarked. User also assigned the foundation worker to independently verify tool work when ready; that verification has not started. |
 
 ## Pending work
 
-- Receive foundation contracts and inspect implementation before recording APIs,
-  architecture as established, or runnable installation/build/test commands.
+- Re-run whole-repo typechecking, tests, build, and export checks as concurrent
+  workers deliver code; keep foundation checkpoint evidence separate from
+  current product-wide status.
+- Design and execute broad, reproducible head-to-head comparisons with
+  `just-bash`; record agreed criteria, pinned versions, workloads, raw results,
+  regressions, and uncovered scope. R18 remains unproven and cannot be reduced
+  to a tiny passing subset.
 - Define the tool inventory, additional filesystem choices, companion
   integration details, and full-shell coverage tracking without reducing scope.
 - Deliver and validate every requested backend, the S3-compatible mock,

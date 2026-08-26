@@ -38,9 +38,6 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
       description: child.description()
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
-  const options = command.options
-    .filter((option) => !option.hidden && option.long !== undefined)
-    .map((option) => ({ flag: option.long!, description: option.description }));
   const optionsByFlag = new Map<string, Option>();
   for (let current: Command | null = command; current; current = current.parent) {
     for (const option of current.options) {
@@ -51,6 +48,9 @@ function collectNodes(command: Command, path: string[] = []): CompletionNode[] {
       }
     }
   }
+  const options = [...optionsByFlag]
+    .filter(([flag, option]) => flag === option.long && !option.hidden)
+    .map(([flag, option]) => ({ flag, description: option.description }));
   const requiredValueFlags = [...optionsByFlag]
     .filter(([, option]) => option.required && !option.variadic)
     .map(([flag]) => flag);

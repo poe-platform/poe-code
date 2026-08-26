@@ -88,6 +88,13 @@ async function emitCompletion(
   return chunks.join("");
 }
 
+function readCompletionWords(script: string, path: string): string[] {
+  const prefix = `    "${path}") completions=`;
+  const line = script.split("\n").find((line) => line.startsWith(prefix));
+  expect(line, `Missing completion path ${path}`).toBeDefined();
+  return line!.slice(prefix.length + 1, -3).split(" ").filter(Boolean);
+}
+
 describe("completion command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -104,8 +111,8 @@ describe("completion command", () => {
   it("emits bash completions for nested commands, aliases, and their options", async () => {
     const script = await emitCompletion("bash");
 
-    expect(script).toContain('"configure") completions="--agent"');
-    expect(script).toContain('"agent") completions="add new list"');
+    expect(script).toContain('"configure") completions="--agent --yes"');
+    expect(script).toContain('"agent") completions="add new list --yes"');
   });
 
   it.each(["bash", "zsh", "fish"])(
@@ -129,8 +136,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"${parent}") completions="open view show --directory";;`
-        : `"${parent}") completions=(open view show --directory);;`
+        ? `"${parent}") completions="open view show --directory --yes";;`
+        : `"${parent}") completions=(open view show --directory --yes);;`
     );
   });
 
@@ -145,8 +152,8 @@ describe("completion command", () => {
 
     expect(script).toContain(
       shell === "bash"
-        ? `"${path}") completions="--editor";;`
-        : `"${path}") completions=(--editor);;`
+        ? `"${path}") completions="--editor --directory --yes";;`
+        : `"${path}") completions=(--editor --directory --yes);;`
     );
   });
 
@@ -182,7 +189,7 @@ describe("completion command", () => {
 
     expect(script).toContain("#compdef poe-code poe");
     expect(script).toContain("compdef _poe_code poe-code poe");
-    expect(script).toContain('"agent") completions=(add new list)');
+    expect(script).toContain('"agent") completions=(add new list --yes)');
   });
 
   it("emits fish completions carrying command descriptions", async () => {
@@ -193,6 +200,124 @@ describe("completion command", () => {
     );
     expect(script).toContain(
       "complete -c poe-code -n \"__fish_seen_subcommand_from agent\" -a 'list' -d 'List agents.'"
+    );
+  });
+
+  describe.each(["bash", "zsh"])("%s inherited option candidates", (shell) => {
+    it.each([
+      { path: "models", prefix: "--v", expected: ["--view", "--verbose", "--version"] },
+      { path: "models", prefix: "--y", expected: ["--yes"] },
+      { path: "models", prefix: "--o", expected: ["--output"] },
+      { path: "plan list", prefix: "--d", expected: ["--dry-run"] },
+      { path: "plan list", prefix: "--y", expected: ["--yes"] },
+      { path: "plan list", prefix: "--ar", expected: ["--archived"] },
+      { path: "plans list", prefix: "--ar", expected: ["--archived"] },
+      { path: "plan list", prefix: "--k", expected: ["--kind"] },
+      { path: "plans list", prefix: "--k", expected: ["--kind"] },
+      { path: "plan list", prefix: "--o", expected: ["--output"] }
+    ])("completes real $path $prefix with local and inherited flags", async ({ path, prefix, expected }) => {
+      const program = createProgram({
+        fs: createMemFs(),
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+        logger: () => {},
+        exitOverride: true
+      });
+      const script = await emitCompletion(shell, program);
+
+      expect(readCompletionWords(script, path).filter((word) => word.startsWith(prefix)))
+        .toEqual(expected);
+    });
+
+    it.each(["agent list", "agent add", "agent new"])(
+      "gives globals to optionless leaf %s",
+      async (path) => {
+        const script = await emitCompletion(shell);
+
+        expect(readCompletionWords(script, path)).toEqual(["--yes"]);
+      }
+    );
+  });
+
+  describe.each(["bash", "zsh", "fish"])("%s inherited option precedence", (shell) => {
+    it.each([
+      {
+        name: "hidden nearest spelling masks a visible ancestor",
+        ancestorHidden: false,
+        nearestFlags: "--shared <value>",
+        nearestHidden: true,
+        expected: [],
+        description: ""
+      },
+      {
+        name: "visible nearest spelling exposes a hidden ancestor",
+        ancestorHidden: true,
+        nearestFlags: "--shared <value>",
+        nearestHidden: false,
+        expected: ["--shared"],
+        description: "Nearest description."
+      },
+      {
+        name: "short-only shadow preserves the inherited long spelling",
+        ancestorHidden: false,
+        nearestFlags: "-s",
+        nearestHidden: false,
+        expected: ["--shared"],
+        description: "Ancestor description."
+      },
+      {
+        name: "nearest visible spelling wins without duplicate candidates",
+        ancestorHidden: false,
+        nearestFlags: "--shared <value>",
+        nearestHidden: false,
+        expected: ["--shared"],
+        description: "Nearest description."
+      }
+    ])("$name", async ({ ancestorHidden, nearestFlags, nearestHidden, expected, description }) => {
+      const program = createFixtureProgram();
+      program.addOption(new Option("-s, --shared <value>", "Ancestor description.").hideHelp(ancestorHidden));
+      program.commands.find((command) => command.name() === "plan")!
+        .addOption(new Option(nearestFlags, "Nearest description.").hideHelp(nearestHidden));
+      const script = await emitCompletion(shell, program);
+
+      for (const path of ["plan", "plans", "plan open", "plans view"]) {
+        if (shell === "fish") {
+          const prefix = `complete -c poe-code -n "__fish_seen_subcommand_from ${path.split(" ").at(-1)}" -l shared `;
+          const lines = script.split("\n").filter((line) => line.startsWith(prefix));
+          if (expected.length === 0) {
+            expect(lines).toEqual([]);
+          } else {
+            expect(lines.length).toBeGreaterThan(0);
+            expect(lines.every((line) => line === `${prefix}-d '${description}'`)).toBe(true);
+          }
+        } else {
+          expect(readCompletionWords(script, path).filter((word) => word === "--shared"))
+            .toEqual(expected);
+        }
+      }
+    });
+  });
+
+  it("emits real inherited fish options with their ancestor descriptions", async () => {
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+      logger: () => {},
+      exitOverride: true
+    });
+    const script = await emitCompletion("fish", program);
+
+    for (const command of ["models", "list"]) {
+      expect(script).toContain(
+        `complete -c poe-code -n "__fish_seen_subcommand_from ${command}" -l yes -d 'Accept defaults without prompting.'`
+      );
+      expect(script).toContain(
+        `complete -c poe-code -n "__fish_seen_subcommand_from ${command}" -l verbose -d 'Show verbose logs.'`
+      );
+    }
+    expect(script).toContain(
+      "complete -c poe-code -n \"__fish_seen_subcommand_from list\" -l archived -d 'Browse archived plans instead of active plans'"
     );
   });
 
@@ -335,8 +460,8 @@ describe("completion command", () => {
 
       expect(script).toContain(
         shell === "bash"
-          ? '"plan") completions="browse open view show --kind --optional --many";;'
-          : '"plan") completions=(browse open view show --kind --optional --many);;'
+          ? '"plan") completions="browse open view show --kind --optional --many --profile --boolean";;'
+          : '"plan") completions=(browse open view show --kind --optional --many --profile --boolean);;'
       );
     });
   });

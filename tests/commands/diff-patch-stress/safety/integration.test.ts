@@ -10,7 +10,7 @@ test("Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally
   const backing = await memory({ old: "old\n", next: "new\n", [name]: "old\n", sentinel: "sentinel\n" });
   const observed = instrument(backing, { streaming: true });
   const shell = new Shell({ fs: observed.fs, cwd }).use(diffPatchCommands());
-  const result = await shell.exec(`diff --label 'a/${name}' --label 'b/${name}' old next | patch -p1`);
+  const result = await shell.exec(`diff -u --label 'a/${name}' --label 'b/${name}' old next | patch -p1`);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stderr, "");
   await assertBytes(backing, name, "new\n");

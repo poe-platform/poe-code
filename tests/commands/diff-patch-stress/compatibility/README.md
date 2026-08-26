@@ -2,6 +2,9 @@
 
 ## Explicit oracle selection and reconciliation
 
+See `RECONCILIATION.md` and `reconciliation-*.json` for reviewed fixture changes,
+raw current counts, remaining product/dialect gaps and exact source snapshots.
+
 The original checkpoint below is historical, including its raw Apple failures.
 Current native subprocesses in compatibility and fuzz share `oracle.ts`:
 

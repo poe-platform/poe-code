@@ -1,5 +1,19 @@
 # Independent diff/patch safety verification
 
+## Reconciliation update
+
+This historical checkpoint is retained below. Current fixture reconciliation
+is in `../compatibility/RECONCILIATION.md`, with three-suite strict snapshot
+reports in `../compatibility/reconciliation-*.json`. Source is read-only here.
+The Shell filename-label pipeline explicitly selects `diff -u` after the
+intentional normal-default change. Four contradictory same-target aliases now
+expect conflict status 1, still requiring empty stdout, zero mutation calls,
+and unchanged complete namespace snapshots. This followed 16 passing coherent
+forward/reverse/apply/dry-run controls on the same four alias pairs. Unsafe
+headers, symlinks and hardlinks retain their original security expectations.
+
+## Historical author checkpoint
+
 This leaf owns only `tests/commands/diff-patch-stress/safety/**`. Source,
 author tests, filesystem implementations, and other verifier subtrees were
 read-only. The inspected author revision is

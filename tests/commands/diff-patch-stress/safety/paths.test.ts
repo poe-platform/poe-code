@@ -40,16 +40,38 @@ for (const name of ["café.txt", "cafe\u0301.txt", "file with spaces", "leading 
   });
 }
 
-for (const [first, second, args] of [
+const normalizedTargets = [
   ["target", "./target", []], ["dir/target", "dir/./target", []],
   ["a/target", "b/target", ["-p1"]], ["a/./target", "b/target", ["-p1"]],
-] as const) test(`normalized duplicate prevalidation: ${first} + ${second}`, async () => {
+] as const;
+
+for (const [first, second, args] of normalizedTargets) for (const reverse of [false, true]) for (const dryRun of [false, true]) {
+  test(`coherent normalized sequence: ${first} + ${second}, reverse=${reverse}, dryRun=${dryRun}`, async () => {
+    const target = first.startsWith("dir/") ? "dir/target" : "target";
+    const initial = reverse ? "final\n" : "old\n";
+    const backing = await memory({ [target]: initial, sentinel: "untouched\n" });
+    const before = await snapshot(backing);
+    const identity = await backing.lstat(`${cwd}/${target}`);
+    const observed = instrument(backing);
+    const input = replacement(first) + replacement(second).replace("-old\n+new\n", "-new\n+final\n");
+    const result = await invoke(observed.fs, "patch", { args: [...args, ...(reverse ? ["-R"] : []), ...(dryRun ? ["--dry-run"] : [])], input });
+    assert.equal(result.exitCode, 0, result.stderr);
+    await assertBytes(backing, target, dryRun ? initial : reverse ? "old\n" : "final\n");
+    await assertBytes(backing, "sentinel", "untouched\n");
+    assert.equal((await backing.lstat(`${cwd}/${target}`)).ino, identity.ino);
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), dryRun ? [] : [["writeFile", `${cwd}/${target}`]]);
+    if (dryRun) assert.deepEqual(await snapshot(backing), before);
+  });
+}
+
+for (const [first, second, args] of normalizedTargets) test(`contradictory normalized sequence prevalidation: ${first} + ${second}`, async () => {
   const backing = await memory({ target: "old\n", "dir/target": "old\n" });
   const before = await snapshot(backing);
   const observed = instrument(backing);
   const result = await invoke(observed.fs, "patch", { args, input: replacement(first) + replacement(second) });
-  assert.equal(result.exitCode, 2, result.stderr);
-  assert.match(result.stderr, /duplicate target/u);
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.match(result.stderr, /hunk .* does not match/u);
+  assert.equal(result.stdout, "");
   assert.deepEqual(observed.mutations(), []);
   assert.deepEqual(await snapshot(backing), before);
 });

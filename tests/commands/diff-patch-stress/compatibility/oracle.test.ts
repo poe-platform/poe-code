@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { expectedFiles, native } from "./helpers.js";
 import { oracleIdentity } from "./oracle.js";
@@ -37,4 +39,30 @@ for (const value of ["", "patch", "/nonexistent/virtual-bash-oracle/patch"]) tes
   assert.equal(result.signal, null);
   assert.equal(result.status, 1);
   assert.match(result.stderr, value.startsWith("/") ? /ENOENT/u : /must be a nonempty absolute executable path/u);
+});
+
+for (const fuzz of [0, 1]) test(`native asymmetric boundary fuzz calibration F${fuzz}`, async context => {
+  const identity = oracleIdentity("patch");
+  const input = "--- target\n+++ target\n@@ -1,2 +1,2 @@\n-old\n+new\n expected\n";
+  const result = await native("patch", ["-f", "-p0", `-F${fuzz}`], { target: "old\nactual\n" }, input);
+  const succeeds = fuzz === 1 && identity.dialect !== "apple-patch-2.0-12u11";
+  context.diagnostic(JSON.stringify({ identity, fuzz, rawStatus: result.exitCode, rawFiles: result.files }));
+  assert.deepEqual({ status: result.exitCode, files: result.files }, { status: succeeds ? 0 : 1, files: expectedFiles({ target: succeeds ? "new\nactual\n" : "old\nactual\n" }) });
+});
+
+test("native repeated-context options match independently captured dialect bytes", async context => {
+  const bytes = await readFile(new URL("./flag-evidence.json", import.meta.url));
+  const evidence = JSON.parse(bytes.toString()) as {
+    files: Record<string, string>;
+    records: { identity: { dialect: string }; args: string[]; exitCode: number; stdout: string; stderr: string }[];
+  };
+  const identity = oracleIdentity("diff");
+  const records = evidence.records.filter(record => record.identity.dialect === identity.dialect);
+  assert.equal(records.length, 6, `No pinned repeated-context evidence for ${JSON.stringify(identity)}`);
+  context.diagnostic(`FLAG_EVIDENCE_SHA256 ${createHash("sha256").update(bytes).digest("hex")}`);
+  for (const record of records) {
+    const result = await native("diff", record.args, evidence.files);
+    assert.deepEqual({ status: result.exitCode, stdout: result.stdout.toString(), stderr: result.stderr.toString() },
+      { status: record.exitCode, stdout: record.stdout, stderr: record.stderr });
+  }
 });

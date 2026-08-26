@@ -2,6 +2,11 @@
 
 ## Oracle reconciliation update
 
+Reviewed boundary/legacy decisions and subsequent snapshots are in
+`../compatibility/RECONCILIATION.md` and `../compatibility/reconciliation-*.json`.
+Legacy Apple-range goldens remain separate from strict selected-native
+comparisons; an incompatible GNU result stays red rather than being waived.
+
 The historical Apple checkpoint and `report.json` below remain immutable raw
 evidence: 512 cases, 76 virtual-diff/native-patch reverse failures, plus 2 native
 self-forward and 70 native-self-reverse failures. They are not product failures

@@ -172,8 +172,13 @@ export async function nativeIdentity() {
 }
 
 export async function nativePatch(root: string, before: string, input: string, reverse = false): Promise<string> {
+  const result = await nativePatchResult(root, before, input, reverse);
+  assert.equal(result.exitCode, 0, JSON.stringify(result));
+  return result.target;
+}
+
+export async function nativePatchResult(root: string, before: string, input: string, reverse = false) {
   await writeFile(join(root, "target"), before);
   const result = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], input);
-  assert.equal(result.exitCode, 0, JSON.stringify(result));
-  return readFile(join(root, "target"), "utf8");
+  return { ...result, target: await readFile(join(root, "target"), "utf8") };
 }

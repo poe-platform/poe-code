@@ -49,3 +49,22 @@ export async function exactUpdate(name: string, input: string, args: readonly st
   await backing.writeFile(`${cwd}/${name}`, Buffer.from("old\n"));
   assert.deepEqual(await snapshot(backing), before);
 }
+
+export async function explicitTargetOnlyUpdate(input: string): Promise<void> {
+  const backing = await memory({ authorized: "old\n", target: "old\n", "a/target": "old\n", sentinel: "untouched\n" });
+  await backing.writeFile("/target", Buffer.from("outside header decoy\n"));
+  const before = await snapshot(backing);
+  const target = `${cwd}/authorized`;
+  const expected = before.map(entry => {
+    assert(typeof entry === "object" && entry !== null && "path" in entry);
+    return entry.path === target ? { ...entry, data: Buffer.from("new\n").toString("hex") } : entry;
+  });
+  const observed = instrument(backing);
+  const result = await invoke(observed.fs, "patch", { args: ["-p1", "authorized"], input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, `patching file ${target}\n`);
+  assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
+    [{ method: "writeFile", path: target }]);
+  assert.deepEqual(await snapshot(backing), expected, "Only the explicit target changes; every header decoy and VFS identity remains intact");
+}

@@ -1,5 +1,5 @@
 import test from "node:test";
-import { rejectsWithoutMutation, section } from "./helpers.js";
+import { explicitTargetOnlyUpdate, rejectsWithoutMutation, section } from "./helpers.js";
 
 const malformed = [
   '"a/target" garbage', '"a/target" ', '"a/target"/suffix', '"a/target""',
@@ -21,10 +21,16 @@ const malformed = [
 
 for (const encoded of malformed) {
   for (const placement of ["old", "new", "explicit-old", "explicit-new"] as const) {
-    test(`unsafe/malformed ${placement} ${JSON.stringify(encoded)}`, { timeout: 3000 }, async () => {
+    const explicitAbsolute = placement.startsWith("explicit-")
+      && ['"\\057sandbox/work/target"', '"\\057\\057target"'].includes(encoded);
+    test(`${explicitAbsolute ? "explicit target overrides absolute header" : "unsafe/malformed"} ${placement} ${JSON.stringify(encoded)}`, { timeout: 3000 }, async () => {
       const newHeader = placement === "new" || placement === "explicit-new";
       const explicit = placement.startsWith("explicit-");
       const input = section(newHeader ? "a/target" : encoded, newHeader ? encoded : "a/target");
+      if (explicitAbsolute) {
+        await explicitTargetOnlyUpdate(input);
+        return;
+      }
       await rejectsWithoutMutation(explicit ? input : section("a/first") + input,
         explicit ? ["-p1", "target"] : ["-p1"]);
     });

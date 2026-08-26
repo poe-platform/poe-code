@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { instrument, snapshot } from "../safety/helpers.js";
 import { replacement } from "./fixtures.js";
 import { expectedBytes, fileBytes, memory, run } from "./helpers.js";
 
@@ -10,7 +11,6 @@ for (const [name, quoted, args] of [
   ["traversal after strip", '"a/\\056\\056/target"', ["-p1"]],
   ["decoded NUL", '"target\\000suffix"', []],
   ["decoded backslash traversal", '"..\\\\target"', []],
-  ["explicit target cannot override unsafe decoded header", '"\\057work/target"', ["target"]],
 ] as const) test(`quoted-path security: ${name}`, async () => {
   const files = { target: "old\n", first: "old\n", sentinel: "untouched\n" };
   const filesystem = await memory(files);
@@ -26,6 +26,25 @@ for (const [name, quoted, args] of [
   assert.deepEqual(Buffer.from(await filesystem.readFile("/target")), Buffer.from("outside cwd\n"));
   const after = await filesystem.lstat("/work/target");
   assert.deepEqual({ ...after, atimeMs: before.atimeMs }, before);
+});
+
+test("quoted-path security: explicit target overrides absolute header without touching header names", async () => {
+  const filesystem = await memory({ authorized: "old\n", target: "old\n", first: "old\n", sentinel: "untouched\n" });
+  await filesystem.writeFile("/target", Buffer.from("outside cwd\n"));
+  const before = await snapshot(filesystem);
+  const target = "/work/authorized";
+  const expected = before.map(entry => {
+    assert(typeof entry === "object" && entry !== null && "path" in entry);
+    return entry.path === target ? { ...entry, data: Buffer.from("new\n").toString("hex") } : entry;
+  });
+  const observed = instrument(filesystem);
+  const result = await run("patch", ["authorized"], observed.fs, replacement("target", '"\\057work/target"'));
+  assert.equal(result.status, 0, result.stderr.toString());
+  assert.deepEqual(result.stderr, Buffer.alloc(0));
+  assert.deepEqual(result.stdout, Buffer.from(`patching file ${target}\n`));
+  assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
+    [{ method: "writeFile", path: target }]);
+  assert.deepEqual(await snapshot(filesystem), expected, "Only the explicit target changes; header names and all other VFS entries remain intact");
 });
 
 for (const [name, quoted, linkTarget, linkPath] of [

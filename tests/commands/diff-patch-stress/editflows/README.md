@@ -2,10 +2,31 @@
 
 Recorded 2026-08-26. This worker owns only this directory. Product source,
 author tests, and compatibility/safety/fuzz workers' files were read-only.
-No runtime or development dependency was added. These are intentionally failing
-acceptance regressions, not a claim that refusing common patches is correct.
+No runtime or development dependency was added. The original intentionally failing
+acceptance regressions are preserved as historical evidence below, not a claim
+that refusing common patches is correct.
 
-## Reproduction and measured baseline
+## Post-fix checkpoint: August 26, 2026
+
+On committed source `9d6d292febce66d2e7ffa564a059e8f44e4ebff9`, the original
+suite reported **31 tests, 30 pass, 1 fail**. The remaining assertion was obsolete
+under user authorization commit `e685231032b34f06c34038ce4c443376af7e066d`:
+a valid absolute header does not override or invalidate a safe explicit target.
+Its replacement requires status 0, exact stdout, empty stderr, exactly one write
+to a distinctly named explicit target, and a complete VFS snapshot preserving
+all header-name decoys, other bytes, and entry identities. No-explicit-target
+absolute rejection and all traversal-before-strip and symlink cases remain.
+
+Final result: **31 passed, 0 failed, skipped, TODO, or cancelled**; strict scoped
+TypeScript passed. This includes the same ten isolated native oracle checks;
+no new GNU probe or GNU behavior claim was added. No defect remains in this suite.
+`../path-regressions/postfix-checkpoint.json` records the exact committed-source
+archive, before/after source hashes, test hashes, both run counts, typechecks,
+and executable provenance. Source remained unchanged in that isolated checkpoint;
+concurrent live-tree edits were not incorporated. The historical 20/11 result
+below is not rewritten, and these results are not whole-repository validation.
+
+## Reproduction and historical measured baseline
 
 ```sh
 node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/editflows/*.test.ts
@@ -39,7 +60,7 @@ The initial author hashes of the two subsequently changed files were
 `42375b418511a0fa12688d91278d18a0487ab999cd4e0d186ea4915929da64e2` (diff.ts) and
 `9e2821b36236b40f70654ba3ff7202da3a99b13c81c5642036666d13e4473e10` (unified.ts).
 
-## Five confirmed gaps
+## Five historical confirmed gaps
 
 All patch success fixtures require status 0, empty stderr, and the exact target
 bytes encoded in `fixtures.ts`; currently they return 2, emit no stdout, and

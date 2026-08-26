@@ -3,7 +3,34 @@
 Owned scope: this directory only. Source, contracts, existing tests, root
 configuration, adapters and benchmarks are read-only to this verifier.
 
-## Recorded result: failures retained
+## Post-fix checkpoint: August 26, 2026
+
+Against committed source `9d6d292febce66d2e7ffa564a059e8f44e4ebff9`,
+including explicit-target authorization `e685231032b34f06c34038ce4c443376af7e066d`,
+the unchanged suite first reported **619 tests: 615 passed, 4 failed**.
+Those four assertions incorrectly rejected valid absolute headers despite a
+user-authorized explicit target. They now require success on a distinctly named
+explicit target, exactly one target write, and a complete VFS snapshot proving
+all header-name decoys and other entries retain their bytes and identities.
+All four no-explicit-target counterparts still require rejection before strip.
+Traversal, control, drive/backslash, symlink/hardlink, and explicit directory-label
+rejection remain unchanged. No security failure became an accepted rejection.
+
+Final result: **619 passed, 0 failed, skipped, TODO, or cancelled**; strict scoped
+TypeScript passed. The original 16 directory-label/mail-metadata failures now
+pass without changing their assertions. The companion edit-flow suite passed
+31/31. No remaining defect was observed within these two suites.
+
+`postfix-checkpoint.json` records both pre/post-contract runs, exact commits,
+test hashes, source hashes before/after, scoped typechecks, and native provenance.
+Concurrent source edits made the live tree unsuitable as an immutable checkpoint,
+so both suites ran in an owned temporary `git archive` of the exact source commit,
+with only the three changed test files overlaid. All 102 archived source files
+remained unchanged. No source was edited; the temporary snapshot was removed.
+The historical validation and native captures below remain intact. This is not
+a whole-repository pass or evidence of superiority.
+
+## Historical recorded result: failures retained
 
 On August 26, 2026, three strict-unhandled-rejection runs each reported
 **619 tests: 603 passed, 16 failed, 0 skipped, 0 TODO, 0 cancelled**.
@@ -18,7 +45,7 @@ immutable checkout, and the tracked hash set is not every transitive import.
 Root/source owners must route fixes and rerun this suite against their final
 revision. No failures are skipped, weakened or turned into TODO tests.
 
-## Root-routed findings
+## Historical root-routed findings
 
 1. **Directory syntax collapses into a writable regular file: 10 failures.**
    With `target` and `first` containing `old\n`, append a replacement of

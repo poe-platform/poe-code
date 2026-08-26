@@ -44,7 +44,7 @@ const cases: Record<string, OracleCase> = {
 for (const [name, fixture] of Object.entries(cases)) test(`sed native differential: ${name}`, () => compareNative("sed", fixture));
 
 test("sed rejects unsupported or malformed programs before stdout, input, backup or file effects", async () => {
-  for (const program of ["p;s/a/b/e", "p;w outside", "p;{", "p;b missing", "p;s/(/x/", "p;s/a/\\9/"]) {
+  for (const program of ["p;s/a/b/e", "p;w", "p;{", "p;b missing", "p;s/(/x/", "p;s/a/\\9/"]) {
     let consumed = false;
     const source = (async function* () { consumed = true; yield Buffer.from("a\n"); })();
     const result = await runVirtual("sed", { args: ["-E", "-i.bak", program, "input"], files: { input: "a\n" } }, {}, source);

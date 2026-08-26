@@ -1,4 +1,4 @@
-import { FsError, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, readBytes, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
 
@@ -10,6 +10,7 @@ interface Instruction {
   negate: boolean;
   jump?: number;
   text?: string;
+  file?: string;
   pattern?: Pattern;
   replacement?: string;
   global?: boolean;
@@ -88,6 +89,14 @@ function parse(source: string, extended: boolean): Instruction[] {
     }
     return text + "\n";
   };
+  const fileArgument = (): string => {
+    horizontal();
+    const start = offset;
+    while (offset < source.length && source[offset] !== "\n") offset++;
+    const file = Buffer.from(source.slice(start, offset), "latin1").toString("utf8");
+    if (!file || file.includes("\0")) throw new ProgramError("file command requires a nonempty filename without NUL");
+    return file;
+  };
   while (offset < source.length) {
     horizontal();
     if (source[offset] === ";" || source[offset] === "\n") { offset++; continue; }
@@ -120,6 +129,7 @@ function parse(source: string, extended: boolean): Instruction[] {
         if (flag === "g" && !instruction.global) instruction.global = true;
         else if (flag === "p" && !instruction.print) instruction.print = true;
         else if ((flag === "i" || flag === "I") && !ignoreCase) ignoreCase = true;
+        else if (flag === "w" && instruction.file === undefined) { instruction.file = fileArgument(); break; }
         else if (/^[1-9]$/u.test(flag) && instruction.occurrence === undefined) {
           const rest = /^[0-9]*/u.exec(source.slice(offset))![0]; offset += rest.length;
           instruction.occurrence = Number(flag + rest);
@@ -133,6 +143,9 @@ function parse(source: string, extended: boolean): Instruction[] {
           if (Number(reference[1]) > instruction.pattern.groupCount) throw new ProgramError("replacement references an undefined capture group");
         }
       }
+    } else if (kind === "r" || kind === "w") {
+      if (kind === "r" && second) throw new ProgramError("read accepts at most one address");
+      instruction.file = fileArgument();
     } else if (kind === "a" || kind === "i" || kind === "c") instruction.text = textArgument();
     else if (kind === "b" || kind === "t" || kind === "T" || kind === ":") {
       instruction.text = label();
@@ -197,13 +210,42 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       budget.step(); number++;
       let record = await prepareRecord(current.value);
       let pattern = record.text;
-      let appended = "";
+      const appended: { text?: string; file?: string }[] = [];
+      let appendedSize = 0;
+      const append = (item: { text?: string; file?: string }): void => {
+        appendedSize += (item.text ?? item.file ?? "").length + 32;
+        if (appendedSize > budget.maxBufferBytes) throw new ProgramError("append queue buffer limit exceeded");
+        appended.push(item);
+      };
       let substituted = false;
       let deleted = false;
       let quit = false;
       let status = 0;
       const print = () => write(context, pattern + (record.terminated ? "\n" : ""));
-      const flush = async () => { if (!quiet && !deleted) await print(); if (appended) { await write(context, appended); appended = ""; } };
+      const flush = async () => {
+        if (!quiet && !deleted) await print();
+        for (const item of appended) {
+          if (item.text !== undefined) { await write(context, item.text); continue; }
+          const path = virtualPath(context, item.file!);
+          try {
+            const stream = context.fs.readStream?.(path, { signal: context.signal });
+            if (stream) {
+              for await (const chunk of readBytes(stream, context.signal)) {
+                budget.step(); await budget.checkpoint();
+                if (chunk.byteLength > budget.maxBufferBytes) throw new ProgramError("read buffer limit exceeded");
+                await writeBytes(context.stdout, chunk, context.signal);
+              }
+            } else await writeBytes(context.stdout, await context.fs.readFile(path, { signal: context.signal, maxBytes: budget.maxBufferBytes }), context.signal);
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (!(error instanceof FsError) || !["ENOENT", "EACCES", "EPERM", "EISDIR", "ENOTDIR"].includes(error.code)) throw error;
+          }
+        }
+        appended.length = 0; appendedSize = 0;
+      };
+      const writeFile = async (file: string): Promise<void> => {
+        await context.fs.appendFile(virtualPath(context, file), bytes(pattern + "\n"), { signal: context.signal });
+      };
       const matches = async (address: Address): Promise<boolean> => address.kind === "number" ? number === address.number : address.kind === "last" ? (await peekNext()).done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;
       for (let pc = 0; pc < program.length;) {
         budget.step(); await budget.checkpoint();
@@ -242,7 +284,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             continue;
           }
           case "q": quit = true; status = instruction.status ?? 0; pc = program.length; continue;
-          case "a": appended = budget.check(appended + instruction.text!); break;
+          case "a": append({ text: instruction.text! }); break;
+          case "r": append({ file: instruction.file! }); break;
+          case "w": await writeFile(instruction.file!); break;
           case "i": await write(context, instruction.text!); break;
           case "c":
             if (!instruction.second || ending || instruction.negate || (await peekNext()).done) await write(context, instruction.text!);
@@ -255,7 +299,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "s": {
             const changed = substitute(pattern, getPattern(instruction.pattern), instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
             pattern = changed.text;
-            if (changed.count) { substituted = true; if (instruction.print) await print(); }
+            if (changed.count) { substituted = true; if (instruction.print) await print(); if (instruction.file) await writeFile(instruction.file); }
             break;
           }
           case "y": pattern = [...pattern].map(character => instruction.translation!.get(character) ?? character).join(""); break;
@@ -324,6 +368,10 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     if (sources[0]?.startsWith("#n")) quiet = true;
     const program = parse(sources.join("\n"), extended);
+    const prepareOutputs = async (): Promise<void> => {
+      const paths = new Set(program.flatMap(instruction => instruction.file !== undefined && instruction.kind !== "r" ? [virtualPath(context, instruction.file)] : []));
+      for (const path of paths) await context.fs.writeFile(path, new Uint8Array(), { signal: context.signal });
+    };
     if (inPlace !== undefined) {
       if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
       if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
@@ -331,6 +379,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         const path = virtualPath(context, file);
         if ((await context.fs.lstat(path, { signal: context.signal })).type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files, not links or directories" });
       }
+      await prepareOutputs();
       for (const file of files) {
         let rewritten = "";
         const child = { ...context, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
@@ -342,6 +391,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       }
       return 0;
     }
+    await prepareOutputs();
     if (separate) {
       for (const file of files.length ? files : ["-"]) { const status = await execute(program, context, [file], quiet, budget); if (status) return status; }
       return 0;

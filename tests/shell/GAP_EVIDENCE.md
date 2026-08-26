@@ -1,5 +1,14 @@
 # Targeted shell corrections: evidence and limits
 
+The later diagnostic checkpoint is recorded in `DIAGNOSTIC_EVIDENCE.md`.
+Independent complete-cohort capture confirmed that all seven historically
+reported diagnostic rows already matched the fixed modern `shell` profile;
+source commit `a3ef9d6` fixes other reproduced modern EOF/source-line/`cd`
+diagnostics and adds pinned native and typed-FsError regressions. Original
+historical expectations remain unchanged, with all nine failures explicit.
+One GNU command-substitution pretty-printer line-number limitation remains
+recorded separately rather than being counted as a successful comparison.
+
 Reference capture on 2026-08-26 uses `/bin/bash` version
 `3.2.57(1)-release (arm64-apple-darwin25)`, sanitized `LC_ALL=C`, isolated
 temporary directories, literal argv, a two-second deadline and bounded output.

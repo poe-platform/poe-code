@@ -9,18 +9,18 @@ import { createTextProgramCommands, type TextProgramOptions } from "../../../src
 
 export interface OracleCase {
   readonly args: readonly string[];
-  readonly stdin?: string;
-  readonly files?: Readonly<Record<string, string>>;
+  readonly stdin?: string | Uint8Array;
+  readonly files?: Readonly<Record<string, string | Uint8Array>>;
   readonly expectedExitCode?: number;
 }
 
-export async function makeFileSystem(files: Readonly<Record<string, string>> = {}): Promise<MemoryFileSystem> {
+export async function makeFileSystem(files: Readonly<Record<string, string | Uint8Array>> = {}): Promise<MemoryFileSystem> {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");
   for (const [path, contents] of Object.entries(files)) {
     assert(path && !path.startsWith("/") && !path.split("/").includes(".."));
     await fs.mkdir(`/work/${dirname(path)}`, { recursive: true });
-    await fs.writeFile(`/work/${path}`, Buffer.from(contents));
+    await fs.writeFile(`/work/${path}`, typeof contents === "string" ? Buffer.from(contents) : contents);
   }
   return fs;
 }

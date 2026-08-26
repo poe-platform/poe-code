@@ -9,6 +9,7 @@ export type Expression = { kind: "number"; value: number } | { kind: "string"; v
   | { kind: "unary"; operator: string; operand: Expression; postfix: boolean }
   | { kind: "binary"; operator: string; left: Expression; right: Expression }
   | { kind: "conditional"; condition: Expression; yes: Expression; no: Expression }
+  | { kind: "getline"; target?: Expression; file: Expression }
   | { kind: "call"; name: string; args: Expression[] };
 
 export type Statement = { kind: "block"; body: Statement[] } | { kind: "expression"; expression: Expression }
@@ -325,6 +326,15 @@ export class AwkParser {
 
   private prefix(): Expression {
     const token = this.token;
+    if (this.accept("getline")) {
+      let target: Expression | undefined;
+      if (this.token.kind === "name" || this.at("$")) {
+        target = this.prefix();
+        if (!isLvalue(target)) throw new ProgramError("getline requires an assignable target");
+      }
+      if (!this.accept("<")) throw new ProgramError("getline currently requires file redirection");
+      return { kind: "getline", ...(target ? { target } : {}), file: this.expression(8) };
+    }
     if (token.kind === "number") { this.advance(); return { kind: "number", value: Number(token.text) }; }
     if (token.kind === "string") { this.advance(); return { kind: "string", value: token.text }; }
     if (token.text === "/" || token.text === "/=") {

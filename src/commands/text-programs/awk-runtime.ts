@@ -1,4 +1,4 @@
-import type { ByteSource, CommandContext } from "../../contracts/index.js";
+import { FsError, readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
 import { AwkArray, compare, formatted, inputValue, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
@@ -55,6 +55,7 @@ export class AwkRuntime {
   private readonly frames: Map<string, Value>[] = [];
   private readonly regexes = new Map<string, Pattern>();
   private readonly outputs = new Set<string>();
+  private readonly inputs = new Map<string, Reader>();
   private fields: Scalar[] = [];
   private record = "";
   private entries = 0;
@@ -183,6 +184,7 @@ export class AwkRuntime {
       case "regex": return numeric(expression.pattern.find(this.record, this.budget) ? 1 : 0);
       case "variable": return this.get(expression.name);
       case "field": case "array": return (await this.reference(expression)).get();
+      case "getline": return this.getline(expression);
       case "tuple": throw new ProgramError("tuple is only valid as an array membership key");
       case "conditional": return this.evaluate(truth(await this.scalarExpression(expression.condition)) ? expression.yes : expression.no);
       case "unary": {
@@ -227,6 +229,45 @@ export class AwkRuntime {
       }
       case "call": return this.call(expression.name, expression.args);
     }
+  }
+
+  private async getline(expression: Extract<Expression, { kind: "getline" }>): Promise<Scalar> {
+    const target = expression.target ? await this.reference(expression.target) : undefined;
+    const file = Buffer.from(this.asText(await this.scalarExpression(expression.file)), "latin1").toString("utf8");
+    if (!file) throw new ProgramError("getline requires a nonempty filename");
+    let path: string;
+    try { path = virtualPath(this.context, file); }
+    catch (error) {
+      if (!(error instanceof FsError)) throw error;
+      this.set("ERRNO", string(byteString(error.message)));
+      return numeric(-1);
+    }
+    let reader = this.inputs.get(path);
+    if (!reader) {
+      if (this.inputs.size >= 256) throw new ProgramError("getline open-file limit exceeded");
+      const { context, budget } = this;
+      const source = (async function* () {
+        if (file === "-") yield* context.stdin;
+        else if (context.fs.readStream) yield* context.fs.readStream(path, { signal: context.signal });
+        else yield await context.fs.readFile(path, { signal: context.signal, maxBytes: budget.maxBufferBytes });
+      })();
+      reader = new Reader(readBytes(source, context.signal), budget);
+      this.inputs.set(path, reader);
+    }
+    let record: string | undefined;
+    try { record = await reader.read(this.varText("RS")); }
+    catch (error) {
+      this.context.signal.throwIfAborted();
+      if (!(error instanceof FsError)) throw error;
+      this.inputs.delete(path);
+      await reader.close();
+      this.set("ERRNO", string(byteString(error.message)));
+      return numeric(-1);
+    }
+    if (record === undefined) return numeric(0);
+    if (target) target.set(inputValue(record));
+    else this.setRecord(record);
+    return numeric(1);
   }
 
   private async call(name: string, args: readonly Expression[]): Promise<Value> {
@@ -288,7 +329,13 @@ export class AwkRuntime {
     if (name === "index") return numeric(this.asText(first).indexOf(this.asText(values[1]!)) + 1);
     if (name === "tolower") return string(this.asText(first).replace(/[A-Z]/gu, character => character.toLowerCase()));
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
-    if (name === "close") return numeric(this.outputs.delete(virtualPath(this.context, Buffer.from(this.asText(first), "latin1").toString("utf8"))) ? 0 : -1);
+    if (name === "close") {
+      const path = virtualPath(this.context, Buffer.from(this.asText(first), "latin1").toString("utf8"));
+      const reader = this.inputs.get(path);
+      this.inputs.delete(path);
+      await reader?.close();
+      return numeric(this.outputs.delete(path) || reader !== undefined ? 0 : -1);
+    }
     const amount = number(first);
     const result = name === "int" ? Math.trunc(amount) : name === "sqrt" ? Math.sqrt(amount) : name === "exp" ? Math.exp(amount) : name === "log" ? Math.log(amount) : name === "sin" ? Math.sin(amount) : name === "cos" ? Math.cos(amount) : name === "atan2" ? Math.atan2(amount, number(values[1]!)) : NaN;
     if (!Number.isFinite(result)) throw new ProgramError(`invalid mathematical result in '${name}'`);
@@ -370,6 +417,15 @@ export class AwkRuntime {
   }
 
   async run(): Promise<number> {
+    try { return await this.runProgram(); }
+    finally {
+      const readers = [...this.inputs.values()];
+      this.inputs.clear();
+      await Promise.all(readers.map(reader => reader.close()));
+    }
+  }
+
+  private async runProgram(): Promise<number> {
     let stopped = false;
     try { for (const statement of this.program.begin) await this.execute(statement); }
     catch (error) { if (error instanceof Flow && error.kind === "exit") { this.exit(error); stopped = true; } else throw error; }

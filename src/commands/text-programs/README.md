@@ -126,6 +126,7 @@ with optional exponents; arithmetic uses IEEE-754 doubles.
 | Arrays | Associative indexing, comma-separated multidimensional keys via `SUBSEP`, `in` and `(a,b) in array`, element/whole-array `delete`; iteration uses insertion order and does not promise a host awk's unspecified traversal order. |
 | Functions | Named functions, recursion, scalar arguments by value, arrays by reference, `return`, and omitted parameters as locals; array parameter roles are inferred before execution. |
 | Output | `print`, `printf`, `sprintf`, `OFMT`, `CONVFMT`; virtual-file `>`/`>>` and `close(path)`. The first open chooses truncate/append; subsequent writes append until close. |
+| Explicit file input | `getline [variable/field/array] < expression` returns 1/0/-1 for record/EOF/I/O error. It respects RS, leaves NR/FNR unchanged, and resplits fields only when replacing `$0`. File cursors persist until `close(path)` or invocation cleanup; at most 256 may be retained. `"-"` reads stdin; `"./-"` names a literal VFS file. |
 | Arguments/environment | Mutable `ARGC`, `ARGV`, and `ENVIRON` initialized only from the command context. Clearing/deleting ARGV entries skips files. ENVIRON changes do not mutate the parent context. |
 | String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `tolower`, `toupper`. Substitution supports `&` and escaped literals, not sed-style capture backreferences. |
 | Math functions | `int`, `sqrt`, `exp`, `log`, `sin`, `cos`, `atan2`; invalid/nonfinite results and division by zero are errors. |
@@ -148,7 +149,7 @@ input or producing output. Dynamic regexes/values, filesystem failures, resource
 limits, and context-dependent errors can fail after earlier output; this is not
 transactional execution. Program files must be read before they can be parsed.
 
-Known awk gaps: `getline`, command pipes/coprocesses, `system`, `fflush`, random
+Known awk gaps: unredirected/main-input `getline`, command pipes/coprocesses, `system`, `fflush`, random
 and time functions, regex/multibyte `RS`, locale/Unicode character semantics,
 hexadecimal literals, arbitrary-precision arithmetic, and GNU extensions such
 as `gensub`, `patsplit`, `asort`, nested arrays, and special variable behavior

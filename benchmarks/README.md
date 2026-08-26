@@ -79,3 +79,12 @@ no per-invocation signal override. The shell invokes literal argv, inherits its
 filesystem, cancellation and budgets, and isolates child state. Standard tools
 prefer this hook; xargs explicitly provides empty child stdin. The structural
 contract is tested against the actual shell hook without shell-specific casts.
+
+## Expanded independent coverage
+
+`tests/commands/text-programs-stress/run.ts` measures 141 native sed/awk/pipeline
+cases and 20 safety probes; it keeps all gaps and failures visible. These are
+not added to just-bash totals. `benchmarks/performance.ts` runs a separate warmed,
+paired twelve-workload performance pilot with per-sample correctness assertions.
+Read `benchmarks/COVERAGE_AUDIT.md` for methodology, protocol gaps, and limits on
+claims. Neither expansion establishes general superiority or complete coverage.

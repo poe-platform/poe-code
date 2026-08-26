@@ -171,25 +171,33 @@ export class Prompt<Value> extends EventEmitter {
       return Promise.resolve(CANCEL);
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       let rl: readline.Interface | null = null;
       let settled = false;
 
-      const settle = (value: string | typeof CANCEL) => {
+      const settle = (value: string | typeof CANCEL | Error) => {
         if (settled) {
           return;
         }
         settled = true;
         this.input.removeListener("close", onCancel);
         this.signal?.removeEventListener("abort", onCancel);
+        rl?.removeListener("error", settle);
+        rl?.removeListener("line", settle);
+        rl?.removeListener("close", onClose);
         rl?.close();
-        resolve(value);
+        if (value instanceof Error) {
+          reject(value);
+        } else {
+          resolve(value);
+        }
       };
 
       const onCancel = () => {
         this.state = "cancel";
         settle(CANCEL);
       };
+      const onClose = () => settle(rl?.line ?? "");
 
       this.input.once("close", onCancel);
       rl = readline.createInterface({ input: this.input, terminal: false });
@@ -197,8 +205,9 @@ export class Prompt<Value> extends EventEmitter {
         rl.close();
         return;
       }
+      rl.once("error", settle);
       rl.once("line", settle);
-      rl.once("close", () => settle(rl?.line ?? ""));
+      rl.once("close", onClose);
       this.signal?.addEventListener("abort", onCancel, { once: true });
       if (this.signal?.aborted) {
         onCancel();

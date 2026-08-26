@@ -109,7 +109,7 @@ export async function candidateStat(path: string, budget: Budget): Promise<FileS
   budget.step();
   await budget.checkpoint();
   try { return await host(budget.context, () => budget.context.fs.stat(path, { signal: budget.context.signal })); }
-  catch (error) { if (isFsError(error, "ENOENT") || isFsError(error, "ENOTDIR")) return undefined; throw error; }
+  catch (error) { if (isFsError(error, "ENOENT") || isFsError(error, "ENOTDIR") || isFsError(error, "ELOOP")) return undefined; throw error; }
 }
 
 export async function selectTarget(authorized: AuthorizedPatch, exists: (path: string) => Promise<boolean>, budget: Budget): Promise<string> {

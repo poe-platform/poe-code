@@ -47,6 +47,8 @@ type DataNode =
   | { kind: "regex"; source: string; flags: string; lastIndex: number };
 export type ReplayData = { root: Atom; nodes: DataNode[] };
 
+export class MissingReplayCapabilityError extends TypeError {}
+
 export function encodeReplayData(
   value: SandboxValue,
   options: {
@@ -77,11 +79,11 @@ export function encodeReplayData(
     if (isSandboxClosure(entry)) {
       capabilityId = options.identifyCapability?.(entry, path);
       if (typeof capabilityId !== "string" || capabilityId.length === 0)
-        throw new TypeError("A callable needs an explicit resume capability.");
+        throw new MissingReplayCapabilityError("A callable needs an explicit resume capability.");
       if (!options.captureCapabilityProperties) return { tag: "capability", id: capabilityId };
     }
     if (typeof entry !== "object" || isSandboxPromise(entry) || isSandboxGenerator(entry)) {
-      throw new TypeError(
+      throw new MissingReplayCapabilityError(
         "A host result containing a callable or live execution state needs an explicit resume capability."
       );
     }

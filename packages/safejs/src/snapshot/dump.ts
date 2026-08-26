@@ -200,7 +200,11 @@ export function dump(
   }
 
   if (hasSnapshot(result)) {
-    return Promise.resolve(serializeRunSnapshot(result.snapshot));
+    try {
+      return Promise.resolve(serializeRunSnapshot(result.snapshot));
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   return Promise.resolve(result).then((resolved) => {

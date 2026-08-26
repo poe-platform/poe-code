@@ -89,6 +89,12 @@ export function validateDumpEnvelope(
     fail("unsupportedVersion", "$.version", `expected ${DUMP_FORMAT_VERSION}`);
   }
   requireNonEmptyString(root.sourceHash, "$.sourceHash", limits);
+  const replayError = Object.getOwnPropertyDescriptor(root, "replayError");
+  if (replayError !== undefined) {
+    if (!("value" in replayError)) fail("invalidType", "$.replayError", "must be a data property");
+    const reason = requireNonEmptyString(replayError.value, "$.replayError", limits);
+    fail("invalidState", "$.replayError", `snapshot is not replayable: ${reason}`);
+  }
   const state = {
     allowFunctions: true,
     allowUndefined: true,

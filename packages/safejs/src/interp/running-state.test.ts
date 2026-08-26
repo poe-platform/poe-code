@@ -5,7 +5,7 @@ import { run } from "../run.js";
 import { restore } from "../restore.js";
 import { Budget, SandboxError } from "./budget.js";
 import { createGeneratorChannel } from "./generator.js";
-import { wrapCallerInjectedBindings } from "./host-bridge.js";
+import { declareHostOperation, wrapCallerInjectedBindings } from "./host-bridge.js";
 import { getSandboxIterator } from "./iteration.js";
 import { callArrayMethod } from "./methods/array.js";
 import { callMapMethod } from "./methods/map.js";
@@ -231,19 +231,23 @@ describe("interpreter running-state guards", () => {
       bindings: { callback: async () => 1 }
     });
     const snapshot = completed.snapshot;
+    let replayed = false;
     const activeRun = run(source, {
       snapshot,
       bindings: {
-        async callback() {
-          expect(() => restore(snapshot, { source })).toThrowError(
-            expect.objectContaining({ code: "reentry", name: "SandboxError" })
-          );
-          return 2;
-        }
+        callback: declareHostOperation(async () => 2, "re-issue", {
+          onReplay() {
+            replayed = true;
+            expect(() => restore(snapshot, { source })).toThrowError(
+              expect.objectContaining({ code: "reentry", name: "SandboxError" })
+            );
+          }
+        })
       }
     });
 
-    await expect(activeRun).resolves.toMatchObject({ ok: true, returnValue: 2 });
+    await expect(activeRun).resolves.toMatchObject({ ok: true, returnValue: 1 });
+    expect(replayed).toBe(true);
     expect(restore(snapshot, { source })).toBe(snapshot);
   });
 

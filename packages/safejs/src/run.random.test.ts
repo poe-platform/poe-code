@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { dump } from "./dump.js";
-import { createSeededRandom } from "./interp/globals/math.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
 import { restore, type SafeJSSnapshot } from "./restore.js";
 import { run } from "./run.js";
@@ -111,16 +110,15 @@ describe("replayable default randomness", () => {
     }
   );
 
-  it("continues the saved default sequence instead of drawing fresh host randomness", async () => {
+  it("replays a completed snapshot without advancing its random sequence", async () => {
     const source = "return Math.random();";
     const first = await run(source);
     expect(first.snapshot.random).toBeDefined();
     if (first.snapshot.random === undefined) throw new Error("Missing random state");
-    const expected = createSeededRandom(first.snapshot.random.state).next();
     const snapshot = restore(JSON.parse(await dump(first)), { source });
     await expect(run(source, { snapshot })).resolves.toMatchObject({
       ok: true,
-      returnValue: expected
+      returnValue: first.ok ? first.returnValue : undefined
     });
   });
 

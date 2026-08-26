@@ -43,6 +43,14 @@ export type DumpableSnapshot = {
 };
 
 export function serializeSafeJSSnapshot(snapshot: DumpableSnapshot): string {
+  const replayError = Object.getOwnPropertyDescriptor(snapshot, "replayError");
+  if (replayError !== undefined) {
+    const reason =
+      "value" in replayError && typeof replayError.value === "string"
+        ? replayError.value
+        : "missing resume capability";
+    throw new TypeError(`Snapshot is not replayable: ${reason}`);
+  }
   for (const [key, value] of getEnumerableDataEntries(snapshot)) {
     if (key !== "version" && key !== "sourceHash" && key !== "heap") {
       assertSnapshotGraphDepth(value, key);

@@ -34,16 +34,26 @@ describe("assertReplayEquivalent", () => {
     await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).resolves.toBeUndefined();
   });
 
-  it("fails clearly when a harness uses unseeded Math.random", async () => {
+  it("replays unseeded Math.random through every captured and completed snapshot", async () => {
     const mdPath = "/repo/harness/random.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: random\nversion: 1\n---\n",
       "/repo/harness/random.ajs": "export default async (frontmatter) => Math.random();"
     });
 
-    await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).rejects.toThrow(
-      "non-deterministic"
-    );
+    await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).resolves.toBeUndefined();
+  });
+
+  it("replays mixed built-in randomness and time through completed snapshots", async () => {
+    const mdPath = "/repo/harness/mixed-random.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: mixed-random\nversion: 1\n---\n",
+      "/repo/harness/mixed-random.ajs": [
+        'import * as time from "time";',
+        "export default async (frontmatter) => [Math.random(), time.random(), time.uuid(), time.now(), Math.random()];"
+      ].join("\n")
+    });
+    await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).resolves.toBeUndefined();
   });
 
   it("replays a snapshot captured before any await resolves", async () => {

@@ -397,12 +397,72 @@ checked, harness passed, zero spawns.
 
 ### Remaining release gates
 
-The followup's expanded tests, hard-crash matrix, build/type/lint gates, and real
-CLI screenshot pass. Commit the fixes separately from the already-pushed
-commit, integrate newer main changes without discarding them, then verify actual
-GitHub/npm publication of the corrective followup. The full language-completeness
-goal remains active; the remaining checklist items are not claimed complete by
-this release.
+The durable-checkpoint correction is published as `poe-code@4.0.68`, commit
+`a7ec0f14`, release workflow `33019509402`. GitHub's release tag and npm's
+`gitHead` identify that commit. The final pre-push suite passed 19,963 tests
+(41 skipped), and all 18 hard-crash cases passed again after integration of
+newer main changes. Lockfile dependencies were synchronized before the final
+build and push. No hooks were skipped. The non-TTY tool environment's
+`TERM=dumb` disagreed with the new prompt lifecycle tests' TTY assumption;
+all 71 targeted lifecycle cases and the full suite passed with
+`TERM=xterm-256color`, without changing unrelated prompt code.
+
+### Completed-snapshot followup
+
+Randomness is still unchecked. Review of the replay-equivalence helper found an
+explicit expectation that an unseeded random-only harness would fail replay of
+its completed snapshot. Six initial regressions reproduced advancing random
+state, lost original inputs, and repeated completed host operations.
+
+Completed snapshots now carry the same portable host/input/scheduling history
+as pending checkpoints and replay from their original RNG state. Repeated
+completed-snapshot generations, returned source functions, seeded/default
+randomness, and mixed built-in time calls have focused regression coverage.
+Legacy terminal snapshots without recorded history retain the old progression
+behavior; once resumed, newly recorded snapshots replay equivalently.
+
+Capturing full terminal history also exposed opaque native handles from FS/MCP
+operations. Ordinary execution must remain available for such handles, but they
+cannot silently turn into an incomplete replay snapshot. Terminal results now
+mark unavailable replay capabilities with `replayError`; dump/restore refuse
+them before replaying side effects. Malformed markers must not invoke getters
+or coercion hooks. Pending checkpoint serialization remains strict. This does
+not claim to serialize executable native closures or live external resources.
+
+#### Completed-run native-reference matrix
+
+Using the compiled public SDK's `run` and `dump`, execute four script families
+at widths 1, 32, and 256. For each original run, derive a native LCG reference
+from its automatically generated seed, then restore its completed snapshot
+three times, serializing each new generation. Supply a conflicting restore seed
+to verify that saved history takes precedence.
+
+1. Mutate aliased/cyclic input data and call a nested native read method. Omit
+   original data bindings on restore; compare every row and native call count.
+2. Return source callbacks through native echo operations. Compare lexical
+   counters and three random draws per row, with no repeated native echoes.
+3. Catch every third host failure and compare randomness before/after each
+   operation. Verify native reads execute only in the original generation.
+4. Mix `Math.random`, time random/UUID/now, and reads in a paired harness.
+   Delete its legacy sidecar before each restore and change the wall clock;
+   compare against original values and independently generated random/UUID data.
+
+All 12 cases passed, including 36 restored generations, in 5–996 milliseconds
+per case. The 18 separate-process hard-crash/restart cases also passed again.
+These are ad hoc terminal scripts, not committed QA scripts. Unit coverage
+additionally verifies legacy terminal progression, source callback restoration,
+and malformed/nonportable snapshot refusal. Both `dump(result)` and
+`dump(executionPromise)` reject asynchronously for nonportable histories.
+
+Followup validation: 3,802 expanded tests passed, 39 skipped; opt-in
+adversarial/parser fuzz passed 9, skipped 5. All 67 build tasks and the root
+bundle, root/SafeJS typechecks, focused ESLint, Prettier, and diff checks passed.
+Re-ran and inspected the real CLI screenshot: 8,192 random draws and 32 UUIDs,
+harness passed, zero spawns.
+
+Finish a separate verified release before checking off randomness. The full
+language-completeness goal remains active; no remaining checklist item is
+claimed complete by the durable-checkpoint correction.
 
 ## Stale artifact cleanup
 

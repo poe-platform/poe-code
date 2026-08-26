@@ -78,7 +78,7 @@ import { DUMP_FORMAT_VERSION } from "./snapshot/dump-format.js";
 import { createSnapshotScheduler, type SnapshotScheduler } from "./snapshot/scheduler.js";
 import { UnsnapshotableValueError } from "./snapshot/serialize.js";
 import { prepareReplayInputs } from "./snapshot/replay-inputs.js";
-import type { ReplayData } from "./snapshot/replay-data.js";
+import { MissingReplayCapabilityError, type ReplayData } from "./snapshot/replay-data.js";
 
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
@@ -117,6 +117,7 @@ export type RunSnapshot = SafeJSSnapshot & {
   clock?: RunClockSnapshot;
   hostCalls?: HostCallRecord[];
   replay?: HostCallReplay;
+  replayError?: string;
   promiseReplay?: PromiseReplaySnapshot;
   initialInputs?: ReplayData;
   loopIterations?: Record<string, LoopIterationSnapshot>;
@@ -412,18 +413,30 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                 scope: executionScope,
                 snapshot: interpreterSnapshot
               });
+        await throwIfReturnedPromiseRejected(result);
+        await throwIfUnhandledPromiseRejected(promiseTracker);
         await activeSnapshotScheduler.finish();
 
+        let replay: HostCallReplay | undefined;
+        let replayError: string | undefined;
+        try {
+          replay = hostCalls.snapshotReplay();
+        } catch (error) {
+          if (!(error instanceof MissingReplayCapabilityError)) throw error;
+          replayError = error.message;
+        }
         const snapshot = createRunSnapshot({
           bindings: executionScope.snapshot().bindings,
           clock: options.clock,
           hostCalls: hostCalls.snapshot(),
+          replay,
+          initialInputs: initialInputs.snapshot,
+          promiseReplay: promiseReplay.snapshot(),
           random,
           sourceHash
         });
+        if (replayError !== undefined) snapshot.replayError = replayError;
         dumpController.finalize(snapshot);
-        await throwIfReturnedPromiseRejected(result);
-        await throwIfUnhandledPromiseRejected(promiseTracker);
 
         return {
           ...result,

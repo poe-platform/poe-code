@@ -1858,7 +1858,7 @@ try {
     });
   });
 
-  it("replays seeded random progress from a saved snapshot", async () => {
+  it("replays seeded completed snapshots from their original random state", async () => {
     const source = "return Math.random()";
     const first = await run(source, {
       randomSeed: 123
@@ -1876,11 +1876,11 @@ try {
     });
     expect(second).toMatchObject({
       ok: true,
-      returnValue: 0.4351300236303359,
+      returnValue: 0.2837369213812053,
       snapshot: {
         random: {
           seed: 123,
-          state: 1_868_869_221
+          state: 1_218_640_798
         }
       }
     });

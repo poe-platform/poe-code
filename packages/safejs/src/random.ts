@@ -23,9 +23,10 @@ export function createReplayableRandom(
       snapshot.loopIterations !== null &&
       Object.keys(snapshot.loopIterations).length > 0;
     const replaysFromStart =
-      Array.isArray(snapshot?.pendingAwaits) &&
-      snapshot.pendingAwaits.length > 0 &&
-      (snapshot.replay !== undefined || !hasLoopState);
+      snapshot?.replay !== undefined ||
+      (Array.isArray(snapshot?.pendingAwaits) &&
+        snapshot.pendingAwaits.length > 0 &&
+        !hasLoopState);
     initialState = replaysFromStart
       ? (saved.initialState ?? saved.seed)
       : (saved.resumeState ?? saved.state);

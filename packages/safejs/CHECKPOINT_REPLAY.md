@@ -12,6 +12,18 @@ its replay history with an unwind-time snapshot. Adding or removing an
 Synchronous functions returning promises preserve those promises; only an
 explicit `await` consumes them and creates an await checkpoint.
 
+Completed-run snapshots also retain portable replay history and original inputs.
+Restoring one reuses the original random sequence and completed host outcomes,
+rather than starting a new invocation at the final RNG state. Legacy snapshots
+without recorded replay history retain their previous progression semantics.
+
+Ordinary execution can still return opaque native functions or live host state.
+If a completed host result lacks a resume capability, the returned snapshot has
+a `replayError` diagnostic. Dumping or restoring it fails explicitly; the
+runtime does not silently omit history and repeat external operations. Pending
+checkpoint capture remains strict about unsupported values. These host-handle
+limits are separate from reconstruction of source functions, which is supported.
+
 The language-completeness plan in `docs/plans/safejs-language-completeness.md`
 tracks outstanding release gates. This document describes the implemented
 callback-recovery interface, not a claim that every checkpoint case is complete.

@@ -71,7 +71,7 @@ export async function parseUnified(text: string, budget: Budget): Promise<FilePa
         budget.step();
         await budget.checkpoint();
         const body = physical[index++];
-        const kind = body?.[0];
+        const kind = body === "" ? " " : body?.[0];
         if (body === undefined || (kind !== " " && kind !== "+" && kind !== "-")) throw new ToolError("truncated or malformed hunk body");
         if ((kind !== "+" && oldEnded) || (kind !== "-" && newEnded)) throw new ToolError("content follows an incomplete final line");
         if (kind !== "+") oldRead++;

@@ -10,6 +10,7 @@ import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./typ
 import { ShellInput } from "./input.js";
 import { evaluateArithmetic } from "./arithmetic.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
+import { byteLocale } from "./locale.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -831,9 +832,10 @@ export class Runtime {
         return 2;
       }
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
-      const line = await input.line(raw, count === undefined && delimiter === undefined ? undefined : {
-        ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }),
-      });
+      const line = count === 0 && context.stdin === closedSource ? { value: "", escaped: new Set<number>(), terminated: false }
+        : await input.line(raw, count === undefined && delimiter === undefined ? undefined : {
+          ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables),
+        });
       if (!names.length) state.variables.REPLY = line.value;
       else {
         const separators = state.variables.IFS ?? " \t\n";

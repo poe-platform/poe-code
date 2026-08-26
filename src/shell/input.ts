@@ -91,27 +91,27 @@ export class ShellInput implements ByteSource {
     return { next: () => this.next(), [Symbol.asyncIterator]() { return this; } };
   }
 
-  line(raw: boolean, options?: { count?: number; delimiter?: number }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
+  line(raw: boolean, options?: { count?: number; delimiter?: number; byteCount?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     return this.#cursor.consume(this.signal, () => options ? this.readBounded(raw, options) : this.readLine(raw));
   }
 
-  private async readBounded(raw: boolean, options: { count?: number; delimiter?: number }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
+  private async readBounded(raw: boolean, options: { count?: number; delimiter?: number; byteCount?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     const characters: string[] = [];
     const escaped = new Set<number>();
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8", { fatal: true });
     const delimiter = options.delimiter ?? 10;
     let chunk: Uint8Array = new Uint8Array();
     let offset = 0;
     let length = 0;
     let escaping = false;
+    let escapedCharacter = false;
+    let units = 0;
     let terminated = options.count === 0;
     try {
       while (!terminated) {
         if (offset === chunk.length) {
           const result = await this.#cursor.take(this.signal);
           if (result.done) {
-            const tail = decoder.decode();
-            if (tail) characters.push(tail);
             break;
           }
           chunk = result.value;
@@ -126,19 +126,28 @@ export class ShellInput implements ByteSource {
           this.signal.throwIfAborted();
         }
         if (byte === 0) continue;
+        if (!raw && !escaping && byte === 92) { escaping = true; continue; }
+        if (escaping) {
+          escaping = false;
+          if (byte === 10) continue;
+          escapedCharacter = true;
+        }
         const decoded = decoder.decode(Uint8Array.of(byte), { stream: true });
         for (const character of decoded) {
-          if (!raw && !escaping && character === "\\") { escaping = true; continue; }
-          if (escaping) {
-            escaping = false;
-            if (character === "\n") continue;
+          if (escapedCharacter) {
+            escapedCharacter = false;
             escaped.add(characters.length);
           }
           characters.push(character);
-          if (characters.length === options.count) terminated = true;
         }
+        units += options.byteCount ? 1 : Array.from(decoded).length;
+        if (units === options.count) terminated = true;
       }
+      decoder.decode();
       return { value: characters.join(""), escaped, terminated };
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes("encoded data")) throw new Error("read: unsupported non-UTF-8 text boundary");
+      throw error;
     } finally {
       if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
     }

@@ -51,8 +51,12 @@ status 0, empty stderr. The virtual text model counts Unicode characters
 independently of host locale, assigns `é😀` and leaves `z`. This is an explicit
 native difference, not an exact-Unicode-parity claim across versions/locales.
 Paired GNU 5.3 calibration confirms Unicode character counting in UTF-8 locales
-and zero-count no-consumption. GNU 5.3 counts bytes under `LC_ALL=C`; virtual
-text reads currently use UTF-8 characters irrespective of environment locale.
+and zero-count no-consumption. GNU 5.3 counts bytes under `LC_ALL=C`; the read
+follow-up now counts bytes for explicit C/POSIX locale and characters otherwise.
+`LC_ALL`, then `LC_CTYPE`, then `LANG` determine the requested locale. A C count
+that ends within a UTF-8 character explicitly fails with an unsupported-text
+diagnostic instead of assigning replacement characters; unconsumed bytes remain
+available to later commands. This boundary limitation is tested and not hidden.
 Delimiter matching uses the first encoded byte; an empty argument selects NUL.
 Skipped NUL bytes follow the modern manual for these option forms, not a claim
 of Bash 3.2 binary-text compatibility. Non-option reads retain prior behavior.
@@ -65,6 +69,9 @@ There is a version-specific zero-count difference: Bash 3.2
 `abcdef`, status 0. The virtual shell follows the GNU manual's explicit
 zero-character behavior: succeeds without consuming input, assigns empty text.
 The zero-count test asserts that the underlying iterator is not pulled.
+An already-closed stdin descriptor still produces status 1 and assigns empty
+text for `-n0`, without probing its iterator or consuming outer input. This is
+separately captured from GNU 5.3 and covered by the frozen independent holdout.
 Primary reference: GNU Bash manual, Bash Builtins / read,
 https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html .
 

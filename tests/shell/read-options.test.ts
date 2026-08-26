@@ -75,3 +75,24 @@ test("read delimiter waits are cancellable", async () => {
   setTimeout(() => controller.abort(reason), 20);
   await assert.rejects(pending, (error) => error === reason);
 });
+
+test("GNU 5.3 zero-count closed-input failure assigns empty without consuming outer input", async () => {
+  const result = await setup().shell.exec('value=old; read -n0 value <&-; say "<$value>:$?"; pass', { stdin: "untouched" });
+  assert.equal(result.stdout, "<>:1\nuntouched");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("explicit C locale counts bytes while UTF-8 counts characters", async () => {
+  for (const [locale, stdout] of [["C", '["é","0"]😀Z'], ["POSIX", '["é","0"]😀Z'], ["en_US.UTF-8", '["é😀","0"]Z']] as const) {
+    const result = await setup().shell.exec('IFS= read -rn2 value; args "$value" "$?"; pass', { env: { LC_ALL: locale }, stdin: "é😀Z" });
+    assert.equal(result.stdout, stdout, locale);
+    assert.equal(result.stderr, "", locale);
+  }
+});
+
+test("C byte counts explicitly reject an incomplete UTF-8 text value", async () => {
+  const result = await setup().shell.exec('IFS= read -rn1 value; args "$value" "$?"; pass', { env: { LC_ALL: "C" }, stdin: "éZ" });
+  assert.match(result.stderr, /unsupported non-UTF-8 text boundary/u);
+  assert.deepEqual(result.stdoutBytes, new Uint8Array([...new TextEncoder().encode('["","1"]'), 0xa9, 90]));
+});

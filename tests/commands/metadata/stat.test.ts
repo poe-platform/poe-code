@@ -45,7 +45,7 @@ test("stat printf escapes, padding, option precedence and literal paths", async 
   assert.deepEqual([...binary.stdoutBytes], [255, 128, 0, 52]);
 });
 
-test("stat unavailable fields and backend modes fail explicitly, never as zero", async () => {
+test("stat missing fields fail rather than becoming zero; mutation capability does not erase provided modes", async () => {
   const backing = await fixture();
   const fs: FileSystem = new Proxy(backing, { get(target, property) {
     if (property === "capabilities") return { ...target.capabilities, permissions: false };
@@ -56,7 +56,7 @@ test("stat unavailable fields and backend modes fail explicitly, never as zero",
     const member: unknown = Reflect.get(target, property, target);
     return typeof member === "function" ? member.bind(target) : member;
   } });
-  for (const format of ["%a", "%i", "%u", "%W", "%U", "%b", "%.9Y"]) {
+  for (const format of ["%i", "%u", "%W", "%U", "%b", "%.9Y"]) {
     const result = await runMetadata("stat", ["-c", format, "file"], fs);
     assert.equal(result.exitCode, 1, format);
     assert.match(result.stderr, /ENOTSUP/u);
@@ -64,7 +64,8 @@ test("stat unavailable fields and backend modes fail explicitly, never as zero",
   }
   const fallback = await runMetadata("stat", ["file"], fs);
   assert.equal(fallback.exitCode, 0, fallback.stderr);
-  assert.match(fallback.stdout, /Mode: unavailable/u);
+  assert.match(fallback.stdout, /Mode: 751/u);
+  assert.equal((await runMetadata("stat", ["-c%a", "file"], fs)).stdout, "751\n");
   assert.match(fallback.stdout, /Birth: -/u);
 });
 

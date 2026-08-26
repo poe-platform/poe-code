@@ -64,6 +64,7 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
     requireOperands(parsed.operands, reference === undefined ? 2 : 1);
     const change = reference === undefined ? modeChange(parsed.operands[0]!, configured.umask) : undefined;
     const paths = reference === undefined ? parsed.operands.slice(1) : parsed.operands;
+    if (context.fs.capabilities.readOnly) throw new FsError("EROFS", { syscall: "chmod" });
     if (!context.fs.chmod || context.fs.capabilities.permissions === false) throw new FsError("ENOTSUP", { syscall: "chmod" });
     const referenceMode = reference === undefined ? undefined : (await context.fs.stat(pathOf(context, reference), { signal: context.signal })).mode & 0o7777;
     let exitCode = 0;

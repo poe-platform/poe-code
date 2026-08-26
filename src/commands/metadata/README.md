@@ -49,8 +49,10 @@ Timestamps are deterministic UTC at millisecond resolution, not GNU's full
 nanosecond rendering. The default report is a concise virtual metadata report,
 not byte-identical GNU stat output. A missing birth timestamp renders `-` in
 `%w`/the default report; requesting an unavailable numeric birth timestamp or
-optional device/inode/owner/link-count field fails explicitly. Mode fields fail
-when the backend declares permissions unsupported; the default says unavailable.
+optional device/inode/owner/link-count field fails explicitly. Mode fields report
+the required `FileStat.mode` supplied by the backend, including through readonly
+wrappers. A synthetic/virtual backend mode is not a claim that the provider can
+enforce POSIX permissions; mutation support remains a separate capability check.
 No host username/group lookup, block allocation guesses, SELinux context, mount
 point or filesystem-capacity data is fabricated. Unsupported directives and
 `-f`/cache policies are rejected. Quoting supports literal, shell-always and

@@ -101,7 +101,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
     const code = match[4]!;
     let text: string;
     let numeric = false;
-    if (["a", "A", "f"].includes(code) && context.fs.capabilities.permissions === false) throw new FsError("ENOTSUP", { message: "filesystem does not expose permission modes" });
+    if (["a", "A", "f"].includes(code)) available(stat.mode, "mode");
     const times: Record<string, number | undefined> = { X: stat.atimeMs, Y: stat.mtimeMs, Z: stat.ctimeMs, W: stat.birthtimeMs };
     if (Object.hasOwn(times, code)) { text = epoch(available(times[code], code), precision ?? 0); numeric = true; }
     else if (code === "n") text = name;
@@ -149,7 +149,7 @@ export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
       try {
         const path = pathOf(context, name);
         const stat = await context.fs[parsed.follow ? "stat" : "lstat"](path, { signal: context.signal });
-        const format = parsed.format ?? `  File: %N\n  Size: %s\tType: %F\n  Mode: ${context.fs.capabilities.permissions === false ? "unavailable" : "%a (%A)"}\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w`;
+        const format = parsed.format ?? "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w";
         const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes);
         await budget.output(parsed.printf ? text : Buffer.concat([text, Uint8Array.of(10)]));
       } catch (error) {

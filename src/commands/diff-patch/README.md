@@ -3,6 +3,21 @@
 Dependency-free author implementation for virtual-bash. Product code performs
 all filesystem operations through `CommandContext.fs`; it does not import host
 filesystem or process APIs, launch commands, or evaluate source strings.
+There are zero runtime dependencies and no host-process or host-filesystem
+fallback. An adapter may provide host storage, but commands use only the VFS.
+
+The selected compatibility targets are **GNU Diffutils 3.12 (`diff`) and GNU
+patch 2.8**, not an interchangeable GNU/BSD profile. This is a bounded
+implementation in progress, not full GNU coverage. The default patch policy is
+noninteractive, with GNU `--batch`-style reversal decisions; `--atomic` is a
+separate library extension. Local source defines the implemented behavior.
+See [GNU-DIFF.md](GNU-DIFF.md) for pinned GNU option evidence and retained BSD
+observations. GNU's primary manual describes the reference policies:
+
+```text
+https://www.gnu.org/software/diffutils/manual/diffutils.html
+https://www.gnu.org/software/diffutils/manual/html_node/Backups.html
+```
 
 ## Integration contract
 
@@ -30,6 +45,11 @@ and the source entry point was exercised directly through `Shell.use`.
   `-u` / `--unified`.
   `-U N`, `-UN`, and `--unified=N` set context, including zero context.
 - Context output uses `-c`, `-C N`, or `--context[=N]`.
+- Bare unified/context selectors contribute three lines; repeated explicit
+  widths select the greatest width, rather than the last one. Legacy numeric
+  options such as `-0` are also parsed; their interaction with bare short versus
+  long selectors is documented in [GNU-DIFF.md](GNU-DIFF.md). Conflicting output
+  styles are rejected, including when brief output is requested.
 - `-b` / `--ignore-space-change` and `-w` / `--ignore-all-space` affect
   comparison rather than rewriting emitted file content.
 - `-q` / `--brief`, `-r` / `--recursive`, and `-N` / `--new-file`;
@@ -59,16 +79,29 @@ periodically to observe cancellation.
   `-i FILE` / `--input=FILE`, or `--input FILE`; `-i -` means stdin.
   Autodetection supports mixed-format sections in one input.
   `-u` / `--unified`, `-n` / `--normal`, and `-c` / `--context` assert the
-  format of every section; conflicting format flags or a later mismatched
-  section reject the input before writes. Normal input requires one explicit
-  target. An optional positional target overrides each section's target without
-  bypassing header path validation.
-- `-p N`, `-pN`, and `--strip=N` strip path components; the default is zero,
-  not a basename-selection heuristic. `-R` / `--reverse` swaps both headers,
-  hunk coordinates, and added/deleted lines. `--dry-run` performs preparation
-  without writing target files.
-- `-F N`, `-FN`, `--fuzz=N`, and `--fuzz N` enable bounded context fuzz. The
-  default is **zero**, intentionally stricter than common native defaults.
+  format of every section. Conflicting flags fail immediately; a later format
+  mismatch can leave earlier sections published in default mode. Normal input
+  needs a positional target or a usable `Index:` filename. At most one positional
+  target is accepted; a second positional patch-input operand is not supported.
+  The target overrides each section's selection without bypassing header safety
+  validation. `--` terminates options, and short flags may be grouped.
+- With **no `-p`**, automatic header selection uses basenames. Explicit `-p0`
+  retains relative directories; `-p N`, `-pN`, `--strip=N`, and `--strip N`
+  strip components. These options never strip an explicit positional target.
+  Selection prefers existing candidates, then ranks candidates by missing
+  parents, component count, basename length, and total length as applicable;
+  it is not an unconditional old-header-first rule and never renames files.
+- `-R` / `--reverse` swaps headers, hunk coordinates, and additions/deletions.
+  Default mode keeps section order. Without `-f` / `--force`, apparent reversed
+  or already-applied input can be automatically reversed. `-t` / `--batch` is
+  accepted; the default already asks no questions. `--force` disables automatic
+  reversal, not path checks or resource limits. Reapplying a patch can therefore
+  undo it rather than act as an idempotent no-op.
+- `--dry-run` checks without publishing targets, rejects, backups, or directory
+  changes. `--atomic` requests staged preflight, described below; neither flag
+  changes the default fuzz or reversal policy.
+- `-F N`, `-FN`, `--fuzz=N`, and `--fuzz N` set bounded context fuzz. The
+  default is **two**; use `-F0` to require all context to match.
   Exact matching tries the expected position, then increasing offsets with
   positive offsets first. Fuzz ignores up to N outer context lines at each end,
   never removal lines; actual target context is retained. When nothing remains
@@ -79,14 +112,15 @@ periodically to observe cancellation.
   and final newline presence must still match; actual context and literal
   additions are preserved, including their original whitespace.
 - `/dev/null` headers create/delete files. Creation accepts a missing target or
-  an existing empty regular file, including under reverse; an existing nonempty
-  target conflicts. The parent directory must already exist, and creation hunks
-  must contain no old content. Deletion requires an empty resulting file.
-  Multiple distinct targets are supported. Header-selected patches prefer an existing
-  old header path, then an existing new header path; they do not rename files.
-- `-E` / `--remove-empty-files` stages removal when a section's result is empty,
-  including with dry-run, reverse, and sequential delete/recreate sections.
-  Nonempty results remain files.
+  an existing empty regular file; a nonempty target can trigger reversal or
+  rejected hunks. Creation hunks contain no old content. Missing target parents
+  are created on publication. Deletion removes only an empty resulting file;
+  unmatched remaining content is retained and reported as a conflict.
+  Multiple distinct targets are supported.
+- `-E` / `--remove-empty-files` removes other empty results too. After removals,
+  empty ancestors are pruned, stopping before cwd for relative targets or before
+  `/` for absolute targets. Nonempty directories remain; `.orig` or `.rej` files
+  can keep a directory nonempty. Dry-run does not create or prune directories.
 - Epoch-dated empty sides in unified/context headers also support creation and
   deletion. Timestamp recognition supports ISO-style and traditional `ctime`
   headers, following GNU patch 2.8's measured near-epoch window (strictly between
@@ -103,14 +137,22 @@ periodically to observe cancellation.
   Recognized mail envelopes accept descriptive text and diffstat before the
   patch (at most 1024 lines/64 KiB), and a `-- ` signature (128 lines/8 KiB).
   Patch syntax in signatures and unsupported mode/rename metadata are rejected.
-- Counts, coordinate continuity, hunk ordering, newline markers, and all file
-  sections are validated before writes. Repeated normalized targets are staged
-  sequentially against the preceding result. `-R` reverses section order as well
-  as hunks, making it the inverse of the complete edit sequence, not native
-  forward-order reversal. Git rename/copy semantics are not supported.
-  Empty input is a successful no-op. Malformed/truncated input is not silently
-  skipped, and no interactive questions, automatic reversal, reject files, or
-  backup files are produced.
+- Successful hunks are published even when other hunks fail; later file
+  sections can still succeed. Failed hunks normally produce `TARGET.rej`.
+  `-r FILE`, `-rFILE`, `--reject-file=FILE`, and `--reject-file FILE` select a
+  reject destination; `-r -` suppresses reject-file output. Its parent must
+  already exist when the reject is written. Rejects sharing a destination in
+  one invocation are appended after the first write replaces that destination.
+- Mismatches (failed, offset, fuzzed, or automatically reversed application)
+  enable `TARGET.orig` backups by default. `--no-backup-if-mismatch` disables
+  them; `--backup-if-mismatch` enables them. This is not unconditional `-b`
+  backup support or GNU's complete backup-naming/versioning interface.
+- Counts, coordinates, hunk ordering, and newline markers are checked, but
+  default mode is not all-input preflight: some later parse failures are
+  reported after earlier sections publish. Safety and parsing limits can still
+  reject input before publication. Malformed/truncated input is not silently
+  accepted; empty input is a successful no-op. Git rename/copy semantics are
+  not supported.
 - Suppressed blank bodies are accepted: normal `<`/`>` and context `!`/`+`/`-`
   without a following space denote complete empty data lines. Bare blank context
   lines denote shared empty data only within the declared side range; count and
@@ -120,7 +162,9 @@ periodically to observe cancellation.
   Cancellation rejects with the supplied signal reason rather than converting
   it to an ordinary command exit.
 
-See [PARSER.md](PARSER.md) for focused parser details and recorded verification.
+See [PARSER.md](PARSER.md) for focused parser details and historical verification.
+Its earlier preflight-only publication descriptions predate this default-policy
+change; the publication contract below distinguishes the two current modes.
 
 ## Text and path rules
 
@@ -145,7 +189,11 @@ Traversal (`..` components), backslashes, drive-prefix components,
 directory-shaped labels, and control characters other than tabs are
 rejected **before normalization or stripping**, even with an explicit target.
 Adjacent relative slashes collapse before stripping; traversal never collapses.
-Dot components are allowed; repeated normalized targets share staged state.
+Dot components are allowed. Repeated normalized targets see published state in
+default mode, or staged state with `--atomic`. In the inspected default
+`--dry-run` path, preceding results are neither published nor staged: repeated
+sections read unchanged VFS content. Do not assume that this simulates a
+sequential real run; `--atomic --dry-run` instead uses staged state.
 Input patch files may be read from another virtual directory with `-i`, including
 an absolute virtual path.
 Diff operands may use absolute virtual paths. Resolved paths are limited to
@@ -162,24 +210,35 @@ outside the supplied virtual filesystem API.
 
 ## Failure and cancellation policy
 
-Preparation parses the entire input, validates every target and hunk, computes
-all outputs, and checks cumulative output size **before any target write**.
-Ordinary malformed patches, mismatched hunks, unsafe paths, and preparation
-limit errors leave all target bytes unchanged. Before committing, existing
-target contents and types are rechecked to detect observable concurrent changes.
-This is not a transaction or lock; another actor can still race those checks.
+**Default mode:** input is buffered and candidate paths are authorized before
+publication, but applicability and result budgets are evaluated section by
+section. Successful hunks/files can remain published after a conflict, later
+parse error, resource failure, or sink failure. Status is emitted as sections
+are processed. A conflict returns 1 and does not itself prevent later sections
+from applying. A fatal publication error stops processing; a file section may
+already have written its backup or target before a reject write fails.
 
-Final results collapse to one operation per target, in first-seen target order
-(after reversal when requested); create-then-delete absent targets do not publish.
-Commit counts refer to these final target operations, not input sections.
-Commit operations run sequentially. A commit-stage filesystem
-or work-budget failure stops immediately, reports the committed-prefix count
-and failing path, and does not roll back or attempt later targets. The failing
-operation itself may already have side effects. Cancellation during commit
-propagates the signal reason: earlier commits remain, the in-flight host
-operation may continue, and later targets are not attempted. No multi-file or
-single-file atomicity is promised by this command. A status-output sink failure
-after successful commits also does not undo changes.
+**Explicit `--atomic` extension:** parse and stage all sections, reject hunk or
+target conflicts, and check prepared result budgets before publication. Repeated
+targets use preceding staged results; final state collapses to one publication
+entry per target. `--atomic -R` also reverses section order, unlike default `-R`.
+Ordinary preparation failures leave targets unchanged and produce no reject or
+backup files. Successful staged application can still create mismatch backups.
+Status is buffered until publication completes. This mode is **preflight and
+staging, not a backend transaction**; its name does not promise atomic writes.
+
+Both modes recheck target content and type before publication to detect
+observable changes; atomic mode also rechecks all prepared targets before its
+publication loop. There is no lock or compare-and-swap, so races remain possible.
+Publication runs sequentially. A publication-stage filesystem or work-budget
+failure stops immediately and reports the completed-entry count and failing
+path; default counts refer to sections, atomic counts to collapsed targets.
+It does not roll back or attempt later entries, and the failing operation may
+already have side effects. Cancellation propagates the signal reason: earlier
+writes and directory changes remain, and uncooperative in-flight host work may
+continue. Directory pruning or status-output failures can occur after target
+publication. No single-file or multi-file atomicity, rollback, race freedom, or
+forced termination of host work is promised.
 
 Every filesystem request receives the command signal. Waiting on host promises,
 stdin, and sinks is interruptible and observes late rejections. CPU-heavy
@@ -192,7 +251,7 @@ synchronous JavaScript operation.
 | Option | Default | Scope |
 | --- | ---: | --- |
 | `maxInputBytes` | 16 MiB | Aggregate captured input, including target rechecks |
-| `maxOutputBytes` | 16 MiB | Diff stdout, or aggregate patch results plus status |
+| `maxOutputBytes` | 16 MiB | Diff stdout, or aggregate patch results, rejects, backups, and status |
 | `maxLines` | 100,000 | Aggregate tokenized lines, including converted formats and target contents, and individual hunk-coordinate bound |
 | `maxWork` | 8,000,000 | Traversal, chunk, matching, and computation work units |
 | `maxMatrixCells` | 4,000,000 | Diff LCS table cells, four bytes each |
@@ -211,19 +270,56 @@ directory listings must also be bounded by their owners.
 
 ## Known gaps
 
-This is not full GNU/BSD diff or patch compatibility. Ed patches,
-binary patches, renames/copies, mode-only patches, permission
-changes, automatic parent-directory creation, empty-directory changes, and
-symlink patches are unsupported. `-N` treats absent content as empty and cannot
-express creation/deletion of a zero-byte file. Diagnostics, timestamps, default fuzz, default path
-selection, placement heuristics, and malformed-patch policy intentionally
-differ from native tools. No result here demonstrates superiority to just-bash
-or completion of the wider full-shell/72-hour objective.
-Option-order and whitespace-dialect differences remain separately recorded by
-the independent verifiers. Known comparative gaps include nine GNU
-repeated-context selector checks, asymmetric `-F0` placement, and legacy BSD
-empty-range reverse semantics. These remain unresolved comparisons, not
-user-approved exemptions.
+The GNU versions above are targets, not a full-coverage claim. Ed patches,
+binary patches, renames/copies, mode-only patches, permission changes,
+empty-directory patches, and symlink patches are unsupported. `diff -N` treats
+absent content as empty and cannot express creation/deletion of a zero-byte
+file. Bounded UTF-8 processing and the quadratic unmatched diff matrix do not
+support arbitrary binary or huge-data workloads; there is no native fallback.
+
+The flag lists above describe the implemented interface, not all GNU flags.
+For example, patch `-b`/`--backup`, `-N`/`--forward`, `-d`/`--directory`,
+`-o`/`--output`, `--posix`, and `--binary` are not accepted. Diagnostics,
+timestamps/metadata, repeated-line alignment, placement, and malformed-input
+handling are not established as fully GNU-identical. GNU mismatches remain
+defects to investigate, not a vague GNU/BSD parity exemption. Historical BSD
+observations remain evidence of that earlier oracle, not the current target.
+
+The nine formerly failing GNU repeated-context selector checks are addressed
+in the recorded [GNU-DIFF.md](GNU-DIFF.md) checkpoint; that does not resolve all
+other comparisons. Asymmetric `-F0` placement and legacy BSD empty-range reverse
+observations remain separately recorded, with current GNU patch migration
+verification still in progress. No result here demonstrates superiority to
+just-bash or completion of the wider full-shell/72-hour objective.
+
+## Evidence during GNU migration
+
+This README was reconciled against active source on August 26, 2026, without
+running the global suites. Source inspection is not a test pass. Earlier
+results below and in sibling documents retain their original scope and oracle;
+they do not certify the changed patch default or the `--atomic` extension.
+
+- [PARSER.md](PARSER.md) records the earlier 829/829 author and 156/156 GNU
+  reference checks, alongside raw independent parser 75/80 (5 failures) and
+  formats 1055/1069 (14 failures). These are historical parser checkpoints.
+- [GNU-DIFF.md](GNU-DIFF.md) records subsequent selector work: compatibility
+  110/110, formats 1058/1069 (11 failures), owned options 310/310, and an expanded
+  author selection 746/756 (10 failures). Its source/executable hashes, old BSD
+  observations, and unresolved assertions remain there.
+- At this documentation inspection, the saved migration logs under
+  `tests/commands/diff-patch-stress/gnu-target/` reported policy baseline
+  953/956 (3 failures) in `policy-baseline-2026-08-26.tap`, atomic-before
+  2011/2216 (205 failures) in `atomic-before-migration-2026-08-26.tap`, and
+  atomic-after 964/1028 (64 failures) in
+  `atomic-after-migration-2026-08-26.tap`. These are observed working-tree
+  artifacts from ongoing verification, not a fresh run or a same-denominator
+  before/after acceptance claim. All three logs recorded zero skips and
+  cancellations; failures are retained, not waived.
+
+Source and verification are still changing. In particular, historical
+preflight-only parser documentation must not be read as the default publication
+contract, and the default dry-run/repeated-target limitation above still needs
+source-owner verification. No whole-repository pass is claimed.
 
 ## Optional GNU reference driver
 
@@ -241,10 +337,10 @@ The extended driver's recorded checkpoint is in `PARSER.md`.
 This focused evidence does not replace the full comparison denominator or prove
 full-shell compatibility or superiority.
 
-## Author validation checkpoint
+## Historical author validation checkpoint
 
-Author tests are in `tests/commands/diff-patch/`. They do not replace the
-different verifier the root orchestrator will assign after handoff.
+Author tests are in `tests/commands/diff-patch/`. They do not replace independent
+verification; the original checkpoint below predates the GNU policy migration.
 
 On August 26, 2026, the original author checkpoint passed **123/123 tests**, with no
 skips or cancellations. The scoped strict TypeScript command below passed.

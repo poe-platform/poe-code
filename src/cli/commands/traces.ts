@@ -9,7 +9,7 @@ import { intro } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { resolveCommandFlags } from "./shared.js";
-import { jsonOptionDescription } from "./json-output.js";
+import { jsonOptionDescription, writeJson } from "./json-output.js";
 
 const TRACE_SOURCES = ["claude", "codex", "pi", "poe-code"] as const satisfies AgentTraceSource[];
 
@@ -115,14 +115,9 @@ export function registerTracesCommand(program: Command, container: CliContainer)
         );
       }
 
-      if (!json) {
-        intro("traces");
-      }
-
-      await runTraceViewer({
+      const viewerOptions = {
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
-        fs: container.fs as RunTraceViewerOptions["fs"],
         assumeYes: flags.assumeYes,
         path: pathArg,
         sources: parseTraceSources(options.source),
@@ -134,6 +129,57 @@ export function registerTracesCommand(program: Command, container: CliContainer)
         open,
         htmlOut,
         rebuildIndex: options.rebuildIndex === true
+      };
+
+      if (flags.dryRun) {
+        if (json) {
+          writeJson({ dryRun: true, operation: "traces", options: viewerOptions });
+        } else {
+          const logger = container.loggerFactory.create({
+            dryRun: true,
+            verbose: flags.verbose,
+            scope: "traces"
+          });
+          if (pathArg === undefined && viewerOptions.rebuildIndex) {
+            logger.dryRun("Dry run: would rebuild the trace index.");
+          }
+          if (open || htmlOut !== undefined) {
+            logger.dryRun(
+              `Dry run: would export trace ${pathArg} as HTML${htmlOut !== undefined ? ` to ${htmlOut}` : ""}.`
+            );
+            if (open) {
+              logger.dryRun("Dry run: would open the HTML in a browser.");
+            }
+          } else {
+            logger.dryRun(
+              pathArg === undefined
+                ? "Dry run: would list traces."
+                : `Dry run: would display trace ${pathArg}.`
+            );
+          }
+          if (viewerOptions.sources !== undefined) {
+            logger.resolved("Sources", viewerOptions.sources.join(", "));
+          }
+          if (viewerOptions.since !== undefined) {
+            logger.resolved("Since", viewerOptions.since.toISOString());
+          }
+          if (viewerOptions.limit !== undefined) {
+            logger.resolved("Limit", String(viewerOptions.limit));
+          }
+          if (viewerOptions.fullTitles) {
+            logger.resolved("Titles", "full");
+          }
+        }
+        return;
+      }
+
+      if (!json) {
+        intro("traces");
+      }
+
+      await runTraceViewer({
+        ...viewerOptions,
+        fs: container.fs as RunTraceViewerOptions["fs"]
       });
     });
 }

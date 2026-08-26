@@ -17,13 +17,9 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/agent-trace-viewer", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/agent-trace-viewer")>();
-  return {
-    ...actual,
-    runTraceViewer: runTraceViewerMock
-  };
-});
+vi.mock("@poe-code/agent-trace-viewer", () => ({
+  runTraceViewer: runTraceViewerMock
+}));
 
 const { registerTracesCommand } = await import("./traces.js");
 
@@ -46,17 +42,26 @@ function createProgram(): Command {
     .option("--verbose");
 }
 
-function createTracesProgram(): { program: Command; fs: FileSystem } {
+function createTracesProgram() {
   const fs = createMemFs();
+  const logger = vi.fn();
   const container = createCliContainer({
     fs,
-    prompts: vi.fn().mockResolvedValue({}),
+    prompts: vi.fn(async () => {
+      throw new Error("Unexpected prompt");
+    }),
+    commandRunner: vi.fn(async () => {
+      throw new Error("Unexpected command execution");
+    }),
+    httpClient: vi.fn(async () => {
+      throw new Error("Unexpected HTTP request");
+    }),
     env: { cwd, homeDir },
-    logger: () => {}
+    logger
   });
   const program = createProgram();
   registerTracesCommand(program, container);
-  return { program, fs };
+  return { program, fs, logger };
 }
 
 describe("traces command", () => {
@@ -68,7 +73,190 @@ describe("traces command", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.useRealTimers();
+  });
+
+  describe.each([
+    { name: "leading global flag", prefix: ["--dry-run", "traces"], suffix: [] },
+    { name: "trailing global flag", prefix: ["traces"], suffix: ["--dry-run"] },
+    { name: "trace alias", prefix: ["trace"], suffix: ["--dry-run"] }
+  ])("dry run with $name", ({ prefix, suffix }) => {
+    it.each([
+      { mode: "listing", args: [], messages: ["Dry run: would list traces."] },
+      {
+        mode: "path",
+        args: ["/tmp/session.jsonl"],
+        messages: ["Dry run: would display trace /tmp/session.jsonl."]
+      },
+      {
+        mode: "HTML output",
+        args: ["/tmp/session.jsonl", "--html-out", "/tmp/out.html"],
+        messages: ["Dry run: would export trace /tmp/session.jsonl as HTML to /tmp/out.html."]
+      },
+      {
+        mode: "browser",
+        args: ["/tmp/session.jsonl", "--open"],
+        messages: [
+          "Dry run: would export trace /tmp/session.jsonl as HTML.",
+          "Dry run: would open the HTML in a browser."
+        ]
+      },
+      {
+        mode: "HTML and browser",
+        args: ["/tmp/session.jsonl", "--open", "--html-out", "/tmp/out.html"],
+        messages: [
+          "Dry run: would export trace /tmp/session.jsonl as HTML to /tmp/out.html.",
+          "Dry run: would open the HTML in a browser."
+        ]
+      },
+      {
+        mode: "index rebuild",
+        args: ["--rebuild-index"],
+        messages: ["Dry run: would rebuild the trace index.", "Dry run: would list traces."]
+      },
+      {
+        mode: "index rebuild and path",
+        args: ["/tmp/session.jsonl", "--rebuild-index"],
+        messages: ["Dry run: would display trace /tmp/session.jsonl."]
+      }
+    ])("previews $mode without invoking the viewer", async ({ args, messages }) => {
+      const { program, fs, logger } = createTracesProgram();
+
+      await program.parseAsync(["node", "cli", ...prefix, ...args, ...suffix]);
+
+      expect(runTraceViewerMock).not.toHaveBeenCalled();
+      expect(logger.mock.calls.map(([message]) => message)).toEqual(messages);
+      expect(logger.mock.calls.flat().join("\n")).not.toContain("{");
+      expect(logger.mock.calls.flat().join("\n")).not.toContain(cwd);
+      expect(logger.mock.calls.flat().join("\n")).not.toContain(homeDir);
+      expect(await fs.readdir(cwd)).toEqual([]);
+      expect(await fs.readdir(homeDir)).toEqual([]);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+
+    it("shows only requested filters with parsed values", async () => {
+      const { program, logger } = createTracesProgram();
+
+      await program.parseAsync([
+        "node",
+        "cli",
+        ...prefix,
+        "--source",
+        "claude",
+        "codex",
+        "--since",
+        "2h",
+        "--limit",
+        "007",
+        "--full-titles",
+        ...suffix
+      ]);
+
+      expect(runTraceViewerMock).not.toHaveBeenCalled();
+      expect(logger.mock.calls.map(([message]) => message)).toEqual([
+        "Dry run: would list traces.",
+        "Sources: claude, codex",
+        "Since: 2026-07-01T10:00:00.000Z",
+        "Limit: 7",
+        "Titles: full"
+      ]);
+    });
+
+    it.each([undefined, "/tmp/session.jsonl"])(
+      "emits only a JSON preview for path %s with parsed options",
+      async (pathArg) => {
+        const { program, logger } = createTracesProgram();
+        const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+        await program.parseAsync([
+          "node",
+          "cli",
+          ...prefix,
+          ...(pathArg === undefined ? [] : [pathArg]),
+          "--json",
+          "--source",
+          "claude",
+          "codex",
+          "--since",
+          "2h",
+          "--limit",
+          "7",
+          "--yes",
+          "--all-workspaces",
+          "--full-titles",
+          "--rebuild-index",
+          ...suffix
+        ]);
+
+        expect(runTraceViewerMock).not.toHaveBeenCalled();
+        expect(stdout).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(String(stdout.mock.calls[0][0]))).toEqual({
+          dryRun: true,
+          operation: "traces",
+          options: {
+            cwd,
+            homeDir,
+            assumeYes: true,
+            ...(pathArg === undefined ? {} : { path: pathArg }),
+            sources: ["claude", "codex"],
+            allWorkspaces: true,
+            since: "2026-07-01T10:00:00.000Z",
+            limit: 7,
+            json: true,
+            fullTitles: true,
+            open: false,
+            rebuildIndex: true
+          }
+        });
+        expect(introMock).not.toHaveBeenCalled();
+        expect(logger).not.toHaveBeenCalled();
+      }
+    );
+  });
+
+  describe.each([false, true])("validation with dryRun=%s", (dryRun) => {
+    it.each([
+      { args: ["--open"], error: "--open requires a trace path." },
+      {
+        args: ["--html-out", "/tmp/out.html"],
+        error: "--html-out requires a trace path."
+      },
+      {
+        args: ["/tmp/session.jsonl", "--open", "--json"],
+        error: "--open cannot be used with --json."
+      },
+      {
+        args: ["/tmp/session.jsonl", "--html-out", "/tmp/out.html", "--json"],
+        error: "--html-out cannot be used with --json."
+      },
+      { args: ["--source", "gemini"], error: 'Unsupported trace source "gemini".' },
+      { args: ["--since", "invalid"], error: 'Invalid duration for --since: "invalid".' },
+      { args: ["--since", "0h"], error: 'Invalid duration for --since: "0h".' },
+      { args: ["--since", "-2h"], error: 'Invalid duration for --since: "-2h".' },
+      { args: ["--limit", "0"], error: 'Invalid --limit value "0".' },
+      { args: ["--limit", "-1"], error: 'Invalid --limit value "-1".' },
+      { args: ["--limit", "1.5"], error: 'Invalid --limit value "1.5".' },
+      { args: ["--limit", "bad"], error: 'Invalid --limit value "bad".' },
+      { args: ["--limit", " "], error: 'Invalid --limit value " ".' }
+    ])("rejects $args before preview or delegation", async ({ args, error }) => {
+      const { program, logger } = createTracesProgram();
+      const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          ...(dryRun ? ["--dry-run"] : []),
+          "traces",
+          ...args
+        ])
+      ).rejects.toThrow(error);
+
+      expect(runTraceViewerMock).not.toHaveBeenCalled();
+      expect(logger).not.toHaveBeenCalled();
+      expect(stdout).not.toHaveBeenCalled();
+    });
   });
 
   it("delegates parsed flags to the trace viewer", async () => {

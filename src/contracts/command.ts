@@ -41,16 +41,17 @@ export class CommandRegistry {
   }
 
   register(command: CommandDefinition, options: RegisterCommandOptions = {}): this {
-    if (!command.name || /[\s/\0]/u.test(command.name)) {
+    const { name, execute } = command;
+    if (typeof name !== "string" || !name || /[\s/\0]/u.test(name)) {
       throw new TypeError("Command names must be nonempty and contain no whitespace, slash, or NUL");
     }
-    if (typeof command.execute !== "function") {
+    if (typeof execute !== "function") {
       throw new TypeError("Command execute must be a function");
     }
-    if (this.#commands.has(command.name) && !options.replace) {
-      throw new Error(`Command already registered: ${command.name}`);
+    if (this.#commands.has(name) && !options.replace) {
+      throw new Error(`Command already registered: ${name}`);
     }
-    this.#commands.set(command.name, Object.freeze({ ...command }));
+    this.#commands.set(name, Object.freeze({ ...command, name, execute }));
     return this;
   }
 

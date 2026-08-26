@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
 
 export function escapeXml(text: string): string {
@@ -32,6 +32,7 @@ export interface MockRequest {
 export class MockDav {
   readonly files = new Map<string, Uint8Array | null>([["/", null]]);
   readonly requests: MockRequest[] = [];
+  readonly locks = new Map<string, { token: string; expires: number }>();
   etag(path: string): string | undefined {
     const data = this.files.get(path);
     return data === undefined ? undefined : `"${createHash("sha256").update(data === null ? "directory" : "file").update(data ?? "").digest("hex")}"`;
@@ -46,9 +47,55 @@ export class MockDav {
     const exists = this.files.has(path);
     const parent = path.slice(0, path.lastIndexOf("/")) || "/";
     const method = init.method;
+    for (const [name, lock] of this.locks) if (lock.expires <= Date.now()) this.locks.delete(name);
     const match = headers.get("If-Match");
-    if (match && (match === "*" ? !exists : match !== this.etag(path))) return new Response(null, { status: 412 });
+    if (match && (match === "*" ? !exists : match.startsWith("W/") || match !== this.etag(path))) return new Response(null, { status: 412 });
     if (headers.get("If-None-Match") === "*" && exists) return new Response(null, { status: method === "GET" ? 304 : 412 });
+    const condition = headers.get("If");
+    const submitted = new Set<string>();
+    if (condition) {
+      const tagged = /^<([^<>]+)>\s+\((.*)\)$/.exec(condition);
+      if (!tagged) return new Response(null, { status: 400 });
+      const target = this.path(new URL(tagged[1]!, url).pathname);
+      const conditions = tagged[2]!.match(/(?:Not\s+)?(?:<[^<>]+>|\[(?:W\/)?"[^"]*"\])/g);
+      if (!conditions?.length || conditions.join(" ") !== tagged[2]) return new Response(null, { status: 400 });
+      for (let expression of conditions) {
+        const negate = expression.startsWith("Not ");
+        if (negate) expression = expression.slice(4);
+        let matches: boolean;
+        if (expression.startsWith("<")) {
+          const token = expression.slice(1, -1);
+          submitted.add(token);
+          matches = [...this.locks].some(([name, lock]) => lock.token === token && (target === name || target.startsWith(`${name}/`)));
+        } else matches = this.etag(target)?.replace(/^W\//, "") === expression.slice(1, -1).replace(/^W\//, "");
+        if (matches === negate) return new Response(null, { status: 412 });
+      }
+    }
+    if (method === "LOCK") {
+      if (headers.get("Depth") !== "infinity" || !init.body) return new Response(null, { status: 400 });
+      if ([...this.locks.keys()].some((name) => name === path || name.startsWith(`${path}/`) || path.startsWith(`${name}/`))) return new Response(null, { status: 423 });
+      if (!exists) this.files.set(path, new Uint8Array());
+      const token = `urn:uuid:${randomUUID()}`;
+      this.locks.set(path, { token, expires: Date.now() + 60_000 });
+      return new Response(`<d:prop xmlns:d="DAV:"><d:lockdiscovery><d:activelock>`
+        + `<d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:depth>infinity</d:depth>`
+        + `<d:timeout>Second-60</d:timeout><d:locktoken><d:href>${escapeXml(token)}</d:href></d:locktoken>`
+        + `<d:lockroot><d:href>${escapeXml(url)}</d:href></d:lockroot></d:activelock></d:lockdiscovery></d:prop>`,
+      { status: exists ? 200 : 201, headers: { "Lock-Token": `<${token}>`, "Content-Type": "application/xml" } });
+    }
+    if (method === "UNLOCK") {
+      if (headers.get("Lock-Token") !== `<${this.locks.get(path)?.token}>`) return new Response(null, { status: 409 });
+      this.locks.delete(path);
+      return new Response(null, { status: 204 });
+    }
+    const destination = headers.has("Destination") ? this.path(new URL(headers.get("Destination")!).pathname) : undefined;
+    const affected = [...(method === "COPY" ? [] : [path]), ...(destination ? [destination] : [])];
+    if (!["GET", "PROPFIND"].includes(method!)) {
+      for (const [name, lock] of this.locks) {
+        if (affected.some((target) => target === name || target.startsWith(`${name}/`) || name.startsWith(`${target}/`))
+          && !submitted.has(lock.token)) return new Response(null, { status: 423 });
+      }
+    }
     if (method === "PROPFIND") {
       if (!exists) return new Response(null, { status: 404 });
       const entries = [...this.files].filter(([name]) => name === path || (headers.get("Depth") === "1"
@@ -84,13 +131,14 @@ export class MockDav {
     }
     if (method === "MOVE" || method === "COPY") {
       if (!exists) return new Response(null, { status: 404 });
-      const destination = this.path(new URL(headers.get("Destination")!).pathname);
-      const destinationExists = this.files.has(destination);
+      const target = destination!;
+      const destinationExists = this.files.has(target);
       if (destinationExists && headers.get("Overwrite") === "F") return new Response(null, { status: 412 });
-      if (this.files.get(destination.slice(0, destination.lastIndexOf("/")) || "/") !== null) return new Response(null, { status: 409 });
+      if (this.files.get(target.slice(0, target.lastIndexOf("/")) || "/") !== null) return new Response(null, { status: 409 });
+      for (const name of this.files.keys()) if (name === target || name.startsWith(`${target}/`)) this.files.delete(name);
       for (const [name, data] of [...this.files]) {
         if (name === path || name.startsWith(`${path}/`)) {
-          this.files.set(destination + name.slice(path.length), data === null ? null : new Uint8Array(data));
+          this.files.set(target + name.slice(path.length), data === null ? null : new Uint8Array(data));
           if (method === "MOVE") this.files.delete(name);
         }
       }

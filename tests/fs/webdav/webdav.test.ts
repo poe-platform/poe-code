@@ -80,15 +80,17 @@ test("recursive MKCOL, MOVE directory, COPY file, and recursive DELETE use DAV m
   assert.equal(mock.requests.filter((request) => request.init.method === "MKCOL").length, 2);
 });
 
-test("safe writes, unsupported destination overwrites, exclusive copies, directory mismatches, root protection", async () => {
+test("safe writes, guarded destination overwrites, exclusive copies, directory mismatches, root protection", async () => {
   const { fs, mock } = fixture();
   await fs.writeFile("/a", new Uint8Array([1]));
   await fs.writeFile("/b", new Uint8Array([2]));
   await assert.rejects(fs.writeFile("/a", new Uint8Array(), { flag: "wx" }), { code: "EEXIST" });
   await assert.rejects(fs.copyFile("/a", "/b", { exclusive: true }), { code: "EEXIST" });
-  await assert.rejects(fs.copyFile("/a", "/b"), { code: "ENOTSUP" });
-  await assert.rejects(fs.rename("/a", "/b"), { code: "ENOTSUP" });
-  assert.equal(mock.requests.some((request) => ["COPY", "MOVE"].includes(request.init.method!)), false);
+  await fs.copyFile("/a", "/b");
+  assert.deepEqual(await fs.readFile("/b"), new Uint8Array([1]));
+  await fs.rename("/a", "/b");
+  await assert.rejects(fs.stat("/a"), { code: "ENOENT" });
+  assert.equal(mock.requests.filter((request) => ["COPY", "MOVE"].includes(request.init.method!)).every((request) => request.headers.has("If")), true);
   await fs.writeFile("/b", new Uint8Array([1]));
   assert.deepEqual(await fs.readFile("/b"), new Uint8Array([1]));
   await fs.rename("/b", "/b");

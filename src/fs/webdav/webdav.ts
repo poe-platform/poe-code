@@ -17,11 +17,15 @@ export interface WebDavFileSystemOptions {
   readonly maxXmlBytes?: number;
   readonly maxEntries?: number;
   readonly timeoutMs?: number;
+  readonly overwritePolicy?: "lock" | "etag";
 }
 
 const propfindBody = '<?xml version="1.0" encoding="utf-8"?>'
   + '<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getcontentlength/>'
-  + '<d:getlastmodified/><d:creationdate/></d:prop></d:propfind>';
+  + '<d:getlastmodified/><d:creationdate/><d:getetag/></d:prop></d:propfind>';
+
+const lockBody = '<d:lockinfo xmlns:d="DAV:"><d:lockscope><d:exclusive/></d:lockscope>'
+  + '<d:locktype><d:write/></d:locktype></d:lockinfo>';
 
 function fail(code: ErrnoCode, syscall: string, path: string, message?: string): never {
   throw new FsError(code, { syscall, path, ...(message === undefined ? {} : { message }) });
@@ -100,6 +104,8 @@ export class WebDavFileSystem implements FileSystem {
   private readonly maxXmlBytes: number;
   private readonly maxEntries: number;
   private readonly timeoutMs: number;
+  private readonly overwritePolicy: "lock" | "etag";
+  private readonly etags = new WeakMap<FileStat, string>();
 
   constructor(options: WebDavFileSystemOptions) {
     if (typeof options.fetch !== "function") throw new FsError("EINVAL", { message: "an explicit fetch transport is required" });
@@ -113,7 +119,7 @@ export class WebDavFileSystem implements FileSystem {
       this.headers = new Headers(options.headers);
       for (const name of this.headers.keys()) {
         if (["host", "destination", "depth", "overwrite", "if", "if-match", "if-none-match", "range",
-          "content-length", "content-type", "transfer-encoding", "connection", "proxy-authorization"].includes(name)) {
+          "content-length", "content-type", "transfer-encoding", "connection", "proxy-authorization", "lock-token", "timeout"].includes(name)) {
           throw new Error(`reserved header ${name}`);
         }
       }
@@ -128,6 +134,8 @@ export class WebDavFileSystem implements FileSystem {
     this.maxXmlBytes = positive(options.maxXmlBytes ?? 2 * 1024 * 1024, "maxXmlBytes");
     this.maxEntries = positive(options.maxEntries ?? 10_000, "maxEntries");
     this.timeoutMs = positive(options.timeoutMs ?? 30_000, "timeoutMs");
+    this.overwritePolicy = options.overwritePolicy ?? "lock";
+    if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
   }
 
@@ -289,11 +297,14 @@ export class WebDavFileSystem implements FileSystem {
       return value;
     };
     const birthtimeMs = date("creationdate");
-    return {
+    const stat: FileStat = {
       type: directory ? "directory" : "file", size: Number(sizeText), mode: directory ? 0o40777 : 0o100666,
       mtimeMs: date("getlastmodified") ?? 0, atimeMs: 0, ctimeMs: 0,
       ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     };
+    const etag = properties.get("getetag");
+    if (etag) this.etags.set(stat, scalar(etag));
+    return stat;
   }
 
   private async entries(path: string, depth: "0" | "1", options: FsOptions, collection = depth === "1"): Promise<Map<string, FileStat>> {
@@ -480,14 +491,73 @@ export class WebDavFileSystem implements FileSystem {
     if (stat.type === "directory" && to.startsWith(`${from}/`)) fail("EINVAL", method, destination, "cannot move directory into itself");
     const existing = await this.maybeStat(destination, options);
     if (existing && options.exclusive) fail("EEXIST", method, destination);
-    if (existing?.type === "directory" && stat.type === "file") fail("EISDIR", method, destination);
-    if (existing?.type === "directory") this.unsupported("replace destination directory", destination);
-    if (existing && stat.type === "directory") fail("ENOTDIR", method, destination);
-    if (existing) fail("ENOTSUP", method, destination, "destination replacement requires locking or equivalent destination-state protection");
-    await this.mutation(method, from, options, { headers: {
-      Destination: this.url(to, stat.type === "directory"), Overwrite: "F",
+    const checkType = (target: FileStat): void => {
+      if (target.type === "directory" && stat.type === "file") fail("EISDIR", method, destination);
+      if (target.type !== "directory" && stat.type === "directory") fail("ENOTDIR", method, destination);
+    };
+    if (existing) checkType(existing);
+    if (stat.type === "directory" && from.startsWith(`${to}/`)) fail("EINVAL", method, destination, "cannot replace an ancestor of the source");
+    const destinationUrl = this.url(to, stat.type === "directory");
+    const headers: Record<string, string> = {
+      Destination: destinationUrl, Overwrite: existing ? "T" : "F",
       Depth: method === "COPY" ? "0" : "infinity",
-    } }, stat.type === "directory");
+    };
+    const sourceEtag = this.etags.get(stat);
+    if (existing && sourceEtag && /^"[\x21\x23-\x7e\x80-\xff]*"$/.test(sourceEtag)) headers["If-Match"] = sourceEtag;
+    const mutate = (): Promise<void> => this.mutation(method, from, options, { headers }, stat.type === "directory");
+    if (!existing) return mutate();
+    if (this.overwritePolicy === "etag" && existing.type === "file") {
+      headers.If = `<${destinationUrl}> ([${strongEtag(this.etags.get(existing), destination)}])`;
+      return mutate();
+    }
+    await this.withDestinationLock(to, existing, options, async (token) => {
+      const locked = await this.stat(destination, options);
+      checkType(locked);
+      if (locked.type === "directory" && (await this.readdir(destination, options)).length) fail("ENOTEMPTY", method, destination);
+      headers.If = `<${destinationUrl}> (${token})`;
+      await mutate();
+    });
+  }
+
+  private async withDestinationLock(path: string, stat: FileStat, options: FsOptions,
+    operation: (token: string) => Promise<void>): Promise<void> {
+    let token: string | undefined;
+    const collection = stat.type === "directory";
+    const validator = this.etags.get(stat);
+    try {
+      await this.request("LOCK", path, options, {
+        headers: { "Content-Type": "application/xml; charset=utf-8", Depth: "infinity", Timeout: "Second-60",
+          "If-Match": validator && /^"[\x21\x23-\x7e\x80-\xff]*"$/.test(validator) ? validator : "*" },
+        body: lockBody,
+      }, async (response, signal) => {
+        if (response.status !== 200) this.httpError(response.status, "LOCK", path);
+        const header = response.headers.get("Lock-Token");
+        if (!header || !/^<[a-z][a-z0-9+.-]*:[^<>\s\x00-\x20\x7f]+>$/i.test(header)) throw new Error("invalid LOCK token");
+        token = header;
+        const root = parseXml(new TextDecoder("utf-8", { fatal: true }).decode(await this.bytes(response, this.maxXmlBytes, signal)));
+        const discovery = davChild(root, "lockdiscovery");
+        const active = discovery && davChild(discovery, "activelock");
+        const scope = active && davChild(active, "lockscope");
+        const type = active && davChild(active, "locktype");
+        const depth = active && davChild(active, "depth");
+        const lockToken = active && davChild(active, "locktoken");
+        const href = lockToken && davChild(lockToken, "href");
+        const lockRoot = active && davChild(active, "lockroot");
+        const rootHref = lockRoot && davChild(lockRoot, "href");
+        const timeout = active && davChild(active, "timeout");
+        if (root.namespace !== "DAV:" || root.localName !== "prop" || !scope || !davChild(scope, "exclusive")
+          || !type || !davChild(type, "write") || !depth || scalar(depth) !== "infinity"
+          || !href || `<${scalar(href)}>` !== token || !rootHref || this.hrefPath(scalar(rootHref)) !== path
+          || !timeout || !/^Second-[1-9]\d*$/i.test(scalar(timeout)) || Number(scalar(timeout).slice(7)) > 4_294_967_295) {
+          fail("ENOTSUP", "LOCK", path, "server did not grant a finite exclusive depth-infinity write lock");
+        }
+      }, collection);
+      await operation(token!);
+    } finally {
+      if (token) await this.request("UNLOCK", path, {}, { headers: { "Lock-Token": token } }, async (response) => {
+        if (response.status !== 204) this.httpError(response.status, "UNLOCK", path);
+      }, collection).catch(() => {});
+    }
   }
 
   async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {

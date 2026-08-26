@@ -116,7 +116,7 @@ for (const method of ["MOVE", "COPY"] as const) {
       }
       return response;
     } });
-    await assert.rejects(method === "MOVE" ? fs.rename("/source", "/destination") : fs.copyFile("/source", "/destination"), { code: "ENOTSUP" });
+    await assert.rejects(method === "MOVE" ? fs.rename("/source", "/destination") : fs.copyFile("/source", "/destination"), { code: "EAGAIN" });
     assert.equal(mutations, 0);
     assert.equal(mock.files.get("/destination"), null);
     assert.deepEqual(mock.files.get("/destination/precious"), child);

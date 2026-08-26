@@ -60,10 +60,10 @@ remain transport/server responsibilities, not a host-filesystem sandbox.
   forbidden. `force` suppresses missing-resource errors, not partial failures.
 - `rename`: server-side `MOVE`, including collection moves to absent targets.
 - `copyFile`: server-side file `COPY` with `Depth: 0` to absent targets.
-  Both transfers always send `Overwrite: F`, including nonexclusive copies,
-  to prevent replacement if another client creates the destination after
-  preflight. Such a race returns `EEXIST` and does not replace that resource.
-  Existing destination replacement is unsupported; see the limit below.
+  Transfers to absent targets use `Overwrite: F`; concurrent creation returns
+  `EEXIST` without replacement. Existing files and empty destination collections
+  can be replaced under the concurrency policy below; exclusive copies still
+  return `EEXIST` for existing targets.
 - `realpath`: existence-checked lexical virtual path, not server alias discovery.
 - `access`: existence (`F_OK`) only, not an inferred authorization result.
 
@@ -85,18 +85,53 @@ userinfo, dot segments, encoded separators, NUL, ambiguous empty segments,
 duplicate resources, and members outside the requested depth fail closed.
 Untrusted hrefs never initiate a separate network request.
 
-No locking, ETag-based read/modify/write transaction, POSIX permission model,
-or atomic multi-request transaction is advertised. `rename` and nonexclusive
-`copyFile` return `ENOTSUP` for replacement of an existing destination file;
-existing collection replacement is also unsupported. Exclusive copy returns
-`EEXIST`. Type mismatches report `EISDIR` or `ENOTDIR` first, and identical-source
-rename remains an existence-checked no-op. A preflight result cannot authorize
-`Overwrite: T`: a different client could replace a file with a populated
-collection before MOVE/COPY, causing recursive deletion. This adapter does not
-implement destination locking or an equivalent verified state condition, so it
-never sends that unsafe overwrite header. No unlink-then-transfer workaround
-is used. This limits destination replacement, not reads, ordinary PUT writes,
-creation, or transfers to absent destinations.
+### Replacement concurrency policy
+
+`overwritePolicy` accepts `"lock"` (default) or `"etag"`. No root export wiring
+is needed: it is a field of the existing `WebDavFileSystemOptions` interface.
+
+The default acquires an exclusive depth-infinity destination write lock using
+`LOCK`, validates the returned lock token, scope, type, root, depth and finite
+timeout, then rechecks the destination type and collection emptiness while
+locked. The transfer sends `Overwrite: T` with one destination-tagged `If`
+condition containing that lock token. A lock expiry before the transfer fails
+its precondition rather than authorizing overwrite. A strong preflight ETag,
+when available, guards LOCK with `If-Match`; otherwise `If-Match: *` prevents
+LOCK from creating a missing resource. Nonempty collections return `ENOTEMPTY`.
+Type mismatches return `EISDIR`/`ENOTDIR`; moving onto an ancestor is rejected.
+
+Locks request `Second-60`, but servers choose the actual finite timeout. There
+is no refresh or automatic mutation retry. `UNLOCK` is attempted even after
+cancellation or failed/partial transfer, with a fresh request deadline. Cleanup
+failure does not mask the transfer result: a lock may remain until its granted
+timeout. A server returning a malformed lock response or losing the LOCK reply
+can also leave a lock behind. Infinite grants are rejected with cleanup.
+Servers without the required lock support return `ENOTSUP`; there is no silent
+downgrade to an unprotected overwrite.
+
+Opting into `"etag"` permits replacement of existing **files** without locks,
+using the destination's strong `DAV:getetag` in a single destination-tagged
+`If` condition. This policy requires a provider that keeps destination tags
+strong and distinct across content/type changes. RFC 4918 permits weak
+comparison for `If`; switching to a weak validator with the same opaque value
+can therefore defeat this opt-in protection. Use the default lock policy if
+that provider guarantee is unavailable. Missing/weak destination tags return
+`ENOTSUP`, not an unconditional overwrite. Collections always require locking
+under either policy: collection ETags do not prove membership stability.
+
+`If-Match` on MOVE/COPY guards the **source**, never the destination; the adapter
+adds it when a strong source `DAV:getetag` is available. Destination conditions
+are not combined with another resource-tag list (the lists have OR semantics).
+No DELETE-then-transfer emulation is used. `atomicRename` remains false: source
+trees and ancestors are not locked, and servers may partially apply collection
+MOVE. Identical-source rename remains an existence-checked no-op.
+
+Protocol basis: RFC 9110 sections 8.8.3 and 13.1.1–13.1.2; RFC 4918 sections
+7.4–7.6, 8.5, 9.8.4, 9.9.3, 9.10–9.11, 10.4 and 10.6. Capability evidence is
+the owned `append.test.ts` and `replacement.test.ts` suites: binary append,
+creation/update races, destination-tag scope, lock conflicts/expiry, membership
+races, cancellation cleanup, partial failure and native loopback HTTP. This
+does not certify arbitrary production WebDAV providers or full POSIX behavior.
 
 PUT preflights each parent collection, rejecting known file ancestors with
 `ENOTDIR` before mutation. These metadata checks require PROPFIND access to the

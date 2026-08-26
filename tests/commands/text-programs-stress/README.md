@@ -1,7 +1,8 @@
 # Independent text-program verification
 
-This suite is owned by the independent verifier, not the sed/awk implementation
-worker. It does not modify interpreter source or the original 88 shell fixtures.
+This suite was written by an independent verifier before text-program source
+ownership transferred for stress-driven fixes. The original 88 shell fixtures
+and native expected outputs remain unchanged.
 
 Run from the repository root:
 
@@ -86,3 +87,24 @@ passes: only sed's unused lookahead remains failing. Combined with the unchanged
 141-case differential result, that is 148 pass, seven fail, four unsupported,
 and two oracle-rejected out of 161. The earlier five-failure safety observation
 is retained here as regression history, not presented as the current result.
+
+## After independent source fixes
+
+Source fixes are separate atomic commits: `e842095` expires numeric ranges after
+skipped input; `8699b5c` defers unused lookahead; `a8a6c70` preserves separators
+between named input files. Three harness tests also ensure unexpected native
+errors cannot become passes and byte/mode differences remain visible.
+
+The source-stable machine report now records **131/141 native passes**, four
+divergences, four unsupported, and two oracle-rejected; safety is **20/20**.
+Combined: **151/161 pass**, no skips, pending outcomes, timeouts, or background
+errors. The author, regression, harness, and differential test command reports
+**262/272 pass, ten fail, zero skips**. Its ten failures are exactly the ten
+non-pass native cases, not new safety regressions.
+
+Remaining raw divergences are ambiguous nested captures, global `^|$` empty
+matches, BSD in-place quit across files, and awk file `getline`. Sed `r`, `w`,
+`l`, and pattern backreferences remain explicitly unsupported. Numeric/global
+substitution flags and the label-comment fixture remain native-rejected. Do not
+copy BSD in-place data truncation merely to improve agreement with that oracle.
+Dialect differences need explicit policy and additional native reference runs.

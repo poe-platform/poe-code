@@ -31,8 +31,8 @@ export function compare(fixture: TextCase, native: Execution, virtual: Execution
   for (const path of new Set([...Object.keys(expected.files), ...Object.keys(actual.files)])) {
     if (JSON.stringify(expected.files[path]) !== JSON.stringify(actual.files[path])) differences.push(`file:${path}`);
   }
+  if (expected.exitCode !== (fixture.nativeExitCode ?? 0)) return { ...base, status: "oracle-rejected", differences };
   if (!differences.length) return { ...base, status: "pass", differences };
-  if (expected.exitCode !== 0 && fixture.tool !== "awk") return { ...base, status: "oracle-rejected", differences };
   const unsupported = actual.exitCode !== 0 && /unsupported|not supported/iu.test(Buffer.from(actual.stderr, "base64").toString());
   return { ...base, status: unsupported ? "unsupported" : "fail", differences };
 }

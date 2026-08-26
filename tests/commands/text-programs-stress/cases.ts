@@ -7,6 +7,7 @@ export interface TextCase {
   files?: Record<string, string>;
   script?: string;
   chunkWidth?: number;
+  nativeExitCode?: number;
 }
 
 export const encoded = (text: string | Uint8Array): string => Buffer.from(text).toString("base64");
@@ -110,7 +111,11 @@ for (const [name, program, stdin] of [
   ["redirection-and-close", 'BEGIN{print "one" > "written";close("written");print "two" >> "written"}', ""],
   ["getline-from-file", 'BEGIN{while((getline value < "extra")>0)print value;close("extra")}', ""],
   ["unicode-byte-length-c-locale", '{print length($0),substr($0,1,2)}', "éΩ\n"],
-] as const) add("awk", name, `awk.${name.split("-")[0]}`, [program], stdin, name === "getline-from-file" ? { extra: "first\nsecond\n" } : {});
+] as const) {
+  add("awk", name, `awk.${name.split("-")[0]}`, [program], stdin, name === "getline-from-file" ? { extra: "first\nsecond\n" } : {});
+  if (name === "exit-runs-end") cases.at(-1)!.nativeExitCode = 7;
+  if (name === "end-overrides-exit-status") cases.at(-1)!.nativeExitCode = 3;
+}
 add("awk", "fs-flag", "awk.flags", ["-F", ":", "{print NF,$2}"], "a:b:c\n:a:\n");
 add("awk", "v-variable-before-begin", "awk.flags", ["-v", "VALUE=007", "BEGIN{print VALUE,VALUE+0}"], "");
 add("awk", "assignment-operands-between-files", "awk.assignments", ["BEGIN{print x} {print FNR,NR,x,$0}", "x=first", "one", "x=second", "two"], "", { one: "a\nb\n", two: "c\n" });

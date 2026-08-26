@@ -479,3 +479,44 @@ Any retained strict mode should be an explicitly approved choice, not a silent
 claim that jq behavior is unsupported by user request. No decoder/recovery
 policy, new public switch, broad grammar feature or diagnostic format changes
 are part of this fix. A different independent final verifier is still required.
+
+## Literal split integration (August 26, 2026)
+
+`split(separator)` is now registered with exactly one argument. Separators are
+evaluated lazily on the original input, in generator order; input validation
+occurs only for a produced separator. Empty input yields `[]`; an empty separator
+splits Unicode code points, not UTF-16 units or grapheme clusters. Nonempty
+separators match literally and non-overlapping, preserving empty fields and NUL.
+Non-string operands, including null, error. No two-argument regex overload,
+grammar broadening, decoder/recovery policy, public plugin API, limit names,
+runtime dependencies, host process execution or eval were added.
+
+The helper charges linear matching/preprocessing work, collection size and
+encoded aggregate value bytes; the command writer retains output/result budgets.
+Cancellation yields during scanning, preprocessing and code-point expansion;
+optional filters cannot suppress cancellation or quota exhaustion. Synchronous
+validation and individual allocations remain non-preemptible.
+
+Verified: helper **67/67**, command **81/81**, six-backend aggregate interop
+**6/6**, existing author suite **684/684**, numeric/quantifier regressions
+**202/202**, and scoped strict TypeScript checks. All **69/69** pinned native
+recaptures match exact stdout/stderr/status. Product comparison is **44 exact,
+25 diagnostic-only, zero stdout/status differences**; virtual error decoration
+is not claimed as native-byte parity. An obsolete author test rejecting split/1
+now checks the deliberately unsupported split/2 instead.
+
+Common flow: `jq -R -s 'split("\n") | map(select(length > 0))'`, with stdin
+`alpha\nbeta\n`, emits the native pretty-printed `["alpha","beta"]` array.
+Memory, real, mock S3, loopback WebDAV, mount and overlay tests also read named
+files, pipe `cat`, persist/reopen JSON, and run `find | xargs rg | sed | awk | jq`
+with this filter. These are actual aggregate-plugin/virtual-filesystem tests,
+not helper results labeled as interoperability.
+
+The original 6a259ff matrix assertions now pass **71/79**: split is fixed, but
+six ENOENT and two EROFS diagnostic expectations still differ. Another worker's
+`d0fed8f` changes those expectations; that revised live matrix passes **79/79**.
+Neither its expectation changes nor its diagnostic acceptance are this worker's
+fix. The original assertions remain separately reproduced, without editing the
+matrix. Exact commands, hashes, provenance and root/Poincare handoff are in
+`tests/commands/structured-stress/split-increment/README.md`. Broader native raw
+gates remain **196 pass / 42 fail**; this is not full jq or shell parity.

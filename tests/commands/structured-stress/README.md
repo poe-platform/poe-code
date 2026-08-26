@@ -739,3 +739,71 @@ malformed frozen fixtures. Additive diagnostics add four more red rows. This is
 not full jq parity, universal shell support, scope completion, 72 hours of work,
 or superiority to jq/just-bash. Root must assign a **different independent final
 verifier**; this author checkpoint does not replace that gate.
+
+## Literal split integration checkpoint (August 26, 2026)
+
+The numeric author's completion marker was read before changing shared files.
+The independent preparation helper and its 69 frozen native cases are now wired
+through `split: [1]` and lazy separator evaluation. No grammar, two-argument regex
+overload, plugin API, runtime dependency, numeric source or frozen numeric vector
+changed. The original split `baseline.json` is also unchanged.
+
+| Fresh scope | Pass / total | Interpretation |
+| --- | ---: | --- |
+| Native jq-1.7.1-apple replay | 69 / 69 | Exact native stdout, stderr and status recapture |
+| Split helper | 67 / 67 | Native direct operands plus bounds/cancellation |
+| Split command | 81 / 81 | 69 native stdout/status cases and 12 safety/arity cases |
+| Six-backend split interop | 6 / 6 | Stdin, named files, persisted/reopened pipeline output |
+| Existing author suite | 684 / 684 | One stale unsupported-split assertion updated to split/2 |
+| Existing numeric/quantifier regressions | 202 / 202 | No numeric tests or expectations changed |
+| Original 6a259ff matrix assertions | 71 / 79 | Split fixed; eight external diagnostic mismatches remain |
+| Revised live matrix, exact README command | 79 / 79 | Other worker changed eight diagnostic expectations |
+| Original/additive raw numeric gates | 196 / 238 | Existing 42 failures remain; no acceptance relabeling |
+
+Split's full product-byte comparison is **44 exact / 25 diagnostic-only / zero
+stdout-status differences**. Command assertions preserve the existing virtual
+diagnostic contract rather than calling all 69 cases exact-native matches.
+The eight extra command tests cover rejected zero/two-argument arities before
+input acquisition, cancellation during three kinds of work, blocked output with
+late rejection, and unsuppressible step/value limits. The initial four safety
+cases and all native expectations remain unchanged.
+
+Actual common-flow reproduction through the aggregate plugin:
+
+```text
+jq -R -s 'split("\n") | map(select(length > 0))'
+stdin: alpha\nbeta\n
+stdout: [\n  "alpha",\n  "beta"\n]\n
+exit: 0
+```
+
+The six-backend tests additionally pipe `cat old.txt` through that filter into
+`split-lines.json`, reopen it with jq, and persist/reopen the TODO coding flow
+`find | xargs rg | sed | awk | jq` using split rather than a two-jq workaround.
+
+```sh
+node --import tsx tests/commands/structured-stress/split-increment/capture-native.ts
+node --import tsx tests/commands/structured-stress/split-increment/verify.ts
+node --unhandled-rejections=strict --import tsx --test --test-reporter=tap tests/integration/adapter-tools/matrix.test.ts
+node --import tsx tests/commands/structured-stress/split-increment/replay-original-matrix.ts
+```
+
+The last command deliberately exits 1 for the original matrix's six missing
+ENOENT and two missing EROFS tokens. Concurrent commit
+`d0fed8fb1b54ae7be4dadc1332750314d9bb108d` replaced those eight assertions in the
+live matrix. **79/79 is not an unchanged-6a259ff pass.** This worker edited no
+matrix, adapter or shell file. Root/Poincare must own the diagnostic-contract
+decision; do not attribute expectation changes to split or silently drop the
+original failures. Details and exact failing shell commands are in
+`split-increment/README.md` and `original-matrix.json`.
+
+`delivery.json` records live-suite TAP, before/after hashes and stable HEAD
+`9e905738e9b71a7a91a7f868a1716c618c9b7ec5`. The original-assertion replay and
+final 684/684 run used HEAD `b4033fb96b353bf82025a28aafff6619066967dc` with the
+uncommitted split patch. Structured-scope strict TypeScript (including all split
+scripts) and the matrix README's scoped TypeScript command pass. All four
+original numeric evidence hashes still match the preceding checkpoint; split
+native SHA-256 remains
+`cdee2e3a38d929e66d8fdf3917bed62ea46ccff86091de0816128c38176bd8d3`.
+No whole-repository acceptance, remote-provider coverage, 72-hour completion or
+superiority claim follows. Root still assigns a different final verifier.

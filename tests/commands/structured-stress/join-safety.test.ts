@@ -72,10 +72,10 @@ test("join separator generators remain lazy and uncached", async () => {
   assert.deepEqual(noExtraSlots, { status: 0, stdout: '"12"\n', stderr: "" });
 });
 
-test("join wrong arity and unsupported builtins still preflight dead branches", async () => {
+test("join and split wrong arities still preflight dead branches", async () => {
   let acquired = 0;
   const stdin: ByteSource = { [Symbol.asyncIterator]() { acquired++; throw new Error("unexpected input"); } };
-  for (const filter of ['join', 'join("-";":")', 'if false then join("-";":") else . end', 'if false then split(",") else join(",") end']) {
+  for (const filter of ['join', 'join("-";":")', 'if false then join("-";":") else . end', 'if false then split(",";"g") else join(",") end']) {
     const result = await execute(["-R", filter, "/missing"], stdin);
     assert.equal(result.status, 3, result.stderr);
     assert.equal(result.stdout, "");

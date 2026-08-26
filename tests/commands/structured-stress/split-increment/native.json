@@ -1,0 +1,1132 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-26T21:05:32.092Z",
+  "executable": "/usr/bin/jq",
+  "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+  "version": "jq-1.7.1-apple",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "node": "v22.22.2",
+  "policy": "Native exact stdout/stderr UTF-8 bytes and exit status captured before split helper implementation; never regenerate to fit virtual behavior.",
+  "caps": {
+    "timeoutMs": 2000,
+    "maxBufferBytes": 65536,
+    "shell": false
+  },
+  "cases": [
+    {
+      "id": "lines",
+      "argv": [
+        "-c",
+        "split(\"\\n\")"
+      ],
+      "input": "\"alpha\\nbeta\\n\"\n",
+      "direct": {
+        "input": "alpha\nbeta\n",
+        "separator": "\n"
+      },
+      "status": 0,
+      "stdout": "[\"alpha\",\"beta\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "e9adc1a8499ff1db9a9f9a9d8377ff7eb57557c06ca451c777e2a6fefa34e8d2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "empty-input",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "\"\"\n",
+      "direct": {
+        "input": "",
+        "separator": ","
+      },
+      "status": 0,
+      "stdout": "[]\n",
+      "stderr": "",
+      "stdoutSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "empty-both",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"\"\n",
+      "direct": {
+        "input": "",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[]\n",
+      "stderr": "",
+      "stdoutSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "empty-separator",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"abc\"\n",
+      "direct": {
+        "input": "abc",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"c\"]\n",
+      "stderr": "",
+      "stdoutSha256": "e2327913c0d3c766e86dc23783f5a9296123c2bc5ceb41851cb0cb5f753776e9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "no-match",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "\"abc\"\n",
+      "direct": {
+        "input": "abc",
+        "separator": ","
+      },
+      "status": 0,
+      "stdout": "[\"abc\"]\n",
+      "stderr": "",
+      "stdoutSha256": "037e1a3b018a77432543c03b834bc5985f3f0f7de1950d649db42e080fd80528",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "entire-match",
+      "argv": [
+        "-c",
+        "split(\"abc\")"
+      ],
+      "input": "\"abc\"\n",
+      "direct": {
+        "input": "abc",
+        "separator": "abc"
+      },
+      "status": 0,
+      "stdout": "[\"\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "7f87d47329c7073f7b3a86b6766074db75b106fc7d4473b3f7898b0d7183665e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "longer-separator",
+      "argv": [
+        "-c",
+        "split(\"abc\")"
+      ],
+      "input": "\"a\"\n",
+      "direct": {
+        "input": "a",
+        "separator": "abc"
+      },
+      "status": 0,
+      "stdout": "[\"a\"]\n",
+      "stderr": "",
+      "stdoutSha256": "92260ea0cbd70738c0bccba89c8dbf5881ec50d1a09891ea531aa254a783c9cd",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "leading",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "\",a\"\n",
+      "direct": {
+        "input": ",a",
+        "separator": ","
+      },
+      "status": 0,
+      "stdout": "[\"\",\"a\"]\n",
+      "stderr": "",
+      "stdoutSha256": "33dfa7f5d199cc9ca9af5b439518d990fcd748e185b3dfd73d1089aed7d3830f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "trailing",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "\"a,\"\n",
+      "direct": {
+        "input": "a,",
+        "separator": ","
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "c28a0d4a0308196e8e40ae2b640cfbb16a200a6c38be8d48d73f696315b60d49",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "repeated",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "\",a,,b,\"\n",
+      "direct": {
+        "input": ",a,,b,",
+        "separator": ","
+      },
+      "status": 0,
+      "stdout": "[\"\",\"a\",\"\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "a8c39ca5a100c0668019bed8ace9dee2d1069d93a5bfba2693f699ef6e057bf3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "all-separators",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "\",,,\"\n",
+      "direct": {
+        "input": ",,,",
+        "separator": ","
+      },
+      "status": 0,
+      "stdout": "[\"\",\"\",\"\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "d47e11a5c993a1cebdec598e96a475cb9b5c1ee628a78f0e719170c86506b817",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "multichar",
+      "argv": [
+        "-c",
+        "split(\"::\")"
+      ],
+      "input": "\"a::b::::c::\"\n",
+      "direct": {
+        "input": "a::b::::c::",
+        "separator": "::"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\",\"c\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "165143a0509acc59978ef0cc3e40ec3fc7a031472e41b0444dcc2ac13c85a742",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "overlap",
+      "argv": [
+        "-c",
+        "split(\"aba\")"
+      ],
+      "input": "\"ababa\"\n",
+      "direct": {
+        "input": "ababa",
+        "separator": "aba"
+      },
+      "status": 0,
+      "stdout": "[\"\",\"ba\"]\n",
+      "stderr": "",
+      "stdoutSha256": "bdd9f81f14f0940f06bd317ff9cebb9b7fe6186aee2741f5067c0c01ecaf3299",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "overlap-repeat",
+      "argv": [
+        "-c",
+        "split(\"aa\")"
+      ],
+      "input": "\"aaaaa\"\n",
+      "direct": {
+        "input": "aaaaa",
+        "separator": "aa"
+      },
+      "status": 0,
+      "stdout": "[\"\",\"\",\"a\"]\n",
+      "stderr": "",
+      "stdoutSha256": "c90d8e7610e1ae6bf8dc32e49cfa2911a02aee0c8c057039e75ec1fd9843cdf9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "literal-dot",
+      "argv": [
+        "-c",
+        "split(\".\")"
+      ],
+      "input": "\"a.b.c\"\n",
+      "direct": {
+        "input": "a.b.c",
+        "separator": "."
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"c\"]\n",
+      "stderr": "",
+      "stdoutSha256": "e2327913c0d3c766e86dc23783f5a9296123c2bc5ceb41851cb0cb5f753776e9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "literal-pattern",
+      "argv": [
+        "-c",
+        "split(\".*\")"
+      ],
+      "input": "\"a.*b.*c\"\n",
+      "direct": {
+        "input": "a.*b.*c",
+        "separator": ".*"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"c\"]\n",
+      "stderr": "",
+      "stdoutSha256": "e2327913c0d3c766e86dc23783f5a9296123c2bc5ceb41851cb0cb5f753776e9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "literal-bracket",
+      "argv": [
+        "-c",
+        "split(\"[\")"
+      ],
+      "input": "\"a[b[\"\n",
+      "direct": {
+        "input": "a[b[",
+        "separator": "["
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "literal-backslash",
+      "argv": [
+        "-c",
+        "split(\"\\\\\")"
+      ],
+      "input": "\"a\\\\b\\\\\"\n",
+      "direct": {
+        "input": "a\\b\\",
+        "separator": "\\"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "literal-anchor",
+      "argv": [
+        "-c",
+        "split(\"^\")"
+      ],
+      "input": "\"a^b^\"\n",
+      "direct": {
+        "input": "a^b^",
+        "separator": "^"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "literal-alternative",
+      "argv": [
+        "-c",
+        "split(\"|\")"
+      ],
+      "input": "\"a|b|\"\n",
+      "direct": {
+        "input": "a|b|",
+        "separator": "|"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "astral-empty-separator",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"A😀𝄞Z\"\n",
+      "direct": {
+        "input": "A😀𝄞Z",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[\"A\",\"😀\",\"𝄞\",\"Z\"]\n",
+      "stderr": "",
+      "stdoutSha256": "899c4fd6596e97f9615376422197539bb604be0226732f98fb2ff4838db9ede5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "multibyte-empty-separator",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"é中α\"\n",
+      "direct": {
+        "input": "é中α",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[\"é\",\"中\",\"α\"]\n",
+      "stderr": "",
+      "stdoutSha256": "8f78ca72310dcaabbf0636a2898ea30860247d1e7c2309815ba5fbeb13a06132",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "combining-not-graphemes",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"é👨‍👩‍👧\"\n",
+      "direct": {
+        "input": "é👨‍👩‍👧",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[\"e\",\"́\",\"👨\",\"‍\",\"👩\",\"‍\",\"👧\"]\n",
+      "stderr": "",
+      "stdoutSha256": "d4cdcf1c989f24fe680270f776e2bab2aa9be33a5a6bc0fee352792d76f940c6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "astral-separator",
+      "argv": [
+        "-c",
+        "split(\"😀\")"
+      ],
+      "input": "\"😀a😀😀b😀\"\n",
+      "direct": {
+        "input": "😀a😀😀b😀",
+        "separator": "😀"
+      },
+      "status": 0,
+      "stdout": "[\"\",\"a\",\"\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "a8c39ca5a100c0668019bed8ace9dee2d1069d93a5bfba2693f699ef6e057bf3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "multibyte-separator",
+      "argv": [
+        "-c",
+        "split(\"中\")"
+      ],
+      "input": "\"前中後中\"\n",
+      "direct": {
+        "input": "前中後中",
+        "separator": "中"
+      },
+      "status": 0,
+      "stdout": "[\"前\",\"後\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "63811d7c0e6b7570080a4d2a54b3b2ac3a23d771a33b717c392e43cef3198cfd",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "no-normalization",
+      "argv": [
+        "-c",
+        "split(\"é\")"
+      ],
+      "input": "\"é-é\"\n",
+      "direct": {
+        "input": "é-é",
+        "separator": "é"
+      },
+      "status": 0,
+      "stdout": "[\"\",\"-é\"]\n",
+      "stderr": "",
+      "stdoutSha256": "eeba9c2aa4e00aed46eb83b9167347626aebad234058a06d33397a0ae0ef2876",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "nul-separator",
+      "argv": [
+        "-c",
+        "split(\"\\u0000\")"
+      ],
+      "input": "\"a\\u0000b\\u0000\"\n",
+      "direct": {
+        "input": "a\u0000b\u0000",
+        "separator": "\u0000"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "nul-input",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"a\\u0000b\"\n",
+      "direct": {
+        "input": "a\u0000b",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"\\u0000\",\"b\"]\n",
+      "stderr": "",
+      "stdoutSha256": "756445c8cb9b4613fe2e857ed87036b5c73280170edb0b6f49cce8e01092c476",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "nul-multichar",
+      "argv": [
+        "-c",
+        "split(\"\\u0000x\")"
+      ],
+      "input": "\"a\\u0000xb\\u0000x\"\n",
+      "direct": {
+        "input": "a\u0000xb\u0000x",
+        "separator": "\u0000x"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "nul-only",
+      "argv": [
+        "-c",
+        "split(\"\\u0000\")"
+      ],
+      "input": "\"\\u0000\"\n",
+      "direct": {
+        "input": "\u0000",
+        "separator": "\u0000"
+      },
+      "status": 0,
+      "stdout": "[\"\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "7f87d47329c7073f7b3a86b6766074db75b106fc7d4473b3f7898b0d7183665e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "crlf",
+      "argv": [
+        "-c",
+        "split(\"\\r\\n\")"
+      ],
+      "input": "\"a\\r\\nb\\r\\n\"\n",
+      "direct": {
+        "input": "a\r\nb\r\n",
+        "separator": "\r\n"
+      },
+      "status": 0,
+      "stdout": "[\"a\",\"b\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "9dc68b4ee9051673a04284c83b5ebf9ce47893204779f5e406abe6a49b5ce777",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "controls",
+      "argv": [
+        "-c",
+        "split(\"\")"
+      ],
+      "input": "\"\\t\\n\\r\\b\\f\\u0001\"\n",
+      "direct": {
+        "input": "\t\n\r\b\f\u0001",
+        "separator": ""
+      },
+      "status": 0,
+      "stdout": "[\"\\t\",\"\\n\",\"\\r\",\"\\b\",\"\\f\",\"\\u0001\"]\n",
+      "stderr": "",
+      "stdoutSha256": "dbdd2b396dff825ae6a29c9cf609085aec621f4e6513cac2123cc696fc346f74",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "invalid-input-0",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "null\n",
+      "direct": {
+        "input": null,
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-0",
+      "argv": [
+        "-c",
+        "split(null)"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": null
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-1",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "false\n",
+      "direct": {
+        "input": false,
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-1",
+      "argv": [
+        "-c",
+        "split(false)"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": false
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-2",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "true\n",
+      "direct": {
+        "input": true,
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-2",
+      "argv": [
+        "-c",
+        "split(true)"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": true
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-3",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "0\n",
+      "direct": {
+        "input": 0,
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-3",
+      "argv": [
+        "-c",
+        "split(0)"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": 0
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-4",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "1.5\n",
+      "direct": {
+        "input": 1.5,
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-4",
+      "argv": [
+        "-c",
+        "split(1.5)"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": 1.5
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-5",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "[]\n",
+      "direct": {
+        "input": [],
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-5",
+      "argv": [
+        "-c",
+        "split([])"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": []
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-6",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "[\"a\"]\n",
+      "direct": {
+        "input": [
+          "a"
+        ],
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-6",
+      "argv": [
+        "-c",
+        "split([\"a\"])"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": [
+          "a"
+        ]
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-7",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "{}\n",
+      "direct": {
+        "input": {},
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-7",
+      "argv": [
+        "-c",
+        "split({})"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": {}
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-input-8",
+      "argv": [
+        "-c",
+        "split(\",\")"
+      ],
+      "input": "{\"a\":1}\n",
+      "direct": {
+        "input": {
+          "a": 1
+        },
+        "separator": ","
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "invalid-separator-8",
+      "argv": [
+        "-c",
+        "split({\"a\":1})"
+      ],
+      "input": "\"a,b\"\n",
+      "direct": {
+        "input": "a,b",
+        "separator": {
+          "a": 1
+        }
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "both-invalid",
+      "argv": [
+        "-c",
+        "split(1)"
+      ],
+      "input": "null\n",
+      "direct": {
+        "input": null,
+        "separator": 1
+      },
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "separator-generator",
+      "argv": [
+        "-c",
+        "split((\",\", \";\"))"
+      ],
+      "input": "\"a,b;c\"\n",
+      "status": 0,
+      "stdout": "[\"a\",\"b;c\"]\n[\"a,b\",\"c\"]\n",
+      "stderr": "",
+      "stdoutSha256": "843e2946cb8a2425f23f0a08cbd44ba38d47c26b8fae0ce8bc3c6aef556a5941",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "separator-input-context",
+      "argv": [
+        "-c",
+        "split(.)"
+      ],
+      "input": "\"abc\"\n",
+      "status": 0,
+      "stdout": "[\"\",\"\"]\n",
+      "stderr": "",
+      "stdoutSha256": "7f87d47329c7073f7b3a86b6766074db75b106fc7d4473b3f7898b0d7183665e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "separator-empty-generator",
+      "argv": [
+        "-c",
+        "split(empty)"
+      ],
+      "input": "null\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "generator-valid-then-invalid",
+      "argv": [
+        "-c",
+        "split((\",\", 1, \";\"))"
+      ],
+      "input": "\"a,b;c\"\n",
+      "status": 5,
+      "stdout": "[\"a\",\"b;c\"]\n",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "94c63e9ce1e59db7ca6e418f56c2b36497388a42fbf6530d2a2e78c9ef75acb2",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "generator-invalid-first",
+      "argv": [
+        "-c",
+        "split((1, \",\"))"
+      ],
+      "input": "\"a,b\"\n",
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "generator-error-after-output",
+      "argv": [
+        "-c",
+        "split((\",\", .missing))"
+      ],
+      "input": "\"a,b\"\n",
+      "status": 5,
+      "stdout": "[\"a\",\"b\"]\n",
+      "stderr": "jq: error (at <stdin>:1): Cannot index string with string \"missing\"\n",
+      "stdoutSha256": "eb394fd4559b1d9c383f4359667a508a615b82a74e1b160fce539f86ae0842e8",
+      "stderrSha256": "6e6b2591d489c403c7dec6a3c5c20368771b9fcaca043c83985688148629e620"
+    },
+    {
+      "id": "generator-error-before-typecheck",
+      "argv": [
+        "-c",
+        "split(.missing)"
+      ],
+      "input": "1\n",
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): Cannot index number with string \"missing\"\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "8612fee2655d7b97e288e6484294f8d642a00e72a45648d600cf3570821982c4"
+    },
+    {
+      "id": "input-generator",
+      "argv": [
+        "-c",
+        "(.[] | split(\",\"))"
+      ],
+      "input": "[\"a,b\",\"c,d\"]\n",
+      "status": 0,
+      "stdout": "[\"a\",\"b\"]\n[\"c\",\"d\"]\n",
+      "stderr": "",
+      "stdoutSha256": "d8287ef129d2f2e3f00c47af86ca0da0803969b30bed05a9ce1f3f4fc61d395b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "input-generator-error-order",
+      "argv": [
+        "-c",
+        "(.[] | split(\",\"))"
+      ],
+      "input": "[\"a,b\",1,\"c,d\"]\n",
+      "status": 5,
+      "stdout": "[\"a\",\"b\"]\n",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "eb394fd4559b1d9c383f4359667a508a615b82a74e1b160fce539f86ae0842e8",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "optional-error-resume",
+      "argv": [
+        "-c",
+        "split((\",\", 1, \";\"))?"
+      ],
+      "input": "\"a,b;c\"\n",
+      "status": 0,
+      "stdout": "[\"a\",\"b;c\"]\n",
+      "stderr": "",
+      "stdoutSha256": "94c63e9ce1e59db7ca6e418f56c2b36497388a42fbf6530d2a2e78c9ef75acb2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "optional-type-error",
+      "argv": [
+        "-c",
+        "split(\",\")?"
+      ],
+      "input": "null\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "first-stops-generator-error",
+      "argv": [
+        "-c",
+        "first(split((\",\", 1)))"
+      ],
+      "input": "\"a,b\"\n",
+      "status": 0,
+      "stdout": "[\"a\",\"b\"]\n",
+      "stderr": "",
+      "stdoutSha256": "eb394fd4559b1d9c383f4359667a508a615b82a74e1b160fce539f86ae0842e8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "limit-stops-generator-error",
+      "argv": [
+        "-c",
+        "limit(1; split((\",\", 1)))"
+      ],
+      "input": "\"a,b\"\n",
+      "status": 0,
+      "stdout": "[\"a\",\"b\"]\n",
+      "stderr": "",
+      "stdoutSha256": "eb394fd4559b1d9c383f4359667a508a615b82a74e1b160fce539f86ae0842e8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "collection-discards-partial-on-error",
+      "argv": [
+        "-c",
+        "[split((\",\", 1))]"
+      ],
+      "input": "\"a,b\"\n",
+      "status": 5,
+      "stdout": "",
+      "stderr": "jq: error (at <stdin>:1): split input and separator must be strings\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "4a36036d9372161555620d491906447dc8dad4376f4cc78afce6cba9260c50b3"
+    },
+    {
+      "id": "generator-cartesian-order",
+      "argv": [
+        "-c",
+        "(.[] | split((\",\", \";\")))"
+      ],
+      "input": "[\"a,b;c\",\"d,e;f\"]\n",
+      "status": 0,
+      "stdout": "[\"a\",\"b;c\"]\n[\"a,b\",\"c\"]\n[\"d\",\"e;f\"]\n[\"d,e\",\"f\"]\n",
+      "stderr": "",
+      "stdoutSha256": "1bfafdc631f89e65e460c80d4fc581fe2d77b89c70ca0a54f58ee97bfdd65086",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "matrix-raw-lines",
+      "argv": [
+        "-R",
+        "-s",
+        "split(\"\\n\") | map(select(length > 0))"
+      ],
+      "input": "alpha\nbeta\n",
+      "status": 0,
+      "stdout": "[\n  \"alpha\",\n  \"beta\"\n]\n",
+      "stderr": "",
+      "stdoutSha256": "4ddcac3e16c7834a95a6407404f73f72ccd9d9c02164fa890b349f102f1ddd7d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "raw-empty",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"\\n\")"
+      ],
+      "input": "",
+      "status": 0,
+      "stdout": "[]\n",
+      "stderr": "",
+      "stdoutSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "raw-nul-output",
+      "argv": [
+        "-R",
+        "-s",
+        "-r",
+        "split(\",\")[]"
+      ],
+      "input": "a\u0000b,c\u0000",
+      "status": 0,
+      "stdout": "a\u0000b\nc\u0000\n",
+      "stderr": "",
+      "stdoutSha256": "e2cb77daacb3dd8b62cf398eca1e8c3576db1f97767a0a2bed98ce5475e2b780",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

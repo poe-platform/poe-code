@@ -2,6 +2,7 @@ import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeys
 import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
+import { splitString } from "./split.js";
 import { binary, compare, contains, entries, indexValue, sliceValue, stringCompare, type } from "./values.js";
 
 type Path = (string | number)[];
@@ -235,6 +236,12 @@ export class Interpreter {
         else if (isObject(input) && typeof argument === "string") yield Object.hasOwn(input, argument);
         else if (Array.isArray(input) && isNumber(argument)) yield Math.trunc(numberValue(argument)) >= 0 && Math.trunc(numberValue(argument)) < input.length;
         else throw new JqError("has requires object/string or array/number");
+      }
+      return;
+    }
+    if (name === "split") {
+      for await (const separator of this.run(args[0]!, input)) {
+        yield await splitString(input, separator, budget);
       }
       return;
     }

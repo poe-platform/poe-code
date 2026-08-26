@@ -24,7 +24,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
   empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
   type: [0], has: [1], contains: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],
-  not: [0], reverse: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1],
+  not: [0], reverse: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1], split: [1],
   tostring: [0], tonumber: [0], tojson: [0], fromjson: [0], to_entries: [0], from_entries: [0], with_entries: [1],
   min: [0], max: [0], min_by: [1], max_by: [1], any: [0, 1, 2], all: [0, 1, 2],
   strings: [0], numbers: [0], booleans: [0], arrays: [0], objects: [0], nulls: [0], scalars: [0], iterables: [0],

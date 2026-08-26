@@ -1,10 +1,12 @@
 # Independent jq stress and fixes
 
 Date: August 26, 2026. Repository: `/Users/kjopek/Workspace/safe-bash`.
-The stress/fix worker is separate from source author Poincare. A second,
+The baseline stress/fix worker is separate from source author Poincare. A second,
 read-only oracle reviewer supplied additional cases; this worker independently
 rechecked their native results before fixing source. No further delegation,
-runtime dependencies, public API changes, staging, or commits were performed.
+runtime dependencies or public signature changes were introduced in that
+baseline. The later focused capability author work and its commits are recorded
+separately below; they are not independent acceptance by that baseline reviewer.
 
 ## Oracle provenance
 
@@ -173,3 +175,62 @@ assignment. All 240 original frozen native expectations replay exactly; no
 original frozen fixture or capture is changed. Runtime SHA-256 after raw input:
 `input.ts` = `c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829`,
 `jq.ts` = `b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4`.
+
+## Focused join author increment (August 26, 2026)
+
+`join-native.json` adds 129 literal native references, captured by the standalone
+`capture-join.mjs` with the same `/usr/bin/jq` version and process bounds as raw
+input. Of these, 126 match native stdout/status; three explicitly preserve the
+existing decimal-lexeme/exponent rendering policy, keeping the original native
+expectation alongside the virtual policy expectation. No test invokes this
+capture script. Before source edits, these three paths were staged and the
+regression gate failed 127/129 cases; the two wrong-arity cases already passed.
+
+The 19 additional author safety tests cover exact UTF-8/control-character value
+and output accounting; every existing limit; uncatchable hidden limits; lazy
+and empty separator generators; stdout backpressure before further separator
+evaluation; prompt output without input EOF; cancellation during element loops,
+separator expansion and pending writes; late rejections and cleanup; prototype
+keys; dead-branch preflight; and four actual MemoryFS pipelines. The nonfrozen
+unsupported `join(",")` preflight row becomes invalid-arity `join(",";":")`,
+preserving its status-3/no-input assertions. Unsupported `split` still fails even
+in a dead branch; no extra builtin or grammar is added.
+
+Author gates: 684/684 combined structured tests pass; 537/537 stress tests pass
+with `PATH=/nonexistent` and no skips; scoped typing, global typecheck and build
+pass. The two increments add 246 tests: 98 raw-input (74 native-derived + 24
+safety), then 148 join (129 native-derived + 19 safety). These overlap the
+combined totals and must not be summed again. Fresh native replay verifies all
+203 new literal expectations, including the unchanged native side of policy
+rows, and all 240 original frozen references. The 203 new rows include 187
+parity expectations and 16 explicit policy differences, not 203 parity passes.
+The ten baseline semantics and every frozen original fixture remain intact.
+Runtime SHA-256 after join:
+`interpreter.ts` = `18a6ec16d29f434244c78c2f842ed1c1e716e5c03d9b65c605a38a2ea02b2b93`,
+`parser.ts` = `e5778a10fc6fefb211c3c4aa39edd937fb372803a0c92e4f0c3557fc184adbfd`.
+The raw-input hashes above remain unchanged. A different-worker final verifier
+has not run for this increment; these are source-author gates only.
+
+## Prior 15 documented mismatch rows remain
+
+The saved 781-row reviewer matrix replays as 764 matches and the same 17
+differences. Excluding two invalid surrogate-argv transports leaves **15 prior
+documented mismatch rows**, not 15 distinct categories. This increment does not
+change any of them. Their exact grouped reproducers use `jq -c -- FILTER`:
+
+| Rows | Input | Filter(s) | Native versus virtual difference |
+| --- | --- | --- | --- |
+| 4 | `{}` and `{"a":null,"b":false,"c":0}` | `[any(empty)?]`, `[all(empty)?]` on each input | Native `[false]` / `[true]`; virtual `[]` because these overloads remain array-only. |
+| 3 | `0.0000001` | `.`, `tojson`, `tostring` | Native `1E-7`; virtual `1e-7` (quoted for conversion filters). |
+| 1 | `0.0000001` | `[length?]` | Native `[1e-07]`; virtual `[1e-7]`. |
+| 1 | `100000000000000000000` | `[length?]` | Native `[1e+20]`; virtual `[100000000000000000000]`. |
+| 3 | `1e2` | `.`, `tojson`, `tostring` | Native `1E+2`; virtual `100` (quoted for conversion filters). |
+| 1 | `null` | `1/10000000` | Native `1e-07`; virtual `1e-7`. |
+| 2 | `null` | `1e20`, `1e21` | Native `1E+20`, `1E+21`; virtual `100000000000000000000`, `1e+21`. |
+
+Every displayed output has a trailing LF. These 4 array-only plus 11 numeric
+rows are unchanged historical references, separate from the new capability
+corpora. The invalid NUL/surrogate argv transport limitations are not counted as
+product bugs. Fractional slices, other grammar gaps, logical rather than exact
+resident-memory quotas, and cooperative rather than forced host cancellation
+also remain documented limitations. No broad jq parity or superiority claim.

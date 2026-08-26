@@ -237,6 +237,32 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "join") {
+      for await (const separator of this.run(args[0]!, input)) {
+        const separatorBytes = budget.value(separator);
+        let result = "";
+        let bytes = 2;
+        let first = true;
+        const append = (text: string, encodedBytes: number): void => {
+          bytes += encodedBytes - 2;
+          if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          result += text;
+        };
+        for (const [, item] of entries(input, budget)) {
+          await budget.tick();
+          if (!first && separator !== null) {
+            if (typeof separator !== "string") throw new JqError("join separator must be a string or null when used");
+            append(separator, separatorBytes);
+          }
+          first = false;
+          if (item !== null && typeof item === "object") throw new JqError("join elements must be strings, numbers, booleans or null");
+          const text = item === null ? "" : typeof item === "string" ? item : stringify(item, budget);
+          append(text, budget.value(text));
+        }
+        budget.value(result); yield result;
+      }
+      return;
+    }
     if (name === "first" || name === "last") {
       if (!args.length) {
         if (!Array.isArray(input) && input !== null) throw new JqError(`${name} requires an array`);

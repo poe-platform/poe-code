@@ -161,10 +161,22 @@ cross-version parity beyond its recorded tests.
 | `sort`, `sort_by(f)`, `unique`, `unique_by(f)`, `group_by(f)` | Stable sorting/grouping with recursive jq-style type ordering; key filters may produce multiple values. |
 | `add`, `reverse`, `min`, `max`, `min_by(f)`, `max_by(f)` | Array operations; empty `add`, min, and max return null. |
 | `any`, `any(f)`, `all`, `all(f)` | Array predicates with short-circuiting and empty-array identities. |
+| `join(separator)` | Join array elements or object values in insertion order. Strings pass through, null becomes empty text, numbers/booleans use `tostring`; nested containers error. |
 | `first`, `first(f)`, `last`, `last(f)`, `limit(n; f)` | Lazy first/limited consumption; `first(empty)` emits nothing, `last(empty)` emits null; `limit` requires a nonnegative safe integer. |
 | `range(end)`, `range(start; end)`, `range(start; end; step)` | Lazily consume argument generators in start/end/step order; finite numeric progression, exclusive end; zero step emits nothing, nonprogress/overflow errors. |
 | `tostring`, `tonumber`, `tojson`, `fromjson` | Strict finite JSON conversion; `tonumber` requires a JSON number string. |
 | `to_entries`, `from_entries`, `with_entries(f)` | Entry conversion and transformation; entry keys must be strings. Key aliases `key`, `Key`, `name`, `Name` select the first value other than false/null; values use the first present `value`/`Value` field, retaining false/null. |
+
+`join` evaluates its separator filter on the original input, once per produced
+separator, then emits one complete joined result. An empty separator generator
+emits nothing, even for input that otherwise cannot be iterated. An empty
+container produces an empty string for each separator result. Separators are
+only used between elements: null means no text; other nonstring separator
+values error only if a second element exists. Separator evaluation errors still
+occur for empty/singleton containers. Argument generators remain lazy under
+`first`/`limit`, and outputs preceding later separator errors are retained.
+Object-value iteration follows this native build, not just array-only examples.
+Numeric conversion retains the documented binary64/decimal-rendering gaps.
 
 JSON object storage and serializers preserve insertion order and own keys
 `__proto__`, `constructor`, and `prototype`, without modifying host prototypes.
@@ -181,7 +193,7 @@ before EOF. Slurp and collector filters intentionally materialize bounded arrays
 The UTF-8 validator preserves completed JSON prefix output even when a malformed
 byte follows it in the same chunk; valid and malformed UTF-8 split regressions
 exercise this behavior. UTF-8 overlong encodings, encoded surrogates, truncated
-sequences, BOM input, and lone JSON/string-literal surrogates are rejected.
+sequences, BOM in JSON input, and lone JSON/string-literal surrogates are rejected.
 
 Raw input uses the same strict UTF-8 safety policy, except that BOM is ordinary
 string data. Native `jq-1.7.1-apple` replaces invalid UTF-8; this implementation
@@ -315,8 +327,25 @@ Native jq is only required by the optional `verify-native.ts` command. Runtime
 error wording is project-specific and is not native-byte-matched. See
 `tests/commands/structured-stress/README.md` for reproduction and gate results.
 
-Raw input (`-R`/`--raw-input`), `join`, object overloads of `any`/`all`, fractional
+Object overloads of `any`/`all`, fractional
 slice endpoints, decimal lexeme/exponent rendering, and other listed grammar
 gaps remain deferred. Strict malformed JSON/UTF-8 rejection is intentional even
 where this native build accepts nonstandard input. These tests establish neither
 full jq parity nor superiority to jq or just-bash.
+
+## Focused capability author increment
+
+The subsequent author increment adds raw input (`-R`/`--raw-input`), join output
+(`-j`/`--join-output`), and `join(separator)`, without other builtins, grammar,
+dependencies, or exported signature changes. The two capability commits include
+their native-derived regressions and documentation. Native processes are only
+optional test capture/replay tools; new committed tests always run without jq.
+
+Author verification: 684/684 combined structured tests, 537/537 native-free
+stress tests with no skips, scoped/global typechecks, and global build pass.
+New captures comprise 74 raw-input and 129 join rows, not distinct categories:
+187 match native output/status, while 16 separately document existing safety or
+numeric policies (12 invalid UTF-8, one stop-on-first runtime error, three
+numeric rendering cases). The original 240 frozen references remain unchanged
+and pass. All ten earlier semantic fixes remain covered. No separate-worker
+final acceptance is claimed; the root will assign a verifier after this handoff.

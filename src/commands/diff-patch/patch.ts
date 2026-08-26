@@ -63,7 +63,7 @@ interface Prepared {
 
 async function run(context: CommandContext, budget: Budget): Promise<number> {
   const options = flags(context.args);
-  const explicit = options.target === undefined ? undefined : safeTarget(options.target, 0);
+  const explicit = options.target === undefined ? undefined : safeTarget(options.target, 0, true);
   if (options.target !== undefined && explicit === undefined) throw new ToolError("/dev/null is not an explicit target");
   if (options.input !== "-") {
     const stat = await inspect(budget, options.input);
@@ -74,11 +74,11 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   const staged = new Map<string, Prepared>();
   for (const sourcePatch of options.reverse ? parsed.slice().reverse() : parsed) {
     const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
-    const oldName = safeTarget(patch.oldPath, options.strip);
-    const newName = safeTarget(patch.newPath, options.strip);
+    const oldName = safeTarget(patch.oldPath, explicit === undefined ? options.strip : 0, explicit !== undefined);
+    const newName = safeTarget(patch.newPath, explicit === undefined ? options.strip : 0, explicit !== undefined);
     if (oldName === undefined && newName === undefined) throw new ToolError("both patch filenames are /dev/null");
-    const oldPath = oldName === undefined ? undefined : resolvePath(context.cwd, oldName);
-    const newPath = newName === undefined ? undefined : resolvePath(context.cwd, newName);
+    const oldPath = oldName === undefined ? undefined : resolvePath(context.cwd, explicit ?? oldName);
+    const newPath = newName === undefined ? undefined : resolvePath(context.cwd, explicit ?? newName);
     const oldStat = oldPath === undefined ? undefined : await inspect(budget, oldPath);
     const newStat = newPath === undefined || newPath === oldPath ? oldStat : await inspect(budget, newPath);
     const oldExists = oldPath !== undefined && (staged.has(oldPath) ? !staged.get(oldPath)!.remove : oldStat !== undefined);

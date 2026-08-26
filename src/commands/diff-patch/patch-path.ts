@@ -35,13 +35,13 @@ export function decodeHeaderPath(value: string): string {
   throw new ToolError("unterminated quoted filename");
 }
 
-export function safeTarget(path: string, strip: number): string | undefined {
+export function safeTarget(path: string, strip: number, allowAbsolute = false): string | undefined {
   if (path === "/dev/null") return undefined;
   if (path.length > 4096 || path.split("/").length > 256) throw new ToolError("path length/depth limit exceeded");
-  if (!path || path.startsWith("/") || /[\\\0-\x08\x0a-\x1f\x7f]/u.test(path)) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
+  if (!path || (!allowAbsolute && path.startsWith("/")) || /[\\\0-\x08\x0a-\x1f\x7f]/u.test(path)) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
   const parts = path.split(/\/+/u);
   if (parts.some(part => part === ".." || /^[A-Za-z]:/u.test(part))) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
-  const stripped = parts.slice(strip).filter(part => part !== ".").join("/");
+  const stripped = parts.filter(Boolean).slice(strip).filter(part => part !== ".").join("/");
   if (!stripped) throw new ToolError(`strip count removes entire patch path: ${path}`);
-  return stripped;
+  return allowAbsolute && path.startsWith("/") && strip === 0 ? `/${stripped}` : stripped;
 }

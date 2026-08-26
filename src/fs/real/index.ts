@@ -15,7 +15,7 @@ export interface RealFileSystemOptions {
   readonly root: string;
 }
 
-interface ResolutionOptions {
+interface ResolutionOptions extends FsOptions {
   readonly followFinal?: boolean;
   readonly missing?: "final";
   readonly createDirectories?: { readonly mode: number };
@@ -119,15 +119,19 @@ export class RealFileSystem implements FileSystem {
     this.configuredRoot = root;
   }
 
-  private async root(): Promise<string> {
+  private async root(options: FsOptions = {}): Promise<string> {
+    options.signal?.throwIfAborted();
     this.rootPromise ??= (async () => {
       const root = await native.realpath(this.configuredRoot);
       if (!(await native.stat(root)).isDirectory()) throw new FsError("ENOTDIR");
       return root;
     })();
     const root = await this.rootPromise;
+    options.signal?.throwIfAborted();
     if (await native.realpath(root) !== root) throw new FsError("EACCES");
+    options.signal?.throwIfAborted();
     if (!(await native.stat(root)).isDirectory()) throw new FsError("ENOTDIR");
+    options.signal?.throwIfAborted();
     return root;
   }
 
@@ -145,6 +149,7 @@ export class RealFileSystem implements FileSystem {
     let links = 0;
     const pending = [...components];
     while (pending.length > 0) {
+      options.signal?.throwIfAborted();
       const { name: component, fromLink } = pending.shift()!;
       if (component === "" || component === ".") continue;
       if (component === "..") {
@@ -160,6 +165,7 @@ export class RealFileSystem implements FileSystem {
       try {
         stats = await native.lstat(candidate);
       } catch (error) {
+        options.signal?.throwIfAborted();
         const code = (error as NodeJS.ErrnoException).code;
         if (options.checkTarget && (code === "ENOENT" || code === "ENOTDIR")) {
           current = candidate;
@@ -168,10 +174,12 @@ export class RealFileSystem implements FileSystem {
         if (code !== "ENOENT") throw error;
         if (options.createDirectories && !fromLink) {
           try {
+            options.signal?.throwIfAborted();
             await native.mkdir(candidate, { mode: options.createDirectories.mode });
           } catch (creationError) {
             if (nativeError(creationError).code !== "EEXIST") throw creationError;
           }
+          options.signal?.throwIfAborted();
           stats = await native.lstat(candidate);
         } else if (!options.createDirectories && options.missing === "final" && pending.every((part) => part.name === "")) {
           return pending.length > 0 ? `${candidate}/` : candidate;
@@ -179,6 +187,7 @@ export class RealFileSystem implements FileSystem {
           throw error;
         }
       }
+      options.signal?.throwIfAborted();
       if (stats.isSymbolicLink() && (pending.length > 0 || options.followFinal !== false)) {
         if (++links > 40) throw new FsError("ELOOP");
         const target = await native.readlink(candidate);
@@ -194,13 +203,15 @@ export class RealFileSystem implements FileSystem {
       if (!options.checkTarget) fileType(stats);
       current = candidate;
     }
+    options.signal?.throwIfAborted();
     return components.at(-1)?.name === "" && current !== root ? `${current}/` : current;
   }
 
   private async path(path: string, options: ResolutionOptions = {}): Promise<string> {
+    options.signal?.throwIfAborted();
     validatePath(path);
     if (path === "") throw new FsError("ENOENT");
-    return this.walk(await this.root(), path.split("/").map((name) => ({ name, fromLink: false })), options);
+    return this.walk(await this.root(options), path.split("/").map((name) => ({ name, fromLink: false })), options);
   }
 
   private async operation<Result>(
@@ -252,16 +263,26 @@ export class RealFileSystem implements FileSystem {
   }
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    return this.operation("stat", path, options, async () => fileStat(await native.stat(await this.path(path))));
+    return this.operation("stat", path, options, async () => {
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      return fileStat(await native.stat(target));
+    });
   }
 
   async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    return this.operation("lstat", path, options, async () => fileStat(await native.lstat(await this.path(path, { followFinal: false }))));
+    return this.operation("lstat", path, options, async () => {
+      const target = await this.path(path, { ...options, followFinal: false });
+      options.signal?.throwIfAborted();
+      return fileStat(await native.lstat(target));
+    });
   }
 
   async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
     return this.operation("readdir", path, options, async () => {
-      const entries = await native.readdir(await this.path(path), { withFileTypes: true });
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      const entries = await native.readdir(target, { withFileTypes: true });
       return entries.map((entry) => ({ name: entry.name, type: fileType(entry) }));
     });
   }
@@ -270,9 +291,11 @@ export class RealFileSystem implements FileSystem {
     return this.operation("mkdir", path, options, async () => {
       if (options.mode !== undefined) integer(options.mode);
       const target = await this.path(path, {
+        ...options,
         missing: "final", followFinal: !!options.recursive,
         ...(options.recursive ? { createDirectories: { mode: options.mode ?? 0o777 } } : {}),
       });
+      options.signal?.throwIfAborted();
       await native.mkdir(target, { recursive: options.recursive ?? false, ...(options.mode === undefined ? {} : { mode: options.mode }) });
     });
   }
@@ -281,42 +304,45 @@ export class RealFileSystem implements FileSystem {
     return this.operation("rm", path, options, async () => {
       let target: string;
       try {
-        target = await this.path(path, { followFinal: false });
+        target = await this.path(path, { ...options, followFinal: false });
       } catch (error) {
         if (options.force && toFsError(error).code === "ENOENT") return;
         throw error;
       }
       this.protectTerminal(path);
-      this.protectRoot(target, await this.root());
+      this.protectRoot(target, await this.root(options));
+      options.signal?.throwIfAborted();
       await native.rm(target, { recursive: options.recursive ?? false, force: options.force ?? false });
     });
   }
 
   async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
     return this.operation("rename", source, options, async () => {
-      const from = await this.path(source, { followFinal: false });
-      const to = await this.path(destination, { followFinal: false, missing: "final" });
+      const from = await this.path(source, { ...options, followFinal: false });
+      const to = await this.path(destination, { ...options, followFinal: false, missing: "final" });
       this.protectTerminal(source);
       this.protectTerminal(destination);
-      const root = await this.root();
+      const root = await this.root(options);
       this.protectRoot(from, root);
       this.protectRoot(to, root);
+      options.signal?.throwIfAborted();
       await native.rename(from, to);
     }, destination);
   }
 
   async copyFile(source: string, destination: string, options: CopyFileOptions = {}): Promise<void> {
     return this.operation("copyFile", source, options, async () => {
-      const from = await this.path(source);
-      const to = await this.path(destination, { missing: "final", followFinal: !options.exclusive });
+      const from = await this.path(source, options);
+      const to = await this.path(destination, { ...options, missing: "final", followFinal: !options.exclusive });
+      options.signal?.throwIfAborted();
       await native.copyFile(from, to, options.exclusive ? constants.COPYFILE_EXCL : 0);
     }, destination);
   }
 
   async realpath(path: string, options: FsOptions = {}): Promise<string> {
     return this.operation("realpath", path, options, async () => {
-      const target = await this.path(path);
-      return `/${relative(await this.root(), target)}`;
+      const target = await this.path(path, options);
+      return `/${relative(await this.root(options), target)}`;
     });
   }
 
@@ -324,15 +350,19 @@ export class RealFileSystem implements FileSystem {
     return this.operation("access", path, options, async () => {
       integer(mode);
       if (mode > 7) throw new FsError("EINVAL");
-      await native.access(await this.path(path), mode);
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      await native.access(target, mode);
     });
   }
 
   async readlink(path: string, options: FsOptions = {}): Promise<string> {
     return this.operation("readlink", path, options, async () => {
-      const target = await native.readlink(await this.path(path, { followFinal: false }));
+      const resolved = await this.path(path, { ...options, followFinal: false });
+      options.signal?.throwIfAborted();
+      const target = await native.readlink(resolved);
       if (!isAbsolute(target)) return target;
-      return `/${this.absoluteTarget(await this.root(), target).join("/")}`;
+      return `/${this.absoluteTarget(await this.root(options), target).join("/")}`;
     });
   }
 
@@ -340,25 +370,27 @@ export class RealFileSystem implements FileSystem {
     return this.operation("symlink", path, options, async () => {
       validatePath(target);
       if (!target) throw new FsError("ENOENT");
-      const destination = await this.path(path, { followFinal: false, missing: "final" });
-      const root = await this.root();
+      const destination = await this.path(path, { ...options, followFinal: false, missing: "final" });
+      const root = await this.root(options);
       const stored = target.startsWith("/") ? `${root === "/" ? "" : root}${target}` : target;
       const components = target.startsWith("/")
         ? target.split("/")
         : [...relative(root, resolve(destination, "..")).split("/"), ...target.split("/")];
       try {
-        await this.walk(root, components.map((name) => ({ name, fromLink: true })), { checkTarget: true });
+        await this.walk(root, components.map((name) => ({ name, fromLink: true })), { ...options, checkTarget: true });
       } catch (error) {
         if (nativeError(error).code !== "ELOOP") throw error;
       }
+      options.signal?.throwIfAborted();
       await native.symlink(stored, destination);
     });
   }
 
   async link(existingPath: string, newPath: string, options: FsOptions = {}): Promise<void> {
     return this.operation("link", existingPath, options, async () => {
-      const source = await this.path(existingPath, { followFinal: false });
-      const destination = await this.path(newPath, { followFinal: false, missing: "final" });
+      const source = await this.path(existingPath, { ...options, followFinal: false });
+      const destination = await this.path(newPath, { ...options, followFinal: false, missing: "final" });
+      options.signal?.throwIfAborted();
       await native.link(source, destination);
     }, newPath);
   }
@@ -366,23 +398,31 @@ export class RealFileSystem implements FileSystem {
   async chmod(path: string, mode: number, options: FsOptions = {}): Promise<void> {
     return this.operation("chmod", path, options, async () => {
       integer(mode);
-      await native.chmod(await this.path(path), mode);
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      await native.chmod(target, mode);
     });
   }
 
   async utimes(path: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
     return this.operation("utimes", path, options, async () => {
       if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)) throw new FsError("EINVAL");
-      await native.utimes(await this.path(path), new Date(atimeMs), new Date(mtimeMs));
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      await native.utimes(target, new Date(atimeMs), new Date(mtimeMs));
     });
   }
 
   async truncate(path: string, length = 0, options: FsOptions = {}): Promise<void> {
     return this.operation("truncate", path, options, async () => {
       integer(length);
-      const handle = await native.open(await this.path(path), constants.O_WRONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      const handle = await native.open(target, constants.O_WRONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
       try {
+        options.signal?.throwIfAborted();
         if (!(await handle.stat()).isFile()) throw new FsError("ENOTSUP");
+        options.signal?.throwIfAborted();
         await handle.truncate(length);
       } finally {
         await handle.close();
@@ -402,7 +442,10 @@ export class RealFileSystem implements FileSystem {
       integer(end);
       integer(chunkSize, 1);
       if (end < start) throw new FsError("EINVAL");
-      handle = await native.open(await this.path(path), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      handle = await native.open(target, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      options.signal?.throwIfAborted();
       const stats = await handle.stat();
       if (stats.isDirectory()) throw new FsError("EISDIR");
       if (!stats.isFile()) throw new FsError("ENOTSUP");
@@ -435,14 +478,16 @@ export class RealFileSystem implements FileSystem {
       if (!["w", "wx", "a", "ax"].includes(flag)) throw new FsError("EINVAL");
       if (options.mode !== undefined) integer(options.mode);
       const exclusive = flag.endsWith("x");
-      const destination = await this.path(path, { missing: "final", followFinal: !exclusive });
+      const destination = await this.path(path, { ...options, missing: "final", followFinal: !exclusive });
       const flags = constants.O_WRONLY | constants.O_CREAT | constants.O_NOFOLLOW | constants.O_NONBLOCK
         | (flag.startsWith("a") ? constants.O_APPEND : constants.O_TRUNC)
         | (exclusive ? constants.O_EXCL : 0);
       options.signal?.throwIfAborted();
       const handle = await native.open(destination, flags, options.mode ?? 0o666);
       try {
+        options.signal?.throwIfAborted();
         if (!(await handle.stat()).isFile()) throw new FsError("ENOTSUP");
+        options.signal?.throwIfAborted();
         for await (const chunk of source) {
           options.signal?.throwIfAborted();
           if (!(chunk instanceof Uint8Array)) throw new FsError("EINVAL");

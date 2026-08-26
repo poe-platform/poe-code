@@ -429,6 +429,40 @@ that any implementation, command, fixture, or test currently exists.
   escaping attempt separately from the corrected passing package smoke; no
   product failure was repaired by changing expected output.
 
+### Aggregate committed-HEAD refresh (August 26, 2026)
+
+- A fresh `git archive` of `f4eb0b327fd5a14f49dc6007f14f613b43cdaeea` includes
+  the committed aggregate, rather than an overlay or a stale temporary checkout.
+  Evidence: `benchmarks/reports/aggregate-head-integration.json` and its
+  `-comparison.json` companion. The preceding 1020eb1 report is preserved.
+- Typecheck, build, and built ESM package-root smoke pass. All 49 command names
+  are distinct; five cross-family smoke pipelines pass. All 19 aggregate tests
+  pass in the complete run. No runtime dependencies or CLI were introduced.
+- Full test result: **4,815 total; 4,755 pass, 51 fail, 5 skip, 4 TODO; zero
+  cancelled**. Failure ownership is Faraday diff/patch (30: 26 independent stress
+  and 4 author whitespace-format tests), Sagan's documented shell differential
+  gaps (10), and stdin-origin rg integrations requiring Poincare's consumer fix
+  alongside Sagan's committed shell metadata (11). That consumer implementation
+  remained outside the archived commit. Native oracle-calibration failures stay
+  in the raw failing denominator pending the owner's classification.
+- Five unavailable GNU coreutils oracles and four Apple gzip parity TODOs remain
+  nonpasses. Do not substitute independently reported working-tree fixes for
+  this snapshot's result or call these 51 failures 51 newly introduced bugs.
+- All six actual-local SafeJS tests pass. The private checkout is now
+  `9fdf6658d809e721caf0f801e6cef539c4386f37`, with clean scoped status and unchanged
+  package hash before/after this run. The different private HEAD from the first
+  checkpoint is explicit; local SafeJS was read in place, not archived.
+- Exact comparison: virtual **116 pass / 2 fail of 118**; just-bash 3.4.2
+  **108 pass / 9 fail / 1 unsupported of 118**. Source/harness fingerprints are
+  stable and there are no background errors. Remaining virtual failures are
+  implicit empty-pipe rg and absolute patch-target rejection. The separately
+  reported moving-worktree 117/118 includes work not in this commit and must not
+  be attributed to the archive. No superiority or full-scope completion claim.
+- At handoff, owned aggregate/root/docs changes are committed. Other owners are
+  actively editing bytes, search, diff/patch, shell, and structured verification
+  paths. Their changes are preserved and neither staged nor committed by this
+  worker. A clean moving-worktree validation is not claimed.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

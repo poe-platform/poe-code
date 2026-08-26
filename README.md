@@ -18,13 +18,16 @@ injected SafeJS bridges. They are not complete Bash or native-utility parity.
 The user's requirement **"IT MUST BE BETTER than just-bash, much better"** remains
 unproven; command counts and selected passing fixtures do not establish it.
 
-The committed snapshot `1020eb16a2c365407886ac2ed033349ecac0ead2` builds and
-typechecks, but its 4,574 tests include 36 failures, 5 skips, and 4 TODOs
-(4,529 passes). Its all-plugin comparison is 116/118 passes versus pinned
+The committed snapshot `f4eb0b327fd5a14f49dc6007f14f613b43cdaeea` builds and
+typechecks, but its 4,815 tests include 51 failures, 5 skips, and 4 TODOs
+(4,755 passes). Its all-plugin comparison is 116/118 passes versus pinned
 just-bash 3.4.2's 108 passes, 9 failures, and 1 unsupported case. These are
 snapshot-specific results, not a clean bill of health for the moving worktree.
-See `benchmarks/reports/committed-head-integration.json` for exact failures and
+See `benchmarks/reports/aggregate-head-integration.json` for exact failures and
 environment metadata; the companion `-comparison.json` retains both engines.
+The failures include 30 diff/patch cases, 10 shell differential gaps, and 11
+stdin-origin integrations whose rg consumer changes were not yet committed in
+that snapshot. All 19 aggregate tests pass. Earlier evidence remains recorded.
 
 ## Use the command bundle
 

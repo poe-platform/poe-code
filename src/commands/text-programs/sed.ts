@@ -282,9 +282,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             for (let offset = 0; offset <= pattern.length; offset++) {
               budget.step(); await budget.checkpoint();
               const character = pattern[offset];
-              const token = character === undefined ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
+              const token = character === undefined || character === "\n" ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
               if (line.length + token.length >= 60) { await write(context, line + "\\\n"); line = ""; }
               line = budget.check(line + token);
+              if (character === "\n") { await write(context, line + "\n"); line = ""; }
             }
             await write(context, line + "\n");
             break;

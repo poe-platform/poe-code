@@ -51,15 +51,22 @@ export function createCachedResource<T>(
   });
 
   const revalidator = createRevalidator();
+  const pendingResolutions = new Set<Promise<CachedData<T>>>();
 
   return {
     get(options?: FetchOptions): Promise<CachedData<T>> {
-      return resolveData(bundledData, config, {
+      const resolution = resolveData(bundledData, config, {
         memoryCache,
         fs: diskFs,
         fetch: deps?.fetch,
         revalidator,
-      }, options).then(cloneCachedData);
+      }, options);
+      pendingResolutions.add(resolution);
+      void resolution.then(
+        () => pendingResolutions.delete(resolution),
+        () => pendingResolutions.delete(resolution),
+      );
+      return resolution.then(cloneCachedData);
     },
 
     refresh(): Promise<CachedData<T>> {
@@ -67,6 +74,7 @@ export function createCachedResource<T>(
     },
 
     async clear(): Promise<void> {
+      await Promise.allSettled([...pendingResolutions]);
       await revalidator.waitForRevalidation(config.cacheName);
       memoryCache.clear();
       await removeFromDisk(config, { fs: diskFs });

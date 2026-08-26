@@ -1,4 +1,5 @@
 import { color } from "../../components/color.js";
+import { graphemes } from "../../dashboard/terminal-width.js";
 import { CANCEL } from "./cancel-symbol.js";
 import { GLYPHS, symbol, symbolBar } from "./glyphs.js";
 import { Prompt, type PromptOptions } from "./core.js";
@@ -28,7 +29,7 @@ class PasswordPrompt extends Prompt<string> {
   }
 
   get masked(): string {
-    return this.mask.repeat(this.userInput.length);
+    return this.mask.repeat(graphemes(this.userInput).length);
   }
 
   get userInputWithCursor(): string {
@@ -37,9 +38,10 @@ class PasswordPrompt extends Prompt<string> {
     }
 
     const masked = this.masked;
-    const before = masked.slice(0, this.cursor);
-    const current = masked[this.cursor];
-    const after = masked.slice(this.cursor + 1);
+    const maskCursor = graphemes(this.userInput.slice(0, this.cursor)).length * this.mask.length;
+    const before = masked.slice(0, maskCursor);
+    const current = masked.slice(maskCursor, maskCursor + this.mask.length);
+    const after = masked.slice(maskCursor + this.mask.length);
 
     if (current) {
       return `${before}${color.inverse(current)}${after}`;

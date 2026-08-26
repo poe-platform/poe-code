@@ -1,4 +1,5 @@
 import { color } from "../../components/color.js";
+import { graphemes } from "../../dashboard/terminal-width.js";
 import { GLYPHS, symbol, symbolBar } from "./glyphs.js";
 import { CANCEL } from "./cancel-symbol.js";
 import { Prompt, type PromptOptions } from "./core.js";
@@ -38,8 +39,8 @@ class TextPrompt extends Prompt<string> {
     }
 
     const before = this.userInput.slice(0, this.cursor);
-    const current = this.userInput[this.cursor];
-    const after = this.userInput.slice(this.cursor + 1);
+    const current = graphemes(this.userInput.slice(this.cursor))[0];
+    const after = this.userInput.slice(this.cursor + (current?.length ?? 0));
 
     if (current) {
       return `${before}${color.inverse(current)}${after}`;
@@ -65,10 +66,11 @@ function renderTextPrompt(prompt: TextPrompt, opts: TextOptions): string {
     return `${renderHeader(prompt, opts.message)}\n${color.gray(GLYPHS.bar)}  ${color.dim.strikethrough(value)}\n${color.red(GLYPHS.barEnd)}`;
   }
 
+  const [placeholder, ...placeholderRest] = graphemes(opts.placeholder ?? "");
   const input = prompt.userInput.length > 0
     ? prompt.userInputWithCursor
-    : opts.placeholder
-      ? `${color.inverse(opts.placeholder[0] ?? " ")}${color.dim(opts.placeholder.slice(1))}`
+    : placeholder
+      ? `${color.inverse(placeholder)}${color.dim(placeholderRest.join(""))}`
       : color.inverse("_");
 
   if (prompt.state === "error") {

@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
 import * as readline from "node:readline";
+import { graphemes } from "../../dashboard/terminal-width.js";
 import { CANCEL } from "./cancel-symbol.js";
 import { mapKey, type Action } from "./keys.js";
 import { wrapFrame } from "./wrap.js";
@@ -178,6 +179,14 @@ export class Prompt<Value> extends EventEmitter {
   protected setUserInput(value: string): void {
     this.userInput = value;
     this._cursor = Math.min(this._cursor, this.userInput.length);
+    if (this.trackValue) {
+      let boundary = 0;
+      for (const segment of graphemes(value)) {
+        if (boundary >= this._cursor) break;
+        boundary += segment.length;
+      }
+      this._cursor = boundary;
+    }
     this.emit("userInput", this.userInput);
   }
 
@@ -252,24 +261,26 @@ export class Prompt<Value> extends EventEmitter {
         return;
       }
       if (key.name === "u") {
-        this.userInput = this.userInput.slice(this._cursor);
+        const remaining = this.userInput.slice(this._cursor);
         this._cursor = 0;
-        this.emit("userInput", this.userInput);
+        this.setUserInput(remaining);
         return;
       }
       if (key.name === "k") {
-        this.userInput = this.userInput.slice(0, this._cursor);
-        this.emit("userInput", this.userInput);
+        this.setUserInput(this.userInput.slice(0, this._cursor));
         return;
       }
     }
 
+    const before = this.userInput.slice(0, this._cursor);
+    const after = this.userInput.slice(this._cursor);
+
     if (action === "left") {
-      this._cursor = Math.max(0, this._cursor - 1);
+      this._cursor -= graphemes(before).at(-1)?.length ?? 0;
       return;
     }
     if (action === "right") {
-      this._cursor = Math.min(this.userInput.length, this._cursor + 1);
+      this._cursor += graphemes(after)[0]?.length ?? 0;
       return;
     }
     if (action === "cancel" || action === "up" || action === "down" || action === "space") {
@@ -277,16 +288,14 @@ export class Prompt<Value> extends EventEmitter {
     }
     if (key.name === "backspace" || char === "\b" || char === "\x7f") {
       if (this._cursor > 0) {
-        this.userInput = `${this.userInput.slice(0, this._cursor - 1)}${this.userInput.slice(this._cursor)}`;
-        this._cursor -= 1;
-        this.emit("userInput", this.userInput);
+        this._cursor -= graphemes(before).at(-1)?.length ?? 0;
+        this.setUserInput(`${before.slice(0, this._cursor)}${after}`);
       }
       return;
     }
     if (key.name === "delete") {
       if (this._cursor < this.userInput.length) {
-        this.userInput = `${this.userInput.slice(0, this._cursor)}${this.userInput.slice(this._cursor + 1)}`;
-        this.emit("userInput", this.userInput);
+        this.setUserInput(`${before}${after.slice(graphemes(after)[0]?.length ?? 0)}`);
       }
       return;
     }
@@ -294,9 +303,8 @@ export class Prompt<Value> extends EventEmitter {
       return;
     }
 
-    this.userInput = `${this.userInput.slice(0, this._cursor)}${char}${this.userInput.slice(this._cursor)}`;
     this._cursor += char.length;
-    this.emit("userInput", this.userInput);
+    this.setUserInput(`${before}${char}${after}`);
   }
 
   protected readonly render = () => {

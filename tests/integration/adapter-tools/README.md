@@ -234,3 +234,130 @@ correction; backend race/upload hardening and the next stable full gate remain
 with their owners/root. Owned temporary directories were cleaned; foreign
 files, staging, native-oracle directories, and dependency manifests were not
 modified. Remote-provider interoperability remains outside this local matrix.
+
+## August 26 follow-up: CLI and typed filesystem errors together
+
+The next owned change strengthens the same eight diagnostic cases without
+altering their canonical messages or adding/removing test cases:
+
+- On each of memory, real, S3, WebDAV, mount and overlay, missing input now
+  requires exit **1**, empty stdout, and the existing exact human stderr.
+  The complete namespace/bytes are compared before and after the failed CLI
+  redirection. Separate actual `access("/work/missing.txt", 4)`, `readFile`, and
+  `stat` calls must each reject with **`error instanceof FsError`**, exact
+  **`error.code === "ENOENT"`**, and exact **`error.path === "/work/missing.txt"`**.
+  Namespace/bytes must remain unchanged after each boundary call.
+- Both readonly redirect cases retain their exact human stderr and all previous
+  byte/namespace checks, additionally require exit **1** and empty stdout, then
+  call the actual readonly adapter's `writeFile` or `appendFile` separately.
+  Each must reject with a real **`FsError`**, code **`EROFS`**, and path
+  **`/work/target.txt`**, followed by another complete namespace/byte comparison.
+- The shared assertion helper checks the error object's class and typed fields,
+  never message parsing or a cast. There are **20 direct typed boundary checks
+  inside the existing eight cases**. No fake filesystem wrappers, substituted
+  handlers, backend-specific exceptions, skipped operations, or dependencies
+  were introduced. All other command-level errno expectations are unchanged.
+
+### Fresh gate after backend handoffs
+
+All three backend final reports were present before the final filesystem run.
+S3 source/tests were no longer being edited, and `git status --short -- src/fs
+tests/fs` was empty both before and after that run. The checkpoint was
+**`acef1118fe4e5e0342114ee7d28de5ea02df2327`**, source tree
+**`288b6abc51d7046a62dc96b51268f786d224e034`**:
+
+| Fresh command / gate | Tests | Pass | Fail | Skip / TODO / cancelled |
+| --- | ---: | ---: | ---: | --- |
+| Strengthened full adapter matrix | 79 | 79 | 0 | 0 / 0 / 0 |
+| Full `tests/fs/**/*.test.ts` | 1,132 | 1,132 | 0 | 0 / 0 / 0 |
+| Separate shared-conformance rerun | 202 | 202 | 0 | 0 / 0 / 0 |
+
+Every gate exited **0**. Whole-repo `npm run typecheck` and `npm run build` also
+exited **0**. Required four backends are **44/44**; the two other writable rows
+are **22/22**; composition checks are **2/2**; readonly is **10/10**. The unchanged
+jq split case now passes through the structured owner's concurrent fix. The
+202 conformance cases are already included in 1,132, not additional distinct
+coverage. Matrix, filesystem, and conformance durations were respectively
+1.563, 2.332, and 2.110 seconds on Node v22.22.2. The matrix also passed 79/79
+before the final handoff window.
+
+In addition to the matrix/typecheck/build commands already recorded, the fresh
+filesystem commands were:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test --test-reporter=spec "tests/fs/**/*.test.ts"
+node --unhandled-rejections=strict --import tsx --test --test-reporter=spec tests/fs/conformance/shared.test.ts
+```
+
+Included backend production commits: S3 **`1c846a1`, `acef111`**; WebDAV
+**`a5d68b9`, `9e90573`**; wrappers **`402bda8`, `b05b734`, `78f5cd6`, `0011231`**.
+The backend paths were clean, but other owners still had uncommitted
+structured and diff/patch command changes, including the split implementation.
+Thus the adapter matrix is a verified **working-tree integration checkpoint**,
+not proof that the archived `acef111` tree alone passes all 79 cases or that the
+entire repository is a clean release. All verifier edits remain in this subtree.
+
+The verifier read `benchmarks/reports/ADAPTER_MATRIX_TRIAGE.md`: its immutable
+79-case archive results are 58/21 at `6a259ff`, 61/18 at `b01ceda`, 66/13 at
+`a5d68b9`, 76/3 at isolated `1c846a1`, and 68/11 at `b8df9e1` (pass/fail).
+Those are different source snapshots from the moving-worktree 70/79 and later
+78/79 reports, and precede the stronger assertion revision here. They are not
+contradictions or retrospectively passing archives. The original evidence above
+is intentionally preserved.
+
+### Legacy-test and high-risk review
+
+Inspection of committed `tests/fs` changes from `6a259ff` through `acef111` found
+**no deleted filesystem test files and no newly introduced skip/TODO markers**.
+The full filesystem glob was run, not a selected replacement for the prior
+777-case gate. Relevant existing-test changes were explicit capability/policy
+transitions: supported cross-mount copying replaces the former blanket EXDEV
+expectation with byte/source-preservation, exclusivity and readonly checks;
+rename/link still reject cross-device operations. Conditional streaming flags
+and readonly pre-abort call counts reflect real delegated stream behavior.
+New stream tests check pull counts, late rejections, cancellation, error identity,
+partial writer effects, overlay publication failure, and lower preservation.
+WebDAV upload/timestamp tests inject stale ETags and denied/locked responses and
+verify unchanged concurrent data, rather than merely asserting capability flags.
+
+S3's prior default-rename refusal was changed to an **explicit
+`allowNonAtomicRename: false`** negative test that still asserts no transport
+calls. S3 creation-mode refusal was separately replaced by advisory mode-metadata
+roundtrip assertions; invalid modes still fail and `permissions` remains false.
+That is a documented semantic change, **not equivalent permission enforcement**:
+mode 0600 does not establish IAM-restricted staging. Root/Curie's policy review
+must not be inferred complete from these passing tests. The untouched independent
+`tests/stress/adapters/s3.test.ts:101` still expects default rename refusal;
+the S3 worker reports 18/19 there. This verifier neither edited nor reran that
+foreign stress test. Its policy/oracle disagreement is outside the 1,132-file-
+system-test denominator and is not waived.
+
+**New reproducible data-loss issue, routed to the mount/wrapper owner:** create
+two distinct `RealFileSystem` instances over the same test-managed absolute host
+root, mount them at `/left` and `/right`, and seed `/file` with `alias sentinel\n`.
+The two file stats have the same host inode/device. Then:
+
+```ts
+await mount.copyFile("/left/file", "/right/file");
+```
+
+The public adapter call **resolves successfully but truncates `/file` to zero
+bytes**, instead of rejecting/preserving a self-copy. This was reproduced using
+actual adapters, a three-second signal deadline, and a newly created temporary
+directory in this subtree; cleanup ran in `finally`. No source was modified.
+After reseeding, root `agentCommands()` executing
+`cp /left/file /right/file` correctly returns exit **1** with
+`cp: EINVAL: source and destination are the same file '/left/file' -> '/right/file'\n`
+and preserves the bytes. Thus the command guard protects this shell flow, but
+does not make the public `MountFileSystem.copyFile` safe. The fix needs
+namespace-aware self-alias protection **before** target truncation; unrelated
+backends' inode numbers must not simply be assumed globally comparable.
+This bounded probe is separate from the unchanged 79-case matrix and is an
+unresolved source defect, not a passing-test waiver or a new claimed matrix case.
+
+The green gates therefore do not establish complete backend safety. Remaining
+provider limits include non-atomic S3 copy/delete rename, advisory modes and
+virtual timestamps, no distributed metadata-lock guarantee, WebDAV dead-property/
+ETag requirements, and unsupported POSIX staging permissions for WebDAV named
+`gzip -k`. Mock S3 and loopback WebDAV are not live-provider credential/signing or
+interoperability validation. No foreign `.native` directories were touched.

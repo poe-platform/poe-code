@@ -6,7 +6,7 @@ import {
   agentCommands, createAgentCommands, createByteCommands, createDiffPatchCommands,
   createSearchCommands, createStandardCommands, createStructuredCommands,
   createTextProgramCommands, createRealFileSystem, MemoryFileSystem, MockS3Client,
-  MountFileSystem, OverlayFileSystem, ReadOnlyFileSystem, S3FileSystem, Shell,
+  FsError, MountFileSystem, OverlayFileSystem, ReadOnlyFileSystem, S3FileSystem, Shell,
   WebDavFileSystem,
   type FileSystem, type ShellExecOptions, type ShellResult,
 } from "../../../src/index.js";
@@ -196,6 +196,15 @@ export function success(result: ShellResult, stdout?: string): void {
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stderr, "");
   if (stdout !== undefined) assert.equal(result.stdout, stdout);
+}
+
+export function fsError(code: "ENOENT" | "EROFS", path: string): (error: unknown) => boolean {
+  return error => {
+    assert.ok(error instanceof FsError, "filesystem boundary must reject with an actual FsError");
+    assert.equal(error.code, code);
+    assert.equal(error.path, path);
+    return true;
+  };
 }
 
 export function allFamiliesDispatched(dispatched: readonly string[]): void {

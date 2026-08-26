@@ -4,7 +4,7 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { ShellLimitError, type ByteSource } from "../../../src/index.js";
 import {
-  allFamiliesDispatched, change, original, payload, revised, snapshotTree, success,
+  allFamiliesDispatched, change, fsError, original, payload, revised, snapshotTree, success,
   withFixture, writableAdapters,
 } from "./fixtures.js";
 
@@ -141,9 +141,21 @@ for (const backend of writableAdapters) {
       assert.equal(missing.stderr, "");
       assert.equal(missing.stdout, "");
       assert.match(Buffer.from(await fs.readFile("/work/error.log")).toString(), /ENOENT.*missing\.txt/);
+      const beforeRedirect = await snapshotTree(fs);
       const redirect = await exec("cat < missing.txt");
-      assert.notEqual(redirect.exitCode, 0);
+      assert.equal(redirect.exitCode, 1);
+      assert.equal(redirect.stdout, "");
       assert.equal(redirect.stderr, "shell: line 1: missing.txt: No such file or directory\n");
+      assert.deepEqual(await snapshotTree(fs), beforeRedirect, "missing input redirect preserves namespace and bytes");
+      const missingPath = "/work/missing.txt";
+      for (const operation of [
+        () => fs.access(missingPath, 4),
+        () => fs.readFile(missingPath),
+        () => fs.stat(missingPath),
+      ]) {
+        await assert.rejects(operation, fsError("ENOENT", missingPath));
+        assert.deepEqual(await snapshotTree(fs), beforeRedirect, "failed filesystem lookup preserves namespace and bytes");
+      }
       const unknown = await exec("adapter_tools_nonexistent_command");
       assert.equal(unknown.exitCode, 127);
       assert.match(unknown.stderr, /not found/);
@@ -280,7 +292,15 @@ for (const source of [
       success(await exec("test ! -e denied && test ! -e denied.txt && test ! -e payload.bin.gz"), "");
       assert.deepEqual(await snapshotTree(fs), before, "readonly preserves the entire namespace and bytes");
       if (source === "printf 'changed' > target.txt" || source === "printf 'changed' >> target.txt") {
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stdout, "");
         assert.equal(result.stderr, "shell: line 1: target.txt: Read-only file system\n");
+        const path = "/work/target.txt";
+        const mutation = source === "printf 'changed' > target.txt"
+          ? () => fs.writeFile(path, Buffer.from("changed"), { flag: "w" })
+          : () => fs.appendFile(path, Buffer.from("changed"));
+        await assert.rejects(mutation, fsError("EROFS", path));
+        assert.deepEqual(await snapshotTree(fs), before, "direct readonly rejection preserves namespace and bytes");
       } else {
         assert.match(result.stderr, /EROFS/, "actual readonly filesystem error, not an unrelated command failure");
       }

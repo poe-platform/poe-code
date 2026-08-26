@@ -85,7 +85,80 @@ automatic `pipeBytes` leases; distinguish whole-stage cancellation from an
 operation-local guarantee. Sagan's five pending first-read failures remain an
 open cohort, including the curl zero-byte corner. Metadata remains deferred.
 
-## Curl author assignment — August 26, 2026
+## Accepted bounded curl finalization — August 26, 2026
+
+Root accepts finalization evidence commit **17285d1**, assertion-only commit
+**cbde2fea6a645dbd6395e6b82f1526769e51c1fc**, and stable network source
+**aa2da57a5d1be8571f450a27c7b971245c1b7025**. This delivers the requested optional
+curl within the documented feature/limit profile; the broader product goal
+remains active. Network-tree SHA-256 is
+`886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4`.
+Archimedes retains production/test ownership; this documentation update does
+not change network source, tests, policy, shell or FS implementations.
+
+Each final cohort ran **once**, with zero failures/skips/TODOs in those cohorts:
+
+| Cohort | Final result |
+| --- | --- |
+| Author | 81/81 |
+| Independent corrected product-v2 | 60/60 (54 native-parity, 6 separate contracts) |
+| Supplement | 18/18 (8 parity, 5 security, 5 lifecycle) |
+| Frozen retry product | 18/18 native-parity rows |
+| Corrected retry lifecycle | 15/15 injected contracts |
+| Dirac policy | 22/22 |
+| Targeted total | **214/214**, not 214 distinct native-parity cases |
+| Actual built-package loopback workflow | **5/5**, separately counted |
+| Build | Pass |
+| Global typecheck | Exit 2, three unowned FS-test errors |
+
+The captured global typecheck errors are at
+`tests/fs/overlay/review-regressions.test.ts:30` (required mapped identity field),
+`tests/fs/readonly/metadata.test.ts:45` (required mapped identity field), and
+`tests/stress/adapters/s3-truncate-profile.test.ts:50` (incompatible method-name
+comparison). They were supplied to owners, not changed or ignored here. These
+are the finalization invocation's diagnostics, not a new check of later edits.
+The finalization orchestration exits 1 to preserve that global failure.
+
+The runtime fix retains already-published retry bodies on stdout and resets
+curl-managed files before retry; header dumps append. The only assertion change
+is `recovered:2` to `retryretryrecovered:2`, justified by independently frozen
+native body ordering. The retry-count suffix remains a separate product
+contract, not a native 8.7.1 feature claim. Prior evidence remains byte-identical:
+**80/81 author**, **57/60 original independent**, and **14/15 old lifecycle**.
+Earlier repeated acceptance (60/60 x3, supplemental18/18 x3, retry18/18 x3,
+lifecycle15/15 x2, plus policy22/22) is a separate cohort, not extra executions
+of this final single-run gate. Harness correction `7f7ccfb` and policy sidecar
+`7dd5ce6` retain their own histories.
+
+All 294 network samples match the pinned source inventory; HEAD itself was
+neither stable nor clean, moving from `09555d0` to `435476d` during capture.
+Build/smoke included Curie's **uncommitted metadata root wiring**, producing a
+52-default-command working-tree package rather than the committed 49-command
+aggregate. Optional curl/SafeJS remain outside both defaults. The build is not
+a frozen committed-HEAD snapshot, and the old 49-command inventory/comparator
+denominators are not retroactively changed. Preserved pending metadata paths:
+`package.json`, `src/index.ts`, `src/plugins/index.ts`,
+`tests/plugins/agent-commands.test.ts`, and
+`tests/commands/metadata/integration.test.ts`. None enters this docs commit.
+
+Archimedes reports clean owned paths and no remaining owned servers; evidence
+records all nine owned process groups absent, without forced termination.
+The existing runnable root registration/allowlist example in `README.md` remains
+valid. Registration is explicit, HTTP(S) authorization applies per hop/attempt,
+I/O is byte-streamed and VFS-only, and runtime dependencies remain zero. No claim
+is made for full curl parity, DNS pinning/socket confinement, universal remote
+cancellation or an approved pretransport guard. The custom pre-first-byte
+`head -n 0` issue remains separately tracked and does not block this bounded curl
+delivery. No output-lifecycle API agreement is inferred. SafeJS upstream
+`0c1bfe2` remains unapproved 8/9 with caveats. Superiority and 72-hour/full-product
+requirements remain unproven.
+
+Evidence: `tests/commands/network-stress/finalization/FINAL_REPORT.md`, its raw
+JSON captures, `audit.json` and `seal.json`. Do not overwrite/rerun into that
+evidence directory. This update inspects the final handoff; it reruns no tests,
+build, server or oracle.
+
+## Curl author assignment — August 26, 2026 (historical)
 
 The user explicitly requires **"i also need curl"**. This supersedes the just
 assigned chmod/stat/mktemp author batch; only read-only metadata investigation
@@ -130,8 +203,9 @@ proof of the independently owned shell fix or a clean whole-repository test run.
 The user accepted the author handoff. **Archimedes now solely owns network
 production and author/independent tests**; Curie must not edit those scopes
 without coordination. Curie retains root exports/docs and non-overlapping
-package/inventory verification. Metadata is deferred until the independent curl
-checkpoint. No independent curl pass/fail outcome is inferred yet.
+package/inventory verification. At that checkpoint metadata was deferred until
+independent curl verification, and no independent outcome was inferred then.
+The accepted finalization is recorded separately above.
 
 Frozen package audit **b98e239374ccdb53860c88f41b06a4bc977ecc1d** builds and
 typechecks. All **15 expanded export entries** import and have their JavaScript
@@ -143,7 +217,7 @@ benchmarks or node_modules. No install, network request, full-suite/comparator
 rerun, source edit or package API change was performed for this audit. Evidence:
 `benchmarks/reports/PACKAGE_AUDIT.json`.
 
-The default registry still contains **49 plugin names**; the optional curl and
+That frozen audit's default registry contains **49 plugin names**; the optional curl and
 SafeJS factories add one name each only when explicitly installed. The inspected
 15 kernel names have three default-plugin overlaps: **61 default unique names**,
 or **63 with both optional plugins**. This is not a claim that all options or all

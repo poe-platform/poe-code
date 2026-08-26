@@ -127,16 +127,32 @@ Hosts can inject a transport or CA without changing global TLS/environment state
 Downloads/uploads use byte streams and VFS paths, never implicit host files or
 native curl. Unknown options and unsupported protocols are rejected.
 
-The first author source commit `6854a6b` passes 80 scoped HTTP(S), native-curl,
-VFS, shell, cancellation and safety checks with zero skips/TODOs. A different
-verifier, Archimedes, now owns network production and its author/independent
-tests; this is not independent certification or complete curl parity.
-The default aggregate remains 49 plugin names; optional `curl` and `safejs` add
-one each only when explicitly installed. The frozen package audit at `b98e239`
-verifies all 15 expanded exports and zero runtime dependencies, without rerunning
-the comparator or certifying either optional engine. See
-`benchmarks/reports/PACKAGE_AUDIT.json` and `src/commands/network/README.md` for
-exact flags, replay/output bounds, retry limitations and unsupported features.
+Curl's accepted bounded independent finalization is **`17285d1`**, on stable
+network source **`aa2da57`**. Its six cohorts ran once each: **81 author + 60
+independent + 18 supplemental + 18 retry + 15 lifecycle + 22 policy = 214
+targeted passes**. Build and **5/5 actual built-package loopback workflow checks**
+also pass. The single global typecheck records three unrelated filesystem-test
+errors; this is not a clean whole-repository claim. See
+`tests/commands/network-stress/finalization/FINAL_REPORT.md` for exact evidence.
+
+Independent fixes preserve native-visible retry stdout and reset curl-managed
+output files between attempts. Assertion-only `cbde2fe` reconciles one stale
+author expectation with frozen native evidence, without changing the runtime or
+denominator. Historical **80/81 author**, **57/60 independent** and **14/15
+lifecycle** observations remain preserved, not relabeled as original passes.
+This is not full curl parity or DNS/socket confinement. The separately tracked
+pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoint;
+it does not prevent delivery of the verified curl scope. Archimedes retains
+network source/test ownership until reassigned.
+
+The **committed** default aggregate remains 49 plugin names; optional `curl` and
+`safejs` add one each only when explicitly installed. Separately, uncommitted
+metadata root wiring exposes 52 defaults in the working tree and the built
+package used during finalization. That build/smoke is a moving-worktree result,
+not an isolated committed-HEAD snapshot. Zero runtime dependencies remain.
+The older frozen package audit at `b98e239` retains its 15-export evidence in
+`benchmarks/reports/PACKAGE_AUDIT.json`; it is not rescored here. Exact flags,
+bounds and unsupported features remain in `src/commands/network/README.md`.
 
 ## Optional SafeJS Command
 

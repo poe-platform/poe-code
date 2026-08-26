@@ -33,8 +33,19 @@
 - After the accepted curl author handoff, Archimedes is the sole owner of
   `src/commands/network/**` and its author/independent tests. Curie retains root
   exports, package/inventory audits and documentation only; do not edit network
-  source/tests without coordination. Defer metadata until curl's independent
-  checkpoint. Count optional curl separately from the default command bundle.
+  source/tests without coordination. Count optional curl separately from the
+  committed 49-command default bundle. Metadata work resumed under a later
+  explicit instruction; its root wiring remains uncommitted and paused for
+  filesystem identity stabilization, not part of the curl delivery commit.
+- Curl finalization `17285d1` records 214 targeted passes across six separately
+  counted cohorts, build success and 5/5 built-package checks on network source
+  `aa2da57`; `cbde2fe` corrects one stale author assertion using frozen native
+  evidence. Preserve historical 80/81, 57/60 and 14/15 observations. This is not
+  full curl parity, DNS/socket confinement, universal first-read cancellation,
+  or a clean committed-HEAD validation: global typecheck recorded three unowned
+  FS-test errors and the build included uncommitted metadata root wiring.
+  Keep the `head -n 0` custom lifecycle limitation separate and visible; no
+  shared output-lifecycle API is approved by this curl checkpoint.
 - Preserve the user's exact preference: **"one more note - zero dependency if posisble"**.
   Keep the shipped library at zero runtime dependencies where possible and use
   Node builtins. Minimal development tooling is permitted; isolate comparator

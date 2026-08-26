@@ -1,0 +1,670 @@
+{
+  "schemaVersion": 1,
+  "oracle": {
+    "executable": "/bin/bash",
+    "argv": ["--noprofile", "--norc", "-c", "{script}", "shell-oracle"],
+    "environment": {"PATH": "/usr/bin:/bin", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
+    "umask": "0022",
+    "timeoutMs": 5000
+  },
+  "fixtures": [
+    {
+      "name": "comments-and-empty-script",
+      "tier": "core",
+      "tags": ["shell.comments", "shell.empty-script"],
+      "script": "# Nothing should execute.\n\n  # Nor here.\n",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "single-quotes-preserve-metacharacters",
+      "tier": "core",
+      "tags": ["shell.quoting.single", "command.printf"],
+      "script": "printf '%s\n' '$HOME $(printf wrong) `printf wrong` * ; | & < >'",
+      "expected": {"stdout": "$HOME $(printf wrong) `printf wrong` * ; | & < >\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "double-quotes-expand-without-splitting",
+      "tier": "core",
+      "tags": ["shell.quoting.double", "shell.expansion.parameter"],
+      "env": {"VALUE": "two words *"},
+      "script": "printf '<%s>\n' \"$VALUE\"",
+      "expected": {"stdout": "<two words *>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "adjacent-quoted-fragments-form-one-word",
+      "tier": "core",
+      "tags": ["shell.quoting.concatenation", "shell.expansion.parameter"],
+      "env": {"VALUE": "middle part"},
+      "script": "printf '<%s>\n' pre\"$VALUE\"'post'",
+      "expected": {"stdout": "<premiddle partpost>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "backslash-escapes-shell-metacharacters",
+      "tier": "core",
+      "tags": ["shell.quoting.escape"],
+      "script": "printf '<%s>\n' one\\ two \\; \\| \\& \\* \\# \\$ \\< \\>",
+      "expected": {"stdout": "<one two>\n<;>\n<|>\n<&>\n<*>\n<#>\n<$>\n<<>\n<>>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "quoted-empty-and-whitespace-arguments",
+      "tier": "core",
+      "tags": ["shell.quoting.empty", "shell.quoting.whitespace"],
+      "script": "printf '<%s>\n' '' \"\" ' ' 'one\ttwo'",
+      "expected": {"stdout": "<>\n<>\n< >\n<one\ttwo>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "escaped-newline-joins-token",
+      "tier": "core",
+      "tags": ["shell.quoting.line-continuation"],
+      "script": "printf '%s\n' hel\\\nlo\n",
+      "expected": {"stdout": "hello\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "hash-is-comment-only-at-token-start",
+      "tier": "core",
+      "tags": ["shell.comments", "shell.tokenization"],
+      "script": "printf '%s\n' word#suffix '#quoted' # ignored ; printf wrong\nprintf '%s\n' next",
+      "expected": {"stdout": "word#suffix\n#quoted\nnext\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "printf-reuses-format-for-extra-arguments",
+      "tier": "core",
+      "tags": ["command.printf"],
+      "script": "printf '%s:%s\n' first second third fourth",
+      "expected": {"stdout": "first:second\nthird:fourth\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "unset-parameter-expands-to-empty",
+      "tier": "core",
+      "tags": ["shell.expansion.parameter", "shell.environment"],
+      "script": "printf '<%s>\n' \"$UNSET_VALUE\" \"${UNSET_VALUE}\"",
+      "expected": {"stdout": "<>\n<>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "unquoted-expansion-splits-on-default-ifs",
+      "tier": "core",
+      "tags": ["shell.expansion.field-splitting"],
+      "env": {"VALUE": "  alpha\tbeta\ngamma  "},
+      "script": "printf '<%s>\n' $VALUE",
+      "expected": {"stdout": "<alpha>\n<beta>\n<gamma>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "quoted-expansion-preserves-all-whitespace",
+      "tier": "core",
+      "tags": ["shell.expansion.field-splitting", "shell.quoting.double"],
+      "env": {"VALUE": "  alpha\tbeta\ngamma  "},
+      "script": "printf '<%s>\n' \"$VALUE\"",
+      "expected": {"stdout": "<  alpha\tbeta\ngamma  >\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "unquoted-empty-expansion-removes-argument",
+      "tier": "core",
+      "tags": ["shell.expansion.field-splitting", "shell.quoting.empty"],
+      "env": {"EMPTY": ""},
+      "script": "printf '<%s>\n' before $EMPTY after \"$EMPTY\"",
+      "expected": {"stdout": "<before>\n<after>\n<>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "double-quote-backslash-rules",
+      "tier": "core",
+      "tags": ["shell.quoting.double", "shell.quoting.escape"],
+      "env": {"VALUE": "expanded"},
+      "script": "printf '%s\n' \"\\$VALUE \\q \\\" \\\\\"",
+      "expected": {"stdout": "$VALUE \\q \" \\\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "assignment-only-command-persists",
+      "tier": "core",
+      "tags": ["shell.assignment"],
+      "script": "VALUE=first; VALUE=second; printf '%s\n' \"$VALUE\"",
+      "expected": {"stdout": "second\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "assignment-value-does-not-split-or-glob",
+      "tier": "core",
+      "tags": ["shell.assignment", "shell.expansion.field-splitting", "shell.expansion.glob"],
+      "env": {"SOURCE": "two words *.txt"},
+      "initialFiles": {"match.txt": "untouched\n"},
+      "script": "VALUE=$SOURCE; printf '<%s>\n' \"$VALUE\"",
+      "expected": {"stdout": "<two words *.txt>\n", "stderr": "", "exitCode": 0, "files": {"match.txt": "untouched\n"}}
+    },
+    {
+      "name": "assignment-only-expands-left-to-right",
+      "tier": "core",
+      "tags": ["shell.assignment", "shell.expansion.parameter"],
+      "script": "FIRST=outer; FIRST=inner SECOND=$FIRST; printf '%s:%s\n' \"$FIRST\" \"$SECOND\"",
+      "expected": {"stdout": "inner:inner\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "prefix-assignment-is-limited-to-command",
+      "tier": "core",
+      "tags": ["shell.assignment.prefix", "shell.environment", "command.awk"],
+      "script": "VALUE=outer; VALUE=inner awk 'BEGIN { print ENVIRON[\"VALUE\"] }'; printf '%s\n' \"$VALUE\"",
+      "expected": {"stdout": "inner\nouter\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "export-makes-variable-visible-to-child",
+      "tier": "core",
+      "tags": ["shell.environment.export", "command.awk"],
+      "script": "VISIBLE='two words'; export VISIBLE; awk 'BEGIN { print ENVIRON[\"VISIBLE\"] }'",
+      "expected": {"stdout": "two words\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "ordinary-assignment-is-not-exported",
+      "tier": "core",
+      "tags": ["shell.environment.export", "shell.assignment", "command.awk"],
+      "script": "LOCAL_ONLY=hidden; awk 'BEGIN { printf \"<%s>\\n\", ENVIRON[\"LOCAL_ONLY\"] }'; printf '%s\n' \"$LOCAL_ONLY\"",
+      "expected": {"stdout": "<>\nhidden\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "initial-environment-keeps-literal-values",
+      "tier": "core",
+      "tags": ["shell.environment", "shell.expansion.parameter"],
+      "env": {"GREETING": "hello world", "LITERAL": "$(printf wrong); *", "EMPTY": ""},
+      "script": "printf '<%s>\n' \"$GREETING\" \"$LITERAL\" \"$EMPTY\"",
+      "expected": {"stdout": "<hello world>\n<$(printf wrong); *>\n<>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "semicolon-continues-after-failure",
+      "tier": "core",
+      "tags": ["shell.list.semicolon", "shell.status"],
+      "script": "false; printf '%s\n' recovered",
+      "expected": {"stdout": "recovered\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "and-list-short-circuits-side-effects",
+      "tier": "core",
+      "tags": ["shell.list.and", "shell.redirection.output"],
+      "script": "false && printf wrong >unexpected.txt; true && printf '%s\n' reached",
+      "expected": {"stdout": "reached\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "or-list-short-circuits-side-effects",
+      "tier": "core",
+      "tags": ["shell.list.or", "shell.redirection.output"],
+      "script": "true || printf wrong >unexpected.txt; false || printf '%s\n' recovered",
+      "expected": {"stdout": "recovered\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "and-or-lists-have-equal-left-associativity",
+      "tier": "core",
+      "tags": ["shell.list.and", "shell.list.or", "shell.list.precedence"],
+      "script": "true || printf wrong && printf '%s\n' reached; false && printf wrong || printf '%s\n' recovered",
+      "expected": {"stdout": "reached\nrecovered\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "last-command-determines-list-exit-status",
+      "tier": "core",
+      "tags": ["shell.status", "shell.list.semicolon"],
+      "script": "printf '%s\n' before; false",
+      "expected": {"stdout": "before\n", "stderr": "", "exitCode": 1, "files": {}}
+    },
+    {
+      "name": "explicit-exit-stops-subsequent-commands",
+      "tier": "core",
+      "tags": ["shell.status", "shell.exit"],
+      "script": "printf '%s\n' before; exit 7; printf wrong >unexpected.txt",
+      "expected": {"stdout": "before\n", "stderr": "", "exitCode": 7, "files": {}}
+    },
+    {
+      "name": "pipeline-status-defaults-to-successful-last-command",
+      "tier": "core",
+      "tags": ["shell.pipeline", "shell.status", "command.cat"],
+      "script": "false | cat",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "pipeline-status-uses-failing-last-command",
+      "tier": "core",
+      "tags": ["shell.pipeline", "shell.status"],
+      "script": "printf '%s\n' discarded | false",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 1, "files": {}}
+    },
+    {
+      "name": "three-stage-text-pipeline",
+      "tier": "core",
+      "tags": ["shell.pipeline", "command.printf", "command.tr", "command.sed"],
+      "script": "printf '%s\n' 'one two' 'three four' | tr 'a-z' 'A-Z' | sed 's/ /:/g'",
+      "expected": {"stdout": "ONE:TWO\nTHREE:FOUR\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "sort-uniq-count-pipeline",
+      "tier": "core",
+      "tags": ["shell.pipeline", "command.sort", "command.uniq", "command.awk"],
+      "initialFiles": {"words.txt": "pear\napple\npear\nbanana\napple\n"},
+      "script": "sort words.txt | uniq | awk 'END { print NR }'",
+      "expected": {"stdout": "3\n", "stderr": "", "exitCode": 0, "files": {"words.txt": "pear\napple\npear\nbanana\napple\n"}}
+    },
+    {
+      "name": "sed-selects-and-rewrites-lines",
+      "tier": "core",
+      "tags": ["shell.pipeline", "command.sed"],
+      "script": "printf '%s\n' alpha beta gamma delta | sed -n '2,3p' | sed 's/a/A/g'",
+      "expected": {"stdout": "betA\ngAmmA\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "grep-no-match-is-an-expected-failure",
+      "tier": "core",
+      "tags": ["command.grep", "shell.status"],
+      "initialFiles": {"input.txt": "alpha\nbeta\n"},
+      "script": "grep -c absent input.txt",
+      "expected": {"stdout": "0\n", "stderr": "", "exitCode": 1, "files": {"input.txt": "alpha\nbeta\n"}}
+    },
+    {
+      "name": "grep-cut-sort-text-pipeline",
+      "tier": "core",
+      "tags": ["shell.pipeline", "command.grep", "command.cut", "command.sort"],
+      "initialFiles": {"records.txt": "skip:z\nkeep:pear\nkeep:apple\n"},
+      "script": "grep '^keep:' records.txt | cut -d ':' -f 2 | sort",
+      "expected": {"stdout": "apple\npear\n", "stderr": "", "exitCode": 0, "files": {"records.txt": "skip:z\nkeep:pear\nkeep:apple\n"}}
+    },
+    {
+      "name": "awk-aggregates-numeric-fields",
+      "tier": "core",
+      "tags": ["command.awk", "shell.redirection.input"],
+      "initialFiles": {"sales.txt": "apple 2\npear 5\napple 3\n"},
+      "script": "awk '{ total += $2 } END { printf \"rows=%d total=%d\\n\", NR, total }' <sales.txt",
+      "expected": {"stdout": "rows=3 total=10\n", "stderr": "", "exitCode": 0, "files": {"sales.txt": "apple 2\npear 5\napple 3\n"}}
+    },
+    {
+      "name": "output-redirection-truncates-existing-file",
+      "tier": "core",
+      "tags": ["shell.redirection.output", "command.cat"],
+      "initialFiles": {"output.txt": "old content that must disappear\n"},
+      "script": "printf '%s\n' new >output.txt; cat output.txt",
+      "expected": {"stdout": "new\n", "stderr": "", "exitCode": 0, "files": {"output.txt": "new\n"}}
+    },
+    {
+      "name": "append-redirection-preserves-and-creates",
+      "tier": "core",
+      "tags": ["shell.redirection.append"],
+      "initialFiles": {"existing.txt": "first\n"},
+      "script": "printf '%s\n' second >>existing.txt; printf '%s\n' fresh >>new.txt; cat existing.txt new.txt",
+      "expected": {"stdout": "first\nsecond\nfresh\n", "stderr": "", "exitCode": 0, "files": {"existing.txt": "first\nsecond\n", "new.txt": "fresh\n"}}
+    },
+    {
+      "name": "input-redirection-feeds-command",
+      "tier": "core",
+      "tags": ["shell.redirection.input", "command.tr"],
+      "initialFiles": {"input.txt": "alpha beta\n"},
+      "script": "tr 'a-z' 'A-Z' <input.txt",
+      "expected": {"stdout": "ALPHA BETA\n", "stderr": "", "exitCode": 0, "files": {"input.txt": "alpha beta\n"}}
+    },
+    {
+      "name": "stdout-and-stderr-are-independent-streams",
+      "tier": "core",
+      "tags": ["shell.redirection.duplication", "shell.stderr"],
+      "script": "printf '%s\n' normal; printf '%s\n' warning >&2; printf '%s\n' after",
+      "expected": {"stdout": "normal\nafter\n", "stderr": "warning\n", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "descriptor-duplication-after-file-redirection",
+      "tier": "core",
+      "tags": ["shell.redirection.duplication", "shell.redirection.order"],
+      "script": "printf '%s\n' routed 2>errors.log 1>&2",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 0, "files": {"errors.log": "routed\n"}}
+    },
+    {
+      "name": "descriptor-duplication-before-file-redirection",
+      "tier": "core",
+      "tags": ["shell.redirection.duplication", "shell.redirection.order"],
+      "script": "printf '%s\n' 'original stderr' 1>&2 2>errors.log",
+      "expected": {"stdout": "", "stderr": "original stderr\n", "exitCode": 0, "files": {"errors.log": ""}}
+    },
+    {
+      "name": "multiple-output-redirections-truncate-every-target",
+      "tier": "core",
+      "tags": ["shell.redirection.output", "shell.redirection.order"],
+      "initialFiles": {"first.txt": "stale first\n", "second.txt": "stale second\n"},
+      "script": "printf '%s\n' final >first.txt >second.txt",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 0, "files": {"first.txt": "", "second.txt": "final\n"}}
+    },
+    {
+      "name": "redirection-only-command-creates-empty-file",
+      "tier": "core",
+      "tags": ["shell.redirection.output", "shell.redirection.no-command"],
+      "script": ">empty.txt; printf '%s\n' done",
+      "expected": {"stdout": "done\n", "stderr": "", "exitCode": 0, "files": {"empty.txt": ""}}
+    },
+    {
+      "name": "pipeline-output-can-be-redirected-to-file",
+      "tier": "core",
+      "tags": ["shell.pipeline", "shell.redirection.output", "command.sort"],
+      "script": "printf '%s\n' zebra apple pear | sort >sorted.txt; cat sorted.txt",
+      "expected": {"stdout": "apple\npear\nzebra\n", "stderr": "", "exitCode": 0, "files": {"sorted.txt": "apple\npear\nzebra\n"}}
+    },
+    {
+      "name": "fixture-stdin-flows-through-pipeline",
+      "tier": "core",
+      "tags": ["shell.stdin", "shell.pipeline", "command.cat", "command.tr"],
+      "stdin": "one\ntwo\n",
+      "script": "cat | tr 'a-z' 'A-Z'",
+      "expected": {"stdout": "ONE\nTWO\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "sequential-cats-share-consumed-stdin",
+      "tier": "core",
+      "tags": ["shell.stdin.shared-offset", "shell.list.semicolon", "command.cat"],
+      "stdin": "first\nlast",
+      "script": "cat; printf '\n--between--\n'; cat",
+      "expected": {"stdout": "first\nlast\n--between--\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "redirected-input-does-not-consume-inherited-stdin",
+      "tier": "core",
+      "tags": ["shell.stdin.shared-offset", "shell.redirection.input", "command.cat"],
+      "initialFiles": {"input.txt": "file input\n"},
+      "stdin": "inherited input\n",
+      "script": "cat <input.txt; cat",
+      "expected": {"stdout": "file input\ninherited input\n", "stderr": "", "exitCode": 0, "files": {"input.txt": "file input\n"}}
+    },
+    {
+      "name": "cat-dash-operands-do-not-replay-stdin",
+      "tier": "core",
+      "tags": ["shell.stdin.shared-offset", "command.cat"],
+      "initialFiles": {"before.txt": "before\n", "after.txt": "after\n"},
+      "stdin": "stdin\n",
+      "script": "cat before.txt - after.txt -",
+      "expected": {"stdout": "before\nstdin\nafter\n", "stderr": "", "exitCode": 0, "files": {"before.txt": "before\n", "after.txt": "after\n"}}
+    },
+    {
+      "name": "explicit-input-redirection-overrides-pipe",
+      "tier": "core",
+      "tags": ["shell.stdin.shared-offset", "shell.pipeline", "shell.redirection.input"],
+      "initialFiles": {"input.txt": "from file\n"},
+      "stdin": "from parent stdin\n",
+      "script": "printf '%s\n' ignored | cat <input.txt; cat",
+      "expected": {"stdout": "from file\nfrom parent stdin\n", "stderr": "", "exitCode": 0, "files": {"input.txt": "from file\n"}}
+    },
+    {
+      "name": "command-substitution-strips-all-trailing-newlines",
+      "tier": "core",
+      "tags": ["shell.expansion.command-substitution", "shell.assignment"],
+      "script": "VALUE=$(printf 'one\ntwo\n\n'); printf '<%s>\n' \"$VALUE\"",
+      "expected": {"stdout": "<one\ntwo>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "unquoted-command-substitution-undergoes-splitting",
+      "tier": "core",
+      "tags": ["shell.expansion.command-substitution", "shell.expansion.field-splitting"],
+      "script": "printf '<%s>\n' $(printf 'one two\n')",
+      "expected": {"stdout": "<one>\n<two>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "command-substitution-concatenates-inside-word",
+      "tier": "core",
+      "tags": ["shell.expansion.command-substitution", "shell.quoting.concatenation"],
+      "script": "printf '%s\n' \"pre$(printf mid)post\"",
+      "expected": {"stdout": "premidpost\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "command-substitution-captures-only-stdout",
+      "tier": "core",
+      "tags": ["shell.expansion.command-substitution", "shell.stderr"],
+      "script": "VALUE=$(printf '%s\n' notice >&2; printf '%s\n' value); printf '<%s>\n' \"$VALUE\"",
+      "expected": {"stdout": "<value>\n", "stderr": "notice\n", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "assignment-status-comes-from-command-substitution",
+      "tier": "core",
+      "tags": ["shell.expansion.command-substitution", "shell.assignment", "shell.status"],
+      "script": "VALUE=$(false); printf 'status=%s value=<%s>\n' \"$?\" \"$VALUE\"",
+      "expected": {"stdout": "status=1 value=<>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "star-glob-sorts-and-excludes-dotfiles",
+      "tier": "core",
+      "tags": ["shell.expansion.glob"],
+      "initialFiles": {"b.txt": "B", "a.txt": "A", ".hidden.txt": "hidden", "c.log": "C"},
+      "script": "printf '%s\n' *.txt",
+      "expected": {"stdout": "a.txt\nb.txt\n", "stderr": "", "exitCode": 0, "files": {"b.txt": "B", "a.txt": "A", ".hidden.txt": "hidden", "c.log": "C"}}
+    },
+    {
+      "name": "question-and-bracket-globs",
+      "tier": "core",
+      "tags": ["shell.expansion.glob"],
+      "initialFiles": {"a1.log": "", "a2.log": "", "b1.log": "", "a10.log": ""},
+      "script": "printf '%s\n' a?.log [ab]1.log",
+      "expected": {"stdout": "a1.log\na2.log\na1.log\nb1.log\n", "stderr": "", "exitCode": 0, "files": {"a1.log": "", "a2.log": "", "b1.log": "", "a10.log": ""}}
+    },
+    {
+      "name": "unmatched-glob-remains-literal",
+      "tier": "core",
+      "tags": ["shell.expansion.glob"],
+      "script": "printf '%s\n' *.missing",
+      "expected": {"stdout": "*.missing\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "quoted-glob-is-not-expanded",
+      "tier": "core",
+      "tags": ["shell.expansion.glob", "shell.quoting.double"],
+      "initialFiles": {"match.txt": "untouched"},
+      "script": "printf '%s\n' \"*.txt\"",
+      "expected": {"stdout": "*.txt\n", "stderr": "", "exitCode": 0, "files": {"match.txt": "untouched"}}
+    },
+    {
+      "name": "unquoted-parameter-globs-without-resplitting-matches",
+      "tier": "core",
+      "tags": ["shell.expansion.glob", "shell.expansion.field-splitting"],
+      "initialFiles": {"a.txt": "", "two words.txt": ""},
+      "script": "PATTERN='*.txt'; printf '<%s>\n' \"$PATTERN\" $PATTERN",
+      "expected": {"stdout": "<*.txt>\n<a.txt>\n<two words.txt>\n", "stderr": "", "exitCode": 0, "files": {"a.txt": "", "two words.txt": ""}}
+    },
+    {
+      "name": "quoted-nested-file-paths-with-spaces",
+      "tier": "core",
+      "tags": ["shell.quoting.single", "shell.redirection.output", "command.cat"],
+      "initialFiles": {"dir with spaces/input.txt": "nested content\n"},
+      "script": "cat 'dir with spaces/input.txt' >'dir with spaces/output.txt'",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 0, "files": {"dir with spaces/input.txt": "nested content\n", "dir with spaces/output.txt": "nested content\n"}}
+    },
+    {
+      "name": "missing-input-reports-portable-status-and-diagnostic",
+      "tier": "core",
+      "tags": ["shell.redirection.error", "shell.expansion.command-substitution", "command.test", "error.portable"],
+      "script": "DIAGNOSTIC=$(cat 2>&1 <missing.txt); STATUS=$?; printf 'status=%s\n' \"$STATUS\"; test -n \"$DIAGNOSTIC\" && printf 'diagnostic=yes\n'",
+      "expected": {"stdout": "status=1\ndiagnostic=yes\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "missing-grep-file-reports-portable-error-status",
+      "tier": "core",
+      "tags": ["command.grep", "shell.expansion.command-substitution", "command.test", "error.portable"],
+      "script": "DIAGNOSTIC=$(grep needle missing.txt 2>&1); STATUS=$?; printf 'status=%s\n' \"$STATUS\"; test -n \"$DIAGNOSTIC\" && printf 'diagnostic=yes\n'",
+      "expected": {"stdout": "status=2\ndiagnostic=yes\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "failed-input-redirection-prevents-later-truncation",
+      "tier": "core",
+      "tags": ["shell.redirection.error", "shell.redirection.order", "shell.expansion.command-substitution", "error.portable"],
+      "initialFiles": {"output.txt": "keep me\n"},
+      "script": "DIAGNOSTIC=$(cat 2>&1 <missing.txt >output.txt); STATUS=$?; printf 'status=%s\n' \"$STATUS\"; test -n \"$DIAGNOSTIC\" && printf 'diagnostic=yes\n'",
+      "expected": {"stdout": "status=1\ndiagnostic=yes\n", "stderr": "", "exitCode": 0, "files": {"output.txt": "keep me\n"}}
+    },
+    {
+      "name": "no-match-pipeline-still-counts-zero-lines",
+      "tier": "core",
+      "tags": ["shell.pipeline", "shell.status", "command.grep", "command.wc", "command.tr"],
+      "initialFiles": {"input.txt": "alpha\nbeta\n"},
+      "script": "grep absent input.txt | wc -l | tr -d '[:space:]'; printf '\n'",
+      "expected": {"stdout": "0\n", "stderr": "", "exitCode": 0, "files": {"input.txt": "alpha\nbeta\n"}}
+    },
+    {
+      "name": "parameter-defaults-distinguish-unset-and-empty",
+      "tier": "advanced-pending",
+      "tags": ["shell.expansion.parameter.default"],
+      "env": {"EMPTY": ""},
+      "script": "printf '<%s>\n' \"${UNSET_VALUE-default}\" \"${EMPTY-default}\" \"${UNSET_VALUE:-default}\" \"${EMPTY:-default}\"",
+      "expected": {"stdout": "<default>\n<>\n<default>\n<default>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "parameter-alternative-and-assignment-operators",
+      "tier": "advanced-pending",
+      "tags": ["shell.expansion.parameter.alternative", "shell.expansion.parameter.assignment"],
+      "env": {"PRESENT": "value", "EMPTY": ""},
+      "script": "printf '<%s>\n' \"${PRESENT:+yes}\" \"${EMPTY:+yes}\" \"${CREATED:=seed}\" \"$CREATED\"",
+      "expected": {"stdout": "<yes>\n<>\n<seed>\n<seed>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "parameter-length-and-pattern-removal",
+      "tier": "advanced-pending",
+      "tags": ["shell.expansion.parameter.length", "shell.expansion.parameter.pattern"],
+      "script": "VALUE=path/to/file.txt; printf '%s\n' \"${VALUE#*/}\" \"${VALUE##*/}\" \"${VALUE%.*}\" \"${VALUE%%/*}\" \"${#VALUE}\"",
+      "expected": {"stdout": "to/file.txt\nfile.txt\npath/to/file\npath\n16\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "arithmetic-expansion-reads-and-updates-variable",
+      "tier": "advanced-pending",
+      "tags": ["shell.expansion.arithmetic", "shell.assignment"],
+      "script": "COUNT=3; printf '%s\n' \"$((COUNT * 2 + 1))\"; COUNT=$((COUNT + 2)); printf '%s\n' \"$COUNT\"",
+      "expected": {"stdout": "7\n5\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "for-loop-preserves-quoted-and-empty-words",
+      "tier": "advanced-pending",
+      "tags": ["shell.loop.for", "shell.quoting.empty"],
+      "script": "for item in alpha 'two words' ''; do printf '<%s>\n' \"$item\"; done",
+      "expected": {"stdout": "<alpha>\n<two words>\n<>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "for-loop-iterates-sorted-glob-matches",
+      "tier": "advanced-pending",
+      "tags": ["shell.loop.for", "shell.expansion.glob", "command.cat"],
+      "initialFiles": {"b.txt": "B\n", "a.txt": "A\n", "two words.txt": "C\n"},
+      "script": "for item in *.txt; do printf '[%s]\n' \"$item\"; cat \"$item\"; done",
+      "expected": {"stdout": "[a.txt]\nA\n[b.txt]\nB\n[two words.txt]\nC\n", "stderr": "", "exitCode": 0, "files": {"b.txt": "B\n", "a.txt": "A\n", "two words.txt": "C\n"}}
+    },
+    {
+      "name": "while-read-preserves-final-unterminated-line",
+      "tier": "advanced-pending",
+      "tags": ["shell.loop.while", "shell.builtin.read", "shell.stdin.shared-offset", "shell.ifs"],
+      "stdin": " spaced \nback\\slash\nlast",
+      "script": "while IFS= read -r line || test -n \"$line\"; do printf '<%s>\n' \"$line\"; done",
+      "expected": {"stdout": "< spaced >\n<back\\slash>\n<last>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "read-then-cat-consume-one-shared-stream",
+      "tier": "advanced-pending",
+      "tags": ["shell.builtin.read", "shell.stdin.shared-offset", "command.cat"],
+      "stdin": "first line\nsecond line\nlast",
+      "script": "IFS= read -r FIRST; printf '[%s]\n' \"$FIRST\"; cat; cat",
+      "expected": {"stdout": "[first line]\nsecond line\nlast", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "until-loop-has-bounded-arithmetic-progress",
+      "tier": "advanced-pending",
+      "tags": ["shell.loop.until", "shell.expansion.arithmetic", "command.test"],
+      "script": "COUNT=0; until test \"$COUNT\" -eq 3; do printf '%s\n' \"$COUNT\"; COUNT=$((COUNT + 1)); done",
+      "expected": {"stdout": "0\n1\n2\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "if-elif-else-selects-existing-file-branch",
+      "tier": "advanced-pending",
+      "tags": ["shell.condition.if", "command.test"],
+      "initialFiles": {"flag.txt": "present\n"},
+      "script": "if false; then printf wrong >unexpected.txt; elif test -f flag.txt; then printf '%s\n' present; else printf wrong >unexpected.txt; fi",
+      "expected": {"stdout": "present\n", "stderr": "", "exitCode": 0, "files": {"flag.txt": "present\n"}}
+    },
+    {
+      "name": "test-numeric-string-and-directory-predicates",
+      "tier": "advanced-pending",
+      "tags": ["shell.condition.test", "command.test", "shell.list.and"],
+      "initialFiles": {"nested/input.txt": ""},
+      "env": {"EMPTY": ""},
+      "script": "test 3 -gt 2 && printf '%s\n' numeric; test -z \"$EMPTY\" && printf '%s\n' empty; test 'a b' = 'a b' && printf '%s\n' equal; test -d nested && printf '%s\n' directory",
+      "expected": {"stdout": "numeric\nempty\nequal\ndirectory\n", "stderr": "", "exitCode": 0, "files": {"nested/input.txt": ""}}
+    },
+    {
+      "name": "case-patterns-select-first-matching-arm",
+      "tier": "advanced-pending",
+      "tags": ["shell.condition.case"],
+      "script": "VALUE=report.txt; case \"$VALUE\" in *.md) printf wrong ;; *.txt|*.log) printf '%s\n' text ;; *) printf wrong ;; esac",
+      "expected": {"stdout": "text\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "function-arguments-and-return-status",
+      "tier": "advanced-pending",
+      "tags": ["shell.function", "shell.parameters.positional", "shell.status"],
+      "script": "report() { printf '<%s>\n' \"$1\" \"$2\"; return 3; }; report 'one two' ''; printf 'status=%s\n' \"$?\"",
+      "expected": {"stdout": "<one two>\n<>\nstatus=3\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "function-local-variable-restores-outer-value",
+      "tier": "advanced-pending",
+      "tags": ["shell.function", "shell.function.local", "shell.assignment.scope"],
+      "script": "VALUE=outer; show() { local VALUE=inner; printf '%s\n' \"$VALUE\"; }; show; printf '%s\n' \"$VALUE\"",
+      "expected": {"stdout": "inner\nouter\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "subshell-isolates-variables-but-not-file-writes",
+      "tier": "advanced-pending",
+      "tags": ["shell.group.subshell", "shell.assignment.scope", "shell.redirection.output"],
+      "script": "VALUE=outer; (VALUE=inner; printf '%s\n' \"$VALUE\" >result.txt; printf '%s\n' \"$VALUE\"); printf '%s\n' \"$VALUE\"",
+      "expected": {"stdout": "inner\nouter\n", "stderr": "", "exitCode": 0, "files": {"result.txt": "inner\n"}}
+    },
+    {
+      "name": "brace-group-merges-stdout-and-stderr-into-file",
+      "tier": "advanced-pending",
+      "tags": ["shell.group.brace", "shell.redirection.duplication", "shell.redirection.output"],
+      "script": "{ printf '%s\n' out; printf '%s\n' err >&2; } >combined.log 2>&1; cat combined.log",
+      "expected": {"stdout": "out\nerr\n", "stderr": "", "exitCode": 0, "files": {"combined.log": "out\nerr\n"}}
+    },
+    {
+      "name": "pipefail-preserves-earlier-pipeline-failure",
+      "tier": "advanced-pending",
+      "tags": ["shell.option.pipefail", "shell.pipeline", "shell.status"],
+      "script": "set -o pipefail; false | cat",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 1, "files": {}}
+    },
+    {
+      "name": "pipeline-negation-inverts-failure-status",
+      "tier": "advanced-pending",
+      "tags": ["shell.pipeline.negation", "shell.status", "command.grep"],
+      "script": "! printf '%s\n' present | grep absent",
+      "expected": {"stdout": "", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "quoted-heredoc-delimiter-disables-expansion",
+      "tier": "advanced-pending",
+      "tags": ["shell.redirection.heredoc", "shell.quoting.single"],
+      "env": {"VALUE": "expanded"},
+      "script": "cat <<'END'\n$VALUE $(printf wrong) \\ literal\nEND\n",
+      "expected": {"stdout": "$VALUE $(printf wrong) \\ literal\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "unquoted-heredoc-expands-parameters-and-commands",
+      "tier": "advanced-pending",
+      "tags": ["shell.redirection.heredoc", "shell.expansion.parameter", "shell.expansion.command-substitution"],
+      "env": {"VALUE": "two words"},
+      "script": "cat <<END\n$VALUE $(printf command)\nEND\n",
+      "expected": {"stdout": "two words command\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "here-string-adds-one-newline",
+      "tier": "advanced-pending",
+      "tags": ["shell.redirection.here-string", "shell.stdin"],
+      "script": "cat <<< 'one two'",
+      "expected": {"stdout": "one two\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "nested-command-substitutions-preserve-quoting",
+      "tier": "advanced-pending",
+      "tags": ["shell.expansion.command-substitution.nested", "shell.quoting.double"],
+      "script": "printf '%s\n' \"$(printf '<%s>' \"$(printf inner)\")\"",
+      "expected": {"stdout": "<inner>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "pipeline-feeds-while-read-loop",
+      "tier": "advanced-pending",
+      "tags": ["shell.pipeline", "shell.loop.while", "shell.builtin.read", "shell.stdin.shared-offset"],
+      "script": "printf '%s\n' first 'second line' | while IFS= read -r line; do printf '<%s>\n' \"$line\"; done",
+      "expected": {"stdout": "<first>\n<second line>\n", "stderr": "", "exitCode": 0, "files": {}}
+    },
+    {
+      "name": "pipeline-read-does-not-mutate-parent-variable",
+      "tier": "advanced-pending",
+      "tags": ["shell.pipeline.subshell", "shell.builtin.read", "shell.assignment.scope"],
+      "script": "VALUE=outer; printf '%s\n' inner | read -r VALUE; printf '%s\n' \"$VALUE\"",
+      "expected": {"stdout": "outer\n", "stderr": "", "exitCode": 0, "files": {}}
+    }
+  ]
+}

@@ -214,6 +214,7 @@ export class Pattern {
         return false;
       };
       for (let position = start; positions.size && position <= text.length; position++) {
+        budget.step();
         const pending = positions.get(position)?.reverse() ?? [];
         positions.delete(position);
         queued -= pending.length;

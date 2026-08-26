@@ -1,5 +1,5 @@
 import {
-  FsError, resolvePath, toByteSource,
+  FsError, isAbsolutePath, toByteSource, validatePath,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
 } from "../contracts/index.js";
 
@@ -83,7 +83,10 @@ export function requireOperands(operands: readonly string[], minimum = 1, maximu
 
 export function pathOf(context: CommandContext, path: string): string {
   if (!path) throw new FsError("ENOENT", { path });
-  return resolvePath(context.cwd, path);
+  validatePath(path);
+  validatePath(context.cwd);
+  if (!isAbsolutePath(context.cwd)) throw new FsError("EINVAL", { path: context.cwd, message: "cwd must be absolute" });
+  return isAbsolutePath(path) ? path : `${context.cwd.replace(/\/$/u, "")}/${path}`;
 }
 
 export function codeOf(error: unknown): string | undefined {

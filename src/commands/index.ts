@@ -1,5 +1,6 @@
 import { type CommandDefinition, type CommandHandler, type VirtualShellPlugin } from "../contracts/index.js";
 import { basicCommands } from "./basic.js";
+import { filesystemCommands } from "./filesystem.js";
 
 export interface StandardCommandsOptions {
   readonly execute?: CommandHandler;
@@ -7,7 +8,7 @@ export interface StandardCommandsOptions {
 }
 
 export function createStandardCommands(_options: StandardCommandsOptions = {}): readonly CommandDefinition[] {
-  return basicCommands();
+  return [...basicCommands(), ...filesystemCommands()];
 }
 
 export function standardCommands(options: StandardCommandsOptions = {}): VirtualShellPlugin {

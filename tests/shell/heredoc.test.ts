@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
-import { runBash, runVirtualScript } from "../shell-stress/helpers.js";
+import { bashVersion, runBash, runVirtualScript } from "../shell-stress/helpers.js";
 import { setup } from "./helpers.js";
 
 const cases: [string, string][] = [
@@ -141,8 +141,11 @@ for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
     const source = `cat 2>errors <<EOF\n${expansion}\nEOF\nstatus=$?; printf after >marker; exit "$status"`;
     const expected = await runBash({ name: "heredoc expansion failure", script: source });
     const actual = await runVirtualScript({ name: "heredoc expansion failure", script: source });
-    assert.notEqual(expected.exitCode, 0);
+    assert.equal(expected.exitCode, expansion.startsWith("${") && bashVersion().includes("version 3.2.") ? 127 : 1);
     assert.equal(actual.exitCode, 1);
+    assert.equal(expected.stdout, "");
+    assert.equal(expected.stderr, "");
+    assert.deepEqual(Object.keys(expected.files).sort(), ["errors", "marker"]);
     assert.equal(actual.stdout, "");
     assert.equal(actual.stderr, "");
     assert.deepEqual(Object.keys(actual.files).sort(), ["errors", "marker"]);

@@ -48,6 +48,7 @@ export class FsError extends Error {
   readonly dest?: string;
 
   constructor(code: ErrnoCode, options: FsErrorOptions = {}) {
+    if (!isErrnoCode(code)) throw new TypeError(`Unsupported errno code: ${String(code)}`);
     const operation = options.syscall ? `, ${options.syscall}` : "";
     const path = options.path === undefined ? "" : ` '${options.path}'`;
     const destination = options.dest === undefined ? "" : ` -> '${options.dest}'`;
@@ -70,7 +71,7 @@ export function isFsError(error: unknown, code?: ErrnoCode): error is FsError {
 }
 
 export function toFsError(error: unknown, options: FsErrorOptions = {}): FsError {
-  if (error instanceof FsError) return error;
+  if (error instanceof FsError && Object.keys(options).length === 0) return error;
   const source = typeof error === "object" && error !== null
     ? error as Record<string, unknown>
     : {};

@@ -6,7 +6,6 @@ export const basename = posix.basename;
 export const dirname = posix.dirname;
 export const extname = posix.extname;
 export const joinPath = posix.join;
-export const relativePath = posix.relative;
 export const isAbsolutePath = posix.isAbsolute;
 
 export function validatePath(path: string): void {
@@ -26,6 +25,10 @@ export function resolvePath(cwd: string, ...paths: string[]): string {
 
 export function normalizePath(path: string, cwd = "/"): string {
   return resolvePath(cwd, path);
+}
+
+export function relativePath(from: string, to: string): string {
+  return posix.relative(normalizePath(from), normalizePath(to));
 }
 
 export function isPathWithin(root: string, path: string): boolean {

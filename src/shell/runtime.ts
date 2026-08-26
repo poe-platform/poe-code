@@ -461,7 +461,7 @@ export class Runtime {
         state.variables[assignment.name] = (await this.word(assignment.value, state, io, false)).join("");
         if (words.length) state.exported.add(assignment.name);
       }
-      return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io) : state.substitutionStatus;
+      return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof ExecutionFailure || error instanceof Flow) throw error;
       throw new ExecutionFailure(error, io);
@@ -475,7 +475,7 @@ export class Runtime {
     }
   }
 
-  async dispatch(name: string, args: readonly string[], state: State, io: IO): Promise<number> {
+  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number> {
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
       const value = state.variables[key];
@@ -499,7 +499,7 @@ export class Runtime {
         else { state.variables[key] = value; state.exported.add(key); }
       }
       try {
-        const builtin = await this.builtin(context, state);
+        const builtin = await this.builtin(context, state, assignments);
         if (builtin !== undefined) return { exitCode: builtin };
         const body = state.functions.get(context.command);
         if (body) {
@@ -579,7 +579,7 @@ export class Runtime {
     finally { await input?.close(); }
   }
 
-  async builtin(context: CommandContext, state: State): Promise<number | undefined> {
+  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
@@ -629,9 +629,13 @@ export class Runtime {
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su.exec(arg);
         if (!match) { await writeText(stderr, `${command}: ${arg}: not a valid identifier\n`); status = 1; continue; }
         const name = match[1]!;
-        if (command === "local" && !locals!.has(name)) locals!.set(name, { value: state.variables[name], exported: state.exported.has(name) });
+        if (command === "local" && !locals!.has(name)) {
+          locals!.set(name, assignments.get(name) ?? { value: state.variables[name], exported: state.exported.has(name) });
+          if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
+        }
         if (match[2] !== undefined) state.variables[name] = match[2];
         if (command === "export") state.exported.add(name);
+        assignments.delete(name);
       }
       return status;
     }

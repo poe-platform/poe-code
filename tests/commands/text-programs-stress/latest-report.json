@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "startedAt": "2026-08-26T19:28:56.402Z",
-  "completedAt": "2026-08-26T19:28:57.797Z",
+  "startedAt": "2026-08-26T20:13:01.915Z",
+  "completedAt": "2026-08-26T20:13:03.962Z",
   "provenance": {
     "node": "v22.22.2",
     "platform": "darwin",
@@ -12,10 +12,10 @@
       "/usr/bin/awk": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
       "/bin/bash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
     },
-    "sourceBefore": "91cafa6c6dbd9220d5890a3e94f7e4200418d583e44bbc3a3482983a8073df10",
-    "sourceAfter": "91cafa6c6dbd9220d5890a3e94f7e4200418d583e44bbc3a3482983a8073df10",
+    "sourceBefore": "8da92c3ea2bd512a5f0d72bc642129dd50b9bb12da157ec3cfd758a5944835ed",
+    "sourceAfter": "8da92c3ea2bd512a5f0d72bc642129dd50b9bb12da157ec3cfd758a5944835ed",
     "sourceChanged": false,
-    "casesSha256": "6faefa8a998e4e22c48bedd9a3a60caa1850732e03f00b87ccd4cd948a128b90"
+    "casesSha256": "ebd0ccd3da07f7ecc572e25897ce9ba967f122e018d879fa13a83862abcc9da4"
   },
   "methodology": {
     "nativeScope": "trusted repository fixtures only; fresh owned temporary directories; fixed native executable argv; curated pipelines only",
@@ -38,33 +38,33 @@
   },
   "summary": {
     "total": 141,
-    "pass": 131,
-    "fail": 4,
-    "unsupported": 4,
+    "pass": 139,
+    "fail": 2,
+    "unsupported": 0,
     "pending": 0,
     "error": 0,
     "timeout": 0,
     "oracle-unavailable": 0,
-    "oracle-rejected": 2,
+    "oracle-rejected": 0,
     "skipped": 0
   },
   "byTool": {
     "sed": {
       "total": 99,
-      "pass": 90,
-      "fail": 3,
-      "unsupported": 4,
+      "pass": 97,
+      "fail": 2,
+      "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
       "oracle-unavailable": 0,
-      "oracle-rejected": 2,
+      "oracle-rejected": 0,
       "skipped": 0
     },
     "awk": {
       "total": 39,
-      "pass": 38,
-      "fail": 1,
+      "pass": 39,
+      "fail": 0,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
@@ -113,26 +113,26 @@
     },
     "sed.regex": {
       "total": 12,
-      "pass": 9,
-      "fail": 2,
+      "pass": 11,
+      "fail": 1,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
       "oracle-unavailable": 0,
-      "oracle-rejected": 1,
+      "oracle-rejected": 0,
       "skipped": 0
     },
     "sed.parser": {
       "total": 2,
-      "pass": 1,
+      "pass": 2,
       "fail": 0,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
       "oracle-unavailable": 0,
-      "oracle-rejected": 1,
+      "oracle-rejected": 0,
       "skipped": 0
     },
     "sed.script-files": {
@@ -185,9 +185,9 @@
     },
     "sed.file-read": {
       "total": 1,
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 1,
+      "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
@@ -197,9 +197,9 @@
     },
     "sed.file-write": {
       "total": 1,
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 1,
+      "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
@@ -209,9 +209,9 @@
     },
     "sed.list": {
       "total": 1,
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 1,
+      "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
@@ -221,9 +221,9 @@
     },
     "sed.regex-backreference": {
       "total": 1,
-      "pass": 0,
+      "pass": 1,
       "fail": 0,
-      "unsupported": 1,
+      "unsupported": 0,
       "pending": 0,
       "error": 0,
       "timeout": 0,
@@ -581,8 +581,8 @@
     },
     "awk.getline": {
       "total": 1,
-      "pass": 0,
-      "fail": 1,
+      "pass": 1,
+      "fail": 0,
       "unsupported": 0,
       "pending": 0,
       "error": 0,
@@ -909,7 +909,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.352500000000191
+          "durationMs": 0.46466600000030667
         }
       },
       {
@@ -923,7 +923,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.1319579999999405
+          "durationMs": 0.18150000000014188
         }
       },
       {
@@ -937,7 +937,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.047957999999880485
+          "durationMs": 0.04858300000023519
         }
       },
       {
@@ -951,7 +951,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.14562499999988177
+          "durationMs": 0.2064580000001115
         }
       },
       {
@@ -965,7 +965,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.14162500000020373
+          "durationMs": 0.38124999999990905
         }
       },
       {
@@ -979,7 +979,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.04737499999987449
+          "durationMs": 0.2147500000000946
         }
       },
       {
@@ -993,7 +993,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.078708000000006
+          "durationMs": 0.16670799999974406
         }
       },
       {
@@ -1007,7 +1007,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.08562500000016371
+          "durationMs": 0.12741700000015044
         }
       },
       {
@@ -1021,7 +1021,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.1087089999998625
+          "durationMs": 0.19358299999976225
         }
       },
       {
@@ -1035,7 +1035,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.15991600000006656
+          "durationMs": 0.3259170000001177
         }
       },
       {
@@ -1045,11 +1045,11 @@
           "status": "completed",
           "observation": {
             "exitCode": 0,
-            "stdout": "eyJwcm9iZSI6InNlZC1pbnBsYWNlLWJ1ZmZlci1saW1pdC1wcmVzZXJ2ZXMtb3JpZ2luYWwtYW5kLWJhY2t1cCIsImFzc2VydGlvbnMiOnsidW5jaGFuZ2VkIjp0cnVlLCJmYWlsdXJlIjp0cnVlLCJub1N0ZG91dCI6dHJ1ZX0sInNldHRsZWQiOnsia2luZCI6InJlc29sdmVkIiwiZXhpdENvZGUiOjJ9LCJwdWxscyI6MCwicmV0dXJuZWQiOjAsIndyaXR0ZW4iOjAsIndyaXRlQXR0ZW1wdHMiOjAsInN0ZG91dCI6IiIsInN0ZGVyciI6InNlZDogdGV4dCBidWZmZXIgbGltaXQgZXhjZWVkZWRcbiJ9",
+            "stdout": "eyJwcm9iZSI6InNlZC1pbnBsYWNlLWJ1ZmZlci1saW1pdC1wcmVzZXJ2ZXMtb3JpZ2luYWwtYW5kLWJhY2t1cCIsImFzc2VydGlvbnMiOnsidW5jaGFuZ2VkIjp0cnVlLCJmYWlsdXJlIjp0cnVlLCJub1N0ZG91dCI6dHJ1ZX0sInNldHRsZWQiOnsia2luZCI6InJlc29sdmVkIiwiZXhpdENvZGUiOjJ9LCJwdWxscyI6MCwicmV0dXJuZWQiOjAsIndyaXR0ZW4iOjAsIndyaXRlQXR0ZW1wdHMiOjAsInN0ZG91dCI6IiIsInN0ZGVyciI6InNlZDogcmVndWxhciBleHByZXNzaW9uIHN0YXRlIGJ1ZmZlciBsaW1pdCBleGNlZWRlZFxuIn0=",
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.11958400000003166
+          "durationMs": 0.23091599999997925
         }
       },
       {
@@ -1063,7 +1063,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.3230829999999969
+          "durationMs": 0.4955840000002354
         }
       },
       {
@@ -1077,7 +1077,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.41325000000006185
+          "durationMs": 0.6437090000003991
         }
       },
       {
@@ -1091,7 +1091,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 1.1006669999999303
+          "durationMs": 1.1980409999996482
         }
       },
       {
@@ -1105,7 +1105,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.7780840000000353
+          "durationMs": 0.6395410000000084
         }
       },
       {
@@ -1119,7 +1119,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.2223750000000564
+          "durationMs": 0.4070000000001528
         }
       },
       {
@@ -1133,7 +1133,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.09045900000000984
+          "durationMs": 0.12012500000037107
         }
       },
       {
@@ -1147,7 +1147,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.07704100000000835
+          "durationMs": 0.05741699999998673
         }
       },
       {
@@ -1161,7 +1161,7 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.12066700000013952
+          "durationMs": 0.1382090000001881
         }
       },
       {
@@ -1175,21 +1175,21 @@
             "stderr": "",
             "files": {}
           },
-          "durationMs": 0.17487499999992906
+          "durationMs": 0.10933299999987867
         }
       }
     ]
   },
   "combinedSummary": {
     "total": 161,
-    "pass": 151,
-    "fail": 4,
-    "unsupported": 4,
+    "pass": 159,
+    "fail": 2,
+    "unsupported": 0,
     "pending": 0,
     "error": 0,
     "timeout": 0,
     "oracle-unavailable": 0,
-    "oracle-rejected": 2,
+    "oracle-rejected": 0,
     "skipped": 0
   },
   "backgroundErrors": [],
@@ -1959,7 +1959,7 @@
       "feature": "sed.regex",
       "args": [
         "-E",
-        "s/x*/X/2g"
+        "s/x*/X/2"
       ],
       "stdin": "YWJjCg==",
       "files": {}
@@ -2046,7 +2046,7 @@
       "tool": "sed",
       "feature": "sed.parser",
       "args": [
-        ":again # comment\ns/aa/a/\nt again"
+        ":again\n# comment\ns/aa/a/\nt again"
       ],
       "stdin": "YWFhYQo=",
       "files": {}
@@ -2762,7 +2762,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.824750000000009
+        "durationMs": 18.65299999999999
       },
       "virtual": {
         "status": "completed",
@@ -2772,7 +2772,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.9881669999999758
+        "durationMs": 1.785541999999964
       },
       "status": "pass",
       "differences": []
@@ -2789,7 +2789,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 19.025958000000003
+        "durationMs": 22.089499999999987
       },
       "virtual": {
         "status": "completed",
@@ -2799,7 +2799,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.16945799999999167
+        "durationMs": 0.21724999999997863
       },
       "status": "pass",
       "differences": []
@@ -2816,7 +2816,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.135499999999979
+        "durationMs": 16.10558400000002
       },
       "virtual": {
         "status": "completed",
@@ -2826,7 +2826,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3218339999999955
+        "durationMs": 0.7893329999999992
       },
       "status": "pass",
       "differences": []
@@ -2843,7 +2843,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.654834000000022
+        "durationMs": 16.745790999999997
       },
       "virtual": {
         "status": "completed",
@@ -2853,7 +2853,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1806669999999997
+        "durationMs": 0.2741250000000264
       },
       "status": "pass",
       "differences": []
@@ -2870,7 +2870,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.030249999999995
+        "durationMs": 12.037458000000015
       },
       "virtual": {
         "status": "completed",
@@ -2880,7 +2880,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.36170900000001893
+        "durationMs": 0.42275000000000773
       },
       "status": "pass",
       "differences": []
@@ -2897,7 +2897,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.498957999999988
+        "durationMs": 10.899125000000026
       },
       "virtual": {
         "status": "completed",
@@ -2907,7 +2907,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12220899999999801
+        "durationMs": 0.16191700000001674
       },
       "status": "pass",
       "differences": []
@@ -2924,7 +2924,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.598708000000016
+        "durationMs": 12.743583999999998
       },
       "virtual": {
         "status": "completed",
@@ -2934,7 +2934,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.21145899999999074
+        "durationMs": 0.2498340000000212
       },
       "status": "pass",
       "differences": []
@@ -2951,7 +2951,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.028500000000008
+        "durationMs": 11.596292000000005
       },
       "virtual": {
         "status": "completed",
@@ -2961,7 +2961,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10525000000001228
+        "durationMs": 0.2636669999999981
       },
       "status": "pass",
       "differences": []
@@ -2978,7 +2978,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.032125000000008
+        "durationMs": 11.495165999999983
       },
       "virtual": {
         "status": "completed",
@@ -2988,7 +2988,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.234375
+        "durationMs": 0.34345799999999826
       },
       "status": "pass",
       "differences": []
@@ -3005,7 +3005,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.381374999999991
+        "durationMs": 12.41416700000002
       },
       "virtual": {
         "status": "completed",
@@ -3015,7 +3015,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1402500000000373
+        "durationMs": 0.17416700000001129
       },
       "status": "pass",
       "differences": []
@@ -3032,7 +3032,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.464333999999951
+        "durationMs": 12.632959000000028
       },
       "virtual": {
         "status": "completed",
@@ -3042,7 +3042,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1133750000000191
+        "durationMs": 0.14720800000003464
       },
       "status": "pass",
       "differences": []
@@ -3059,7 +3059,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.294582999999989
+        "durationMs": 13.590540999999973
       },
       "virtual": {
         "status": "completed",
@@ -3069,7 +3069,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11383299999999963
+        "durationMs": 0.4862089999999739
       },
       "status": "pass",
       "differences": []
@@ -3086,7 +3086,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.193667000000005
+        "durationMs": 9.698499999999967
       },
       "virtual": {
         "status": "completed",
@@ -3096,7 +3096,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.0907919999999649
+        "durationMs": 0.4475410000000011
       },
       "status": "pass",
       "differences": []
@@ -3113,7 +3113,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.63941699999998
+        "durationMs": 11.372625000000028
       },
       "virtual": {
         "status": "completed",
@@ -3123,7 +3123,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11041599999998652
+        "durationMs": 0.29262500000004366
       },
       "status": "pass",
       "differences": []
@@ -3140,7 +3140,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.085290999999984
+        "durationMs": 11.941834000000028
       },
       "virtual": {
         "status": "completed",
@@ -3150,7 +3150,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12700000000000955
+        "durationMs": 0.12850000000003092
       },
       "status": "pass",
       "differences": []
@@ -3167,7 +3167,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.327083000000016
+        "durationMs": 10.401417000000038
       },
       "virtual": {
         "status": "completed",
@@ -3177,7 +3177,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1279999999999859
+        "durationMs": 0.14212499999996453
       },
       "status": "pass",
       "differences": []
@@ -3194,7 +3194,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.918457999999987
+        "durationMs": 10.964666999999963
       },
       "virtual": {
         "status": "completed",
@@ -3204,7 +3204,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.17608300000000554
+        "durationMs": 0.24516600000004019
       },
       "status": "pass",
       "differences": []
@@ -3221,7 +3221,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.744291999999973
+        "durationMs": 12.387499999999989
       },
       "virtual": {
         "status": "completed",
@@ -3231,7 +3231,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11912499999999682
+        "durationMs": 0.15899999999999181
       },
       "status": "pass",
       "differences": []
@@ -3248,7 +3248,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.459749999999985
+        "durationMs": 11.30820799999998
       },
       "virtual": {
         "status": "completed",
@@ -3258,7 +3258,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18608299999999645
+        "durationMs": 0.33183400000001484
       },
       "status": "pass",
       "differences": []
@@ -3275,7 +3275,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.427542000000017
+        "durationMs": 9.757665999999972
       },
       "virtual": {
         "status": "completed",
@@ -3285,7 +3285,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.14433300000001736
+        "durationMs": 0.2577079999999796
       },
       "status": "pass",
       "differences": []
@@ -3302,7 +3302,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.325500000000034
+        "durationMs": 11.590874999999983
       },
       "virtual": {
         "status": "completed",
@@ -3312,7 +3312,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.17445900000001302
+        "durationMs": 0.19462499999997362
       },
       "status": "pass",
       "differences": []
@@ -3329,7 +3329,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.378375000000005
+        "durationMs": 10.544415999999956
       },
       "virtual": {
         "status": "completed",
@@ -3339,7 +3339,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10508299999997917
+        "durationMs": 0.22612500000002456
       },
       "status": "pass",
       "differences": []
@@ -3356,7 +3356,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.34087500000004
+        "durationMs": 10.655291000000034
       },
       "virtual": {
         "status": "completed",
@@ -3366,7 +3366,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1253749999999627
+        "durationMs": 0.12233299999991232
       },
       "status": "pass",
       "differences": []
@@ -3383,7 +3383,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 12.939375000000041
+        "durationMs": 12.337625000000003
       },
       "virtual": {
         "status": "completed",
@@ -3393,7 +3393,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10437500000000455
+        "durationMs": 0.16412499999989905
       },
       "status": "pass",
       "differences": []
@@ -3410,7 +3410,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.407042000000047
+        "durationMs": 10.375709000000029
       },
       "virtual": {
         "status": "completed",
@@ -3420,7 +3420,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15612500000003138
+        "durationMs": 0.22804099999996197
       },
       "status": "pass",
       "differences": []
@@ -3437,7 +3437,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.043624999999963
+        "durationMs": 10.677832999999964
       },
       "virtual": {
         "status": "completed",
@@ -3447,7 +3447,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1276250000000232
+        "durationMs": 0.13479199999994762
       },
       "status": "pass",
       "differences": []
@@ -3464,7 +3464,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.396792000000005
+        "durationMs": 10.083124999999995
       },
       "virtual": {
         "status": "completed",
@@ -3474,7 +3474,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15695799999997462
+        "durationMs": 0.18683399999997619
       },
       "status": "pass",
       "differences": []
@@ -3491,7 +3491,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.46608299999997
+        "durationMs": 13.26279199999999
       },
       "virtual": {
         "status": "completed",
@@ -3501,7 +3501,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11195800000001555
+        "durationMs": 0.18479100000001836
       },
       "status": "pass",
       "differences": []
@@ -3518,7 +3518,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.694250000000011
+        "durationMs": 17.542582999999922
       },
       "virtual": {
         "status": "completed",
@@ -3528,7 +3528,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10645800000003192
+        "durationMs": 0.19416599999999562
       },
       "status": "pass",
       "differences": []
@@ -3545,7 +3545,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.551041999999995
+        "durationMs": 20.49762499999997
       },
       "virtual": {
         "status": "completed",
@@ -3555,7 +3555,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11758300000002464
+        "durationMs": 0.18883400000004258
       },
       "status": "pass",
       "differences": []
@@ -3572,7 +3572,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.24475000000001
+        "durationMs": 20.903166000000056
       },
       "virtual": {
         "status": "completed",
@@ -3582,7 +3582,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1445829999999546
+        "durationMs": 0.26766700000007404
       },
       "status": "pass",
       "differences": []
@@ -3599,7 +3599,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.898000000000025
+        "durationMs": 15.080291999999986
       },
       "virtual": {
         "status": "completed",
@@ -3609,7 +3609,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10362499999996544
+        "durationMs": 0.30291699999997945
       },
       "status": "pass",
       "differences": []
@@ -3626,7 +3626,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.040291000000025
+        "durationMs": 11.250084000000015
       },
       "virtual": {
         "status": "completed",
@@ -3636,7 +3636,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.6827500000000555
+        "durationMs": 1.1761659999999665
       },
       "status": "pass",
       "differences": []
@@ -3653,7 +3653,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.952166999999918
+        "durationMs": 11.517875000000004
       },
       "virtual": {
         "status": "completed",
@@ -3663,7 +3663,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2151250000000573
+        "durationMs": 0.3345409999999447
       },
       "status": "pass",
       "differences": []
@@ -3680,7 +3680,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.538625000000025
+        "durationMs": 12.022417000000019
       },
       "virtual": {
         "status": "completed",
@@ -3690,7 +3690,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13383399999997891
+        "durationMs": 0.19762500000001637
       },
       "status": "pass",
       "differences": []
@@ -3707,7 +3707,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.816374999999994
+        "durationMs": 12.328834000000029
       },
       "virtual": {
         "status": "completed",
@@ -3717,7 +3717,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12374999999997272
+        "durationMs": 0.21633399999996072
       },
       "status": "pass",
       "differences": []
@@ -3734,7 +3734,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.601082999999903
+        "durationMs": 12.325708000000077
       },
       "virtual": {
         "status": "completed",
@@ -3744,7 +3744,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2131249999999909
+        "durationMs": 0.23570900000004258
       },
       "status": "pass",
       "differences": []
@@ -3761,7 +3761,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.917874999999981
+        "durationMs": 12.653584000000023
       },
       "virtual": {
         "status": "completed",
@@ -3771,7 +3771,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11608299999988958
+        "durationMs": 0.436458000000016
       },
       "status": "pass",
       "differences": []
@@ -3788,7 +3788,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.520875000000046
+        "durationMs": 11.164875000000052
       },
       "virtual": {
         "status": "completed",
@@ -3798,7 +3798,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.17300000000000182
+        "durationMs": 0.3391670000000886
       },
       "status": "pass",
       "differences": []
@@ -3815,7 +3815,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.650166000000013
+        "durationMs": 12.921499999999924
       },
       "virtual": {
         "status": "completed",
@@ -3825,7 +3825,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.09954199999992852
+        "durationMs": 0.19012500000008004
       },
       "status": "pass",
       "differences": []
@@ -3842,7 +3842,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.574165999999991
+        "durationMs": 12.30262499999992
       },
       "virtual": {
         "status": "completed",
@@ -3852,7 +3852,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10520800000006147
+        "durationMs": 0.3261250000000473
       },
       "status": "pass",
       "differences": []
@@ -3869,7 +3869,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.905250000000024
+        "durationMs": 11.764957999999979
       },
       "virtual": {
         "status": "completed",
@@ -3879,7 +3879,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11974999999995362
+        "durationMs": 0.18679199999996854
       },
       "status": "pass",
       "differences": []
@@ -3896,7 +3896,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.055499999999938
+        "durationMs": 11.015917000000059
       },
       "virtual": {
         "status": "completed",
@@ -3906,7 +3906,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12125000000003183
+        "durationMs": 0.36533300000007785
       },
       "status": "pass",
       "differences": []
@@ -3923,7 +3923,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.965583999999922
+        "durationMs": 11.802124999999933
       },
       "virtual": {
         "status": "completed",
@@ -3933,7 +3933,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10745900000006259
+        "durationMs": 0.3422090000000253
       },
       "status": "pass",
       "differences": []
@@ -3950,7 +3950,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.820375000000013
+        "durationMs": 11.121041999999989
       },
       "virtual": {
         "status": "completed",
@@ -3960,7 +3960,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11925000000007913
+        "durationMs": 0.1915840000000344
       },
       "status": "pass",
       "differences": []
@@ -3977,7 +3977,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.104791999999975
+        "durationMs": 12.348666999999978
       },
       "virtual": {
         "status": "completed",
@@ -3987,7 +3987,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11066700000003493
+        "durationMs": 0.16137500000002092
       },
       "status": "pass",
       "differences": []
@@ -4004,7 +4004,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.549250000000029
+        "durationMs": 11.98479199999997
       },
       "virtual": {
         "status": "completed",
@@ -4014,7 +4014,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12070799999992232
+        "durationMs": 0.2687919999999622
       },
       "status": "pass",
       "differences": []
@@ -4031,7 +4031,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.585291999999981
+        "durationMs": 12.999625000000037
       },
       "virtual": {
         "status": "completed",
@@ -4041,7 +4041,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10750000000007276
+        "durationMs": 0.413791999999944
       },
       "status": "pass",
       "differences": []
@@ -4058,7 +4058,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.536375000000021
+        "durationMs": 12.709082999999964
       },
       "virtual": {
         "status": "completed",
@@ -4068,7 +4068,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11316699999997581
+        "durationMs": 0.22958299999993415
       },
       "status": "pass",
       "differences": []
@@ -4085,7 +4085,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.88900000000001
+        "durationMs": 12.901874999999905
       },
       "virtual": {
         "status": "completed",
@@ -4095,7 +4095,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18195800000000872
+        "durationMs": 0.23954200000002857
       },
       "status": "pass",
       "differences": []
@@ -4112,7 +4112,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.649749999999926
+        "durationMs": 13.763749999999959
       },
       "virtual": {
         "status": "completed",
@@ -4122,7 +4122,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11145800000008421
+        "durationMs": 0.18062499999996362
       },
       "status": "pass",
       "differences": []
@@ -4139,7 +4139,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.789625000000001
+        "durationMs": 13.41945899999996
       },
       "virtual": {
         "status": "completed",
@@ -4149,7 +4149,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12512500000002547
+        "durationMs": 0.3310829999999214
       },
       "status": "pass",
       "differences": []
@@ -4166,7 +4166,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.497708999999986
+        "durationMs": 13.674874999999929
       },
       "virtual": {
         "status": "completed",
@@ -4176,7 +4176,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.08083399999998164
+        "durationMs": 0.1436670000000504
       },
       "status": "pass",
       "differences": []
@@ -4193,7 +4193,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.90137500000003
+        "durationMs": 14.185207999999989
       },
       "virtual": {
         "status": "completed",
@@ -4203,7 +4203,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10816699999998036
+        "durationMs": 0.49479199999996126
       },
       "status": "pass",
       "differences": []
@@ -4220,7 +4220,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.322541999999999
+        "durationMs": 18.24183400000004
       },
       "virtual": {
         "status": "completed",
@@ -4230,7 +4230,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10849999999993543
+        "durationMs": 0.15508299999999053
       },
       "status": "pass",
       "differences": []
@@ -4247,7 +4247,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.52800000000002
+        "durationMs": 13.31291699999997
       },
       "virtual": {
         "status": "completed",
@@ -4257,7 +4257,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13525000000004184
+        "durationMs": 0.1851249999999709
       },
       "status": "pass",
       "differences": []
@@ -4274,7 +4274,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.468707999999992
+        "durationMs": 11.770917000000054
       },
       "virtual": {
         "status": "completed",
@@ -4284,7 +4284,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12579100000004928
+        "durationMs": 0.16345799999999144
       },
       "status": "pass",
       "differences": []
@@ -4301,7 +4301,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.525834000000032
+        "durationMs": 13.922584000000029
       },
       "virtual": {
         "status": "completed",
@@ -4311,7 +4311,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.125
+        "durationMs": 0.23737499999992906
       },
       "status": "pass",
       "differences": []
@@ -4328,7 +4328,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.37170900000001
+        "durationMs": 12.410291000000143
       },
       "virtual": {
         "status": "completed",
@@ -4338,7 +4338,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4066249999999627
+        "durationMs": 0.5317499999998745
       },
       "status": "pass",
       "differences": []
@@ -4355,7 +4355,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.839334000000008
+        "durationMs": 12.320708999999852
       },
       "virtual": {
         "status": "completed",
@@ -4365,7 +4365,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13041599999996834
+        "durationMs": 0.16487499999993815
       },
       "status": "pass",
       "differences": []
@@ -4382,7 +4382,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.396291000000019
+        "durationMs": 12.939082999999982
       },
       "virtual": {
         "status": "completed",
@@ -4392,7 +4392,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1302499999999327
+        "durationMs": 0.22670799999991686
       },
       "status": "pass",
       "differences": []
@@ -4409,7 +4409,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.408500000000004
+        "durationMs": 11.49891700000012
       },
       "virtual": {
         "status": "completed",
@@ -4419,7 +4419,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1916670000000522
+        "durationMs": 0.3852079999999205
       },
       "status": "pass",
       "differences": []
@@ -4436,7 +4436,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.6454590000000735
+        "durationMs": 10.58833299999992
       },
       "virtual": {
         "status": "completed",
@@ -4446,7 +4446,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.09704199999998764
+        "durationMs": 0.14695800000004056
       },
       "status": "pass",
       "differences": []
@@ -4463,7 +4463,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.767583000000059
+        "durationMs": 12.014499999999998
       },
       "virtual": {
         "status": "completed",
@@ -4473,7 +4473,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1453750000000582
+        "durationMs": 0.24316700000008495
       },
       "status": "pass",
       "differences": []
@@ -4490,7 +4490,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 6.97645799999998
+        "durationMs": 11.337582999999995
       },
       "virtual": {
         "status": "completed",
@@ -4500,7 +4500,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.05437500000005002
+        "durationMs": 0.10941699999989396
       },
       "status": "pass",
       "differences": []
@@ -4517,7 +4517,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.249791999999957
+        "durationMs": 11.85958299999993
       },
       "virtual": {
         "status": "completed",
@@ -4527,7 +4527,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1882500000000391
+        "durationMs": 0.31062500000007276
       },
       "status": "pass",
       "differences": []
@@ -4544,7 +4544,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.022749999999974
+        "durationMs": 11.93508299999985
       },
       "virtual": {
         "status": "completed",
@@ -4554,7 +4554,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11670900000001438
+        "durationMs": 0.23987499999998363
       },
       "status": "pass",
       "differences": []
@@ -4571,22 +4571,20 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.208417000000054
+        "durationMs": 11.683166999999912
       },
       "virtual": {
         "status": "completed",
         "observation": {
           "exitCode": 0,
-          "stdout": "W2FhYWFdW2FdCg==",
+          "stdout": "W2FhYWFdW2FhXQo=",
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11362499999995634
+        "durationMs": 0.19766699999991033
       },
-      "status": "fail",
-      "differences": [
-        "stdout"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-regex-68",
@@ -4600,7 +4598,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.938040999999998
+        "durationMs": 12.803249999999935
       },
       "virtual": {
         "status": "completed",
@@ -4610,7 +4608,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10208299999999326
+        "durationMs": 0.15441600000008293
       },
       "status": "pass",
       "differences": []
@@ -4622,29 +4620,25 @@
       "native": {
         "status": "completed",
         "observation": {
-          "exitCode": 1,
-          "stdout": "",
-          "stderr": "c2VkOiAxOiAicy94Ki9YLzJnCiI6IG1vcmUgdGhhbiBvbmUgbnVtYmVyIG9yICdnJyBpbiBzdWJzdGl0dXRlIGZsYWdzCg==",
+          "exitCode": 0,
+          "stdout": "YVhiYwo=",
+          "stderr": "",
           "files": {}
         },
-        "durationMs": 8.203874999999925
+        "durationMs": 13.84595800000011
       },
       "virtual": {
         "status": "completed",
         "observation": {
           "exitCode": 0,
-          "stdout": "YVhiWGNYCg==",
+          "stdout": "YVhiYwo=",
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13608299999998508
+        "durationMs": 0.28987499999993815
       },
-      "status": "oracle-rejected",
-      "differences": [
-        "exitCode",
-        "stdout",
-        "stderr"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-regex-70",
@@ -4658,7 +4652,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.663999999999987
+        "durationMs": 12.998542000000043
       },
       "virtual": {
         "status": "completed",
@@ -4668,7 +4662,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11266599999999016
+        "durationMs": 0.42333300000018426
       },
       "status": "fail",
       "differences": [
@@ -4687,7 +4681,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.514999999999986
+        "durationMs": 12.657209000000194
       },
       "virtual": {
         "status": "completed",
@@ -4697,7 +4691,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.28979199999992034
+        "durationMs": 0.39470799999980954
       },
       "status": "pass",
       "differences": []
@@ -4714,7 +4708,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.535499999999956
+        "durationMs": 13.189916999999923
       },
       "virtual": {
         "status": "completed",
@@ -4724,7 +4718,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1240420000000313
+        "durationMs": 0.4774169999998321
       },
       "status": "pass",
       "differences": []
@@ -4741,7 +4735,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.482208000000014
+        "durationMs": 13.572791000000052
       },
       "virtual": {
         "status": "completed",
@@ -4751,7 +4745,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.171416000000022
+        "durationMs": 0.1685419999998885
       },
       "status": "pass",
       "differences": []
@@ -4768,7 +4762,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.259417000000099
+        "durationMs": 11.471542
       },
       "virtual": {
         "status": "completed",
@@ -4778,7 +4772,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19204100000001745
+        "durationMs": 0.2862920000000031
       },
       "status": "pass",
       "differences": []
@@ -4795,7 +4789,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.910334000000034
+        "durationMs": 12.577625000000126
       },
       "virtual": {
         "status": "completed",
@@ -4805,7 +4799,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13208299999996598
+        "durationMs": 0.3047080000001188
       },
       "status": "pass",
       "differences": []
@@ -4822,7 +4816,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.20474999999999
+        "durationMs": 13.803249999999935
       },
       "virtual": {
         "status": "completed",
@@ -4832,7 +4826,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10591700000009041
+        "durationMs": 0.2134169999999358
       },
       "status": "pass",
       "differences": []
@@ -4844,28 +4838,25 @@
       "native": {
         "status": "completed",
         "observation": {
-          "exitCode": 1,
-          "stdout": "",
-          "stderr": "c2VkOiA0OiAiOmFnYWluICMgY29tbWVudApzL2FhL2EgLi4uIjogdW5kZWZpbmVkIGxhYmVsICdhZ2FpbicK",
+          "exitCode": 0,
+          "stdout": "YQo=",
+          "stderr": "",
           "files": {}
         },
-        "durationMs": 8.623874999999998
+        "durationMs": 11.506959000000052
       },
       "virtual": {
         "status": "completed",
         "observation": {
-          "exitCode": 2,
-          "stdout": "",
-          "stderr": "c2VkOiBpbnZhbGlkIGJyYW5jaCBsYWJlbCAnYWdhaW4gIyBjb21tZW50Jwo=",
+          "exitCode": 0,
+          "stdout": "YQo=",
+          "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18020799999999326
+        "durationMs": 0.1597910000000411
       },
-      "status": "oracle-rejected",
-      "differences": [
-        "exitCode",
-        "stderr"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-script-first-line-quiet",
@@ -4879,7 +4870,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.477125000000001
+        "durationMs": 11.881417000000056
       },
       "virtual": {
         "status": "completed",
@@ -4889,7 +4880,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10058299999991505
+        "durationMs": 0.16470800000001873
       },
       "status": "pass",
       "differences": []
@@ -4917,7 +4908,7 @@
             }
           }
         },
-        "durationMs": 9.035834000000023
+        "durationMs": 14.45358299999998
       },
       "virtual": {
         "status": "completed",
@@ -4938,7 +4929,7 @@
             }
           }
         },
-        "durationMs": 0.4772500000000264
+        "durationMs": 0.6945419999999558
       },
       "status": "pass",
       "differences": []
@@ -4961,7 +4952,7 @@
             }
           }
         },
-        "durationMs": 8.62250000000006
+        "durationMs": 12.857665999999881
       },
       "virtual": {
         "status": "completed",
@@ -4977,7 +4968,7 @@
             }
           }
         },
-        "durationMs": 0.13949999999999818
+        "durationMs": 0.16895899999985886
       },
       "status": "pass",
       "differences": []
@@ -5010,7 +5001,7 @@
             }
           }
         },
-        "durationMs": 9.802666999999929
+        "durationMs": 13.793541999999889
       },
       "virtual": {
         "status": "completed",
@@ -5036,7 +5027,7 @@
             }
           }
         },
-        "durationMs": 0.2611660000000029
+        "durationMs": 0.28129100000001017
       },
       "status": "pass",
       "differences": []
@@ -5064,7 +5055,7 @@
             }
           }
         },
-        "durationMs": 8.867958000000044
+        "durationMs": 13.403250000000071
       },
       "virtual": {
         "status": "completed",
@@ -5085,7 +5076,7 @@
             }
           }
         },
-        "durationMs": 0.2260830000000169
+        "durationMs": 0.2777920000000904
       },
       "status": "pass",
       "differences": []
@@ -5113,7 +5104,7 @@
             }
           }
         },
-        "durationMs": 9.49912500000005
+        "durationMs": 16.475417000000107
       },
       "virtual": {
         "status": "completed",
@@ -5134,7 +5125,7 @@
             }
           }
         },
-        "durationMs": 0.3583340000000135
+        "durationMs": 0.3989999999998872
       },
       "status": "pass",
       "differences": []
@@ -5162,7 +5153,7 @@
             }
           }
         },
-        "durationMs": 9.33516700000007
+        "durationMs": 16.365124999999807
       },
       "virtual": {
         "status": "completed",
@@ -5183,7 +5174,7 @@
             }
           }
         },
-        "durationMs": 0.11683400000003985
+        "durationMs": 0.8152079999999842
       },
       "status": "pass",
       "differences": []
@@ -5221,7 +5212,7 @@
             }
           }
         },
-        "durationMs": 10.529125000000022
+        "durationMs": 17.699457999999822
       },
       "virtual": {
         "status": "completed",
@@ -5242,21 +5233,17 @@
             },
             "last": {
               "type": "file",
-              "bytes": "Ywo=",
-              "mode": 420
-            },
-            "last.bak": {
-              "type": "file",
               "bytes": "YwpkCg==",
               "mode": 420
             }
           }
         },
-        "durationMs": 0.214917000000014
+        "durationMs": 0.34129200000006676
       },
       "status": "fail",
       "differences": [
-        "file:last"
+        "file:last",
+        "file:last.bak"
       ]
     },
     {
@@ -5282,7 +5269,7 @@
             }
           }
         },
-        "durationMs": 9.837041999999997
+        "durationMs": 17.57158299999992
       },
       "virtual": {
         "status": "completed",
@@ -5303,7 +5290,7 @@
             }
           }
         },
-        "durationMs": 0.1658750000000282
+        "durationMs": 0.23216600000000653
       },
       "status": "pass",
       "differences": []
@@ -5326,14 +5313,14 @@
             }
           }
         },
-        "durationMs": 9.21266700000001
+        "durationMs": 18.061374999999998
       },
       "virtual": {
         "status": "completed",
         "observation": {
-          "exitCode": 2,
-          "stdout": "",
-          "stderr": "c2VkOiB1bnN1cHBvcnRlZCBzZWQgY29tbWFuZCAncicK",
+          "exitCode": 0,
+          "stdout": "YQpleHRyYQpiCg==",
+          "stderr": "",
           "files": {
             "extra": {
               "type": "file",
@@ -5342,14 +5329,10 @@
             }
           }
         },
-        "durationMs": 0.1252910000000611
+        "durationMs": 0.31045800000015333
       },
-      "status": "unsupported",
-      "differences": [
-        "exitCode",
-        "stdout",
-        "stderr"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-write-command-gap",
@@ -5369,24 +5352,26 @@
             }
           }
         },
-        "durationMs": 8.934167000000002
+        "durationMs": 14.951083000000153
       },
       "virtual": {
         "status": "completed",
         "observation": {
-          "exitCode": 2,
+          "exitCode": 0,
           "stdout": "",
-          "stderr": "c2VkOiB1bnN1cHBvcnRlZCBzZWQgY29tbWFuZCAndycK",
-          "files": {}
+          "stderr": "",
+          "files": {
+            "written": {
+              "type": "file",
+              "bytes": "YQpiCg==",
+              "mode": 438
+            }
+          }
         },
-        "durationMs": 0.09891600000003109
+        "durationMs": 0.4371659999999338
       },
-      "status": "unsupported",
-      "differences": [
-        "exitCode",
-        "stderr",
-        "file:written"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-list-command-gap",
@@ -5400,24 +5385,20 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.802874999999972
+        "durationMs": 14.750667000000021
       },
       "virtual": {
         "status": "completed",
         "observation": {
-          "exitCode": 2,
-          "stdout": "",
-          "stderr": "c2VkOiB1bnN1cHBvcnRlZCBzZWQgY29tbWFuZCAnbCcK",
+          "exitCode": 0,
+          "stdout": "YVx0YiQK",
+          "stderr": "",
           "files": {}
         },
-        "durationMs": 0.09170800000003965
+        "durationMs": 0.2849580000001879
       },
-      "status": "unsupported",
-      "differences": [
-        "exitCode",
-        "stdout",
-        "stderr"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-pattern-backreference-gap",
@@ -5431,24 +5412,20 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.600333999999975
+        "durationMs": 12.914417000000185
       },
       "virtual": {
         "status": "completed",
         "observation": {
-          "exitCode": 2,
-          "stdout": "",
-          "stderr": "c2VkOiBwYXR0ZXJuIGJhY2tyZWZlcmVuY2VzIGFyZSBub3Qgc3VwcG9ydGVkCg==",
+          "exitCode": 0,
+          "stdout": "c2FtZQo=",
+          "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2543749999999818
+        "durationMs": 0.3306670000001759
       },
-      "status": "unsupported",
-      "differences": [
-        "exitCode",
-        "stdout",
-        "stderr"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "sed-binary-chunks-1",
@@ -5462,7 +5439,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.542333999999983
+        "durationMs": 15.207125000000133
       },
       "virtual": {
         "status": "completed",
@@ -5472,7 +5449,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12425000000007458
+        "durationMs": 0.20629199999984849
       },
       "status": "pass",
       "differences": []
@@ -5489,7 +5466,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.221499999999992
+        "durationMs": 13.843208000000004
       },
       "virtual": {
         "status": "completed",
@@ -5499,7 +5476,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15666600000008657
+        "durationMs": 0.34712500000000546
       },
       "status": "pass",
       "differences": []
@@ -5516,7 +5493,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.613041000000067
+        "durationMs": 18.427124999999933
       },
       "virtual": {
         "status": "completed",
@@ -5526,7 +5503,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1260420000000977
+        "durationMs": 0.1736670000000231
       },
       "status": "pass",
       "differences": []
@@ -5543,7 +5520,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.476583000000119
+        "durationMs": 16.174792000000025
       },
       "virtual": {
         "status": "completed",
@@ -5553,7 +5530,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13129200000003038
+        "durationMs": 0.5027500000001055
       },
       "status": "pass",
       "differences": []
@@ -5570,7 +5547,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.95841600000017
+        "durationMs": 14.608584000000064
       },
       "virtual": {
         "status": "completed",
@@ -5580,7 +5557,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.12145800000007512
+        "durationMs": 0.25662499999998545
       },
       "status": "pass",
       "differences": []
@@ -5597,7 +5574,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.430249999999887
+        "durationMs": 11.931249999999864
       },
       "virtual": {
         "status": "completed",
@@ -5607,7 +5584,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1360829999998714
+        "durationMs": 0.16695800000002237
       },
       "status": "pass",
       "differences": []
@@ -5624,7 +5601,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.611834000000044
+        "durationMs": 12.513584000000037
       },
       "virtual": {
         "status": "completed",
@@ -5634,7 +5611,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10554200000001401
+        "durationMs": 0.2545000000000073
       },
       "status": "pass",
       "differences": []
@@ -5651,7 +5628,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.032208999999966
+        "durationMs": 11.978417000000036
       },
       "virtual": {
         "status": "completed",
@@ -5661,7 +5638,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.11983299999997143
+        "durationMs": 0.21700000000009823
       },
       "status": "pass",
       "differences": []
@@ -5678,7 +5655,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.109332999999879
+        "durationMs": 13.29995800000006
       },
       "virtual": {
         "status": "completed",
@@ -5688,7 +5665,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 1.6897499999997763
+        "durationMs": 1.925375000000031
       },
       "status": "pass",
       "differences": []
@@ -5705,7 +5682,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.55079099999989
+        "durationMs": 13.657166000000188
       },
       "virtual": {
         "status": "completed",
@@ -5715,7 +5692,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.496375000000171
+        "durationMs": 0.5905410000000302
       },
       "status": "pass",
       "differences": []
@@ -5732,7 +5709,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.1909169999999
+        "durationMs": 12.424833000000035
       },
       "virtual": {
         "status": "completed",
@@ -5742,7 +5719,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3677499999998872
+        "durationMs": 0.6450830000001133
       },
       "status": "pass",
       "differences": []
@@ -5759,7 +5736,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.255416999999852
+        "durationMs": 12.635291000000052
       },
       "virtual": {
         "status": "completed",
@@ -5769,7 +5746,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.4588749999998072
+        "durationMs": 0.8207079999999678
       },
       "status": "pass",
       "differences": []
@@ -5786,7 +5763,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.333540999999968
+        "durationMs": 13.933667000000014
       },
       "virtual": {
         "status": "completed",
@@ -5796,7 +5773,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.38295800000014424
+        "durationMs": 0.5865420000000086
       },
       "status": "pass",
       "differences": []
@@ -5813,7 +5790,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.504416999999876
+        "durationMs": 12.790708999999879
       },
       "virtual": {
         "status": "completed",
@@ -5823,7 +5800,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.43670899999983703
+        "durationMs": 0.7221660000000156
       },
       "status": "pass",
       "differences": []
@@ -5840,7 +5817,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 11.115832999999839
+        "durationMs": 12.892458000000033
       },
       "virtual": {
         "status": "completed",
@@ -5850,7 +5827,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.17441600000006474
+        "durationMs": 0.20033300000000054
       },
       "status": "pass",
       "differences": []
@@ -5867,7 +5844,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.253917000000001
+        "durationMs": 13.225832999999966
       },
       "virtual": {
         "status": "completed",
@@ -5877,7 +5854,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2937500000000455
+        "durationMs": 0.534832999999935
       },
       "status": "pass",
       "differences": []
@@ -5894,7 +5871,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 14.105916999999863
+        "durationMs": 13.926582999999937
       },
       "virtual": {
         "status": "completed",
@@ -5904,7 +5881,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.37274999999999636
+        "durationMs": 0.4154999999998381
       },
       "status": "pass",
       "differences": []
@@ -5921,7 +5898,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 10.574375000000146
+        "durationMs": 15.791749999999865
       },
       "virtual": {
         "status": "completed",
@@ -5931,7 +5908,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.27358300000014424
+        "durationMs": 0.25645799999983865
       },
       "status": "pass",
       "differences": []
@@ -5948,7 +5925,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.769207999999935
+        "durationMs": 12.298791000000165
       },
       "virtual": {
         "status": "completed",
@@ -5958,7 +5935,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1355829999999969
+        "durationMs": 0.23033299999997325
       },
       "status": "pass",
       "differences": []
@@ -5975,7 +5952,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.419333000000051
+        "durationMs": 13.237540999999965
       },
       "virtual": {
         "status": "completed",
@@ -5985,7 +5962,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13666699999998855
+        "durationMs": 0.35054200000013225
       },
       "status": "pass",
       "differences": []
@@ -6002,7 +5979,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.850167000000056
+        "durationMs": 11.605457999999999
       },
       "virtual": {
         "status": "completed",
@@ -6012,7 +5989,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.25004100000001017
+        "durationMs": 0.3733750000001237
       },
       "status": "pass",
       "differences": []
@@ -6029,7 +6006,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.40887500000008
+        "durationMs": 12.573208000000022
       },
       "virtual": {
         "status": "completed",
@@ -6039,7 +6016,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.28595900000004804
+        "durationMs": 0.39912500000014006
       },
       "status": "pass",
       "differences": []
@@ -6056,7 +6033,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.089457999999922
+        "durationMs": 13.600625000000036
       },
       "virtual": {
         "status": "completed",
@@ -6066,7 +6043,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.1657909999998992
+        "durationMs": 0.43191700000011224
       },
       "status": "pass",
       "differences": []
@@ -6083,7 +6060,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.71370899999988
+        "durationMs": 11.552832999999964
       },
       "virtual": {
         "status": "completed",
@@ -6093,7 +6070,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.20287499999994907
+        "durationMs": 0.23891699999990124
       },
       "status": "pass",
       "differences": []
@@ -6110,7 +6087,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.462125000000015
+        "durationMs": 14.756709
       },
       "virtual": {
         "status": "completed",
@@ -6120,7 +6097,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3646249999999327
+        "durationMs": 0.5529579999999896
       },
       "status": "pass",
       "differences": []
@@ -6137,7 +6114,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.161749999999984
+        "durationMs": 11.743458000000146
       },
       "virtual": {
         "status": "completed",
@@ -6147,7 +6124,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.3011670000000777
+        "durationMs": 0.4197079999999005
       },
       "status": "pass",
       "differences": []
@@ -6164,7 +6141,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.213374999999814
+        "durationMs": 11.711416999999983
       },
       "virtual": {
         "status": "completed",
@@ -6174,7 +6151,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.14408400000002075
+        "durationMs": 0.25299999999992906
       },
       "status": "pass",
       "differences": []
@@ -6191,7 +6168,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.095083000000159
+        "durationMs": 11.366582999999991
       },
       "virtual": {
         "status": "completed",
@@ -6201,7 +6178,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2522910000000138
+        "durationMs": 0.32991599999991195
       },
       "status": "pass",
       "differences": []
@@ -6218,7 +6195,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.460332999999991
+        "durationMs": 10.571541000000025
       },
       "virtual": {
         "status": "completed",
@@ -6228,7 +6205,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2680410000000393
+        "durationMs": 0.4879169999999249
       },
       "status": "pass",
       "differences": []
@@ -6245,7 +6222,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.345583000000033
+        "durationMs": 10.177457999999888
       },
       "virtual": {
         "status": "completed",
@@ -6255,7 +6232,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18133299999999508
+        "durationMs": 0.18370900000013535
       },
       "status": "pass",
       "differences": []
@@ -6272,7 +6249,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 9.20595800000001
+        "durationMs": 11.100124999999935
       },
       "virtual": {
         "status": "completed",
@@ -6282,7 +6259,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.25833299999999326
+        "durationMs": 0.2978750000002037
       },
       "status": "pass",
       "differences": []
@@ -6299,7 +6276,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.46270800000002
+        "durationMs": 10.636124999999993
       },
       "virtual": {
         "status": "completed",
@@ -6309,7 +6286,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23537499999997635
+        "durationMs": 0.2873749999998836
       },
       "status": "pass",
       "differences": []
@@ -6326,7 +6303,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.882250000000113
+        "durationMs": 13.626416999999947
       },
       "virtual": {
         "status": "completed",
@@ -6336,7 +6313,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.22012500000005275
+        "durationMs": 0.23187499999994543
       },
       "status": "pass",
       "differences": []
@@ -6353,7 +6330,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.657916000000114
+        "durationMs": 11.665459000000055
       },
       "virtual": {
         "status": "completed",
@@ -6363,7 +6340,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.15916700000002493
+        "durationMs": 0.26749999999992724
       },
       "status": "pass",
       "differences": []
@@ -6380,7 +6357,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.377582999999959
+        "durationMs": 11.60091599999987
       },
       "virtual": {
         "status": "completed",
@@ -6390,7 +6367,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.6000409999999192
+        "durationMs": 0.6349579999998696
       },
       "status": "pass",
       "differences": []
@@ -6407,7 +6384,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.753416000000016
+        "durationMs": 14.010999999999967
       },
       "virtual": {
         "status": "completed",
@@ -6417,7 +6394,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19004099999983737
+        "durationMs": 0.31775000000016007
       },
       "status": "pass",
       "differences": []
@@ -6434,7 +6411,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.284209000000146
+        "durationMs": 12.617334000000028
       },
       "virtual": {
         "status": "completed",
@@ -6444,7 +6421,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.10016699999982848
+        "durationMs": 0.14733400000000074
       },
       "status": "pass",
       "differences": []
@@ -6461,7 +6438,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.698041999999987
+        "durationMs": 12.271541999999954
       },
       "virtual": {
         "status": "completed",
@@ -6471,7 +6448,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.19462499999985994
+        "durationMs": 0.26070800000002237
       },
       "status": "pass",
       "differences": []
@@ -6488,7 +6465,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.057457999999997
+        "durationMs": 13.077666000000136
       },
       "virtual": {
         "status": "completed",
@@ -6498,7 +6475,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.18908399999986614
+        "durationMs": 0.2448749999998654
       },
       "status": "pass",
       "differences": []
@@ -6521,7 +6498,7 @@
             }
           }
         },
-        "durationMs": 8.580000000000155
+        "durationMs": 12.145958000000064
       },
       "virtual": {
         "status": "completed",
@@ -6537,7 +6514,7 @@
             }
           }
         },
-        "durationMs": 0.2239999999999327
+        "durationMs": 0.2128339999999298
       },
       "status": "pass",
       "differences": []
@@ -6560,14 +6537,14 @@
             }
           }
         },
-        "durationMs": 8.398750000000064
+        "durationMs": 14.424792000000025
       },
       "virtual": {
         "status": "completed",
         "observation": {
-          "exitCode": 2,
-          "stdout": "",
-          "stderr": "YXdrOiBleHBlY3RlZCBhbiBpZGVudGlmaWVyIGF0IGJ5dGUgMTMK",
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc2Vjb25kCg==",
+          "stderr": "",
           "files": {
             "extra": {
               "type": "file",
@@ -6576,14 +6553,10 @@
             }
           }
         },
-        "durationMs": 0.1246249999999236
+        "durationMs": 0.6944999999998345
       },
-      "status": "fail",
-      "differences": [
-        "exitCode",
-        "stdout",
-        "stderr"
-      ]
+      "status": "pass",
+      "differences": []
     },
     {
       "name": "awk-unicode-byte-length-c-locale",
@@ -6597,7 +6570,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.489708000000064
+        "durationMs": 12.0618750000001
       },
       "virtual": {
         "status": "completed",
@@ -6607,7 +6580,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.2919169999997848
+        "durationMs": 0.21791700000017045
       },
       "status": "pass",
       "differences": []
@@ -6624,7 +6597,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 7.376915999999937
+        "durationMs": 12.606792000000269
       },
       "virtual": {
         "status": "completed",
@@ -6634,7 +6607,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.13387499999998909
+        "durationMs": 0.2172089999999116
       },
       "status": "pass",
       "differences": []
@@ -6651,7 +6624,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.010750000000144
+        "durationMs": 12.115332999999737
       },
       "virtual": {
         "status": "completed",
@@ -6661,7 +6634,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.17108299999995324
+        "durationMs": 0.25479200000017954
       },
       "status": "pass",
       "differences": []
@@ -6689,7 +6662,7 @@
             }
           }
         },
-        "durationMs": 9.101374999999962
+        "durationMs": 12.89850000000024
       },
       "virtual": {
         "status": "completed",
@@ -6710,7 +6683,7 @@
             }
           }
         },
-        "durationMs": 0.30479200000013407
+        "durationMs": 0.5210420000003069
       },
       "status": "pass",
       "differences": []
@@ -6738,7 +6711,7 @@
             }
           }
         },
-        "durationMs": 8.199707999999873
+        "durationMs": 14.95108399999981
       },
       "virtual": {
         "status": "completed",
@@ -6759,7 +6732,7 @@
             }
           }
         },
-        "durationMs": 0.18962499999997817
+        "durationMs": 0.4183330000000751
       },
       "status": "pass",
       "differences": []
@@ -6776,7 +6749,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 8.493999999999915
+        "durationMs": 13.02145900000005
       },
       "virtual": {
         "status": "completed",
@@ -6786,7 +6759,7 @@
           "stderr": "",
           "files": {}
         },
-        "durationMs": 0.23508300000003146
+        "durationMs": 0.3398339999998825
       },
       "status": "pass",
       "differences": []
@@ -6809,7 +6782,7 @@
             }
           }
         },
-        "durationMs": 13.349290999999994
+        "durationMs": 20.334540999999717
       },
       "virtual": {
         "status": "completed",
@@ -6825,7 +6798,7 @@
             }
           }
         },
-        "durationMs": 7.880583999999999
+        "durationMs": 11.090040999999928
       },
       "status": "pass",
       "differences": []
@@ -6848,7 +6821,7 @@
             }
           }
         },
-        "durationMs": 12.216666999999916
+        "durationMs": 16.74350000000004
       },
       "virtual": {
         "status": "completed",
@@ -6864,7 +6837,7 @@
             }
           }
         },
-        "durationMs": 1.4433749999998327
+        "durationMs": 2.4407920000003287
       },
       "status": "pass",
       "differences": []
@@ -6887,7 +6860,7 @@
             }
           }
         },
-        "durationMs": 12.111625000000004
+        "durationMs": 18.122749999999996
       },
       "virtual": {
         "status": "completed",
@@ -6903,7 +6876,7 @@
             }
           }
         },
-        "durationMs": 1.5367909999999938
+        "durationMs": 2.3579579999995985
       },
       "status": "pass",
       "differences": []

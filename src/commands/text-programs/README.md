@@ -85,15 +85,17 @@ unsupported; file commands use only the supplied virtual filesystem.
 
 Sed streams line records and buffers only required lookahead/pattern/hold/text
 state except in-place editing, which buffers one rewritten file. `-i` requires
-named regular files; symlinks and directories are rejected. A file is not
-changed, and its backup is not created, until its interpretation succeeds.
+named regular files; symlinks and directories are rejected. The buffered in-place
+replacement and its backup are deferred until interpretation succeeds. Explicit
+`w`/`s///w` commands still have immediate file effects, including when a script
+deliberately names an input file as its output.
 Nonempty backup suffixes copy the original to `FILE+SUFFIX`; suffixes containing
 slash/NUL are rejected. This is not a transaction: copy/write failures or a
 later input-file failure can leave earlier completed edits. Writes use the
 provider's file operation, not native rename-based replacement, so hardlink and
 metadata behavior need not match a particular host sed implementation.
 
-Known sed gaps include GNU zero/step/relative addresses, `l`, `r`/`R`, `w`/`W`,
+Known sed gaps include GNU zero/step/relative addresses, `R`, `W`,
 `e`, `z`, `F`, null-delimited records, sandbox-mode options, locale extensions,
 and full in-place metadata/link semantics. Line/hold/file buffers and loops are
 subject to the configured limits. Runtime errors can occur after earlier stdout

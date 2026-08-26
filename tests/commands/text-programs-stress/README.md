@@ -88,14 +88,14 @@ passes: only sed's unused lookahead remains failing. Combined with the unchanged
 and two oracle-rejected out of 161. The earlier five-failure safety observation
 is retained here as regression history, not presented as the current result.
 
-## After independent source fixes
+## First independent source fixes (historical)
 
 Source fixes are separate atomic commits: `e842095` expires numeric ranges after
 skipped input; `8699b5c` defers unused lookahead; `a8a6c70` preserves separators
 between named input files. Three harness tests also ensure unexpected native
 errors cannot become passes and byte/mode differences remain visible.
 
-The source-stable machine report now records **131/141 native passes**, four
+The source-stable machine report at that checkpoint recorded **131/141 native passes**, four
 divergences, four unsupported, and two oracle-rejected; safety is **20/20**.
 Combined: **151/161 pass**, no skips, pending outcomes, timeouts, or background
 errors. The author, regression, harness, and differential test command reports
@@ -117,3 +117,48 @@ an explicit virtual expected-output regression. The label/comment case now puts
 the comment on its own line instead of incorporating it into the label. These
 are fixture-validity corrections, not product fixes. Historical reports and Git
 history retain both original rejected inputs and their diagnostics.
+
+## Implemented gap fixes and unresolved dialect choices
+
+The follow-up adds bounded capture-state matching and pattern backreferences
+(`a769bce`), virtual `r`/`w`/`s///w` file operations (`4cc5457`), `l` listings
+(`1745ddc`, `86d3655`), file `getline` with cancellation/cleanup (`abd7e08`), and
+successful quit propagation across separate/in-place files (`3fa0846`). Resource
+regressions include regex position-scan accounting and the 256-reader limit
+(`a0215f6`). No native expected stdout/file bytes were rewritten to match a fix.
+
+The machine result is now **139/141 native pass, two raw differences**, with no
+unsupported, oracle-rejected, skipped, pending, or timeout cases. Safety remains
+**20/20**. This is **159/161**, not a fully passing comparison. The two original
+invalid fixtures were corrected separately, not counted as product bug fixes.
+The complete text test scope is **326/328 pass, two fail, zero skips/todos**;
+those failures are exactly the two BSD differences below. Whole-repository
+build and typecheck pass at this source checkpoint. No unrelated command,
+filesystem, or shell source was changed by the text verifier.
+
+`dialect-evidence.json` retains raw output and complete file-state observations
+from BSD sed, separately compiled GNU sed 4.9, and this implementation. The GNU
+source URL/archive hash, executable hashes/version, and interpreter-source hashes
+are recorded. Build products live only in a temporary oracle directory, not the
+shipped library or its dependency manifest. Reproduce the targeted diagnostic:
+
+```sh
+GNU_SED_ORACLE=/absolute/path/to/gnu-sed-4.9 node --import tsx tests/commands/text-programs-stress/dialects.ts
+```
+
+Missing GNU configuration is explicitly pending and exits nonzero, never a
+successful skip. Any native mismatch also exits nonzero. This three-case
+diagnostic investigates dialects; it is not another compatibility score.
+
+- For `s/^|$/X/g`, GNU and virtual output is `XabcX`; BSD is `Xabc`. No product
+  change was made merely to suppress the end-anchor substitution.
+- For in-place `1q` across two files, GNU and virtual preserve the second file
+  without creating its backup. BSD truncates it and creates a backup. The source
+  fix stops the entire invocation, rather than restarting it for each file; it
+  does not deliberately reproduce BSD's truncation of later files.
+- Ambiguous `((a|aa)*)` captures are `[aaaa][aa]` in BSD/virtual and `[aaaa][a]`
+  in GNU. Thus claiming universal BSD/GNU equivalence would also be false.
+
+Both remaining BSD differences stay active in the default differential tests;
+no blanket skip/todo or relaxed byte assertion has been added. Resolving the
+acceptance policy for mutually different native dialects is still required.

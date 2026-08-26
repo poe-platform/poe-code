@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import type { TextCase } from "./cases.js";
 import type { Execution, Observation } from "./model.js";
 
-export async function native(fixture: TextCase): Promise<Execution> {
+export async function native(fixture: TextCase, sedExecutable = "/usr/bin/sed"): Promise<Execution> {
   const started = performance.now();
   const root = await realpath(await mkdtemp(join(tmpdir(), "virtual-text-independent-")));
   try {
@@ -15,8 +15,10 @@ export async function native(fixture: TextCase): Promise<Execution> {
       await writeFile(join(root, path), Buffer.from(content, "base64"), { mode: 0o644 });
     }
     const command = "/bin/bash";
-    const program = fixture.tool === "pipeline" ? fixture.script! : `exec /usr/bin/${fixture.tool} "$@"`;
-    const args = ["--noprofile", "--norc", "-c", `umask 0; ${program}`, "independent-text-oracle", ...fixture.args];
+    if (!sedExecutable.startsWith("/") || sedExecutable.includes("\0")) throw new Error("Native sed executable must be an absolute path without NUL");
+    const executable = fixture.tool === "sed" ? sedExecutable : "/usr/bin/awk";
+    const program = fixture.tool === "pipeline" ? fixture.script! : 'exec "$@"';
+    const args = ["--noprofile", "--norc", "-c", `umask 0; ${program}`, "independent-text-oracle", ...(fixture.tool === "pipeline" ? [] : [executable]), ...fixture.args];
     const output = await new Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }>((resolve, reject) => {
       const child = spawn(command, args, { cwd: root, detached: true, stdio: ["pipe", "pipe", "pipe"],
         env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC", HOME: root, TMPDIR: root } });

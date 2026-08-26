@@ -109,7 +109,19 @@ export class Prompt<Value> extends EventEmitter {
     }
 
     if (this.input.isTTY !== true) {
-      return this.promptNonTty();
+      return this.promptNonTty().then((value) => {
+        if (value === CANCEL || !this.trackValue) {
+          return value;
+        }
+        this.setValue(value);
+        const error = this.validate?.(this.value);
+        if (error) {
+          throw error instanceof Error ? error : new Error(error);
+        }
+        this.state = "submit";
+        this.emit("finalize");
+        return this.value as Value;
+      });
     }
 
     if (this.input.destroyed || this.input.readableEnded) {

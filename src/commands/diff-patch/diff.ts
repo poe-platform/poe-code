@@ -4,6 +4,7 @@ import { contextual, normal, type Edit } from "./diff-format.js";
 
 interface DiffFlags {
   format: "normal" | "unified" | "context";
+  whitespace: "exact" | "change" | "all";
   context: number;
   brief: boolean;
   recursive: boolean;
@@ -13,7 +14,7 @@ interface DiffFlags {
 }
 
 function flags(args: readonly string[]): DiffFlags {
-  const result: DiffFlags = { format: "normal", context: 3, brief: false, recursive: false, newFile: false, labels: [], files: [] };
+  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 3, brief: false, recursive: false, newFile: false, labels: [], files: [] };
   let selectedFormat: DiffFlags["format"] | undefined;
   const selectFormat = (format: DiffFlags["format"]) => {
     if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
@@ -32,6 +33,8 @@ function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--brief") result.brief = true;
     else if (arg === "--recursive") result.recursive = true;
     else if (arg === "--new-file") result.newFile = true;
+    else if (arg === "--ignore-all-space") result.whitespace = "all";
+    else if (arg === "--ignore-space-change") { if (result.whitespace !== "all") result.whitespace = "change"; }
     else if (arg === "--normal") selectFormat("normal");
     else if (arg === "--unified") selectFormat("unified");
     else if (arg.startsWith("--unified=")) { selectFormat("unified"); result.context = integer(arg.slice(10), "context"); }
@@ -47,6 +50,8 @@ function flags(args: readonly string[]): DiffFlags {
         else if (flag === "q") result.brief = true;
         else if (flag === "r") result.recursive = true;
         else if (flag === "N") result.newFile = true;
+        else if (flag === "w") result.whitespace = "all";
+        else if (flag === "b") { if (result.whitespace !== "all") result.whitespace = "change"; }
         else if (flag === "U" || flag === "C" || flag === "L") {
           const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
           if (flag === "U") { selectFormat("unified"); result.context = integer(parameter, "context"); }
@@ -65,15 +70,37 @@ function flags(args: readonly string[]): DiffFlags {
   return result;
 }
 
-async function edits(oldLines: string[], newLines: string[], budget: Budget): Promise<Edit[]> {
+async function comparisonLines(lines: string[], whitespace: DiffFlags["whitespace"], budget: Budget): Promise<string[]> {
+  if (whitespace === "exact") return lines;
+  const result: string[] = [];
+  for (const line of lines) {
+    budget.step(1 + line.length);
+    await budget.checkpoint();
+    const body = line.endsWith("\n") ? line.slice(0, -1) : line;
+    const normalized = body.replace(/[ \t\v\f\r]+/gu, whitespace === "all" ? "" : " ");
+    result.push(normalized.endsWith(" ") ? normalized.slice(0, -1) : normalized);
+  }
+  return result;
+}
+
+async function equivalent(oldKeys: string[], newKeys: string[], budget: Budget): Promise<boolean> {
+  if (oldKeys.length !== newKeys.length) return false;
+  for (let index = 0; index < oldKeys.length; index++) {
+    if (!budget.equal(oldKeys[index], newKeys[index])) return false;
+    await budget.checkpoint();
+  }
+  return true;
+}
+
+async function edits(oldLines: string[], newLines: string[], oldKeys: string[], newKeys: string[], budget: Budget): Promise<Edit[]> {
   let prefix = 0;
-  while (prefix < Math.min(oldLines.length, newLines.length) && budget.equal(oldLines[prefix], newLines[prefix])) {
+  while (prefix < Math.min(oldLines.length, newLines.length) && budget.equal(oldKeys[prefix], newKeys[prefix])) {
     prefix++;
     await budget.checkpoint();
   }
   let suffix = 0;
   while (suffix < Math.min(oldLines.length, newLines.length) - prefix
-    && budget.equal(oldLines[oldLines.length - suffix - 1], newLines[newLines.length - suffix - 1])) {
+    && budget.equal(oldKeys[oldLines.length - suffix - 1], newKeys[newLines.length - suffix - 1])) {
     suffix++;
     await budget.checkpoint();
   }
@@ -86,26 +113,29 @@ async function edits(oldLines: string[], newLines: string[], budget: Budget): Pr
   if (matrix) for (let oldIndex = oldCount - 1; oldIndex >= 0; oldIndex--) {
     for (let newIndex = newCount - 1; newIndex >= 0; newIndex--) {
       const position = oldIndex * width + newIndex;
-      matrix[position] = budget.equal(oldLines[prefix + oldIndex], newLines[prefix + newIndex])
+      matrix[position] = budget.equal(oldKeys[prefix + oldIndex], newKeys[prefix + newIndex])
         ? 1 + matrix[position + width + 1]!
         : Math.max(matrix[position + width]!, matrix[position + 1]!);
       await budget.checkpoint();
     }
   }
-  const result: Edit[] = oldLines.slice(0, prefix).map(line => ({ kind: " ", line }));
+  const result: Edit[] = oldLines.slice(0, prefix).map((line, index) => ({ kind: " ", line, newLine: newLines[index]! }));
   let oldIndex = 0;
   let newIndex = 0;
   while (oldIndex < oldCount || newIndex < newCount) {
     budget.step();
-    if (oldIndex < oldCount && newIndex < newCount && budget.equal(oldLines[prefix + oldIndex], newLines[prefix + newIndex])) {
-      result.push({ kind: " ", line: oldLines[prefix + oldIndex++]! });
-      newIndex++;
+    if (oldIndex < oldCount && newIndex < newCount && budget.equal(oldKeys[prefix + oldIndex], newKeys[prefix + newIndex])) {
+      result.push({ kind: " ", line: oldLines[prefix + oldIndex++]!, newLine: newLines[prefix + newIndex++]! });
     } else if (oldIndex < oldCount && (newIndex === newCount || matrix![oldIndex * width + newIndex + width]! >= matrix![oldIndex * width + newIndex + 1]!)) {
       result.push({ kind: "-", line: oldLines[prefix + oldIndex++]! });
     } else result.push({ kind: "+", line: newLines[prefix + newIndex++]! });
     await budget.checkpoint();
   }
-  for (const line of oldLines.slice(oldLines.length - suffix)) result.push({ kind: " ", line });
+  for (let index = 0; index < suffix; index++) {
+    result.push({ kind: " ", line: oldLines[oldLines.length - suffix + index]!, newLine: newLines[newLines.length - suffix + index]! });
+    budget.step();
+    await budget.checkpoint();
+  }
   return result;
 }
 
@@ -166,10 +196,15 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const oldText = await read(left, !!leftStat);
     const newText = await read(right, !!rightStat);
     if (oldText === newText) continue;
+    const oldLines = budget.split(oldText);
+    const newLines = budget.split(newText);
+    const oldKeys = await comparisonLines(oldLines, options.whitespace, budget);
+    const newKeys = await comparisonLines(newLines, options.whitespace, budget);
+    if (options.whitespace !== "exact" && await equivalent(oldKeys, newKeys, budget)) continue;
     different = true;
     if (options.brief) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
     else {
-      const changes = await edits(budget.split(oldText), budget.split(newText), budget);
+      const changes = await edits(oldLines, newLines, oldKeys, newKeys, budget);
       if (options.format === "normal") await normal(changes, budget, append);
       else await contextual(changes, options.format, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
     }

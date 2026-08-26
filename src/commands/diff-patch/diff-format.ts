@@ -1,6 +1,6 @@
 import type { Budget } from "./shared.js";
 
-export interface Edit { readonly kind: " " | "+" | "-"; readonly line: string }
+export interface Edit { readonly kind: " " | "+" | "-"; readonly line: string; readonly newLine?: string }
 
 function range(start: number, count: number): string {
   return count === 0 ? `${start}` : count === 1 ? `${start + 1}` : `${start + 1},${start + count}`;
@@ -58,7 +58,8 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
     budget.step();
     await budget.checkpoint();
     if (changes[scan]!.kind === " ") {
-      append(outputLine("  ", changes[scan++]!.line));
+      const edit = changes[scan++]!;
+      append(outputLine("  ", kind === "+" ? edit.newLine ?? edit.line : edit.line));
       continue;
     }
     let groupEnd = scan;

@@ -1,6 +1,33 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { isAbsolute, join } from "node:path";
 import test from "node:test";
 import { native, run } from "./helpers.js";
+
+async function whitespaceNative(tool: "diff", args: readonly string[], files: Readonly<Record<string, string>>) {
+  const binary = process.env.DIFF_WHITESPACE_ORACLE;
+  if (binary === undefined) return native(tool, args, files);
+  assert(isAbsolute(binary), "DIFF_WHITESPACE_ORACLE must be an explicit absolute path");
+  const root = await mkdtemp(join(tmpdir(), "virtual-diff-whitespace-"));
+  try {
+    for (const [name, text] of Object.entries(files)) {
+      assert(name === "old" || name === "new");
+      assert(Buffer.byteLength(text) <= 256 * 1024);
+      await writeFile(join(root, name), text, { flag: "wx" });
+    }
+    const result = spawnSync(binary, [...args], {
+      cwd: root, shell: false, input: "", encoding: "utf8", timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
+      env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC", HOME: root, TMPDIR: root },
+    });
+    if (result.error) throw result.error;
+    assert.equal(result.signal, null);
+    assert.notEqual(result.status, null);
+    return { exitCode: result.status, stdout: result.stdout, stderr: result.stderr };
+  } finally { await rm(root, { recursive: true, force: true }); }
+}
 
 const marker = "\n\\ No newline at end of file\n";
 const normalCases = [
@@ -193,4 +220,164 @@ test("context brief labels and explicit maximum safe context count", async () =>
   }
   const result = await run("diff", ["-C9007199254740991", "-L", "OLD", "-L", "NEW", "old", "new"], { files });
   assert.equal(result.stdout, "*** OLD\n--- NEW\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n");
+});
+
+const whitespaceCases = [
+  { name: "run amount", old: "a  b\n", next: "a\tb\n", change: true, all: true },
+  { name: "all C-locale whitespace", old: "a \t\v\f\rb \t\v\f\r\n", next: "a b\n", change: true, all: true },
+  { name: "trailing run", old: "a\t \n", next: "a\n", change: true, all: true },
+  { name: "leading run amount", old: "  a\n", next: "\ta\n", change: true, all: true },
+  { name: "leading run presence", old: " a\n", next: "a\n", change: false, all: true },
+  { name: "internal run presence", old: "a b\n", next: "ab\n", change: false, all: true },
+  { name: "spacing only blank line", old: " \t\n", next: "\n", change: true, all: true },
+  { name: "CRLF", old: "a\r\nb\r\n", next: "a\nb\n", change: true, all: true },
+  { name: "missing final newline", old: "a", next: "a\n", change: true, all: true },
+  { name: "new missing final newline", old: "a\n", next: "a", change: true, all: true },
+  { name: "blank line deletion remains significant", old: "a\n\n", next: "a\n", change: false, all: false },
+  { name: "whitespace line deletion remains significant", old: "a\n \n", next: "a\n", change: false, all: false },
+  { name: "line boundaries remain significant", old: "a\nb\n", next: "ab\n", change: false, all: false },
+  { name: "NBSP remains significant", old: "a\u00a0b\n", next: "ab\n", change: false, all: false },
+  { name: "Unicode em space remains significant", old: "a\u2003b\n", next: "ab\n", change: false, all: false },
+  { name: "BOM remains significant", old: "\ufeffa\n", next: "a\n", change: false, all: false },
+  { name: "case remains significant", old: "a b\n", next: "A b\n", change: false, all: false },
+  { name: "original non-ASCII bytes", old: "café  雪\n", next: "café\t雪\n", change: true, all: true },
+];
+
+test("whitespace oracle identity and exact comparison policy", async context => {
+  const binary = process.env.DIFF_WHITESPACE_ORACLE ?? "/usr/bin/diff";
+  const identity = await whitespaceNative("diff", ["--version"], {});
+  assert.equal(identity.exitCode, 0);
+  context.diagnostic(JSON.stringify({ binary, version: identity.stdout.split("\n")[0], sha256: createHash("sha256").update(await readFile(binary)).digest("hex"),
+    semantics: "C-locale space/tab/VT/FF/CR; newline delimits lines; incomplete/full final lines may match; -w dominates -b; unified context uses original old lines; context format uses each original side" }));
+  for (const fixture of whitespaceCases) for (const mode of ["change", "all"] as const) {
+    const result = await run("diff", [mode === "all" ? "-w" : "-b", "old", "new"], { files: { old: fixture.old, new: fixture.next } });
+    assert.equal(result.exitCode, fixture[mode] ? 0 : 1, `${fixture.name}, ${mode}: ${result.stderr}`);
+    if (fixture[mode]) assert.equal(result.stdout, "");
+  }
+});
+
+for (const fixture of whitespaceCases) for (const mode of ["change", "all"] as const) for (const format of ["--normal", "-u", "-c"]) {
+  test(`whitespace native exact bytes: ${fixture.name}, ${mode}, ${format}`, async () => {
+    const flags = mode === "all" ? ["-w", "--ignore-all-space"] : ["-b", "--ignore-space-change"];
+    const files = { old: fixture.old, new: fixture.next };
+    for (const flag of flags) {
+      const args = [flag, format, "-L", "OLD", "-L", "NEW", "old", "new"];
+      const expected = await whitespaceNative("diff", args, files);
+      assert.equal(expected.exitCode, fixture[mode] ? 0 : 1);
+      assert.equal(expected.stderr, "");
+      const actual = await run("diff", args, { files });
+      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
+        { exitCode: expected.exitCode, stdout: expected.stdout, stderr: "" });
+    }
+  });
+}
+
+const originalWhitespaceCases = [
+  { flags: ["-w"], old: " a b \n old text\t\n x y \n", next: "ab\n new text  \nxy\n", normal: "2c2\n<  old text\t\n---\n>  new text  \n",
+    unified: "@@ -1,3 +1,3 @@\n  a b \n- old text\t\n+ new text  \n  x y \n",
+    context: "*** 1,3 ****\n   a b \n!  old text\t\n   x y \n--- 1,3 ----\n  ab\n!  new text  \n  xy\n" },
+  { flags: ["-b"], old: " a  b \n old text\t\n x  y \n", next: "\ta\tb\n new text  \n\tx\ty\n", normal: "2c2\n<  old text\t\n---\n>  new text  \n",
+    unified: "@@ -1,3 +1,3 @@\n  a  b \n- old text\t\n+ new text  \n  x  y \n",
+    context: "*** 1,3 ****\n   a  b \n!  old text\t\n   x  y \n--- 1,3 ----\n  \ta\tb\n!  new text  \n  \tx\ty\n" },
+];
+
+for (const fixture of originalWhitespaceCases) for (const format of ["normal", "unified", "context"] as const) {
+  test(`whitespace preserves original bodies and both context sides: ${fixture.flags[0]}, ${format}`, async () => {
+    const args = [...fixture.flags, `--${format}`, "-L", "OLD", "-L", "NEW", "old", "new"];
+    const files = { old: fixture.old, new: fixture.next };
+    const prefix = format === "unified" ? "--- OLD\n+++ NEW\n" : format === "context" ? "*** OLD\n--- NEW\n***************\n" : "";
+    const expected = { exitCode: 1, stdout: prefix + fixture[format], stderr: "" };
+    for (const actual of [await run("diff", args, { files }), await whitespaceNative("diff", args, files)]) {
+      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
+    }
+  });
+}
+
+for (const flags of [["-wb"], ["-bw"], ["-w", "-b"], ["-b", "-w"], ["--ignore-all-space", "--ignore-space-change"], ["--ignore-space-change", "--ignore-all-space"], ["-buw"], ["-wub"], ["-bcw"], ["-wcb"]]) {
+  test(`all-space dominates space-change in flag permutations: ${JSON.stringify(flags)}`, async () => {
+    const files = { old: "a b\nold\n", new: "ab\nnew\n" };
+    const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
+    const expected = await whitespaceNative("diff", args, files);
+    assert.equal(expected.exitCode, 1);
+    const actual = await run("diff", args, { files });
+    assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
+      { exitCode: expected.exitCode, stdout: expected.stdout, stderr: "" });
+  });
+}
+
+for (const flags of [["-wq"], ["-qw"], ["-bq"], ["--brief", "--ignore-space-change"], ["-wcq"], ["-buq"]]) {
+  test(`whitespace brief compares normalized lines and retains labels: ${JSON.stringify(flags)}`, async () => {
+    const args = [...flags, "-L", "BEFORE", "-L", "AFTER", "old", "new"];
+    const same = await run("diff", args, { files: { old: "a  b\n", new: "a\tb\n" } });
+    assert.equal(same.exitCode, 0);
+    assert.equal(same.stdout, "");
+    const different = await run("diff", args, { files: { old: "a  b\n", new: "a\tc\n" } });
+    assert.equal(different.exitCode, 1);
+    assert.equal(different.stdout, "Files BEFORE and AFTER differ\n");
+  });
+}
+
+test("whitespace comparison applies to stdin, recursive files, and missing files", async () => {
+  const stdin = await run("diff", ["-b", "-", "new"], { input: "a\tb\n", files: { new: "a  b \n" } });
+  assert.equal(stdin.exitCode, 0);
+  assert.equal(stdin.stdout, "");
+  const recursive = await run("diff", ["-rw", "left", "right"], { files: { "left/same": "a b\n", "right/same": "ab\n", "left/different": "old\n", "right/different": "new\n" } });
+  assert.equal(recursive.exitCode, 1);
+  assert.equal(recursive.stdout, "1c1\n< old\n---\n> new\n");
+  const missing = await run("diff", ["-Nw", "old", "new"], { files: { new: " \n" } });
+  assert.equal(missing.exitCode, 1);
+  assert.equal(missing.stdout, "0a1\n>  \n");
+});
+
+test("whitespace equivalence avoids unnecessary LCS allocation", async () => {
+  for (const flag of ["-w", "-b"]) {
+    const actual = await run("diff", [flag, "-c", "old", "new"], {
+      files: { old: "a b\n".repeat(200), new: "a  b \n".repeat(200) }, options: { maxMatrixCells: 1 },
+    });
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.equal(actual.stdout, "");
+  }
+});
+
+for (const format of ["--normal", "-U0", "-C0"]) for (const options of [{ maxInputBytes: 1 }, { maxOutputBytes: 1 }, { maxLines: 1 }, { maxMatrixCells: 1 }, { maxWork: 1 }, { maxHunks: 1 }]) {
+  test(`whitespace ${format} output is atomic on budget failure: ${JSON.stringify(options)}`, async () => {
+    const actual = await run("diff", ["-w", format, "old", "new"], { files: { old: "a\nb c\nd\n", new: "A\nbc\nD\n" }, options });
+    assert.equal(actual.exitCode, 2);
+    assert.equal(actual.stdout, "");
+  });
+}
+
+test("normalization charges original characters even when all are ignored", async () => {
+  for (const flags of [["-w"], ["-b"], ["-qw"], ["-qb"]]) {
+    const actual = await run("diff", [...flags, "old", "new"], { files: { old: `${" ".repeat(10_000)}\n`, new: "\n" }, options: { maxWork: 1000 } });
+    assert.equal(actual.exitCode, 2);
+    assert.equal(actual.stdout, "");
+    assert.match(actual.stderr, /work limit/u);
+  }
+});
+
+test("whitespace cancellation interrupts normalization without output", async () => {
+  const controller = new AbortController();
+  const reason = new Error("cancel whitespace normalization");
+  let writes = 0;
+  const pending = run("diff", ["-wc", "old", "new"], {
+    files: { old: "a b\n".repeat(10_000), new: "ab\n".repeat(10_000) }, signal: controller.signal,
+    stdout: { async write() { writes++; } },
+  });
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try { await assert.rejects(pending, error => error === reason); }
+  finally { clearTimeout(timer); }
+  assert.equal(writes, 0);
+});
+
+test("whitespace context preserves per-side incomplete-line markers and native parity", async context => {
+  const files = { old: "old\nx y", new: "new\nxy\n" };
+  const args = ["-wc", "-L", "OLD", "-L", "NEW", "old", "new"];
+  const expected = `*** OLD\n--- NEW\n***************\n*** 1,2 ****\n! old\n  x y${marker}--- 1,2 ----\n! new\n  xy\n`;
+  const actual = await run("diff", args, { files });
+  assert.equal(actual.exitCode, 1);
+  assert.equal(actual.stdout, expected);
+  const oracle = await whitespaceNative("diff", args, files);
+  context.diagnostic(JSON.stringify({ parity: oracle.stdout === expected, nativeExitCode: oracle.exitCode, nativeStdout: oracle.stdout, expected }));
+  assert.equal(oracle.stdout, expected);
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { run, type Files } from "./helpers.js";
+import { native, run, type Files } from "./helpers.js";
 
 const files = { left: "a\nb\nc\nd\ne\nf\ng\n", right: "A\nb\nc\nd\ne\nf\nG\n" };
 const labels = ["-L", "BEFORE", "-L", "AFTER"];
@@ -59,6 +59,20 @@ const identicalInputs: { name: string; files: Files }[] = [
   { name: "missing left and empty right", files: { right: "" } },
   { name: "empty left and missing right", files: { left: "" } },
 ];
+
+for (const fixture of [
+  { flags: ["-wC0", "-c"], expected: "*** OLD\n--- NEW\n***************\n*** 2 ****\n! old\n--- 2 ----\n! new\n" },
+  { flags: ["-bU0", "-uw"], expected: "--- OLD\n+++ NEW\n@@ -2 +2 @@\n-old\n+new\n" },
+]) {
+  test(`explicit-count regression with whitespace: ${JSON.stringify(fixture.flags)}`, async () => {
+    const args = [...fixture.flags, "-L", "OLD", "-L", "NEW", "old", "new"];
+    const inputs = { old: "a b\nold\n", new: "ab\nnew\n" };
+    for (const actual of [await run("diff", args, { files: inputs }), await native("diff", args, inputs)]) {
+      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
+        { exitCode: 1, stdout: fixture.expected, stderr: "" });
+    }
+  });
+}
 
 for (const fixture of identicalInputs) {
   test(`diff brief labels remain silent: ${fixture.name}`, async () => {

@@ -1,5 +1,6 @@
 import { Readable, PassThrough } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { setImmediate } from "node:timers/promises";
 import { createGunzip, createGzip } from "node:zlib";
 import { FsError, readBytes, type ByteSource } from "../../../contracts/index.js";
 import type { CompressionOptions } from "./options.js";
@@ -8,7 +9,13 @@ export const chunkBytes = 64 * 1024;
 export const stagingLimit = 256 * 1024 * 1024;
 
 async function* split(source: ByteSource, signal: AbortSignal): ByteSource {
+  let emptyChunks = 0;
   for await (const chunk of readBytes(source, signal)) {
+    if (!chunk.byteLength) {
+      if (++emptyChunks >= 64) { await setImmediate(undefined, { signal }); emptyChunks = 0; }
+      continue;
+    }
+    emptyChunks = 0;
     for (let offset = 0; offset < chunk.byteLength; offset += chunkBytes) {
       signal.throwIfAborted();
       yield chunk.slice(offset, offset + chunkBytes);

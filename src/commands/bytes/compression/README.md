@@ -83,6 +83,8 @@ Those capability flags may be absent if the methods are present. Inputs must
 be regular, non-symlink entries, including for stdout/test modes.
 
 The codec uses 64 KiB chunks/high-water marks and awaited sinks for backpressure.
+An empty-only producer yields to the event loop after every 64 chunks, including
+during forced-decompression prefix probing, so scheduled cancellation can run.
 This bounds command-managed read-ahead, not the size of a chunk already supplied
 by a producer, nor buffering inside an adapter. Named input gets the combined
 parent/internal abort signal, as does the staging writer. Source, codec, and
